@@ -1,0 +1,18 @@
+{ header: 
+   { version: '5.3',
+     date: '2018-05-30T19:52:21.037749Z',
+     session: 'a3b26d4d-b86c982149fe7a50f5a5d5b4',
+     username: 'dano',
+     msg_type: 'stream',
+     msg_id: 'da052052-f469ab73dec9331145243d49' },
+  parent_header: 
+   { msg_id: '7907f661-6da2-435f-990b-5cb0c31f5c59',
+     date: '2018-05-30T19:52:21.012000Z',
+     version: '5.2',
+     msg_type: 'execute_request',
+     username: 'dano',
+     session: '3016241e-cbf9-43fd-a172-b86d05528040' },
+  metadata: {},
+  content: { name: 'stdout', text: '4\n' },
+  buffers: [],
+  channel: 'iopub' }
