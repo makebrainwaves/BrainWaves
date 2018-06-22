@@ -3,7 +3,8 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { Grid, Button } from "semantic-ui-react";
 import styles from "./Home.css";
-import { createStream } from "../utils/emotiv";
+import { createStream as createEmotivStream } from "../utils/emotiv";
+import { createStream as createMuseStream } from "../utils/muse";
 
 type Props = {
   jupyterActions: Object
@@ -40,8 +41,11 @@ export default class Home extends Component<Props> {
               </Button>
             </Grid.Column>
             <Grid.Column>
-              <Button onClick={() => createStream()}>
+              <Button onClick={() => createEmotivStream()}>
                 Start Emotiv Stream
+              </Button>
+              <Button onClick={() => createMuseStream()}>
+                Start Muse Stream
               </Button>
             </Grid.Column>
           </Grid>
