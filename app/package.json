@@ -1,0 +1,22 @@
+{
+  "name": "BrainWaves",
+  "productName": "BrainWaves",
+  "version": "0.0.0",
+  "description": "EEG Desktop Application",
+  "main": "./main.prod.js",
+  "author": {
+    "name": "Dano Morrison",
+    "email": "dano@neurotechx.com",
+    "url": "https://github.com/makebrainwaves"
+  },
+  "scripts": {
+    "electron-rebuild": "node -r babel-register ../internals/scripts/ElectronRebuild.js",
+    "postinstall": "npm run electron-rebuild"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "enchannel-zmq-backend": "^6.0.11",
+    "kernelspecs": "^2.0.0",
+    "spawnteract": "^4.0.0"
+  }
+}
