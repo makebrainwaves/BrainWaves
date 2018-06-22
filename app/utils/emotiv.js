@@ -2,19 +2,10 @@
  * Adapted from the Cortex example, this will return an RxJS observable of raw EEG data
  *
  */
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/from";
-import "rxjs/add/observable/fromEvent";
-import { mergeMap, map, tap } from "rxjs/operators";
-import { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } from "../../keys";
 
-// TODO: Slim this down to just initing and returning Cortex client object for Redux
-function initCortex() {
-  const verbose = process.env.LOG_LEVEL || 1;
-  const options = { verbose };
-
-  return new Cortex(options);
-}
+const { Observable, from } = require("rxjs");
+const { mergeMap, map } = require("rxjs/operators");
+const { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } = require("../../keys");
 
 function createRawEmotivObservable(client, auth, onEEG) {
   return Observable.from(
@@ -26,7 +17,6 @@ function createRawEmotivObservable(client, auth, onEEG) {
           .subscribe({ streams: ["eeg"] })
       )
   ).pipe(
-    tap(() => console.log("authentication and created session")),
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
       return Observable.fromEvent(client, "eeg").pipe(map(onEEG));
@@ -34,16 +24,19 @@ function createRawEmotivObservable(client, auth, onEEG) {
   );
 }
 
-const createStream = () => {
-  const client = initCortex();
-  console.log("created new client", client);
+function createStream() {
+  const verbose = process.env.LOG_LEVEL || 1;
+  const options = { verbose };
 
+  const client = new Cortex(options);
   // these values need to be filled to run example
   const auth = {
-    username: USERNAME,
-    password: PASSWORD,
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET
+    username: "DEL2001",
+    password: "SACKLER",
+    client_id: "dBZd9QAuRs9beMlit6OsifkmhnbWBO78w2aPd65S",
+    client_secret:
+      "OZ1rhyCYOsh7edKXNGCjrBm08hywzIA72oH0Gge6TXa7BV9A02Pbk2z3cmbwpxy1hHtfnMJ9kdU98EPtP6bOG3hUr7wyBKoZTJQAF05AdxfTYs2GtFvSiSccN1b2erR5",
+    debit: 1
   };
 
   const onEEG = data => ({
@@ -53,9 +46,35 @@ const createStream = () => {
 
   const rawObservable = createRawEmotivObservable(client, auth, onEEG);
 
-  console.log("created Raw Observable");
+  rawObservable.subscribe(console.log);
+}
+
+if (require.main === module) {
+  process.on("unhandledRejection", err => {
+    throw err;
+  });
+
+  const verbose = process.env.LOG_LEVEL || 1;
+  const options = { verbose };
+
+  const client = new Cortex(options);
+  // these values need to be filled to run example
+  const auth = {
+    username: USERNAME,
+    password: PASSWORD,
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    debit: 1
+  };
+
+  const onEEG = data => ({
+    data: data.eeg,
+    timestamp: data.time
+  });
+
+  const rawObservable = createRawEmotivObservable(client, auth, onEEG);
 
   rawObservable.subscribe(console.log);
-};
+}
 
-module.exports = { createRawEmotivObservable, initCortex, createStream };
+module.exports = { createRawEmotivObservable, createStream };
