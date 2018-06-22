@@ -1,4 +1,4 @@
-import { MUSE_SERVICE, MuseClient, zipSamples, channelNames } from "muse-js";
+
 
 const initMuseClient = () => {
   return new MuseClient();
