@@ -13,25 +13,7 @@ function initCortex() {
   const verbose = process.env.LOG_LEVEL || 1;
   const options = { verbose };
 
-  const client = new Cortex(options);
-
-  // these values need to be filled to run example
-  const auth = {
-    username: USERNAME,
-    password: PASSWORD,
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    debit: 1
-  };
-
-  const onEEG = data => ({
-    data: data.eeg,
-    timestamp: data.time
-  });
-
-  const rawObservable = createRawEmotivObservable(client, auth, onEEG);
-
-  rawObservable.subscribe(console.log);
+  return new Cortex(options);
 }
 
 function createRawEmotivObservable(client, auth, onEEG) {

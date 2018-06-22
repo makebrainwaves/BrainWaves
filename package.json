@@ -1,8 +1,8 @@
 {
-  "name": "BrainWaves",
-  "productName": "BrainWaves",
-  "version": "0.0.0",
-  "description": "EEG Experiment Desktop Application",
+  "name": "electron-react-boilerplate",
+  "productName": "ElectronReact",
+  "version": "0.13.3",
+  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
   "scripts": {
     "build": "concurrently \"npm run build-main\" \"npm run build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development node --trace-warnings -r babel-register ./node_modules/webpack/bin/webpack --config webpack.config.renderer.dev.dll.js --colors",
@@ -43,8 +43,8 @@
     ]
   },
   "build": {
-    "productName": "BrainWaves",
-    "appId": "",
+    "productName": "ElectronReact",
+    "appId": "org.develar.ElectronReact",
     "files": [
       "dist/",
       "node_modules/",
@@ -86,14 +86,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/makebrainwaves/BrainWaves"
+    "url": "git+https://github.com/chentsulin/electron-react-boilerplate.git"
   },
   "author": {
-    "name": "Dano Morrison",
-    "email": "dano@neurotechx.com",
-    "url": "https://github.com/makebrainwa"
+    "name": "C. T. Lin",
+    "email": "chentsulin@gmail.com",
+    "url": "https://github.com/chentsulin"
   },
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chentsulin/electron-react-boilerplate/issues"
+  },
   "keywords": [
     "electron",
     "boilerplate",
@@ -105,7 +108,7 @@
     "hot",
     "reload"
   ],
-  "homepage": "https://wp.nyu.edu/brainwaves/",
+  "homepage": "https://github.com/chentsulin/electron-react-boilerplate#readme",
   "jest": {
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
@@ -209,6 +212,7 @@
     "history": "^4.7.2",
     "kernelspecs": "^2.0.0",
     "lodash": "^4.17.10",
+    "muse-js": "^3.0.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-hot-loader": "^4.0.0-beta.13",
