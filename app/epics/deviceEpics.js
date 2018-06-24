@@ -1,7 +1,11 @@
 import { combineEpics } from "redux-observable";
 import { INIT_CLIENT } from "../actions/deviceActions";
 import { map, tap, filter } from "rxjs/operators";
-import { initCortex, createRawEmotivObservable } from "../utils/emotiv";
+import {
+  initCortex,
+  createRawEmotivObservable,
+  createStream
+} from "../utils/emotiv";
 
 export const SET_CLIENT = "SET_CLIENT";
 export const SET_CONNECTED_DEVICE = "SET_CONNECTED_DEVICE";
