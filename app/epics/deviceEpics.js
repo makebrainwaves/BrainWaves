@@ -4,7 +4,6 @@ import { map, tap, filter } from "rxjs/operators";
 import {
   initCortex,
   createRawEmotivObservable,
-  createStream
 } from "../utils/emotiv";
 
 export const SET_CLIENT = "SET_CLIENT";
