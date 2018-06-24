@@ -6,10 +6,10 @@ import { routerMiddleware, routerActions } from "react-router-redux";
 import { createLogger } from "redux-logger";
 import rootReducer from "../reducers";
 import rootEpic from "../epics";
-import * as counterActions from "../actions/counter";
-import * as jupyterActions from "../actions/counter";
-import type { counterStateType } from "../reducers/counter";
-import type { jupyterStateType } from "../reducers/jupyter";
+import * as jupyterActions from "../actions/jupyterActions";
+import * as deviceActions from "../actions/deviceActions";
+import type { deviceStateType } from "../reducers/deviceReducer";
+import type { jupyterStateType } from "../reducers/jupyterReducer";
 
 const history = createHashHistory();
 
@@ -42,7 +42,7 @@ const configureStore = (initialState?: AppState) => {
 
   // Redux DevTools Configuration
   const actionCreators = {
-    ...counterActions,
+    ...deviceActions,
     ...jupyterActions,
     ...routerActions
   };

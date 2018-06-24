@@ -1,12 +1,12 @@
 // @flow
 import { combineReducers } from "redux";
 import { routerReducer as router } from "react-router-redux";
-import counter from "./counter";
-import jupyter from "./jupyter";
+import jupyter from "./jupyterReducer";
+import device from "./deviceReducer";
 
 const rootReducer = combineReducers({
-  counter,
   jupyter,
+  device,
   router
 });
 

@@ -1,5 +1,5 @@
 import { combineEpics } from "redux-observable";
-import counter from "./counter";
-import jupyter from "./jupyter";
+import jupyter from "./jupyterEpics";
+import device from "./deviceEpics";
 
-export default combineEpics(counter, jupyter);
+export default combineEpics(device, jupyter);
