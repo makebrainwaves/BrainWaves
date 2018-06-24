@@ -1,16 +1,33 @@
 /*
- * Adapted from the Cortex example, this will return an RxJS observable of raw EEG data
+ * Adapted from the Cortex example, this file provides functions for creating a Cortex client and creating
+ * an RxJS Observable of raw EEG data
  *
  */
 
-const { Observable, from } = require("rxjs");
+const { Observable } = require("rxjs");
 const { mergeMap, map } = require("rxjs/operators");
 const { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } = require("../../keys");
 
-function createRawEmotivObservable(client, auth, onEEG) {
+function initCortex() {
+  const verbose = process.env.LOG_LEVEL || 1;
+  const options = { verbose };
+
+  return new Cortex(options);
+}
+
+function createRawEmotivObservable(client) {
   return Observable.from(
     client.ready
-      .then(() => client.init(auth))
+      .then(() =>
+        client.init({
+          // These values need to be filled with personal Emotiv credentials
+          username: USERNAME,
+          password: PASSWORD,
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          debit: 1
+        })
+      )
       .then(() =>
         client
           .createSession({ status: "active" })
@@ -19,62 +36,19 @@ function createRawEmotivObservable(client, auth, onEEG) {
   ).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
-      return Observable.fromEvent(client, "eeg").pipe(map(onEEG));
+      return Observable.fromEvent(client, "eeg").pipe(
+        map(data => ({
+          data: data.eeg,
+          timestamp: data.time
+        }))
+      );
     })
   );
 }
 
-function createStream() {
-  const verbose = process.env.LOG_LEVEL || 1;
-  const options = { verbose };
-
-  const client = new Cortex(options);
-  // these values need to be filled to run example
-  const auth = {
-    username: "DEL2001",
-    password: "SACKLER",
-    client_id: "dBZd9QAuRs9beMlit6OsifkmhnbWBO78w2aPd65S",
-    client_secret:
-      "OZ1rhyCYOsh7edKXNGCjrBm08hywzIA72oH0Gge6TXa7BV9A02Pbk2z3cmbwpxy1hHtfnMJ9kdU98EPtP6bOG3hUr7wyBKoZTJQAF05AdxfTYs2GtFvSiSccN1b2erR5",
-    debit: 1
-  };
-
-  const onEEG = data => ({
-    data: data.eeg,
-    timestamp: data.time
-  });
-
-  const rawObservable = createRawEmotivObservable(client, auth, onEEG);
-
-  rawObservable.subscribe(console.log);
-}
-
 if (require.main === module) {
-  process.on("unhandledRejection", err => {
-    throw err;
-  });
-
-  const verbose = process.env.LOG_LEVEL || 1;
-  const options = { verbose };
-
-  const client = new Cortex(options);
-  // these values need to be filled to run example
-  const auth = {
-    username: USERNAME,
-    password: PASSWORD,
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    debit: 1
-  };
-
-  const onEEG = data => ({
-    data: data.eeg,
-    timestamp: data.time
-  });
-
-  const rawObservable = createRawEmotivObservable(client, auth, onEEG);
-
+  const rawObservable = createRawEmotivObservable(initCortex());
   rawObservable.subscribe(console.log);
 }
 
-module.exports = { createRawEmotivObservable, createStream };
+module.exports = { createRawEmotivObservable, initCortex };

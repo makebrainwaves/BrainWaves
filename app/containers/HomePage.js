@@ -2,8 +2,8 @@
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import Home from "../components/Home";
-import * as counterActions from "../actions/counter";
-import * as jupyterActions from "../actions/jupyter";
+import * as deviceActions from "../actions/deviceActions";
+import * as jupyterActions from "../actions/jupyterActions";
 
 function mapStateToProps(state) {
   return {};
@@ -11,9 +11,12 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    counterActions: bindActionCreators(counterActions, dispatch),
+    deviceActions: bindActionCreators(deviceActions, dispatch),
     jupyterActions: bindActionCreators(jupyterActions, dispatch)
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Home);

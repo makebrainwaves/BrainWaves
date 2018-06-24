@@ -5,7 +5,7 @@ import {
   REQUEST_KERNEL_INFO,
   SEND_EXECUTE_REQUEST,
   CLOSE_KERNEL
-} from "../actions/jupyter";
+} from "../actions/jupyterActions";
 import {
   map,
   mergeMap,

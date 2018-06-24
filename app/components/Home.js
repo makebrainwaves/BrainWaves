@@ -7,7 +7,8 @@ import { createStream as createEmotivStream } from "../utils/emotiv";
 import { createStream as createMuseStream } from "../utils/muse";
 
 type Props = {
-  jupyterActions: Object
+  jupyterActions: Object,
+  deviceActions: Object,
 };
 
 export default class Home extends Component<Props> {
@@ -41,7 +42,7 @@ export default class Home extends Component<Props> {
               </Button>
             </Grid.Column>
             <Grid.Column>
-              <Button onClick={() => createEmotivStream()}>
+              <Button onClick={() => this.props.deviceActions.initClient()}>
                 Start Emotiv Stream
               </Button>
               <Button onClick={() => createMuseStream()}>

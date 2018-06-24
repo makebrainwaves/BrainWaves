@@ -4,7 +4,7 @@ import {
   SET_MAIN_CHANNEL,
   SET_KERNEL_INFO,
   RECEIVE_EXECUTE_RETURN
-} from "../epics/jupyter";
+} from "../epics/jupyterEpics";
 import { ChildProcess } from "child_process";
 import { Subject } from "rxjs";
 
