@@ -1,6 +1,7 @@
 // @flow
 import {
-  SET_CLIENT,
+  SET_EMOTIV_CLIENT,
+  SET_MUSE_CLIENT,
   SET_CONNECTED_DEVICE,
   SET_DISCONNECTED,
   SET_RAW_OBSERVABLE,
@@ -10,7 +11,8 @@ import {
 export type deviceStateType = {
   client: ?any,
   connectedDevice: Object,
-  rawObservable: ?any
+  rawObservable: ?any,
+  deviceType: string
 };
 
 type actionType = {
@@ -21,7 +23,8 @@ type actionType = {
 const initialState = {
   client: null,
   connectedDevice: { name: "disconnected" },
-  rawObservable: null
+  rawObservable: null,
+  deviceType: ""
 };
 
 export default function device(
@@ -29,10 +32,18 @@ export default function device(
   action: actionType
 ) {
   switch (action.type) {
-    case SET_CLIENT:
+    case SET_EMOTIV_CLIENT:
       return {
         ...state,
-        client: action.payload
+        client: action.payload,
+        deviceType: "EMOTIV"
+      };
+
+    case SET_MUSE_CLIENT:
+      return {
+        ...state,
+        client: action.payload,
+        deviceType: "MUSE"
       };
 
     case SET_CONNECTED_DEVICE:

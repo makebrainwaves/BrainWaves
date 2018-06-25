@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 import { Grid, Button } from "semantic-ui-react";
 import styles from "./Home.css";
 import { createStream as createMuseStream } from "../utils/muse";
+import { Observable } from "rxjs";
 
 type Props = {
   jupyterActions: Object,
   deviceActions: Object,
+  rawObservable: ?any
 };
 
 export default class Home extends Component<Props> {
@@ -41,11 +43,16 @@ export default class Home extends Component<Props> {
               </Button>
             </Grid.Column>
             <Grid.Column>
-              <Button onClick={() => this.props.deviceActions.initClient()}>
-                Start Emotiv Stream
+              <Button onClick={() => this.props.deviceActions.initEmotiv()}>
+                Init Emotiv
               </Button>
-              <Button onClick={() => createMuseStream()}>
-                Start Muse Stream
+              <Button onClick={() => this.props.deviceActions.initMuse()}>
+                Init Muse
+              </Button>
+              <Button
+                onClick={() => this.props.rawObservable.subscribe(console.log)}
+              >
+                Subscribe to Stream
               </Button>
             </Grid.Column>
           </Grid>

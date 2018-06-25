@@ -6,7 +6,9 @@ import * as deviceActions from "../actions/deviceActions";
 import * as jupyterActions from "../actions/jupyterActions";
 
 function mapStateToProps(state) {
-  return {};
+  return {
+    rawObservable: state.device.rawObservable
+  };
 }
 
 function mapDispatchToProps(dispatch) {
