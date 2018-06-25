@@ -79,6 +79,7 @@ app/renderer.prod.js.map
 app/style.css
 app/style.css.map
 dist
+app/dist
 dll
 main.js
 main.js.map
