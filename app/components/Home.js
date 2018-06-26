@@ -5,6 +5,7 @@ import { Grid, Button } from "semantic-ui-react";
 import styles from "./Home.css";
 import { createStream as createMuseStream } from "../utils/muse";
 import { Observable } from "rxjs";
+import { jsPsych, Experiment } from "jspsych-react";
 
 type Props = {
   jupyterActions: Object,
@@ -14,6 +15,10 @@ type Props = {
 
 export default class Home extends Component<Props> {
   props: Props;
+
+  componentDidMount(){
+
+  }
 
   render() {
     return (
@@ -55,6 +60,7 @@ export default class Home extends Component<Props> {
                 Subscribe to Stream
               </Button>
             </Grid.Column>
+            <Experiment></Experiment>
           </Grid>
         </div>
       </div>
