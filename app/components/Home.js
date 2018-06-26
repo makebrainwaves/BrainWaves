@@ -6,6 +6,9 @@ import styles from "./Home.css";
 import { createStream as createMuseStream } from "../utils/muse";
 import { Observable } from "rxjs";
 import { jsPsych, Experiment } from "jspsych-react";
+import { timelineFactory } from "../utils/timeline";
+import callback_html_display from "../utils/plugins/callback_html_display";
+import callback_image_display from "../utils/plugins/callback_image_display";
 
 type Props = {
   jupyterActions: Object,
@@ -16,18 +19,14 @@ type Props = {
 export default class Home extends Component<Props> {
   props: Props;
 
-  componentDidMount(){
-
-  }
+  componentDidMount() {}
 
   render() {
     return (
       <div>
         <div className={styles.container} data-tid="container">
-          <h2>Home</h2>
-          <Link to="/counter">to Counter</Link>
-          <Grid columns={2} divided relaxed>
-            <Grid.Column>
+          <Grid divided relaxed>
+            {/* <Grid.Column>
               <Button onClick={this.props.jupyterActions.launchKernel}>
                 Launch Kernel
               </Button>
@@ -59,8 +58,14 @@ export default class Home extends Component<Props> {
               >
                 Subscribe to Stream
               </Button>
-            </Grid.Column>
-            <Experiment></Experiment>
+            </Grid.Column> */}
+            <Experiment
+              timeline={timelineFactory(targetID => console.log(targetID))}
+              plugins={{
+                callback_image_display: callback_image_display,
+                callback_html_display: callback_html_display
+              }}
+            />
           </Grid>
         </div>
       </div>
