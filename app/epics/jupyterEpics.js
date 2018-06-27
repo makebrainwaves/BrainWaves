@@ -53,13 +53,11 @@ const receiveExecuteReturn = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => Observable.from(find("python2"))),
+    mergeMap(() => Observable.from(find("python3"))),
     tap(console.log),
-    filter(kernelInfo => kernelInfo),
     mergeMap(kernelInfo =>
       Observable.from(
         launchSpec(kernelInfo.spec, {
-          cwd: "/tmp",
           // No STDIN, opt in to STDOUT and STDERR as node streams
           stdio: ["ignore", "pipe", "pipe"]
         })

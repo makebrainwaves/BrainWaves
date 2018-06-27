@@ -36,7 +36,7 @@ export default class Home extends Component<Props> {
         <div className={styles.container} data-tid="container">
           <Grid columns={1} divided relaxed>
             <Grid.Row>
-              {/* <Grid.Column>
+              <Grid.Column>
                 <Button onClick={this.props.jupyterActions.launchKernel}>
                   Launch Kernel
                 </Button>
@@ -55,7 +55,7 @@ export default class Home extends Component<Props> {
                 <Button onClick={() => this.props.jupyterActions.closeKernel()}>
                   Close Kernel
                 </Button>
-              </Grid.Column> */}
+              </Grid.Column>
               <Grid.Column>
                 <Button onClick={() => this.props.deviceActions.initEmotiv()}>
                   Init Emotiv
