@@ -53,7 +53,9 @@ const receiveExecuteReturn = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => Observable.from(find("python3"))),
+    mergeMap(() => Observable.from(find("python2"))),
+    tap(console.log),
+    filter(kernelInfo => kernelInfo),
     mergeMap(kernelInfo =>
       Observable.from(
         launchSpec(kernelInfo.spec, {

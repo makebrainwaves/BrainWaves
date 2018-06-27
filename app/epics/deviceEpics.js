@@ -44,7 +44,7 @@ const initMuseEpic = (action$, store) =>
   action$.ofType(INIT_MUSE).pipe(
     filter(() => !store.getState().device.client),
     map(initMuseClient),
-    map(setEmotivClient)
+    map(setMuseClient)
   );
 
 const setRawEmotivObservable = action$ =>

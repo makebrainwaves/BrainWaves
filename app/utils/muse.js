@@ -23,7 +23,7 @@ async function createRawMuseObservable(client) {
   await client.start();
   console.log("Connected!");
   const eegStream = await client.eegReadings;
-  return eegStream
+  return Observable.from(zipSamples(eegStream));
 }
 
 module.exports = { createRawMuseObservable, initMuseClient };
