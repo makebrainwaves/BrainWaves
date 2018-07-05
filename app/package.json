@@ -11,7 +11,7 @@
   },
   "scripts": {
     "electron-rebuild": "node -r babel-register ../internals/scripts/ElectronRebuild.js",
-    "postinstall": "npm run electron-rebuild"
+    "postinstall": "patch-package && npm run electron-rebuild"
   },
   "license": "MIT",
   "dependencies": {
@@ -22,5 +22,8 @@
     "noble-winrt": "^0.1.0",
     "node-pre-gyp": "^0.10.0",
     "spawnteract": "^4.0.0"
+  },
+  "devDependencies": {
+    "patch-package": "^5.1.1"
   }
 }
