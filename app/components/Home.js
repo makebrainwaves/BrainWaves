@@ -78,13 +78,9 @@ export default class Home extends Component<Props> {
               <p>{this.state.eegData.join(",  ")}</p>
             </Grid.Row>
             <Grid.Row centered>
-              <Experiment
-                timeline={timelineFactory(targetID => console.log(targetID))}
-                plugins={{
-                  callback_image_display: callback_image_display,
-                  callback_html_display: callback_html_display
-                }}
-              />
+              <Link to={"experimentRun"}>
+                <Button>Run Experiment</Button>
+              </Link>
             </Grid.Row>
           </Grid>
         </div>
