@@ -6,7 +6,7 @@ import {
   RECEIVE_EXECUTE_RETURN
 } from "../epics/jupyterEpics";
 import { ChildProcess } from "child_process";
-import { Subject } from "rxjs";
+import { Subject, AnonymousSubject } from "rxjs";
 
 export type jupyterStateType = {
   kernel: ?{
@@ -15,7 +15,7 @@ export type jupyterStateType = {
     kernelSpec: Object,
     spawn: ChildProcess
   },
-  mainChannel: ?Subject
+  mainChannel: ?any
 };
 
 type actionType = {
@@ -40,6 +40,7 @@ export default function jupyter(
       };
 
     case SET_MAIN_CHANNEL:
+      console.log(action.payload);
       return {
         ...state,
         mainChannel: action.payload
@@ -49,7 +50,7 @@ export default function jupyter(
       console.log(action.payload);
       return state;
 
-      case RECEIVE_EXECUTE_RETURN:
+    case RECEIVE_EXECUTE_RETURN:
       console.log(action.payload);
       return state;
 

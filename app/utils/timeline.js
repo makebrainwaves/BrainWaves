@@ -27,7 +27,7 @@ const plugin_name = "callback_image_display";
  * }
  *
  */
-export function timelineFactory(callback) {
+export function timelineFactory(experimentType, callback) {
 
   const start_callback = function() {
     callback("start");
