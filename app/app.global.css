@@ -43,10 +43,6 @@ a:hover {
   cursor: pointer;
 }
 
-.jspsych-content-wrapper {
-  width: 300px;
-}
-
 .jspsych-display-element {
   width: 50% !important;
 }

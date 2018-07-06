@@ -5,10 +5,6 @@ import { Grid, Button, Segment } from "semantic-ui-react";
 import styles from "./Home.css";
 import { createStream as createMuseStream } from "../utils/muse";
 import { Observable } from "rxjs";
-import { jsPsych, Experiment } from "jspsych-react";
-import { timelineFactory } from "../utils/timeline";
-import callback_html_display from "../utils/plugins/callback_html_display";
-import callback_image_display from "../utils/plugins/callback_image_display";
 
 type Props = {
   jupyterActions: Object,

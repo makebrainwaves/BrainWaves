@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 import { Grid, Button, Segment } from "semantic-ui-react";
 import { jsPsych, Experiment } from "jspsych-react";
 import { isNil } from "lodash";
-import { timelineFactory } from "../utils/timeline";
-import callback_html_display from "../utils/plugins/callback_html_display";
-import callback_image_display from "../utils/plugins/callback_image_display";
+import styles from "./ExperimentRun.css";
+import { parseTimeline } from "../utils/jspsych/functions"
+import callback_html_display from "../utils/jspsych/plugins/callback_html_display";
+import callback_image_display from "../utils/jspsych/plugins/callback_image_display";
 import { EXPERIMENTS } from "../constants/constants";
+import { timeline } from "../utils/jspsych/timelines/P300";
 
 type Props = {
   type: ?EXPERIMENTS,
@@ -59,9 +61,7 @@ export default class Home extends Component<Props> {
     }
     return (
       <Experiment
-        timeline={timelineFactory(this.props.type, targetID =>
-          console.log(targetID)
-        )}
+        timeline={parseTimeline(timeline)}
         plugins={{
           callback_image_display,
           callback_html_display
@@ -73,7 +73,7 @@ export default class Home extends Component<Props> {
   render() {
     return (
       <div>
-        <div data-tid="container">
+        <div className={styles.experimentContainer} data-tid="container">
           <Grid columns={1} divided relaxed>
             <Grid.Row centered>
               {this.renderExperiment(this.props.type)}
