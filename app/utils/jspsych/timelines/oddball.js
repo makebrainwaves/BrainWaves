@@ -1,4 +1,5 @@
 import { jsPsych } from "jspsych-react";
+import { readdirSync } from "fs";
 
 // Default experiment parameters
 const params = {
@@ -10,6 +11,12 @@ const params = {
   prob: 0.15,
   plugin_name: "callback_image_display"
 };
+
+// Directories containing stimuli
+// Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
+// while the timeline reads from Brainwaves/app. Currently removing 'app/' from path in timeline
+const targetsDir = "./app/assets/cat_dog/cats/";
+const nontargetsDir = "./app/assets/cat_dog/dogs/";
 
 // Default callback
 const callback = value => console.log(value, new Date().getTime());
@@ -29,7 +36,7 @@ const oddballSamplingFn = trials => {
   return trialOrder;
 };
 
-export const timeline = {
+export const oddballTimeline = {
   mainTimeline: ["welcome", "oddballProcedure", "end"], // array of trial and timeline ids
   welcome: {
     type: "callback_html_display",
@@ -43,7 +50,7 @@ export const timeline = {
     timeline: [
       {
         type: "callback_image_display",
-        stimulus: "./assets/fixation.jpg",
+        stimulus: "./assets/cat_dog/fixation.jpg",
         trial_duration: () => params.iti + Math.random() * params.jitter,
         post_trial_gap: 0
       },
@@ -60,41 +67,17 @@ export const timeline = {
       type: "custom",
       fn: oddballSamplingFn
     },
-    // TODO: Write function that automatically generates this from reading dir
-    timeline_variables: [
-      {
-        stimulus: "./assets/p300/target-1.jpg",
+    timeline_variables: readdirSync(targetsDir)
+      .map(filename => ({
+        stimulus: targetsDir.replace("app/", "") + filename,
         callback: () => callback("target")
-      },
-      {
-        stimulus: "./assets/p300/target-2.jpg",
-        callback: () => callback("target")
-      },
-      {
-        stimulus: "./assets/p300/target-3.jpg",
-        callback: () => callback("target")
-      },
-      {
-        stimulus: "./assets/p300/target-4.jpg",
-        callback: () => callback("target")
-      },
-      {
-        stimulus: "./assets/p300/nontarget-1.jpg",
-        callback: () => callback("non-target")
-      },
-      {
-        stimulus: "./assets/p300/nontarget-2.jpg",
-        callback: () => callback("non-target")
-      },
-      {
-        stimulus: "./assets/p300/nontarget-3.jpg",
-        callback: () => callback("non-target")
-      },
-      {
-        stimulus: "./assets/p300/nontarget-4.jpg",
-        callback: () => callback("non-target")
-      }
-    ]
+      }))
+      .concat(
+        readdirSync(nontargetsDir).map(filename => ({
+          stimulus: nontargetsDir.replace("app/", "") + filename,
+          callback: () => callback("nontarget")
+        }))
+      )
   },
   end: {
     id: "end",
