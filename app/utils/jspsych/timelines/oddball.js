@@ -12,14 +12,11 @@ const params = {
   plugin_name: "callback_image_display"
 };
 
-// Directories containing stimuli
+//  Default directories containing stimuli
 // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 // while the timeline reads from Brainwaves/app. Currently removing 'app/' from path in timeline
 const targetsDir = "./app/assets/cat_dog/cats/";
 const nontargetsDir = "./app/assets/cat_dog/dogs/";
-
-// Default callback
-const callback = value => console.log(value, new Date().getTime());
 
 // Oddball sampling function
 // Assumes first half of the trials are oddball stimuli
@@ -36,54 +33,58 @@ const oddballSamplingFn = trials => {
   return trialOrder;
 };
 
-export const oddballTimeline = {
-  mainTimeline: ["welcome", "oddballProcedure", "end"], // array of trial and timeline ids
-  welcome: {
-    type: "callback_html_display",
-    id: "welcome",
-    stimulus: "Welcome to the experiment. Press any key to begin.",
-    post_trial_gap: 1000,
-    on_load: () => callback("start")
-  },
-  oddballProcedure: {
-    id: "oddballProcedure",
-    timeline: [
-      {
-        type: "callback_image_display",
-        stimulus: "./assets/cat_dog/fixation.jpg",
-        trial_duration: () => params.iti + Math.random() * params.jitter,
-        post_trial_gap: 0
-      },
-      {
-        stimulus: jsPsych.timelineVariable("stimulus"),
-        on_load: jsPsych.timelineVariable("callback"),
-        type: params.plugin_name,
-        choices: ["f", "j"],
-        trial_duration: params.trial_duration,
-        post_trial_gap: 0
-      }
-    ],
-    sample: {
-      type: "custom",
-      fn: oddballSamplingFn
+export const buildOddballTimeline = callback => ({
+  mainTimeline: ["welcome", "oddballTimeline", "end"], // array of trial and timeline ids
+  trials: {
+    welcome: {
+      type: "callback_html_display",
+      id: "welcome",
+      stimulus: "Welcome to the experiment. Press any key to begin.",
+      post_trial_gap: 1000,
+      on_load: () => callback("start")
     },
-    timeline_variables: readdirSync(targetsDir)
-      .map(filename => ({
-        stimulus: targetsDir.replace("app/", "") + filename,
-        callback: () => callback("target")
-      }))
-      .concat(
-        readdirSync(nontargetsDir).map(filename => ({
-          stimulus: nontargetsDir.replace("app/", "") + filename,
-          callback: () => callback("nontarget")
-        }))
-      )
+    end: {
+      id: "end",
+      type: "callback_html_display",
+      stimulus: "Thanks for participating",
+      post_trial_gap: 500,
+      on_load: callback("stop")
+    }
   },
-  end: {
-    id: "end",
-    type: "callback_html_display",
-    stimulus: "Thanks for participating",
-    post_trial_gap: 500,
-    on_load: callback("stop")
+  timelines: {
+    oddballTimeline: {
+      id: "oddballTimeline",
+      timeline: [
+        {
+          type: "callback_image_display",
+          stimulus: "./assets/cat_dog/fixation.jpg",
+          trial_duration: () => params.iti + Math.random() * params.jitter,
+          post_trial_gap: 0
+        },
+        {
+          stimulus: jsPsych.timelineVariable("stimulusVar"),
+          on_load: jsPsych.timelineVariable("callbackVar"),
+          type: params.plugin_name,
+          choices: ["f", "j"],
+          trial_duration: params.trial_duration,
+          post_trial_gap: 0
+        }
+      ],
+      sample: {
+        type: "custom",
+        fn: oddballSamplingFn
+      },
+      timeline_variables: readdirSync(targetsDir)
+        .map(filename => ({
+          stimulusVar: targetsDir.replace("app/", "") + filename,
+          callbackVar: () => callback("target")
+        }))
+        .concat(
+          readdirSync(nontargetsDir).map(filename => ({
+            stimulusVar: nontargetsDir.replace("app/", "") + filename,
+            callbackVar: () => callback("nontarget")
+          }))
+        )
+    }
   }
-};
+});

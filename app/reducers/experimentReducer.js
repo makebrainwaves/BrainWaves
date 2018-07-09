@@ -1,43 +1,45 @@
 // @flow
-import {} from "../epics/experimentEpics";
+import { SET_TIMELINE } from "../epics/experimentEpics";
 import { SET_TYPE } from "../actions/experimentActions";
 import { EXPERIMENTS } from "../constants/constants";
+import {
+  MainTimeline,
+  Trial,
+  Timeline,
+  ActionType
+} from "../constants/interfaces";
 
 // TODO: create custom types for timeline and plugins
-export type experimentStateType = {
+export type ExperimentStateType = {
   type: ?EXPERIMENTS,
-  dir: ?string,
-  timeline: ?Array,
+  mainTimeline: ?MainTimeline,
+  trials: ?Object<Trial>,
+  timelines: ?Object<Timeline>,
   plugins: ?Object,
   subject: ?string,
   session: ?number,
   duration: ?number
 };
 
-type actionType = {
-  +payload: any,
-  +type: string
-};
-
 const initialState = {
-  type: null,
-  dir: null,
-  timeline: null,
-  plugins: null,
-  subject: null,
-  session: null,
-  duration: null
+  type: null
 };
 
 export default function experiment(
-  state: deviceStateType = initialState,
-  action: actionType
+  state: DeviceStateType = initialState,
+  action: ActionType
 ) {
   switch (action.type) {
     case SET_TYPE:
       return {
         ...state,
         type: action.payload
+      };
+
+    case SET_TIMELINE:
+      return {
+        ...state,
+        ...action.payload
       };
 
     default:
