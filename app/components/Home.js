@@ -1,15 +1,15 @@
 // @flow
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { Grid, Button, Segment } from "semantic-ui-react";
+import { Grid, Button } from "semantic-ui-react";
 import styles from "./Home.css";
-import { createStream as createMuseStream } from "../utils/muse";
-import { Observable } from "rxjs";
+import { injectMarker } from "../utils/emotiv";
 
 type Props = {
   jupyterActions: Object,
   deviceActions: Object,
-  rawObservable: ?any
+  rawObservable: ?any,
+  client: ?any
 };
 
 export default class Home extends Component<Props> {
@@ -67,6 +67,9 @@ export default class Home extends Component<Props> {
                   }
                 >
                   Subscribe to Stream
+                </Button>
+                <Button onClick={() => injectMarker(this.props.client, 1, new Date().getTime())}>
+                  Inject Marker
                 </Button>
               </Grid.Column>
             </Grid.Row>

@@ -7,7 +7,8 @@ import * as jupyterActions from "../actions/jupyterActions";
 
 function mapStateToProps(state) {
   return {
-    rawObservable: state.device.rawObservable
+    rawObservable: state.device.rawObservable,
+    client: state.device.client
   };
 }
 
