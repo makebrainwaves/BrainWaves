@@ -5,12 +5,12 @@ import { Grid, Button } from "semantic-ui-react";
 import styles from "./Home.css";
 import { injectMarker } from "../utils/emotiv";
 
-type Props = {
-  jupyterActions: Object,
-  deviceActions: Object,
-  rawObservable: ?any,
-  client: ?any
-};
+interface Props {
+  jupyterActions: Object;
+  deviceActions: Object;
+  rawObservable: ?any;
+  client: ?any;
+}
 
 export default class Home extends Component<Props> {
   props: Props;
@@ -61,14 +61,20 @@ export default class Home extends Component<Props> {
                 </Button>
                 <Button
                   onClick={() =>
-                    this.props.rawObservable.subscribe(eeg =>
-                      this.setState({ eegData: eeg.data })
-                    )
+                    this.props.rawObservable.subscribe(eeg => null)
                   }
                 >
                   Subscribe to Stream
                 </Button>
-                <Button onClick={() => injectMarker(this.props.client, 1, new Date().getTime())}>
+                <Button
+                  onClick={() =>
+                    injectMarker(
+                      this.props.client,
+                      Math.random() > 0.5 ? "test1" : "test2",
+                      new Date().getTime()
+                    )
+                  }
+                >
                   Inject Marker
                 </Button>
               </Grid.Column>
@@ -77,7 +83,7 @@ export default class Home extends Component<Props> {
               <p>{this.state.eegData.join(",  ")}</p>
             </Grid.Row>
             <Grid.Row centered>
-              <Link to={"experimentRun"}>
+              <Link to="experimentRun">
                 <Button>Run Experiment</Button>
               </Link>
             </Grid.Row>

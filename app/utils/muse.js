@@ -19,4 +19,9 @@ async function createRawMuseObservable(client) {
   return Observable.from(zipSamples(eegStream));
 }
 
-module.exports = { createRawMuseObservable, initMuseClient };
+// TODO: Implement marker injection in muse-js
+function injectMuseMarker(client, value, time) {
+  console.log("inject Muse Marker");
+}
+
+module.exports = { createRawMuseObservable, initMuseClient, injectMuseMarker };

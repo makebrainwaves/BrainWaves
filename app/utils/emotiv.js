@@ -38,7 +38,6 @@ function createRawEmotivObservable(client) {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
       return Observable.fromEvent(client, "eeg").pipe(
         map(data => ({
-          ...data,
           data: data.eeg,
           timestamp: data.time
         }))
@@ -47,8 +46,9 @@ function createRawEmotivObservable(client) {
   );
 }
 
-function injectMarker(client, label, time) {
-  client.injectMarker({ label, time });
+function injectEmotivMarker(client, value, time) {
+  console.log('inject marker called');
+  client.injectMarker({ label: "event", value, time });
 }
 
 if (require.main === module) {
@@ -56,4 +56,4 @@ if (require.main === module) {
   rawObservable.subscribe(console.log);
 }
 
-module.exports = { createRawEmotivObservable, initCortex, injectMarker };
+module.exports = { createRawEmotivObservable, initCortex, injectEmotivMarker };

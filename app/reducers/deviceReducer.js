@@ -7,9 +7,8 @@ import {
   SET_RAW_OBSERVABLE,
   DEVICE_CLEANUP
 } from "../epics/deviceEpics";
-import {
-  ActionType
-} from "../constants/interfaces";
+import { DEVICES } from "../constants/constants";
+import { ActionType } from "../constants/interfaces";
 
 export interface DeviceStateType {
   client: ?any;
@@ -34,14 +33,14 @@ export default function device(
       return {
         ...state,
         client: action.payload,
-        deviceType: "EMOTIV"
+        deviceType: DEVICES.EMOTIV
       };
 
     case SET_MUSE_CLIENT:
       return {
         ...state,
         client: action.payload,
-        deviceType: "MUSE"
+        deviceType: DEVICES.MUSE
       };
 
     case SET_CONNECTED_DEVICE:

@@ -1,7 +1,13 @@
 export const EXPERIMENTS = {
-    P300: 'P300',
-    N170: 'N170',
-    SSVEP: 'SSVEP',
-    STROOP: 'STROOP',
-    CUSTOM: 'CUSTOM',
-}
+  P300: "P300",
+  N170: "N170",
+  SSVEP: "SSVEP",
+  STROOP: "STROOP",
+  CUSTOM: "CUSTOM"
+};
+
+export const DEVICES = {
+  MUSE: "MUSE",
+  EMOTIV: "EMOTIV",
+  GANGLION: "GANGLION" // One day ;)
+};
