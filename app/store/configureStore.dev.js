@@ -8,8 +8,6 @@ import rootReducer from "../reducers";
 import rootEpic from "../epics";
 import * as jupyterActions from "../actions/jupyterActions";
 import * as deviceActions from "../actions/deviceActions";
-import type { deviceStateType } from "../reducers/deviceReducer";
-import type { jupyterStateType } from "../reducers/jupyterReducer";
 
 const history = createHashHistory();
 
@@ -65,8 +63,8 @@ const configureStore = (initialState?: AppState) => {
 
   if (module.hot) {
     module.hot.accept(
-      '../reducers',
-      () => store.replaceReducer(require('../reducers')) // eslint-disable-line global-require
+      "../reducers",
+      () => store.replaceReducer(require("../reducers")) // eslint-disable-line global-require
     );
   }
 

@@ -7,18 +7,16 @@ import {
   SET_RAW_OBSERVABLE,
   DEVICE_CLEANUP
 } from "../epics/deviceEpics";
+import {
+  ActionType
+} from "../constants/interfaces";
 
-export type deviceStateType = {
-  client: ?any,
-  connectedDevice: Object,
-  rawObservable: ?any,
-  deviceType: string
-};
-
-type actionType = {
-  +payload: any,
-  +type: string
-};
+export interface DeviceStateType {
+  client: ?any;
+  connectedDevice: Object;
+  rawObservable: ?any;
+  deviceType: string;
+}
 
 const initialState = {
   client: null,
@@ -28,8 +26,8 @@ const initialState = {
 };
 
 export default function device(
-  state: deviceStateType = initialState,
-  action: actionType
+  state: DeviceStateType = initialState,
+  action: ActionType
 ) {
   switch (action.type) {
     case SET_EMOTIV_CLIENT:

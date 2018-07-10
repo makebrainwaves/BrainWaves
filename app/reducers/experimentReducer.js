@@ -9,24 +9,30 @@ import {
   ActionType
 } from "../constants/interfaces";
 
-// TODO: create custom types for timeline and plugins
-export type ExperimentStateType = {
-  type: ?EXPERIMENTS,
-  mainTimeline: ?MainTimeline,
-  trials: ?Object<Trial>,
-  timelines: ?Object<Timeline>,
-  plugins: ?Object,
-  subject: ?string,
-  session: ?number,
-  duration: ?number
-};
+interface ExperimentStateType {
+  type: ?EXPERIMENTS;
+  mainTimeline: MainTimeline;
+  trials: { [string]: Trial };
+  timelines: { [string]: Timeline };
+  plugins: Object;
+  subject: string;
+  session: number;
+  duration: number;
+}
 
 const initialState = {
-  type: null
+  type: null,
+  mainTimeline: [],
+  trials: {},
+  timelines: {},
+  plugins: {},
+  subject: "",
+  session: NaN,
+  duration: NaN
 };
 
 export default function experiment(
-  state: DeviceStateType = initialState,
+  state: ExperimentStateType = initialState,
   action: ActionType
 ) {
   switch (action.type) {

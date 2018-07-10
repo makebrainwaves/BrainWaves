@@ -1,10 +1,8 @@
 import React from "react";
 import { render } from "react-dom";
 import { AppContainer } from "react-hot-loader";
-import { ipcRenderer as ipc, remote } from "electron";
 import Root from "./containers/Root";
 import { configureStore, history } from "./store/configureStore";
-import * as Immutable from "immutable";
 import "./app.global.css";
 
 const store = configureStore();

@@ -5,23 +5,12 @@ import {
   SET_KERNEL_INFO,
   RECEIVE_EXECUTE_RETURN
 } from "../epics/jupyterEpics";
-import { ChildProcess } from "child_process";
-import { Subject, AnonymousSubject } from "rxjs";
+import { ActionType, Kernel } from "../constants/interfaces";
 
-export type jupyterStateType = {
-  kernel: ?{
-    config: Object,
-    connectionFile: string,
-    kernelSpec: Object,
-    spawn: ChildProcess
-  },
-  mainChannel: ?any
-};
-
-type actionType = {
-  +payload: any,
-  +type: string
-};
+export interface JupyterStateType {
+  kernel: ?Kernel;
+  mainChannel: ?any;
+}
 
 const initialState = {
   kernel: null,
@@ -29,8 +18,8 @@ const initialState = {
 };
 
 export default function jupyter(
-  state: jupyterStateType = initialState,
-  action: actionType
+  state: JupyterStateType = initialState,
+  action: ActionType
 ) {
   switch (action.type) {
     case SET_KERNEL:

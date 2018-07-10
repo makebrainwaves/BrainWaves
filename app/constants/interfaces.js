@@ -1,4 +1,13 @@
-// This file contains all the custom types that we use for Flow type checking
+/*
+* This file contains all the custom types that we use for Flow type checking
+*/
+
+// TODO: Write interfaces for device objects (Observables, Classes, etc)
+
+// ------------------------------------------------------------------
+// jsPsych
+
+// TODO: Write interface for jsPsych plugins
 
 // Array of timeline and trial ids that will be presented in experiment
 export type MainTimeline = Array<string>;
@@ -19,6 +28,19 @@ export interface Timeline {
   +sample: Object<string, Function>;
   +timeline_variables: Object<Object>;
 }
+
+// --------------------------------------------------------------------
+// Jupyter
+
+export interface Kernel {
+  config: Object;
+  connectionFile: string;
+  kernelSpec: Object;
+  spawn: ChildProcess;
+}
+
+// --------------------------------------------------------------------
+// General
 
 export interface ActionType {
   +payload: any;

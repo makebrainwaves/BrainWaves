@@ -1,6 +1,5 @@
 import { combineEpics } from "redux-observable";
-import { Observable } from "rxjs";
-import { map, tap, pluck, mergeMap, filter } from "rxjs/operators";
+import { map, pluck } from "rxjs/operators";
 import { SET_TYPE } from "../actions/experimentActions";
 import { loadTimeline } from "../utils/jspsych/functions";
 

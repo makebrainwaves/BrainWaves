@@ -1,7 +1,7 @@
 import { combineEpics } from "redux-observable";
 import { Observable } from "rxjs";
-import { map, tap, pluck, mergeMap, filter } from "rxjs/operators";
-import { INIT_MUSE, INIT_EMOTIV, initMuse } from "../actions/deviceActions";
+import { map, pluck, mergeMap, filter } from "rxjs/operators";
+import { INIT_MUSE, INIT_EMOTIV } from "../actions/deviceActions";
 import { initCortex, createRawEmotivObservable } from "../utils/emotiv";
 import { initMuseClient, createRawMuseObservable } from "../utils/muse";
 

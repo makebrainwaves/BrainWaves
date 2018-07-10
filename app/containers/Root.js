@@ -4,10 +4,10 @@ import { Provider } from "react-redux";
 import { ConnectedRouter } from "react-router-redux";
 import Routes from "../routes";
 
-type Props = {
-  store: {},
-  history: {}
-};
+interface Props {
+  store: {};
+  history: {};
+}
 
 export default class Root extends Component<Props> {
   render() {

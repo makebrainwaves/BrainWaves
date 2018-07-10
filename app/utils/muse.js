@@ -1,20 +1,13 @@
-const noble = require("noble-winrt");
 const bluetooth = require("bleat").webbluetooth;
-const {
-  MUSE_SERVICE,
-  MuseClient,
-  zipSamples,
-  channelNames
-} = require("muse-js");
+const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
-const { mergeMap, map } = require("rxjs/operators");
 
 function initMuseClient() {
   return new MuseClient();
 }
 
 async function createRawMuseObservable(client) {
-  let device = await bluetooth.requestDevice({
+  const device = await bluetooth.requestDevice({
     filters: [{ services: [MUSE_SERVICE] }]
   });
   console.log("Found Device: ", device);

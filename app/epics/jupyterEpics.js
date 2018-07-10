@@ -1,12 +1,6 @@
 import { combineEpics } from "redux-observable";
 import { Observable } from "rxjs";
 import {
-  LAUNCH_KERNEL,
-  REQUEST_KERNEL_INFO,
-  SEND_EXECUTE_REQUEST,
-  CLOSE_KERNEL
-} from "../actions/jupyterActions";
-import {
   map,
   mergeMap,
   tap,
@@ -19,6 +13,12 @@ import { launchSpec } from "spawnteract";
 import { createMainChannel } from "enchannel-zmq-backend";
 import { isNil } from "lodash";
 import { kernelInfoRequest, executeRequest } from "@nteract/messaging";
+import {
+  LAUNCH_KERNEL,
+  REQUEST_KERNEL_INFO,
+  SEND_EXECUTE_REQUEST,
+  CLOSE_KERNEL
+} from "../actions/jupyterActions";
 
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
@@ -74,7 +74,7 @@ const launchEpic = action$ =>
         console.log("KERNEL STDERR: ", text);
       });
 
-      kernel.spawn.on("close", code => {
+      kernel.spawn.on("close", () => {
         console.log("closed early");
       });
     }),
