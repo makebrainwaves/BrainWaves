@@ -32,11 +32,13 @@ export const buildSSVEPTimeline = callback => ({
       id: "ssvepTimeline",
       timeline: [
         {
+          id: "interTrial",
           type: "callback_image_display",
           stimulus: "./assets/face_house/fixation.jpg",
           trial_duration: () => params.iti + Math.random() * params.jitter
         },
         {
+          id: "trial",
           stimuli: [
             "./assets/ssvep/Checkerboard_pattern.svg",
             "./assets/ssvep/Checkerboard_pattern_neg.svg"

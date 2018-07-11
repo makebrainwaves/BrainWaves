@@ -56,12 +56,14 @@ export const buildOddballTimeline = callback => ({
       id: "oddballTimeline",
       timeline: [
         {
+          id: "interTrial",
           type: "callback_image_display",
           stimulus: "./assets/cat_dog/fixation.jpg",
           trial_duration: () => params.iti + Math.random() * params.jitter,
           post_trial_gap: 0
         },
         {
+          id: "trial",
           stimulus: jsPsych.timelineVariable("stimulusVar"),
           on_load: jsPsych.timelineVariable("callbackVar"),
           type: params.plugin_name,
