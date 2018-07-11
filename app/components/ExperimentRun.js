@@ -10,49 +10,63 @@ import animation from "../utils/jspsych/plugins/jspsych-animation";
 import { EXPERIMENTS } from "../constants/constants";
 import { parseTimeline } from "../utils/jspsych/functions";
 import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
+import InputModal from "./InputModal";
 
-type Props = {
-  type: ?EXPERIMENTS,
-  mainTimeline: ?MainTimeline,
-  trials: ?Object<Trial>,
-  timelines: ?Object<Timeline>,
+interface Props {
+  type: ?EXPERIMENTS;
+  isRunning: boolean;
+  mainTimeline: MainTimeline;
+  trials: { [string]: Trial };  
+  timelines: { [string]: Timeline };
   // dir: ?string,
-  experimentActions: Object
-};
+  subject: string;
+  session: number;
+  experimentActions: Object;
+}
+
+interface State {
+  isInputModalVisible: boolean;
+}
 
 export default class Home extends Component<Props> {
   props: Props;
+  state: State;
+  constructor(props) {
+    super(props);
+    this.state = {
+      isInputModalVisible: false
+    };
+  }
+
+  handleClose(subjectName: string) {
+    this.setState({ isInputModalVisible: false });
+    this.props.experimentActions.setSubject(subjectName);
+    this.props.experimentActions.start();
+  }
+
+  startExperiment(experiment: EXPERIMENTS) {
+    this.props.experimentActions.setType(experiment);
+    if (this.props.subject === "") {
+      this.setState({ isInputModalVisible: true });
+    } else {
+      this.props.experimentActions.start();
+    }
+  }
 
   renderExperiment(experimentType: ?EXPERIMENTS) {
-    if (isNil(experimentType)) {
+    if (!this.props.isRunning) {
       return (
         <div>
-          <Button
-            onClick={() =>
-              this.props.experimentActions.setType(EXPERIMENTS.P300)
-            }
-          >
+          <Button onClick={() => this.startExperiment(EXPERIMENTS.P300)}>
             P300
           </Button>
-          <Button
-            onClick={() =>
-              this.props.experimentActions.setType(EXPERIMENTS.SSVEP)
-            }
-          >
+          <Button onClick={() => this.startExperiment(EXPERIMENTS.SSVEP)}>
             SSVEP
           </Button>
-          <Button
-            onClick={() =>
-              this.props.experimentActions.setType(EXPERIMENTS.N170)
-            }
-          >
+          <Button onClick={() => this.startExperiment(EXPERIMENTS.N170)}>
             N170
           </Button>
-          <Button
-            onClick={() =>
-              this.props.experimentActions.setType(EXPERIMENTS.STROOP)
-            }
-          >
+          <Button onClick={() => this.startExperiment(EXPERIMENTS.STROOP)}>
             Stroop
           </Button>
         </div>
@@ -84,6 +98,11 @@ export default class Home extends Component<Props> {
             </Grid.Row>
           </Grid>
         </div>
+        <InputModal
+          open={this.state.isInputModalVisible}
+          onClose={subjectName => this.handleClose(subjectName)}
+          content={<h3>Please enter the experimental subject&#039;s name</h3>}
+        />
       </div>
     );
   }
