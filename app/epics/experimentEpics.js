@@ -1,12 +1,13 @@
 import { combineEpics } from "redux-observable";
-import { map, pluck } from "rxjs/operators";
-import { SET_TYPE } from "../actions/experimentActions";
+import { map, mapTo, pluck, filter } from "rxjs/operators";
+import { SET_TYPE, START } from "../actions/experimentActions";
 import { DEVICES } from "../constants/constants";
 import { loadTimeline } from "../utils/jspsych/functions";
 import { injectMuseMarker } from "../utils/muse";
 import { injectEmotivMarker } from "../utils/emotiv";
 
 export const SET_TIMELINE = "LOAD_TIMELINE";
+export const SET_IS_RUNNING = "SET_IS_RUNNING";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -14,6 +15,11 @@ export const SET_TIMELINE = "LOAD_TIMELINE";
 const setTimeline = payload => ({
   payload,
   type: SET_TIMELINE
+});
+
+const setIsRunning = payload => ({
+  payload,
+  type: SET_IS_RUNNING
 });
 
 // -------------------------------------------------------------------------
@@ -43,4 +49,15 @@ const loadDefaultTimelineEpic = (action$, store) =>
     map(setTimeline)
   );
 
-export default combineEpics(loadDefaultTimelineEpic);
+const startEpic = (action$, store) =>
+  action$.ofType(START).pipe(
+    filter(
+      () =>
+        !store.getState().experiment.isRunning &&
+        store.getState().experiment.subject !== ""
+    ),
+    mapTo(true),
+    map(setIsRunning)
+  );
+
+export default combineEpics(loadDefaultTimelineEpic, startEpic);
