@@ -1,10 +1,10 @@
 // @flow
-import { SET_TIMELINE, SET_IS_RUNNING } from "../epics/experimentEpics";
 import {
-  SET_TYPE,
-  SET_SUBJECT,
+  SET_TIMELINE,
+  SET_IS_RUNNING,
   SET_SESSION
-} from "../actions/experimentActions";
+} from "../epics/experimentEpics";
+import { SET_TYPE, SET_SUBJECT } from "../actions/experimentActions";
 import { EXPERIMENTS } from "../constants/constants";
 import {
   MainTimeline,
@@ -32,7 +32,7 @@ const initialState = {
   timelines: {},
   plugins: {},
   subject: "",
-  session: NaN,
+  session: 0,
   duration: NaN,
   isRunning: false
 };

@@ -17,7 +17,7 @@ export interface Trial {
   id: string;
   type: string;
   stimulus: string | StimulusVariable;
-  trial_duration?: number | () => number;
+  trial_duration?: number | (() => number);
   post_trial_gap?: number;
   on_load?: string => void | StimulusVariable;
   choices?: Array<string>;
@@ -47,6 +47,14 @@ export interface Kernel {
   connectionFile: string;
   kernelSpec: Object;
   spawn: ChildProcess;
+}
+
+// --------------------------------------------------------------------
+// Device
+
+export interface EEGData {
+  data: Array<number>;
+  timestamp: number;
 }
 
 // --------------------------------------------------------------------
