@@ -12,7 +12,7 @@ export const writeHeader = (
   writeStream: fs.writeStream,
   channels: Array<string>
 ) => {
-  const headerLabels = `Timestamp, ${channels.join(",")}, Marker,`;
+  const headerLabels = `Timestamp, ${channels.join(",")},Marker\n`;
   writeStream.write(headerLabels);
 };
 
