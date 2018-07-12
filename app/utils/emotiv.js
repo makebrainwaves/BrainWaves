@@ -8,15 +8,15 @@ const { Observable } = require("rxjs");
 const { mergeMap, map } = require("rxjs/operators");
 const { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } = require("../../keys");
 
-function initCortex() {
+export const initCortex = () => {
   const verbose = process.env.LOG_LEVEL || 1;
   const options = { verbose };
 
   return new Cortex(options);
-}
+};
 
-function createRawEmotivObservable(client) {
-  return Observable.from(
+export const createRawEmotivObservable = client =>
+  Observable.from(
     client.ready
       .then(() =>
         client.init({
@@ -36,24 +36,19 @@ function createRawEmotivObservable(client) {
   ).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
-      return Observable.fromEvent(client, "eeg").pipe(
-        map(data => ({
-          data: data.eeg,
-          timestamp: data.time
-        }))
-      );
+      return Observable.fromEvent(client, "eeg").pipe(map(pruneEEG));
     })
   );
-}
 
-function injectEmotivMarker(client, value, time) {
-  console.log('inject marker called');
+export const injectEmotivMarker = (client, value, time) => {
+  console.log("inject marker called");
   client.injectMarker({ label: "event", value, time });
-}
+};
 
-if (require.main === module) {
-  const rawObservable = createRawEmotivObservable(initCortex());
-  rawObservable.subscribe(console.log);
-}
+// ---------------------------------------------------------------------
+// Helpers
 
-module.exports = { createRawEmotivObservable, initCortex, injectEmotivMarker };
+const pruneEEG = eegEvent => ({
+  data: eegEvent.eeg.slice(3, 16).push(eegEvent.eeg[18]),
+  timestamp: eegEvent.time
+});
