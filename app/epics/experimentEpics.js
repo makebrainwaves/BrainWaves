@@ -1,6 +1,6 @@
 import { combineEpics } from "redux-observable";
 import * as fs from "fs";
-import { map, mapTo, pluck, filter, takeUntil } from "rxjs/operators";
+import { map, mapTo, tap, pluck, filter, takeUntil } from "rxjs/operators";
 import { SET_TYPE, START, STOP } from "../actions/experimentActions";
 import {
   DEVICES,
@@ -15,6 +15,7 @@ import { writeHeader, writeEEGData } from "../utils/filesystem/write";
 export const SET_TIMELINE = "LOAD_TIMELINE";
 export const SET_IS_RUNNING = "SET_IS_RUNNING";
 export const SET_SESSION = "SET_SESSION";
+export const EXPERIMENT_CLEANUP = "EXPERIMENT_CLEANUP";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -32,6 +33,10 @@ const setIsRunning = payload => ({
 const setSession = payload => ({
   payload,
   type: SET_SESSION
+});
+
+const cleanup = () => ({
+  type: EXPERIMENT_CLEANUP
 });
 
 // -------------------------------------------------------------------------
@@ -81,9 +86,11 @@ const startEpic = (action$, store) =>
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS
       );
-      const recordSubscription = store
+      store
         .getState()
-        .device.rawObservable.pipe(takeUntil(action$.ofType(STOP)))
+        .device.rawObservable.pipe(
+          takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP))
+        )
         .subscribe(eegData => writeEEGData(writeStream, eegData));
     }),
     mapTo(true),
@@ -97,8 +104,16 @@ const sessionCountEpic = (action$, store) =>
     map(() => setSession(store.getState().experiment.session + 1))
   );
 
+const navigationCleanupEpic = action$ =>
+  action$.ofType("@@router/LOCATION_CHANGE").pipe(
+    pluck("payload", "pathname"),
+    filter(pathname => pathname === "/"),
+    map(cleanup)
+  );
+
 export default combineEpics(
   loadDefaultTimelineEpic,
   startEpic,
-  sessionCountEpic
+  sessionCountEpic,
+  navigationCleanupEpic
 );

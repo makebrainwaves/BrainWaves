@@ -3,10 +3,10 @@
  * an RxJS Observable of raw EEG data
  *
  */
-
-const { Observable } = require("rxjs");
-const { mergeMap, map } = require("rxjs/operators");
-const { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } = require("../../keys");
+import { Observable } from "rxjs";
+import { mergeMap, map } from "rxjs/operators";
+import { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } from "../../keys";
+import { EMOTIV_CHANNELS } from "../constants/constants";
 
 export const initCortex = () => {
   const verbose = process.env.LOG_LEVEL || 1;
@@ -36,7 +36,12 @@ export const createRawEmotivObservable = client =>
   ).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
-      return Observable.fromEvent(client, "eeg").pipe(map(pruneEEG));
+      return Observable.fromEvent(client, "eeg").pipe(
+        map(eegEvent => ({
+          data: pruneEEG(eegEvent.eeg),
+          timestamp: eegEvent.time
+        }))
+      );
     })
   );
 
@@ -48,7 +53,11 @@ export const injectEmotivMarker = (client, value, time) => {
 // ---------------------------------------------------------------------
 // Helpers
 
-const pruneEEG = eegEvent => ({
-  data: eegEvent.eeg.slice(3, 16).push(eegEvent.eeg[18]),
-  timestamp: eegEvent.time
-});
+const pruneEEG = eegArray => {
+  const prunedArray = new Array(EMOTIV_CHANNELS.length + 1);
+  for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {
+    prunedArray[i] = eegArray[i + 3];
+  }
+  prunedArray[EMOTIV_CHANNELS.length] = eegArray[eegArray.length - 1];
+  return prunedArray;
+};

@@ -1,7 +1,8 @@
 // @flow
 import React, { Component } from "react";
-import { Grid, Button } from "semantic-ui-react";
+import { Grid, Button, Icon } from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
+import { Link } from "react-router-dom";
 import { isNil } from "lodash";
 import styles from "./ExperimentRun.css";
 import callback_html_display from "../utils/jspsych/plugins/callback_html_display";
@@ -16,7 +17,7 @@ interface Props {
   type: ?EXPERIMENTS;
   isRunning: boolean;
   mainTimeline: MainTimeline;
-  trials: { [string]: Trial };  
+  trials: { [string]: Trial };
   timelines: { [string]: Timeline };
   // dir: ?string,
   subject: string;
@@ -91,6 +92,9 @@ export default class Home extends Component<Props> {
   render() {
     return (
       <div>
+        <Link to="/">
+          <Icon name="arrow circle left" size="huge" inverted />
+        </Link>
         <div className={styles.experimentContainer} data-tid="container">
           <Grid columns={1} divided relaxed>
             <Grid.Row centered>

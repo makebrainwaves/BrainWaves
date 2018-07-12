@@ -14,7 +14,7 @@ export const writeHeader = (
 ) => {
   const headerLabels = `Timestamp, ${channels.join(",")}, Marker,`;
   writeStream.write(headerLabels);
-}; 
+};
 
 export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
   writeStream.write(`${eegData.timestamp},`);

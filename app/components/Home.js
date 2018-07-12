@@ -61,7 +61,7 @@ export default class Home extends Component<Props> {
                 </Button>
                 <Button
                   onClick={() =>
-                    this.props.rawObservable.subscribe(eeg => null)
+                    this.props.rawObservable.subscribe(eeg => console.log(eeg))
                   }
                 >
                   Subscribe to Stream
