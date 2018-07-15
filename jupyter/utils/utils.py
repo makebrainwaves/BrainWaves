@@ -16,7 +16,6 @@ from matplotlib import pyplot as plt
 sns.set_context('talk')
 sns.set_style('white')
 
-
 def load_csv_as_raw(filename, sfreq, ch_ind, stim_ind, replace_ch_names):
     """Load CSV files into a Raw object.
 

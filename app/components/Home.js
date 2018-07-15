@@ -4,12 +4,21 @@ import { Link } from "react-router-dom";
 import { Grid, Button } from "semantic-ui-react";
 import styles from "./Home.css";
 import { injectMarker } from "../utils/emotiv";
+import {
+  imports,
+  loadCSV,
+  plotERP,
+  filterIIR,
+  plotPSD
+} from "../utils/jupyter/cells";
+import  JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
   jupyterActions: Object;
   deviceActions: Object;
   rawObservable: ?any;
   client: ?any;
+  mainChannel: ?any;
 }
 
 export default class Home extends Component<Props> {
@@ -23,8 +32,6 @@ export default class Home extends Component<Props> {
       eegData: []
     };
   }
-
-  componentDidMount() {}
 
   render() {
     return (
@@ -43,10 +50,42 @@ export default class Home extends Component<Props> {
                 </Button>
                 <Button
                   onClick={() =>
-                    this.props.jupyterActions.sendExecuteRequest("print(2+2)")
+                    this.props.jupyterActions.sendExecuteRequest(imports())
                   }
                 >
-                  Print 2+2
+                  Imports
+                </Button>
+                <Button
+                  onClick={() =>
+                    this.props.jupyterActions.sendExecuteRequest(
+                      loadCSV(
+                        "Dano",
+                        0,
+                        "../",
+                        128.0,
+                        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                        14
+                      )
+                    )
+                  }
+                >
+                  Load CSV
+                </Button>
+                <Button
+                  onClick={() =>
+                    this.props.jupyterActions.sendExecuteRequest(
+                      filterIIR(1, 30)
+                    )
+                  }
+                >
+                  Filter
+                </Button>
+                <Button
+                  onClick={() =>
+                    this.props.jupyterActions.sendExecuteRequest(plotPSD())
+                  }
+                >
+                  Plot PSD
                 </Button>
                 <Button onClick={() => this.props.jupyterActions.closeKernel()}>
                   Close Kernel
@@ -86,6 +125,13 @@ export default class Home extends Component<Props> {
               <Link to="experimentRun">
                 <Button>Run Experiment</Button>
               </Link>
+            </Grid.Row>
+            <Grid.Row centered>
+              <JupyterPlotWidget
+                header="Test"
+                mainChannel={this.props.mainChannel}
+                defaultCell="test"
+              />
             </Grid.Row>
           </Grid>
         </div>

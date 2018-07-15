@@ -26,10 +26,12 @@ export const loadCSV = (
   stim_ind: number,
   replace_ch_names: ?Array<string> | string = "None"
 ) =>
-  `raw = utils.load_data(${data_dir}, ${subject}, ${session}, ${sfreq}, ${ch_ind.toString()}, ${stim_ind}, ${replace_ch_names})`;
+  `raw = utils.load_data("${data_dir}", "${subject}", ${session}, ${sfreq}, [${ch_ind.toString()}], ${stim_ind}, ${replace_ch_names})`;
 
 export const filterIIR = (low_cutoff: number, high_cutoff: number) =>
   `raw.filter(${low_cutoff}, ${high_cutoff}, method='iir')`;
+
+export const plotPSD = () => "raw.plot_psd()";
 
 export const epochEvents = (
   event_id: { [string]: number },
