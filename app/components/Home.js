@@ -1,21 +1,14 @@
 // @flow
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { Grid, Button } from "semantic-ui-react";
+import { Grid, Button, Header, Segment, List, Image } from "semantic-ui-react";
 import styles from "./Home.css";
-import { injectMarker } from "../utils/emotiv";
-import {
-  imports,
-  loadCSV,
-  plotERP,
-  filterIIR,
-  plotPSD
-} from "../utils/jupyter/cells";
-import  JupyterPlotWidget from "./JupyterPlotWidget";
+import { EXPERIMENTS } from "../constants/constants";
 
 interface Props {
   jupyterActions: Object;
   deviceActions: Object;
+  experimentActions: Object;
   rawObservable: ?any;
   client: ?any;
   mainChannel: ?any;
@@ -23,115 +16,58 @@ interface Props {
 
 export default class Home extends Component<Props> {
   props: Props;
-  state: {
-    eegData: Array<number>
-  };
-  constructor(props: Object) {
-    super(props);
-    this.state = {
-      eegData: []
-    };
+
+  handleExperimentSelect(experimentType: EXPERIMENTS) {
+    this.props.experimentActions.setType(experimentType);
   }
 
   render() {
     return (
       <div>
         <div className={styles.container} data-tid="container">
-          <Grid columns={1} divided relaxed>
+          <Grid columns={2} relaxed padded>
             <Grid.Row>
               <Grid.Column>
-                <Button onClick={this.props.jupyterActions.launchKernel}>
-                  Launch Kernel
-                </Button>
-                <Button
-                  onClick={() => this.props.jupyterActions.requestKernelInfo()}
-                >
-                  Request Kernel Info
-                </Button>
-                <Button
-                  onClick={() =>
-                    this.props.jupyterActions.sendExecuteRequest(imports())
-                  }
-                >
-                  Imports
-                </Button>
-                <Button
-                  onClick={() =>
-                    this.props.jupyterActions.sendExecuteRequest(
-                      loadCSV(
-                        "Dano",
-                        0,
-                        "../",
-                        128.0,
-                        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-                        14
-                      )
-                    )
-                  }
-                >
-                  Load CSV
-                </Button>
-                <Button
-                  onClick={() =>
-                    this.props.jupyterActions.sendExecuteRequest(
-                      filterIIR(1, 30)
-                    )
-                  }
-                >
-                  Filter
-                </Button>
-                <Button
-                  onClick={() =>
-                    this.props.jupyterActions.sendExecuteRequest(plotPSD())
-                  }
-                >
-                  Plot PSD
-                </Button>
-                <Button onClick={() => this.props.jupyterActions.closeKernel()}>
-                  Close Kernel
-                </Button>
+                <Segment raised color="purple">
+                  <Header as="h2">Welcome to the BrainWaves App Alpha</Header>
+                  <p>
+                    The New York University (NYU) BrainWaves app allows you to
+                    learn to design and carry out original brain experiments
+                    using real brainwave scanning equipment in the classroom.
+                  </p>
+                  <p>
+                    Get started by choosing to practice a new skill, start an
+                    experiment, or pick up where you left off with a past
+                    workspace.
+                  </p>
+                </Segment>
               </Grid.Column>
+            </Grid.Row>
+            <Grid.Row>
               <Grid.Column>
-                <Button onClick={() => this.props.deviceActions.initEmotiv()}>
-                  Init Emotiv
-                </Button>
-                <Button onClick={() => this.props.deviceActions.initMuse()}>
-                  Init Muse
-                </Button>
-                <Button
-                  onClick={() =>
-                    this.props.rawObservable.subscribe(eeg => console.log(eeg))
-                  }
-                >
-                  Subscribe to Stream
-                </Button>
-                <Button
-                  onClick={() =>
-                    injectMarker(
-                      this.props.client,
-                      Math.random() > 0.5 ? "test1" : "test2",
-                      new Date().getTime()
-                    )
-                  }
-                >
-                  Inject Marker
-                </Button>
+                <Segment color="purple">
+                  <Header as="h3">Start Experiment</Header>
+                  <List size="medium">
+                    <List.Item>
+                      <Link
+                        to="/experimentDesign"
+                        onClick={() =>
+                          this.handleExperimentSelect(EXPERIMENTS.N170)
+                        }
+                      >
+                        <Image
+                          avatar
+                          src="./assets/face_house/face_house_icon.jpg"
+                        />
+                        <List.Content
+                          header="Faces and Houses"
+                          description="Detecting the N170 face-evoked potential"
+                        />
+                      </Link>
+                    </List.Item>
+                  </List>
+                </Segment>
               </Grid.Column>
-            </Grid.Row>
-            <Grid.Row centered>
-              <p>{this.state.eegData.join(",  ")}</p>
-            </Grid.Row>
-            <Grid.Row centered>
-              <Link to="experimentRun">
-                <Button>Run Experiment</Button>
-              </Link>
-            </Grid.Row>
-            <Grid.Row centered>
-              <JupyterPlotWidget
-                header="Test"
-                mainChannel={this.props.mainChannel}
-                defaultCell="test"
-              />
             </Grid.Row>
           </Grid>
         </div>

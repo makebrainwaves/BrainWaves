@@ -3,14 +3,8 @@
   top: 15%;
   height: 100vh;
   left: 10px;
-  text-align: center;
 }
 
 .container h2 {
   font-size: 5rem;
 }
-
-.container a {
-  font-size: 1.4rem;
-}
-

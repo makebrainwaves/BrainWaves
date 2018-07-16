@@ -1,0 +1,18 @@
+.experimentContainer {
+  position: absolute;
+  top: 5%;
+  height: 100vh;
+  width: 100vw;
+}
+
+.container h2 {
+  font-size: 5rem;
+}
+
+.container a {
+  font-size: 1.4rem;
+}
+
+.homeButton {
+  margin: 30px;
+}

@@ -29,7 +29,7 @@ interface State {
   isInputModalVisible: boolean;
 }
 
-export default class Home extends Component<Props> {
+export default class ExperimentRun extends Component<Props> {
   props: Props;
   state: State;
   constructor(props) {

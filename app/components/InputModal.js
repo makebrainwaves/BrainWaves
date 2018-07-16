@@ -1,7 +1,6 @@
 // @flow
 import React, { Component } from "react";
 import { Input, Modal, Button } from "semantic-ui-react";
-
 import { debounce } from "lodash";
 
 interface Props {
