@@ -202,6 +202,7 @@
   },
   "dependencies": {
     "@nteract/messaging": "^4.0.0",
+    "@nteract/transforms": "^4.3.0",
     "babel-runtime": "^6.26.0",
     "devtron": "^1.4.0",
     "electron-debug": "^1.5.0",

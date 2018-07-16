@@ -53,7 +53,7 @@ const receiveExecuteReturn = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => Observable.from(find("python3"))),
+    mergeMap(() => Observable.from(find("brainwaves"))),
     tap(console.log),
     mergeMap(kernelInfo =>
       Observable.from(
@@ -75,7 +75,7 @@ const launchEpic = action$ =>
       });
 
       kernel.spawn.on("close", () => {
-        console.log("closed early");
+        console.log("Kernel closed");
       });
     }),
     map(setKernel)
@@ -109,6 +109,7 @@ const receiveChannelMessageEpic = (action$, store) =>
     mergeMap(() =>
       store.getState().jupyter.mainChannel.pipe(
         map(msg => {
+          console.log(msg);
           switch (msg["header"]["msg_type"]) {
             case "kernel_info_reply":
               return setKernelInfo(msg);
