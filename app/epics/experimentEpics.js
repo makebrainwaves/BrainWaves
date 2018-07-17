@@ -1,11 +1,14 @@
 import { combineEpics } from "redux-observable";
 import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { map, mapTo, tap, pluck, filter, takeUntil } from "rxjs/operators";
 import { isNil } from "lodash";
 import {
   LOAD_DEFAULT_TIMELINE,
   START,
-  STOP
+  STOP,
+  stop
 } from "../actions/experimentActions";
 import {
   DEVICES,
@@ -49,24 +52,8 @@ const cleanup = () => ({
 
 const loadDefaultTimelineEpic = (action$, store) =>
   action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
-    map(() => {
-      if (store.getState().device.deviceType === DEVICES.MUSE) {
-        return loadTimeline(store.getState().experiment.type, value =>
-          injectMuseMarker(
-            store.getState().device.client,
-            value,
-            new Date().getTime()
-          )
-        );
-      }
-      return loadTimeline(store.getState().experiment.type, value =>
-        injectEmotivMarker(
-          store.getState().device.client,
-          value,
-          new Date().getTime()
-        )
-      );
-    }),
+    map(() => store.getState().experiment.type),
+    map(loadTimeline),
     map(setTimeline)
   );
 
@@ -78,12 +65,16 @@ const startEpic = (action$, store) =>
         store.getState().experiment.subject !== "" &&
         !isNil(store.getState().device.rawObservable)
     ),
-
     map(() => {
       const writeStream = fs.createWriteStream(
-        `./${store.getState().experiment.subject}_${
-          store.getState().experiment.session
-        }.csv`
+        path.join(
+          os.homedir(),
+          "BrainWaves Data",
+          store.getState().experiment.type,
+          `${store.getState().experiment.subject}_${
+            store.getState().experiment.session
+          }.csv`
+        )
       );
 
       writeHeader(
@@ -104,11 +95,9 @@ const startEpic = (action$, store) =>
   );
 
 const sessionCountEpic = (action$, store) =>
-  action$.ofType(SET_IS_RUNNING).pipe(
-    pluck("payload"),
-    filter(isRunning => isRunning),
-    map(() => setSession(store.getState().experiment.session + 1))
-  );
+  action$
+    .ofType(STOP)
+    .pipe(map(() => setSession(store.getState().experiment.session + 1)));
 
 const navigationCleanupEpic = action$ =>
   action$.ofType("@@router/LOCATION_CHANGE").pipe(

@@ -19,6 +19,7 @@ export default class Home extends Component<Props> {
 
   handleExperimentSelect(experimentType: EXPERIMENTS) {
     this.props.experimentActions.setType(experimentType);
+    this.props.experimentActions.loadDefaultTimeline();
   }
 
   render() {

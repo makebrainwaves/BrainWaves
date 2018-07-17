@@ -17,22 +17,20 @@ const params = {
 const facesDir = "./app/assets/face_house/faces/";
 const housesDir = "./app/assets/face_house/houses/";
 
-export const buildN170Timeline = callback => ({
+export const buildN170Timeline = () => ({
   mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids
   trials: {
     welcome: {
       type: "callback_html_display",
       id: "welcome",
       stimulus: "Welcome to the experiment. Press any key to begin.",
-      post_trial_gap: 1000,
-      on_load: () => callback("start")
+      post_trial_gap: 1000
     },
     end: {
       id: "end",
       type: "callback_html_display",
       stimulus: "Thanks for participating",
-      post_trial_gap: 500,
-      on_load: callback("stop")
+      post_trial_gap: 500
     }
   },
   timelines: {
@@ -48,7 +46,7 @@ export const buildN170Timeline = callback => ({
         {
           id: "trial",
           stimulus: jsPsych.timelineVariable("stimulusVar"),
-          on_load: jsPsych.timelineVariable("callbackVar"),
+          eventType: jsPsych.timelineVariable("eventTypeVar"),
           type: params.plugin_name,
           choices: ["f", "j"],
           trial_duration: params.trial_duration
@@ -62,14 +60,14 @@ export const buildN170Timeline = callback => ({
         .filter(filename => filename.includes("3"))
         .map(filename => ({
           stimulusVar: facesDir.replace("app/", "") + filename,
-          callbackVar: () => callback("face")
+          eventTypeVar: "face"
         }))
         .concat(
           readdirSync(housesDir)
             .filter(filename => filename.includes("3"))
             .map(filename => ({
               stimulusVar: housesDir.replace("app/", "") + filename,
-              callbackVar: () => callback("house")
+              callbackVar: "house"
             }))
         )
     }

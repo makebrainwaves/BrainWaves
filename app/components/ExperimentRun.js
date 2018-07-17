@@ -8,8 +8,10 @@ import { debounce, isNil } from "lodash";
 import callback_html_display from "../utils/jspsych/plugins/callback_html_display";
 import callback_image_display from "../utils/jspsych/plugins/callback_image_display";
 import animation from "../utils/jspsych/plugins/jspsych-animation";
-import { EXPERIMENTS } from "../constants/constants";
-import { parseTimeline } from "../utils/jspsych/functions";
+import { injectEmotivMarker } from "../utils/emotiv";
+import { injectMuseMarker } from "../utils/muse";
+import { EXPERIMENTS, DEVICES } from "../constants/constants";
+import { parseTimeline, instantiateTimeline } from "../utils/jspsych/functions";
 import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
 import InputModal from "./InputModal";
 
@@ -22,6 +24,8 @@ interface Props {
   // dir: ?string,
   subject: string;
   session: number;
+  deviceType: DEVICES;
+  client: ?any;
   experimentActions: Object;
 }
 
@@ -40,10 +44,7 @@ export default class ExperimentRun extends Component<Props> {
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
-  }
-
-  componentDidMount() {
-    this.props.experimentActions.loadDefaultTimeline();
+    this.handleTime = this.handleTimeline.bind(this);
   }
 
   handleSubjectEntry(event: Object, data: Object) {
@@ -56,6 +57,25 @@ export default class ExperimentRun extends Component<Props> {
 
   handleStartExperiment() {
     this.props.experimentActions.start();
+  }
+
+  handleTimeline() {
+    const injectionFunction =
+      this.props.deviceType === "MUSE" ? injectMuseMarker : injectEmotivMarker;
+
+    const timeline = instantiateTimeline(
+      parseTimeline(
+        this.props.mainTimeline,
+        this.props.trials,
+        this.props.timelines
+      ),
+      value =>
+        injectionFunction(this.props.client, value, new Date().getTime()),
+      null,
+      this.props.experimentActions.stop
+    );
+    console.log(timeline);
+    return timeline;
   }
 
   renderExperiment(experimentType: ?EXPERIMENTS) {
@@ -77,7 +97,7 @@ export default class ExperimentRun extends Component<Props> {
                 focus
                 label={{ basic: true, content: "Session Number" }}
                 onChange={this.handleSessionEntry}
-                placeholder="0"
+                placeholder={this.props.session}
               />
             </div>
             <Button onClick={this.handleStartExperiment}>
@@ -89,11 +109,7 @@ export default class ExperimentRun extends Component<Props> {
     }
     return (
       <Experiment
-        timeline={parseTimeline(
-          this.props.mainTimeline,
-          this.props.trials,
-          this.props.timelines
-        )}
+        timeline={this.handleTimeline()}
         plugins={{
           callback_image_display,
           callback_html_display,

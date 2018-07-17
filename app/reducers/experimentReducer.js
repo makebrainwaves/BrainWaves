@@ -32,7 +32,7 @@ const initialState = {
   timelines: {},
   plugins: {},
   subject: "",
-  session: 0,
+  session: 1,
   duration: NaN,
   isRunning: false
 };

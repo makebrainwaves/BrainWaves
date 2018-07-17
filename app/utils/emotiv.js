@@ -30,7 +30,9 @@ export const createRawEmotivObservable = client =>
       )
       .then(() =>
         client
-          .createSession({ status: "active" })
+          .createSession({
+            status: "active"
+          })
           .subscribe({ streams: ["eeg"] })
       )
   ).pipe(
