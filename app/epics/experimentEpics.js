@@ -1,7 +1,4 @@
 import { combineEpics } from "redux-observable";
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
 import { map, mapTo, tap, pluck, filter, takeUntil } from "rxjs/operators";
 import { isNil } from "lodash";
 import {
@@ -18,7 +15,11 @@ import {
 import { loadTimeline } from "../utils/jspsych/functions";
 import { injectMuseMarker } from "../utils/muse";
 import { injectEmotivMarker } from "../utils/emotiv";
-import { writeHeader, writeEEGData } from "../utils/filesystem/write";
+import {
+  createEEGWriteStream,
+  writeHeader,
+  writeEEGData
+} from "../utils/filesystem/write";
 
 export const SET_TIMELINE = "LOAD_TIMELINE";
 export const SET_IS_RUNNING = "SET_IS_RUNNING";
@@ -66,15 +67,10 @@ const startEpic = (action$, store) =>
         !isNil(store.getState().device.rawObservable)
     ),
     map(() => {
-      const writeStream = fs.createWriteStream(
-        path.join(
-          os.homedir(),
-          "BrainWaves Data",
-          store.getState().experiment.type,
-          `${store.getState().experiment.subject}_${
-            store.getState().experiment.session
-          }.csv`
-        )
+      const writeStream = createEEGWriteStream(
+        store.getState().experiment.type,
+        store.getState().experiment.subject,
+        store.getState().experiment.session
       );
 
       writeHeader(
@@ -94,6 +90,9 @@ const startEpic = (action$, store) =>
     map(setIsRunning)
   );
 
+const experimentStopEpic = action$ =>
+  action$.ofType(STOP).pipe(map(() => setIsRunning(false)));
+
 const sessionCountEpic = (action$, store) =>
   action$
     .ofType(STOP)
@@ -109,6 +108,7 @@ const navigationCleanupEpic = action$ =>
 export default combineEpics(
   loadDefaultTimelineEpic,
   startEpic,
+  experimentStopEpic,
   sessionCountEpic,
   navigationCleanupEpic
 );

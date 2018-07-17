@@ -7,7 +7,9 @@ import * as deviceActions from "../actions/deviceActions";
 
 function mapStateToProps(state) {
   return {
-    ...state.experiment
+    ...state.experiment,
+    deviceType: state.device.deviceType,
+    client: state.device.client
   };
 }
 

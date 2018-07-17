@@ -1,6 +1,14 @@
 // @flow
 import React, { Component } from "react";
-import { Grid, Button, Icon, Segment, Header, Input } from "semantic-ui-react";
+import {
+  Grid,
+  Button,
+  Icon,
+  Segment,
+  Header,
+  Input,
+  List
+} from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
 import { Link } from "react-router-dom";
 import styles from "./ExperimentRun.css";
@@ -13,7 +21,10 @@ import { injectMuseMarker } from "../utils/muse";
 import { EXPERIMENTS, DEVICES } from "../constants/constants";
 import { parseTimeline, instantiateTimeline } from "../utils/jspsych/functions";
 import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
-import InputModal from "./InputModal";
+import {
+  readEEGDataDir,
+  getCurrentEEGDataDir
+} from "../utils/filesystem/write";
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -29,18 +40,12 @@ interface Props {
   experimentActions: Object;
 }
 
-interface State {
-  isInputModalVisible: boolean;
-}
-
 export default class ExperimentRun extends Component<Props> {
   props: Props;
-  state: State;
+
   constructor(props) {
     super(props);
-    this.state = {
-      isInputModalVisible: false
-    };
+
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -78,6 +83,18 @@ export default class ExperimentRun extends Component<Props> {
     return timeline;
   }
 
+  renderTrialList() {
+    return (
+      <div>
+        <List as="ul">
+          {readEEGDataDir(this.props.type).map(filename => (
+            <List.Item icon="file" description={filename} />
+          ))}
+        </List>
+      </div>
+    );
+  }
+
   renderExperiment(experimentType: ?EXPERIMENTS) {
     if (!this.props.isRunning) {
       return (
@@ -103,6 +120,16 @@ export default class ExperimentRun extends Component<Props> {
             <Button onClick={this.handleStartExperiment}>
               Start Experiment
             </Button>
+          </Segment>
+          <Segment raised padded color="purple">
+            <Header as="h3">
+              Collected Trials
+              <Header.Subheader>
+                {getCurrentEEGDataDir(this.props.type)}
+              </Header.Subheader>
+            </Header>
+
+            {this.renderTrialList()}
           </Segment>
         </div>
       );
