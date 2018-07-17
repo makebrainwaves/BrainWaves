@@ -1,10 +1,10 @@
 // @flow
 import React, { Component } from "react";
-import { Grid, Button, Icon } from "semantic-ui-react";
+import { Grid, Button, Icon, Segment, Header, Input } from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
 import { Link } from "react-router-dom";
-import { isNil } from "lodash";
 import styles from "./ExperimentRun.css";
+import { debounce, isNil } from "lodash";
 import callback_html_display from "../utils/jspsych/plugins/callback_html_display";
 import callback_image_display from "../utils/jspsych/plugins/callback_image_display";
 import animation from "../utils/jspsych/plugins/jspsych-animation";
@@ -37,39 +37,53 @@ export default class ExperimentRun extends Component<Props> {
     this.state = {
       isInputModalVisible: false
     };
+    this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
+    this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
+    this.handleStartExperiment = this.handleStartExperiment.bind(this);
   }
 
-  handleClose(subjectName: string) {
-    this.setState({ isInputModalVisible: false });
-    this.props.experimentActions.setSubject(subjectName);
+  componentDidMount() {
+    this.props.experimentActions.loadDefaultTimeline();
+  }
+
+  handleSubjectEntry(event: Object, data: Object) {
+    this.props.experimentActions.setSubject(data.value);
+  }
+
+  handleSessionEntry(event: Object, data: Object) {
+    this.props.experimentActions.setSession(parseFloat(data.value));
+  }
+
+  handleStartExperiment() {
     this.props.experimentActions.start();
-  }
-
-  startExperiment(experiment: EXPERIMENTS) {
-    this.props.experimentActions.setType(experiment);
-    if (this.props.subject === "") {
-      this.setState({ isInputModalVisible: true });
-    } else {
-      this.props.experimentActions.start();
-    }
   }
 
   renderExperiment(experimentType: ?EXPERIMENTS) {
     if (!this.props.isRunning) {
       return (
         <div>
-          <Button onClick={() => this.startExperiment(EXPERIMENTS.P300)}>
-            P300
-          </Button>
-          <Button onClick={() => this.startExperiment(EXPERIMENTS.SSVEP)}>
-            SSVEP
-          </Button>
-          <Button onClick={() => this.startExperiment(EXPERIMENTS.N170)}>
-            N170
-          </Button>
-          <Button onClick={() => this.startExperiment(EXPERIMENTS.STROOP)}>
-            Stroop
-          </Button>
+          <Segment raised padded color="purple">
+            <Header as="h3">Faces and Houses N170 Experiment</Header>
+            <div className={styles.inputDiv}>
+              <Input
+                focus
+                label={{ basic: true, content: "Subject Name" }}
+                onChange={this.handleSubjectEntry}
+                placeholder="Name"
+              />
+            </div>
+            <div className={styles.inputDiv}>
+              <Input
+                focus
+                label={{ basic: true, content: "Session Number" }}
+                onChange={this.handleSessionEntry}
+                placeholder="0"
+              />
+            </div>
+            <Button onClick={this.handleStartExperiment}>
+              Start Experiment
+            </Button>
+          </Segment>
         </div>
       );
     }
@@ -92,21 +106,16 @@ export default class ExperimentRun extends Component<Props> {
   render() {
     return (
       <div>
-        <Link to="/">
-          <Icon name="arrow circle left" size="huge" inverted />
-        </Link>
         <div className={styles.experimentContainer} data-tid="container">
+          <Link to="/" className={styles.homeButton}>
+            <Icon name="home" size="large" color="black" inverted />
+          </Link>
           <Grid columns={1} divided relaxed>
             <Grid.Row centered>
               {this.renderExperiment(this.props.type)}
             </Grid.Row>
           </Grid>
         </div>
-        <InputModal
-          open={this.state.isInputModalVisible}
-          onClose={subjectName => this.handleClose(subjectName)}
-          content={<h3>Please enter the experimental subject&#039;s name</h3>}
-        />
       </div>
     );
   }

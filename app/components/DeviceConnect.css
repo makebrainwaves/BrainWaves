@@ -1,4 +1,4 @@
-.experimentContainer {
+.deviceContainer {
   position: absolute;
   top: 5%;
   height: 100vh;
@@ -13,10 +13,10 @@
   font-size: 1.4rem;
 }
 
-.inputDiv {
-  margin: 15px;
-}
-
 .homeButton {
   margin: 30px;
+}
+
+.connectButton {
+    margin-left: 10px;
 }

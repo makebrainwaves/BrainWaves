@@ -1,7 +1,12 @@
 import { combineEpics } from "redux-observable";
 import * as fs from "fs";
 import { map, mapTo, tap, pluck, filter, takeUntil } from "rxjs/operators";
-import { SET_TYPE, START, STOP } from "../actions/experimentActions";
+import { isNil } from "lodash";
+import {
+  LOAD_DEFAULT_TIMELINE,
+  START,
+  STOP
+} from "../actions/experimentActions";
 import {
   DEVICES,
   MUSE_CHANNELS,
@@ -43,20 +48,19 @@ const cleanup = () => ({
 // Epics
 
 const loadDefaultTimelineEpic = (action$, store) =>
-  action$.ofType(SET_TYPE).pipe(
-    pluck("payload"),
-    map(type => {
-      if (store.getState().device.deviceType === DEVICES.EMOTIV) {
-        return loadTimeline(type, value =>
-          injectEmotivMarker(
+  action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
+    map(() => {
+      if (store.getState().device.deviceType === DEVICES.MUSE) {
+        return loadTimeline(store.getState().experiment.type, value =>
+          injectMuseMarker(
             store.getState().device.client,
             value,
             new Date().getTime()
           )
         );
       }
-      return loadTimeline(type, value =>
-        injectMuseMarker(
+      return loadTimeline(store.getState().experiment.type, value =>
+        injectEmotivMarker(
           store.getState().device.client,
           value,
           new Date().getTime()
@@ -71,8 +75,10 @@ const startEpic = (action$, store) =>
     filter(
       () =>
         !store.getState().experiment.isRunning &&
-        store.getState().experiment.subject !== ""
+        store.getState().experiment.subject !== "" &&
+        !isNil(store.getState().device.rawObservable)
     ),
+
     map(() => {
       const writeStream = fs.createWriteStream(
         `./${store.getState().experiment.subject}_${

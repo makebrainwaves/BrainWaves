@@ -7,6 +7,7 @@ export const EXPERIMENTS = {
 };
 
 export const DEVICES = {
+  NONE: "NONE",
   MUSE: "MUSE",
   EMOTIV: "EMOTIV",
   GANGLION: "GANGLION" // One day ;)

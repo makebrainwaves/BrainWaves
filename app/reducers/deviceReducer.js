@@ -14,7 +14,7 @@ export interface DeviceStateType {
   client: ?any;
   connectedDevice: Object;
   rawObservable: ?any;
-  deviceType: string;
+  deviceType: DEVICES;
 }
 
 const initialState = {

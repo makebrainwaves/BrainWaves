@@ -15,12 +15,21 @@ interface Props {
   experimentActions: Object;
 }
 
+interface State {
+  activeStep: string;
+}
+
 export default class ExperimentDesign extends Component<Props> {
   props: Props;
+  state: State;
 
   constructor(props) {
     super(props);
+    this.state = {
+      activeStep: "Overview"
+    };
     this.handleStepClick = this.handleStepClick.bind(this);
+    this.handleStartExperiment = this.handleStartExperiment.bind(this);
   }
 
   handleStepClick(e: Object, props: Object) {
@@ -74,7 +83,7 @@ export default class ExperimentDesign extends Component<Props> {
                   <Grid.Column>
                     <Header as="h3">{this.props.type}</Header>
                     <Link
-                      to="/experimentRun"
+                      to="/deviceConnect"
                       onClick={this.handleStartExperiment}
                     >
                       <Button color="purple">Begin Experiment</Button>

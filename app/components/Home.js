@@ -56,7 +56,7 @@ export default class Home extends Component<Props> {
                         }
                       >
                         <Image
-                          avatar
+                          size="small"
                           src="./assets/face_house/face_house_icon.jpg"
                         />
                         <List.Content
