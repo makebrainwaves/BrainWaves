@@ -8,15 +8,15 @@ import ExperimentDesignContainer from "./containers/ExperimentDesignContainer";
 import DeviceConnectContainer from "./containers/DeviceConnectContainer";
 import AnalyzeContainer from "./containers/AnalyzeContainer";
 
-// NOTE: Home component "/" must be the last child in Switch
 export default () => (
   <App>
     <Switch>
-      <Route path="/analyze" componen={AnalyzeContainer} />
+      <Route path="/analyze" component={AnalyzeContainer} />
       <Route path="/deviceConnect" component={DeviceConnectContainer} />
       <Route path="/experimentRun" component={ExperimentRunContainer} />
       <Route path="/experimentDesign" component={ExperimentDesignContainer} />
-      <Route path="/" component={HomeContainer} />
+      <Route path="/home" component={HomeContainer} />
+      <Route path="/" default component={HomeContainer} />
     </Switch>
   </App>
 );

@@ -80,7 +80,7 @@ export default class ExperimentRun extends Component<Props> {
       <div>
         <List as="ul">
           {readEEGDataDir(this.props.type).map(filename => (
-            <List.Item icon="file" description={filename} />
+            <List.Item icon="file" description={filename.name} />
           ))}
         </List>
       </div>

@@ -27,11 +27,9 @@ export const readEEGDataDir = (type: ?EXPERIMENTS) => {
   if (type === EXPERIMENTS.NONE) {
     return [];
   }
-  const files = fs.readdirSync(
-    path.join(os.homedir(), "BrainWaves Data", type)
-  );
-  console.log(files);
-  return files;
+  const dir = fs.realpathSync(path.join(os.homedir(), "BrainWaves Data", type));
+  const fileNames = fs.readdirSync(dir);
+  return fileNames.map(fileName => ({ name: fileName, dir }));
 };
 
 export const getCurrentEEGDataDir = (type: ?EXPERIMENTS) => {

@@ -6,7 +6,9 @@ import {
   tap,
   pluck,
   ignoreElements,
-  filter
+  filter,
+  toArray,
+  take
 } from "rxjs/operators";
 import { find } from "kernelspecs";
 import { launchSpec } from "spawnteract";
@@ -17,10 +19,17 @@ import {
   LAUNCH_KERNEL,
   REQUEST_KERNEL_INFO,
   SEND_EXECUTE_REQUEST,
+  LOAD_EPOCHS,
   CLOSE_KERNEL
 } from "../actions/jupyterActions";
-import { imports, loadCSV } from "../utils/jupyter/cells";
+import {
+  imports,
+  loadCSV,
+  filterIIR,
+  epochEvents
+} from "../utils/jupyter/cells";
 import { EMOTIV_CHANNELS } from "../constants/constants";
+import { exec } from "child_process";
 
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
@@ -28,7 +37,7 @@ export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
 export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
 export const SET_PSD_PLOT = "SET_PSD_PLOT";
 export const SET_ERP_PLOT = "SET_ERP_PLOT";
-export const RECEIVE_EXECUTE_RETURN = "RECEIVE_EXECUTE_REQUEST";
+export const RECEIVE_EXECUTE_RETURN = "RECEIVE_EXECUTE_RETURN";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -95,7 +104,7 @@ const setUpChannelEpic = action$ =>
   action$.ofType(SET_KERNEL).pipe(
     pluck("payload"),
     mergeMap(kernel => Observable.from(createMainChannel(kernel.config))),
-    tap(mainChannel => mainChannel.next(imports())),
+    tap(mainChannel => mainChannel.next(executeRequest(imports()))),
     map(setMainChannel)
   );
 
@@ -125,6 +134,9 @@ const receiveChannelMessageEpic = (action$, store) =>
             case "kernel_info_reply":
               return setKernelInfo(msg);
             case "stream":
+              // OTDO: Change to another action?
+              return receiveExecuteReturn(msg);
+            case "execute_reply":
               return receiveExecuteReturn(msg);
             default:
           }
@@ -137,27 +149,57 @@ const receiveChannelMessageEpic = (action$, store) =>
 const loadEpochsEpic = (action$, store) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck("payload"),
+    tap(console.log),
     map(filePathArray =>
       store
         .getState()
-        .mainChannel.next(
-          loadCSV(
-            filePathArray,
-            128.0,
-            EMOTIV_CHANNELS.map((_, i) => i),
-            EMOTIV_CHANNELS.length
+        .jupyter.mainChannel.next(
+          executeRequest(
+            loadCSV(
+              filePathArray,
+              128.0,
+              EMOTIV_CHANNELS.map((_, i) => i),
+              EMOTIV_CHANNELS.length
+            )
           )
         )
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
-        filter(msg => !isNil(msg.content)),
-        tap(console.log),
-        pluck("content"),
-        map(setEpochInfo)
+        pluck("payload"),
+        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
+        tap(() => console.log("received OK from load")),
+        take(1)
       )
     ),
-    tap(() => console.log("outside mergemap"))
+    map(() =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(executeRequest(filterIIR(1, 30)))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
+        tap(() => console.log("received OK from filter")),
+        take(1)
+      )
+    ),
+    map(() =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(
+          executeRequest(epochEvents({ House: 3, Face: 4 }, -0.1, 0.8))
+        )
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
+        tap(() => console.log("received OK from epoch")),
+        take(1)
+      )
+    ),
   );
 
 const closeKernelEpic = (action$, store) =>
@@ -175,5 +217,6 @@ export default combineEpics(
   requestKernelInfoEpic,
   sendExecuteRequestEpic,
   receiveChannelMessageEpic,
+  loadEpochsEpic,
   closeKernelEpic
 );

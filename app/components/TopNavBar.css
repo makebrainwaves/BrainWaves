@@ -12,6 +12,11 @@
   font-size: 1.2em;
 }
 
+.activeNavLink {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 10px;
+}
+
 .statusHeader {
   color: #fff;
 }

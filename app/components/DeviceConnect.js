@@ -71,8 +71,11 @@ export default class DeviceConnect extends Component<Props> {
             <Icon name="check" color="green" />Connected
           </Item.Header>
         </Item>
+
         <Link to="/experimentRun">
-          <Button color="red" onClick={this.handleStartExperiment}>Begin Experiment</Button>
+          <Button color="red" onClick={this.handleStartExperiment}>
+            Begin Experiment
+          </Button>
         </Link>
       </div>
     );

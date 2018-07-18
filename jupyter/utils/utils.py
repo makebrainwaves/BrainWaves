@@ -36,6 +36,7 @@ def load_csv_as_raw(filename, sfreq, ch_ind, stim_ind, replace_ch_names):
     n_channel = len(ch_ind)
 
     raw = []
+    print(filename)
     for fname in filename:
         # read the file
         data = pd.read_csv(fname, index_col=0)
@@ -65,7 +66,7 @@ def load_csv_as_raw(filename, sfreq, ch_ind, stim_ind, replace_ch_names):
     return raws
 
 
-def load_data(data_dir, subject=1, session=1, sfreq=128.,
+def load_data(fnames, sfreq=128.,
               ch_ind=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
               stim_ind=14, replace_ch_names=None):
     """Load CSV files from the /data directory into a Raw object.
@@ -74,10 +75,6 @@ def load_data(data_dir, subject=1, session=1, sfreq=128.,
         fnames (array): CSV filepaths from which to load data
 
     Keyword Args:
-        subject (int or str): subject number. If 'all', load all
-            subjects.
-        session (int or str): session number. If 'all', load all
-            sessions.
         sfreq (float): EEG sampling frequency
         ch_ind (list): indices of the EEG channels to keep
         stim_ind (int): index of the stim channel
@@ -87,8 +84,6 @@ def load_data(data_dir, subject=1, session=1, sfreq=128.,
     Returns:
         (mne.io.array.array.RawArray): loaded EEG
     """
-    print(fnames)
-    print(type(fnames))
 
     return load_csv_as_raw(fnames, sfreq=sfreq, ch_ind=ch_ind,
                            stim_ind=stim_ind,

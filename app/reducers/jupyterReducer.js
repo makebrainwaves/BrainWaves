@@ -67,7 +67,6 @@ export default function jupyter(
       };
 
     case RECEIVE_EXECUTE_RETURN:
-      console.log(action.payload);
       return state;
 
     default:

@@ -7,7 +7,8 @@ import {
   Step,
   Segment,
   Header,
-  Dropdown
+  Dropdown,
+  GridColumn
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import { isNil } from "lodash";
@@ -32,7 +33,7 @@ interface State {
   selectedFilePaths: [?string];
 }
 
-export default class ExperimentDesign extends Component<Props> {
+export default class Analyze extends Component<Props> {
   props: Props;
   state: State;
 
@@ -47,18 +48,20 @@ export default class ExperimentDesign extends Component<Props> {
     this.handleLoadData = this.handleLoadData.bind(this);
   }
 
-  componentWillReceiveProps() {
+  componentWillMount() {
+    if (isNil(this.props.kernel)) {
+      this.props.jupyterActions.launchKernel();
+    }
     this.setState({
       eegFilePaths: readEEGDataDir(this.props.type).map(filepath => ({
-        key: filepath,
-        text: filepath,
+        key: filepath.name,
+        text: filepath.name,
         value: filepath
       }))
     });
   }
 
   handleDropdownChange(e: Object, props: Object) {
-    console.log(props);
     this.setState({ selectedFilePaths: props.value });
   }
 
@@ -68,27 +71,27 @@ export default class ExperimentDesign extends Component<Props> {
 
   render() {
     return (
-      <div>
-        <Grid columns={3} relaxed>
+      <div className={styles.experimentContainer}>
+        <Grid columns={3} relaxed padded>
           <Grid.Column>
             <Segment raised padded color="red">
-              Epoch Info
-              <span>
-                <Dropdown
-                  placeholder="Add Data"
-                  inline
-                  fluid
-                  multiple
-                  selection
-                  options={this.state.eegFilePaths}
-                  onChange={this.handleDropdownChange}
-                />
-                <Button onClick={this.handleLoadData}>Load Data</Button>
-              </span>
+              <Dropdown
+                placeholder="Select Datasets"
+                fluid
+                multiple
+                selection
+                options={this.state.eegFilePaths}
+                onChange={this.handleDropdownChange}
+              />
+              <Button onClick={this.handleLoadData}>Load Data</Button>
             </Segment>
+          </Grid.Column>
+          <Grid.Column>
             <Segment raised padded color="red">
               Average ERP
             </Segment>
+          </Grid.Column>
+          <Grid.Column>
             <Segment raised padded color="red">
               PSD
             </Segment>

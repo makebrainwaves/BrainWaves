@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Grid, Button, Icon, Header, List } from "semantic-ui-react";
 import { EXPERIMENTS, DEVICES } from "../constants/constants";
 import { isNil } from "lodash";
@@ -8,6 +8,8 @@ import styles from "./TopNavBar.css";
 interface Props {
   location: { pathname: string, search: string, hash: string };
   type: EXPERIMENTS;
+  rawObservable: ?any;
+  mainChannel: ?any;
   deviceType: DEVICES;
 }
 
@@ -36,19 +38,32 @@ export default class TopNavBar extends Component<Props> {
             </List>
           </Grid.Column>
           <Grid.Column>
-            <Link to="/">HOME</Link>
+            <NavLink to="/home" activeClassName={styles.activeNavLink}>
+              HOME
+            </NavLink>
           </Grid.Column>
           <Grid.Column>
-            <Link to="/experimentDesign">DESIGN</Link>
+            <NavLink
+              to="/experimentDesign"
+              activeClassName={styles.activeNavLink}
+            >
+              DESIGN
+            </NavLink>
           </Grid.Column>
           <Grid.Column>
-            <Link to="/deviceConnect">CONNECT</Link>
+            <NavLink to="/deviceConnect" activeClassName={styles.activeNavLink}>
+              CONNECT
+            </NavLink>
           </Grid.Column>
           <Grid.Column>
-            <Link to="/experimentRun">RUN</Link>
+            <NavLink to="/experimentRun" activeClassName={styles.activeNavLink}>
+              RUN
+            </NavLink>
           </Grid.Column>
           <Grid.Column>
-            <Link to="Analyze">ANALYZE</Link>
+            <NavLink to="/analyze" activeClassName={styles.activeNavLink}>
+              ANALYZE
+            </NavLink>
           </Grid.Column>
         </Grid>
       </div>
