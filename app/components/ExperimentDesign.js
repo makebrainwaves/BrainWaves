@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from "react";
-import { Grid, Button, Icon, Step, Segment, Header } from "semantic-ui-react";
+import { Grid, Button, Step, Segment, Header } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import { isNil } from "lodash";
 import styles from "./ExperimentDesign.css";

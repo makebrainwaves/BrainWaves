@@ -1,18 +1,10 @@
 // @flow
 import React, { Component } from "react";
-import {
-  Grid,
-  Button,
-  Icon,
-  Segment,
-  Header,
-  Input,
-  List
-} from "semantic-ui-react";
+import { Grid, Button, Segment, Header, Input, List } from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
 import { Link } from "react-router-dom";
 import styles from "./ExperimentRun.css";
-import { debounce, isNil } from "lodash";
+import { debounce } from "lodash";
 import callback_html_display from "../utils/jspsych/plugins/callback_html_display";
 import callback_image_display from "../utils/jspsych/plugins/callback_image_display";
 import animation from "../utils/jspsych/plugins/jspsych-animation";

@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from "react";
-import { Input, Card, Image, Button, Segment } from "semantic-ui-react";
+import { Input, Card, Button } from "semantic-ui-react";
 import { debounce, isNil } from "lodash";
 import { executeRequest } from "@nteract/messaging";
 import {

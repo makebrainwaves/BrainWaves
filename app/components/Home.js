@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { Grid, Button, Header, Segment, List, Image } from "semantic-ui-react";
+import { Grid, Header, Segment, List, Image } from "semantic-ui-react";
 import styles from "./Home.css";
 import { EXPERIMENTS } from "../constants/constants";
 

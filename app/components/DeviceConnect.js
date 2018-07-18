@@ -5,7 +5,6 @@ import {
   Button,
   Icon,
   Item,
-  Step,
   Segment,
   Header,
   List
