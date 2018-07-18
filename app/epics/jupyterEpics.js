@@ -19,10 +19,15 @@ import {
   SEND_EXECUTE_REQUEST,
   CLOSE_KERNEL
 } from "../actions/jupyterActions";
+import { imports, loadCSV } from "../utils/jupyter/cells";
+import { EMOTIV_CHANNELS } from "../constants/constants";
 
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
 export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
+export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
+export const SET_PSD_PLOT = "SET_PSD_PLOT";
+export const SET_ERP_PLOT = "SET_ERP_PLOT";
 export const RECEIVE_EXECUTE_RETURN = "RECEIVE_EXECUTE_REQUEST";
 
 // -------------------------------------------------------------------------
@@ -41,6 +46,11 @@ const setKernelInfo = payload => ({
 const setMainChannel = payload => ({
   payload,
   type: SET_MAIN_CHANNEL
+});
+
+const setEpochInfo = payload => ({
+  payload,
+  type: SET_EPOCH_INFO
 });
 
 const receiveExecuteReturn = payload => ({
@@ -85,6 +95,7 @@ const setUpChannelEpic = action$ =>
   action$.ofType(SET_KERNEL).pipe(
     pluck("payload"),
     mergeMap(kernel => Observable.from(createMainChannel(kernel.config))),
+    tap(mainChannel => mainChannel.next(imports())),
     map(setMainChannel)
   );
 
@@ -121,6 +132,32 @@ const receiveChannelMessageEpic = (action$, store) =>
         filter(action => !isNil(action))
       )
     )
+  );
+
+const loadEpochsEpic = (action$, store) =>
+  action$.ofType(LOAD_EPOCHS).pipe(
+    pluck("payload"),
+    map(filePathArray =>
+      store
+        .getState()
+        .mainChannel.next(
+          loadCSV(
+            filePathArray,
+            128.0,
+            EMOTIV_CHANNELS.map((_, i) => i),
+            EMOTIV_CHANNELS.length
+          )
+        )
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
+        filter(msg => !isNil(msg.content)),
+        tap(console.log),
+        pluck("content"),
+        map(setEpochInfo)
+      )
+    ),
+    tap(() => console.log("outside mergemap"))
   );
 
 const closeKernelEpic = (action$, store) =>

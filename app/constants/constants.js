@@ -1,4 +1,5 @@
 export const EXPERIMENTS = {
+  NONE: "NONE",
   P300: "P300",
   N170: "N170",
   SSVEP: "SSVEP",

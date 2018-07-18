@@ -9,6 +9,7 @@ import * as os from "os";
 import * as path from "path";
 import { isNil } from "lodash";
 import { EEGData } from "../../constants/interfaces";
+import { EXPERIMENTS } from "../../constants/constants";
 
 export const createEEGWriteStream = (
   type: EXPERIMENTS,
@@ -23,7 +24,7 @@ export const createEEGWriteStream = (
 };
 
 export const readEEGDataDir = (type: ?EXPERIMENTS) => {
-  if (isNil(type)) {
+  if (type === EXPERIMENTS.NONE) {
     return [];
   }
   const files = fs.readdirSync(

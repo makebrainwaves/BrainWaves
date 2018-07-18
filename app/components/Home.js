@@ -29,7 +29,7 @@ export default class Home extends Component<Props> {
           <Grid columns={2} relaxed padded>
             <Grid.Row>
               <Grid.Column>
-                <Segment raised color="purple">
+                <Segment raised color="red">
                   <Header as="h2">Welcome to the BrainWaves App Alpha</Header>
                   <p>
                     The New York University (NYU) BrainWaves app allows you to
@@ -46,7 +46,7 @@ export default class Home extends Component<Props> {
             </Grid.Row>
             <Grid.Row>
               <Grid.Column>
-                <Segment color="purple">
+                <Segment color="red">
                   <Header as="h3">Start Experiment</Header>
                   <List size="medium">
                     <List.Item>

@@ -46,12 +46,9 @@ export default class ExperimentDesign extends Component<Props> {
     return (
       <div>
         <div className={styles.experimentContainer}>
-          <Link to="/" className={styles.homeButton}>
-            <Icon name="home" size="large" color="black" inverted />
-          </Link>
           <Grid columns={1} centered style={{ height: "50%" }}>
             <Grid.Row>
-              <Segment raised color="purple">
+              <Segment raised color="red">
                 <Header as="h3">Review Design</Header>
                 <Step.Group>
                   <Step
@@ -78,7 +75,7 @@ export default class ExperimentDesign extends Component<Props> {
               </Segment>
             </Grid.Row>
             <Grid.Row stretched style={{ height: "100%" }}>
-              <Segment padded="very" compact raised color="purple">
+              <Segment padded="very" compact raised color="red">
                 <Grid columns={2}>
                   <Grid.Column>
                     <Header as="h3">{this.props.type}</Header>
@@ -86,7 +83,7 @@ export default class ExperimentDesign extends Component<Props> {
                       to="/deviceConnect"
                       onClick={this.handleStartExperiment}
                     >
-                      <Button color="purple">Begin Experiment</Button>
+                      <Button color="red">Begin Experiment</Button>
                     </Link>
                   </Grid.Column>
                   <Grid.Column>

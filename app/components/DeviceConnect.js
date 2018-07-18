@@ -73,7 +73,7 @@ export default class DeviceConnect extends Component<Props> {
           </Item.Header>
         </Item>
         <Link to="/experimentRun">
-          <Button onClick={this.handleStartExperiment}>Begin Experiment</Button>
+          <Button color="red" onClick={this.handleStartExperiment}>Begin Experiment</Button>
         </Link>
       </div>
     );
@@ -127,12 +127,9 @@ export default class DeviceConnect extends Component<Props> {
     return (
       <div>
         <div className={styles.deviceContainer}>
-          <Link to="/" className={styles.homeButton}>
-            <Icon name="home" size="large" color="black" inverted />
-          </Link>
           <Grid columns={1} centered style={{ height: "70%" }}>
             <Grid.Row stretched style={{ height: "100%" }}>
-              <Segment padded="very" compact raised color="purple">
+              <Segment padded="very" compact raised color="red">
                 <Grid columns={2}>
                   <Grid.Column>
                     <Header as="h3">Connect EEG Device</Header>

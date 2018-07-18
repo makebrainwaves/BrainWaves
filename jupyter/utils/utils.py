@@ -16,6 +16,7 @@ from matplotlib import pyplot as plt
 sns.set_context('talk')
 sns.set_style('white')
 
+
 def load_csv_as_raw(filename, sfreq, ch_ind, stim_ind, replace_ch_names):
     """Load CSV files into a Raw object.
 
@@ -70,8 +71,7 @@ def load_data(data_dir, subject=1, session=1, sfreq=128.,
     """Load CSV files from the /data directory into a Raw object.
 
     Args:
-        data_dir (str): directory inside /data that contains the
-            CSV files to load, e.g., 'auditory/P300'
+        fnames (array): CSV filepaths from which to load data
 
     Keyword Args:
         subject (int or str): subject number. If 'all', load all
@@ -87,14 +87,8 @@ def load_data(data_dir, subject=1, session=1, sfreq=128.,
     Returns:
         (mne.io.array.array.RawArray): loaded EEG
     """
-    if subject == 'all':
-        subject = '*'
-    if session == 'all':
-        session = '*'
-
-    data_path = os.path.join(
-        data_dir, '{}_{}.csv'.format(subject, session))
-    fnames = glob(data_path)
+    print(fnames)
+    print(type(fnames))
 
     return load_csv_as_raw(fnames, sfreq=sfreq, ch_ind=ch_ind,
                            stim_ind=stim_ind,

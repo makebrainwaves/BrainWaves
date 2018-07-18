@@ -99,7 +99,7 @@ export default class ExperimentRun extends Component<Props> {
     if (!this.props.isRunning) {
       return (
         <div>
-          <Segment raised padded color="purple">
+          <Segment raised padded color="red">
             <Header as="h3">Faces and Houses N170 Experiment</Header>
             <div className={styles.inputDiv}>
               <Input
@@ -121,16 +121,18 @@ export default class ExperimentRun extends Component<Props> {
               Start Experiment
             </Button>
           </Segment>
-          <Segment raised padded color="purple">
+          <Segment raised padded color="red">
             <Header as="h3">
               Collected Trials
               <Header.Subheader>
                 {getCurrentEEGDataDir(this.props.type)}
               </Header.Subheader>
             </Header>
-
             {this.renderTrialList()}
           </Segment>
+          <Link to="/analyze">
+            <Button>Analyze Data</Button>
+          </Link>
         </div>
       );
     }
@@ -150,9 +152,6 @@ export default class ExperimentRun extends Component<Props> {
     return (
       <div>
         <div className={styles.experimentContainer} data-tid="container">
-          <Link to="/" className={styles.homeButton}>
-            <Icon name="home" size="large" color="black" inverted />
-          </Link>
           <Grid columns={1} divided relaxed>
             <Grid.Row centered>
               {this.renderExperiment(this.props.type)}

@@ -18,9 +18,7 @@ export const imports = () =>
   ].join("\n");
 
 export const loadCSV = (
-  subject: string,
-  session: number,
-  data_dir: string,
+  filePathArray: Array<string>,
   sfreq: number = 128.0,
   ch_ind: Array<number>,
   stim_ind: number,
