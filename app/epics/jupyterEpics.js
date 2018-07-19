@@ -7,7 +7,6 @@ import {
   pluck,
   ignoreElements,
   filter,
-  toArray,
   take
 } from "rxjs/operators";
 import { find } from "kernelspecs";
@@ -20,16 +19,21 @@ import {
   REQUEST_KERNEL_INFO,
   SEND_EXECUTE_REQUEST,
   LOAD_EPOCHS,
+  LOAD_ERP,
   CLOSE_KERNEL
 } from "../actions/jupyterActions";
 import {
   imports,
   loadCSV,
   filterIIR,
-  epochEvents
+  epochEvents,
+  plotPSD,
+  plotERP
 } from "../utils/jupyter/cells";
+
 import { EMOTIV_CHANNELS } from "../constants/constants";
-import { exec } from "child_process";
+import { parseSingleQuoteJSON } from "../utils/jupyter/functions";
+import { isObject } from "util";
 
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
@@ -37,7 +41,10 @@ export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
 export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
 export const SET_PSD_PLOT = "SET_PSD_PLOT";
 export const SET_ERP_PLOT = "SET_ERP_PLOT";
-export const RECEIVE_EXECUTE_RETURN = "RECEIVE_EXECUTE_RETURN";
+export const RECEIVE_EXECUTE_REPLY = "RECEIVE_EXECUTE_REPLY";
+export const RECEIVE_EXECUTE_RESULT = "RECEIVE_EXECUTE_RESULT";
+export const RECEIVE_STREAM = "RECEIVE_STREAM";
+export const RECEIVE_DISPLAY_DATA = "RECEIVE_DISPLAY_DATA";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -62,9 +69,34 @@ const setEpochInfo = payload => ({
   type: SET_EPOCH_INFO
 });
 
-const receiveExecuteReturn = payload => ({
+const setPSDPlot = payload => ({
   payload,
-  type: RECEIVE_EXECUTE_RETURN
+  type: SET_PSD_PLOT
+});
+
+const setERPPlot = payload => ({
+  payload,
+  type: SET_ERP_PLOT
+});
+
+const receiveExecuteReply = payload => ({
+  payload,
+  type: RECEIVE_EXECUTE_REPLY
+});
+
+const receiveExecuteResult = payload => ({
+  payload,
+  type: RECEIVE_EXECUTE_RESULT
+});
+
+const receiveDisplayData = payload => ({
+  payload,
+  type: RECEIVE_DISPLAY_DATA
+});
+
+const receiveStream = payload => ({
+  payload,
+  type: RECEIVE_STREAM
 });
 
 // -------------------------------------------------------------------------
@@ -135,9 +167,13 @@ const receiveChannelMessageEpic = (action$, store) =>
               return setKernelInfo(msg);
             case "stream":
               // OTDO: Change to another action?
-              return receiveExecuteReturn(msg);
+              return receiveStream(msg);
             case "execute_reply":
-              return receiveExecuteReturn(msg);
+              return receiveExecuteReply(msg);
+            case "execute_result":
+              return receiveExecuteResult(msg);
+            case "display_data":
+              return receiveDisplayData(msg);
             default:
           }
         }),
@@ -149,6 +185,7 @@ const receiveChannelMessageEpic = (action$, store) =>
 const loadEpochsEpic = (action$, store) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck("payload"),
+    filter(filePathsArray => filePathsArray.length >= 1),
     tap(console.log),
     map(filePathArray =>
       store
@@ -165,7 +202,7 @@ const loadEpochsEpic = (action$, store) =>
         )
     ),
     mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
+      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
         tap(() => console.log("received OK from load")),
@@ -178,7 +215,7 @@ const loadEpochsEpic = (action$, store) =>
         .jupyter.mainChannel.next(executeRequest(filterIIR(1, 30)))
     ),
     mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
+      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
         tap(() => console.log("received OK from filter")),
@@ -193,13 +230,61 @@ const loadEpochsEpic = (action$, store) =>
         )
     ),
     mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RETURN).pipe(
+      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck("payload"),
-        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
-        tap(() => console.log("received OK from epoch")),
+        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
+        tap(() => console.log("received epoch data")),
+        pluck("content", "data", "text/plain"),
         take(1)
       )
     ),
+    map(epochInfoString => setEpochInfo(parseSingleQuoteJSON(epochInfoString)))
+  );
+
+const loadPSDEpic = (action$, store) =>
+  action$.ofType(SET_EPOCH_INFO).pipe(
+    map(() =>
+      store.getState().jupyter.mainChannel.next(executeRequest(plotPSD()))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
+        tap(() => console.log("received psd data")),
+        pluck("content", "data"),
+        take(1)
+      )
+    ),
+    map(setPSDPlot)
+  );
+
+// NOTE: Will auto load when detecting a SET_PSD_PLOT action. check is to pick default channel in that case
+const loadERPEpic = (action$, store) =>
+  action$.ofType(LOAD_ERP, SET_PSD_PLOT).pipe(
+    pluck("payload"),
+    map(payload => {
+      if (EMOTIV_CHANNELS.includes(payload)) {
+        return payload;
+      }
+      return EMOTIV_CHANNELS[1];
+    }),
+    map(channelName => EMOTIV_CHANNELS.indexOf(channelName)),
+    map(channelIndex =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(executeRequest(plotERP(channelIndex)))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
+        pluck("payload"),
+        tap(msg => console.log("receive in merge: ", msg)),
+        filter(msg => msg.header.msg_type === "display_data"),
+        tap(() => console.log("received erp data")),
+        pluck("content", "data"),
+        take(1)
+      )
+    ),
+    map(setERPPlot)
   );
 
 const closeKernelEpic = (action$, store) =>
@@ -218,5 +303,7 @@ export default combineEpics(
   sendExecuteRequestEpic,
   receiveChannelMessageEpic,
   loadEpochsEpic,
+  loadPSDEpic,
+  loadERPEpic,
   closeKernelEpic
 );

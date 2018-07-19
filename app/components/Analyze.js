@@ -8,14 +8,16 @@ import {
   Segment,
   Header,
   Dropdown,
-  GridColumn
+  Divider,
+  Container,
+  Label
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import { isNil } from "lodash";
 import styles from "./ExperimentDesign.css";
-import { EXPERIMENTS } from "../constants/constants";
-import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
+import { EXPERIMENTS, EMOTIV_CHANNELS } from "../constants/constants";
 import { readEEGDataDir } from "../utils/filesystem/write";
+import JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -46,6 +48,9 @@ export default class Analyze extends Component<Props> {
     };
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
+    this.handleChannelDropdownChange = this.handleChannelDropdownChange.bind(
+      this
+    );
   }
 
   componentWillMount() {
@@ -65,35 +70,79 @@ export default class Analyze extends Component<Props> {
     this.setState({ selectedFilePaths: props.value });
   }
 
+  handleChannelDropdownChange(e: Object, props: Object) {
+    this.props.jupyterActions.loadERP(props.value);
+  }
+
   handleLoadData() {
     this.props.jupyterActions.loadEpochs(this.state.selectedFilePaths);
+  }
+
+  renderEpochLabels() {
+    if (!isNil(this.props.epochsInfo)) {
+      return (
+        <div>
+          <Segment basic>
+            <Icon name="smile" />FACES
+            <p>{this.props.epochsInfo["Face"]} Trials</p>
+          </Segment>
+          <Segment basic>
+            <Icon name="home" />HOUSES
+            <p>{this.props.epochsInfo["House"]} Trials</p>
+          </Segment>
+          <Segment basic>
+            <Icon name="x" />REJECTION %
+            <p>{this.props.epochsInfo["dropPercentage"]}</p>
+          </Segment>
+        </div>
+      );
+    }
+    return <div />;
   }
 
   render() {
     return (
       <div className={styles.experimentContainer}>
-        <Grid columns={3} relaxed padded>
-          <Grid.Column>
+        <Grid columns="equal" relaxed padded>
+          <Grid.Column width={4}>
             <Segment raised padded color="red">
+            <Header as="h2">Data Sets</Header>
+
+              <Segment basic>
+                <Dropdown
+                  placeholder="Select Data Sets"
+                  fluid
+                  multiple
+                  selection
+                  options={this.state.eegFilePaths}
+                  onChange={this.handleDropdownChange}
+                />
+                <Button onClick={this.handleLoadData}>Load</Button>
+              </Segment>
+              {this.renderEpochLabels()}
+            </Segment>
+          </Grid.Column>
+          <Grid.Column width={6}>
+            <Segment raised padded color="red">
+              <Header as="h2">Average Event-Related Potential</Header>
               <Dropdown
-                placeholder="Select Datasets"
+                placeholder="Select Electrode"
                 fluid
-                multiple
                 selection
-                options={this.state.eegFilePaths}
-                onChange={this.handleDropdownChange}
+                options={EMOTIV_CHANNELS.map(channelName => ({
+                  key: channelName,
+                  text: channelName,
+                  value: channelName
+                }))}
+                onChange={this.handleChannelDropdownChange}
               />
-              <Button onClick={this.handleLoadData}>Load Data</Button>
+              <JupyterPlotWidget plotMIMEBundle={this.props.erpPlot} />
             </Segment>
           </Grid.Column>
-          <Grid.Column>
+          <Grid.Column width={6}>
             <Segment raised padded color="red">
-              Average ERP
-            </Segment>
-          </Grid.Column>
-          <Grid.Column>
-            <Segment raised padded color="red">
-              PSD
+              <Header as="h2">Power Spectral Density</Header>
+              <JupyterPlotWidget plotMIMEBundle={this.props.psdPlot} />
             </Segment>
           </Grid.Column>
         </Grid>

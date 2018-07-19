@@ -26,7 +26,7 @@ interface ExperimentStateType {
 }
 
 const initialState = {
-  type: EXPERIMENTS.NONE,
+  type: EXPERIMENTS.N170,
   mainTimeline: [],
   trials: {},
   timelines: {},

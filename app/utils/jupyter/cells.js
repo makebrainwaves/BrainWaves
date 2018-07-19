@@ -1,5 +1,4 @@
 import * as path from "path";
-import { setFlagsFromString } from "v8";
 
 export const imports = () =>
   [
@@ -36,8 +35,9 @@ export const loadCSV = (
     `raw = utils.load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
   ].join("\n");
 
+// NOTE: this command includes a ';' to prevent returning data
 export const filterIIR = (low_cutoff: number, high_cutoff: number) =>
-  `raw.filter(${low_cutoff}, ${high_cutoff}, method='iir')`;
+  `raw.filter(${low_cutoff}, ${high_cutoff}, method='iir');`;
 
 export const plotPSD = () => "raw.plot_psd()";
 
@@ -57,16 +57,19 @@ export const epochEvents = (
     "events = find_events(raw)",
     `epochs = Epochs(raw, events=events, event_id=event_ids, 
                     tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True, 
-                    verbose=False, picks=picks)`
+                    verbose=False, picks=picks)`,
+    `{"totalEpochs": len(epochs.events), "dropPercentage": (1 - len(epochs.events)/len(events)) * 100, **{x: len(epochs[x]) for x in event_ids}}`
   ].join("\n");
   console.log(command);
   return command;
 };
 
-export const plotERP = (ch_ind: number, event_id: { [string]: number }) => [
-  `conditions = OrderedDict({key: [value] for (key, value) in ${event_id}.items()})``X, y = utils.plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
-    ci=97.5, n_boot=1000, title='',)`
-];
+export const plotERP = (ch_ind: number) =>
+  [
+    `conditions = OrderedDict({key: [value] for (key, value) in event_ids.items()})`,
+    `X, y = utils.plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
+    ci=97.5, n_boot=1000, title='')`
+  ].join("\n");
 
 // -------------------------------------------
 // Helper methods

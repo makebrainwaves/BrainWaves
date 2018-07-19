@@ -3,12 +3,12 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 @import "~font-awesome/css/font-awesome.css";
-@import '~semantic-ui-css/semantic.min.css';
+@import "~semantic-ui-css/semantic.min.css";
 
 body {
   position: relative;
   height: 100vh;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   font-family: Lato, Helvetica Neue, serif;
   overflow-y: hidden;
 }
@@ -41,6 +41,10 @@ a:hover {
   cursor: pointer;
 }
 
+img {
+  max-width: 100%;
+}
+
 .jspsych-display-element {
   width: 50% !important;
 }
@@ -52,4 +56,3 @@ a:hover {
 .ui.avatar.image {
   width: auto;
 }
-

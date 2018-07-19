@@ -3,7 +3,7 @@ import {
   SET_KERNEL,
   SET_MAIN_CHANNEL,
   SET_KERNEL_INFO,
-  SET_EPOCHS_INFO,
+  SET_EPOCH_INFO,
   SET_PSD_PLOT,
   SET_ERP_PLOT,
   RECEIVE_EXECUTE_RETURN
@@ -48,7 +48,7 @@ export default function jupyter(
       console.log(action.payload);
       return state;
 
-    case SET_EPOCHS_INFO:
+    case SET_EPOCH_INFO:
       return {
         ...state,
         epochsInfo: action.payload

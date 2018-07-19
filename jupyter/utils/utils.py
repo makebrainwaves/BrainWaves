@@ -3,7 +3,6 @@
 from glob import glob
 import os
 from collections import OrderedDict
-
 from mne import create_info, concatenate_raws
 from mne.io import RawArray
 from mne.channels import read_montage
