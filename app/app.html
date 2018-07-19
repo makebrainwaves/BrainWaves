@@ -36,8 +36,8 @@
       const port = process.env.PORT || 1212;
       scripts.push(
         (process.env.HOT)
-          ? 'http://localhost:' + port + '/dist/main.entry.js'
-          : './dist/main.entry.js'
+          ? 'http://localhost:' + port + '/dist/main.entry.js' :
+          './dist/main.entry.js'
       );
 
 

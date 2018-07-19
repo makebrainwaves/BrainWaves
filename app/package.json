@@ -22,7 +22,6 @@
     "muse-js": "^3.0.1",
     "noble-winrt": "^0.1.0",
     "node-pre-gyp": "^0.10.0",
-    "react-hot-loader": "^4.3.3",
     "spawnteract": "^4.0.0"
   },
   "devDependencies": {

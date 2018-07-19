@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Grid, Header, Segment, List, Image } from "semantic-ui-react";
 import styles from "./Home.css";
 import { EXPERIMENTS } from "../constants/constants";
+import face_house_icon from "../assets/face_house/face_house_icon.jpg";
 
 interface Props {
   jupyterActions: Object;
@@ -56,10 +57,7 @@ export default class Home extends Component<Props> {
                           this.handleExperimentSelect(EXPERIMENTS.N170)
                         }
                       >
-                        <Image
-                          size="small"
-                          src="./assets/face_house/face_house_icon.jpg"
-                        />
+                        <Image size="small" src={face_house_icon} />
                         <List.Content
                           header="Faces and Houses"
                           description="Detecting the N170 face-evoked potential"

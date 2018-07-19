@@ -181,6 +181,7 @@
     "minimist": "^1.2.0",
     "node-sass": "^4.9.0",
     "npm-logical-tree": "^1.2.1",
+    "patch-package": "^5.1.1",
     "prettier": "^1.12.1",
     "react-test-renderer": "^16.4.0",
     "redux-logger": "^3.0.6",
