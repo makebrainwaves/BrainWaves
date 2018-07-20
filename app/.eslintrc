@@ -6,7 +6,7 @@
     "flowtype/generic-spacing": ["error", "never"],
     "flowtype/no-primitive-constructor-types": "error",
     "flowtype/no-weak-types": "warn",
-    "flowtype/object-type-delimiter": ["error", "semicolon"],
+    "flowtype/object-type-delimiter": ["off"],
     "flowtype/require-parameter-type": "off",
     "flowtype/require-return-type": "off",
     "flowtype/require-valid-file-annotation": "off",

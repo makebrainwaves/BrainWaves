@@ -1,19 +1,22 @@
 import React, { Component } from "react";
 import { NavLink } from "react-router-dom";
-import { Grid, Button, Icon, Header, List } from "semantic-ui-react";
-import { EXPERIMENTS, DEVICES } from "../constants/constants";
 import { isNil } from "lodash";
-import styles from "./TopNavBar.css";
+import { Observable } from "rxjs/Observable";
+
+
+import { Grid, List } from "semantic-ui-react";
+import { EXPERIMENTS, DEVICES } from "../constants/constants";
+import styles from "./styles/topnavbar.css";
 
 interface Props {
   location: { pathname: string, search: string, hash: string };
   type: EXPERIMENTS;
-  rawObservable: ?any;
+  rawObservable: ?Observable;
   mainChannel: ?any;
   deviceType: DEVICES;
 }
 
-export default class TopNavBar extends Component<Props> {
+export default class TopNav extends Component<Props> {
   props: Props;
 
   render() {

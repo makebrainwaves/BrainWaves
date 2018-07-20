@@ -1,4 +1,5 @@
 // @flow
+import { Observable } from "rxjs/Observable";
 import {
   SET_EMOTIV_CLIENT,
   SET_MUSE_CLIENT,
@@ -9,16 +10,18 @@ import {
 } from "../epics/deviceEpics";
 import { DEVICES } from "../constants/constants";
 import { ActionType } from "../constants/interfaces";
+import { SET_DEVICE_TYPE } from "../actions/deviceActions";
 
-export interface DeviceStateType {
-  client: ?any;
-  connectedDevice: Object;
-  rawObservable: ?any;
-  deviceType: DEVICES;
+interface DeviceStateType {
+  +client: ?any;
+  +connectedDevice: Object;
+  +rawObservable: ?Observable;
+  +deviceType: DEVICES;
 }
 
 const initialState = {
   client: null,
+  // Unused for now, but will house device name eventually
   connectedDevice: { name: "disconnected" },
   rawObservable: null,
   deviceType: ""
@@ -41,6 +44,12 @@ export default function device(
         ...state,
         client: action.payload,
         deviceType: DEVICES.MUSE
+      };
+
+    case SET_DEVICE_TYPE:
+      return {
+        ...state,
+        deviceType: action.payload
       };
 
     case SET_CONNECTED_DEVICE:

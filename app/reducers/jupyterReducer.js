@@ -11,11 +11,11 @@ import {
 import { ActionType, Kernel } from "../constants/interfaces";
 
 export interface JupyterStateType {
-  kernel: ?Kernel;
-  mainChannel: ?any;
-  epochsInfo: ?{ [string]: number };
-  psdPlot: ?{ [string]: string };
-  erpPlot: ?{ [string]: string };
+  +kernel: ?Kernel;
+  +mainChannel: ?any;
+  +epochsInfo: ?{ [string]: number };
+  +psdPlot: ?{ [string]: string };
+  +erpPlot: ?{ [string]: string };
 }
 
 const initialState = {

@@ -2,9 +2,9 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { Grid, Header, Segment, List, Image } from "semantic-ui-react";
-import styles from "./Home.css";
+import styles from "./styles/common.css";
 import { EXPERIMENTS } from "../constants/constants";
-import face_house_icon from "../assets/face_house/face_house_icon.jpg";
+import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
 
 interface Props {
   jupyterActions: Object;
@@ -26,7 +26,7 @@ export default class Home extends Component<Props> {
   render() {
     return (
       <div>
-        <div className={styles.container} data-tid="container">
+        <div className={styles.mainContainer} data-tid="container">
           <Grid columns={2} relaxed padded>
             <Grid.Row>
               <Grid.Column>
@@ -57,7 +57,7 @@ export default class Home extends Component<Props> {
                           this.handleExperimentSelect(EXPERIMENTS.N170)
                         }
                       >
-                        <Image size="small" src={face_house_icon} />
+                        <Image size="small" src={faceHouseIcon} />
                         <List.Content
                           header="Faces and Houses"
                           description="Detecting the N170 face-evoked potential"

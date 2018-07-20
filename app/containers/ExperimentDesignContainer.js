@@ -1,7 +1,7 @@
 // @flow
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
-import ExperimentDesign from "../components/ExperimentDesign";
+import Design from "../components/DesignComponent";
 import * as experimentActions from "../actions/experimentActions";
 
 function mapStateToProps(state) {
@@ -19,4 +19,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(ExperimentDesign);
+)(Design);

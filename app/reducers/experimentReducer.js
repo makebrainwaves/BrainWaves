@@ -14,15 +14,14 @@ import {
 } from "../constants/interfaces";
 
 interface ExperimentStateType {
-  type: ?EXPERIMENTS;
-  mainTimeline: MainTimeline;
-  trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
-  plugins: Object;
-  subject: string;
-  session: number;
-  duration: number;
-  isRunning: boolean;
+  +type: ?EXPERIMENTS;
+  +mainTimeline: MainTimeline;
+  +trials: { [string]: Trial };
+  +timelines: { [string]: Timeline };
+  +plugins: Object;
+  +subject: string;
+  +session: number;
+  +isRunning: boolean;
 }
 
 const initialState = {
@@ -33,7 +32,6 @@ const initialState = {
   plugins: {},
   subject: "",
   session: 1,
-  duration: NaN,
   isRunning: false
 };
 

@@ -8,6 +8,7 @@ import { mergeMap, map } from "rxjs/operators";
 import { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } from "../../keys";
 import { EMOTIV_CHANNELS } from "../constants/constants";
 
+// Just returns the Cortex object from SDK
 export const initCortex = () => {
   const verbose = process.env.LOG_LEVEL || 1;
   const options = { verbose };
@@ -15,6 +16,8 @@ export const initCortex = () => {
   return new Cortex(options);
 };
 
+// Returns an observable that will handle both connecting to Client and providing a source of EEG data
+// TODO: Break this into multiple async functions to allow greater control over connectivity
 export const createRawEmotivObservable = client =>
   Observable.from(
     client.ready
@@ -48,13 +51,14 @@ export const createRawEmotivObservable = client =>
   );
 
 export const injectEmotivMarker = (client, value, time) => {
-  console.log("inject marker called");
   client.injectMarker({ label: "event", value, time });
 };
 
 // ---------------------------------------------------------------------
 // Helpers
 
+// Removes the redundant stuff included in the Cortex SDK eeg return
+// 14 EEG channels followed by one value for the event marker
 const pruneEEG = eegArray => {
   const prunedArray = new Array(EMOTIV_CHANNELS.length + 1);
   for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {

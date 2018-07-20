@@ -11,7 +11,7 @@ import {
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import { isNil } from "lodash";
-import styles from "./DeviceConnect.css";
+import styles from "./styles/common.css";
 import { DEVICES } from "../constants/constants";
 
 interface Props {
@@ -22,17 +22,14 @@ interface Props {
   deviceActions: Object;
 }
 
-interface State {}
-
-export default class DeviceConnect extends Component<Props> {
+export default class Connect extends Component<Props> {
   props: Props;
-  state: State;
+  handleEmotivSelect: () => void;
+  handleMuseSelect: () => void;
+  handleStartExperiment: Object => void;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
-    this.state = {
-      selectedDevice: DEVICES.EMOTIV
-    };
     this.handleEmotivSelect = this.handleEmotivSelect.bind(this);
     this.handleMuseSelect = this.handleMuseSelect.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -45,38 +42,43 @@ export default class DeviceConnect extends Component<Props> {
   }
 
   handleEmotivSelect() {
-    this.setState({ selectedDevice: DEVICES.EMOTIV });
+    this.props.deviceActions.setDeviceType(DEVICES.EMOTIV);
   }
 
   handleMuseSelect() {
-    this.setState({ selectedDevice: DEVICES.MUSE });
+    this.props.deviceActions.setDeviceType(DEVICES.MUSE);
   }
 
   renderConnectionStatus() {
     if (isNil(this.props.rawObservable)) {
       return (
         <div>
-          <Item>
-            <Item.Header>
-              <Icon name="x" color="red" />Disconnected
-            </Item.Header>
-          </Item>
+          <Segment basic>
+            <Item>
+              <Item.Header>
+                <Icon name="x" color="red" />Disconnected
+              </Item.Header>
+            </Item>
+          </Segment>
         </div>
       );
     }
     return (
       <div>
-        <Item>
-          <Item.Header>
-            <Icon name="check" color="green" />Connected
-          </Item.Header>
-        </Item>
-
-        <Link to="/experimentRun">
-          <Button color="red" onClick={this.handleStartExperiment}>
-            Begin Experiment
-          </Button>
-        </Link>
+        <Segment basic>
+          <Item>
+            <Item.Header>
+              <Icon name="check" color="green" />Connected
+            </Item.Header>
+          </Item>
+        </Segment>
+        <Segment basic>
+          <Link to="/experimentRun">
+            <Button onClick={this.handleStartExperiment}>
+              Begin Experiment
+            </Button>
+          </Link>
+        </Segment>
       </div>
     );
   }
@@ -106,7 +108,7 @@ export default class DeviceConnect extends Component<Props> {
       );
     }
     return (
-      <List ordered>
+      <List ordered relaxed>
         <List.Item>Ensure Muse headband is charged</List.Item>
         <List.Item>Make sure bluetooth is enabled on computer</List.Item>
         <List.Item>Turn the Muse headband on</List.Item>
@@ -128,7 +130,7 @@ export default class DeviceConnect extends Component<Props> {
   render() {
     return (
       <div>
-        <div className={styles.deviceContainer}>
+        <div className={styles.mainContainer}>
           <Grid columns={1} centered style={{ height: "70%" }}>
             <Grid.Row stretched style={{ height: "100%" }}>
               <Segment padded="very" compact raised color="red">
@@ -140,13 +142,21 @@ export default class DeviceConnect extends Component<Props> {
                   <Grid.Column>
                     <Header as="h4">Select EEG Device Type</Header>
                     <Button.Group>
-                      <Button onClick={this.handleEmotivSelect}>Epoc</Button>
+                      <Button
+                        onClick={this.handleEmotivSelect}
+                        active={this.props.deviceType === DEVICES.EMOTIV}
+                      >
+                        Epoc
+                      </Button>
                       <Button.Or />
-                      <Button onClick={this.handleMuseSelect}>Muse</Button>
+                      <Button
+                        onClick={this.handleMuseSelect}
+                        active={this.props.deviceType === DEVICES.MUSE}
+                      >
+                        Muse
+                      </Button>
                     </Button.Group>
-                    {this.renderConnectionInstructions(
-                      this.state.selectedDevice
-                    )}
+                    {this.renderConnectionInstructions(this.props.deviceType)}
                   </Grid.Column>
                 </Grid>
               </Segment>

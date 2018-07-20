@@ -15,6 +15,7 @@
     "consistent-return": "off",
     "comma-dangle": "off",
     "generator-star-spacing": "off",
+    "flowtype/object-type-delimiter": "off",
     "import/no-unresolved": "error",
     "import/no-extraneous-dependencies": "off",
     "jsx-a11y/anchor-is-valid": "off",

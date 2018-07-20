@@ -13,7 +13,7 @@ interface State {
   enteredText: string;
 }
 
-export default class InputModal extends Component<Props> {
+export default class InputModal extends Component<Props, State> {
   props: Props;
   state: State;
 

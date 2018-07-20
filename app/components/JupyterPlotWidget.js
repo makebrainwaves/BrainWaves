@@ -1,7 +1,6 @@
 // @flow
 import React, { Component } from "react";
-import { Segment, Header } from "semantic-ui-react";
-import { isNil } from "lodash";
+import { Segment } from "semantic-ui-react";
 import {
   richestMimetype,
   standardDisplayOrder,
@@ -14,17 +13,21 @@ interface Props {
 
 export default class JupyterPlotWidget extends Component<Props> {
   props: Props;
-  state: State;
 
   renderResults() {
-    if (!isNil(this.props.plotMIMEBundle)) {
+    if (this.props.plotMIMEBundle) {
+      const bundle: { [string]: string } = this.props.plotMIMEBundle;
       const mimeType = richestMimetype(
-        this.props.plotMIMEBundle,
+        bundle,
         standardDisplayOrder,
         standardTransforms
       );
-      const Transform = standardTransforms[mimeType];
-      return <Transform data={this.props.plotMIMEBundle[mimeType]} />;
+      if (mimeType) {
+        const mType: string = mimeType;
+        // 'any' typing to get around lack of typing in transforms lib
+        const Transform: any = standardTransforms[mType];
+        return <Transform data={bundle[mType]} />;
+      }
     }
   }
 

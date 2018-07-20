@@ -1,11 +1,9 @@
 import { combineEpics } from "redux-observable";
-import { map, mapTo, tap, pluck, filter, takeUntil } from "rxjs/operators";
-import { isNil } from "lodash";
+import { map, mapTo, pluck, filter, takeUntil } from "rxjs/operators";
 import {
   LOAD_DEFAULT_TIMELINE,
   START,
-  STOP,
-  stop
+  STOP
 } from "../actions/experimentActions";
 import {
   DEVICES,
@@ -13,8 +11,6 @@ import {
   EMOTIV_CHANNELS
 } from "../constants/constants";
 import { loadTimeline } from "../utils/jspsych/functions";
-import { injectMuseMarker } from "../utils/muse";
-import { injectEmotivMarker } from "../utils/emotiv";
 import {
   createEEGWriteStream,
   writeHeader,
@@ -63,8 +59,8 @@ const startEpic = (action$, store) =>
     filter(
       () =>
         !store.getState().experiment.isRunning &&
-        store.getState().experiment.subject !== "" &&
-        !isNil(store.getState().device.rawObservable)
+        store.getState().device.rawObservable &&
+        store.getState().experiment.subject !== ""
     ),
     map(() => {
       const writeStream = createEEGWriteStream(

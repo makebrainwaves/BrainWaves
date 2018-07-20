@@ -1,4 +1,9 @@
 import * as path from "path";
+import {
+  DEVICES,
+  EMOTIV_CHANNELS,
+  MUSE_CHANNELS
+} from "../../constants/constants";
 
 export const imports = () =>
   [
@@ -21,17 +26,22 @@ export const imports = () =>
 
 export const loadCSV = (
   filePathArray: Array<{ name: string, dir: string }>,
-  sfreq: number = 128.0,
-  ch_ind: Array<number>,
-  stim_ind: number,
-  replace_ch_names: ?Array<string> | string = "None"
+  deviceType: DEVICES
 ) =>
   [
     `files = ${formatFilePaths(filePathArray)}`,
-    `sfreq = ${sfreq}`,
-    `ch_ind = [${ch_ind.toString()}]`,
-    `stim_ind = ${stim_ind}`,
-    `replace_ch_names = ${replace_ch_names}`,
+    `sfreq = ${deviceType === DEVICES.EMOTIV ? 128.0 : 256.0}`,
+    `ch_ind = [${
+      deviceType === DEVICES.EMOTIV
+        ? EMOTIV_CHANNELS.map((_, i) => i).toString()
+        : MUSE_CHANNELS.map((_, i) => i).toString()
+    }]`,
+    `stim_ind = ${
+      deviceType === DEVICES.EMOTIV
+        ? EMOTIV_CHANNELS.length
+        : MUSE_CHANNELS.length
+    }`,
+    `replace_ch_names = None`,
     `raw = utils.load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
   ].join("\n");
 

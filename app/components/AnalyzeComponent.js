@@ -4,25 +4,21 @@ import {
   Grid,
   Button,
   Icon,
-  Step,
   Segment,
   Header,
-  Dropdown,
-  Divider,
-  Container,
-  Label
+  Dropdown
 } from "semantic-ui-react";
-import { Link } from "react-router-dom";
 import { isNil } from "lodash";
-import styles from "./ExperimentDesign.css";
+import styles from "./styles/common.css";
 import { EXPERIMENTS, EMOTIV_CHANNELS } from "../constants/constants";
+import { Kernel } from "../constants/interfaces";
 import { readEEGDataDir } from "../utils/filesystem/write";
 import JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
   type: ?EXPERIMENTS;
-  kernel: ?Kernel;
   mainChannel: ?any;
+  kernel: ?Kernel;
   epochsInfo: ?{ [string]: number };
   psdPlot: ?{ [string]: string };
   erpPlot: ?{ [string]: string };
@@ -30,20 +26,25 @@ interface Props {
 }
 
 interface State {
-  isBusy: boolean;
-  eegFilePaths: [?{ key: string, text: string, value: string }];
-  selectedFilePaths: [?string];
+  eegFilePaths: Array<?{
+    key: string,
+    text: string,
+    value: { name: string, dir: string }
+  }>;
+  selectedFilePaths: Array<?string>;
 }
 
-export default class Analyze extends Component<Props> {
+export default class Analyze extends Component<Props, State> {
   props: Props;
   state: State;
+  handleDropdownChange: (Object, Object) => void;
+  handleLoadData: () => void;
+  handleChannelDropdownChange: (Object, Object) => void;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.state = {
-      isBusy: false,
-      eegFilePaths: [],
+      eegFilePaths: [{ key: "", text: "", value: { name: "", dir: "" } }],
       selectedFilePaths: []
     };
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
@@ -80,20 +81,16 @@ export default class Analyze extends Component<Props> {
 
   renderEpochLabels() {
     if (!isNil(this.props.epochsInfo)) {
+      const epochsInfo: { [string]: number } = { ...this.props.epochsInfo };
       return (
         <div>
-          <Segment basic>
-            <Icon name="smile" />FACES
-            <p>{this.props.epochsInfo["Face"]} Trials</p>
-          </Segment>
-          <Segment basic>
-            <Icon name="home" />HOUSES
-            <p>{this.props.epochsInfo["House"]} Trials</p>
-          </Segment>
-          <Segment basic>
-            <Icon name="x" />REJECTION %
-            <p>{this.props.epochsInfo["dropPercentage"]}</p>
-          </Segment>
+          {Object.keys(epochsInfo).map((key, index) => (
+            <Segment key={key} basic>
+              <Icon name={["smile", "home", "x", "book"][index]} />
+              {key}
+              <p>{epochsInfo[key]} Trials</p>
+            </Segment>
+          ))}
         </div>
       );
     }
@@ -102,11 +99,11 @@ export default class Analyze extends Component<Props> {
 
   render() {
     return (
-      <div className={styles.experimentContainer}>
+      <div className={styles.mainContainer}>
         <Grid columns="equal" relaxed padded>
           <Grid.Column width={4}>
             <Segment raised padded color="red">
-            <Header as="h2">Data Sets</Header>
+              <Header as="h2">Data Sets</Header>
 
               <Segment basic>
                 <Dropdown

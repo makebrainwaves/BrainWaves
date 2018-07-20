@@ -31,9 +31,8 @@ import {
   plotERP
 } from "../utils/jupyter/cells";
 
-import { EMOTIV_CHANNELS } from "../constants/constants";
+import { EMOTIV_CHANNELS, DEVICES } from "../constants/constants";
 import { parseSingleQuoteJSON } from "../utils/jupyter/functions";
-import { isObject } from "util";
 
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
@@ -105,7 +104,6 @@ const receiveStream = payload => ({
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
     mergeMap(() => Observable.from(find("brainwaves"))),
-    tap(console.log),
     mergeMap(kernelInfo =>
       Observable.from(
         launchSpec(kernelInfo.spec, {
@@ -161,7 +159,6 @@ const receiveChannelMessageEpic = (action$, store) =>
     mergeMap(() =>
       store.getState().jupyter.mainChannel.pipe(
         map(msg => {
-          console.log(msg);
           switch (msg["header"]["msg_type"]) {
             case "kernel_info_reply":
               return setKernelInfo(msg);
@@ -186,18 +183,12 @@ const loadEpochsEpic = (action$, store) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
-    tap(console.log),
     map(filePathArray =>
       store
         .getState()
         .jupyter.mainChannel.next(
           executeRequest(
-            loadCSV(
-              filePathArray,
-              128.0,
-              EMOTIV_CHANNELS.map((_, i) => i),
-              EMOTIV_CHANNELS.length
-            )
+            loadCSV(filePathArray, store.getState().device.deviceType)
           )
         )
     ),
@@ -205,7 +196,6 @@ const loadEpochsEpic = (action$, store) =>
       action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
-        tap(() => console.log("received OK from load")),
         take(1)
       )
     ),
@@ -218,7 +208,6 @@ const loadEpochsEpic = (action$, store) =>
       action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
-        tap(() => console.log("received OK from filter")),
         take(1)
       )
     ),
@@ -226,14 +215,21 @@ const loadEpochsEpic = (action$, store) =>
       store
         .getState()
         .jupyter.mainChannel.next(
-          executeRequest(epochEvents({ House: 3, Face: 4 }, -0.1, 0.8))
+          executeRequest(
+            epochEvents(
+              store.getState().device.deviceType === DEVICES.EMOTIV
+                ? { House: 3, Face: 4 }
+                : { House: 1, Face: 2 },
+              -0.1,
+              0.8
+            )
+          )
         )
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
-        tap(() => console.log("received epoch data")),
         pluck("content", "data", "text/plain"),
         take(1)
       )
@@ -250,7 +246,6 @@ const loadPSDEpic = (action$, store) =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
-        tap(() => console.log("received psd data")),
         pluck("content", "data"),
         take(1)
       )
@@ -279,7 +274,6 @@ const loadERPEpic = (action$, store) =>
         pluck("payload"),
         tap(msg => console.log("receive in merge: ", msg)),
         filter(msg => msg.header.msg_type === "display_data"),
-        tap(() => console.log("received erp data")),
         pluck("content", "data"),
         take(1)
       )

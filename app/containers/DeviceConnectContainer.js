@@ -1,7 +1,7 @@
 // @flow
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
-import DeviceConnect from "../components/DeviceConnect";
+import Connect from "../components/ConnectComponent";
 import * as deviceActions from "../actions/deviceActions";
 
 function mapStateToProps(state) {
@@ -19,4 +19,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(DeviceConnect);
+)(Connect);

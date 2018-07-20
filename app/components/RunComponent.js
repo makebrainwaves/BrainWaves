@@ -2,11 +2,11 @@
 import React, { Component } from "react";
 import { Grid, Button, Segment, Header, Input, List } from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
-import { Link } from "react-router-dom";
-import styles from "./ExperimentRun.css";
 import { debounce } from "lodash";
-import callback_html_display from "../utils/jspsych/plugins/callback_html_display";
-import callback_image_display from "../utils/jspsych/plugins/callback_image_display";
+import { Link } from "react-router-dom";
+import styles from "./styles/common.css";
+import callbackHtmlDisplay from "../utils/jspsych/plugins/callback_html_display";
+import callbackImageDisplay from "../utils/jspsych/plugins/callback_image_display";
 import animation from "../utils/jspsych/plugins/jspsych-animation";
 import { injectEmotivMarker } from "../utils/emotiv";
 import { injectMuseMarker } from "../utils/muse";
@@ -32,16 +32,20 @@ interface Props {
   experimentActions: Object;
 }
 
-export default class ExperimentRun extends Component<Props> {
+export default class Run extends Component<Props> {
   props: Props;
+  handleSubjectEntry: (Object, Object) => void;
+  handleSessionEntry: (Object, Object) => void;
+  handleStartExperiment: () => void;
+  handleTimeline: () => void;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
 
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
-    this.handleTime = this.handleTimeline.bind(this);
+    this.handleTimeline = this.handleTimeline.bind(this);
   }
 
   handleSubjectEntry(event: Object, data: Object) {
@@ -80,19 +84,44 @@ export default class ExperimentRun extends Component<Props> {
       <div>
         <List as="ul">
           {readEEGDataDir(this.props.type).map(filename => (
-            <List.Item icon="file" description={filename.name} />
+            <List.Item
+              icon="file"
+              key={filename.name}
+              description={filename.name}
+            />
           ))}
         </List>
       </div>
     );
   }
 
-  renderExperiment(experimentType: ?EXPERIMENTS) {
+  renderExperimentTitle() {
+    switch (this.props.type) {
+      case EXPERIMENTS.N170:
+        return <Header as="h3">Faces and Houses N170 Experiment</Header>;
+      case EXPERIMENTS.P300:
+        return <Header as="h3">Visual Oddball P300 Experiment</Header>;
+      case EXPERIMENTS.SSVEP:
+        return (
+          <Header as="h3">
+            Steady-State Visual Evoked Potential Experiment
+          </Header>
+        );
+      case EXPERIMENTS.STROOP:
+        return <Header as="h3">Stroop Experiment</Header>;
+
+      case EXPERIMENTS.NONE:
+      default:
+        return <Header as="h3">No experiment selected</Header>;
+    }
+  }
+
+  renderExperiment() {
     if (!this.props.isRunning) {
       return (
         <div>
           <Segment raised padded color="red">
-            <Header as="h3">Faces and Houses N170 Experiment</Header>
+            {this.renderExperimentTitle()}
             <div className={styles.inputDiv}>
               <Input
                 focus
@@ -132,8 +161,8 @@ export default class ExperimentRun extends Component<Props> {
       <Experiment
         timeline={this.handleTimeline()}
         plugins={{
-          callback_image_display,
-          callback_html_display,
+          callbackImageDisplay,
+          callbackHtmlDisplay,
           animation
         }}
       />
@@ -143,11 +172,9 @@ export default class ExperimentRun extends Component<Props> {
   render() {
     return (
       <div>
-        <div className={styles.experimentContainer} data-tid="container">
+        <div className={styles.mainContainer} data-tid="container">
           <Grid columns={1} divided relaxed>
-            <Grid.Row centered>
-              {this.renderExperiment(this.props.type)}
-            </Grid.Row>
+            <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
           </Grid>
         </div>
       </div>

@@ -2,8 +2,10 @@ const bluetooth = require("bleat").webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
 
+// Just returns the client object from Muse JS
 export const initMuseClient = () => new MuseClient();
 
+// Awaits Muse connectivity before sending an observable rep. EEG stream
 export const createRawMuseObservable = async client => {
   const device = await bluetooth.requestDevice({
     filters: [{ services: [MUSE_SERVICE] }]
@@ -19,5 +21,5 @@ export const createRawMuseObservable = async client => {
 
 // TODO: Implement marker injection in muse-js
 export const injectMuseMarker = (client, value, time) => {
-  console.log("inject Muse Marker");
+  console.log("inject Muse Marker: ", value, time);
 };

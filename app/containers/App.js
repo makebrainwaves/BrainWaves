@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import TopNavBar from "./TopNavBarContainer";
+import TopNav from "./TopNavBarContainer";
 
 type Props = {
   children: React.Node
@@ -12,7 +12,7 @@ export default class App extends React.Component<Props> {
   render() {
     return (
       <div>
-        <TopNavBar />
+        <TopNav />
         {this.props.children}
       </div>
     );
