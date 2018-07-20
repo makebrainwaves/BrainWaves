@@ -1,6 +1,10 @@
 // @flow
-import { SET_TIMELINE } from "../epics/experimentEpics";
-import { SET_TYPE } from "../actions/experimentActions";
+import {
+  SET_TIMELINE,
+  SET_IS_RUNNING,
+  SET_SESSION
+} from "../epics/experimentEpics";
+import { SET_TYPE, SET_SUBJECT } from "../actions/experimentActions";
 import { EXPERIMENTS } from "../constants/constants";
 import {
   MainTimeline,
@@ -10,25 +14,25 @@ import {
 } from "../constants/interfaces";
 
 interface ExperimentStateType {
-  type: ?EXPERIMENTS;
-  mainTimeline: MainTimeline;
-  trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
-  plugins: Object;
-  subject: string;
-  session: number;
-  duration: number;
+  +type: ?EXPERIMENTS;
+  +mainTimeline: MainTimeline;
+  +trials: { [string]: Trial };
+  +timelines: { [string]: Timeline };
+  +plugins: Object;
+  +subject: string;
+  +session: number;
+  +isRunning: boolean;
 }
 
 const initialState = {
-  type: null,
+  type: EXPERIMENTS.N170,
   mainTimeline: [],
   trials: {},
   timelines: {},
   plugins: {},
   subject: "",
-  session: NaN,
-  duration: NaN
+  session: 1,
+  isRunning: false
 };
 
 export default function experiment(
@@ -42,10 +46,28 @@ export default function experiment(
         type: action.payload
       };
 
+    case SET_SUBJECT:
+      return {
+        ...state,
+        subject: action.payload
+      };
+
+    case SET_SESSION:
+      return {
+        ...state,
+        session: action.payload
+      };
+
     case SET_TIMELINE:
       return {
         ...state,
         ...action.payload
+      };
+
+    case SET_IS_RUNNING:
+      return {
+        ...state,
+        isRunning: action.payload
       };
 
     default:

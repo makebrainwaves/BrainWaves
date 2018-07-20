@@ -1,0 +1,22 @@
+.navContainer {
+  padding-top: 15px;
+  width: 100vw;
+  height: 75px;
+  background: #db2828;
+  font-weight: 700;
+  color: #fff;
+}
+
+.navContainer a {
+  opacity: 1;
+  font-size: 1.2em;
+}
+
+.activeNavLink {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 10px;
+}
+
+.statusHeader {
+  color: #fff;
+}

@@ -6,7 +6,8 @@ import {
   tap,
   pluck,
   ignoreElements,
-  filter
+  filter,
+  take
 } from "rxjs/operators";
 import { find } from "kernelspecs";
 import { launchSpec } from "spawnteract";
@@ -17,13 +18,32 @@ import {
   LAUNCH_KERNEL,
   REQUEST_KERNEL_INFO,
   SEND_EXECUTE_REQUEST,
+  LOAD_EPOCHS,
+  LOAD_ERP,
   CLOSE_KERNEL
 } from "../actions/jupyterActions";
+import {
+  imports,
+  loadCSV,
+  filterIIR,
+  epochEvents,
+  plotPSD,
+  plotERP
+} from "../utils/jupyter/cells";
+
+import { EMOTIV_CHANNELS, DEVICES } from "../constants/constants";
+import { parseSingleQuoteJSON } from "../utils/jupyter/functions";
 
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
 export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
-export const RECEIVE_EXECUTE_RETURN = "RECEIVE_EXECUTE_REQUEST";
+export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
+export const SET_PSD_PLOT = "SET_PSD_PLOT";
+export const SET_ERP_PLOT = "SET_ERP_PLOT";
+export const RECEIVE_EXECUTE_REPLY = "RECEIVE_EXECUTE_REPLY";
+export const RECEIVE_EXECUTE_RESULT = "RECEIVE_EXECUTE_RESULT";
+export const RECEIVE_STREAM = "RECEIVE_STREAM";
+export const RECEIVE_DISPLAY_DATA = "RECEIVE_DISPLAY_DATA";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -43,9 +63,39 @@ const setMainChannel = payload => ({
   type: SET_MAIN_CHANNEL
 });
 
-const receiveExecuteReturn = payload => ({
+const setEpochInfo = payload => ({
   payload,
-  type: RECEIVE_EXECUTE_RETURN
+  type: SET_EPOCH_INFO
+});
+
+const setPSDPlot = payload => ({
+  payload,
+  type: SET_PSD_PLOT
+});
+
+const setERPPlot = payload => ({
+  payload,
+  type: SET_ERP_PLOT
+});
+
+const receiveExecuteReply = payload => ({
+  payload,
+  type: RECEIVE_EXECUTE_REPLY
+});
+
+const receiveExecuteResult = payload => ({
+  payload,
+  type: RECEIVE_EXECUTE_RESULT
+});
+
+const receiveDisplayData = payload => ({
+  payload,
+  type: RECEIVE_DISPLAY_DATA
+});
+
+const receiveStream = payload => ({
+  payload,
+  type: RECEIVE_STREAM
 });
 
 // -------------------------------------------------------------------------
@@ -53,8 +103,7 @@ const receiveExecuteReturn = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => Observable.from(find("python3"))),
-    tap(console.log),
+    mergeMap(() => Observable.from(find("brainwaves"))),
     mergeMap(kernelInfo =>
       Observable.from(
         launchSpec(kernelInfo.spec, {
@@ -75,7 +124,7 @@ const launchEpic = action$ =>
       });
 
       kernel.spawn.on("close", () => {
-        console.log("closed early");
+        console.log("Kernel closed");
       });
     }),
     map(setKernel)
@@ -85,6 +134,7 @@ const setUpChannelEpic = action$ =>
   action$.ofType(SET_KERNEL).pipe(
     pluck("payload"),
     mergeMap(kernel => Observable.from(createMainChannel(kernel.config))),
+    tap(mainChannel => mainChannel.next(executeRequest(imports()))),
     map(setMainChannel)
   );
 
@@ -113,13 +163,122 @@ const receiveChannelMessageEpic = (action$, store) =>
             case "kernel_info_reply":
               return setKernelInfo(msg);
             case "stream":
-              return receiveExecuteReturn(msg);
+              // OTDO: Change to another action?
+              return receiveStream(msg);
+            case "execute_reply":
+              return receiveExecuteReply(msg);
+            case "execute_result":
+              return receiveExecuteResult(msg);
+            case "display_data":
+              return receiveDisplayData(msg);
             default:
           }
         }),
         filter(action => !isNil(action))
       )
     )
+  );
+
+const loadEpochsEpic = (action$, store) =>
+  action$.ofType(LOAD_EPOCHS).pipe(
+    pluck("payload"),
+    filter(filePathsArray => filePathsArray.length >= 1),
+    map(filePathArray =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(
+          executeRequest(
+            loadCSV(filePathArray, store.getState().device.deviceType)
+          )
+        )
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
+        take(1)
+      )
+    ),
+    map(() =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(executeRequest(filterIIR(1, 30)))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
+        take(1)
+      )
+    ),
+    map(() =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(
+          executeRequest(
+            epochEvents(
+              store.getState().device.deviceType === DEVICES.EMOTIV
+                ? { House: 3, Face: 4 }
+                : { House: 1, Face: 2 },
+              -0.1,
+              0.8
+            )
+          )
+        )
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
+        pluck("content", "data", "text/plain"),
+        take(1)
+      )
+    ),
+    map(epochInfoString => setEpochInfo(parseSingleQuoteJSON(epochInfoString)))
+  );
+
+const loadPSDEpic = (action$, store) =>
+  action$.ofType(SET_EPOCH_INFO).pipe(
+    map(() =>
+      store.getState().jupyter.mainChannel.next(executeRequest(plotPSD()))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
+        pluck("content", "data"),
+        take(1)
+      )
+    ),
+    map(setPSDPlot)
+  );
+
+// NOTE: Will auto load when detecting a SET_PSD_PLOT action. check is to pick default channel in that case
+const loadERPEpic = (action$, store) =>
+  action$.ofType(LOAD_ERP, SET_PSD_PLOT).pipe(
+    pluck("payload"),
+    map(payload => {
+      if (EMOTIV_CHANNELS.includes(payload)) {
+        return payload;
+      }
+      return EMOTIV_CHANNELS[1];
+    }),
+    map(channelName => EMOTIV_CHANNELS.indexOf(channelName)),
+    map(channelIndex =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(executeRequest(plotERP(channelIndex)))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
+        pluck("payload"),
+        tap(msg => console.log("receive in merge: ", msg)),
+        filter(msg => msg.header.msg_type === "display_data"),
+        pluck("content", "data"),
+        take(1)
+      )
+    ),
+    map(setERPPlot)
   );
 
 const closeKernelEpic = (action$, store) =>
@@ -137,5 +296,8 @@ export default combineEpics(
   requestKernelInfoEpic,
   sendExecuteRequestEpic,
   receiveChannelMessageEpic,
+  loadEpochsEpic,
+  loadPSDEpic,
+  loadERPEpic,
   closeKernelEpic
 );

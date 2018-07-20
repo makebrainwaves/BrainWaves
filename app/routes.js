@@ -2,14 +2,21 @@
 import React from "react";
 import { Switch, Route } from "react-router";
 import App from "./containers/App";
-import HomePage from "./containers/HomePage";
-import ExperimentRunPage from "./containers/ExperimentRunPage";
+import HomeContainer from "./containers/HomeContainer";
+import ExperimentRunContainer from "./containers/ExperimentRunContainer";
+import ExperimentDesignContainer from "./containers/ExperimentDesignContainer";
+import DeviceConnectContainer from "./containers/DeviceConnectContainer";
+import AnalyzeContainer from "./containers/AnalyzeContainer";
 
 export default () => (
   <App>
     <Switch>
-      <Route path="/experimentRun" component={ExperimentRunPage} />
-      <Route path="/" component={HomePage} />
+      <Route path="/analyze" component={AnalyzeContainer} />
+      <Route path="/deviceConnect" component={DeviceConnectContainer} />
+      <Route path="/experimentRun" component={ExperimentRunContainer} />
+      <Route path="/experimentDesign" component={ExperimentDesignContainer} />
+      <Route path="/home" component={HomeContainer} />
+      <Route path="/" default component={HomeContainer} />
     </Switch>
   </App>
 );

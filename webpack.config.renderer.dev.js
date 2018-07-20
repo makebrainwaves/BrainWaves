@@ -46,16 +46,19 @@ export default merge.smart(baseConfig, {
 
   target: "electron-renderer",
 
-  entry: [
-    "react-hot-loader/patch",
-    `webpack-dev-server/client?http://localhost:${port}/`,
-    "webpack/hot/only-dev-server",
-    path.join(__dirname, "app/index.js")
-  ],
+  entry: {
+    main: [
+      "react-hot-loader/patch",
+      `webpack-dev-server/client?http://localhost:${port}/`,
+      "webpack/hot/only-dev-server",
+      path.join(__dirname, "app/index.js")
+    ],
+    cortex: [path.join(__dirname, "lib/cortex.js")]
+  },
 
   output: {
     publicPath: `http://localhost:${port}/dist/`,
-    filename: "renderer.dev.js"
+    filename: "[name].entry.js"
   },
 
   resolve: { symlinks: false },
