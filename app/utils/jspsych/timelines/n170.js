@@ -7,8 +7,8 @@ const params = {
   stim_duration: 300,
   iti: 300,
   jitter: 200,
-  n_trials: 10, // 170 Around two minutes at a rate of ~700 ms per trial
-  plugin_name: "callback_image_display"
+  n_trials: 170, // 170 Around two minutes at a rate of ~700 ms per trial
+  plugin_name: "callback-image-display"
 };
 
 // Default directories containing stimuli
@@ -21,14 +21,14 @@ export const buildN170Timeline = () => ({
   mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids
   trials: {
     welcome: {
-      type: "callback_html_display",
+      type: "callback-html-display",
       id: "welcome",
       stimulus: "Welcome to the experiment. Press any key to begin.",
       post_trial_gap: 1000
     },
     end: {
       id: "end",
-      type: "callback_html_display",
+      type: "callback-html-display",
       stimulus: "Thanks for participating",
       post_trial_gap: 500
     }
@@ -39,7 +39,7 @@ export const buildN170Timeline = () => ({
       timeline: [
         {
           id: "interTrial",
-          type: "callback_image_display",
+          type: "callback-image-display",
           stimulus: "./assets/face_house/fixation.jpg",
           trial_duration: () => params.iti + Math.random() * params.jitter
         },

@@ -3,18 +3,26 @@ const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
 
 // Just returns the client object from Muse JS
-export const initMuseClient = () => new MuseClient();
+export const initMuseClient = () => {
+  const client = new MuseClient();
+  client.enableAux = true;
+  return client;
+};
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream
+// If on Windows, will use bleat to bridge to noble and the noble-winrt bindings
+// IF on Mac or Linux, will proceed to use web bluetooth
 export const createRawMuseObservable = async client => {
-  const device = await bluetooth.requestDevice({
-    filters: [{ services: [MUSE_SERVICE] }]
-  });
-  console.log("Found Device: ", device);
-  const gatt = await device.gatt.connect();
-  await client.connect(gatt);
+  if (process.platform === "win32") {
+    const device = await bluetooth.requestDevice({
+      filters: [{ services: [MUSE_SERVICE] }]
+    });
+    const gatt = await device.gatt.connect();
+    await client.connect(gatt);
+  } else {
+    await client.connect();
+  }
   await client.start();
-  console.log("Connected!");
   const eegStream = await client.eegReadings;
   return Observable.from(zipSamples(eegStream));
 };

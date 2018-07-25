@@ -13,7 +13,7 @@ export const buildSSVEPTimeline = callback => ({
   mainTimeline: ["welcome", "ssvepTimeline", "end"], // array of trial and timeline ids
   trials: {
     welcome: {
-      type: "callback_html_display",
+      type: "callback-html-display",
       id: "welcome",
       stimulus: "Welcome to the experiment. Press any key to begin.",
       post_trial_gap: 1000,
@@ -21,7 +21,7 @@ export const buildSSVEPTimeline = callback => ({
     },
     end: {
       id: "end",
-      type: "callback_html_display",
+      type: "callback-html-display",
       stimulus: "Thanks for participating",
       post_trial_gap: 500,
       on_load: callback("stop")
@@ -33,7 +33,7 @@ export const buildSSVEPTimeline = callback => ({
       timeline: [
         {
           id: "interTrial",
-          type: "callback_image_display",
+          type: "callback-image-display",
           stimulus: "./assets/face_house/fixation.jpg",
           trial_duration: () => params.iti + Math.random() * params.jitter
         },

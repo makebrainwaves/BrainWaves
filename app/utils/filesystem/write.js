@@ -7,6 +7,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import mkdirp from "mkdirp";
 import { EEGData } from "../../constants/interfaces";
 import { EXPERIMENTS } from "../../constants/constants";
 
@@ -18,7 +19,6 @@ export const createEEGWriteStream = (
 ) => {
   const dir = getCurrentEEGDataDir(type);
   const fileName = `${subject}_${session}.csv`;
-  mkdirPathSync(dir);
 
   return fs.createWriteStream(path.join(dir, fileName));
 };
@@ -28,14 +28,14 @@ export const readEEGDataDir = (type: EXPERIMENTS) => {
   if (type === EXPERIMENTS.NONE) {
     return [];
   }
-
+  const dir = path.join(os.homedir(), "BrainWaves Data", type);
   try {
-    const dir = fs.realpathSync(
-      path.join(os.homedir(), "BrainWaves Data", type)
-    );
     const fileNames = fs.readdirSync(dir);
     return fileNames.map(fileName => ({ name: fileName, dir }));
   } catch (e) {
+    if (e.code === "ENOENT") {
+      mkdirPathSync(dir);
+    }
     console.log(e);
     return [];
   }
@@ -73,18 +73,9 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
 // Helper functions
 
 // Creates a directory path if it doesn't exist
-// From https://stackoverflow.com/questions/13696148/node-js-create-folder-or-use-existing/24311711
 const mkdirPathSync = dirPath => {
-  const parts = dirPath.split(path.sep);
-  for (let i = 1; i <= parts.length; i++) {
-    mkdirSync(path.join.apply(null, parts.slice(0, i)));
-  }
-};
-
-const mkdirSync = dirPath => {
-  try {
-    fs.mkdirSync(dirPath);
-  } catch (err) {
-    if (err.code !== "EEXIST") throw err;
-  }
+  mkdirp(dirPath, err => {
+    if (err) console.error(err);
+    else console.log("Created ", dirPath);
+  });
 };
