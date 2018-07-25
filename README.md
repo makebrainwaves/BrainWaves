@@ -12,16 +12,31 @@
 First, clone the repo via git:
 
 ```bash
-git clone --depth=1 https://github.com/makebrainwaves/BrainWaves.git
+git clone https://github.com/makebrainwaves/BrainWaves.git
 ```
 
-And then install dependencies with yarn.
+And then install dependencies
 
 ```bash
 $ cd BrainWaves
-$ yarn
+$ npm install
 ```
-**Note**: If you can't use [yarn](https://github.com/yarnpkg/yarn), run `npm install`.
+
+## Link jspsych-react
+
+Go to https://github.com/makebrainwaves/jspsych-react and clone that library. Link it to your npm by running `npm link` in the jspsych-react folder.
+
+Go back to BrainWaves folder and run `npm link jspsych-react`
+
+## Create a conda environment and link it to jupyter
+
+BrainWaves needs an Anaconda environment called "brainwaves" with the right dependencies to run analysis.
+
+To do this, first create a new conda env called brainwaves: `conda env create -f environment.yml`
+
+Then, set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name mne --display-name "brainwaves"`
+
+
 
 ## Run
 
@@ -85,7 +100,7 @@ You will need to add other modules to this boilerplate, depending on the require
 This boilerplate uses a [two package.json structure](https://github.com/electron-userland/electron-builder/wiki/Two-package.json-Structure). This means, you will have two `package.json` files.
 
 1. `./package.json` in the root of your project
-1. `./app/package.json` inside `app` folder
+2. `./app/package.json` inside `app` folder
 
 ### Which `package.json` file to use
 

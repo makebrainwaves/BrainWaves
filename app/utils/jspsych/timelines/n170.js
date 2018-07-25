@@ -7,7 +7,7 @@ const params = {
   stim_duration: 300,
   iti: 300,
   jitter: 200,
-  n_trials: 10, // 170 Around two minutes at a rate of ~700 ms per trial
+  n_trials: 170, // 170 Around two minutes at a rate of ~700 ms per trial
   plugin_name: "callback-image-display"
 };
 
