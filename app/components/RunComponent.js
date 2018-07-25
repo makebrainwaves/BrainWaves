@@ -47,6 +47,12 @@ export default class Run extends Component<Props> {
     this.handleTimeline = this.handleTimeline.bind(this);
   }
 
+  componentDidMount() {
+    if (this.props.mainTimeline.length <= 0) {
+      this.props.experimentActions.loadDefaultTimeline();
+    }
+  }
+
   handleSubjectEntry(event: Object, data: Object) {
     this.props.experimentActions.setSubject(data.value);
   }
