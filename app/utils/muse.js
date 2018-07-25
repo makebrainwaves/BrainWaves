@@ -3,7 +3,11 @@ const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
 
 // Just returns the client object from Muse JS
-export const initMuseClient = () => new MuseClient();
+export const initMuseClient = () => {
+  const client = new MuseClient();
+  client.enableAux = true;
+  return client;
+};
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream
 // If on Windows, will use bleat to bridge to noble and the noble-winrt bindings
