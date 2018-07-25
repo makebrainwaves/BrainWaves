@@ -5,8 +5,8 @@ import { Experiment } from "jspsych-react";
 import { debounce } from "lodash";
 import { Link } from "react-router-dom";
 import styles from "./styles/common.css";
-import callbackHtmlDisplay from "../utils/jspsych/plugins/callback_html_display";
-import callbackImageDisplay from "../utils/jspsych/plugins/callback_image_display";
+import callbackHtmlDisplay from "../utils/jspsych/plugins/callback-html-display";
+import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
 import animation from "../utils/jspsych/plugins/jspsych-animation";
 import { injectEmotivMarker } from "../utils/emotiv";
 import { injectMuseMarker } from "../utils/muse";
@@ -41,7 +41,6 @@ export default class Run extends Component<Props> {
 
   constructor(props: Props) {
     super(props);
-
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -75,7 +74,8 @@ export default class Run extends Component<Props> {
       null,
       this.props.experimentActions.stop
     );
-    console.log(timeline);
+    console.log("timeline: ", timeline);
+    console.log("plugin: ", callbackHtmlDisplay);
     return timeline;
   }
 
@@ -161,8 +161,8 @@ export default class Run extends Component<Props> {
       <Experiment
         timeline={this.handleTimeline()}
         plugins={{
-          callbackImageDisplay,
-          callbackHtmlDisplay,
+          "callback-image-display": callbackImageDisplay,
+          "callback-html-display": callbackHtmlDisplay,
           animation
         }}
       />

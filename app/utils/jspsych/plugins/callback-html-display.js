@@ -1,5 +1,5 @@
 /**
- * callback_html_display
+ * callback-html-display
  * Teon L Brooks
  * modified from Josh de Leeuw
  *
