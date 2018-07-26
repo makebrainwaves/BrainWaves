@@ -24,17 +24,19 @@ $ npm install
 
 ## Link jspsych-react
 
-Go to https://github.com/makebrainwaves/jspsych-react and clone that library. Link it to your npm by running `npm link` in the jspsych-react folder.
+1. Go to https://github.com/makebrainwaves/jspsych-react and clone that library. 
 
-Go back to BrainWaves folder and run `npm link jspsych-react`
+2. Link it to your npm by running `npm link` in the jspsych-react folder. Note, this may require you to use sudo since this is creating symlink into your `usr/local/bin/lib`.
+
+3. Go back to BrainWaves folder and run `npm link jspsych-react`
 
 ## Create a conda environment and link it to jupyter
 
 BrainWaves needs an Anaconda environment called "brainwaves" with the right dependencies to run analysis.
 
-To do this, first create a new conda env called brainwaves: `conda env create -f environment.yml`
+  To do this, first create a new conda env called brainwaves: `conda env create -f environment.yml`
 
-Then, set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name mne --display-name "brainwaves"`
+Then, set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
 
 
