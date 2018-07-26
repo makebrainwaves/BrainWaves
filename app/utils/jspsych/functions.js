@@ -65,7 +65,7 @@ export const instantiateTimeline = (
         }
         return trial;
       });
-      return { ...jspsychObject, timelineWithCallback };
+      return { ...jspsychObject, timeline: timelineWithCallback };
     }
-    return jspsychObject;
+    return jspsychObject;c
   });
