@@ -9,13 +9,24 @@
 * **Note: requires a node version >= 7 and an npm version >= 4.**
 * **If you have installation or compilation issues with this project, please see [our debugging guide](https://github.com/chentsulin/electron-react-boilerplate/issues/400)**
 
-First, clone the repo via git:
+1. First, clone the repo via git:
 
 ```bash
 git clone https://github.com/makebrainwaves/BrainWaves.git
 ```
 
-And then install dependencies
+2. For OSX, you may need to update your `.bash_profile` to include the path for your [compiler](https://github.com/sandeepmistry/node-xpc-connection/issues/2) (nothing terribly scary):
+
+i.) First, find its location
+```bash
+which gcc
+```
+ii.) Then add this path to your `.bash_profile`
+```bash
+export PATH="/usr/bin:$PATH"
+```
+
+3. And then install dependencies
 
 ```bash
 $ cd BrainWaves
@@ -24,17 +35,19 @@ $ npm install
 
 ## Link jspsych-react
 
-Go to https://github.com/makebrainwaves/jspsych-react and clone that library. Link it to your npm by running `npm link` in the jspsych-react folder.
+1. Go to https://github.com/makebrainwaves/jspsych-react and clone that library. 
 
-Go back to BrainWaves folder and run `npm link jspsych-react`
+2. Link it to your npm by running `npm link` in the jspsych-react folder. Note, this may require you to use sudo since this is creating symlink into your `usr/local/bin/lib`.
+
+3. Go back to BrainWaves folder and run `npm link jspsych-react`
 
 ## Create a conda environment and link it to jupyter
 
 BrainWaves needs an Anaconda environment called "brainwaves" with the right dependencies to run analysis.
 
-To do this, first create a new conda env called brainwaves: `conda env create -f environment.yml`
+  To do this, first create a new conda env called brainwaves: `conda env create -f environment.yml`
 
-Then, set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name mne --display-name "brainwaves"`
+Then, set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
 
 
