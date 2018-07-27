@@ -29,10 +29,10 @@ dependencies:
 - pyface>=6
 - traitsui>=6
 - seaborn
-- pyriemann
 - jupyter
 - pip:
   - mne
+  - pyriemann
   - mayavi
   - "https://api.github.com/repos/nipy/PySurfer/zipball/master"
   - nitime
