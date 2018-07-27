@@ -46,7 +46,6 @@ export const buildN170Timeline = () => ({
         {
           id: "trial",
           stimulus: jsPsych.timelineVariable("stimulusVar"),
-          eventType: jsPsych.timelineVariable("eventTypeVar"),
           type: params.plugin_name,
           choices: ["f", "j"],
           trial_duration: params.trial_duration
@@ -67,7 +66,7 @@ export const buildN170Timeline = () => ({
             .filter(filename => filename.includes("3"))
             .map(filename => ({
               stimulusVar: housesDir.replace("app/", "") + filename,
-              callbackVar: "house"
+              eventTypeVar: "house"
             }))
         )
     }

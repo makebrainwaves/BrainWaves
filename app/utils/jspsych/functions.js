@@ -1,4 +1,5 @@
 import { isNil } from "lodash";
+import { jsPsych } from "jspsych-react";
 
 import { EXPERIMENTS } from "../../constants/constants";
 import { buildOddballTimeline } from "./timelines/oddball";
@@ -60,12 +61,16 @@ export const instantiateTimeline = (
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (!isNil(trial.eventType)) {
-          return { ...trial, on_load: () => eventCallback(trial.eventType) };
+        if (trial.id === "trial") {
+          return {
+            ...trial,
+            on_load: () =>
+              eventCallback(jsPsych.timelineVariable("eventTypeVar")())
+          };
         }
         return trial;
       });
       return { ...jspsychObject, timeline: timelineWithCallback };
     }
-    return jspsychObject;c
+    return jspsychObject;
   });
