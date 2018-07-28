@@ -41,12 +41,7 @@ export const createRawEmotivObservable = client =>
   ).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
-      return Observable.fromEvent(client, "eeg").pipe(
-        map(eegEvent => ({
-          data: pruneEEG(eegEvent.eeg),
-          timestamp: eegEvent.time
-        }))
-      );
+      return Observable.fromEvent(client, "eeg").pipe(map(parseEEG));
     })
   );
 
@@ -58,12 +53,15 @@ export const injectEmotivMarker = (client, value, time) => {
 // Helpers
 
 // Removes the redundant stuff included in the Cortex SDK eeg return
-// 14 EEG channels followed by one value for the event marker
-const pruneEEG = eegArray => {
-  const prunedArray = new Array(EMOTIV_CHANNELS.length + 1);
+// 14 EEG channels with timestamp and optional event
+const parseEEG = (eegSample: { data: Array, timestamp: number }) => {
+  const prunedArray = new Array(EMOTIV_CHANNELS.length);
   for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {
-    prunedArray[i] = eegArray[i + 3];
+    prunedArray[i] = eegSample.data[i + 3];
   }
-  prunedArray[EMOTIV_CHANNELS.length] = eegArray[eegArray.length - 1];
-  return prunedArray;
+  const event = eegSample.data[eegSample.data.length - 1];
+  if (event != 0) {
+    return { data: prunedArray, timestamp: eegSample.time, event };
+  }
+  return { data: prunedArray, timestamp: eegSample.time };
 };

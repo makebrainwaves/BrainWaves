@@ -1,3 +1,5 @@
+import { withLatestFrom, tap, map } from "rxjs/operators";
+
 const bluetooth = require("bleat").webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
@@ -9,10 +11,8 @@ export const initMuseClient = () => {
   return client;
 };
 
-// Awaits Muse connectivity before sending an observable rep. EEG stream
-// If on Windows, will use bleat to bridge to noble and the noble-winrt bindings
-// IF on Mac or Linux, will proceed to use web bluetooth
-export const createRawMuseObservable = async client => {
+// Attempts to connect to a muse device. If successful, returns a device info object
+export const connectMuse = async client => {
   if (process.platform === "win32") {
     const device = await bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]
@@ -22,12 +22,31 @@ export const createRawMuseObservable = async client => {
   } else {
     await client.connect();
   }
-  await client.start();
-  const eegStream = await client.eegReadings;
-  return Observable.from(zipSamples(eegStream));
+  return client.deviceName;
 };
 
-// TODO: Implement marker injection in muse-js
+// Awaits Muse connectivity before sending an observable rep. EEG stream
+// If on Windows, will use bleat to bridge to noble and the noble-winrt bindings
+// IF on Mac or Linux, will proceed to use web bluetooth
+export const createRawMuseObservable = async client => {
+  await client.start();
+  const eegStream = await client.eegReadings;
+  const markers = await client.eventMarkers;
+  console.log(client);
+  await client.injectMarker(0, 0);
+  return Observable.from(zipSamples(eegStream)).pipe(
+    withLatestFrom(markers),
+    map(([eegSample, marker]) => {
+      if (Math.abs(eegSample["timestamp"] - marker["timestamp"]) <= 5) {
+        console.log(eegSample, marker);
+        return { ...eegSample, marker: marker.value };
+      }
+      return eegSample;
+    })
+  );
+};
+
+// Injects an event marker that will be included in muse-js's data stream through
 export const injectMuseMarker = (client, value, time) => {
-  console.log("inject Muse Marker: ", value, time);
+  client.injectMarker(value, time);
 };

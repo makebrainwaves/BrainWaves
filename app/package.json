@@ -19,7 +19,6 @@
     "bleat": "^0.1.8",
     "enchannel-zmq-backend": "^6.0.11",
     "kernelspecs": "^2.0.0",
-    "muse-js": "^3.0.1",
     "noble-winrt": "^0.1.0",
     "node-pre-gyp": "^0.10.0",
     "spawnteract": "^4.0.0"

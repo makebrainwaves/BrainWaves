@@ -8,6 +8,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import mkdirp from "mkdirp";
+import { has } from "lodash";
 import { EEGData } from "../../constants/interfaces";
 import { EXPERIMENTS } from "../../constants/constants";
 
@@ -63,10 +64,13 @@ export const writeHeader = (
 export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
   writeStream.write(`${eegData.timestamp},`);
   const len = eegData.data.length;
-  for (let i = 0; i < len - 1; i++) {
+  for (let i = 0; i < len; i++) {
     writeStream.write(`${eegData.data[i].toString()},`); // Round data
   }
-  writeStream.write(`${eegData.data[len - 1].toString()}\n`);
+  if (has(eegData, "marker")) {
+    writeStream.write(`${eegData["marker"]}\n`);
+  }
+  writeStream.write(`0\n`);
 };
 
 // ------------------------------------------------------------------------

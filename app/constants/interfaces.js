@@ -55,6 +55,7 @@ export interface Kernel {
 export interface EEGData {
   data: Array<number>;
   timestamp: number;
+  marker?: string | number;
 }
 
 // --------------------------------------------------------------------

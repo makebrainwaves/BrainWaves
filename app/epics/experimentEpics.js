@@ -1,5 +1,5 @@
 import { combineEpics } from "redux-observable";
-import { map, mapTo, pluck, filter, takeUntil } from "rxjs/operators";
+import { map, mapTo, pluck, filter, takeUntil, tap } from "rxjs/operators";
 import {
   LOAD_DEFAULT_TIMELINE,
   START,
