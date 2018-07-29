@@ -31,7 +31,12 @@ import {
   plotERP
 } from "../utils/jupyter/cells";
 
-import { EMOTIV_CHANNELS, DEVICES } from "../constants/constants";
+import {
+  EMOTIV_CHANNELS,
+  EVENTS,
+  DEVICES,
+  MUSE_CHANNELS
+} from "../constants/constants";
 import { parseSingleQuoteJSON } from "../utils/jupyter/functions";
 
 export const SET_KERNEL = "SET_KERNEL";
@@ -216,13 +221,7 @@ const loadEpochsEpic = (action$, store) =>
         .getState()
         .jupyter.mainChannel.next(
           executeRequest(
-            epochEvents(
-              store.getState().device.deviceType === DEVICES.EMOTIV
-                ? { House: 3, Face: 4 }
-                : { House: 1, Face: 2 },
-              -0.1,
-              0.8
-            )
+            epochEvents({ House: EVENTS.HOUSE, Face: EVENTS.FACE }, -0.1, 0.8)
           )
         )
     ),
@@ -258,12 +257,15 @@ const loadERPEpic = (action$, store) =>
   action$.ofType(LOAD_ERP, SET_PSD_PLOT).pipe(
     pluck("payload"),
     map(payload => {
-      if (EMOTIV_CHANNELS.includes(payload)) {
-        return payload;
+      const channels =
+        store.getState().device.deviceType === DEVICES.EMOTIV
+          ? EMOTIV_CHANNELS
+          : MUSE_CHANNELS;
+      if (channels.includes(payload)) {
+        return channels.indexOf(payload);
       }
-      return EMOTIV_CHANNELS[1];
+      return channels[0];
     }),
-    map(channelName => EMOTIV_CHANNELS.indexOf(channelName)),
     map(channelIndex =>
       store
         .getState()

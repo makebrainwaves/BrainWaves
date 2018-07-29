@@ -10,13 +10,19 @@ import {
 } from "semantic-ui-react";
 import { isNil } from "lodash";
 import styles from "./styles/common.css";
-import { EXPERIMENTS, EMOTIV_CHANNELS } from "../constants/constants";
+import {
+  EXPERIMENTS,
+  DEVICES,
+  MUSE_CHANNELS,
+  EMOTIV_CHANNELS
+} from "../constants/constants";
 import { Kernel } from "../constants/interfaces";
 import { readEEGDataDir } from "../utils/filesystem/write";
 import JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
   type: ?EXPERIMENTS;
+  deviceType: DEVICES;
   mainChannel: ?any;
   kernel: ?Kernel;
   epochsInfo: ?{ [string]: number };
@@ -98,6 +104,10 @@ export default class Analyze extends Component<Props, State> {
   }
 
   render() {
+    const channels =
+      this.props.deviceType === DEVICES.EMOTIV
+        ? EMOTIV_CHANNELS
+        : MUSE_CHANNELS;
     return (
       <div className={styles.mainContainer}>
         <Grid columns="equal" relaxed padded>
@@ -126,7 +136,7 @@ export default class Analyze extends Component<Props, State> {
                 placeholder="Select Electrode"
                 fluid
                 selection
-                options={EMOTIV_CHANNELS.map(channelName => ({
+                options={channels.map(channelName => ({
                   key: channelName,
                   text: channelName,
                   value: channelName

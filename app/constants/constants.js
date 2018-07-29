@@ -14,6 +14,13 @@ export const DEVICES = {
   GANGLION: "GANGLION" // One day ;)
 };
 
+export const EVENTS = {
+  FACE: 1,
+  HOUSE: 2,
+  TARGET: 1,
+  NONTARGET: 2
+};
+
 export const EMOTIV_CHANNELS = [
   "AF3",
   "F7",

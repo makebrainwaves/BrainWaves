@@ -8,6 +8,7 @@ import * as jupyterActions from "../actions/jupyterActions";
 function mapStateToProps(state) {
   return {
     type: state.experiment.type,
+    deviceType: state.device.deviceType,
     ...state.jupyter
   };
 }

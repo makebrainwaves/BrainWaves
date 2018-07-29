@@ -1,6 +1,6 @@
 import { jsPsych } from "jspsych-react";
 import { readdirSync } from "fs";
-
+import { EVENTS } from "../../../constants/constants"; 
 // Default experiment parameters
 const params = {
   trial_duration: 300,
@@ -59,14 +59,14 @@ export const buildN170Timeline = () => ({
         .filter(filename => filename.includes("3"))
         .map(filename => ({
           stimulusVar: facesDir.replace("app/", "") + filename,
-          eventTypeVar: "face"
+          eventTypeVar: EVENTS.FACE
         }))
         .concat(
           readdirSync(housesDir)
             .filter(filename => filename.includes("3"))
             .map(filename => ({
               stimulusVar: housesDir.replace("app/", "") + filename,
-              eventTypeVar: "house"
+              eventTypeVar: EVENTS.HOUSE
             }))
         )
     }

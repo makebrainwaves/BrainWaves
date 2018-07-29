@@ -69,8 +69,9 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
   }
   if (has(eegData, "marker")) {
     writeStream.write(`${eegData["marker"]}\n`);
+  } else {
+    writeStream.write(`0\n`);
   }
-  writeStream.write(`0\n`);
 };
 
 // ------------------------------------------------------------------------
