@@ -5,8 +5,9 @@
  */
 import { Observable } from "rxjs";
 import { mergeMap, map } from "rxjs/operators";
-import { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } from "../../keys";
-import { EMOTIV_CHANNELS } from "../constants/constants";
+import { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } from "../../../keys";
+import { EMOTIV_CHANNELS } from "../../constants/constants";
+import Cortex from "./cortex";
 
 // Just returns the Cortex object from SDK
 export const initCortex = () => {
@@ -32,20 +33,25 @@ export const createRawEmotivObservable = client =>
         })
       )
       .then(() =>
-        client
-          .createSession({
-            status: "active"
-          })
-          .subscribe({ streams: ["eeg"] })
+        client.createSession({
+          status: "active"
+        })
       )
+      .then(() => client.subscribe({ streams: ["eeg"] }))
   ).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
-      return Observable.fromEvent(client, "eeg").pipe(map(parseEEG));
+      return Observable.fromEvent(client, "eeg").pipe(
+        map(eegEvent => ({
+          data: pruneEEG(eegEvent.eeg),
+          timestamp: eegEvent.time
+        }))
+      );
     })
   );
 
 export const injectEmotivMarker = (client, value, time) => {
+  console.log("inject emotiv marker: ", value, time);
   client.injectMarker({ label: "event", value, time });
 };
 
@@ -53,15 +59,13 @@ export const injectEmotivMarker = (client, value, time) => {
 // Helpers
 
 // Removes the redundant stuff included in the Cortex SDK eeg return
-// 14 EEG channels with timestamp and optional event
-const parseEEG = (eegSample: { data: Array, timestamp: number }) => {
-  const prunedArray = new Array(EMOTIV_CHANNELS.length);
+// 14 EEG channels followed by one value for the event marker
+const pruneEEG = eegArray => {
+  console.log(eegArray[eegArray.length - 1]);
+  const prunedArray = new Array(EMOTIV_CHANNELS.length + 1);
   for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {
-    prunedArray[i] = eegSample.data[i + 3];
+    prunedArray[i] = eegArray[i + 3];
   }
-  const event = eegSample.data[eegSample.data.length - 1];
-  if (event != 0) {
-    return { data: prunedArray, timestamp: eegSample.time, event };
-  }
-  return { data: prunedArray, timestamp: eegSample.time };
+  prunedArray[EMOTIV_CHANNELS.length] = eegArray[eegArray.length - 1];
+  return prunedArray;
 };

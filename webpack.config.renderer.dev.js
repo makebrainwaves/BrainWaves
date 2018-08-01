@@ -9,11 +9,11 @@
 
 import path from "path";
 import fs from "fs";
-import webpack from "webpack";
+import webpack from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpackata/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpack";
 import chalk from "chalk";
-import merge from "webpack-merge";
+import merge from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpack-mergecal/Microsoft/TypeScript/2.9/node_modules/@types/webpack-merge";
 import { spawn, execSync } from "child_process";
-import ExtractTextPlugin from "extract-text-webpack-plugin";
+import ExtractTextPlugin from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/extract-text-webpack-pluginTypeScript/2.9/node_modules/@types/extract-text-webpack-plugin";
 import baseConfig from "./webpack.config.base";
 import CheckNodeEnv from "./internals/scripts/CheckNodeEnv";
 

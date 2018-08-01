@@ -2,12 +2,12 @@ import { combineEpics } from "redux-observable";
 import { Observable } from "rxjs";
 import { map, pluck, mergeMap, tap } from "rxjs/operators";
 import { INIT_MUSE, INIT_EMOTIV } from "../actions/deviceActions";
-import { initCortex, createRawEmotivObservable } from "../utils/emotiv";
+import { initCortex, createRawEmotivObservable } from "../utils/eeg/emotiv";
 import {
   initMuseClient,
   createRawMuseObservable,
   connectMuse
-} from "../utils/muse";
+} from "../utils/eeg/muse";
 
 export const SET_EMOTIV_CLIENT = "SET_EMOTIV_CLIENT";
 export const SET_MUSE_CLIENT = "SET_MUSE_CLIENT";
