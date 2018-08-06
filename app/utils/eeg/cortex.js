@@ -166,7 +166,6 @@ class Cortex extends EventEmitter {
   defineMethod(methodName, paramDefs = []) {
     if (this[methodName]) return;
     const needsAuth = paramDefs.some(p => p.name === "_auth");
-    console.log("method: ", methodName, " needs auth: ", needsAuth);
     const requiredParams = paramDefs.filter(p => p.required).map(p => p.name);
 
     this[methodName] = (params = {}) => {

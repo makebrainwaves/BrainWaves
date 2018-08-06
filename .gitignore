@@ -17,8 +17,8 @@ pids
 *.pid.lock
 
 # Auto-generated files
-yarn.lock
-package-lock.json
+#yarn.lock
+#package-lock.json
 
 # Emotiv SDK Keys
 keys.js

@@ -3,11 +3,11 @@
  */
 
 import path from "path";
-import webpack from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpackata/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpack";
-import ExtractTextPlugin from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/extract-text-webpack-pluginTypeScript/2.9/node_modules/@types/extract-text-webpack-plugin";
-import { BundleAnalyzerPlugin } from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpack-bundle-analyzeroft/TypeScript/2.9/node_modules/@types/webpack-bundle-analyzer";
-import merge from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpack-mergecal/Microsoft/TypeScript/2.9/node_modules/@types/webpack-merge";
-import UglifyJSPlugin from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/uglifyjs-webpack-pluginoft/TypeScript/2.9/node_modules/@types/uglifyjs-webpack-plugin";
+import webpack from "webpack";
+import ExtractTextPlugin from "extract-text-webpack-plugin";
+import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
+import merge from "webpack-merge";
+import UglifyJSPlugin from "uglifyjs-webpack-plugin";
 import baseConfig from "./webpack.config.base";
 import CheckNodeEnv from "./internals/scripts/CheckNodeEnv";
 

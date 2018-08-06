@@ -3,7 +3,7 @@
  */
 
 import path from "path";
-import webpack from "../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpackata/Local/Microsoft/TypeScript/2.9/node_modules/@types/webpack";
+import webpack from "webpack";
 import fs from "fs";
 import { dependencies as externals } from "./app/package.json";
 import { dependencies as possibleExternals } from "./package.json";
