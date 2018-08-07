@@ -65,7 +65,10 @@ export const instantiateTimeline = (
           return {
             ...trial,
             on_load: () =>
-              eventCallback(jsPsych.timelineVariable("eventTypeVar")())
+              eventCallback(
+                jsPsych.timelineVariable("eventTypeVar")(),
+                new Date().getTime()
+              )
           };
         }
         return trial;

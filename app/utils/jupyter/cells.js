@@ -34,7 +34,9 @@ export const loadCSV = (
     `ch_ind = [${
       deviceType === DEVICES.EMOTIV
         ? EMOTIV_CHANNELS.map((_, i) => i).toString()
-        : MUSE_CHANNELS.map((_, i) => i).toString()
+        : MUSE_CHANNELS.slice(0, MUSE_CHANNELS.length - 1)
+            .map((_, i) => i)
+            .toString()
     }]`,
     `stim_ind = ${
       deviceType === DEVICES.EMOTIV
@@ -42,6 +44,19 @@ export const loadCSV = (
         : MUSE_CHANNELS.length
     }`,
     `replace_ch_names = None`,
+    `raw = utils.load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
+  ].join("\n");
+
+export const loadCSVWithAux = (
+  filePathArray: Array<{ name: string, dir: string }>,
+  auxChannel: string
+) =>
+  [
+    `files = ${formatFilePaths(filePathArray)}`,
+    `sfreq = ${deviceType === DEVICES.EMOTIV ? 128.0 : 256.0}`,
+    `ch_ind = [${MUSE_CHANNELS.map((_, i) => i).toString()}]`,
+    `stim_ind = ${MUSE_CHANNELS.length}`,
+    `replace_ch_names = {'Right AUX': ${auxChannel}`,
     `raw = utils.load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
   ].join("\n");
 

@@ -37,10 +37,11 @@ export const createRawMuseObservable = async client => {
   return Observable.from(zipSamples(eegStream)).pipe(
     withLatestFrom(markers),
     map(([eegSample, marker]) => {
-      if (
-        Math.abs(Math.floor(eegSample["timestamp"]) - marker["timestamp"]) <= 2
-      ) {
-        console.log(eegSample, marker);
+      if (Math.abs(eegSample["timestamp"] - marker["timestamp"]) <= 2) {
+        console.log(
+          "injected marker with delay of ",
+          eegSample["timestamp"] - marker["timestamp"]
+        );
         return { ...eegSample, marker: marker.value };
       }
       return eegSample;
@@ -50,5 +51,5 @@ export const createRawMuseObservable = async client => {
 
 // Injects an event marker that will be included in muse-js's data stream through
 export const injectMuseMarker = (client, value, time) => {
-  client.injectMarker(value === "face" ? 1 : 2, time);
+  client.injectMarker(value, time);
 };
