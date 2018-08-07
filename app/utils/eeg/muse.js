@@ -1,8 +1,10 @@
-import { withLatestFrom, tap, map } from "rxjs/operators";
+import { withLatestFrom, map } from "rxjs/operators";
 
 const bluetooth = require("bleat").webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
+
+const INTER_SAMPLE_INTERVAL = 1 / 256;
 
 // Just returns the client object from Muse JS
 export const initMuseClient = () => {
@@ -37,12 +39,15 @@ export const createRawMuseObservable = async client => {
   return Observable.from(zipSamples(eegStream)).pipe(
     withLatestFrom(markers),
     map(([eegSample, marker]) => {
-      if (Math.abs(eegSample["timestamp"] - marker["timestamp"]) <= 2) {
+      if (
+        eegSample["timestamp"] - marker["timestamp"] > 0 &&
+        eegSample["timestamp"] - marker["timestamp"] <= INTER_SAMPLE_INTERVAL
+      ) {
         console.log(
           "injected marker with delay of ",
-          eegSample["timestamp"] - marker["timestamp"]
+          Math.abs(eegSample["timestamp"] - marker["timestamp"])
         );
-        return { ...eegSample, marker: marker.value };
+        return { ...eegSample, marker: marker["timestamp"] };
       }
       return eegSample;
     })
@@ -51,5 +56,6 @@ export const createRawMuseObservable = async client => {
 
 // Injects an event marker that will be included in muse-js's data stream through
 export const injectMuseMarker = (client, value, time) => {
+  console.log(value);
   client.injectMarker(value, time);
 };
