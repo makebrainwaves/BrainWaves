@@ -1,8 +1,7 @@
 // @flow
 import { Observable } from "rxjs/Observable";
 import {
-  SET_EMOTIV_CLIENT,
-  SET_MUSE_CLIENT,
+  SET_CLIENT  g,
   SET_DEVICE_INFO,
   SET_AVAILABLE_DEVICES,
   SET_CONNECTION_STATUS,
@@ -40,18 +39,10 @@ export default function device(
   action: ActionType
 ) {
   switch (action.type) {
-    case SET_EMOTIV_CLIENT:
+    case SET_CLIENT:
       return {
         ...state,
-        client: action.payload,
-        deviceType: DEVICES.EMOTIV
-      };
-
-    case SET_MUSE_CLIENT:
-      return {
-        ...state,
-        client: action.payload,
-        deviceType: DEVICES.MUSE
+        client: action.payload
       };
 
     case SET_DEVICE_TYPE:

@@ -14,7 +14,10 @@ import { isNil } from "lodash";
 import {
   CONNECT_TO_DEVICE,
   SET_DEVICE_TYPE,
-  SET_DEVICE_AVAILABILITY
+  SET_DEVICE_AVAILABILITY,
+  setDeviceAvailability,
+  setConnectionStatus,
+  connectToDevice
 } from "../actions/deviceActions";
 import {
   initCortex,
@@ -85,30 +88,44 @@ const searchEpic = (action$, store) =>
         store.getState().device.deviceType === DEVICES.EMOTIV
           ? getEmotiv(store.getState().device.client)
           : getMuse()
+      ).pipe(
+        map(setAvailableDevices),
+        catchError(error =>
+          Observable.of(error).pipe(
+            tap(console.error),
+            map(() => setDeviceAvailability(DEVICE_AVAILABILITY.NONE))
+          )
+        )
       )
-    ),
-    map(setAvailableDevices)
+    )
   );
 
 const connectEpic = (action$, store) =>
   action$.ofType(CONNECT_TO_DEVICE).pipe(
     pluck("payload"),
-    mergeMap(
-      device =>
-        Observable.from(
-          store.getState().device.deviceType === DEVICES.EMOTIV
-            ? connectToEmotiv(store.getState().device.client, device)
-            : connectToMuse(store.getState().device.client, device)
-        ),
-      map(setDeviceInfo)
+    mergeMap(device =>
+      Observable.from(
+        store.getState().device.deviceType === DEVICES.EMOTIV
+          ? connectToEmotiv(store.getState().device.client, device)
+          : connectToMuse(store.getState().device.client, device)
+      ).pipe(
+        map(setDeviceInfo),
+        catchError(error =>
+          Observable.of(error).pipe(
+            tap(console.error),
+            map(() => setConnectionStatus(CONNECTION_STATUS.DISCONNECTED))
+          )
+        )
+      )
     )
   );
 
-const autoConnectEpic = (action$, store) =>
+const autoConnectEpic = action$ =>
   action$.ofType(SET_AVAILABLE_DEVICES).pipe(
     pluck("payload"),
-    map(client => createRawEmotivObservable(client)),
-    map(setRawObservable)
+    filter(availableDevices => availableDevices.length === 1),
+    map(availableDevices => availableDevices[0]),
+    map(connectToDevice)
   );
 
 const setRawMuseObservable = (action$, store) =>
