@@ -22,7 +22,7 @@ export default merge.smart(baseConfig, {
 
   entry: {
     main: [path.join(__dirname, "./app/index")],
-    cortex: [path.join(__dirname, "lib/cortex")]
+    // cortex: [path.join(__dirname, "lib/cortex")]
   },
 
   output: {
@@ -168,7 +168,8 @@ export default merge.smart(baseConfig, {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: "production"
+      NODE_ENV: "production",
+      DEBUG_PROD: true
     }),
 
     new UglifyJSPlugin({

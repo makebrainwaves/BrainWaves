@@ -53,7 +53,7 @@ export default merge.smart(baseConfig, {
       "webpack/hot/only-dev-server",
       path.join(__dirname, "app/index.js")
     ],
-    cortex: [path.join(__dirname, "lib/cortex.js")]
+    // cortex: [path.join(__dirname, "lib/.js")]
   },
 
   output: {

@@ -3,13 +3,19 @@ import { Observable } from "rxjs/Observable";
 import {
   SET_EMOTIV_CLIENT,
   SET_MUSE_CLIENT,
-  SET_CONNECTED_DEVICE,
-  SET_DISCONNECTED,
+  SET_DEVICE_INFO,
+  SET_AVAILABLE_DEVICES,
+  SET_CONNECTION_STATUS,
+  SET_DEVICE_AVAILABILITY,
   SET_RAW_OBSERVABLE,
   DEVICE_CLEANUP
 } from "../epics/deviceEpics";
-import { DEVICES } from "../constants/constants";
-import { ActionType } from "../constants/interfaces";
+import {
+  DEVICES,
+  CONNECTION_STATUS,
+  DEVICE_AVAILABILITY
+} from "../constants/constants";
+import { ActionType, DeviceInfo } from "../constants/interfaces";
 import { SET_DEVICE_TYPE } from "../actions/deviceActions";
 
 interface DeviceStateType {
@@ -21,10 +27,12 @@ interface DeviceStateType {
 
 const initialState = {
   client: null,
-  // Unused for now, but will house device name eventually
-  connectedDevice: { name: "disconnected" },
+  availableDevices: [],
+  connectedDevice: { name: "disconnected", samplingRate: 0 },
+  connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
+  deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
-  deviceType: ""
+  deviceType: DEVICES.NONE
 };
 
 export default function device(
@@ -62,6 +70,12 @@ export default function device(
       return {
         ...state,
         connectedDevice: { name: "disconnected" }
+      };
+
+    case SET_DEVICE_AVAILABILITY:
+      return {
+        ...state,
+        SET_DEVICE_AVAILABILITY: action.payload
       };
 
     case SET_RAW_OBSERVABLE:
