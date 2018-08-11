@@ -1,33 +1,51 @@
 import { combineEpics } from "redux-observable";
 import { Observable } from "rxjs";
-import { map, pluck, mergeMap, tap } from "rxjs/operators";
-import { INIT_MUSE, INIT_EMOTIV } from "../actions/deviceActions";
-import { initCortex, createRawEmotivObservable } from "../utils/eeg/emotiv";
+import {
+  map,
+  pluck,
+  mergeMap,
+  tap,
+  filter,
+  catchError,
+  ignoreElements,
+  timeout
+} from "rxjs/operators";
+import { isNil } from "lodash";
+import {
+  CONNECT_TO_DEVICE,
+  SET_DEVICE_TYPE,
+  SET_DEVICE_AVAILABILITY
+} from "../actions/deviceActions";
+import {
+  initCortex,
+  getEmotiv,
+  connectToEmotiv,
+  createRawEmotivObservable
+} from "../utils/eeg/emotiv";
 import {
   initMuseClient,
   createRawMuseObservable,
   connectMuse
 } from "../utils/eeg/muse";
+import {
+  CONNECTION_STATUS,
+  DEVICES,
+  DEVICE_AVAILABILITY
+} from "../constants/constants";
 
-export const SET_EMOTIV_CLIENT = "SET_EMOTIV_CLIENT";
-export const SET_MUSE_CLIENT = "SET_MUSE_CLIENT";
-export const SET_CONNECTED = "SET_CONNECTED";
-export const CONNECT_ATTEMPT_COMPLETE = "CONNECT_ATTEMPT_COMPLETE";
-export const SET_DISCONNECTED = "SET_DISCONNECTED";
+export const SET_CLIENT = "SET_CLIENT";
+export const SET_CONNECTION_STATUS = "SET_CONNECTION_STATUS";
+export const SET_DEVICE_INFO = "SET_DEVICE_INFO";
+export const SET_AVAILABLE_DEVICES = "SET_AVAILABLE_DEVICES";
 export const SET_RAW_OBSERVABLE = "SET_RAW_OBSERVABLE";
 export const DEVICE_CLEANUP = "SET_DISCONNECTED";
 
 // -------------------------------------------------------------------------
 // Action Creators
 
-const setEmotivClient = payload => ({
+const setClient = payload => ({
   payload,
-  type: SET_EMOTIV_CLIENT
-});
-
-const setMuseClient = payload => ({
-  payload,
-  type: SET_MUSE_CLIENT
+  type: SET_CLIENT
 });
 
 const setRawObservable = payload => ({
@@ -39,28 +57,55 @@ const setConnected = () => ({
   type: SET_CONNECTED
 });
 
-const setDisconnected = () => ({
-  type: SET_DISCONNECTED
-});
+const cleanup = () => ({ type: DEVICE_CLEANUP });
 
 // -------------------------------------------------------------------------
 // Epics
 
-const initEmotivEpic = action$ =>
-  action$.ofType(INIT_EMOTIV).pipe(
-    map(initCortex),
-    map(setEmotivClient)
+const initEpic = action$ =>
+  action$.ofType(SET_DEVICE_TYPE).pipe(
+    pluck("payload"),
+    map(deviceType => {
+      if (deviceType === DEVICES.EMOTIV) {
+        return initCortex();
+      }
+      return initMuseClient();
+    }),
+    map(setClient)
   );
 
-const initMuseEpic = action$ =>
-  action$.ofType(INIT_MUSE).pipe(
-    map(initMuseClient),
-    tap(connectMuse),
-    map(setMuseClient)
+// TODO: Add timeout
+const searchEpic = (action$, store) =>
+  action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
+    tap(console.log),
+    pluck("payload"),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
+    mergeMap(() =>
+      Observable.from(
+        store.getState().device.deviceType === DEVICES.EMOTIV
+          ? getEmotiv(store.getState().device.client)
+          : getMuse()
+      )
+    ),
+    map(setAvailableDevices)
   );
 
-const setRawEmotivObservable = action$ =>
-  action$.ofType(SET_EMOTIV_CLIENT).pipe(
+const connectEpic = (action$, store) =>
+  action$.ofType(CONNECT_TO_DEVICE).pipe(
+    pluck("payload"),
+    mergeMap(
+      device =>
+        Observable.from(
+          store.getState().device.deviceType === DEVICES.EMOTIV
+            ? connectToEmotiv(store.getState().device.client, device)
+            : connectToMuse(store.getState().device.client, device)
+        ),
+      map(setDeviceInfo)
+    )
+  );
+
+const autoConnectEpic = (action$, store) =>
+  action$.ofType(SET_AVAILABLE_DEVICES).pipe(
     pluck("payload"),
     map(client => createRawEmotivObservable(client)),
     map(setRawObservable)
@@ -74,22 +119,36 @@ const setRawMuseObservable = (action$, store) =>
     map(setRawObservable)
   );
 
-const connectionStatusListenerEpic = action$ =>
-  action$.ofType(SET_MUSE_CLIENT).pipe(
-    pluck("payload"),
-    mergeMap(client => client.connectionStatus),
-    map(connectionStatus => {
-      if (connectionStatus) {
-        return setConnected();
-      }
-      return setDisconnected();
-    })
+// const connectionStatusListenerEpic = action$ =>
+//   action$.ofType(SET_CLIENT).pipe(
+//     pluck("payload"),
+//     mergeMap(client => client.connectionStatus),
+//     map(connectionStatus => {
+//       if (connectionStatus) {
+//         return setConnectionStatus(CONNECTION_STATUS.CONNECTED);
+//       }
+//       return setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+//     })
+//   );
+
+// const cleanupEpic = action$ =>
+//   action$.ofType(SET_DEVICE_TYPE).pipe(map(cleanup));
+
+// TODO: Fix this error handling so epics can refire once they error out
+const rootEpic = (action$, state$) =>
+  combineEpics(
+    initEpic,
+    searchEpic,
+    connectEpic,
+    autoConnectEpic,
+    setRawObservableEpic
+  )(action$, state$).pipe(
+    catchError(error =>
+      Observable.of(error).pipe(
+        tap(console.log),
+        map(cleanup)
+      )
+    )
   );
 
-export default combineEpics(
-  initEmotivEpic,
-  initMuseEpic,
-  setRawMuseObservable,
-  setRawEmotivObservable,
-  connectionStatusListenerEpic
-);
+export default rootEpic;

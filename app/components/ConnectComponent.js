@@ -12,7 +12,11 @@ import {
 import { Link } from "react-router-dom";
 import { isNil } from "lodash";
 import styles from "./styles/common.css";
-import { DEVICES } from "../constants/constants";
+import {
+  DEVICES,
+  CONNECTION_STATUS,
+  DEVICE_AVAILABILITY
+} from "../constants/constants";
 
 interface Props {
   client: ?any;
@@ -44,9 +48,15 @@ export default class Connect extends Component<Props> {
   handleEmotivSelect() {
     this.props.deviceActions.setDeviceType(DEVICES.EMOTIV);
   }
-
+  de;
   handleMuseSelect() {
     this.props.deviceActions.setDeviceType(DEVICES.MUSE);
+  }
+
+  handleSearch() {
+    this.props.deviceActions.setDeviceAvailability(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
   }
 
   renderConnectionStatus() {
@@ -161,6 +171,13 @@ export default class Connect extends Component<Props> {
                 </Grid>
               </Segment>
             </Grid.Row>
+            <Segment basic>
+              {this.props.availableDevices.map((device, index) => (
+                <Segment key={index + "h"} basic>
+                  {Object.toString(device)}
+                </Segment>
+              ))}
+            </Segment>
           </Grid>
         </div>
       </div>
