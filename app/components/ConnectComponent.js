@@ -24,6 +24,7 @@ interface Props {
   rawObservable: ?any;
   deviceType: DEVICES;
   deviceActions: Object;
+  availableDevices: Array<any>;
 }
 
 export default class Connect extends Component<Props> {
@@ -31,12 +32,21 @@ export default class Connect extends Component<Props> {
   handleEmotivSelect: () => void;
   handleMuseSelect: () => void;
   handleStartExperiment: Object => void;
+  handleConnect: () => void;
 
   constructor(props: Props) {
     super(props);
     this.handleEmotivSelect = this.handleEmotivSelect.bind(this);
     this.handleMuseSelect = this.handleMuseSelect.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
+    this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
+      leading: true,
+      trailing: false
+    });
+    this.handleConnect = debounce(this.handleConnect.bind(this), 300, {
+      leading: true,
+      trailing: false
+    });
   }
 
   handleStartExperiment(e: Object) {
@@ -57,6 +67,10 @@ export default class Connect extends Component<Props> {
     this.props.deviceActions.setDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
+  }
+
+  handleConnect() {
+    this.props.deviceActions.connectToDevice(this.props.availableDevices[0]);
   }
 
   renderConnectionStatus() {
@@ -131,7 +145,8 @@ export default class Connect extends Component<Props> {
           your skin
         </List.Item>
         <List.Item>
-          <Button onClick={this.props.deviceActions.initMuse}>Connect</Button>
+          <Button onClick={this.handleSearch}>Search</Button>
+          <Button onClick={this.handleConnect}>Connect</Button>
         </List.Item>
       </List>
     );

@@ -78,55 +78,49 @@ const initEpic = action$ =>
   );
 
 // TODO: Add timeout
+// NOTE: Uses a Promise.then inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
 const searchEpic = (action$, store) =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
-    tap(console.log),
     pluck("payload"),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
-    mergeMap(() =>
-      Observable.from(
+    map(
+      () =>
         store.getState().device.deviceType === DEVICES.EMOTIV
           ? getEmotiv(store.getState().device.client)
           : getMuse()
-      ).pipe(
-        map(setAvailableDevices),
-        catchError(error =>
-          Observable.of(error).pipe(
-            tap(console.error),
-            map(() => setDeviceAvailability(DEVICE_AVAILABILITY.NONE))
-          )
-        )
-      )
+    ),
+    mergeMap(promise =>
+      promise.then(setAvailableDevices, error => {
+        console.error("searchEpic: ", error);
+        return setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
+      })
     )
   );
 
 const connectEpic = (action$, store) =>
   action$.ofType(CONNECT_TO_DEVICE).pipe(
     pluck("payload"),
-    mergeMap(device =>
-      Observable.from(
+    map(
+      device =>
         store.getState().device.deviceType === DEVICES.EMOTIV
           ? connectToEmotiv(store.getState().device.client, device)
           : connectToMuse(store.getState().device.client, device)
-      ).pipe(
-        map(setDeviceInfo),
-        catchError(error =>
-          Observable.of(error).pipe(
-            tap(console.error),
-            map(() => setConnectionStatus(CONNECTION_STATUS.DISCONNECTED))
-          )
-        )
-      )
+    ),
+    mergeMap(promise =>
+      promise.then(setDeviceInfo, error => {
+        console.error("connectEpic: ", error);
+        return setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+      })
     )
   );
 
-const autoConnectEpic = action$ =>
-  action$.ofType(SET_AVAILABLE_DEVICES).pipe(
-    pluck("payload"),
-    filter(availableDevices => availableDevices.length === 1),
-    map(availableDevices => availableDevices[0]),
-    map(connectToDevice)
-  );
+// const autoConnectEpic = action$ =>
+//   action$.ofType(SET_AVAILABLE_DEVICES).pipe(
+//     pluck("payload"),
+//     filter(availableDevices => availableDevices.length === 1),
+//     map(availableDevices => availableDevices[0]),
+//     map(connectToDevice)
+//   );
 
 const setRawMuseObservable = (action$, store) =>
   action$.ofType(SET_CONNECTED).pipe(
@@ -157,7 +151,7 @@ const rootEpic = (action$, state$) =>
     initEpic,
     searchEpic,
     connectEpic,
-    autoConnectEpic,
+    // autoConnectEpic,
     setRawObservableEpic
   )(action$, state$).pipe(
     catchError(error =>

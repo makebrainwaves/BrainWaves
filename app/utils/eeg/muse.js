@@ -13,8 +13,11 @@ export const initMuseClient = () => {
   return client;
 };
 
-// Attempts to connect to a muse device. If successful, returns a device info object
-export const connectMuse = async client => {
+// Gets an available Muse device
+// TODO: test whether this will ever return multiple devices if available
+export const getMuse = async () => {
+  console.log('getting muse');
+  let device = {};
   if (process.platform === "win32") {
     const device = await bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]
@@ -24,6 +27,7 @@ export const connectMuse = async client => {
       filters: [{ services: [MUSE_SERVICE] }]
     });
   }
+  console.log(device);
   return [device];
 };
 
