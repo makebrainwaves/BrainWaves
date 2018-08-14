@@ -86,6 +86,8 @@ app/style.css.map
 dist
 app/dist
 dll
+dll/renderer.dev.dll.js
+dll/renderer.json
 main.js
 main.js.map
 
