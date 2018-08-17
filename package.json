@@ -216,10 +216,7 @@
     "lodash": "^4.17.10",
     "mkdirp": "^0.5.1",
     "muse-js": "^3.1.0",
-<<<<<<< HEAD
-=======
     "mousetrap": "^1.6.2",
->>>>>>> mostRecent
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-hot-loader": "^4.0.0-beta.13",
