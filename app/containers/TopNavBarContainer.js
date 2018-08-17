@@ -7,6 +7,7 @@ function mapStateToProps(state) {
     location: state.router.location,
     type: state.experiment.type,
     deviceType: state.device.deviceType,
+    connectionStatus: state.device.connectionStatus,
     rawObservable: state.device.rawObservable,
     mainChannel: state.jupyter.mainChannel
   };

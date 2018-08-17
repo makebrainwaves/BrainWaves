@@ -49,6 +49,7 @@
       "dist/",
       "node_modules/",
       "app.html",
+      "viewer.html",
       "main.prod.js",
       "main.prod.js.map",
       "package.json"
@@ -205,7 +206,9 @@
     "@nteract/messaging": "^4.0.1",
     "@nteract/transforms": "^4.3.0",
     "babel-runtime": "^6.26.0",
+    "d3": "^5.5.0",
     "devtron": "^1.4.0",
+    "eeg-pipes": "^2.0.3",
     "electron-debug": "^1.5.0",
     "font-awesome": "^4.7.0",
     "history": "^4.7.2",
@@ -213,6 +216,10 @@
     "lodash": "^4.17.10",
     "mkdirp": "^0.5.1",
     "muse-js": "^3.1.0",
+<<<<<<< HEAD
+=======
+    "mousetrap": "^1.6.2",
+>>>>>>> mostRecent
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-hot-loader": "^4.0.0-beta.13",
@@ -225,6 +232,7 @@
     "redux-thunk": "^2.2.0",
     "semantic-ui-css": "^2.3.2",
     "semantic-ui-react": "^0.81.1",
+    "simplify-js": "^1.2.3",
     "source-map-support": "^0.5.3",
     "spawnteract": "^4.0.0",
     "ws": "^5.2.0"

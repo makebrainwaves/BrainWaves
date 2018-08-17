@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import { isNil } from "lodash";
 import { Observable } from "rxjs/Observable";
 
-
 import { Grid, List } from "semantic-ui-react";
 import { EXPERIMENTS, DEVICES } from "../constants/constants";
 import styles from "./styles/topnavbar.css";
@@ -30,9 +29,7 @@ export default class TopNav extends Component<Props> {
               </List.Item>
               <List.Item>
                 <List.Header>Device</List.Header>
-                {`${this.props.deviceType}  ${
-                  isNil(this.props.rawObservable) ? "Disconnected" : "Connected"
-                }`}
+                {`${this.props.deviceType}  ${this.props.connectionStatus}`}
               </List.Item>
               <List.Item>
                 <List.Header>Jupyter</List.Header>

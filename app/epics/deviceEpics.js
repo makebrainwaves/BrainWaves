@@ -27,8 +27,10 @@ import {
 } from "../utils/eeg/emotiv";
 import {
   initMuseClient,
+  getMuse,
+  connectToMuse,
   createRawMuseObservable,
-  connectMuse
+  injectMuseMarker
 } from "../utils/eeg/muse";
 import {
   CONNECTION_STATUS,
@@ -41,7 +43,7 @@ export const SET_CONNECTION_STATUS = "SET_CONNECTION_STATUS";
 export const SET_DEVICE_INFO = "SET_DEVICE_INFO";
 export const SET_AVAILABLE_DEVICES = "SET_AVAILABLE_DEVICES";
 export const SET_RAW_OBSERVABLE = "SET_RAW_OBSERVABLE";
-export const DEVICE_CLEANUP = "SET_DISCONNECTED";
+export const DEVICE_CLEANUP = "DEVICE_CLEANUP";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -56,8 +58,14 @@ const setRawObservable = payload => ({
   type: SET_RAW_OBSERVABLE
 });
 
-const setConnected = () => ({
-  type: SET_CONNECTED
+const setAvailableDevices = payload => ({
+  payload,
+  type: SET_AVAILABLE_DEVICES
+});
+
+const setDeviceInfo = payload => ({
+  payload,
+  type: SET_DEVICE_INFO
 });
 
 const cleanup = () => ({ type: DEVICE_CLEANUP });
@@ -90,11 +98,29 @@ const searchEpic = (action$, store) =>
           : getMuse()
     ),
     mergeMap(promise =>
-      promise.then(setAvailableDevices, error => {
-        console.error("searchEpic: ", error);
-        return setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
-      })
-    )
+      promise.then(
+        devices => devices,
+        error => {
+          console.error("searchEpic: ", error);
+          return [];
+        }
+      )
+    ),
+    mergeMap(devices => {
+      if (devices.length > 1) {
+        return Observable.of(
+          setAvailableDevices(devices),
+          setDeviceAvailability(DEVICE_AVAILABILITY.MULTIPLE_AVAILABLE)
+        );
+      }
+      if (devices.length === 1) {
+        return Observable.of(
+          setAvailableDevices(devices),
+          setDeviceAvailability(DEVICE_AVAILABILITY.SINGLE_AVAILABLE)
+        );
+      }
+      return Observable.of(setDeviceAvailability(DEVICE_AVAILABILITY.NONE));
+    })
   );
 
 const connectEpic = (action$, store) =>
@@ -107,13 +133,27 @@ const connectEpic = (action$, store) =>
           : connectToMuse(store.getState().device.client, device)
     ),
     mergeMap(promise =>
-      promise.then(setDeviceInfo, error => {
-        console.error("connectEpic: ", error);
-        return setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-      })
-    )
+      promise.then(
+        deviceInfo => deviceInfo,
+        error => {
+          console.error("connectEpic: ", error);
+          return null;
+        }
+      )
+    ),
+    tap(console.log),
+    mergeMap(deviceInfo => {
+      if (deviceInfo) {
+        return Observable.of(
+          setDeviceInfo(deviceInfo),
+          setConnectionStatus(CONNECTION_STATUS.CONNECTED)
+        );
+      }
+      return Observable.of(setConnectionStatus(CONNECTION_STATUS.DISCONNECTED));
+    })
   );
 
+  // TODO: Bring this back and make it only look for disconnection events
 // const autoConnectEpic = action$ =>
 //   action$.ofType(SET_AVAILABLE_DEVICES).pipe(
 //     pluck("payload"),
@@ -122,11 +162,18 @@ const connectEpic = (action$, store) =>
 //     map(connectToDevice)
 //   );
 
-const setRawMuseObservable = (action$, store) =>
-  action$.ofType(SET_CONNECTED).pipe(
-    mergeMap(() =>
-      Observable.from(createRawMuseObservable(store.getState().device.client))
-    ),
+const setRawObservableEpic = (action$, store) =>
+  action$.ofType(SET_DEVICE_INFO).pipe(
+    mergeMap(() => {
+      if (store.getState().device.deviceType === DEVICES.EMOTIV) {
+        return Observable.from(
+          createRawEmotivObservable(store.getState().device.client)
+        );
+      }
+      return Observable.from(
+        createRawMuseObservable(store.getState().device.client)
+      );
+    }),
     map(setRawObservable)
   );
 

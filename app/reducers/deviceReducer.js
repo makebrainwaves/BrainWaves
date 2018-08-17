@@ -1,7 +1,7 @@
 // @flow
 import { Observable } from "rxjs/Observable";
 import {
-  SET_CLIENT  g,
+  SET_CLIENT,
   SET_DEVICE_INFO,
   SET_AVAILABLE_DEVICES,
   SET_CONNECTION_STATUS,
@@ -19,7 +19,9 @@ import { SET_DEVICE_TYPE } from "../actions/deviceActions";
 
 interface DeviceStateType {
   +client: ?any;
-  +connectedDevice: Object;
+  +availableDevices: Array;
+  +connectedDevice: ?DeviceInfo;
+  +connectionStatus: CONNECTION_STATUS;
   +rawObservable: ?Observable;
   +deviceType: DEVICES;
 }
@@ -51,16 +53,28 @@ export default function device(
         deviceType: action.payload
       };
 
-    case SET_CONNECTED_DEVICE:
+    case SET_DEVICE_INFO:
       return {
         ...state,
         connectedDevice: action.payload
       };
 
-    case SET_DISCONNECTED:
+    case SET_AVAILABLE_DEVICES:
       return {
         ...state,
-        connectedDevice: { name: "disconnected" }
+        availableDevices: action.payload
+      };
+
+    case SET_CONNECTION_STATUS:
+      return {
+        ...state,
+        connectionStatus: action.payload
+      };
+
+    case SET_DEVICE_AVAILABILITY:
+      return {
+        ...state,
+        deviceAvailability: action.payload
       };
 
     case SET_DEVICE_AVAILABILITY:
@@ -76,7 +90,10 @@ export default function device(
       };
 
     case DEVICE_CLEANUP:
-      return initialState;
+      return {
+        ...initialState,
+        deviceType: state.deviceType
+      };
 
     default:
       return state;

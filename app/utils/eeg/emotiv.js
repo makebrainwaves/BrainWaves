@@ -17,28 +17,40 @@ export const initCortex = () => {
   return new Cortex(options);
 };
 
+// Gets a list of available Emotiv devices
+export const getEmotiv = async client => {
+  const devices = await client.queryHeadsets();
+  return devices;
+};
+
+export const connectToEmotiv = (client, device) =>
+  client.ready
+    .then(() =>
+      client.init({
+        // These values need to be filled with personal Emotiv credentials
+        username: USERNAME,
+        password: PASSWORD,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        debit: 1
+      })
+    )
+    .then(() =>
+      client.createSession({
+        status: "active"
+      })
+    )
+    .then(
+      session => ({
+        name: session.headset.id,
+        samplingRate: session.settings.eegRate
+      }),
+      err => console.log(err)
+    );
+
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
-// TODO: Break this into multiple async functions to allow greater control over connectivity
 export const createRawEmotivObservable = client =>
-  Observable.from(
-    client.ready
-      .then(() =>
-        client.init({
-          // These values need to be filled with personal Emotiv credentials
-          username: USERNAME,
-          password: PASSWORD,
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-          debit: 1
-        })
-      )
-      .then(() =>
-        client.createSession({
-          status: "active"
-        })
-      )
-      .then(() => client.subscribe({ streams: ["eeg"] }))
-  ).pipe(
+  Observable.from(client.subscribe({ streams: ["eeg"] })).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");
       return Observable.fromEvent(client, "eeg").pipe(

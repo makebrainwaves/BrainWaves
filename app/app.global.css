@@ -56,3 +56,13 @@ img {
 .ui.avatar.image {
   width: auto;
 }
+
+/* Webview-related styles */
+
+#eegView {
+  height: 75vh;
+}
+
+#eegView.hide {
+  visibility: hidden;
+}

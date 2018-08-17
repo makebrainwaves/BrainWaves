@@ -75,10 +75,9 @@ export default class Run extends Component<Props> {
         this.props.trials,
         this.props.timelines
       ),
-      value =>
-        injectionFunction(this.props.client, value, new Date().getTime()),
-      null,
-      this.props.experimentActions.stop
+      (value, time) => injectionFunction(this.props.client, value, time), // event callback
+      null, // start callback
+      this.props.experimentActions.stop // stop callback
     );
     console.log("timeline: ", timeline);
     console.log("plugin: ", callbackHtmlDisplay);

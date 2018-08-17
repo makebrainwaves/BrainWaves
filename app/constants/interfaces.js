@@ -58,6 +58,11 @@ export interface EEGData {
   marker?: string | number;
 }
 
+export interface DeviceInfo {
+  name: string;
+  samplingRate: number;
+}
+
 // --------------------------------------------------------------------
 // General
 

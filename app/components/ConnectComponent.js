@@ -10,12 +10,13 @@ import {
   List
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
-import { isNil } from "lodash";
+import { isNil, debounce } from "lodash";
 import styles from "./styles/common.css";
+import ViewerComponent from "./ViewerComponent";
 import {
   DEVICES,
-  CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
+  DEVICE_AVAILABILITY,
+  PLOTTING_INTERVAL
 } from "../constants/constants";
 
 interface Props {
@@ -36,14 +37,24 @@ export default class Connect extends Component<Props> {
 
   constructor(props: Props) {
     super(props);
-    this.handleEmotivSelect = this.handleEmotivSelect.bind(this);
-    this.handleMuseSelect = this.handleMuseSelect.bind(this);
+    this.handleEmotivSelect = debounce(
+      this.handleEmotivSelect.bind(this),
+      300,
+      {
+        leading: true,
+        trailing: false
+      }
+    );
+    this.handleMuseSelect = debounce(this.handleMuseSelect.bind(this), 300, {
+      leading: true,
+      trailing: false
+    });
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
       trailing: false
     });
-    this.handleConnect = debounce(this.handleConnect.bind(this), 300, {
+    this.handleConnect = debounce(this.handleConnect.bind(this), 1000, {
       leading: true,
       trailing: false
     });
@@ -73,6 +84,19 @@ export default class Connect extends Component<Props> {
     this.props.deviceActions.connectToDevice(this.props.availableDevices[0]);
   }
 
+  renderViewer() {
+    if (!isNil(this.props.rawObservable)) {
+      return (
+        <ViewerComponent
+          rawObservable={this.props.rawObservable}
+          deviceType={this.props.deviceType}
+          samplingRate={this.props.connectedDevice["samplingRate"]}
+          plottingInterval={PLOTTING_INTERVAL}
+        />
+      );
+    }
+  }
+
   renderConnectionStatus() {
     if (isNil(this.props.rawObservable)) {
       return (
@@ -80,7 +104,8 @@ export default class Connect extends Component<Props> {
           <Segment basic>
             <Item>
               <Item.Header>
-                <Icon name="x" color="red" />Disconnected
+                <Icon name="x" color="red" />
+                Disconnected
               </Item.Header>
             </Item>
           </Segment>
@@ -92,7 +117,8 @@ export default class Connect extends Component<Props> {
         <Segment basic>
           <Item>
             <Item.Header>
-              <Icon name="check" color="green" />Connected
+              <Icon name="check" color="green" />
+              Connected
             </Item.Header>
           </Item>
         </Segment>
@@ -120,8 +146,8 @@ export default class Connect extends Component<Props> {
           <List.Item>Turn the headset on</List.Item>
           <List.Item>Slide the headset down from the top of the head</List.Item>
           <List.Item>
-            <Button compact onClick={this.props.deviceActions.initEmotiv}>
-              Connect
+            <Button compact onClick={this.handleSearch}>
+              Search
             </Button>
           </List.Item>
           <List.Item>
@@ -147,6 +173,16 @@ export default class Connect extends Component<Props> {
         <List.Item>
           <Button onClick={this.handleSearch}>Search</Button>
           <Button onClick={this.handleConnect}>Connect</Button>
+          <Button
+            onClick={() => {
+              this.props.client.deviceInfo().then(info => console.log(info));
+            }}
+          >
+            Request Device Info
+          </Button>
+          <Button onClick={() => this.props.client.sendCommand("*1")}>
+            Send Reset Command
+          </Button>
         </List.Item>
       </List>
     );
@@ -156,43 +192,48 @@ export default class Connect extends Component<Props> {
     return (
       <div>
         <div className={styles.mainContainer}>
-          <Grid columns={1} centered style={{ height: "70%" }}>
-            <Grid.Row stretched style={{ height: "100%" }}>
-              <Segment padded="very" compact raised color="red">
-                <Grid columns={2}>
-                  <Grid.Column>
-                    <Header as="h3">Connect EEG Device</Header>
-                    {this.renderConnectionStatus()}
-                  </Grid.Column>
-                  <Grid.Column>
-                    <Header as="h4">Select EEG Device Type</Header>
-                    <Button.Group>
-                      <Button
-                        onClick={this.handleEmotivSelect}
-                        active={this.props.deviceType === DEVICES.EMOTIV}
-                      >
-                        Epoc
-                      </Button>
-                      <Button.Or />
-                      <Button
-                        onClick={this.handleMuseSelect}
-                        active={this.props.deviceType === DEVICES.MUSE}
-                      >
-                        Muse
-                      </Button>
-                    </Button.Group>
-                    {this.renderConnectionInstructions(this.props.deviceType)}
-                  </Grid.Column>
-                </Grid>
-              </Segment>
-            </Grid.Row>
-            <Segment basic>
-              {this.props.availableDevices.map((device, index) => (
-                <Segment key={index + "h"} basic>
-                  {Object.toString(device)}
+          <Grid columns={2} centered style={{ height: "70%" }}>
+            <Grid.Column floated="left" width="6">
+              <Grid.Row stretched style={{ height: "100%" }}>
+                <Segment padded="very" compact raised color="red">
+                  <Grid columns={2}>
+                    <Grid.Column>
+                      <Header as="h3">Connect EEG Device</Header>
+                      {this.renderConnectionStatus()}
+                    </Grid.Column>
+                    <Grid.Column>
+                      <Header as="h4">Select EEG Device Type</Header>
+                      <Button.Group>
+                        <Button
+                          onClick={this.handleEmotivSelect}
+                          active={this.props.deviceType === DEVICES.EMOTIV}
+                        >
+                          Epoc
+                        </Button>
+                        <Button.Or />
+                        <Button
+                          onClick={this.handleMuseSelect}
+                          active={this.props.deviceType === DEVICES.MUSE}
+                        >
+                          Muse
+                        </Button>
+                      </Button.Group>
+                      {this.renderConnectionInstructions(this.props.deviceType)}
+                    </Grid.Column>
+                  </Grid>
                 </Segment>
-              ))}
-            </Segment>
+              </Grid.Row>
+              <Segment basic>
+                {this.props.availableDevices.map((device, index) => (
+                  <Segment key={index + "h"} basic>
+                    {Object.toString(device)}
+                  </Segment>
+                ))}
+              </Segment>
+            </Grid.Column>
+            <Grid.Column id="graphColumn" floated="right" width="10">
+              {this.renderViewer()}
+            </Grid.Column>
           </Grid>
         </div>
       </div>

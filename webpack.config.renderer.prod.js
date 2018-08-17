@@ -22,7 +22,7 @@ export default merge.smart(baseConfig, {
 
   entry: {
     main: [path.join(__dirname, "./app/index")],
-    // cortex: [path.join(__dirname, "lib/cortex")]
+    viewer: [path.join(__dirname, "./app/viewer")]
   },
 
   output: {
