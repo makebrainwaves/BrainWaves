@@ -7,6 +7,7 @@ import {
   SET_CONNECTION_STATUS,
   SET_DEVICE_AVAILABILITY,
   SET_RAW_OBSERVABLE,
+  SET_SIGNAL_OBSERVABLE,
   DEVICE_CLEANUP
 } from "../epics/deviceEpics";
 import {
@@ -19,10 +20,11 @@ import { SET_DEVICE_TYPE } from "../actions/deviceActions";
 
 interface DeviceStateType {
   +client: ?any;
-  +availableDevices: Array;
+  +availableDevices: Array<any>;
   +connectedDevice: ?DeviceInfo;
   +connectionStatus: CONNECTION_STATUS;
   +rawObservable: ?Observable;
+  +signalQualityObservable: ?Observable;
   +deviceType: DEVICES;
 }
 
@@ -33,6 +35,7 @@ const initialState = {
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
+  signalQualityObservable: null,
   deviceType: DEVICES.NONE
 };
 
@@ -77,16 +80,16 @@ export default function device(
         deviceAvailability: action.payload
       };
 
-    case SET_DEVICE_AVAILABILITY:
-      return {
-        ...state,
-        SET_DEVICE_AVAILABILITY: action.payload
-      };
-
     case SET_RAW_OBSERVABLE:
       return {
         ...state,
         rawObservable: action.payload
+      };
+
+    case SET_SIGNAL_OBSERVABLE:
+      return {
+        ...state,
+        signalQualityObservable: action.payload
       };
 
     case DEVICE_CLEANUP:

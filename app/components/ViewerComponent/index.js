@@ -16,7 +16,7 @@ import {
 const Mousetrap = require("mousetrap");
 
 interface Props {
-  rawObservable: any;
+  signalQualityObservable: any;
   deviceType: DEVICES;
   samplingRate: number;
   plottingInterval: number;
@@ -59,15 +59,16 @@ class ViewerComponent extends Component<Props, State> {
         channelColours: this.state.channels.map(() => "#66B0A9")
       });
       this.setKeyListeners();
-      this.subscribeToObservable(this.props.rawObservable);
+      this.subscribeToObservable(this.props.signalQualityObservable);
     });
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.props.rawObservable !== prevProps.rawObservable) {
-      this.subscribeToObservable(this.props.rawObservable);
+    if (
+      this.props.signalQualityObservable !== prevProps.signalQualityObservable
+    ) {
+      this.subscribeToObservable(this.props.signalQualityObservable);
     }
-
     if (this.state.channels !== prevState.channels) {
       this.graphView.send("updateChannels", this.state.channels);
     }
@@ -82,6 +83,10 @@ class ViewerComponent extends Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    this.viewerSubscription.unsubscribe();
+  }
+
   setKeyListeners() {
     Mousetrap.bind("up", () => this.graphView.send("zoomIn"));
     Mousetrap.bind("down", () => this.graphView.send("zoomOut"));
@@ -92,29 +97,12 @@ class ViewerComponent extends Component<Props, State> {
       this.viewerSubscription.unsubscribe();
     }
 
-    // Convert time interval in ms to # of EEG samples
-    const intervalSamples =
-      (this.props.plottingInterval * this.props.samplingRate) / 1000;
-
-    this.viewerSubscription = observable
-      .pipe(
-        addInfo({ samplingRate: this.props.samplingRate }),
-        epoch({
-          duration: intervalSamples,
-          interval: intervalSamples
-        }),
-        bandpassFilter({
-          nbChannels: this.state.channels.length,
-          lowCutoff: 1,
-          highCutoff: 50
-        })
-      )
-      .subscribe(
-        chunk => {
-          this.graphView.send("newData", chunk);
-        },
-        error => new Error("Error in viewer subscription: ", error)
-      );
+    this.viewerSubscription = observable.subscribe(
+      chunk => {
+        this.graphView.send("newData", chunk);
+      },
+      error => new Error("Error in viewer subscription: ", error)
+    );
   }
 
   render() {

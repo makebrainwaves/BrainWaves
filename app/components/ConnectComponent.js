@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { isNil, debounce } from "lodash";
 import styles from "./styles/common.css";
 import ViewerComponent from "./ViewerComponent";
+import SignalQualityIndicatorComponent from "./SignalQualityIndicatorComponent";
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
@@ -22,7 +23,7 @@ import {
 interface Props {
   client: ?any;
   connectedDevice: Object;
-  rawObservable: ?any;
+  signalQualityObservable: ?any;
   deviceType: DEVICES;
   deviceActions: Object;
   availableDevices: Array<any>;
@@ -61,7 +62,7 @@ export default class Connect extends Component<Props> {
   }
 
   handleStartExperiment(e: Object) {
-    if (isNil(this.props.rawObservable)) {
+    if (isNil(this.props.signalQualityObservable)) {
       e.preventDefault();
     }
   }
@@ -69,7 +70,7 @@ export default class Connect extends Component<Props> {
   handleEmotivSelect() {
     this.props.deviceActions.setDeviceType(DEVICES.EMOTIV);
   }
-  de;
+
   handleMuseSelect() {
     this.props.deviceActions.setDeviceType(DEVICES.MUSE);
   }
@@ -85,10 +86,10 @@ export default class Connect extends Component<Props> {
   }
 
   renderViewer() {
-    if (!isNil(this.props.rawObservable)) {
+    if (!isNil(this.props.signalQualityObservable)) {
       return (
         <ViewerComponent
-          rawObservable={this.props.rawObservable}
+          signalQualityObservable={this.props.signalQualityObservable}
           deviceType={this.props.deviceType}
           samplingRate={this.props.connectedDevice["samplingRate"]}
           plottingInterval={PLOTTING_INTERVAL}
@@ -97,8 +98,19 @@ export default class Connect extends Component<Props> {
     }
   }
 
+  renderSignalQualityIndicator() {
+    if (!isNil(this.props.signalQualityObservable)) {
+      return (
+        <SignalQualityIndicatorComponent
+          signalQualityObservable={this.props.signalQualityObservable}
+          deviceType={this.props.deviceType}
+        />
+      );
+    }
+  }
+
   renderConnectionStatus() {
-    if (isNil(this.props.rawObservable)) {
+    if (isNil(this.props.signalQualityObservable)) {
       return (
         <div>
           <Segment basic>
@@ -173,13 +185,6 @@ export default class Connect extends Component<Props> {
         <List.Item>
           <Button onClick={this.handleSearch}>Search</Button>
           <Button onClick={this.handleConnect}>Connect</Button>
-          <Button
-            onClick={() => {
-              this.props.client.deviceInfo().then(info => console.log(info));
-            }}
-          >
-            Request Device Info
-          </Button>
           <Button onClick={() => this.props.client.sendCommand("*1")}>
             Send Reset Command
           </Button>
@@ -200,6 +205,7 @@ export default class Connect extends Component<Props> {
                     <Grid.Column>
                       <Header as="h3">Connect EEG Device</Header>
                       {this.renderConnectionStatus()}
+                      {this.renderSignalQualityIndicator()}
                     </Grid.Column>
                     <Grid.Column>
                       <Header as="h4">Select EEG Device Type</Header>
@@ -230,6 +236,7 @@ export default class Connect extends Component<Props> {
                   </Segment>
                 ))}
               </Segment>
+              
             </Grid.Column>
             <Grid.Column id="graphColumn" floated="right" width="10">
               {this.renderViewer()}
