@@ -5,11 +5,11 @@ import {
   SET_DEVICE_INFO,
   SET_AVAILABLE_DEVICES,
   SET_CONNECTION_STATUS,
-  SET_DEVICE_AVAILABILITY,
   SET_RAW_OBSERVABLE,
   SET_SIGNAL_OBSERVABLE,
   DEVICE_CLEANUP
 } from "../epics/deviceEpics";
+import { SET_DEVICE_AVAILABILITY } from "../actions/deviceActions";
 import {
   DEVICES,
   CONNECTION_STATUS,
@@ -23,6 +23,7 @@ interface DeviceStateType {
   +availableDevices: Array<any>;
   +connectedDevice: ?DeviceInfo;
   +connectionStatus: CONNECTION_STATUS;
+  +deviceAvailability: DEVICE_AVAILABILITY;
   +rawObservable: ?Observable;
   +signalQualityObservable: ?Observable;
   +deviceType: DEVICES;

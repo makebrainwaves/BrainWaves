@@ -41,15 +41,18 @@ export const connectToEmotiv = (client, device) =>
       })
     )
     .then(
-      session => ({
-        name: session.headset.id,
-        samplingRate: session.settings.eegRate
-      }),
+      session => {
+        console.table(session.headset);
+        return {
+          name: session.headset.id,
+          samplingRate: session.headset.settings.eegRate
+        };
+      },
       err => console.log(err)
     );
 
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
-export const createRawEmotivObservable = client =>
+export const createRawEmotivObservable = async client =>
   Observable.from(client.subscribe({ streams: ["eeg"] })).pipe(
     mergeMap(subs => {
       if (!subs[0].eeg) throw new Error("failed to subscribe");

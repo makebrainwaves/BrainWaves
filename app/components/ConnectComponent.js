@@ -25,19 +25,33 @@ interface Props {
   connectedDevice: Object;
   signalQualityObservable: ?any;
   deviceType: DEVICES;
+  deviceAvailability: DEVICE_AVAILABILITY;
   deviceActions: Object;
   availableDevices: Array<any>;
 }
 
-export default class Connect extends Component<Props> {
+interface State {
+  selectedDevice: ?any;
+}
+
+export default class Connect extends Component<Props, State> {
   props: Props;
   handleEmotivSelect: () => void;
   handleMuseSelect: () => void;
   handleStartExperiment: Object => void;
   handleConnect: () => void;
 
+  componentDidMount() {
+    if (isNil(this.props.client)) {
+      this.props.deviceActions.setDeviceType(DEVICES.EMOTIV);
+    }
+  }
+
   constructor(props: Props) {
     super(props);
+    this.state = {
+      selectedDevice: null
+    };
     this.handleEmotivSelect = debounce(
       this.handleEmotivSelect.bind(this),
       300,
@@ -82,7 +96,7 @@ export default class Connect extends Component<Props> {
   }
 
   handleConnect() {
-    this.props.deviceActions.connectToDevice(this.props.availableDevices[0]);
+    this.props.deviceActions.connectToDevice(this.state.selectedDevice);
   }
 
   renderViewer() {
@@ -107,6 +121,47 @@ export default class Connect extends Component<Props> {
         />
       );
     }
+  }
+
+  renderAvailableDeviceList() {
+    if (this.props.deviceAvailability === DEVICE_AVAILABILITY.NONE) {
+      return (
+        <Segment basic>
+          <Button onClick={this.handleSearch}>Search</Button>
+        </Segment>
+      );
+    }
+    return (
+      <Segment basic>
+        <Header as="h4">Available Devices:</Header>
+        <List divided relaxed>
+          {this.props.availableDevices.map((device, index) => (
+            <List.Item key={index}>
+              <List.Icon
+                link
+                name={
+                  this.state.selectedDevice === device
+                    ? "check circle outline"
+                    : "circle outline"
+                }
+                size="large"
+                verticalAlign="middle"
+                onClick={() => this.setState({ selectedDevice: device })}
+              />
+              <List.Content>
+                <List.Header>{device.id}</List.Header>
+              </List.Content>
+            </List.Item>
+          ))}
+        </List>
+        <Button
+          disabled={isNil(this.state.selectedDevice)}
+          onClick={this.handleConnect}
+        >
+          Connect
+        </Button>
+      </Segment>
+    );
   }
 
   renderConnectionStatus() {
@@ -156,12 +211,9 @@ export default class Connect extends Component<Props> {
           <List.Item>Ensure that the CortexUI app is running</List.Item>
           <List.Item>Plug in the Emotiv USB dongle</List.Item>
           <List.Item>Turn the headset on</List.Item>
+          <List.Item>Search for available devices</List.Item>
+          <List.Item>Connect to your device of choice</List.Item>
           <List.Item>Slide the headset down from the top of the head</List.Item>
-          <List.Item>
-            <Button compact onClick={this.handleSearch}>
-              Search
-            </Button>
-          </List.Item>
           <List.Item>
             Check the signal quality of the EEG through the CortexUI app. Signal
             quality should be at least 85%
@@ -174,6 +226,8 @@ export default class Connect extends Component<Props> {
         <List.Item>Ensure Muse headband is charged</List.Item>
         <List.Item>Make sure bluetooth is enabled on computer</List.Item>
         <List.Item>Turn the Muse headband on</List.Item>
+        <List.Item>Search for available devices</List.Item>
+        <List.Item>Connect to your device of choice</List.Item>
         <List.Item>
           Fit the earpieces snugly behind your ears and adjust the headband so
           it rests mid foreheard
@@ -182,13 +236,13 @@ export default class Connect extends Component<Props> {
           Clear any hair that might prevent the device from making contact with
           your skin
         </List.Item>
-        <List.Item>
-          <Button onClick={this.handleSearch}>Search</Button>
-          <Button onClick={this.handleConnect}>Connect</Button>
-          <Button onClick={() => this.props.client.sendCommand("*1")}>
-            Send Reset Command
-          </Button>
-        </List.Item>
+        <Button
+          compact
+          size="small"
+          onClick={() => this.props.client.sendCommand("*1")}
+        >
+          Send Reset Command
+        </Button>
       </List>
     );
   }
@@ -205,6 +259,7 @@ export default class Connect extends Component<Props> {
                     <Grid.Column>
                       <Header as="h3">Connect EEG Device</Header>
                       {this.renderConnectionStatus()}
+                      {this.renderAvailableDeviceList()}
                       {this.renderSignalQualityIndicator()}
                     </Grid.Column>
                     <Grid.Column>
@@ -229,14 +284,6 @@ export default class Connect extends Component<Props> {
                   </Grid>
                 </Segment>
               </Grid.Row>
-              <Segment basic>
-                {this.props.availableDevices.map((device, index) => (
-                  <Segment key={index + "h"} basic>
-                    {Object.toString(device)}
-                  </Segment>
-                ))}
-              </Segment>
-              
             </Grid.Column>
             <Grid.Column id="graphColumn" floated="right" width="10">
               {this.renderViewer()}
