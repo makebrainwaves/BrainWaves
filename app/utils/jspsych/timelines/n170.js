@@ -1,6 +1,7 @@
 import { jsPsych } from "jspsych-react";
+import * as path from "path";
 import { readdirSync } from "fs";
-import { EVENTS } from "../../../constants/constants"; 
+import { EVENTS } from "../../../constants/constants";
 // Default experiment parameters
 const params = {
   trial_duration: 300,
@@ -14,8 +15,9 @@ const params = {
 // Default directories containing stimuli
 // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 // while the timeline reads from Brainwaves/app. Currently removing 'app/' from path in timeline
-const facesDir = "./app/assets/face_house/faces/";
-const housesDir = "./app/assets/face_house/houses/";
+const rootFolder = __dirname;
+const facesDir = path.join(rootFolder, "assets/face_house/faces/");
+const housesDir = path.join(rootFolder, "assets/face_house/houses/");
 
 export const buildN170Timeline = () => ({
   mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids

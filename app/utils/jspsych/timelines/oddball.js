@@ -1,4 +1,5 @@
 import { jsPsych } from "jspsych-react";
+import * as path from "path";
 import { readdirSync } from "fs";
 
 // Default experiment parameters
@@ -15,8 +16,9 @@ const params = {
 //  Default directories containing stimuli
 // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 // while the timeline reads from Brainwaves/app. Currently removing 'app/' from path in timeline
-const targetsDir = "./app/assets/cat_dog/cats/";
-const nontargetsDir = "./app/assets/cat_dog/dogs/";
+const rootFolder = __dirname;
+const targetsDir = path.join(rootFolder, "./app/assets/cat_dog/cats/");
+const nontargetsDir = path.join(rootFolder, "./app/assets/cat_dog/dogs/");
 
 // Oddball sampling function
 // Assumes first half of the trials are oddball stimuli

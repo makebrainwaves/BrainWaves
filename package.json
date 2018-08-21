@@ -48,6 +48,7 @@
     "files": [
       "dist/",
       "node_modules/",
+      "assets/",
       "app.html",
       "viewer.html",
       "main.prod.js",
@@ -208,8 +209,6 @@
     "babel-runtime": "^6.26.0",
     "d3": "^5.5.0",
     "devtron": "^1.4.0",
-    "dsp.js": "^1.0.1",
-    "eeg-pipes": "^2.0.3",
     "electron-debug": "^1.5.0",
     "font-awesome": "^4.7.0",
     "history": "^4.7.2",

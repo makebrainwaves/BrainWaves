@@ -1,4 +1,5 @@
 import { jsPsych } from "jspsych-react";
+import * as path from "path";
 
 // Default experiment parameters
 const params = {
@@ -8,6 +9,8 @@ const params = {
   n_trials: 34, // Around two minutes at a rate of ~3600 ms per trial
   plugin_name: "animation"
 };
+
+const rootFolder = __dirname;
 
 export const buildSSVEPTimeline = callback => ({
   mainTimeline: ["welcome", "ssvepTimeline", "end"], // array of trial and timeline ids
@@ -34,14 +37,14 @@ export const buildSSVEPTimeline = callback => ({
         {
           id: "interTrial",
           type: "callback-image-display",
-          stimulus: "./assets/face_house/fixation.jpg",
+          stimulus: path.join(rootFolder, "assets/face_house/fixation.jpg"),
           trial_duration: () => params.iti + Math.random() * params.jitter
         },
         {
           id: "trial",
           stimuli: [
-            "./assets/ssvep/Checkerboard_pattern.svg",
-            "./assets/ssvep/Checkerboard_pattern_neg.svg"
+            path.join(rootFolder, "/assets/ssvep/Checkerboard_pattern.svg"),
+            path.join(rootFolder, "/assets/ssvep/Checkerboard_pattern_neg.svg")
           ],
           on_load: jsPsych.timelineVariable("callbackVar"),
           type: params.plugin_name,
