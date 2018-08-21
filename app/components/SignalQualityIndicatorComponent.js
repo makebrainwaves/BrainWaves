@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { isNil } from "lodash";
 import { Segment, Image } from "semantic-ui-react";
 import { DEVICES } from "../constants/constants";
-import emotivDiagram from "../assets/device/epocDiagram.png"
+import emotivDiagram from "../assets/device/epocDiagram.png";
 import museDiagram from "../assets/device/museDiagram.png";
 
 interface Props {
@@ -28,7 +28,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentWillUnmount() {
-    this.signalQualitySubscription.unsubscribe();
+    if (!isNil(this.signalQualitySubscription)) {
+      this.signalQualitySubscription.unsubscribe();
+    }
   }
 
   subscribeToObservable(observable: any) {

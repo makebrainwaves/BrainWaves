@@ -154,12 +154,17 @@ export default class Connect extends Component<Props, State> {
             </List.Item>
           ))}
         </List>
-        <Button
-          disabled={isNil(this.state.selectedDevice)}
-          onClick={this.handleConnect}
-        >
-          Connect
-        </Button>
+        <Segment basic>
+          <Button
+            disabled={isNil(this.state.selectedDevice)}
+            onClick={this.handleConnect}
+          >
+            Connect
+          </Button>
+        </Segment>
+        <Segment basic>
+          <Button onClick={this.handleSearch}>Search</Button>
+        </Segment>
       </Segment>
     );
   }
@@ -191,7 +196,7 @@ export default class Connect extends Component<Props, State> {
         </Segment>
         <Segment basic>
           <Link to="/experimentRun">
-            <Button onClick={this.handleStartExperiment}>
+            <Button primary onClick={this.handleStartExperiment}>
               Begin Experiment
             </Button>
           </Link>

@@ -2,15 +2,12 @@
 import React, { Component } from "react";
 import { Segment, Button } from "semantic-ui-react";
 import { Subscription } from "rxjs";
-import { epoch, bandpassFilter, addInfo } from "eeg-pipes";
 import { isNil } from "lodash";
 import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   DEVICES,
-  ZOOM_SCALAR,
-  VIEWER_DEFAULTS,
-  SIGNAL_QUALITY
+  VIEWER_DEFAULTS
 } from "../../constants/constants";
 
 const Mousetrap = require("mousetrap");
@@ -63,10 +60,6 @@ class ViewerComponent extends Component<Props, State> {
     });
   }
 
-  componentWillUnmount() {
-    this.viewerSubscription.unsubscribe();
-  }
-
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (
       this.props.signalQualityObservable !== prevProps.signalQualityObservable
@@ -84,6 +77,12 @@ class ViewerComponent extends Component<Props, State> {
     }
     if (this.state.autoScale !== prevState.autoScale) {
       this.graphView.send("autoScale");
+    }
+  }
+
+  componentWillUnmount() {
+    if (!isNil(this.viewerSubscription)) {
+      this.viewerSubscription.unsubscribe();
     }
   }
 
@@ -108,14 +107,6 @@ class ViewerComponent extends Component<Props, State> {
   render() {
     return (
       <Segment>
-        <Button
-          onClick={() =>
-            this.subscribeToObservable(this.props.signalQualityObservable)
-          }
-        >
-          Subscribe
-        </Button>
-
         <webview
           id="eegView"
           src={`file://${__dirname}/viewer.html`}

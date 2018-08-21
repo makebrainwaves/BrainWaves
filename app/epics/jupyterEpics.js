@@ -256,15 +256,16 @@ const loadPSDEpic = (action$, store) =>
 const loadERPEpic = (action$, store) =>
   action$.ofType(LOAD_ERP, SET_PSD_PLOT).pipe(
     pluck("payload"),
-    map(payload => {
+    map(channelName => {
+      console.log("channelName: ", channelName);
       const channels =
         store.getState().device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS;
-      if (channels.includes(payload)) {
-        return channels.indexOf(payload);
+      if (channels.includes(channelName)) {
+        return channels.indexOf(channelName);
       }
-      return channels[0];
+      return 0;
     }),
     map(channelIndex =>
       store
