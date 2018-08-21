@@ -112,7 +112,7 @@ class Cortex extends EventEmitter {
   _debug(...msg) {
     if (this.verbose > 2) console.log("[Cortex DEBUG]", ...msg);
   }
-  init({ username, password, client_id, client_secret, debit } = {}) {
+  init({ username, password, client_id, client_secret, license, debit } = {}) {
     const result = this.getUserLogin()
       .then(users => {
         if (users[0] && users[0] !== username) {
@@ -132,7 +132,7 @@ class Cortex extends EventEmitter {
           return this.login({ username, password, client_id, client_secret });
         }
       })
-      .then(() => this.authorize({ client_id, client_secret, debit }))
+      .then(() => this.authorize({ client_id, client_secret, license, debit }))
       .then(({ _auth }) => {
         this._log("init: Got auth token");
         this._debug("init: Auth token", _auth);

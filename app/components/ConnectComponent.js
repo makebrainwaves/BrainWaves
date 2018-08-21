@@ -41,12 +41,6 @@ export default class Connect extends Component<Props, State> {
   handleStartExperiment: Object => void;
   handleConnect: () => void;
 
-  componentDidMount() {
-    if (isNil(this.props.client)) {
-      this.props.deviceActions.setDeviceType(DEVICES.EMOTIV);
-    }
-  }
-
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -73,6 +67,12 @@ export default class Connect extends Component<Props, State> {
       leading: true,
       trailing: false
     });
+  }
+
+  componentDidMount() {
+    if (isNil(this.props.client)) {
+      this.props.deviceActions.setDeviceType(DEVICES.EMOTIV);
+    }
   }
 
   handleStartExperiment(e: Object) {

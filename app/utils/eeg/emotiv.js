@@ -4,8 +4,14 @@
  *
  */
 import { Observable } from "rxjs";
-import { mergeMap, map } from "rxjs/operators";
-import { USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET } from "../../../keys";
+import { mergeMap, map, tap } from "rxjs/operators";
+import {
+  USERNAME,
+  PASSWORD,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  LICENSE_ID
+} from "../../../keys";
 import { EMOTIV_CHANNELS } from "../../constants/constants";
 import Cortex from "./cortex";
 
@@ -32,12 +38,14 @@ export const connectToEmotiv = (client, device) =>
         password: PASSWORD,
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
+        license: LICENSE_ID,
         debit: 1
       })
     )
     .then(() =>
       client.createSession({
-        status: "active"
+        status: "active",
+        headset: device.id
       })
     )
     .then(
@@ -52,18 +60,11 @@ export const connectToEmotiv = (client, device) =>
     );
 
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
-export const createRawEmotivObservable = async client =>
-  Observable.from(client.subscribe({ streams: ["eeg"] })).pipe(
-    mergeMap(subs => {
-      if (!subs[0].eeg) throw new Error("failed to subscribe");
-      return Observable.fromEvent(client, "eeg").pipe(
-        map(eegEvent => ({
-          data: pruneEEG(eegEvent.eeg),
-          timestamp: eegEvent.time
-        }))
-      );
-    })
-  );
+export const createRawEmotivObservable = async client => {
+  const subs = await client.subscribe({ streams: ["eeg"] });
+  if (!subs[0].eeg) throw new Error("failed to subscribe");
+  return Observable.fromEvent(client, "eeg").pipe(map(createEEGSample));
+};
 
 export const injectEmotivMarker = (client, value, time) => {
   console.log("inject emotiv marker: ", value, time);
@@ -73,14 +74,18 @@ export const injectEmotivMarker = (client, value, time) => {
 // ---------------------------------------------------------------------
 // Helpers
 
-// Removes the redundant stuff included in the Cortex SDK eeg return
-// 14 EEG channels followed by one value for the event marker
-const pruneEEG = eegArray => {
-  console.log(eegArray[eegArray.length - 1]);
-  const prunedArray = new Array(EMOTIV_CHANNELS.length + 1);
+// Converts Cortex SDK eeg event format to EEGData format to make it consistent with Muse
+// 14 EEG channels in data
+// timestamp in ms
+// Event marker in marker if present
+const createEEGSample = eegEvent => {
+  const prunedArray = new Array(EMOTIV_CHANNELS.length);
   for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {
-    prunedArray[i] = eegArray[i + 3];
+    prunedArray[i] = eegEvent.eeg[i + 3];
   }
-  prunedArray[EMOTIV_CHANNELS.length] = eegArray[eegArray.length - 1];
-  return prunedArray;
+  if (eegEvent.eeg[eegEvent.eeg.length - 1] >= 1) {
+    const marker = eegEvent.eeg[eegEvent.eeg.length - 1];
+    return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
+  }
+  return { data: prunedArray, timestamp: eegEvent.time  * 1000 };
 };

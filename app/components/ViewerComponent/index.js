@@ -63,6 +63,10 @@ class ViewerComponent extends Component<Props, State> {
     });
   }
 
+  componentWillUnmount() {
+    this.viewerSubscription.unsubscribe();
+  }
+
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (
       this.props.signalQualityObservable !== prevProps.signalQualityObservable
@@ -83,10 +87,6 @@ class ViewerComponent extends Component<Props, State> {
     }
   }
 
-  componentWillUnmount() {
-    this.viewerSubscription.unsubscribe();
-  }
-
   setKeyListeners() {
     Mousetrap.bind("up", () => this.graphView.send("zoomIn"));
     Mousetrap.bind("down", () => this.graphView.send("zoomOut"));
@@ -96,7 +96,7 @@ class ViewerComponent extends Component<Props, State> {
     if (!isNil(this.viewerSubscription)) {
       this.viewerSubscription.unsubscribe();
     }
-
+    console.log("subscribing to ", observable);
     this.viewerSubscription = observable.subscribe(
       chunk => {
         this.graphView.send("newData", chunk);
@@ -108,6 +108,14 @@ class ViewerComponent extends Component<Props, State> {
   render() {
     return (
       <Segment>
+        <Button
+          onClick={() =>
+            this.subscribeToObservable(this.props.signalQualityObservable)
+          }
+        >
+          Subscribe
+        </Button>
+
         <webview
           id="eegView"
           src={`file://${__dirname}/viewer.html`}

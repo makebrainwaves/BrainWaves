@@ -92,24 +92,28 @@ class EEGViewer {
   }
 
   init() {
-    d3.selectAll("svg > *").remove();
-    this.width =
-      parseInt(d3.select("#graph").style("width")) -
-      (this.margin.left + this.margin.right);
-    this.height =
-      parseInt(d3.select("#graph").style("height")) -
-      (this.margin.top + this.margin.bottom);
-    this.graph = this.canvas
-      .attr("width", this.width)
-      .attr("height", this.height)
-      .append("g")
-      .attr(
-        "transform",
-        "translate(" + this.margin.left + "," + this.margin.top + ")"
-      );
-    this.addScales();
-    this.addAxes();
-    this.addLines();
+    try {
+      d3.selectAll("svg > *").remove();
+      this.width =
+        parseInt(d3.select("#graph").style("width")) -
+        (this.margin.left + this.margin.right);
+      this.height =
+        parseInt(d3.select("#graph").style("height")) -
+        (this.margin.top + this.margin.bottom);
+      this.graph = this.canvas
+        .attr("width", this.width)
+        .attr("height", this.height)
+        .append("g")
+        .attr(
+          "transform",
+          "translate(" + this.margin.left + "," + this.margin.top + ")"
+        );
+      this.addScales();
+      this.addAxes();
+      this.addLines();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   addScales() {
@@ -118,6 +122,11 @@ class EEGViewer {
       .domain([this.lastTimestamp, this.firstTimestamp + this.plottingInterval])
       .range([this.width, 0]);
 
+    console.log(
+      "x domain: ",
+      this.lastTimestamp,
+      this.firstTimestamp + this.plottingInterval
+    );
     this.yScaleLines = d3.scaleLinear();
 
     this.yScaleLabels = d3
@@ -127,9 +136,7 @@ class EEGViewer {
   }
 
   addAxes() {
-    this.xAxis = d3
-      .axisBottom()
-      .scale(this.xScale)
+    this.xAxis = d3.axisBottom().scale(this.xScale);
 
     this.yAxis = d3
       .axisLeft()
