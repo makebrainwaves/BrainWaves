@@ -46,7 +46,6 @@ class ViewerComponent extends Component<Props, State> {
   componentDidMount() {
     this.graphView = document.querySelector("webview");
     this.graphView.addEventListener("dom-ready", () => {
-      this.graphView.openDevTools();
       this.graphView.send("initGraph", {
         plottingInterval: this.props.plottingInterval,
         samplingRate: this.props.samplingRate,

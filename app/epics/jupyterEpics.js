@@ -7,7 +7,7 @@ import {
   pluck,
   ignoreElements,
   filter,
-  take
+  take,
 } from "rxjs/operators";
 import { find } from "kernelspecs";
 import { launchSpec } from "spawnteract";
@@ -24,6 +24,7 @@ import {
 } from "../actions/jupyterActions";
 import {
   imports,
+  utils,
   loadCSV,
   filterIIR,
   epochEvents,
@@ -108,7 +109,9 @@ const receiveStream = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
+    tap(() => console.log("launchEpic")),
     mergeMap(() => Observable.from(find("brainwaves"))),
+    tap(info => console.log("kernelInfo: ", info)),
     mergeMap(kernelInfo =>
       Observable.from(
         launchSpec(kernelInfo.spec, {
@@ -132,6 +135,7 @@ const launchEpic = action$ =>
         console.log("Kernel closed");
       });
     }),
+    tap(() => console.log("setting kernel")),
     map(setKernel)
   );
 
@@ -140,6 +144,7 @@ const setUpChannelEpic = action$ =>
     pluck("payload"),
     mergeMap(kernel => Observable.from(createMainChannel(kernel.config))),
     tap(mainChannel => mainChannel.next(executeRequest(imports()))),
+    tap(mainChannel => mainChannel.next(executeRequest(utils()))),
     map(setMainChannel)
   );
 
@@ -164,6 +169,7 @@ const receiveChannelMessageEpic = (action$, store) =>
     mergeMap(() =>
       store.getState().jupyter.mainChannel.pipe(
         map(msg => {
+          console.log(msg);
           switch (msg["header"]["msg_type"]) {
             case "kernel_info_reply":
               return setKernelInfo(msg);
@@ -233,6 +239,7 @@ const loadEpochsEpic = (action$, store) =>
         take(1)
       )
     ),
+    tap(info => console.log("settingEpochInfo: ", info)),
     map(epochInfoString => setEpochInfo(parseSingleQuoteJSON(epochInfoString)))
   );
 
@@ -249,6 +256,7 @@ const loadPSDEpic = (action$, store) =>
         take(1)
       )
     ),
+    tap(psd => console.log("setting PSD Plot: ", psd)),
     map(setPSDPlot)
   );
 

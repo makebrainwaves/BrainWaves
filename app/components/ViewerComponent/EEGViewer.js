@@ -143,11 +143,6 @@ class EEGViewer {
       .domain([this.lastTimestamp, this.firstTimestamp + this.plottingInterval])
       .range([this.width, 0]);
 
-    console.log(
-      "x domain: ",
-      this.lastTimestamp,
-      this.firstTimestamp + this.plottingInterval
-    );
     this.yScaleLines = d3.scaleLinear();
 
     this.yScaleLabels = d3

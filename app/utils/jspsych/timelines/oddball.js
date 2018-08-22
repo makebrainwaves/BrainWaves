@@ -80,12 +80,12 @@ export const buildOddballTimeline = callback => ({
       },
       timeline_variables: readdirSync(targetsDir)
         .map(filename => ({
-          stimulusVar: targetsDir.replace("app/", "") + filename,
+          stimulusVar: targetsDir + filename,
           callbackVar: () => callback("target")
         }))
         .concat(
           readdirSync(nontargetsDir).map(filename => ({
-            stimulusVar: nontargetsDir.replace("app/", "") + filename,
+            stimulusVar: nontargetsDir + filename,
             callbackVar: () => callback("nontarget")
           }))
         )

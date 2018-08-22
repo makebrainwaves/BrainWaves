@@ -1,4 +1,5 @@
 import * as path from "path";
+import { readFileSync } from "fs";
 import {
   DEVICES,
   EMOTIV_CHANNELS,
@@ -19,10 +20,11 @@ export const imports = () =>
     "import pandas as pd",
     "import numpy as np",
     "import seaborn as sns",
-    "from matplotlib import pyplot as plt",
-    "os.chdir('jupyter')", // Hacky
-    "from utils import utils"
+    "from matplotlib import pyplot as plt"
   ].join("\n");
+
+export const utils = () =>
+  readFileSync(path.join(__dirname, "/utils/jupyter/utils.py"), "utf8");
 
 export const loadCSV = (
   filePathArray: Array<{ name: string, dir: string }>,
@@ -44,7 +46,7 @@ export const loadCSV = (
         : MUSE_CHANNELS.length
     }`,
     `replace_ch_names = None`,
-    `raw = utils.load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
+    `raw = load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
   ].join("\n");
 
 export const loadCSVWithAux = (
@@ -57,7 +59,7 @@ export const loadCSVWithAux = (
     `ch_ind = [${MUSE_CHANNELS.map((_, i) => i).toString()}]`,
     `stim_ind = ${MUSE_CHANNELS.length}`,
     `replace_ch_names = {'Right AUX': ${auxChannel}`,
-    `raw = utils.load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
+    `raw = load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
   ].join("\n");
 
 // NOTE: this command includes a ';' to prevent returning data
@@ -92,7 +94,7 @@ export const epochEvents = (
 export const plotERP = (ch_ind: number) =>
   [
     `conditions = OrderedDict({key: [value] for (key, value) in event_ids.items()})`,
-    `X, y = utils.plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
+    `X, y = plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
     ci=97.5, n_boot=1000, title='')`
   ].join("\n");
 

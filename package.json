@@ -49,6 +49,7 @@
       "dist/",
       "node_modules/",
       "assets/",
+      "utils/jupyter/utils.py",
       "app.html",
       "viewer.html",
       "main.prod.js",

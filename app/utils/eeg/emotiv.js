@@ -50,7 +50,6 @@ export const connectToEmotiv = (client, device) =>
     )
     .then(
       session => {
-        console.table(session.headset);
         return {
           name: session.headset.id,
           samplingRate: session.headset.settings.eegRate
@@ -67,7 +66,6 @@ export const createRawEmotivObservable = async client => {
 };
 
 export const injectEmotivMarker = (client, value, time) => {
-  console.log("inject emotiv marker: ", value, time);
   client.injectMarker({ label: "event", value, time });
 };
 

@@ -71,7 +71,6 @@ class Cortex extends EventEmitter {
       .then(() => this.call("inspectApi"))
       .then(methods => {
         for (const m of methods) this.defineMethod(m.methodName, m.params);
-        console.log(methods);
         this._log(`rpc: Added ${methods.length} methods from inspectApi`);
       });
   }
@@ -104,13 +103,13 @@ class Cortex extends EventEmitter {
     }
   }
   _warn(...msg) {
-    if (this.verbose > 0) console.log("[Cortex WARN]", ...msg);
+    if (this.verbose > 0) console.warn("[Cortex WARN]", ...msg);
   }
   _log(...msg) {
     if (this.verbose > 1) console.log("[Cortex LOG]", ...msg);
   }
   _debug(...msg) {
-    if (this.verbose > 2) console.log("[Cortex DEBUG]", ...msg);
+    if (this.verbose > 2) console.debug("[Cortex DEBUG]", ...msg);
   }
   init({ username, password, client_id, client_secret, license, debit } = {}) {
     const result = this.getUserLogin()

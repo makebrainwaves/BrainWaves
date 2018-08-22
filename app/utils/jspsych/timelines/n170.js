@@ -16,8 +16,10 @@ const params = {
 // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 // while the timeline reads from Brainwaves/app. Currently removing 'app/' from path in timeline
 const rootFolder = __dirname;
-const facesDir = path.join(rootFolder, "assets/face_house/faces/");
-const housesDir = path.join(rootFolder, "assets/face_house/houses/");
+const facesDir = path.join(rootFolder, "assets", "face_house", "faces");
+const housesDir = path.join(rootFolder, "assets", "face_house", "houses");
+console.log("assets/face_house/faces: ", readdirSync(facesDir));
+console.log("assets", readdirSync(path.join(__dirname, "assets")));
 
 export const buildN170Timeline = () => ({
   mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids
@@ -42,7 +44,12 @@ export const buildN170Timeline = () => ({
         {
           id: "interTrial",
           type: "callback-image-display",
-          stimulus: "./assets/face_house/fixation.jpg",
+          stimulus: path.join(
+            rootFolder,
+            "assets",
+            "face_house",
+            "fixation.jpg"
+          ),
           trial_duration: () => params.iti + Math.random() * params.jitter
         },
         {
@@ -60,14 +67,14 @@ export const buildN170Timeline = () => ({
       timeline_variables: readdirSync(facesDir)
         .filter(filename => filename.includes("3"))
         .map(filename => ({
-          stimulusVar: facesDir.replace("app/", "") + filename,
+          stimulusVar: path.join(facesDir, filename),
           eventTypeVar: EVENTS.FACE
         }))
         .concat(
           readdirSync(housesDir)
             .filter(filename => filename.includes("3"))
             .map(filename => ({
-              stimulusVar: housesDir.replace("app/", "") + filename,
+              stimulusVar: path.join(housesDir, filename),
               eventTypeVar: EVENTS.HOUSE
             }))
         )
