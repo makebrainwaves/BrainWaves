@@ -24,7 +24,7 @@
   export PATH="/usr/bin:$PATH"
   ```
 
-## Install
+## Installing from Source
 
 - **If you have installation or compilation issues with this project, please see [the boilerplate's debugging guide](https://github.com/chentsulin/electron-react-boilerplate/issues/400)**
 
@@ -41,13 +41,15 @@ $ cd BrainWaves
 $ npm install
 ```
 
+3. If using Emotiv, insert your Emotiv account's credentials into the file `keys.js`
+
 _note: Apologies for the following npm link steps. They should be unnecessary soon_
 
-3. Go to https://github.com/makebrainwaves/jspsych-react and clone that library.
+4. Go to https://github.com/makebrainwaves/jspsych-react and clone that library.
 
-4. Link it to your npm by running `npm link` in the jspsych-react folder. Note, this may require you to use sudo since this is creating symlink into your `usr/local/bin/lib`.
+5. Link it to your npm by running `npm link` in the jspsych-react folder. Note, this may require you to use sudo since this is creating symlink into your `usr/local/bin/lib`.
 
-5. Go back to BrainWaves folder and run `npm link jspsych-react`
+6. Go back to BrainWaves folder and run `npm link jspsych-react`
 
 ## Run
 

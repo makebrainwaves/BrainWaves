@@ -20,9 +20,6 @@ pids
 #yarn.lock
 #package-lock.json
 
-# Emotiv SDK Keys
-keys.js
-
 # flow-typed
 flow-typed/npm
 
