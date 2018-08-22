@@ -24,6 +24,13 @@ export const CONNECTION_STATUS = {
   BLUETOOTH_DISABLED: "BLUETOOTH_DISABLED"
 };
 
+export const KERNEL_STATUS = {
+  OFFLINE: "Offline",
+  BUSY: "Busy",
+  IDLE: "Idle",
+  STARTING: "Starting"
+};
+
 export const DEVICE_AVAILABILITY = {
   NONE: "NONE",
   SEARCHING: "SEARCHING",

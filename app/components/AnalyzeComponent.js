@@ -14,7 +14,8 @@ import {
   EXPERIMENTS,
   DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS
+  EMOTIV_CHANNELS,
+  KERNEL_STATUS
 } from "../constants/constants";
 import { Kernel } from "../constants/interfaces";
 import { readEEGDataDir } from "../utils/filesystem/write";
@@ -124,7 +125,16 @@ export default class Analyze extends Component<Props, State> {
                   options={this.state.eegFilePaths}
                   onChange={this.handleDropdownChange}
                 />
-                <Button onClick={this.handleLoadData}>Load</Button>
+                <Button
+                  disabled={this.props.kernelStatus !== KERNEL_STATUS.IDLE}
+                  loading={
+                    this.props.kernelStatus === KERNEL_STATUS.STARTING ||
+                    this.props.kernelStatus === KERNEL_STATUS.BUSY
+                  }
+                  onClick={this.handleLoadData}
+                >
+                  Load
+                </Button>
               </Segment>
               {this.renderEpochLabels()}
             </Segment>

@@ -9,7 +9,7 @@ function mapStateToProps(state) {
     deviceType: state.device.deviceType,
     connectionStatus: state.device.connectionStatus,
     rawObservable: state.device.rawObservable,
-    mainChannel: state.jupyter.mainChannel
+    kernelStatus: state.jupyter.kernelStatus
   };
 }
 

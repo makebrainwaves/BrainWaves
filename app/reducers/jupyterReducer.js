@@ -1,6 +1,7 @@
 // @flow
 import {
   SET_KERNEL,
+  SET_KERNEL_STATUS,
   SET_MAIN_CHANNEL,
   SET_KERNEL_INFO,
   SET_EPOCH_INFO,
@@ -9,9 +10,11 @@ import {
   RECEIVE_EXECUTE_RETURN
 } from "../epics/jupyterEpics";
 import { ActionType, Kernel } from "../constants/interfaces";
+import { KERNEL_STATUS } from "../constants/constants";
 
 export interface JupyterStateType {
   +kernel: ?Kernel;
+  +kernelStatus: KERNEL_STATUS;
   +mainChannel: ?any;
   +epochsInfo: ?{ [string]: number };
   +psdPlot: ?{ [string]: string };
@@ -20,6 +23,7 @@ export interface JupyterStateType {
 
 const initialState = {
   kernel: null,
+  kernelStatus: KERNEL_STATUS.OFFLINE,
   mainChannel: null,
   epochsInfo: null,
   psdPlot: null,
@@ -35,6 +39,12 @@ export default function jupyter(
       return {
         ...state,
         kernel: action.payload
+      };
+
+    case SET_KERNEL_STATUS:
+      return {
+        ...state,
+        kernelStatus: action.payload
       };
 
     case SET_MAIN_CHANNEL:

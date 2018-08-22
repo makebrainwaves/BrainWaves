@@ -18,8 +18,6 @@ const params = {
 const rootFolder = __dirname;
 const facesDir = path.join(rootFolder, "assets", "face_house", "faces");
 const housesDir = path.join(rootFolder, "assets", "face_house", "houses");
-console.log("assets/face_house/faces: ", readdirSync(facesDir));
-console.log("assets", readdirSync(path.join(__dirname, "assets")));
 
 export const buildN170Timeline = () => ({
   mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids

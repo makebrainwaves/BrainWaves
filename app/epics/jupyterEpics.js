@@ -7,7 +7,7 @@ import {
   pluck,
   ignoreElements,
   filter,
-  take,
+  take
 } from "rxjs/operators";
 import { find } from "kernelspecs";
 import { launchSpec } from "spawnteract";
@@ -36,11 +36,16 @@ import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
-  MUSE_CHANNELS
+  MUSE_CHANNELS,
+  KERNEL_STATUS
 } from "../constants/constants";
-import { parseSingleQuoteJSON } from "../utils/jupyter/functions";
+import {
+  parseSingleQuoteJSON,
+  parseKernelStatus
+} from "../utils/jupyter/functions";
 
 export const SET_KERNEL = "SET_KERNEL";
+export const SET_KERNEL_STATUS = "SET_KERNEL_STATUS";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
 export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
 export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
@@ -57,6 +62,11 @@ export const RECEIVE_DISPLAY_DATA = "RECEIVE_DISPLAY_DATA";
 const setKernel = payload => ({
   payload,
   type: SET_KERNEL
+});
+
+const setKernelStatus = payload => ({
+  payload,
+  type: SET_KERNEL_STATUS
 });
 
 const setKernelInfo = payload => ({
@@ -173,8 +183,9 @@ const receiveChannelMessageEpic = (action$, store) =>
           switch (msg["header"]["msg_type"]) {
             case "kernel_info_reply":
               return setKernelInfo(msg);
+            case "status":
+              return setKernelStatus(parseKernelStatus(msg));
             case "stream":
-              // OTDO: Change to another action?
               return receiveStream(msg);
             case "execute_reply":
               return receiveExecuteReply(msg);

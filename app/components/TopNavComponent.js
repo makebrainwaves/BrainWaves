@@ -11,7 +11,7 @@ interface Props {
   location: { pathname: string, search: string, hash: string };
   type: EXPERIMENTS;
   rawObservable: ?Observable;
-  mainChannel: ?any;
+  kernelStatus: KERNEL_STATUS;
   deviceType: DEVICES;
 }
 
@@ -34,7 +34,7 @@ export default class TopNav extends Component<Props> {
                 </List.Item>
                 <List.Item>
                   <List.Header>Jupyter</List.Header>
-                  {isNil(this.props.mainChannel) ? "Offline" : "Online"}
+                  {this.props.kernelStatus}
                 </List.Item>
               </List>
             </Grid.Column>
