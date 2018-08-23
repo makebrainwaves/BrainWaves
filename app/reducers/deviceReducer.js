@@ -37,7 +37,7 @@ const initialState = {
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
   signalQualityObservable: null,
-  deviceType: DEVICES.NONE
+  deviceType: DEVICES.EMOTIV
 };
 
 export default function device(
