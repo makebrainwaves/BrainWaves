@@ -1,4 +1,4 @@
-import { withLatestFrom, map } from "rxjs/operators";
+import { withLatestFrom, share, startWith } from "rxjs/operators";
 import { MUSE_SAMPLING_RATE } from "../../constants/constants";
 
 const bluetooth = require("bleat").webbluetooth;
@@ -43,34 +43,36 @@ export const connectToMuse = async (client, device) => {
 };
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream
-// If on Windows, will use bleat to bridge to noble and the noble-winrt bindings
-// IF on Mac or Linux, will proceed to use web bluetooth
+// TODO: Research how withLatestFrom can be initiated with a default value so we don't have to fire an arbitrary event whenever subscribing to the rawObservable
 export const createRawMuseObservable = async client => {
   await client.start();
   const eegStream = await client.eegReadings;
-  const markers = await client.eventMarkers;
-  console.log(client);
-  await client.injectMarker(0, 0);
+  const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
   return Observable.from(zipSamples(eegStream)).pipe(
-    withLatestFrom(markers),
-    map(([eegSample, marker]) => {
-      if (
-        eegSample["timestamp"] - marker["timestamp"] > 0 &&
-        eegSample["timestamp"] - marker["timestamp"] <= INTER_SAMPLE_INTERVAL
-      ) {
-        console.log(
-          "injected marker with delay of ",
-          Math.abs(eegSample["timestamp"] - marker["timestamp"])
-        );
-        return { ...eegSample, marker: marker["timestamp"] };
-      }
-      return eegSample;
-    })
+    withLatestFrom(markers, synchronizeTimestamp),
+    share()
   );
 };
 
 // Injects an event marker that will be included in muse-js's data stream through
 export const injectMuseMarker = (client, value, time) => {
-  console.log(value);
+  console.log("inject");
   client.injectMarker(value, time);
+};
+
+// ---------------------------------------------------------------------
+// Helpers
+
+const synchronizeTimestamp = (eegSample, marker) => {
+  if (
+    eegSample["timestamp"] - marker["timestamp"] > 0 &&
+    eegSample["timestamp"] - marker["timestamp"] <= INTER_SAMPLE_INTERVAL
+  ) {
+    console.log(
+      "injected marker with delay of ",
+      Math.abs(eegSample["timestamp"] - marker["timestamp"])
+    );
+    return { ...eegSample, marker: marker["timestamp"] };
+  }
+  return eegSample;
 };
