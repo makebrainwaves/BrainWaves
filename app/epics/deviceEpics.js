@@ -2,7 +2,7 @@ import { combineEpics } from "redux-observable";
 import { Observable } from "rxjs";
 import { map, pluck, mergeMap, tap, filter, catchError } from "rxjs/operators";
 import { epoch, bandpassFilter, addInfo } from "eeg-pipes";
-import { addSignalQuality } from "../utils/eeg/pipes";
+import { addSignalQuality, colorSignalQuality } from "../utils/eeg/pipes";
 import {
   CONNECT_TO_DEVICE,
   SET_DEVICE_TYPE,
@@ -176,6 +176,10 @@ const setRawObservableEpic = (action$, store) =>
     mergeMap(observable => {
       const samplingRate =
         store.getState().device.deviceType === DEVICES.EMOTIV ? 128 : 256;
+      const channelNames =
+        store.getState().device.deviceType === DEVICES.EMOTIV
+          ? EMOTIV_CHANNELS
+          : MUSE_CHANNELS;
       const nbChannels =
         store.getState().device.deviceType === DEVICES.EMOTIV ? 14 : 5;
       const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
@@ -184,7 +188,8 @@ const setRawObservableEpic = (action$, store) =>
         setSignalQualityObservable(
           observable.pipe(
             addInfo({
-              samplingRate
+              samplingRate,
+              channelNames
             }),
             epoch({
               duration: intervalSamples,
@@ -195,7 +200,8 @@ const setRawObservableEpic = (action$, store) =>
               lowCutoff: 1,
               highCutoff: 50
             }),
-            addSignalQuality()
+            addSignalQuality(),
+            colorSignalQuality()
           )
         )
       );

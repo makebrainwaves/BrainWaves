@@ -100,7 +100,12 @@ export const VIEWER_DEFAULTS = {
 };
 
 export const SIGNAL_QUALITY = {
-  BAD: 0,
-  OK: 1,
-  GREAT: 3
+  BAD: "#f4424b",
+  OK: "#f4d041",
+  GREAT: "#4cf441"
+};
+
+export const SIGNAL_QUALITY_THRESHOLDS = {
+  BAD: 15,
+  OK: 10
 };

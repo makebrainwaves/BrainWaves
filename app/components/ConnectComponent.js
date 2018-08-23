@@ -113,14 +113,14 @@ export default class Connect extends Component<Props, State> {
   }
 
   renderSignalQualityIndicator() {
-    if (!isNil(this.props.signalQualityObservable)) {
-      return (
-        <SignalQualityIndicatorComponent
-          signalQualityObservable={this.props.signalQualityObservable}
-          deviceType={this.props.deviceType}
-        />
-      );
-    }
+    // if (!isNil(this.props.signalQualityObservable)) {
+    return (
+      <SignalQualityIndicatorComponent
+        signalQualityObservable={this.props.signalQualityObservable}
+        deviceType={this.props.deviceType}
+      />
+    );
+    // }
   }
 
   renderAvailableDeviceList() {
@@ -256,9 +256,9 @@ export default class Connect extends Component<Props, State> {
     return (
       <div>
         <div className={styles.mainContainer}>
-          <Grid columns={2} centered style={{ height: "70%" }}>
+          <Grid columns={2} centered stretched style={{ height: "100%" }}>
             <Grid.Column floated="left" width="6">
-              <Grid.Row stretched style={{ height: "100%" }}>
+              <Grid.Row style={{ height: "100%" }}>
                 <Segment padded="very" compact raised color="red">
                   <Grid columns={2}>
                     <Grid.Column>

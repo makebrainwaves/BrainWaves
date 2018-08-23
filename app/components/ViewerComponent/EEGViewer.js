@@ -3,17 +3,6 @@ const d3 = require("d3");
 const throttle = require("lodash/throttle");
 const simplify = require("simplify-js");
 
-const COLORS = {
-  RED: "#f4424b",
-  YELLOW: "#f4d041",
-  GREEN: "#4cf441"
-};
-
-const THRESHOLDS = {
-  BAD: 15,
-  OK: 10
-};
-
 class EEGViewer {
   constructor(svg, parameters) {
     this.channels = parameters.channels;
@@ -59,15 +48,9 @@ class EEGViewer {
         .filter(sample => sample.x >= this.firstTimestamp);
     }
 
-    this.channelColours = epoch.signalQuality.map(signalQuality => {
-      if (signalQuality >= THRESHOLDS.BAD) {
-        return COLORS.RED;
-      }
-      if (signalQuality >= THRESHOLDS.OK) {
-        return COLORS.YELLOW;
-      }
-      return COLORS.GREEN;
-    });
+    this.channelColours = this.channels.map(
+      channelName => epoch.signalQuality[channelName]
+    );
     this.redraw();
   }
 

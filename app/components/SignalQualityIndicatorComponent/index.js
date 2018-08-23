@@ -1,9 +1,8 @@
 import React, { Component } from "react";
 import { isNil } from "lodash";
-import { Segment, Image } from "semantic-ui-react";
-import { DEVICES } from "../constants/constants";
-import emotivDiagram from "../assets/device/epocDiagram.png";
-import museDiagram from "../assets/device/museDiagram.png";
+import { Segment } from "semantic-ui-react";
+import * as d3 from "d3";
+import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
 
 interface Props {
   signalQualityObservable: any;
@@ -16,7 +15,7 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentDidMount() {
-    this.subscribeToObservable(this.props.signalQualityObservable);
+    // this.subscribeToObservable(this.props.signalQualityObservable);
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -38,24 +37,23 @@ class SignalQualityIndicatorComponent extends Component<Props> {
       this.signalQualitySubscription.unsubscribe();
     }
 
-    // this.signalQualitySubscription = observable.subscribe(
-    //   epoch => {
-    //     console.log(epoch.signalQuality);
-    //   },
-    //   error => new Error("Error in viewer subscription: ", error)
-    // );
+    this.signalQualitySubscription = observable.subscribe(
+      epoch => {
+        Object.keys(epoch.signalQuality).forEach(key => {
+          d3.select(`#${key}`)
+            .attr("visibility", "show")
+            .attr("stroke", "#000")
+            .attr("fill", epoch.signalQuality[key]);
+        });
+      },
+      error => new Error("Error in viewer subscription: ", error)
+    );
   }
 
   render() {
     return (
-      <Segment basic>
-        <Image
-          src={
-            this.props.deviceType === DEVICES.EMOTIV
-              ? emotivDiagram
-              : museDiagram
-          }
-        />
+      <Segment basic size="massive">
+        <SignalQualityIndicatorSVG />
       </Segment>
     );
   }
