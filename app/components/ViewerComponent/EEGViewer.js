@@ -135,20 +135,12 @@ class EEGViewer {
   }
 
   addAxes() {
-    this.xAxis = d3.axisBottom().scale(this.xScale);
-
     this.yAxis = d3
       .axisLeft()
       .scale(this.yScaleLabels)
       .tickSize(2)
       .tickFormat((d, i) => this.channels[i].replace(/\s/g, ""))
       .tickValues(d3.range(this.channels.length));
-
-    this.axisX = this.graph
-      .append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate(0," + this.height + ")")
-      .call(this.xAxis);
 
     this.axisY = this.graph
       .append("g")
@@ -175,7 +167,6 @@ class EEGViewer {
       .append("g")
       .attr("id", "lines")
       .attr("clip-path", "url(#clip)");
-    this.axisX.attr("clip-path", "url(#clip)");
     this.line = d3
       .line()
       .x(d => this.xScale(d.x))
@@ -242,12 +233,6 @@ class EEGViewer {
           this.firstTimestamp + this.plottingInterval
         ])
         .range([this.width, 0]);
-
-      this.axisX
-        .transition()
-        .duration(this.plottingInterval)
-        .ease(d3.easeLinear)
-        .call(this.xAxis);
     }
   }
 
@@ -263,10 +248,6 @@ class EEGViewer {
       this.xScale.range([this.width, 0]);
       this.yScaleLines.range([this.height, 0]);
       this.yScaleLabels.range([this.height, 0]);
-      this.xAxis.scale(this.xScale);
-      this.axisX
-        .attr("transform", "translate(0," + this.height + ")")
-        .call(this.xAxis);
       this.axisY.call(this.yAxis);
       this.addLines();
     }
