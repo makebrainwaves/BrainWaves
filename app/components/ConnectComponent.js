@@ -117,7 +117,7 @@ export default class Connect extends Component<Props, State> {
       return (
         <SignalQualityIndicatorComponent
           signalQualityObservable={this.props.signalQualityObservable}
-          deviceType={this.props.deviceType}
+          plottingInterval={PLOTTING_INTERVAL}
         />
       );
     }

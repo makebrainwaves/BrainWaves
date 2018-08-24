@@ -3,11 +3,13 @@ import React, { Component } from "react";
 import { isNil } from "lodash";
 import { Segment } from "semantic-ui-react";
 import * as d3 from "d3";
-import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
 import { Subscription } from "rxjs";
+import { Observable } from "rxjs/Observable";
+import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
 
 interface Props {
-  signalQualityObservable: any;
+  signalQualityObservable: Observable;
+  plottingInterval: number;
 }
 
 class SignalQualityIndicatorComponent extends Component<Props> {
@@ -47,6 +49,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
           d3.select(`#${key}`)
             .attr("visibility", "show")
             .attr("stroke", "#000")
+            .transition()
+            .duration(this.props.plottingInterval)
+            .ease(d3.easeLinear)
             .attr("fill", epoch.signalQuality[key]);
         });
       },

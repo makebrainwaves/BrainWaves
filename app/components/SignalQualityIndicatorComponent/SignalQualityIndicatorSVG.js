@@ -88,7 +88,7 @@ const SvgComponent = props => (
       <circle
         cx={124.37}
         cy={333.72}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -106,7 +106,7 @@ const SvgComponent = props => (
       <circle
         cx={178.58}
         cy={259.29}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -124,7 +124,7 @@ const SvgComponent = props => (
       <circle
         cx={495.58}
         cy={259.29}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -142,7 +142,7 @@ const SvgComponent = props => (
       <circle
         cx={240.35}
         cy={241.01}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -160,7 +160,7 @@ const SvgComponent = props => (
       <circle
         cx={434.23}
         cy={241.01}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -178,7 +178,7 @@ const SvgComponent = props => (
       <circle
         cx={269.35}
         cy={185.69}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -196,7 +196,7 @@ const SvgComponent = props => (
       <circle
         cx={406.36}
         cy={185.69}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -214,7 +214,7 @@ const SvgComponent = props => (
       <circle
         cx={78.53}
         cy={401.34}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -232,7 +232,7 @@ const SvgComponent = props => (
       <circle
         cx={178.58}
         cy={475.91}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -250,7 +250,7 @@ const SvgComponent = props => (
       <circle
         cx={255.35}
         cy={531.29}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -268,7 +268,7 @@ const SvgComponent = props => (
       <circle
         cx={420.11}
         cy={531.29}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -286,7 +286,7 @@ const SvgComponent = props => (
       <circle
         cx={494.77}
         cy={475.91}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -304,7 +304,7 @@ const SvgComponent = props => (
       <circle
         cx={548.92}
         cy={333.72}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -322,7 +322,7 @@ const SvgComponent = props => (
       <circle
         cx={592.53}
         cy={400.89}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -340,7 +340,7 @@ const SvgComponent = props => (
       <circle
         cx={571.87}
         cy={455.81}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -358,7 +358,7 @@ const SvgComponent = props => (
       <circle
         cx={335.79}
         cy={121.75}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -379,7 +379,7 @@ const SvgComponent = props => (
       <circle
         cx={98.87}
         cy={455.81}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -397,7 +397,7 @@ const SvgComponent = props => (
       <circle
         cx={208.33}
         cy={166.08}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
@@ -415,7 +415,7 @@ const SvgComponent = props => (
       <circle
         cx={467.66}
         cy={166.08}
-        r={26.11}
+        r={30}
         stroke="#000"
         strokeMiterlimit={10}
         strokeWidth={2}
