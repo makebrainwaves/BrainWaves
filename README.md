@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
-### All
+### All Platforms
 
 - node version >= 7 and npm version >= 4
 - Anaconda (Python 3) with an environment named 'brainwaves' containing dependencies in `environment.yml`. See [Conda Environment Setup](https://github.com/makebrainwaves/BrainWaves#conda-environment-setup) for instructions
@@ -23,6 +23,10 @@
   ```bash
   export PATH="/usr/bin:$PATH"
   ```
+
+### Windows 10
+
+- [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
 
 ## Installing from Source
 
@@ -51,7 +55,7 @@ _note: Apologies for the following npm link steps. They should be unnecessary so
 
 6. Go back to BrainWaves folder and run `npm link jspsych-react`
 
-## Run
+### Run
 
 Start the app in the `dev` environment. This starts the renderer process in [**hot-module-replacement**](https://webpack.js.org/guides/hmr-react/) mode and starts a webpack dev server that sends hot updates to the renderer process:
 
@@ -65,6 +69,28 @@ Alternatively, you can run the renderer and main processes separately. This way,
 $ npm run start-renderer-dev
 $ npm run start-main-dev
 ```
+
+## Installing from Executable
+
+1. Download and install the executable from this repository's [releases](https://github.com/makebrainwaves/BrainWaves/releases)
+
+2. Before running the app, follow the Conda Environmemt Setup instructions
+
+## Conda Environment Setup
+
+BrainWaves needs an Anaconda environment called "brainwaves" with the right dependencies to run its analysis.
+
+1. Download and install Anaconda for Python 3. We recommend using the [Miniconda installer for Python 3.6 available from this page](https://conda.io/miniconda.html)
+
+2. Download the BrainWaves [environment file](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.1.0/environment.yml) or grab it by cloning this repository
+
+*Note: you may need to install Microsoft Visual C++ Build Tools to run this following command on Windows*
+
+3. Open Anaconda prompt (or terminal on Linux and OSX) in the directory where the environment file is located and run `conda env create -f environment.yml`
+
+4. Verify that the environment has been created with the necessary dependencies by running `conda activate brainwaves` (or `source activate brainwaves` on Linux and OSX) and then `mne`
+
+5. If the brainwaves environment exists and prints command options for the mne library, then set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
 ## Packaging
 
@@ -102,14 +128,6 @@ $ npm run test-e2e
 ```bash
 DEBUG_PROD=true npm run package
 ```
-
-## Conda Environment Setup
-
-BrainWaves needs an Anaconda environment called "brainwaves" with the right dependencies to run analysis.
-
-To do this, first create a new conda env called brainwaves: `conda env create -f environment.yml`
-
-Then, set up a new jupyter kernel to use this environment: `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
 ## How to add modules to the project
 
