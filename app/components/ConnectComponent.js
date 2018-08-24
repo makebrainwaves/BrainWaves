@@ -113,14 +113,14 @@ export default class Connect extends Component<Props, State> {
   }
 
   renderSignalQualityIndicator() {
-    // if (!isNil(this.props.signalQualityObservable)) {
-    return (
-      <SignalQualityIndicatorComponent
-        signalQualityObservable={this.props.signalQualityObservable}
-        deviceType={this.props.deviceType}
-      />
-    );
-    // }
+    if (!isNil(this.props.signalQualityObservable)) {
+      return (
+        <SignalQualityIndicatorComponent
+          signalQualityObservable={this.props.signalQualityObservable}
+          deviceType={this.props.deviceType}
+        />
+      );
+    }
   }
 
   renderAvailableDeviceList() {
@@ -149,7 +149,11 @@ export default class Connect extends Component<Props, State> {
                 onClick={() => this.setState({ selectedDevice: device })}
               />
               <List.Content>
-                <List.Header>{device.id}</List.Header>
+                <List.Header>
+                  {this.props.deviceType === DEVICES.EMOTIV
+                    ? device.id
+                    : device.name}
+                </List.Header>
               </List.Content>
             </List.Item>
           ))}
@@ -241,13 +245,6 @@ export default class Connect extends Component<Props, State> {
           Clear any hair that might prevent the device from making contact with
           your skin
         </List.Item>
-        <Button
-          compact
-          size="small"
-          onClick={() => this.props.client.sendCommand("*1")}
-        >
-          Send Reset Command
-        </Button>
       </List>
     );
   }

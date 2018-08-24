@@ -1,21 +1,25 @@
+// @flow
 import React, { Component } from "react";
 import { isNil } from "lodash";
 import { Segment } from "semantic-ui-react";
 import * as d3 from "d3";
 import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
+import { Subscription } from "rxjs";
 
 interface Props {
   signalQualityObservable: any;
 }
 
 class SignalQualityIndicatorComponent extends Component<Props> {
-  constructor(props) {
+  signalQualitySubscription: Subscription;
+
+  constructor(props: Props) {
     super(props);
     this.signalQualitySubscription = null;
   }
 
   componentDidMount() {
-    // this.subscribeToObservable(this.props.signalQualityObservable);
+    this.subscribeToObservable(this.props.signalQualityObservable);
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -46,7 +50,7 @@ class SignalQualityIndicatorComponent extends Component<Props> {
             .attr("fill", epoch.signalQuality[key]);
         });
       },
-      error => new Error("Error in viewer subscription: ", error)
+      error => new Error(`Error in signalQualitySubscription ${error}`)
     );
   }
 

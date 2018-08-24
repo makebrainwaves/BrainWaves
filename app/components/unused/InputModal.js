@@ -16,8 +16,9 @@ interface State {
 export default class InputModal extends Component<Props, State> {
   props: Props;
   state: State;
+  handleTextEntry: (Object, Object) => void;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.state = {
       enteredText: ""
