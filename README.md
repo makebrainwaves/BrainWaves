@@ -47,14 +47,6 @@ $ npm install
 
 3. If using Emotiv, insert your Emotiv account's credentials into the file `keys.js`
 
-_note: Apologies for the following npm link steps. They should be unnecessary soon_
-
-4. Go to https://github.com/makebrainwaves/jspsych-react and clone that library.
-
-5. Link it to your npm by running `npm link` in the jspsych-react folder. Note, this may require you to use sudo since this is creating symlink into your `usr/local/bin/lib`.
-
-6. Go back to BrainWaves folder and run `npm link jspsych-react`
-
 ### Run
 
 Start the app in the `dev` environment. This starts the renderer process in [**hot-module-replacement**](https://webpack.js.org/guides/hmr-react/) mode and starts a webpack dev server that sends hot updates to the renderer process:
