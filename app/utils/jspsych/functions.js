@@ -68,7 +68,14 @@ export const instantiateTimeline = (
               eventCallback(
                 jsPsych.timelineVariable("eventTypeVar")(),
                 new Date().getTime()
-              )
+              ),
+            on_finish: () => {
+              jsPsych.setProgressBar(
+                jsPsych.progress().current_trial_global /
+                  2 /
+                  jspsychObject.sample.size
+              );
+            }
           };
         }
         return trial;

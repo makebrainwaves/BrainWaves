@@ -5,11 +5,10 @@ import { Experiment } from "jspsych-react";
 import { debounce } from "lodash";
 import { Link } from "react-router-dom";
 import styles from "./styles/common.css";
-import callbackHtmlDisplay from "../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
-import animation from "../utils/jspsych/plugins/jspsych-animation";
 import { injectEmotivMarker } from "../utils/eeg/emotiv";
 import { injectMuseMarker } from "../utils/eeg/muse";
+import callbackHTMLDisplay from "../utils/jspsych/plugins/callback-html-display";
+import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
 import { EXPERIMENTS, DEVICES } from "../constants/constants";
 import { parseTimeline, instantiateTimeline } from "../utils/jspsych/functions";
 import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
@@ -80,7 +79,6 @@ export default class Run extends Component<Props> {
       this.props.experimentActions.stop // stop callback
     );
     console.log("timeline: ", timeline);
-    console.log("plugin: ", callbackHtmlDisplay);
     return timeline;
   }
 
@@ -165,10 +163,11 @@ export default class Run extends Component<Props> {
     return (
       <Experiment
         timeline={this.handleTimeline()}
+        show_progress_bar
+        auto_update_progress_bar={false}
         plugins={{
           "callback-image-display": callbackImageDisplay,
-          "callback-html-display": callbackHtmlDisplay,
-          animation
+          "callback-html-display": callbackHTMLDisplay
         }}
       />
     );
