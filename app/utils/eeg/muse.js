@@ -5,7 +5,7 @@ const bluetooth = require("bleat").webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
 const { Observable } = require("rxjs");
 
-const INTER_SAMPLE_INTERVAL = 1 / 256;
+const INTER_SAMPLE_INTERVAL = (1 / 256) * 1000;
 
 // Just returns the client object from Muse JS
 export const initMuseClient = () => {
@@ -68,10 +68,6 @@ const synchronizeTimestamp = (eegSample, marker) => {
     eegSample["timestamp"] - marker["timestamp"] > 0 &&
     eegSample["timestamp"] - marker["timestamp"] <= INTER_SAMPLE_INTERVAL
   ) {
-    console.log(
-      "injected marker with delay of ",
-      Math.abs(eegSample["timestamp"] - marker["timestamp"])
-    );
     return { ...eegSample, marker: marker["timestamp"] };
   }
   return eegSample;
