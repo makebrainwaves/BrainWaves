@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { map, tap } from "rxjs/operators";
+import { map } from "rxjs/operators";
 import {
   SIGNAL_QUALITY,
   SIGNAL_QUALITY_THRESHOLDS
@@ -26,28 +26,23 @@ export const addSignalQuality = () => source =>
 export const colorSignalQuality = () => source =>
   createPipe(
     source,
-    map(
-      epoch => ({
-        ...epoch,
-        signalQuality: Object.assign(
-          {},
-          ...Object.keys(epoch.signalQuality).map(channelName => {
-            if (
-              epoch.signalQuality[channelName] >= SIGNAL_QUALITY_THRESHOLDS.BAD
-            ) {
+    map(epoch => ({
+      ...epoch,
+      signalQuality: Object.assign(
+        {},
+        ...Object.entries(epoch.signalQuality).map(
+          ([channelName, signalQuality]) => {
+            if (signalQuality >= SIGNAL_QUALITY_THRESHOLDS.BAD) {
               return { [channelName]: SIGNAL_QUALITY.BAD };
             }
-            if (
-              epoch.signalQuality[channelName] >= SIGNAL_QUALITY_THRESHOLDS.OK
-            ) {
+            if (signalQuality >= SIGNAL_QUALITY_THRESHOLDS.OK) {
               return { [channelName]: SIGNAL_QUALITY.OK };
             }
             return { [channelName]: SIGNAL_QUALITY.GREAT };
-          })
+          }
         )
-      }),
-      tap(console.log)
-    )
+      )
+    }))
   );
 
 const mean = array => sum(array) / array.length;

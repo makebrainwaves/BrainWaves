@@ -30,9 +30,9 @@ class ViewerComponent extends Component<Props, State> {
   props: Props;
   state: State;
   graphView: ?HTMLElement;
-  viewerSubscription: Subscription;
+  signalQualitySubscription: Subscription;
 
-  constructor(props: Object) {
+  constructor(props: Props) {
     super(props);
     this.state = {
       ...VIEWER_DEFAULTS,
@@ -40,7 +40,7 @@ class ViewerComponent extends Component<Props, State> {
         props.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS : MUSE_CHANNELS
     };
     this.graphView = null;
-    this.viewerSubscription = null;
+    this.signalQualitySubscription = null;
   }
 
   componentDidMount() {
@@ -80,8 +80,8 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   componentWillUnmount() {
-    if (!isNil(this.viewerSubscription)) {
-      this.viewerSubscription.unsubscribe();
+    if (!isNil(this.signalQualitySubscription)) {
+      this.signalQualitySubscription.unsubscribe();
     }
   }
 
@@ -91,15 +91,14 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   subscribeToObservable(observable: any) {
-    if (!isNil(this.viewerSubscription)) {
-      this.viewerSubscription.unsubscribe();
+    if (!isNil(this.signalQualitySubscription)) {
+      this.signalQualitySubscription.unsubscribe();
     }
-    console.log("subscribing to ", observable);
-    this.viewerSubscription = observable.subscribe(
+    this.signalQualitySubscription = observable.subscribe(
       chunk => {
         this.graphView.send("newData", chunk);
       },
-      error => new Error("Error in viewer subscription: ", error)
+      error => new Error(`Error in epochSubscription ${error}`)
     );
   }
 

@@ -218,12 +218,12 @@ class EEGViewer {
                 this.xScale(channelData[channelData.length - 1].x) - this.width
               ) +
               ", 0)"
-          );
+          )
+          .attr("stroke", this.channelColours[i]);
 
         this.paths[i]
           .data([channelData])
           .attr("d", this.line)
-          .attr("stroke", this.channelColours[i])
           .attr("transform", "translate(0,0)");
       }
 
