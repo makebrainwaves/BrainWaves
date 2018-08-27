@@ -90,9 +90,10 @@ const experimentStopEpic = action$ =>
   action$.ofType(STOP).pipe(map(() => setIsRunning(false)));
 
 const sessionCountEpic = (action$, store) =>
-  action$
-    .ofType(STOP)
-    .pipe(map(() => setSession(store.getState().experiment.session + 1)));
+  action$.ofType(STOP).pipe(
+    filter(() => store.getState().experiment.isRunning),
+    map(() => setSession(store.getState().experiment.session + 1))
+  );
 
 const navigationCleanupEpic = action$ =>
   action$.ofType("@@router/LOCATION_CHANGE").pipe(

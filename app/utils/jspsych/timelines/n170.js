@@ -2,15 +2,28 @@ import { jsPsych } from "jspsych-react";
 import * as path from "path";
 import { readdirSync } from "fs";
 import { EVENTS } from "../../../constants/constants";
+
 // Default experiment parameters
-const params = {
-  trial_duration: 300,
-  stim_duration: 300,
-  iti: 300,
-  jitter: 200,
-  n_trials: 170, // 170 Around two minutes at a rate of ~700 ms per trial
-  plugin_name: "callback-image-display"
+const paramsFn = () => {
+  const trial_duration = 300;
+  const experiment_duration = 120000; // two minutes
+  const iti = 800;
+  const jitter = 200;
+  const n_trials = Math.round(
+    experiment_duration / (trial_duration + iti + jitter / 2)
+  );
+  const plugin_name = "callback-image-display";
+  return {
+    trial_duration,
+    experiment_duration,
+    iti,
+    jitter,
+    n_trials,
+    plugin_name
+  };
 };
+
+const params = paramsFn();
 
 // Default directories containing stimuli
 // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir

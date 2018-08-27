@@ -162,12 +162,15 @@ export default class Run extends Component<Props> {
     }
     return (
       <Experiment
-        timeline={this.handleTimeline()}
-        show_progress_bar
-        auto_update_progress_bar={false}
-        plugins={{
-          "callback-image-display": callbackImageDisplay,
-          "callback-html-display": callbackHTMLDisplay
+        settings={{
+          timeline: this.handleTimeline(),
+          plugins: {
+            "callback-image-display": callbackImageDisplay,
+            "callback-html-display": callbackHTMLDisplay
+          },
+          show_progress_bar: true,
+          auto_update_progress_bar: false,
+          on_finish: this.props.experimentActions.stop
         }}
       />
     );
