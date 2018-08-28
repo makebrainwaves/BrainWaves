@@ -164,13 +164,13 @@ export default class Run extends Component<Props> {
       <Experiment
         settings={{
           timeline: this.handleTimeline(),
-          plugins: {
-            "callback-image-display": callbackImageDisplay,
-            "callback-html-display": callbackHTMLDisplay
-          },
           show_progress_bar: true,
           auto_update_progress_bar: false,
           on_finish: this.props.experimentActions.stop
+        }}
+        plugins={{
+          "callback-image-display": callbackImageDisplay,
+          "callback-html-display": callbackHTMLDisplay
         }}
       />
     );
