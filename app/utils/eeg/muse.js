@@ -1,3 +1,4 @@
+import "hazardous";
 import { withLatestFrom, share, startWith } from "rxjs/operators";
 import { MUSE_SAMPLING_RATE } from "../../constants/constants";
 
@@ -56,7 +57,6 @@ export const createRawMuseObservable = async client => {
 
 // Injects an event marker that will be included in muse-js's data stream through
 export const injectMuseMarker = (client, value, time) => {
-  console.log("inject");
   client.injectMarker(value, time);
 };
 
@@ -68,7 +68,7 @@ const synchronizeTimestamp = (eegSample, marker) => {
     eegSample["timestamp"] - marker["timestamp"] > 0 &&
     eegSample["timestamp"] - marker["timestamp"] <= INTER_SAMPLE_INTERVAL
   ) {
-    return { ...eegSample, marker: marker["timestamp"] };
+    return { ...eegSample, marker: marker["value"] };
   }
   return eegSample;
 };
