@@ -64,6 +64,9 @@ export default class Design extends Component<Props, State> {
   }
 
   handlePreview() {
+    if (isNil(this.props.mainTimeline)) {
+      this.props.experimentActions.loadDefaultTimeline();
+    }
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
@@ -153,12 +156,12 @@ export default class Design extends Component<Props, State> {
     if (this.state.isPreviewing) {
       return (
         <div className={styles.mainContainer}>
+          <Button icon="arrow left" onClick={this.handlePreview} />
           <PreviewExperimentComponent
             mainTimeline={this.props.mainTimeline}
             trials={this.props.trials}
             timelines={this.props.timelines}
           />
-          <Button onClick={this.handlePreview}>Stop Preview</Button>
         </div>
       );
     }

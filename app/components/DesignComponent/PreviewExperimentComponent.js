@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from "react";
 import { Experiment, jsPsych } from "jspsych-react";
-import { Segment, Button } from "semantic-ui-react";
+import { Grid, Button } from "semantic-ui-react";
 import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
 import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
 import { FILE_TYPES } from "../../constants/constants";
@@ -75,20 +75,20 @@ export default class PreviewExperimentComponent extends Component<
 
   render() {
     return (
-      <Segment basic>
-        {this.renderExperiment()}
-        <Segment basic>
-          <Button onClick={() => this.setState({ isRunning: true })}>
+      <Grid columns={1} divided relaxed>
+        <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
+        <Grid.Row centered>
+          <Button positive onClick={() => this.setState({ isRunning: true })}>
             Start
           </Button>
-          <Button onClick={() => this.setState({ isRunning: false })}>
+          <Button negative onClick={() => this.setState({ isRunning: false })}>
             Stop
           </Button>
-          <Button onClick={this.handleCustomExperimentLoad}>
+          <Button basic onClick={this.handleCustomExperimentLoad}>
             Load Custom Experiment
           </Button>
-        </Segment>
-      </Segment>
+        </Grid.Row>
+      </Grid>
     );
   }
 }
