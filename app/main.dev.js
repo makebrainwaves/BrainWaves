@@ -10,7 +10,8 @@
  *
  * @flow
  */
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
+import { loadFile } from "./utils/filesystem/dialog";
 import MenuBuilder from "./menu";
 
 app.commandLine.appendSwitch("enable-experimental-web-platform-features", true);
@@ -68,6 +69,9 @@ app.on("ready", async () => {
     width: 1024,
     height: 728
   });
+
+  // IPC Listener for file dialog events
+  ipcMain.on("loadFile", loadFile);
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 

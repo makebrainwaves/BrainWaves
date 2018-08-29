@@ -109,3 +109,7 @@ export const SIGNAL_QUALITY_THRESHOLDS = {
   BAD: 15,
   OK: 10
 };
+
+export const FILE_TYPES = {
+  TIMELINE: "TIMELINE"
+};
