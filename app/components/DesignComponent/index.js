@@ -11,11 +11,12 @@ import {
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import { isNil } from "lodash";
-import styles from "./styles/common.css";
-import { EXPERIMENTS } from "../constants/constants";
-import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
-import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
-import n170Example from "../assets/face_house/n170_example.png";
+import styles from "../styles/common.css";
+import { EXPERIMENTS } from "../../constants/constants";
+import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
+import PreviewExperimentComponent from "./PreviewExperimentComponent";
+import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
+import n170Example from "../../assets/face_house/n170_example.png";
 
 const DESIGN_STEPS = {
   OVERVIEW: "Overview",
@@ -33,6 +34,7 @@ interface Props {
 
 interface State {
   activeStep: number;
+  isPreviewing: boolean;
 }
 
 export default class Design extends Component<Props, State> {
@@ -48,6 +50,7 @@ export default class Design extends Component<Props, State> {
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
+    this.handlePreview = this.handlePreview.bind(this);
   }
 
   handleStepClick(e: Object, props: Object) {
@@ -58,6 +61,10 @@ export default class Design extends Component<Props, State> {
     if (isNil(this.props.type)) {
       e.preventDefault();
     }
+  }
+
+  handlePreview() {
+    this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
   renderSectionContent() {
@@ -115,6 +122,7 @@ export default class Design extends Component<Props, State> {
                 waveform and reveal ERPs
               </List.Item>
             </List>
+            <Button onClick={this.handlePreview}>Preview Experiment</Button>
           </Segment>
         );
       case DESIGN_STEPS.OVERVIEW:
@@ -142,59 +150,69 @@ export default class Design extends Component<Props, State> {
   }
 
   render() {
-    return (
-      <div>
+    if (this.state.isPreviewing) {
+      return (
         <div className={styles.mainContainer}>
-          <Grid columns={1} centered style={{ height: "50%" }}>
-            <Grid.Row>
-              <Segment raised color="red">
-                <Header as="h3">Review Design</Header>
-                <Step.Group>
-                  <Step
-                    link
-                    title={DESIGN_STEPS.OVERVIEW}
-                    active={this.state.activeStep === DESIGN_STEPS.OVERVIEW}
-                    onClick={this.handleStepClick}
-                  />
-                  <Step
-                    link
-                    title={DESIGN_STEPS.BACKGROUND}
-                    active={this.state.activeStep === DESIGN_STEPS.BACKGROUND}
-                    onClick={this.handleStepClick}
-                  />
-                  <Step
-                    link
-                    title={DESIGN_STEPS.PROTOCOL}
-                    active={this.state.activeStep === DESIGN_STEPS.PROTOCOL}
-                    onClick={this.handleStepClick}
-                  />
-                </Step.Group>
-              </Segment>
-            </Grid.Row>
-            <Grid.Row stretched style={{ height: "100%" }}>
-              <Segment padded="very" compact raised color="red">
-                <Grid columns="equal">
-                  <Grid.Column>
-                    <Segment basic>
-                      <Header as="h1">{this.props.type}</Header>
-                    </Segment>
-                    <Segment basic>
-                      <Link
-                        to="/deviceConnect"
-                        onClick={this.handleStartExperiment}
-                      >
-                        <Button color="red">Begin Experiment</Button>
-                      </Link>
-                    </Segment>
-                  </Grid.Column>
-                  <Grid.Column width={12} textAlign="left">
-                    {this.renderSectionContent()}
-                  </Grid.Column>
-                </Grid>
-              </Segment>
-            </Grid.Row>
-          </Grid>
+          <PreviewExperimentComponent
+            mainTimeline={this.props.mainTimeline}
+            trials={this.props.trials}
+            timelines={this.props.timelines}
+          />
+          <Button onClick={this.handlePreview}>Stop Preview</Button>
         </div>
+      );
+    }
+    return (
+      <div className={styles.mainContainer}>
+        <Grid columns={1} centered style={{ height: "50%" }}>
+          <Grid.Row>
+            <Segment raised color="red">
+              <Header as="h3">Review Design</Header>
+              <Step.Group>
+                <Step
+                  link
+                  title={DESIGN_STEPS.OVERVIEW}
+                  active={this.state.activeStep === DESIGN_STEPS.OVERVIEW}
+                  onClick={this.handleStepClick}
+                />
+                <Step
+                  link
+                  title={DESIGN_STEPS.BACKGROUND}
+                  active={this.state.activeStep === DESIGN_STEPS.BACKGROUND}
+                  onClick={this.handleStepClick}
+                />
+                <Step
+                  link
+                  title={DESIGN_STEPS.PROTOCOL}
+                  active={this.state.activeStep === DESIGN_STEPS.PROTOCOL}
+                  onClick={this.handleStepClick}
+                />
+              </Step.Group>
+            </Segment>
+          </Grid.Row>
+          <Grid.Row stretched style={{ height: "100%" }}>
+            <Segment padded="very" compact raised color="red">
+              <Grid columns="equal">
+                <Grid.Column>
+                  <Segment basic>
+                    <Header as="h1">{this.props.type}</Header>
+                  </Segment>
+                  <Segment basic>
+                    <Link
+                      to="/deviceConnect"
+                      onClick={this.handleStartExperiment}
+                    >
+                      <Button color="red">Begin Experiment</Button>
+                    </Link>
+                  </Segment>
+                </Grid.Column>
+                <Grid.Column width={12} textAlign="left">
+                  {this.renderSectionContent()}
+                </Grid.Column>
+              </Grid>
+            </Segment>
+          </Grid.Row>
+        </Grid>
       </div>
     );
   }
