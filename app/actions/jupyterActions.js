@@ -6,6 +6,7 @@ export const REQUEST_KERNEL_INFO = "REQUEST_KERNEL_INFO";
 export const SEND_EXECUTE_REQUEST = "SEND_EXECUTE_REQUEST";
 export const LOAD_EPOCHS = "LOAD_EPOCHS";
 export const LOAD_ERP = "LOAD_ERP";
+export const CLEAN_EPOCHS = "CLEAN_EPOCHS";
 export const CLOSE_KERNEL = "CLOSE_KERNEL";
 
 // -------------------------------------------------------------------------
@@ -29,5 +30,7 @@ export const loadERP = (payload: string) => ({
   payload,
   type: LOAD_ERP
 });
+
+export const cleanEpochs = () => ({ type: CLEAN_EPOCHS });
 
 export const closeKernel = () => ({ type: CLOSE_KERNEL });

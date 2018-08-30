@@ -20,6 +20,7 @@ import {
   SEND_EXECUTE_REQUEST,
   LOAD_EPOCHS,
   LOAD_ERP,
+  CLEAN_EPOCHS,
   CLOSE_KERNEL
 } from "../actions/jupyterActions";
 import {
@@ -28,6 +29,8 @@ import {
   loadCSV,
   filterIIR,
   epochEvents,
+  requestEpochsInfo,
+  cleanEpochsPlot,
   plotPSD,
   plotERP
 } from "../utils/jupyter/cells";
@@ -41,9 +44,11 @@ import {
 } from "../constants/constants";
 import {
   parseSingleQuoteJSON,
-  parseKernelStatus
+  parseKernelStatus,
+  debugParseMessage
 } from "../utils/jupyter/functions";
 
+export const GET_EPOCHS_INFO = "GET_EPOCHS_INFO";
 export const SET_KERNEL = "SET_KERNEL";
 export const SET_KERNEL_STATUS = "SET_KERNEL_STATUS";
 export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
@@ -58,6 +63,8 @@ export const RECEIVE_DISPLAY_DATA = "RECEIVE_DISPLAY_DATA";
 
 // -------------------------------------------------------------------------
 // Action Creators
+
+const getEpochsInfo = () => ({ type: GET_EPOCHS_INFO });
 
 const setKernel = payload => ({
   payload,
@@ -119,9 +126,7 @@ const receiveStream = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    tap(() => console.log("launchEpic")),
     mergeMap(() => Observable.from(find("brainwaves"))),
-    tap(info => console.log("kernelInfo: ", info)),
     mergeMap(kernelInfo =>
       Observable.from(
         launchSpec(kernelInfo.spec, {
@@ -145,7 +150,6 @@ const launchEpic = action$ =>
         console.log("Kernel closed");
       });
     }),
-    tap(() => console.log("setting kernel")),
     map(setKernel)
   );
 
@@ -179,7 +183,7 @@ const receiveChannelMessageEpic = (action$, store) =>
     mergeMap(() =>
       store.getState().jupyter.mainChannel.pipe(
         map(msg => {
-          console.log(msg);
+          console.log(debugParseMessage(msg));
           switch (msg["header"]["msg_type"]) {
             case "kernel_info_reply":
               return setKernelInfo(msg);
@@ -243,6 +247,44 @@ const loadEpochsEpic = (action$, store) =>
         )
     ),
     mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
+        pluck("payload"),
+        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
+        take(1)
+      )
+    ),
+    map(getEpochsInfo)
+  );
+
+const cleanEpochsEpic = (action$, store) =>
+  action$.ofType(CLEAN_EPOCHS).pipe(
+    map(() =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(executeRequest(cleanEpochsPlot()))
+    ),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_STREAM).pipe(
+        pluck("payload"),
+        filter(
+          msg =>
+            msg.channel === "iopub" &&
+            msg.content.text.includes("Channels marked as bad")
+        ),
+        take(1)
+      )
+    ),
+    map(getEpochsInfo)
+  );
+
+const getEpochsInfoEpic = (action$, store) =>
+  action$.ofType(GET_EPOCHS_INFO).pipe(
+    map(() =>
+      store
+        .getState()
+        .jupyter.mainChannel.next(executeRequest(requestEpochsInfo()))
+    ),
+    mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck("payload"),
         filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
@@ -250,12 +292,11 @@ const loadEpochsEpic = (action$, store) =>
         take(1)
       )
     ),
-    tap(info => console.log("settingEpochInfo: ", info)),
     map(epochInfoString => setEpochInfo(parseSingleQuoteJSON(epochInfoString)))
   );
 
 const loadPSDEpic = (action$, store) =>
-  action$.ofType(SET_EPOCH_INFO).pipe(
+  action$.ofType(LOAD_ERP).pipe(
     map(() =>
       store.getState().jupyter.mainChannel.next(executeRequest(plotPSD()))
     ),
@@ -267,7 +308,6 @@ const loadPSDEpic = (action$, store) =>
         take(1)
       )
     ),
-    tap(psd => console.log("setting PSD Plot: ", psd)),
     map(setPSDPlot)
   );
 
@@ -276,7 +316,6 @@ const loadERPEpic = (action$, store) =>
   action$.ofType(LOAD_ERP, SET_PSD_PLOT).pipe(
     pluck("payload"),
     map(channelName => {
-      console.log("channelName: ", channelName);
       const channels =
         store.getState().device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
@@ -294,7 +333,6 @@ const loadERPEpic = (action$, store) =>
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
-        tap(msg => console.log("receive in merge: ", msg)),
         filter(msg => msg.header.msg_type === "display_data"),
         pluck("content", "data"),
         take(1)
@@ -319,6 +357,8 @@ export default combineEpics(
   sendExecuteRequestEpic,
   receiveChannelMessageEpic,
   loadEpochsEpic,
+  cleanEpochsEpic,
+  getEpochsInfoEpic,
   loadPSDEpic,
   loadERPEpic,
   closeKernelEpic

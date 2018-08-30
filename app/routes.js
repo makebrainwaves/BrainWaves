@@ -7,11 +7,13 @@ import ExperimentRunContainer from "./containers/ExperimentRunContainer";
 import ExperimentDesignContainer from "./containers/ExperimentDesignContainer";
 import DeviceConnectContainer from "./containers/DeviceConnectContainer";
 import AnalyzeContainer from "./containers/AnalyzeContainer";
+import CleanContainer from "./containers/CleanContainer";
 
 export default () => (
   <App>
     <Switch>
       <Route path="/analyze" component={AnalyzeContainer} />
+      <Route path="/clean" component={CleanContainer} />
       <Route path="/deviceConnect" component={DeviceConnectContainer} />
       <Route path="/experimentRun" component={ExperimentRunContainer} />
       <Route path="/experimentDesign" component={ExperimentDesignContainer} />

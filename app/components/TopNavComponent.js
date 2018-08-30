@@ -68,6 +68,11 @@ export default class TopNav extends Component<Props> {
               </NavLink>
             </Grid.Column>
             <Grid.Column>
+              <NavLink to="/clean" activeClassName={styles.activeNavLink}>
+                CLEAN
+              </NavLink>
+            </Grid.Column>
+            <Grid.Column>
               <NavLink to="/analyze" activeClassName={styles.activeNavLink}>
                 ANALYZE
               </NavLink>
