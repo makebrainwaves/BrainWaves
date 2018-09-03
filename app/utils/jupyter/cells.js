@@ -75,7 +75,8 @@ export const cleanEpochsPlot = () =>
     `fig.canvas.manager.window.raise_()`
   ].join("\n");
 
-export const plotPSD = () => "raw.plot_psd()";
+export const plotPSD = () =>
+  [`%matplotlib inline`, `raw.plot_psd()`].join("\n");
 
 export const epochEvents = (
   event_ids: { [string]: number },
@@ -103,6 +104,7 @@ export const requestEpochsInfo = () =>
 
 export const plotERP = (ch_ind: number) =>
   [
+    `%matplotlib inline`,
     `conditions = OrderedDict({key: [value] for (key, value) in event_ids.items()})`,
     `X, y = plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
     ci=97.5, n_boot=1000, title='')`

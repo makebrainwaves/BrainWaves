@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { NavLink } from "react-router-dom";
-import { isNil } from "lodash";
 import { Observable } from "rxjs/Observable";
 
 import { Grid, List } from "semantic-ui-react";

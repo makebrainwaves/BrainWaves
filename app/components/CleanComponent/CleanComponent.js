@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from "react";
+import React, { Component } from "../../../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/react";
 import {
   Grid,
   Button,
@@ -8,7 +8,7 @@ import {
   Header,
   Dropdown
 } from "semantic-ui-react";
-import { isNil } from "lodash";
+import { isNil } from "../../../AppData/Local/Microsoft/TypeScript/2.9/node_modules/@types/lodash";
 import styles from "../styles/common.css";
 import {
   EXPERIMENTS,
@@ -16,9 +16,9 @@ import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   KERNEL_STATUS
-} from "../../constants/constants";
-import { Kernel } from "../../constants/interfaces";
-import { readEEGDataDir } from "../../utils/filesystem/write";
+} from "../constants/constants";
+import { Kernel } from "../constants/interfaces";
+import { readEEGDataDir } from "../utils/filesystem/write";
 import EpochCleanWidget from "./EpochCleanWidget";
 
 interface Props {

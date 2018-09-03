@@ -19,6 +19,7 @@ import {
   REQUEST_KERNEL_INFO,
   SEND_EXECUTE_REQUEST,
   LOAD_EPOCHS,
+  LOAD_PSD,
   LOAD_ERP,
   CLEAN_EPOCHS,
   CLOSE_KERNEL
@@ -40,7 +41,6 @@ import {
   EVENTS,
   DEVICES,
   MUSE_CHANNELS,
-  KERNEL_STATUS
 } from "../constants/constants";
 import {
   parseSingleQuoteJSON,
@@ -296,7 +296,7 @@ const getEpochsInfoEpic = (action$, store) =>
   );
 
 const loadPSDEpic = (action$, store) =>
-  action$.ofType(LOAD_ERP).pipe(
+  action$.ofType(LOAD_PSD).pipe(
     map(() =>
       store.getState().jupyter.mainChannel.next(executeRequest(plotPSD()))
     ),

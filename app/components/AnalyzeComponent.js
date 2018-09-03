@@ -14,11 +14,9 @@ import {
   EXPERIMENTS,
   DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS,
-  KERNEL_STATUS
+  EMOTIV_CHANNELS
 } from "../constants/constants";
 import { Kernel } from "../constants/interfaces";
-import { readEEGDataDir } from "../utils/filesystem/write";
 import JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
@@ -32,30 +30,16 @@ interface Props {
   jupyterActions: Object;
 }
 
-interface State {
-  eegFilePaths: Array<?{
-    key: string,
-    text: string,
-    value: { name: string, dir: string }
-  }>;
-  selectedFilePaths: Array<?string>;
-}
-
 export default class Analyze extends Component<Props, State> {
   props: Props;
-  state: State;
   handleDropdownChange: (Object, Object) => void;
   handleLoadData: () => void;
+  handleAnalyze: () => void;
   handleChannelDropdownChange: (Object, Object) => void;
 
   constructor(props: Props) {
     super(props);
-    this.state = {
-      eegFilePaths: [{ key: "", text: "", value: { name: "", dir: "" } }],
-      selectedFilePaths: []
-    };
-    this.handleDropdownChange = this.handleDropdownChange.bind(this);
-    this.handleLoadData = this.handleLoadData.bind(this);
+    this.handleAnalyze = this.handleAnalyze.bind(this);
     this.handleChannelDropdownChange = this.handleChannelDropdownChange.bind(
       this
     );
@@ -63,27 +47,16 @@ export default class Analyze extends Component<Props, State> {
 
   componentWillMount() {
     if (isNil(this.props.kernel)) {
-      this.props.jupyterActions.launchKernel();
+      this.props.history.push("/clean");
     }
-    this.setState({
-      eegFilePaths: readEEGDataDir(this.props.type).map(filepath => ({
-        key: filepath.name,
-        text: filepath.name,
-        value: filepath
-      }))
-    });
   }
 
-  handleDropdownChange(e: Object, props: Object) {
-    this.setState({ selectedFilePaths: props.value });
+  handleAnalyze() {
+    this.props.jupyterActions.loadPSD();
   }
 
   handleChannelDropdownChange(e: Object, props: Object) {
     this.props.jupyterActions.loadERP(props.value);
-  }
-
-  handleLoadData() {
-    this.props.jupyterActions.loadEpochs(this.state.selectedFilePaths);
   }
 
   renderEpochLabels() {
@@ -115,28 +88,8 @@ export default class Analyze extends Component<Props, State> {
           <Grid.Column width={4}>
             <Segment raised padded color="red">
               <Header as="h2">Data Sets</Header>
-
-              <Segment basic>
-                <Dropdown
-                  placeholder="Select Data Sets"
-                  fluid
-                  multiple
-                  selection
-                  options={this.state.eegFilePaths}
-                  onChange={this.handleDropdownChange}
-                />
-                <Button
-                  disabled={this.props.kernelStatus !== KERNEL_STATUS.IDLE}
-                  loading={
-                    this.props.kernelStatus === KERNEL_STATUS.STARTING ||
-                    this.props.kernelStatus === KERNEL_STATUS.BUSY
-                  }
-                  onClick={this.handleLoadData}
-                >
-                  Load
-                </Button>
-              </Segment>
               {this.renderEpochLabels()}
+              <Button onClick={this.handleAnalyze}>Analyze Data</Button>
             </Segment>
           </Grid.Column>
           <Grid.Column width={6}>
