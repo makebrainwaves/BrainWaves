@@ -1,22 +1,89 @@
 .navContainer {
-  padding-top: 15px;
-  width: 100vw;
-  height: 75px;
-  background: #db2828e8;
-  font-weight: 700;
-  color: #fff;
+  height: 60px;
+  background: #ffffff;
+  box-shadow: 0 5px 16px 0 rgba(0, 0, 0, 0.09);
 }
 
-.navContainer a {
-  opacity: 1;
-  font-size: 1.2em;
-}
-
-.activeNavLink {
-  background: rgba(255, 255, 255, 0.25);
-  padding: 10px;
+.experimentTitleSegment {
+  height: inherit;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  line-height: 17px;
+  color: #1a1a1a;
+  border-style: solid;
+  border-width: 0px;
+  border-bottom-width: 4px;
+  border-bottom-color: #ffc107;
 }
 
 .statusHeader {
-  color: #fff;
+  color: #484848;
+}
+
+.navColumn {
+  height: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 17px;
+  letter-spacing: 0.5px;
+}
+
+.initialNavColumn {
+  color: #666666;
+  border-color: #666666;
+}
+
+.visitedNavColumn {
+  color: #1a1a1a;
+  border-style: solid;
+  border-width: 0px;
+  border-bottom-width: 4px;
+  border-bottom-color: #ffc107;
+}
+
+.activeNavColumn {
+  color: #1a1a1a;
+  border-style: solid;
+  border-width: 0px;
+  border-bottom-width: 4px;
+  border-bottom-color: #ffc107;
+}
+
+.initialNavColumn:hover {
+  color: #1a1a1a;
+  border-style: solid;
+  border-width: 0px;
+  border-bottom-width: 4px;
+  border-bottom-color: #ffe69c;
+}
+
+.visitedNavColumn:hover {
+}
+
+.activeNavColumn:hover {
+}
+
+.numberBubble {
+  display: inline-block;
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 23px;
+  width: 23px;
+  margin-right: 10px;
+  text-align: center;
+}
+
+.initialNavColumn .numberBubble {
+  color: #cccccc;
+  border: 2px solid #cccccc;
+}
+
+.visitedNavColumn .numberBubble {
+  color: #666666;
+  border: 2px solid #666666;
+}
+
+.activeNavColumn .numberBubble {
+  color: #ffc107;
+  border: 2px solid #ffc107;
 }

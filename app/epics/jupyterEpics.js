@@ -37,7 +37,6 @@ import {
   EVENTS,
   DEVICES,
   MUSE_CHANNELS,
-  KERNEL_STATUS
 } from "../constants/constants";
 import {
   parseSingleQuoteJSON,

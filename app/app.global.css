@@ -14,12 +14,15 @@ body {
   overflow-y: hidden;
 }
 
+#root {
+  margin-top: 15px;
+}
+
 h2 {
   margin: 0;
   font-size: 2.25rem;
   font-weight: bold;
   letter-spacing: -0.025em;
-  color: #fff;
 }
 
 p {
@@ -31,12 +34,12 @@ li {
 }
 
 a {
-  color: white;
-  opacity: 0.75;
+  color: inherit;
   text-decoration: none;
 }
 
 a:hover {
+  color: inherit;
   opacity: 1;
   text-decoration: none;
   cursor: pointer;

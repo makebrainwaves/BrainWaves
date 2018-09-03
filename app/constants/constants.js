@@ -1,10 +1,18 @@
 export const EXPERIMENTS = {
   NONE: "NONE",
-  P300: "P300",
-  N170: "N170",
-  SSVEP: "SSVEP",
-  STROOP: "STROOP",
-  CUSTOM: "CUSTOM"
+  P300: "P300 Experiment",
+  N170: "Faces Houses Experiment",
+  SSVEP: "SSVEP Experiment",
+  STROOP: "Stroop Task Experiment",
+  CUSTOM: "Custom Experiment"
+};
+
+export const SCREENS = {
+  DESIGN: { route: "/design", title: "REVIEW DESIGN", order: 1 },
+  COLLECT: { route: "/collect", title: "COLLECT", order: 2 },
+  RUN: { route: "/run", title: "RUN", order: 5 },
+  CLEAN: { route: "/clean", title: "CLEAN", order: 3 },
+  ANALYZE: { route: "/analyze", title: "ANALYZE", order: 4 }
 };
 
 export const DEVICES = {

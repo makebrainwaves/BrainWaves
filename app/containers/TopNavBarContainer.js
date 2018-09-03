@@ -1,6 +1,6 @@
 // @flow
 import { connect } from "react-redux";
-import TopNavBar from "../components/TopNavComponent";
+import TopNavComponent from "../components/TopNavComponent";
 
 function mapStateToProps(state) {
   return {
@@ -13,4 +13,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps)(TopNavBar);
+export default connect(mapStateToProps)(TopNavComponent);
