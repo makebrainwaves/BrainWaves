@@ -14,10 +14,10 @@ import { launchSpec } from "spawnteract";
 import { createMainChannel } from "enchannel-zmq-backend";
 import { isNil } from "lodash";
 import { kernelInfoRequest, executeRequest } from "@nteract/messaging";
+import { execute, awaitOkMessage } from "../utils/jupyter/pipes";
 import {
   LAUNCH_KERNEL,
   REQUEST_KERNEL_INFO,
-  SEND_EXECUTE_REQUEST,
   LOAD_EPOCHS,
   LOAD_PSD,
   LOAD_ERP,
@@ -162,22 +162,6 @@ const setUpChannelEpic = action$ =>
     map(setMainChannel)
   );
 
-const requestKernelInfoEpic = (action$, store) =>
-  action$.ofType(REQUEST_KERNEL_INFO).pipe(
-    filter(() => store.getState().jupyter.mainChannel),
-    map(() => store.getState().jupyter.mainChannel.next(kernelInfoRequest())),
-    ignoreElements()
-  );
-
-const sendExecuteRequestEpic = (action$, store) =>
-  action$.ofType(SEND_EXECUTE_REQUEST).pipe(
-    pluck("payload"),
-    map(command =>
-      store.getState().jupyter.mainChannel.next(executeRequest(command))
-    ),
-    ignoreElements()
-  );
-
 const receiveChannelMessageEpic = (action$, store) =>
   action$.ofType(SET_MAIN_CHANNEL).pipe(
     mergeMap(() =>
@@ -205,64 +189,40 @@ const receiveChannelMessageEpic = (action$, store) =>
     )
   );
 
+const requestKernelInfoEpic = (action$, store) =>
+  action$.ofType(REQUEST_KERNEL_INFO).pipe(
+    filter(() => store.getState().jupyter.mainChannel),
+    map(() => store.getState().jupyter.mainChannel.next(kernelInfoRequest())),
+    ignoreElements()
+  );
+
 const loadEpochsEpic = (action$, store) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathArray =>
+    map(filePathsArray =>
       store
         .getState()
         .jupyter.mainChannel.next(
           executeRequest(
-            loadCSV(filePathArray, store.getState().device.deviceType)
+            loadCSV(filePathsArray, store.getState().device.deviceType)
           )
         )
     ),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
-        pluck("payload"),
-        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
-        take(1)
-      )
-    ),
-    map(() =>
+    awaitOkMessage(action$),
+    execute(filterIIR(1, 30), store),
+    awaitOkMessage(action$),
+    execute(
+      epochEvents({ House: EVENTS.HOUSE, Face: EVENTS.FACE }, -0.1, 0.8),
       store
-        .getState()
-        .jupyter.mainChannel.next(executeRequest(filterIIR(1, 30)))
     ),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
-        pluck("payload"),
-        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
-        take(1)
-      )
-    ),
-    map(() =>
-      store
-        .getState()
-        .jupyter.mainChannel.next(
-          executeRequest(
-            epochEvents({ House: EVENTS.HOUSE, Face: EVENTS.FACE }, -0.1, 0.8)
-          )
-        )
-    ),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
-        pluck("payload"),
-        filter(msg => msg.channel === "shell" && msg.content.status === "ok"),
-        take(1)
-      )
-    ),
+    awaitOkMessage(action$),
     map(getEpochsInfo)
   );
 
 const cleanEpochsEpic = (action$, store) =>
   action$.ofType(CLEAN_EPOCHS).pipe(
-    map(() =>
-      store
-        .getState()
-        .jupyter.mainChannel.next(executeRequest(cleanEpochsPlot()))
-    ),
+    execute(cleanEpochsPlot(), store),
     mergeMap(() =>
       action$.ofType(RECEIVE_STREAM).pipe(
         pluck("payload"),
@@ -279,11 +239,7 @@ const cleanEpochsEpic = (action$, store) =>
 
 const getEpochsInfoEpic = (action$, store) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
-    map(() =>
-      store
-        .getState()
-        .jupyter.mainChannel.next(executeRequest(requestEpochsInfo()))
-    ),
+    execute(requestEpochsInfo(), store),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck("payload"),
@@ -297,9 +253,7 @@ const getEpochsInfoEpic = (action$, store) =>
 
 const loadPSDEpic = (action$, store) =>
   action$.ofType(LOAD_PSD).pipe(
-    map(() =>
-      store.getState().jupyter.mainChannel.next(executeRequest(plotPSD()))
-    ),
+    execute(plotPSD(), store),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
@@ -354,7 +308,6 @@ export default combineEpics(
   launchEpic,
   setUpChannelEpic,
   requestKernelInfoEpic,
-  sendExecuteRequestEpic,
   receiveChannelMessageEpic,
   loadEpochsEpic,
   cleanEpochsEpic,
