@@ -8,6 +8,7 @@ export const EXPERIMENTS = {
 };
 
 export const SCREENS = {
+  HOME: { route: "/", title: "HOME", order: 0 },
   DESIGN: { route: "/design", title: "REVIEW DESIGN", order: 1 },
   COLLECT: { route: "/collect", title: "COLLECT", order: 2 },
   RUN: { route: "/run", title: "RUN", order: 5 },

@@ -5,8 +5,10 @@
 }
 
 .experimentTitleSegment {
+  display: flex !important;
+  justify-content: center;
   height: inherit;
-  font-weight: bold;
+  font-size: 18px;
   letter-spacing: 0.5px;
   line-height: 17px;
   color: #1a1a1a;
@@ -21,39 +23,37 @@
 }
 
 .navColumn {
+  display: flex !important;
+  justify-content: center;
   height: inherit;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: bold;
   line-height: 17px;
   letter-spacing: 0.5px;
+  border-style: solid;
+  border-width: 0px;
+  border-bottom-width: 4px;
 }
 
 .initialNavColumn {
   color: #666666;
   border-color: #666666;
+  border-bottom-color: #fff;
 }
 
 .visitedNavColumn {
   color: #1a1a1a;
   border-style: solid;
-  border-width: 0px;
-  border-bottom-width: 4px;
   border-bottom-color: #ffc107;
 }
 
 .activeNavColumn {
   color: #1a1a1a;
-  border-style: solid;
-  border-width: 0px;
-  border-bottom-width: 4px;
   border-bottom-color: #ffc107;
 }
 
 .initialNavColumn:hover {
   color: #1a1a1a;
-  border-style: solid;
-  border-width: 0px;
-  border-bottom-width: 4px;
   border-bottom-color: #ffe69c;
 }
 
@@ -64,6 +64,7 @@
 }
 
 .numberBubble {
+  font-size: 14px;
   display: inline-block;
   border-radius: 50%;
   box-sizing: border-box;

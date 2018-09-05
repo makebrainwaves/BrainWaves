@@ -61,6 +61,42 @@ img {
   width: auto;
 }
 
+/* Semantic UI OVerrides */
+
+.ui.secondary.button {
+  color: #16996d !important;
+  border: 2px solid #16996d;
+  background-color: #ffffff;
+}
+
+.ui.secondary.button:hover {
+  background-color: #e0fff5;
+}
+
+.ui.secondary.button:focus {
+  background-color: #e0fff5;
+}
+
+.ui.secondary.button:active {
+  background-color: #e0fff5;
+}
+
+.ui.primary.button {
+  color: #e0fff5;
+  background-color: #16996d;
+}
+
+.ui.primary.button:hover {
+  background-color: #0b4d37;
+}
+
+.ui.primary.button:focus {
+  background-color: #0b4d37;
+}
+
+ui.primary.button:active {
+  background-color: #0b4d37;
+}
 /* Webview-related styles */
 
 #eegView {

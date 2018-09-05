@@ -3,9 +3,8 @@ import React from "react";
 import { Switch, Route } from "react-router";
 import App from "./containers/App";
 import HomeContainer from "./containers/HomeContainer";
-import ExperimentRunContainer from "./containers/ExperimentRunContainer";
 import ExperimentDesignContainer from "./containers/ExperimentDesignContainer";
-import DeviceConnectContainer from "./containers/DeviceConnectContainer";
+import CollectContainer from "./containers/CollectContainer";
 import AnalyzeContainer from "./containers/AnalyzeContainer";
 import { SCREENS } from "./constants/constants";
 
@@ -13,8 +12,7 @@ export default () => (
   <App>
     <Switch>
       <Route path={SCREENS.ANALYZE.route} component={AnalyzeContainer} />
-      <Route path={SCREENS.COLLECT.route} component={DeviceConnectContainer} />
-      <Route path={SCREENS.RUN.route} component={ExperimentRunContainer} />
+      <Route path={SCREENS.COLLECT.route} component={CollectContainer} />
       <Route
         path={SCREENS.DESIGN.route}
         component={ExperimentDesignContainer}

@@ -18,6 +18,7 @@ export default class TopNavComponent extends Component<Props> {
     if (navSegmentScreen.route === this.props.location.pathname) {
       return styles.activeNavColumn;
     }
+
     const routeOrder = Object.values(SCREENS).find(
       screen => screen.route === navSegmentScreen.route
     ).order;
@@ -57,8 +58,10 @@ export default class TopNavComponent extends Component<Props> {
           {...SCREENS.ANALYZE}
           style={this.getStyleForScreen(SCREENS.ANALYZE)}
         />
-        <Grid.Column width="5">
-          <Button basic size="big" color="green">Save Workspace</Button>
+        <Grid.Column width="6">
+          <Button secondary size="medium">
+            Save Workspace
+          </Button>
         </Grid.Column>
       </Grid>
     );

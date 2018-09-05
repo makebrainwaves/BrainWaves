@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { Grid, Header, Segment, List, Image } from "semantic-ui-react";
 import styles from "./styles/common.css";
-import { EXPERIMENTS } from "../constants/constants";
+import { EXPERIMENTS, SCREENS } from "../constants/constants";
 import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
 
 interface Props {
@@ -52,7 +52,7 @@ export default class Home extends Component<Props> {
                   <List size="medium">
                     <List.Item>
                       <Link
-                        to="/experimentDesign"
+                        to={SCREENS.DESIGN.route}
                         onClick={() =>
                           this.handleExperimentSelect(EXPERIMENTS.N170)
                         }
