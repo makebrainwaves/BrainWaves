@@ -66,7 +66,17 @@ export const loadCSVWithAux = (
 export const filterIIR = (low_cutoff: number, high_cutoff: number) =>
   `raw.filter(${low_cutoff}, ${high_cutoff}, method='iir');`;
 
-export const plotPSD = () => "raw.plot_psd()";
+export const cleanEpochsPlot = () =>
+  [
+    `%matplotlib`,
+    `epochs.plot(scalings='auto')`,
+    `fig = plt.gcf()`,
+    `fig.canvas.manager.window.activateWindow()`,
+    `fig.canvas.manager.window.raise_()`
+  ].join("\n");
+
+export const plotPSD = () =>
+  [`%matplotlib inline`, `raw.plot_psd()`].join("\n");
 
 export const epochEvents = (
   event_ids: { [string]: number },
@@ -84,15 +94,17 @@ export const epochEvents = (
     "events = find_events(raw)",
     `epochs = Epochs(raw, events=events, event_id=event_ids, 
                     tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True, 
-                    verbose=False, picks=picks)`,
-    `{"totalEpochs": len(epochs.events), "dropPercentage": (1 - len(epochs.events)/len(events)) * 100, **{x: len(epochs[x]) for x in event_ids}}`
+                    verbose=False, picks=picks)`
   ].join("\n");
-  console.log(command);
   return command;
 };
 
+export const requestEpochsInfo = () =>
+  `get_epochs_info(epochs, events, event_ids)`;
+
 export const plotERP = (ch_ind: number) =>
   [
+    `%matplotlib inline`,
     `conditions = OrderedDict({key: [value] for (key, value) in event_ids.items()})`,
     `X, y = plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
     ci=97.5, n_boot=1000, title='')`
