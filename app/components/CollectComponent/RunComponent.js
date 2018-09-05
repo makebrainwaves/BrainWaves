@@ -5,17 +5,17 @@ import { Experiment } from "jspsych-react";
 import { debounce } from "lodash";
 import { Link } from "react-router-dom";
 import styles from "./styles/common.css";
-import { injectEmotivMarker } from "../utils/eeg/emotiv";
-import { injectMuseMarker } from "../utils/eeg/muse";
-import callbackHTMLDisplay from "../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
-import { EXPERIMENTS, DEVICES } from "../constants/constants";
-import { parseTimeline, instantiateTimeline } from "../utils/jspsych/functions";
-import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
+import { injectEmotivMarker } from "../../utils/eeg/emotiv";
+import { injectMuseMarker } from "../../utils/eeg/muse";
+import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
+import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
+import { EXPERIMENTS, DEVICES, SCREENS } from "../../constants/constants";
+import { parseTimeline, instantiateTimeline } from "../../utils/jspsych/functions";
+import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
 import {
   readEEGDataDir,
   getCurrentEEGDataDir
-} from "../utils/filesystem/write";
+} from "../../utils/filesystem/write";
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -154,7 +154,7 @@ export default class Run extends Component<Props> {
             </Header>
             {this.renderTrialList()}
           </Segment>
-          <Link to="/analyze">
+          <Link to={SCREENS.ANALYZE.route}>
             <Button>Analyze Data</Button>
           </Link>
         </div>

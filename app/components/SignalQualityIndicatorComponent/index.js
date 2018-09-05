@@ -8,7 +8,7 @@ import { Observable } from "rxjs/Observable";
 import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
 
 interface Props {
-  signalQualityObservable: Observable;
+  signalQualityObservable: ?Observable;
   plottingInterval: number;
 }
 
@@ -21,7 +21,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentDidMount() {
-    this.subscribeToObservable(this.props.signalQualityObservable);
+    if (!isNil(this.props.signalQualityObservable)) {
+      this.subscribeToObservable(this.props.signalQualityObservable);
+    }
   }
 
   componentDidUpdate(prevProps: Props) {
