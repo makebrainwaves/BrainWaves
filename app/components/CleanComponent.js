@@ -10,11 +10,7 @@ import {
 } from "semantic-ui-react";
 import { isNil } from "lodash";
 import styles from "./styles/common.css";
-import {
-  EXPERIMENTS,
-  DEVICES,
-  KERNEL_STATUS
-} from "../constants/constants";
+import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from "../constants/constants";
 import { Kernel } from "../constants/interfaces";
 import { readEEGDataDir } from "../utils/filesystem/write";
 
@@ -23,6 +19,7 @@ interface Props {
   deviceType: DEVICES;
   mainChannel: ?any;
   kernel: ?Kernel;
+  kernelStatus: KERNEL_STATUS;
   epochsInfo: ?{ [string]: number };
   jupyterActions: Object;
 }
@@ -53,7 +50,7 @@ export default class Clean extends Component<Props, State> {
   }
 
   componentWillMount() {
-    if (isNil(this.props.kernel)) {
+    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
       this.props.jupyterActions.launchKernel();
     }
     this.setState({
@@ -98,7 +95,6 @@ export default class Clean extends Component<Props, State> {
           <Grid.Column width={4}>
             <Segment raised padded color="red">
               <Header as="h2">Data Sets</Header>
-
               <Segment basic>
                 <Dropdown
                   placeholder="Select Data Sets"

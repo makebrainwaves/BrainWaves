@@ -265,9 +265,8 @@ const loadPSDEpic = (action$, store) =>
     map(setPSDPlot)
   );
 
-// NOTE: Will auto load when detecting a SET_PSD_PLOT action. check is to pick default channel in that case
 const loadERPEpic = (action$, store) =>
-  action$.ofType(LOAD_ERP, SET_PSD_PLOT).pipe(
+  action$.ofType(LOAD_ERP).pipe(
     pluck("payload"),
     map(channelName => {
       const channels =

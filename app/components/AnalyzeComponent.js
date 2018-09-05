@@ -6,24 +6,20 @@ import {
   Icon,
   Segment,
   Header,
+  Modal,
   Dropdown
 } from "semantic-ui-react";
 import { isNil } from "lodash";
 import styles from "./styles/common.css";
 import {
-  EXPERIMENTS,
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS
 } from "../constants/constants";
-import { Kernel } from "../constants/interfaces";
 import JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
-  type: ?EXPERIMENTS;
   deviceType: DEVICES;
-  mainChannel: ?any;
-  kernel: ?Kernel;
   epochsInfo: ?{ [string]: number };
   psdPlot: ?{ [string]: string };
   erpPlot: ?{ [string]: string };
@@ -32,8 +28,6 @@ interface Props {
 
 export default class Analyze extends Component<Props, State> {
   props: Props;
-  handleDropdownChange: (Object, Object) => void;
-  handleLoadData: () => void;
   handleAnalyze: () => void;
   handleChannelDropdownChange: (Object, Object) => void;
 
@@ -45,14 +39,9 @@ export default class Analyze extends Component<Props, State> {
     );
   }
 
-  componentWillMount() {
-    if (isNil(this.props.kernel)) {
-      this.props.history.push("/clean");
-    }
-  }
-
   handleAnalyze() {
     this.props.jupyterActions.loadPSD();
+    this.props.jupyterActions.loadERP();
   }
 
   handleChannelDropdownChange(e: Object, props: Object) {
@@ -84,12 +73,22 @@ export default class Analyze extends Component<Props, State> {
         : MUSE_CHANNELS;
     return (
       <div className={styles.mainContainer}>
+        <Modal
+          basic
+          open={isNil(this.props.epochsInfo)}
+          header="No Data!"
+          content="Would you like to load some data?"
+          actions={[{ key: "ok", content: "OK", positive: true }]}
+          onActionClick={() => this.props.history.push("/clean")}
+        />
         <Grid columns="equal" relaxed padded>
           <Grid.Column width={4}>
             <Segment raised padded color="red">
               <Header as="h2">Data Sets</Header>
               {this.renderEpochLabels()}
-              <Button onClick={this.handleAnalyze}>Analyze Data</Button>
+              <Button primary onClick={this.handleAnalyze}>
+                Analyze Data
+              </Button>
             </Segment>
           </Grid.Column>
           <Grid.Column width={6}>
