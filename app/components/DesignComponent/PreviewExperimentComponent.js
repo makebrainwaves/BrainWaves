@@ -7,7 +7,8 @@ import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-dis
 import { FILE_TYPES } from "../../constants/constants";
 import {
   parseTimeline,
-  instantiateTimeline
+  instantiateTimeline,
+  getImages
 } from "../../utils/jspsych/functions";
 import { loadFileFromSystemDialog } from "../../utils/filesystem/select";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
@@ -43,6 +44,14 @@ export default class PreviewExperimentComponent extends Component<Props> {
     return timeline;
   }
 
+  handleImages() {
+    return getImages(
+      this.props.mainTimeline,
+      this.props.trials,
+      this.props.timelines
+    );
+  }
+
   async handleCustomExperimentLoad() {
     const timelinePath = await loadFileFromSystemDialog(FILE_TYPES.TIMELINE);
     console.log(timelinePath);
@@ -57,7 +66,8 @@ export default class PreviewExperimentComponent extends Component<Props> {
         settings={{
           timeline: this.handleTimeline(),
           show_progress_bar: true,
-          auto_update_progress_bar: false
+          auto_update_progress_bar: false,
+          preload_images: this.handleImages()
         }}
         plugins={{
           "callback-image-display": callbackImageDisplay,
