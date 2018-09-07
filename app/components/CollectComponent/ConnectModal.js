@@ -1,10 +1,12 @@
 import React, { Component } from "react";
 import { isNil, debounce } from "lodash";
 import { Modal, Button, Segment, Image, List, Header } from "semantic-ui-react";
+import styles from "../styles/collect.css";
 import {
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS
 } from "../../constants/constants";
+import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
 
 interface Props {
   open: boolean;
@@ -101,10 +103,32 @@ export default class ConnectModal extends Component<Props, State> {
   }
 
   renderContent() {
-    return <Modal.Content>Placeholder</Modal.Content>;
+    if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
+      return (
+        <React.Fragment>
+          <Modal.Content image>
+            <Image src={faceHouseIcon} />
+          </Modal.Content>
+          <Modal.Content>Searching for available headset(s)...</Modal.Content>
+        </React.Fragment>
+      );
+    }
+    return (
+      <React.Fragment>
+        <Modal.Header>Headset(s) found</Modal.Header>
+        <Modal.Content>
+          Please select which headset you would like to connect to
+        </Modal.Content>
+        <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
+      </React.Fragment>
+    );
   }
 
   render() {
-    return <Modal open={this.props.open}>{this.renderContent()}</Modal>;
+    return (
+      <Modal basic centered open={this.props.open} onOpen={this.handleSearch}>
+        {this.renderContent()}
+      </Modal>
+    );
   }
 }

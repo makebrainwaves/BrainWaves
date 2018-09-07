@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from "react";
-import { Modal, Button } from "semantic-ui-react";
+import { Modal, Button, Ref } from "semantic-ui-react";
 import styles from "../styles/common.css";
 
 import {
@@ -10,6 +10,7 @@ import {
   DEVICE_AVAILABILITY
 } from "../../constants/constants";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
+import { isNil } from "lodash";
 import PreTestComponent from "./PreTestComponent";
 import ConnectModal from "./ConnectModal";
 
@@ -40,6 +41,7 @@ interface State {
 export default class Collect extends Component<Props, State> {
   props: Props;
   state: State;
+
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -51,8 +53,8 @@ export default class Collect extends Component<Props, State> {
     return (
       <div className={styles.mainContainer}>
         <Modal
-          open={this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
           basic
+          open={this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
           dimmer="inverted"
           size="small"
         >
