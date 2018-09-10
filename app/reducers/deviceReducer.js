@@ -9,14 +9,16 @@ import {
   SET_SIGNAL_OBSERVABLE,
   DEVICE_CLEANUP
 } from "../epics/deviceEpics";
-import { SET_DEVICE_AVAILABILITY } from "../actions/deviceActions";
 import {
   DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY
 } from "../constants/constants";
 import { ActionType, DeviceInfo } from "../constants/interfaces";
-import { SET_DEVICE_TYPE } from "../actions/deviceActions";
+import {
+  SET_DEVICE_AVAILABILITY,
+  SET_DEVICE_TYPE
+} from "../actions/deviceActions";
 
 interface DeviceStateType {
   +client: ?any;
@@ -37,7 +39,7 @@ const initialState = {
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
   signalQualityObservable: null,
-  deviceType: DEVICES.EMOTIV
+  deviceType: DEVICES.MUSE
 };
 
 export default function device(

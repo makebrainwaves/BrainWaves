@@ -71,8 +71,11 @@ img {
 /* Semantic UI OVerrides */
 
 .ui.secondary.button {
-  color: #16996d !important;
-  border: 2px solid #16996d;
+  font-size: 18px;
+  font-weight: normal !important;
+  color: #007c70 !important;
+  border-radius: 4px;
+  border: 2px solid #007c70;
   background-color: #ffffff;
 }
 
@@ -89,8 +92,12 @@ img {
 }
 
 .ui.primary.button {
+  font-size: 18px;
+  font-weight: normal !important;
   color: #e0fff5;
-  background-color: #16996d;
+  border: 2px solid #007c70;
+  background-color: #007c70;
+  border-radius: 4px;
 }
 
 .ui.primary.button:hover {

@@ -210,28 +210,7 @@ export default class Design extends Component<Props, State> {
           </Grid.Row>
           <Grid.Row stretched style={{ height: "100%" }}>
             <Segment padded="very" compact raised color="red">
-<<<<<<< HEAD
-              <Grid columns="equal">
-                <Grid.Column>
-                  <Segment basic>
-                    <Header as="h1">{this.props.type}</Header>
-                  </Segment>
-                  <Segment basic>
-                    <Link
-                      to={SCREENS.COLLECT.route}
-                      onClick={this.handleStartExperiment}
-                    >
-                      <Button color="red">Begin Experiment</Button>
-                    </Link>
-                  </Segment>
-                </Grid.Column>
-                <Grid.Column width={12} textAlign="left">
-                  {this.renderSectionContent()}
-                </Grid.Column>
-              </Grid>
-=======
               {this.renderSectionContent()}
->>>>>>> master
             </Segment>
           </Grid.Row>
         </Grid>

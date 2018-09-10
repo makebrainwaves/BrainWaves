@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { isNil, debounce } from "lodash";
-import { Modal, Button, Segment, Image, List, Header } from "semantic-ui-react";
+import { Modal, Button, Segment, Image, List, Grid } from "semantic-ui-react";
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
@@ -87,17 +87,6 @@ export default class ConnectModal extends Component<Props, State> {
             </List.Item>
           ))}
         </List>
-        <Segment basic>
-          <Button
-            disabled={isNil(this.state.selectedDevice)}
-            onClick={this.handleConnect}
-          >
-            Connect
-          </Button>
-        </Segment>
-        <Segment basic>
-          <Button onClick={this.handleSearch}>Search</Button>
-        </Segment>
       </Segment>
     );
   }
@@ -122,6 +111,28 @@ export default class ConnectModal extends Component<Props, State> {
           Please select which headset you would like to connect to
         </Modal.Content>
         <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
+        <Grid textAlign="center" columns="equal">
+          <Grid.Column>
+            <Button fluid className={styles.secondaryButton}>
+              Back
+            </Button>
+          </Grid.Column>
+          <Grid.Column>
+            <Button
+              fluid
+              className={styles.primaryButton}
+              disabled={isNil(this.state.selectedDevice)}
+              onClick={this.handleConnect}
+            >
+              Connect
+            </Button>
+          </Grid.Column>
+        </Grid>
+        <Modal.Content>
+          <a onClick={() => console.log("help click")}>
+            Don't see your device?
+          </a>
+        </Modal.Content>
       </React.Fragment>
     );
   }
