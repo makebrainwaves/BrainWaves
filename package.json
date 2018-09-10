@@ -230,6 +230,8 @@
     "redux": "^3.7.2",
     "redux-observable": "^0.18.0",
     "redux-thunk": "^2.2.0",
+    "rxjs": "^6.3.2",
+    "rxjs-compat": "^6.3.2",
     "semantic-ui-css": "^2.3.2",
     "semantic-ui-react": "^0.81.1",
     "simplify-js": "^1.2.3",

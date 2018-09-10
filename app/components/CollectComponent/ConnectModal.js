@@ -1,6 +1,14 @@
 import React, { Component } from "react";
 import { isNil, debounce } from "lodash";
-import { Modal, Button, Segment, Image, List, Grid } from "semantic-ui-react";
+import {
+  Modal,
+  Button,
+  Segment,
+  Image,
+  List,
+  Grid,
+  Divider
+} from "semantic-ui-react";
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
@@ -11,7 +19,6 @@ import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
 
 interface Props {
   open: boolean;
-  client: ?any;
   connectedDevice: Object;
   signalQualityObservable: ?any;
   deviceType: DEVICES;
@@ -23,15 +30,18 @@ interface Props {
 
 interface State {
   selectedDevice: ?any;
+  tutorialProgress: number;
 }
 
 export default class ConnectModal extends Component<Props, State> {
   handleConnect: () => void;
   handleSearch: () => void;
+  handleStartTutorial: () => void;
   constructor(props: Props) {
     super(props);
     this.state = {
-      selectedDevice: null
+      selectedDevice: null,
+      tutorialProgress: 0
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
@@ -41,6 +51,10 @@ export default class ConnectModal extends Component<Props, State> {
       leading: true,
       trailing: false
     });
+  }
+
+  getDeviceName(device: any) {
+    return this.props.deviceType === DEVICES.EMOTIV ? device.id : device.name;
   }
 
   handleSearch() {
@@ -53,14 +67,11 @@ export default class ConnectModal extends Component<Props, State> {
     this.props.deviceActions.connectToDevice(this.state.selectedDevice);
   }
 
+  handleStartTutorial() {
+    this.setState({ tutorialProgress: 1 });
+  }
+
   renderAvailableDeviceList() {
-    if (this.props.deviceAvailability === DEVICE_AVAILABILITY.NONE) {
-      return (
-        <Segment basic>
-          <Button onClick={this.handleSearch}>Search</Button>
-        </Segment>
-      );
-    }
     return (
       <Segment basic>
         <List divided relaxed inverted>
@@ -78,11 +89,7 @@ export default class ConnectModal extends Component<Props, State> {
                 onClick={() => this.setState({ selectedDevice: device })}
               />
               <List.Content>
-                <List.Header>
-                  {this.props.deviceType === DEVICES.EMOTIV
-                    ? device.id
-                    : device.name}
-                </List.Header>
+                <List.Header>{this.getDeviceName(device)}</List.Header>
               </List.Content>
             </List.Item>
           ))}
@@ -96,9 +103,23 @@ export default class ConnectModal extends Component<Props, State> {
       return (
         <React.Fragment>
           <Modal.Content image>
-            <Image src={faceHouseIcon} />
+            <Image src={faceHouseIcon} size="tiny" centered />
           </Modal.Content>
           <Modal.Content>Searching for available headset(s)...</Modal.Content>
+        </React.Fragment>
+      );
+    }
+    if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
+      console.log("rendering connector screen", this.state.selectedDevice);
+      return (
+        <React.Fragment>
+          <Modal.Content image>
+            <Image src={faceHouseIcon} size="tiny" centered />
+          </Modal.Content>
+          <Modal.Content>
+            Connecting to {this.getDeviceName(this.state.selectedDevice)}
+            ...
+          </Modal.Content>
         </React.Fragment>
       );
     }
@@ -108,30 +129,31 @@ export default class ConnectModal extends Component<Props, State> {
           Headset(s) found
         </Modal.Header>
         <Modal.Content>
-          Please select which headset you would like to connect to
+          Please select which headset you would like to connect.
         </Modal.Content>
         <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
-        <Grid textAlign="center" columns="equal">
-          <Grid.Column>
-            <Button fluid className={styles.secondaryButton}>
-              Back
-            </Button>
-          </Grid.Column>
-          <Grid.Column>
-            <Button
-              fluid
-              className={styles.primaryButton}
-              disabled={isNil(this.state.selectedDevice)}
-              onClick={this.handleConnect}
-            >
-              Connect
-            </Button>
-          </Grid.Column>
-        </Grid>
+        <Divider section hidden />
         <Modal.Content>
-          <a onClick={() => console.log("help click")}>
-            Don't see your device?
-          </a>
+          <Grid textAlign="center" columns="equal">
+            <Grid.Column>
+              <Button fluid className={styles.secondaryButton}>
+                Back
+              </Button>
+            </Grid.Column>
+            <Grid.Column>
+              <Button
+                fluid
+                className={styles.primaryButton}
+                disabled={isNil(this.state.selectedDevice)}
+                onClick={this.handleConnect}
+              >
+                Connect
+              </Button>
+            </Grid.Column>
+          </Grid>
+        </Modal.Content>
+        <Modal.Content>
+          <a onClick={this.handleStartTutorial}>Don't see your device?</a>
         </Modal.Content>
       </React.Fragment>
     );

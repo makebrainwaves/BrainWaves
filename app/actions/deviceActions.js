@@ -15,8 +15,6 @@ export const connectToDevice = payload => ({
   payload,
   type: CONNECT_TO_DEVICE
 });
-
-export const setDeviceType = payload => ({ payload, type: SET_DEVICE_TYPE });
 export const setConnectionStatus = payload => ({
   payload,
   type: SET_CONNECTION_STATUS

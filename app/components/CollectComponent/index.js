@@ -16,7 +16,6 @@ import ConnectModal from "./ConnectModal";
 
 interface Props {
   experimentActions: Object;
-  client: ?any;
   connectedDevice: Object;
   signalQualityObservable: ?any;
   deviceType: DEVICES;
@@ -75,7 +74,6 @@ export default class Collect extends Component<Props, State> {
         </Modal>
         <ConnectModal
           open={this.state.isConnectModalOpen}
-          client={this.props.client}
           connectedDevice={this.props.connectedDevice}
           signalQualityObservable={this.props.signalQualityObservable}
           deviceType={this.props.deviceType}
@@ -85,7 +83,6 @@ export default class Collect extends Component<Props, State> {
           availableDevices={this.props.availableDevices}
         />
         <PreTestComponent
-          client={this.props.client}
           connectedDevice={this.props.connectedDevice}
           signalQualityObservable={this.props.signalQualityObservable}
           deviceType={this.props.deviceType}

@@ -10,7 +10,10 @@ import { injectMuseMarker } from "../../utils/eeg/muse";
 import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
 import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
 import { EXPERIMENTS, DEVICES, SCREENS } from "../../constants/constants";
-import { parseTimeline, instantiateTimeline } from "../../utils/jspsych/functions";
+import {
+  parseTimeline,
+  instantiateTimeline
+} from "../../utils/jspsych/functions";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
 import {
   readEEGDataDir,
@@ -23,11 +26,9 @@ interface Props {
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
   timelines: { [string]: Timeline };
-  // dir: ?string,
   subject: string;
   session: number;
   deviceType: DEVICES;
-  client: ?any;
   experimentActions: Object;
 }
 
@@ -74,7 +75,7 @@ export default class Run extends Component<Props> {
         this.props.trials,
         this.props.timelines
       ),
-      (value, time) => injectionFunction(this.props.client, value, time), // event callback
+      (value, time) => injectionFunction(value, time), // event callback
       null, // start callback
       this.props.experimentActions.stop // stop callback
     );

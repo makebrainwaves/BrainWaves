@@ -7,7 +7,6 @@ import { PLOTTING_INTERVAL } from "../../constants/constants";
 
 interface Props {
   experimentActions: Object;
-  client: ?any;
   connectedDevice: Object;
   signalQualityObservable: ?any;
   deviceType: DEVICES;
