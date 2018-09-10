@@ -46,6 +46,8 @@ export const DEVICE_AVAILABILITY = {
   AVAILABLE: "AVAILABLE"
 };
 
+export const SEARCH_TIMER = 300000;
+
 export const EVENTS = {
   FACE: 1,
   HOUSE: 2,

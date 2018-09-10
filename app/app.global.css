@@ -53,7 +53,7 @@ a:hover {
 }
 
 img {
-  max-width: 100%;
+  max-width: 100% !important;
 }
 
 .jspsych-display-element {
@@ -69,6 +69,10 @@ img {
 }
 
 /* Semantic UI OVerrides */
+
+.ui.modal > .image.content {
+  display: block;
+}
 
 .ui.secondary.button {
   font-size: 18px;

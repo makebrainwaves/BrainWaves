@@ -24,6 +24,7 @@ import {
   CONNECTION_STATUS,
   DEVICES,
   DEVICE_AVAILABILITY,
+  SEARCH_TIMER,
   PLOTTING_INTERVAL,
   EMOTIV_CHANNELS,
   MUSE_CHANNELS
@@ -46,7 +47,7 @@ const deviceFound = payload => ({
   type: DEVICE_FOUND
 });
 
-export const setDeviceType = payload => ({
+const setDeviceType = payload => ({
   payload,
   type: SET_DEVICE_TYPE
 });
@@ -128,6 +129,20 @@ const deviceFoundEpic = (action$, store) =>
         setDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE)
       )
     )
+  );
+
+const searchTimerEpic = (action$, store) =>
+  action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
+    pluck("payload"),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
+    tap(() => console.log('tuimer start')),
+    mergeMap(() => Observable.timer(SEARCH_TIMER)),
+    tap(() => console.log('tuimer fired')),
+    filter(
+      () =>
+        store.getState().device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+    ),
+    map(() => setDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
 const connectEpic = action$ =>
@@ -214,6 +229,7 @@ const rootEpic = (action$, state$) =>
     searchMuseEpic,
     searchEmotivEpic,
     deviceFoundEpic,
+    searchTimerEpic,
     connectEpic,
     isConnectingEpic,
     setRawObservableEpic

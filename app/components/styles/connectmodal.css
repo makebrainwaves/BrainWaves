@@ -2,6 +2,7 @@
   color: #fff;
   font-size: 18px !important;
   width: 25% !important;
+  text-align: center;
 }
 
 .connectModal a {
@@ -14,6 +15,10 @@
   letter-spacing: 1.29px !important;
   line-height: 44px !important;
   font-weight: normal !important;
+}
+
+.searchingText {
+  text-align: center !important;
 }
 
 .deviceItem {

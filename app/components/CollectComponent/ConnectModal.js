@@ -15,7 +15,7 @@ import {
   CONNECTION_STATUS
 } from "../../constants/constants";
 import styles from "../styles/connectmodal.css";
-import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
+import blake from "../../assets/face_house/faces/Blake_1.jpg";
 
 interface Props {
   open: boolean;
@@ -51,6 +51,17 @@ export default class ConnectModal extends Component<Props, State> {
       leading: true,
       trailing: false
     });
+    this.handleTutorialProgress = this.handleTutorialProgress.bind(this);
+  }
+
+  componentWillUpdate(nextProps: Props) {
+    console.log(this.props.deviceAvailability, nextProps.deviceAvailability);
+    if (
+      nextProps.deviceAvailability === DEVICE_AVAILABILITY.NONE &&
+      this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+    ) {
+      this.setState({ tutorialProgress: 1 });
+    }
   }
 
   getDeviceName(device: any) {
@@ -58,6 +69,7 @@ export default class ConnectModal extends Component<Props, State> {
   }
 
   handleSearch() {
+    this.setState({ tutorialProgress: 0 });
     this.props.deviceActions.setDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
@@ -67,8 +79,8 @@ export default class ConnectModal extends Component<Props, State> {
     this.props.deviceActions.connectToDevice(this.state.selectedDevice);
   }
 
-  handleStartTutorial() {
-    this.setState({ tutorialProgress: 1 });
+  handleTutorialProgress(step: number) {
+    this.setState({ tutorialProgress: step });
   }
 
   renderAvailableDeviceList() {
@@ -103,9 +115,11 @@ export default class ConnectModal extends Component<Props, State> {
       return (
         <React.Fragment>
           <Modal.Content image>
-            <Image src={faceHouseIcon} size="tiny" centered />
+            <Image src={blake} size="tiny" centered />
           </Modal.Content>
-          <Modal.Content>Searching for available headset(s)...</Modal.Content>
+          <Modal.Content className={styles.searchingText}>
+            Searching for available headset(s)...
+          </Modal.Content>
         </React.Fragment>
       );
     }
@@ -114,49 +128,135 @@ export default class ConnectModal extends Component<Props, State> {
       return (
         <React.Fragment>
           <Modal.Content image>
-            <Image src={faceHouseIcon} size="tiny" centered />
+            <Image src={blake} size="tiny" centered />
           </Modal.Content>
-          <Modal.Content>
+          <Modal.Content className={styles.searchingText}>
             Connecting to {this.getDeviceName(this.state.selectedDevice)}
             ...
           </Modal.Content>
         </React.Fragment>
       );
     }
-    return (
-      <React.Fragment>
-        <Modal.Header className={styles.connectHeader}>
-          Headset(s) found
-        </Modal.Header>
-        <Modal.Content>
-          Please select which headset you would like to connect.
-        </Modal.Content>
-        <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
-        <Divider section hidden />
-        <Modal.Content>
-          <Grid textAlign="center" columns="equal">
-            <Grid.Column>
-              <Button fluid className={styles.secondaryButton}>
-                Back
-              </Button>
-            </Grid.Column>
-            <Grid.Column>
-              <Button
-                fluid
-                className={styles.primaryButton}
-                disabled={isNil(this.state.selectedDevice)}
-                onClick={this.handleConnect}
-              >
-                Connect
-              </Button>
-            </Grid.Column>
-          </Grid>
-        </Modal.Content>
-        <Modal.Content>
-          <a onClick={this.handleStartTutorial}>Don't see your device?</a>
-        </Modal.Content>
-      </React.Fragment>
-    );
+    if (this.state.tutorialProgress === 1) {
+      return (
+        <React.Fragment>
+          <Modal.Header className={styles.connectHeader}>
+            Turn your headset on
+          </Modal.Header>
+          <Modal.Content>
+            Make sure your headset is on and fully charged.
+            <p />
+            If the headset needs charging, set the power switch to off and plug
+            in the headset. <b>Do not charge the headset while wearing it</b>
+          </Modal.Content>
+          <Modal.Content>
+            <Grid textAlign="center" columns="equal">
+              <Grid.Column>
+                <Button
+                  fluid
+                  className={styles.secondaryButton}
+                  onClick={() => this.handleTutorialProgress(0)}
+                >
+                  Back
+                </Button>
+              </Grid.Column>
+              <Grid.Column>
+                <Button
+                  fluid
+                  className={styles.primaryButton}
+                  onClick={() => this.handleTutorialProgress(2)}
+                >
+                  Next
+                </Button>
+              </Grid.Column>
+            </Grid>
+          </Modal.Content>
+        </React.Fragment>
+      );
+    }
+    if (this.state.tutorialProgress === 2) {
+      return (
+        <React.Fragment>
+          <Modal.Header className={styles.connectHeader}>
+            Insert the USB Receiver
+          </Modal.Header>
+          <Modal.Content>
+            Inser the USB receiver into a USB port on your computer. Ensure that
+            the LED on the receiver is continously lit or flickering rapidly. If
+            it is blinking slowly or not illuminated, remove and reinsert the
+            receiver
+          </Modal.Content>
+          <Modal.Content>
+            <Grid textAlign="center" columns="equal">
+              <Grid.Column>
+                <Button
+                  fluid
+                  className={styles.secondaryButton}
+                  onClick={() => this.handleTutorialProgress(1)}
+                >
+                  Back
+                </Button>
+              </Grid.Column>
+              <Grid.Column>
+                <Button
+                  fluid
+                  className={styles.primaryButton}
+                  onClick={this.handleSearch}
+                >
+                  Next
+                </Button>
+              </Grid.Column>
+            </Grid>
+          </Modal.Content>
+        </React.Fragment>
+      );
+    }
+    if (this.props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE) {
+      return (
+        <React.Fragment>
+          <Modal.Header className={styles.connectHeader}>
+            Headset(s) found
+          </Modal.Header>
+          <Modal.Content>
+            Please select which headset you would like to connect.
+          </Modal.Content>
+          <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
+          <Divider section hidden />
+          <Modal.Content>
+            <Grid textAlign="center" columns="equal">
+              <Grid.Column>
+                <Button
+                  fluid
+                  className={styles.secondaryButton}
+                  onClick={() => this.handleTutorialProgress(1)}
+                >
+                  Back
+                </Button>
+              </Grid.Column>
+              <Grid.Column>
+                <Button
+                  fluid
+                  className={styles.primaryButton}
+                  disabled={isNil(this.state.selectedDevice)}
+                  onClick={this.handleConnect}
+                >
+                  Connect
+                </Button>
+              </Grid.Column>
+            </Grid>
+          </Modal.Content>
+          <Modal.Content>
+            <a
+              role="link"
+              tabIndex={0}
+              onClick={() => this.handleTutorialProgress(1)}
+            >
+              Don't see your device?
+            </a>
+          </Modal.Content>
+        </React.Fragment>
+      );
+    }
   }
 
   render() {
