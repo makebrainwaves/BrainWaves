@@ -10,12 +10,19 @@ body {
   position: relative;
   height: 100vh;
   background: rgba(255, 255, 255, 0.2);
-  font-family: Lato, Helvetica Neue, serif;
+  font-family: Lato, Helvetica Neue, sans-serif;
   overflow-y: hidden;
 }
 
 #root {
   margin-top: 15px;
+}
+
+h1 {
+  font-size: 36px;
+  letter-spacing: 1.29px;
+  line-height: 44px;
+  font-weight: normal;
 }
 
 h2 {
@@ -26,7 +33,7 @@ h2 {
 }
 
 p {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 li {
@@ -100,7 +107,15 @@ img {
 
 .ui.dimmer {
   top: 60px !important;
-  background-color: #16996d;
+  background-image: linear-gradient(#43968d, #007c70);
+}
+
+.ui.dimmer.inverted {
+  background-image: none;
+}
+
+.ui.modal > .header {
+  border-style: none !important;
 }
 
 /* Webview-related styles */

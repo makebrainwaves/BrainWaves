@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { isNil, debounce } from "lodash";
 import { Modal, Button, Segment, Image, List, Header } from "semantic-ui-react";
-import styles from "../styles/collect.css";
 import {
+  DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS
 } from "../../constants/constants";
+import styles from "../styles/connectmodal.css";
 import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
 
 interface Props {
@@ -62,10 +63,9 @@ export default class ConnectModal extends Component<Props, State> {
     }
     return (
       <Segment basic>
-        <Header as="h4">Available Devices:</Header>
-        <List divided relaxed>
+        <List divided relaxed inverted>
           {this.props.availableDevices.map((device, index) => (
-            <List.Item key={index}>
+            <List.Item className={styles.deviceItem} key={index}>
               <List.Icon
                 link
                 name={
@@ -115,7 +115,9 @@ export default class ConnectModal extends Component<Props, State> {
     }
     return (
       <React.Fragment>
-        <Modal.Header>Headset(s) found</Modal.Header>
+        <Modal.Header className={styles.connectHeader}>
+          Headset(s) found
+        </Modal.Header>
         <Modal.Content>
           Please select which headset you would like to connect to
         </Modal.Content>
@@ -126,7 +128,13 @@ export default class ConnectModal extends Component<Props, State> {
 
   render() {
     return (
-      <Modal basic centered open={this.props.open} onOpen={this.handleSearch}>
+      <Modal
+        basic
+        centered
+        open={this.props.open}
+        onOpen={this.handleSearch}
+        className={styles.connectModal}
+      >
         {this.renderContent()}
       </Modal>
     );

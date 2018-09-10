@@ -41,12 +41,21 @@ interface State {
 export default class Collect extends Component<Props, State> {
   props: Props;
   state: State;
+  handleStartConnect: () => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
       isConnectModalOpen: false
     };
+    this.handleStartConnect = this.handleStartConnect.bind(this);
+  }
+
+  handleStartConnect() {
+    this.setState({ isConnectModalOpen: true });
+    this.props.deviceActions.setDeviceAvailability(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
   }
 
   render() {
@@ -59,10 +68,7 @@ export default class Collect extends Component<Props, State> {
           size="small"
         >
           <Modal.Actions>
-            <Button
-              primary
-              onClick={() => this.setState({ isConnectModalOpen: true })}
-            >
+            <Button primary onClick={this.handleStartConnect}>
               Connect Device
             </Button>
           </Modal.Actions>
