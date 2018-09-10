@@ -84,3 +84,42 @@ export const instantiateTimeline = (
     }
     return jspsychObject;
   });
+
+// Returns an array of images that are used in a timeline for use in preloading
+export const getImages = (
+  mainTimeline: MainTimeline,
+  trials: { [string]: Trial },
+  timelines: { [string]: Timeline }
+) => {
+  const images = [];
+  Object.values(timelines).forEach(element => {
+    if ("timeline" in element) {
+      element["timeline"].forEach(trial => {
+        if (isImagePath(trial["stimulus"])) {
+          images.push(trial["stimulus"]);
+        }
+      });
+    }
+    if ("timeline_variables" in element) {
+      element["timeline_variables"].forEach(timelineVariable => {
+        if (isImagePath(timelineVariable["stimulusVar"])) {
+          images.push(timelineVariable["stimulusVar"]);
+        }
+      });
+    }
+  });
+  console.log("images", images);
+  return images;
+};
+
+const isImagePath = (unknown: any) => {
+  if (typeof unknown === "string") {
+    if (unknown.slice(-3) === "jpg") {
+      return true;
+    }
+    if (unknown.slice(-3) === "png") {
+      return true;
+    }
+  }
+  return false;
+};

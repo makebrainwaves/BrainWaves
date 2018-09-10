@@ -9,7 +9,6 @@ import {
   Image,
   List
 } from "semantic-ui-react";
-import { Link } from "react-router-dom";
 import { isNil } from "lodash";
 import styles from "../styles/common.css";
 import { EXPERIMENTS, SCREENS } from "../../constants/constants";
@@ -46,7 +45,8 @@ export default class Design extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: DESIGN_STEPS.OVERVIEW
+      activeStep: DESIGN_STEPS.OVERVIEW,
+      isPreviewing: false
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -68,6 +68,21 @@ export default class Design extends Component<Props, State> {
       this.props.experimentActions.loadDefaultTimeline();
     }
     this.setState({ isPreviewing: !this.state.isPreviewing });
+  }
+
+  renderPreviewButton() {
+    if (!this.state.isPreviewing) {
+      return (
+        <Button secondary onClick={this.handlePreview}>
+          Preview Experiment
+        </Button>
+      );
+    }
+    return (
+      <Button negative onClick={this.handlePreview}>
+        Stop Preview
+      </Button>
+    );
   }
 
   renderSectionContent() {
@@ -95,38 +110,50 @@ export default class Design extends Component<Props, State> {
         );
       case DESIGN_STEPS.PROTOCOL:
         return (
-          <Segment basic>
-            <List relaxed ordered>
-              <List.Item>
-                Connect EEG device and put subject in a quiet area free from
-                distraction
-              </List.Item>
-              <List.Item>
-                EEG device should be adjusted to obtain high signal quality
-              </List.Item>
-              <List.Item>
-                Subject will view a series of images of faces and houses for 120
-                seconds
-              </List.Item>
-              <List.Item>
-                While keeping face and body relaxed, subject should mentally
-                note which stimulus they are perceiving
-              </List.Item>
-              <List.Item>
-                Experiment should be repeated 4-6 times to maximise the amount
-                of data collected
-              </List.Item>
-              <List.Item>
-                EEG data will be filtered and segmented into epochs immediately
-                around viewing faces and houses
-              </List.Item>
-              <List.Item>
-                Face and House epochs will be averaged to display the typical
-                waveform and reveal ERPs
-              </List.Item>
-            </List>
-            <Button onClick={this.handlePreview}>Preview Experiment</Button>
-          </Segment>
+          <Grid columns="equal">
+            <Grid.Column width={6}>
+              <PreviewExperimentComponent
+                isPreviewing={this.state.isPreviewing}
+                mainTimeline={this.props.mainTimeline}
+                trials={this.props.trials}
+                timelines={this.props.timelines}
+              />
+            </Grid.Column>
+            <Grid.Column width={6}>
+              <Segment basic>
+                <List relaxed ordered>
+                  <List.Item>
+                    Connect EEG device and put subject in a quiet area free from
+                    distraction
+                  </List.Item>
+                  <List.Item>
+                    EEG device should be adjusted to obtain high signal quality
+                  </List.Item>
+                  <List.Item>
+                    Subject will view a series of images of faces and houses for
+                    120 seconds
+                  </List.Item>
+                  <List.Item>
+                    While keeping face and body relaxed, subject should mentally
+                    note which stimulus they are perceiving
+                  </List.Item>
+                  <List.Item>
+                    Experiment should be repeated 4-6 times to maximise the
+                    amount of data collected
+                  </List.Item>
+                  <List.Item>
+                    EEG data will be filtered and segmented into epochs
+                    immediately around viewing faces and houses
+                  </List.Item>
+                  <List.Item>
+                    Face and House epochs will be averaged to display the
+                    typical waveform and reveal ERPs
+                  </List.Item>
+                </List>
+                {this.renderPreviewButton()}
+              </Segment>
+            </Grid.Column>
+          </Grid>
         );
       case DESIGN_STEPS.OVERVIEW:
       default:
@@ -153,18 +180,6 @@ export default class Design extends Component<Props, State> {
   }
 
   render() {
-    if (this.state.isPreviewing) {
-      return (
-        <div className={styles.mainContainer}>
-          <Button icon="arrow left" onClick={this.handlePreview} />
-          <PreviewExperimentComponent
-            mainTimeline={this.props.mainTimeline}
-            trials={this.props.trials}
-            timelines={this.props.timelines}
-          />
-        </div>
-      );
-    }
     return (
       <div className={styles.mainContainer}>
         <Grid columns={1} centered style={{ height: "50%" }}>
@@ -195,6 +210,7 @@ export default class Design extends Component<Props, State> {
           </Grid.Row>
           <Grid.Row stretched style={{ height: "100%" }}>
             <Segment padded="very" compact raised color="red">
+<<<<<<< HEAD
               <Grid columns="equal">
                 <Grid.Column>
                   <Segment basic>
@@ -213,6 +229,9 @@ export default class Design extends Component<Props, State> {
                   {this.renderSectionContent()}
                 </Grid.Column>
               </Grid>
+=======
+              {this.renderSectionContent()}
+>>>>>>> master
             </Segment>
           </Grid.Row>
         </Grid>
