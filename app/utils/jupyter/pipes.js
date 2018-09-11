@@ -4,11 +4,11 @@ import { executeRequest } from "@nteract/messaging";
 import { RECEIVE_EXECUTE_REPLY } from "../../epics/jupyterEpics";
 
 // Refactor this so command can be calculated either up stream or inside pipe
-export const execute = (command, store) => source =>
+export const execute = (command, state$) => source =>
   createPipe(
     source,
     map(() =>
-      store.getState().jupyter.mainChannel.next(executeRequest(command))
+      state$.value.jupyter.mainChannel.next(executeRequest(command))
     )
   );
 

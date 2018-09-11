@@ -1,8 +1,6 @@
 import React, { Component } from "react";
-import { NavLink } from "react-router-dom";
-import { Observable } from "rxjs/Observable";
-import { Segment, Header, Grid, Button, Icon } from "semantic-ui-react";
-import { EXPERIMENTS, SCREENS, DEVICES } from "../../constants/constants";
+import { Grid, Button } from "semantic-ui-react";
+import { EXPERIMENTS, SCREENS } from "../../constants/constants";
 import styles from "../styles/topnavbar.css";
 import PrimaryNavSegment from "./PrimaryNavSegment";
 

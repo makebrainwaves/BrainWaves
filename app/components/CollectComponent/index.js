@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from "react";
-import { Modal, Button, Ref } from "semantic-ui-react";
+import { Modal, Button, Ref, Segment } from "semantic-ui-react";
 import styles from "../styles/common.css";
 
 import {
@@ -41,6 +41,7 @@ export default class Collect extends Component<Props, State> {
   props: Props;
   state: State;
   handleStartConnect: () => void;
+  handleConnectModalClose: () => void;
 
   constructor(props: Props) {
     super(props);
@@ -48,7 +49,17 @@ export default class Collect extends Component<Props, State> {
       isConnectModalOpen: false
     };
     this.handleStartConnect = this.handleStartConnect.bind(this);
+    this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
   }
+
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
+    if (
+      this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
+      prevState.isConnectModalOpen
+    ) {
+      this.setState({ isConnectModalOpen: false });
+    }
+  };
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
@@ -57,23 +68,29 @@ export default class Collect extends Component<Props, State> {
     );
   }
 
+  handleConnectModalClose() {
+    this.setState({ isConnectModalOpen: false });
+  }
+
   render() {
     return (
       <div className={styles.mainContainer}>
         <Modal
           basic
+          centered
           open={this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
           dimmer="inverted"
           size="small"
         >
-          <Modal.Actions>
+          <Segment basic textAlign="center">
             <Button primary onClick={this.handleStartConnect}>
               Connect Device
             </Button>
-          </Modal.Actions>
+          </Segment>
         </Modal>
         <ConnectModal
           open={this.state.isConnectModalOpen}
+          onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
           signalQualityObservable={this.props.signalQualityObservable}
           deviceType={this.props.deviceType}

@@ -47,35 +47,35 @@ const cleanup = () => ({
 // -------------------------------------------------------------------------
 // Epics
 
-const loadDefaultTimelineEpic = (action$, store) =>
+const loadDefaultTimelineEpic = (action$, state$) =>
   action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
-    map(() => store.getState().experiment.type),
+    map(() => state$.value.experiment.type),
     map(loadTimeline),
     map(setTimeline)
   );
 
-const startEpic = (action$, store) =>
+const startEpic = (action$, state$) =>
   action$.ofType(START).pipe(
     filter(
       () =>
-        !store.getState().experiment.isRunning &&
-        store.getState().device.rawObservable &&
-        store.getState().experiment.subject !== ""
+        !state$.value.experiment.isRunning &&
+        state$.value.device.rawObservable &&
+        state$.value.experiment.subject !== ""
     ),
     map(() => {
       const writeStream = createEEGWriteStream(
-        store.getState().experiment.type,
-        store.getState().experiment.subject,
-        store.getState().experiment.session
+        state$.value.experiment.type,
+        state$.value.experiment.subject,
+        state$.value.experiment.session
       );
 
       writeHeader(
         writeStream,
-        store.getState().device.deviceType === DEVICES.EMOTIV
+        state$.value.device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS
       );
-      store
+      state$.value
         .getState()
         .device.rawObservable.pipe(
           takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP))
@@ -89,10 +89,10 @@ const startEpic = (action$, store) =>
 const experimentStopEpic = action$ =>
   action$.ofType(STOP).pipe(map(() => setIsRunning(false)));
 
-const sessionCountEpic = (action$, store) =>
+const sessionCountEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
-    filter(() => store.getState().experiment.isRunning),
-    map(() => setSession(store.getState().experiment.session + 1))
+    filter(() => state$.value.experiment.isRunning),
+    map(() => setSession(state$.value.experiment.session + 1))
   );
 
 const navigationCleanupEpic = action$ =>

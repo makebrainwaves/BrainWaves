@@ -3,8 +3,7 @@ import React, { Component } from "react";
 import { isNil } from "lodash";
 import { Segment } from "semantic-ui-react";
 import * as d3 from "d3";
-import { Subscription } from "rxjs";
-import { Observable } from "rxjs/Observable";
+import { Observable, Subscription } from "rxjs";
 import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
 
 interface Props {

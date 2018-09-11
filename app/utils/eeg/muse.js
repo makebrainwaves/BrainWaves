@@ -4,7 +4,7 @@ import { MUSE_SAMPLING_RATE } from "../../constants/constants";
 
 const bluetooth = require("bleat").webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
-const { Observable } = require("rxjs");
+const { from } = require("rxjs");
 
 const INTER_SAMPLE_INTERVAL = (1 / 256) * 1000;
 
@@ -46,7 +46,7 @@ export const createRawMuseObservable = async () => {
   await client.start();
   const eegStream = await client.eegReadings;
   const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
-  return Observable.from(zipSamples(eegStream)).pipe(
+  return from(zipSamples(eegStream)).pipe(
     withLatestFrom(markers, synchronizeTimestamp),
     share()
   );

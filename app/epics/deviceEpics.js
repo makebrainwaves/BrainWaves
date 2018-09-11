@@ -1,7 +1,7 @@
 import { combineEpics } from "redux-observable";
-import { Observable } from "rxjs";
+import { of, from, timer } from "rxjs";
 import { map, pluck, mergeMap, tap, filter, catchError } from "rxjs/operators";
-import { epoch, bandpassFilter, addInfo } from "eeg-pipes";
+import { epoch, bandpassFilter, addInfo } from "@neurosity/pipes";
 import { isNil, union } from "lodash";
 import { addSignalQuality, colorSignalQuality } from "../utils/eeg/pipes";
 import {
@@ -77,12 +77,15 @@ const cleanup = () => ({ type: DEVICE_CLEANUP });
 // -------------------------------------------------------------------------
 // Epics
 
-// NOTE: Uses a Promise.then inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
+// NOTE: Uses a Promise.then inside b/c from leads to loss of user gesture propagation for web bluetooth
 const searchMuseEpic = action$ =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
+    tap(() => console.log("searchMuse")),
     pluck("payload"),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
+    tap(() => console.log("passed Filter")),
     map(getMuse),
+    tap(() => console.log("gettingMuse")),
     mergeMap(promise =>
       promise.then(
         devices => devices,
@@ -92,6 +95,7 @@ const searchMuseEpic = action$ =>
         }
       )
     ),
+    tap(() => console.log("found devices")),
     filter(devices => devices.length >= 1),
     map(deviceFound)
   );
@@ -116,31 +120,31 @@ const searchEmotivEpic = action$ =>
     map(deviceFound)
   );
 
-const deviceFoundEpic = (action$, store) =>
+const deviceFoundEpic = (action$, state$) =>
   action$.ofType(DEVICE_FOUND).pipe(
     pluck("payload"),
     tap(devices => console.log(devices)),
     map(foundDevices =>
-      union(foundDevices, store.getState().device.availableDevices)
+      union(foundDevices, state$.value.device.availableDevices)
     ),
     mergeMap(devices =>
-      Observable.of(
+      of(
         setAvailableDevices(devices),
         setDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE)
       )
     )
   );
 
-const searchTimerEpic = (action$, store) =>
+const searchTimerEpic = (action$, state$) =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck("payload"),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
-    tap(() => console.log('tuimer start')),
-    mergeMap(() => Observable.timer(SEARCH_TIMER)),
-    tap(() => console.log('tuimer fired')),
+    tap(() => console.log("timer start")),
+    mergeMap(() => timer(SEARCH_TIMER)),
+    tap(() => console.log("timer fired")),
     filter(
       () =>
-        store.getState().device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+        state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
     ),
     map(() => setDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
@@ -163,7 +167,7 @@ const connectEpic = action$ =>
     ),
     mergeMap(deviceInfo => {
       if (deviceInfo) {
-        return Observable.of(
+        return of(
           setDeviceType(
             deviceInfo.name.includes("Muse") ? DEVICES.MUSE : DEVICES.EMOTIV
           ),
@@ -171,7 +175,7 @@ const connectEpic = action$ =>
           setConnectionStatus(CONNECTION_STATUS.CONNECTED)
         );
       }
-      return Observable.of(setConnectionStatus(CONNECTION_STATUS.DISCONNECTED));
+      return of(setConnectionStatus(CONNECTION_STATUS.DISCONNECTED));
     })
   );
 
@@ -180,25 +184,25 @@ const isConnectingEpic = action$ =>
     .ofType(CONNECT_TO_DEVICE)
     .pipe(map(() => setConnectionStatus(CONNECTION_STATUS.CONNECTING)));
 
-const setRawObservableEpic = (action$, store) =>
+const setRawObservableEpic = (action$, state$) =>
   action$.ofType(SET_DEVICE_INFO).pipe(
     mergeMap(() => {
-      if (store.getState().device.deviceType === DEVICES.EMOTIV) {
-        return Observable.from(createRawEmotivObservable());
+      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
+        return from(createRawEmotivObservable());
       }
-      return Observable.from(createRawMuseObservable());
+      return from(createRawMuseObservable());
     }),
     mergeMap(observable => {
       const samplingRate =
-        store.getState().device.deviceType === DEVICES.EMOTIV ? 128 : 256;
+        state$.value.device.deviceType === DEVICES.EMOTIV ? 128 : 256;
       const channelNames =
-        store.getState().device.deviceType === DEVICES.EMOTIV
+        state$.value.device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS;
       const nbChannels =
-        store.getState().device.deviceType === DEVICES.EMOTIV ? 14 : 5;
+        state$.value.device.deviceType === DEVICES.EMOTIV ? 14 : 5;
       const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
-      return Observable.of(
+      return of(
         setRawObservable(observable),
         setSignalQualityObservable(
           observable.pipe(
@@ -235,7 +239,7 @@ const rootEpic = (action$, state$) =>
     setRawObservableEpic
   )(action$, state$).pipe(
     catchError(error =>
-      Observable.of(error).pipe(
+      of(error).pipe(
         tap(console.log),
         map(cleanup)
       )

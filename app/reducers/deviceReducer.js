@@ -1,5 +1,5 @@
 // @flow
-import { Observable } from "rxjs/Observable";
+import { Observable } from "rxjs";
 import {
   SET_DEVICE_INFO,
   SET_DEVICE_TYPE,

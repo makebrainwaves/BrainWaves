@@ -3,7 +3,7 @@
  * an RxJS Observable of raw EEG data
  *
  */
-import { Observable } from "rxjs";
+import { fromEvent } from "rxjs";
 import { map } from "rxjs/operators";
 import {
   USERNAME,
@@ -57,7 +57,7 @@ export const connectToEmotiv = device =>
 export const createRawEmotivObservable = async () => {
   const subs = await client.subscribe({ streams: ["eeg"] });
   if (!subs[0].eeg) throw new Error("failed to subscribe");
-  return Observable.fromEvent(client, "eeg").pipe(map(createEEGSample));
+  return fromEvent(client, "eeg").pipe(map(createEEGSample));
 };
 
 export const injectEmotivMarker = (value, time) => {

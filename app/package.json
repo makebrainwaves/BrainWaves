@@ -17,7 +17,7 @@
   "dependencies": {
     "babel-runtime": "^6.26.0",
     "bleat": "^0.1.8",
-    "eeg-pipes": "^2.0.3",
+    "@neurosity/pipes": "^3.2.1",
     "enchannel-zmq-backend": "^6.0.11",
     "kernelspecs": "^2.0.0",
     "noble-winrt": "^0.1.0",
