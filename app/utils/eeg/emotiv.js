@@ -26,6 +26,8 @@ export const getEmotiv = async () => {
   return devices;
 };
 
+console.log(USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET, LICENSE_ID);
+
 export const connectToEmotiv = device =>
   client.ready
     .then(() =>

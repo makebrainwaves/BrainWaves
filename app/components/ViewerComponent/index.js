@@ -67,6 +67,14 @@ class ViewerComponent extends Component<Props, State> {
     ) {
       this.subscribeToObservable(this.props.signalQualityObservable);
     }
+    if (this.props.deviceType !== prevProps.deviceType) {
+      this.setState({
+        channels:
+          this.props.deviceType === DEVICES.MUSE
+            ? MUSE_CHANNELS
+            : EMOTIV_CHANNELS
+      });
+    }
     if (this.state.channels !== prevState.channels) {
       this.graphView.send("updateChannels", this.state.channels);
     }

@@ -65,7 +65,7 @@ export default class ConnectModal extends Component<Props, State> {
   }
 
   getDeviceName(device: any) {
-    return this.props.deviceType === DEVICES.EMOTIV ? device.id : device.name;
+    return isNil(device.name) ? device.id : device.name;
   }
 
   handleSearch() {
