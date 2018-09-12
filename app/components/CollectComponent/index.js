@@ -13,6 +13,7 @@ import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
 import { isNil } from "lodash";
 import PreTestComponent from "./PreTestComponent";
 import ConnectModal from "./ConnectModal";
+import RunComponent from "./RunComponent";
 
 interface Props {
   experimentActions: Object;
@@ -35,6 +36,7 @@ interface Props {
 
 interface State {
   isConnectModalOpen: boolean;
+  isRunComponentOpen: boolean;
 }
 
 export default class Collect extends Component<Props, State> {
@@ -42,14 +44,19 @@ export default class Collect extends Component<Props, State> {
   state: State;
   handleStartConnect: () => void;
   handleConnectModalClose: () => void;
+  handleConnectModalOpen: () => void;
+  handleConnectModalClose: () => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
-      isConnectModalOpen: false
+      isConnectModalOpen: false,
+      isRunComponentOpen: false
     };
     this.handleStartConnect = this.handleStartConnect.bind(this);
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
+    this.handleRunComponentOpen = this.handleRunComponentOpen.bind(this);
+    this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
   }
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
@@ -72,7 +79,24 @@ export default class Collect extends Component<Props, State> {
     this.setState({ isConnectModalOpen: false });
   }
 
+  handleRunComponentOpen() {
+    console.log("handleRun");
+    this.setState({ isRunComponentOpen: true });
+  }
+
+  handleRunComponentClose() {
+    this.setState({ isRunComponentOpen: false });
+  }
+
   render() {
+    if (this.state.isRunComponentOpen) {
+      return (
+        <RunComponent
+          {...this.props}
+          closeRunComponent={this.handleRunComponentClose}
+        />
+      );
+    }
     return (
       <div className={styles.mainContainer}>
         <Modal
@@ -115,6 +139,7 @@ export default class Collect extends Component<Props, State> {
           timelines={this.props.timelines}
           subject={this.props.subject}
           session={this.props.session}
+          openRunComponent={this.handleRunComponentOpen}
         />
       </div>
     );

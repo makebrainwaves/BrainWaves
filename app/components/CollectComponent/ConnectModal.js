@@ -62,6 +62,12 @@ export default class ConnectModal extends Component<Props, State> {
     ) {
       this.setState({ tutorialProgress: 1 });
     }
+    if (
+      nextProps.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE &&
+      this.props.deviceAvailability === DEVICE_AVAILABILITY.NONE
+    ) {
+      this.setState({ tutorialProgress: 0 });
+    }
   }
 
   getDeviceName(device: any) {

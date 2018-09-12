@@ -253,7 +253,8 @@ const loadPSDEpic = (action$, state$) =>
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
-        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
+        // PSD graphs should have two axes
+        filter(msg => msg.content.data["text/plain"].includes("2 Axes")),
         pluck("content", "data"),
         take(1)
       )
@@ -275,14 +276,15 @@ const loadERPEpic = (action$, state$) =>
       return 0;
     }),
     map(channelIndex =>
-      state$
-        .getState()
-        .jupyter.mainChannel.next(executeRequest(plotERP(channelIndex)))
+      state$.value.jupyter.mainChannel.next(
+        executeRequest(plotERP(channelIndex))
+      )
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
-        filter(msg => msg.header.msg_type === "display_data"),
+        // ERP graphs should have 1 axis according to MNE
+        filter(msg => msg.content.data["text/plain"].includes("1 Axes")),
         pluck("content", "data"),
         take(1)
       )

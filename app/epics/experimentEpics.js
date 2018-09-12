@@ -1,5 +1,5 @@
 import { combineEpics } from "redux-observable";
-import { map, mapTo, pluck, filter, takeUntil } from "rxjs/operators";
+import { map, mapTo, pluck, filter, takeUntil, tap } from "rxjs/operators";
 import {
   LOAD_DEFAULT_TIMELINE,
   START,
@@ -62,25 +62,29 @@ const startEpic = (action$, state$) =>
         state$.value.device.rawObservable &&
         state$.value.experiment.subject !== ""
     ),
+    tap(() => console.log("passed filter")),
     map(() => {
-      const writeStream = createEEGWriteStream(
-        state$.value.experiment.type,
-        state$.value.experiment.subject,
-        state$.value.experiment.session
-      );
+      try {
+        const writeStream = createEEGWriteStream(
+          state$.value.experiment.type,
+          state$.value.experiment.subject,
+          state$.value.experiment.session
+        );
 
-      writeHeader(
-        writeStream,
-        state$.value.device.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS
-          : MUSE_CHANNELS
-      );
-      state$.value
-        .getState()
-        .device.rawObservable.pipe(
-          takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP))
-        )
-        .subscribe(eegData => writeEEGData(writeStream, eegData));
+        writeHeader(
+          writeStream,
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS
+            : MUSE_CHANNELS
+        );
+        state$.value.device.rawObservable
+          .pipe(
+            takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP))
+          )
+          .subscribe(eegData => writeEEGData(writeStream, eegData));
+      } catch (e) {
+        console.log(e);
+      }
     }),
     mapTo(true),
     map(setIsRunning)

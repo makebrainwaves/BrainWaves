@@ -31,7 +31,7 @@ export const loadPSD = () => ({
   type: LOAD_PSD
 });
 
-export const loadERP = (payload: string) => ({
+export const loadERP = (payload: ?string) => ({
   payload,
   type: LOAD_ERP
 });

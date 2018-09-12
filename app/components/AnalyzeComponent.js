@@ -41,7 +41,7 @@ export default class Analyze extends Component<Props, State> {
 
   handleAnalyze() {
     this.props.jupyterActions.loadPSD();
-    this.props.jupyterActions.loadERP();
+    this.props.jupyterActions.loadERP(null);
   }
 
   handleChannelDropdownChange(e: Object, props: Object) {

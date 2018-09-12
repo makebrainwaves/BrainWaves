@@ -63,6 +63,7 @@ export const createRawEmotivObservable = async () => {
 };
 
 export const injectEmotivMarker = (value, time) => {
+  console.log("inject", value, time);
   client.injectMarker({ label: "event", value, time });
 };
 

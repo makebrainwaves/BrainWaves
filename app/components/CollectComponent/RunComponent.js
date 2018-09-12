@@ -4,7 +4,7 @@ import { Grid, Button, Segment, Header, Input, List } from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
 import { debounce } from "lodash";
 import { Link } from "react-router-dom";
-import styles from "./styles/common.css";
+import styles from "../styles/common.css";
 import { injectEmotivMarker } from "../../utils/eeg/emotiv";
 import { injectMuseMarker } from "../../utils/eeg/muse";
 import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
@@ -12,7 +12,8 @@ import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-dis
 import { EXPERIMENTS, DEVICES, SCREENS } from "../../constants/constants";
 import {
   parseTimeline,
-  instantiateTimeline
+  instantiateTimeline,
+  getImages
 } from "../../utils/jspsych/functions";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
 import {
@@ -81,6 +82,14 @@ export default class Run extends Component<Props> {
     );
     console.log("timeline: ", timeline);
     return timeline;
+  }
+
+  handleImages() {
+    return getImages(
+      this.props.mainTimeline,
+      this.props.trials,
+      this.props.timelines
+    );
   }
 
   renderTrialList() {
@@ -167,7 +176,8 @@ export default class Run extends Component<Props> {
           timeline: this.handleTimeline(),
           show_progress_bar: true,
           auto_update_progress_bar: false,
-          on_finish: this.props.experimentActions.stop
+          on_finish: this.props.experimentActions.stop,
+          preload_images: this.handleImages()
         }}
         plugins={{
           "callback-image-display": callbackImageDisplay,

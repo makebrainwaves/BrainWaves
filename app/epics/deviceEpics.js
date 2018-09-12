@@ -100,7 +100,6 @@ const searchMuseEpic = action$ =>
     map(deviceFound)
   );
 
-// TODO: Add timeout
 const searchEmotivEpic = action$ =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck("payload"),
@@ -123,9 +122,13 @@ const searchEmotivEpic = action$ =>
 const deviceFoundEpic = (action$, state$) =>
   action$.ofType(DEVICE_FOUND).pipe(
     pluck("payload"),
-    tap(devices => console.log(devices)),
     map(foundDevices =>
-      union(foundDevices, state$.value.device.availableDevices)
+      foundDevices.reduce((acc, curr) => {
+        if (acc.find(device => device.id === curr.id)) {
+          return acc;
+        }
+        return acc.concat(curr);
+      }, state$.value.device.availableDevices)
     ),
     mergeMap(devices =>
       of(
@@ -139,9 +142,7 @@ const searchTimerEpic = (action$, state$) =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck("payload"),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
-    tap(() => console.log("timer start")),
     mergeMap(() => timer(SEARCH_TIMER)),
-    tap(() => console.log("timer fired")),
     filter(
       () =>
         state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
@@ -195,13 +196,20 @@ const setRawObservableEpic = (action$, state$) =>
     mergeMap(observable => {
       const samplingRate =
         state$.value.device.deviceType === DEVICES.EMOTIV ? 128 : 256;
+      console.log(samplingRate);
       const channelNames =
         state$.value.device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS;
+      console.log(channelNames);
+
       const nbChannels =
         state$.value.device.deviceType === DEVICES.EMOTIV ? 14 : 5;
+      console.log(nbChannels);
+
       const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
+      console.log(intervalSamples);
+
       return of(
         setRawObservable(observable),
         setSignalQualityObservable(

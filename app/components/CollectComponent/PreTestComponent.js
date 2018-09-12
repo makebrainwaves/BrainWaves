@@ -3,7 +3,10 @@ import { isNil } from "lodash";
 import { Grid, Segment, Button } from "semantic-ui-react";
 import ViewerComponent from "../ViewerComponent";
 import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
-import { PLOTTING_INTERVAL } from "../../constants/constants";
+import {
+  PLOTTING_INTERVAL,
+  CONNECTION_STATUS
+} from "../../constants/constants";
 
 interface Props {
   experimentActions: Object;
@@ -23,6 +26,7 @@ interface Props {
   // dir: ?string,
   subject: string;
   session: number;
+  openRunComponent: () => void;
 }
 
 export default class PreTestComponent extends Component<Props> {
@@ -38,11 +42,7 @@ export default class PreTestComponent extends Component<Props> {
     console.log(this.props);
   }
 
-  handleStartExperiment(e: Object) {
-    if (this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED) {
-      e.preventDefault();
-    }
-  }
+  handleStartExperiment(e: Object) {}
 
   render() {
     return (
@@ -54,10 +54,16 @@ export default class PreTestComponent extends Component<Props> {
           />
         </Grid.Column>
         <Grid.Column width={8}>
-          <Button   secondary onClick={this.handlePreTest}>
+          <Button secondary onClick={this.handlePreTest}>
             Run Pre-Test
           </Button>
-          <Button primary onClick={this.handleStartExperiment}>
+          <Button
+            primary
+            disabled={
+              this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED
+            }
+            onClick={this.props.openRunComponent}
+          >
             Run & Record Experiment
           </Button>
           <ViewerComponent
