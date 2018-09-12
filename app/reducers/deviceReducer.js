@@ -43,8 +43,6 @@ export default function device(
 ) {
   switch (action.type) {
     case SET_DEVICE_TYPE:
-      console.log("set device type: ", action.payload);
-
       return {
         ...state,
         deviceType: action.payload

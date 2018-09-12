@@ -80,7 +80,6 @@ export default class Collect extends Component<Props, State> {
   }
 
   handleRunComponentOpen() {
-    console.log("handleRun");
     this.setState({ isRunComponentOpen: true });
   }
 

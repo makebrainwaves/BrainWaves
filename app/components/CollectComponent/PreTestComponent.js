@@ -54,7 +54,7 @@ export default class PreTestComponent extends Component<Props> {
           />
         </Grid.Column>
         <Grid.Column width={8}>
-          <Button secondary onClick={this.handlePreTest}>
+          <Button secondary disabled onClick={this.handlePreTest}>
             Run Pre-Test
           </Button>
           <Button

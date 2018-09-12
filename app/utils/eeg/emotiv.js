@@ -26,8 +26,6 @@ export const getEmotiv = async () => {
   return devices;
 };
 
-console.log(USERNAME, PASSWORD, CLIENT_ID, CLIENT_SECRET, LICENSE_ID);
-
 export const connectToEmotiv = device =>
   client.ready
     .then(() =>
@@ -63,7 +61,6 @@ export const createRawEmotivObservable = async () => {
 };
 
 export const injectEmotivMarker = (value, time) => {
-  console.log("inject", value, time);
   client.injectMarker({ label: "event", value, time });
 };
 

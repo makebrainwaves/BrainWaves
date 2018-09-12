@@ -108,7 +108,6 @@ export const getImages = (
       });
     }
   });
-  console.log("images", images);
   return images;
 };
 

@@ -40,7 +40,6 @@ export default class PreviewExperimentComponent extends Component<Props> {
       () => this.setState({ isRunning: true }), // start callback
       () => this.setState({ isRunning: false }) // stop callback
     );
-    console.log("timeline: ", timeline);
     return timeline;
   }
 
@@ -54,7 +53,6 @@ export default class PreviewExperimentComponent extends Component<Props> {
 
   async handleCustomExperimentLoad() {
     const timelinePath = await loadFileFromSystemDialog(FILE_TYPES.TIMELINE);
-    console.log(timelinePath);
   }
 
   render() {

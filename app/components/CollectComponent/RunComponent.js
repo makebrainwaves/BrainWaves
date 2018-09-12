@@ -80,7 +80,6 @@ export default class Run extends Component<Props> {
       null, // start callback
       this.props.experimentActions.stop // stop callback
     );
-    console.log("timeline: ", timeline);
     return timeline;
   }
 

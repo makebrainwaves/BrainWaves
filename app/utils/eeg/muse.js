@@ -32,7 +32,6 @@ export const getMuse = async () => {
 export const connectToMuse = async device => {
   if (process.platform === "win32") {
     const gatt = await device.gatt.connect();
-    console.log(gatt);
     await client.connect(gatt);
   } else {
     await client.connect();

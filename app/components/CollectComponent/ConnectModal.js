@@ -55,7 +55,6 @@ export default class ConnectModal extends Component<Props, State> {
   }
 
   componentWillUpdate(nextProps: Props) {
-    console.log(this.props.deviceAvailability, nextProps.deviceAvailability);
     if (
       nextProps.deviceAvailability === DEVICE_AVAILABILITY.NONE &&
       this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
@@ -130,7 +129,6 @@ export default class ConnectModal extends Component<Props, State> {
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
-      console.log("rendering connector screen", this.state.selectedDevice);
       return (
         <React.Fragment>
           <Modal.Content image>

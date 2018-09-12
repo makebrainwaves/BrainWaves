@@ -80,12 +80,9 @@ const cleanup = () => ({ type: DEVICE_CLEANUP });
 // NOTE: Uses a Promise.then inside b/c from leads to loss of user gesture propagation for web bluetooth
 const searchMuseEpic = action$ =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
-    tap(() => console.log("searchMuse")),
     pluck("payload"),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
-    tap(() => console.log("passed Filter")),
     map(getMuse),
-    tap(() => console.log("gettingMuse")),
     mergeMap(promise =>
       promise.then(
         devices => devices,
@@ -95,7 +92,6 @@ const searchMuseEpic = action$ =>
         }
       )
     ),
-    tap(() => console.log("found devices")),
     filter(devices => devices.length >= 1),
     map(deviceFound)
   );
@@ -196,20 +192,13 @@ const setRawObservableEpic = (action$, state$) =>
     mergeMap(observable => {
       const samplingRate =
         state$.value.device.deviceType === DEVICES.EMOTIV ? 128 : 256;
-      console.log(samplingRate);
       const channelNames =
         state$.value.device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS;
-      console.log(channelNames);
-
       const nbChannels =
         state$.value.device.deviceType === DEVICES.EMOTIV ? 14 : 5;
-      console.log(nbChannels);
-
       const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
-      console.log(intervalSamples);
-
       return of(
         setRawObservable(observable),
         setSignalQualityObservable(
