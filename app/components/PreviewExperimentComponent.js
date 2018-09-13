@@ -2,16 +2,16 @@
 import React, { Component } from "react";
 import { Experiment } from "jspsych-react";
 import { Segment } from "semantic-ui-react";
-import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
-import { FILE_TYPES } from "../../constants/constants";
+import callbackHTMLDisplay from "../utils/jspsych/plugins/callback-html-display";
+import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
+import { FILE_TYPES } from "../constants/constants";
 import {
   parseTimeline,
   instantiateTimeline,
   getImages
-} from "../../utils/jspsych/functions";
-import { loadFileFromSystemDialog } from "../../utils/filesystem/select";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
+} from "../utils/jspsych/functions";
+import { loadFileFromSystemDialog } from "../utils/filesystem/select";
+import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
 
 interface Props {
   isPreviewing: boolean;

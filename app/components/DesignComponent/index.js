@@ -13,7 +13,7 @@ import { isNil } from "lodash";
 import styles from "../styles/common.css";
 import { EXPERIMENTS, SCREENS } from "../../constants/constants";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import PreviewExperimentComponent from "./PreviewExperimentComponent";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
 import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
 import n170Example from "../../assets/face_house/n170_example.png";
 

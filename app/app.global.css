@@ -116,6 +116,13 @@ img {
   background-color: #0b4d37;
 }
 
+.ui.negative.button {
+  font-size: 18px;
+  font-weight: normal !important;
+  border: 2px solid #ca1010;
+  border-radius: 4px;
+}
+
 .ui.dimmer {
   top: 60px !important;
   background-image: linear-gradient(#43968d, #007c70);

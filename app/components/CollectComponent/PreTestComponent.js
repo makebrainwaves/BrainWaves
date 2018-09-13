@@ -3,6 +3,7 @@ import { isNil } from "lodash";
 import { Grid, Segment, Button } from "semantic-ui-react";
 import ViewerComponent from "../ViewerComponent";
 import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS
@@ -29,34 +30,72 @@ interface Props {
   openRunComponent: () => void;
 }
 
-export default class PreTestComponent extends Component<Props> {
-  handleStartExperiment: Object => void;
+interface State {
+  isPreviewing: boolean;
+}
+
+export default class PreTestComponent extends Component<Props, State> {
+  props: Props;
+  state: State;
+  handlePreview: () => void;
 
   constructor(props: Props) {
     super(props);
-    this.handleStartExperiment = this.handleStartExperiment.bind(this);
-    this.handlePreTest = this.handlePreTest.bind(this);
+    this.state = {
+      isPreviewing: false
+    };
+    this.handlePreview = this.handlePreview.bind(this);
   }
 
-  handlePreTest() {
-    console.log(this.props);
+  handlePreview() {
+    if (isNil(this.props.mainTimeline)) {
+      this.props.experimentActions.loadDefaultTimeline();
+    }
+    this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
-  handleStartExperiment(e: Object) {}
+  renderSignalQualityOrPreview() {
+    if (this.state.isPreviewing) {
+      return (
+        <PreviewExperimentComponent
+          isPreviewing={this.state.isPreviewing}
+          mainTimeline={this.props.mainTimeline}
+          trials={this.props.trials}
+          timelines={this.props.timelines}
+        />
+      );
+    }
+    return (
+      <SignalQualityIndicatorComponent
+        signalQualityObservable={this.props.signalQualityObservable}
+        plottingInterval={PLOTTING_INTERVAL}
+      />
+    );
+  }
+
+  renderPreviewButton() {
+    if (!this.state.isPreviewing) {
+      return (
+        <Button secondary onClick={this.handlePreview}>
+          Preview Experiment
+        </Button>
+      );
+    }
+    return (
+      <Button negative onClick={this.handlePreview}>
+        Stop Preview
+      </Button>
+    );
+  }
 
   render() {
     return (
       <Grid columns="equal" textAlign="center" verticalAlign="middle">
         <Grid.Column width={6}>
-          <SignalQualityIndicatorComponent
-            signalQualityObservable={this.props.signalQualityObservable}
-            plottingInterval={PLOTTING_INTERVAL}
-          />
+          {this.renderSignalQualityOrPreview()}
         </Grid.Column>
         <Grid.Column width={8}>
-          <Button secondary disabled onClick={this.handlePreTest}>
-            Run Pre-Test
-          </Button>
+          {this.renderPreviewButton()}
           <Button
             primary
             disabled={
