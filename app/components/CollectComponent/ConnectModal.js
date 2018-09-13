@@ -14,7 +14,7 @@ import {
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS
 } from "../../constants/constants";
-import styles from "../styles/connectmodal.css";
+import styles from "../styles/collect.css";
 import blake from "../../assets/face_house/faces/Blake_1.jpg";
 
 interface Props {

@@ -1,12 +1,14 @@
 import React, { Component } from "react";
 import { isNil } from "lodash";
-import { Grid, Segment, Button } from "semantic-ui-react";
+import { Grid, Segment, Button, List } from "semantic-ui-react";
 import ViewerComponent from "../ViewerComponent";
 import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
 import PreviewExperimentComponent from "../PreviewExperimentComponent";
+import styles from "../styles/collect.css";
 import {
   PLOTTING_INTERVAL,
-  CONNECTION_STATUS
+  CONNECTION_STATUS,
+  SIGNAL_QUALITY
 } from "../../constants/constants";
 
 interface Props {
@@ -66,10 +68,28 @@ export default class PreTestComponent extends Component<Props, State> {
       );
     }
     return (
-      <SignalQualityIndicatorComponent
-        signalQualityObservable={this.props.signalQualityObservable}
-        plottingInterval={PLOTTING_INTERVAL}
-      />
+      <Segment basic>
+        <SignalQualityIndicatorComponent
+          signalQualityObservable={this.props.signalQualityObservable}
+          plottingInterval={PLOTTING_INTERVAL}
+        />
+        <Segment basic>
+          <List>
+            <List.Item>
+              <List.Icon name="circle" className={styles.greatSignal} />
+              <List.Content>Strong Signal</List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Icon name="circle" className={styles.okSignal} />
+              <List.Content>Mediocre signal</List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Icon name="circle" className={styles.badSignal} />
+              <List.Content>Weak Signal</List.Content>
+            </List.Item>
+          </List>
+        </Segment>
+      </Segment>
     );
   }
 

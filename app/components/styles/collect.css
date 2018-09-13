@@ -50,3 +50,14 @@
 .secondaryButton:hover {
   background-color: #00635a !important;
 }
+
+.greatSignal {
+  color: #66b0a9;
+}
+.okSignal {
+  color: #ffcd39;
+}
+
+.badSignal {
+  color: #e06766;
+}
