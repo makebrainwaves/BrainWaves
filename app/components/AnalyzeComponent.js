@@ -26,7 +26,7 @@ interface Props {
   jupyterActions: Object;
 }
 
-export default class Analyze extends Component<Props, State> {
+export default class Analyze extends Component<Props> {
   props: Props;
   handleAnalyze: () => void;
   handleChannelDropdownChange: (Object, Object) => void;

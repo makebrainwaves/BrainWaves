@@ -11,7 +11,7 @@ import {
 } from "semantic-ui-react";
 import { isNil } from "lodash";
 import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../../constants/constants";
+import { EXPERIMENTS } from "../../constants/constants";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
 import PreviewExperimentComponent from "../PreviewExperimentComponent";
 import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
@@ -32,7 +32,7 @@ interface Props {
 }
 
 interface State {
-  activeStep: number;
+  activeStep: string;
   isPreviewing: boolean;
 }
 
@@ -41,6 +41,7 @@ export default class Design extends Component<Props, State> {
   state: State;
   handleStepClick: (Object, Object) => void;
   handleStartExperiment: Object => void;
+  handlePreview: () => void;
 
   constructor(props: Props) {
     super(props);
