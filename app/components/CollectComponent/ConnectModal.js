@@ -37,6 +37,11 @@ export default class ConnectModal extends Component<Props, State> {
   handleConnect: () => void;
   handleSearch: () => void;
   handleStartTutorial: () => void;
+
+  static getDeviceName(device: any) {
+    return isNil(device.name) ? device.id : device.name;
+  }
+
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -69,10 +74,6 @@ export default class ConnectModal extends Component<Props, State> {
     }
   }
 
-  getDeviceName(device: any) {
-    return isNil(device.name) ? device.id : device.name;
-  }
-
   handleSearch() {
     this.setState({ tutorialProgress: 0 });
     this.props.deviceActions.setDeviceAvailability(
@@ -92,8 +93,8 @@ export default class ConnectModal extends Component<Props, State> {
     return (
       <Segment basic>
         <List divided relaxed inverted>
-          {this.props.availableDevices.map((device, index) => (
-            <List.Item className={styles.deviceItem} key={index}>
+          {this.props.availableDevices.map(device => (
+            <List.Item className={styles.deviceItem} key={device.id}>
               <List.Icon
                 link
                 name={
@@ -255,7 +256,7 @@ export default class ConnectModal extends Component<Props, State> {
               tabIndex={0}
               onClick={() => this.handleTutorialProgress(1)}
             >
-              Don't see your device?
+              Don&#39;t see your device?
             </a>
           </Modal.Content>
         </React.Fragment>

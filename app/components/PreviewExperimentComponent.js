@@ -4,13 +4,11 @@ import { Experiment } from "jspsych-react";
 import { Segment } from "semantic-ui-react";
 import callbackHTMLDisplay from "../utils/jspsych/plugins/callback-html-display";
 import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
-import { FILE_TYPES } from "../constants/constants";
 import {
   parseTimeline,
   instantiateTimeline,
   getImages
 } from "../utils/jspsych/functions";
-import { loadFileFromSystemDialog } from "../utils/filesystem/select";
 import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
 
 interface Props {
@@ -24,7 +22,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
   props: Props;
   handleTimeline: () => void;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.handleTimeline = this.handleTimeline.bind(this);
   }
@@ -36,9 +34,9 @@ export default class PreviewExperimentComponent extends Component<Props> {
         this.props.trials,
         this.props.timelines
       ),
-      (value, time) => console.log("event ", value), // event callback
-      () => this.setState({ isRunning: true }), // start callback
-      () => this.setState({ isRunning: false }) // stop callback
+      (value, time) => console.log("event ", value, time), // event callback
+      () => {}, // start callback
+      () => {} // stop callback
     );
     return timeline;
   }
@@ -51,9 +49,9 @@ export default class PreviewExperimentComponent extends Component<Props> {
     );
   }
 
-  async handleCustomExperimentLoad() {
-    const timelinePath = await loadFileFromSystemDialog(FILE_TYPES.TIMELINE);
-  }
+  // async handleCustomExperimentLoad() {
+  //   const timelinePath = await loadFileFromSystemDialog(FILE_TYPES.TIMELINE);
+  // }
 
   render() {
     if (!this.props.isPreviewing) {

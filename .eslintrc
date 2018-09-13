@@ -27,6 +27,8 @@
     "promise/always-return": "error",
     "promise/catch-or-return": "error",
     "promise/no-native": "off",
+    "react/no-will-update-set-state": "warn",
+    "react/no-did-update-set-state": "off",
     "react/sort-comp": [
       "error",
       {
@@ -45,7 +47,8 @@
       { "extensions": [".js", ".jsx"] }
     ],
     "react/prefer-stateless-function": "off",
-    "linebreak-style": "off"
+    "linebreak-style": "off",
+    "jsx-a11y/click-events-have-key-events": "off"
   },
   "plugins": ["flowtype", "import", "promise", "compat", "react"],
   "settings": {

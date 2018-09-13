@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from "react";
-import { Modal, Button, Ref, Segment } from "semantic-ui-react";
+import { Modal, Button, Segment } from "semantic-ui-react";
 import styles from "../styles/common.css";
 
 import {
@@ -10,7 +10,6 @@ import {
   DEVICE_AVAILABILITY
 } from "../../constants/constants";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import { isNil } from "lodash";
 import PreTestComponent from "./PreTestComponent";
 import ConnectModal from "./ConnectModal";
 import RunComponent from "./RunComponent";
@@ -44,8 +43,8 @@ export default class Collect extends Component<Props, State> {
   state: State;
   handleStartConnect: () => void;
   handleConnectModalClose: () => void;
-  handleConnectModalOpen: () => void;
-  handleConnectModalClose: () => void;
+  handleRunComponentOpen: () => void;
+  handleRunComponentClose: () => void;
 
   constructor(props: Props) {
     super(props);

@@ -8,7 +8,6 @@ import styles from "../styles/collect.css";
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
-  SIGNAL_QUALITY
 } from "../../constants/constants";
 
 interface Props {
