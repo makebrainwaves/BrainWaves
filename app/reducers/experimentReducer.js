@@ -4,7 +4,12 @@ import {
   SET_IS_RUNNING,
   SET_SESSION
 } from "../epics/experimentEpics";
-import { SET_TYPE, SET_SUBJECT } from "../actions/experimentActions";
+import {
+  SET_TYPE,
+  SET_SUBJECT,
+  SET_TITLE,
+  SET_EXPERIMENT_STATE
+} from "../actions/experimentActions";
 import { EXPERIMENTS } from "../constants/constants";
 import {
   MainTimeline,
@@ -13,11 +18,12 @@ import {
   ActionType
 } from "../constants/interfaces";
 
-interface ExperimentStateType {
+export interface ExperimentStateType {
   +type: ?EXPERIMENTS;
+  +title: ?string;
   +mainTimeline: MainTimeline;
   +trials: { [string]: Trial };
-  +timelines: { [string]: Timeline };
+  +timelines: {};
   +plugins: Object;
   +subject: string;
   +session: number;
@@ -26,6 +32,7 @@ interface ExperimentStateType {
 
 const initialState = {
   type: EXPERIMENTS.N170,
+  title: "Test Experiment",
   mainTimeline: [],
   trials: {},
   timelines: {},
@@ -64,12 +71,22 @@ export default function experiment(
         ...action.payload
       };
 
+    case SET_TITLE:
+      return {
+        ...state,
+        title: action.payload
+      };
+
     case SET_IS_RUNNING:
       return {
         ...state,
         isRunning: action.payload
       };
 
+    case SET_EXPERIMENT_STATE:
+      return {
+        ...action.payload
+      };
     default:
       return state;
   }

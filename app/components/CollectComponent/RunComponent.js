@@ -26,7 +26,7 @@ interface Props {
   isRunning: boolean;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
   subject: string;
   session: number;
   deviceType: DEVICES;

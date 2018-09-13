@@ -7,7 +7,7 @@ import PreviewExperimentComponent from "../PreviewExperimentComponent";
 import styles from "../styles/collect.css";
 import {
   PLOTTING_INTERVAL,
-  CONNECTION_STATUS,
+  CONNECTION_STATUS
 } from "../../constants/constants";
 
 interface Props {
@@ -24,7 +24,7 @@ interface Props {
   isRunning: boolean;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
   // dir: ?string,
   subject: string;
   session: number;

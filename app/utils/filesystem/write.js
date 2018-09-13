@@ -78,7 +78,7 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
 // Helper functions
 
 // Creates a directory path if it doesn't exist
-const mkdirPathSync = dirPath => {
+export const mkdirPathSync = dirPath => {
   mkdirp(dirPath, err => {
     if (err) console.error(err);
     else console.log("Created ", dirPath);

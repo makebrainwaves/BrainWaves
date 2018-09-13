@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import { Grid, Button } from "semantic-ui-react";
+import { NavLink } from "react-router-dom";
 import { EXPERIMENTS, SCREENS } from "../../constants/constants";
 import styles from "../styles/topnavbar.css";
 import PrimaryNavSegment from "./PrimaryNavSegment";
 
 interface Props {
   location: { pathname: string, search: string, hash: string };
+  experimentActions: Object;
   type: EXPERIMENTS;
 }
 
@@ -37,7 +39,7 @@ export default class TopNavComponent extends Component<Props> {
         verticalAlign="middle"
       >
         <Grid.Column width="3" className={styles.experimentTitleSegment}>
-          {this.props.type}
+          <NavLink to={SCREENS.HOME.route}>{this.props.type}</NavLink>
         </Grid.Column>
         <PrimaryNavSegment
           {...SCREENS.DESIGN}
@@ -56,7 +58,11 @@ export default class TopNavComponent extends Component<Props> {
           style={this.getStyleForScreen(SCREENS.ANALYZE)}
         />
         <Grid.Column width="6">
-          <Button secondary size="medium">
+          <Button
+            secondary
+            size="medium"
+            onClick={this.props.experimentActions.saveWorkspace}
+          >
             Save Workspace
           </Button>
         </Grid.Column>

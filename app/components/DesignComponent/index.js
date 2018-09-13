@@ -25,9 +25,10 @@ const DESIGN_STEPS = {
 
 interface Props {
   type: ?EXPERIMENTS;
+  title: string;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
   experimentActions: Object;
 }
 
@@ -188,7 +189,7 @@ export default class Design extends Component<Props, State> {
         <Grid columns={1} centered style={{ height: "50%" }}>
           <Grid.Row>
             <Segment raised color="red">
-              <Header as="h3">Review Design</Header>
+              <Header as="h3">{this.props.title}</Header>
               <Step.Group>
                 <Step
                   link

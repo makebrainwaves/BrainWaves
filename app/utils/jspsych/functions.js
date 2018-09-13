@@ -24,7 +24,7 @@ export const loadTimeline = (type: EXPERIMENTS) => {
       break;
 
     default:
-      timeline = buildOddballTimeline();
+      timeline = buildN170Timeline();
       break;
   }
   return timeline;
@@ -34,7 +34,7 @@ export const loadTimeline = (type: EXPERIMENTS) => {
 export const parseTimeline = (
   mainTimeline: MainTimeline,
   trials: { [string]: Trial },
-  timelines: { [string]: Timeline }
+  timelines: { }
 ) => {
   // Combine trials and timelines into one object
   const jsPsychObject = { ...trials, ...timelines };
@@ -89,7 +89,7 @@ export const instantiateTimeline = (
 export const getImages = (
   mainTimeline: MainTimeline,
   trials: { [string]: Trial },
-  timelines: { [string]: Timeline }
+  timelines: { }
 ) => {
   const images = [];
   Object.values(timelines).forEach(element => {

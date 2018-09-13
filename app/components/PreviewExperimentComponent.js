@@ -15,7 +15,7 @@ interface Props {
   isPreviewing: boolean;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
 }
 
 export default class PreviewExperimentComponent extends Component<Props> {

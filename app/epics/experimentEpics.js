@@ -1,9 +1,19 @@
 import { combineEpics } from "redux-observable";
-import { map, mapTo, pluck, filter, takeUntil, tap } from "rxjs/operators";
+import {
+  map,
+  mapTo,
+  pluck,
+  filter,
+  takeUntil,
+  throttleTime,
+  ignoreElements,
+  tap
+} from "rxjs/operators";
 import {
   LOAD_DEFAULT_TIMELINE,
   START,
-  STOP
+  STOP,
+  SAVE_WORKSPACE
 } from "../actions/experimentActions";
 import {
   DEVICES,
@@ -16,6 +26,10 @@ import {
   writeHeader,
   writeEEGData
 } from "../utils/filesystem/write";
+import {
+  storeExperimentState,
+  createWorkspaceDir
+} from "../utils/filesystem/storage";
 
 export const SET_TIMELINE = "LOAD_TIMELINE";
 export const SET_IS_RUNNING = "SET_IS_RUNNING";
@@ -92,6 +106,15 @@ const sessionCountEpic = (action$, state$) =>
     map(() => setSession(state$.value.experiment.session + 1))
   );
 
+const saveWorkspaceEpic = (action$, state$) =>
+  action$.ofType(SAVE_WORKSPACE).pipe(
+    tap(() => console.log("saving workspace")),
+    throttleTime(1000),
+    map(() => createWorkspaceDir(state$.value.experiment.title)),
+    tap(dir => storeExperimentState(state$.value.experiment, dir)),
+    ignoreElements()
+  );
+
 const navigationCleanupEpic = action$ =>
   action$.ofType("@@router/LOCATION_CHANGE").pipe(
     pluck("payload", "pathname"),
@@ -104,5 +127,6 @@ export default combineEpics(
   startEpic,
   experimentStopEpic,
   sessionCountEpic,
+  saveWorkspaceEpic,
   navigationCleanupEpic
 );
