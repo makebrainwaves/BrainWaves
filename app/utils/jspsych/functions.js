@@ -64,7 +64,7 @@ export const instantiateTimeline = (
         if (trial.id === "trial") {
           return {
             ...trial,
-            on_load: () =>
+            on_start: () =>
               eventCallback(
                 jsPsych.timelineVariable("eventTypeVar")(),
                 new Date().getTime()
@@ -108,7 +108,6 @@ export const getImages = (
       });
     }
   });
-  console.log("images", images);
   return images;
 };
 

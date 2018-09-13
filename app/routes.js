@@ -4,7 +4,7 @@ import { Switch, Route } from "react-router";
 import App from "./containers/App";
 import HomeContainer from "./containers/HomeContainer";
 import ExperimentDesignContainer from "./containers/ExperimentDesignContainer";
-import CollectContainer from "./containers/DeviceConnectContainer";
+import CollectContainer from "./containers/CollectContainer";
 import CleanContainer from "./containers/CleanContainer";
 import AnalyzeContainer from "./containers/AnalyzeContainer";
 import { SCREENS } from "./constants/constants";

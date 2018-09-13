@@ -48,14 +48,12 @@ export default function jupyter(
       };
 
     case SET_MAIN_CHANNEL:
-      console.log(action.payload);
       return {
         ...state,
         mainChannel: action.payload
       };
 
     case SET_KERNEL_INFO:
-      console.log(action.payload);
       return state;
 
     case SET_EPOCH_INFO:

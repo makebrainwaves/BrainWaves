@@ -20,7 +20,7 @@ const configureStore = (initialState?: AppState) => {
   middleware.push(thunk);
 
   // Redux Observable (Epic) Middleware
-  const epicMiddleware = createEpicMiddleware(rootEpic);
+  const epicMiddleware = createEpicMiddleware();
   middleware.push(epicMiddleware);
 
   // Logging Middleware
@@ -67,6 +67,9 @@ const configureStore = (initialState?: AppState) => {
       () => store.replaceReducer(require("../reducers")) // eslint-disable-line global-require
     );
   }
+
+  // Redux Observable
+  epicMiddleware.run(rootEpic);
 
   return store;
 };

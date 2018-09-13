@@ -10,12 +10,19 @@ body {
   position: relative;
   height: 100vh;
   background: rgba(255, 255, 255, 0.2);
-  font-family: Lato, Helvetica Neue, serif;
+  font-family: Lato, Helvetica Neue, sans-serif;
   overflow-y: hidden;
 }
 
 #root {
   margin-top: 15px;
+}
+
+h1 {
+  font-size: 36px;
+  letter-spacing: 1.29px;
+  line-height: 44px;
+  font-weight: normal;
 }
 
 h2 {
@@ -26,7 +33,7 @@ h2 {
 }
 
 p {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 li {
@@ -46,7 +53,7 @@ a:hover {
 }
 
 img {
-  max-width: 100%;
+  max-width: 100% !important;
 }
 
 .jspsych-display-element {
@@ -63,9 +70,16 @@ img {
 
 /* Semantic UI OVerrides */
 
+.ui.modal > .image.content {
+  display: block;
+}
+
 .ui.secondary.button {
-  color: #16996d !important;
-  border: 2px solid #16996d;
+  font-size: 18px;
+  font-weight: normal !important;
+  color: #007c70 !important;
+  border-radius: 4px;
+  border: 2px solid #007c70;
   background-color: #ffffff;
 }
 
@@ -82,8 +96,12 @@ img {
 }
 
 .ui.primary.button {
+  font-size: 18px;
+  font-weight: normal !important;
   color: #e0fff5;
-  background-color: #16996d;
+  border: 2px solid #007c70;
+  background-color: #007c70;
+  border-radius: 4px;
 }
 
 .ui.primary.button:hover {
@@ -94,9 +112,30 @@ img {
   background-color: #0b4d37;
 }
 
-ui.primary.button:active {
+.ui.primary.button:active {
   background-color: #0b4d37;
 }
+
+.ui.negative.button {
+  font-size: 18px;
+  font-weight: normal !important;
+  border: 2px solid #ca1010;
+  border-radius: 4px;
+}
+
+.ui.dimmer {
+  top: 60px !important;
+  background-image: linear-gradient(#43968d, #007c70);
+}
+
+.ui.dimmer.inverted {
+  background-image: none;
+}
+
+.ui.modal > .header {
+  border-style: none !important;
+}
+
 /* Webview-related styles */
 
 #eegView {

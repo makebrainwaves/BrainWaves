@@ -11,9 +11,9 @@ import {
 } from "semantic-ui-react";
 import { isNil } from "lodash";
 import styles from "../styles/common.css";
-import { EXPERIMENTS } from "../../constants/constants";
+import { EXPERIMENTS, SCREENS } from "../../constants/constants";
 import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import PreviewExperimentComponent from "./PreviewExperimentComponent";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
 import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
 import n170Example from "../../assets/face_house/n170_example.png";
 
@@ -110,16 +110,18 @@ export default class Design extends Component<Props, State> {
         );
       case DESIGN_STEPS.PROTOCOL:
         return (
-          <Grid columns="equal">
-            <Grid.Column width={6}>
-              <PreviewExperimentComponent
-                isPreviewing={this.state.isPreviewing}
-                mainTimeline={this.props.mainTimeline}
-                trials={this.props.trials}
-                timelines={this.props.timelines}
-              />
+          <Grid stretched>
+            <Grid.Column width={6} textAlign="center">
+              <Segment basic padded>
+                <PreviewExperimentComponent
+                  isPreviewing={this.state.isPreviewing}
+                  mainTimeline={this.props.mainTimeline}
+                  trials={this.props.trials}
+                  timelines={this.props.timelines}
+                />
+              </Segment>
             </Grid.Column>
-            <Grid.Column width={6}>
+            <Grid.Column width={10}>
               <Segment basic>
                 <List relaxed ordered>
                   <List.Item>
@@ -209,7 +211,7 @@ export default class Design extends Component<Props, State> {
             </Segment>
           </Grid.Row>
           <Grid.Row stretched style={{ height: "100%" }}>
-            <Segment padded="very" compact raised color="red">
+            <Segment raised className={styles.mainSegment} color="red">
               {this.renderSectionContent()}
             </Segment>
           </Grid.Row>

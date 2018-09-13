@@ -1,0 +1,63 @@
+.connectModal {
+  color: #fff;
+  font-size: 18px !important;
+  width: 25% !important;
+  text-align: center;
+}
+
+.connectModal a {
+  text-decoration: underline;
+  margin-left: 0px;
+}
+
+.connectHeader {
+  font-size: 36px !important;
+  letter-spacing: 1.29px !important;
+  line-height: 44px !important;
+  font-weight: normal !important;
+}
+
+.searchingText {
+  text-align: center !important;
+}
+
+.deviceItem {
+  font-size: 18px !important;
+}
+
+.primaryButton {
+  font-size: 18px !important;
+  font-weight: normal !important;
+  color: #007c70 !important;
+  border: solid 2px #fff !important;
+  border-radius: 4px !important;
+  background-color: #fff !important;
+}
+
+.primaryButton:hover {
+  background-color: #e6f2f1 !important;
+}
+
+.secondaryButton {
+  font-size: 18px !important;
+  font-weight: normal !important;
+  color: #fff !important;
+  border: solid 2px #fff !important;
+  border-radius: 4px !important;
+  background-color: rgba(255, 255, 255, 0) !important;
+}
+
+.secondaryButton:hover {
+  background-color: #00635a !important;
+}
+
+.greatSignal {
+  color: #66b0a9;
+}
+.okSignal {
+  color: #ffcd39;
+}
+
+.badSignal {
+  color: #e06766;
+}

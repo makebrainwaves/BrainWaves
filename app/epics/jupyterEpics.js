@@ -1,5 +1,5 @@
 import { combineEpics } from "redux-observable";
-import { Observable } from "rxjs";
+import { from } from "rxjs";
 import {
   map,
   mergeMap,
@@ -40,7 +40,7 @@ import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
-  MUSE_CHANNELS,
+  MUSE_CHANNELS
 } from "../constants/constants";
 import {
   parseSingleQuoteJSON,
@@ -126,9 +126,9 @@ const receiveStream = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => Observable.from(find("brainwaves"))),
+    mergeMap(() => from(find("brainwaves"))),
     mergeMap(kernelInfo =>
-      Observable.from(
+      from(
         launchSpec(kernelInfo.spec, {
           // No STDIN, opt in to STDOUT and STDERR as node streams
           stdio: ["ignore", "pipe", "pipe"]
@@ -156,16 +156,16 @@ const launchEpic = action$ =>
 const setUpChannelEpic = action$ =>
   action$.ofType(SET_KERNEL).pipe(
     pluck("payload"),
-    mergeMap(kernel => Observable.from(createMainChannel(kernel.config))),
+    mergeMap(kernel => from(createMainChannel(kernel.config))),
     tap(mainChannel => mainChannel.next(executeRequest(imports()))),
     tap(mainChannel => mainChannel.next(executeRequest(utils()))),
     map(setMainChannel)
   );
 
-const receiveChannelMessageEpic = (action$, store) =>
+const receiveChannelMessageEpic = (action$, state$) =>
   action$.ofType(SET_MAIN_CHANNEL).pipe(
     mergeMap(() =>
-      store.getState().jupyter.mainChannel.pipe(
+      state$.value.jupyter.mainChannel.pipe(
         map(msg => {
           console.log(debugParseMessage(msg));
           switch (msg["header"]["msg_type"]) {
@@ -189,40 +189,36 @@ const receiveChannelMessageEpic = (action$, store) =>
     )
   );
 
-const requestKernelInfoEpic = (action$, store) =>
+const requestKernelInfoEpic = (action$, state$) =>
   action$.ofType(REQUEST_KERNEL_INFO).pipe(
-    filter(() => store.getState().jupyter.mainChannel),
-    map(() => store.getState().jupyter.mainChannel.next(kernelInfoRequest())),
+    filter(() => state$.value.jupyter.mainChannel),
+    map(() => state$.value.jupyter.mainChannel.next(kernelInfoRequest())),
     ignoreElements()
   );
 
-const loadEpochsEpic = (action$, store) =>
+const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray =>
-      store
-        .getState()
-        .jupyter.mainChannel.next(
-          executeRequest(
-            loadCSV(filePathsArray, store.getState().device.deviceType)
-          )
-        )
+      state$.value.jupyter.mainChannel.next(
+        executeRequest(loadCSV(filePathsArray, state$.value.device.deviceType))
+      )
     ),
     awaitOkMessage(action$),
-    execute(filterIIR(1, 30), store),
+    execute(filterIIR(1, 30), state$),
     awaitOkMessage(action$),
     execute(
       epochEvents({ House: EVENTS.HOUSE, Face: EVENTS.FACE }, -0.1, 0.8),
-      store
+      state$
     ),
     awaitOkMessage(action$),
     map(getEpochsInfo)
   );
 
-const cleanEpochsEpic = (action$, store) =>
+const cleanEpochsEpic = (action$, state$) =>
   action$.ofType(CLEAN_EPOCHS).pipe(
-    execute(cleanEpochsPlot(), store),
+    execute(cleanEpochsPlot(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_STREAM).pipe(
         pluck("payload"),
@@ -237,9 +233,9 @@ const cleanEpochsEpic = (action$, store) =>
     map(getEpochsInfo)
   );
 
-const getEpochsInfoEpic = (action$, store) =>
+const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
-    execute(requestEpochsInfo(), store),
+    execute(requestEpochsInfo(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck("payload"),
@@ -251,13 +247,14 @@ const getEpochsInfoEpic = (action$, store) =>
     map(epochInfoString => setEpochInfo(parseSingleQuoteJSON(epochInfoString)))
   );
 
-const loadPSDEpic = (action$, store) =>
+const loadPSDEpic = (action$, state$) =>
   action$.ofType(LOAD_PSD).pipe(
-    execute(plotPSD(), store),
+    execute(plotPSD(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
-        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
+        // PSD graphs should have two axes
+        filter(msg => msg.content.data["text/plain"].includes("2 Axes")),
         pluck("content", "data"),
         take(1)
       )
@@ -265,12 +262,12 @@ const loadPSDEpic = (action$, store) =>
     map(setPSDPlot)
   );
 
-const loadERPEpic = (action$, store) =>
+const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
     pluck("payload"),
     map(channelName => {
       const channels =
-        store.getState().device.deviceType === DEVICES.EMOTIV
+        state$.value.device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS;
       if (channels.includes(channelName)) {
@@ -279,14 +276,15 @@ const loadERPEpic = (action$, store) =>
       return 0;
     }),
     map(channelIndex =>
-      store
-        .getState()
-        .jupyter.mainChannel.next(executeRequest(plotERP(channelIndex)))
+      state$.value.jupyter.mainChannel.next(
+        executeRequest(plotERP(channelIndex))
+      )
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck("payload"),
-        filter(msg => msg.header.msg_type === "display_data"),
+        // ERP graphs should have 1 axis according to MNE
+        filter(msg => msg.content.data["text/plain"].includes("1 Axes")),
         pluck("content", "data"),
         take(1)
       )
@@ -294,11 +292,11 @@ const loadERPEpic = (action$, store) =>
     map(setERPPlot)
   );
 
-const closeKernelEpic = (action$, store) =>
+const closeKernelEpic = (action$, state$) =>
   action$.ofType(CLOSE_KERNEL).pipe(
     map(() => {
-      store.getState().jupyter.kernel.spawn.kill();
-      store.getState().jupyter.mainChannel.complete();
+      state$.value.jupyter.kernel.spawn.kill();
+      state$.value.jupyter.mainChannel.complete();
     }),
     ignoreElements()
   );

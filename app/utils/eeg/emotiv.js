@@ -3,8 +3,8 @@
  * an RxJS Observable of raw EEG data
  *
  */
-import { Observable } from "rxjs";
-import { mergeMap, map, tap } from "rxjs/operators";
+import { fromEvent } from "rxjs";
+import { map } from "rxjs/operators";
 import {
   USERNAME,
   PASSWORD,
@@ -16,20 +16,17 @@ import { EMOTIV_CHANNELS } from "../../constants/constants";
 import Cortex from "./cortex";
 
 // Just returns the Cortex object from SDK
-export const initCortex = () => {
-  const verbose = process.env.LOG_LEVEL || 1;
-  const options = { verbose };
-
-  return new Cortex(options);
-};
+const verbose = process.env.LOG_LEVEL || 1;
+const options = { verbose };
+const client = new Cortex(options);
 
 // Gets a list of available Emotiv devices
-export const getEmotiv = async client => {
+export const getEmotiv = async () => {
   const devices = await client.queryHeadsets();
   return devices;
 };
 
-export const connectToEmotiv = (client, device) =>
+export const connectToEmotiv = device =>
   client.ready
     .then(() =>
       client.init({
@@ -49,23 +46,21 @@ export const connectToEmotiv = (client, device) =>
       })
     )
     .then(
-      session => {
-        return {
-          name: session.headset.id,
-          samplingRate: session.headset.settings.eegRate
-        };
-      },
+      session => ({
+        name: session.headset.id,
+        samplingRate: session.headset.settings.eegRate
+      }),
       err => console.log(err)
     );
 
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
-export const createRawEmotivObservable = async client => {
+export const createRawEmotivObservable = async () => {
   const subs = await client.subscribe({ streams: ["eeg"] });
   if (!subs[0].eeg) throw new Error("failed to subscribe");
-  return Observable.fromEvent(client, "eeg").pipe(map(createEEGSample));
+  return fromEvent(client, "eeg").pipe(map(createEEGSample));
 };
 
-export const injectEmotivMarker = (client, value, time) => {
+export const injectEmotivMarker = (value, time) => {
   client.injectMarker({ label: "event", value, time });
 };
 
@@ -85,5 +80,5 @@ const createEEGSample = eegEvent => {
     const marker = eegEvent.eeg[eegEvent.eeg.length - 1];
     return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
   }
-  return { data: prunedArray, timestamp: eegEvent.time  * 1000 };
+  return { data: prunedArray, timestamp: eegEvent.time * 1000 };
 };

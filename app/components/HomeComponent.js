@@ -11,7 +11,6 @@ interface Props {
   deviceActions: Object;
   experimentActions: Object;
   rawObservable: ?any;
-  client: ?any;
   mainChannel: ?any;
 }
 

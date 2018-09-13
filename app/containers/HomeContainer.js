@@ -9,7 +9,6 @@ import * as experimentActions from "../actions/experimentActions";
 function mapStateToProps(state) {
   return {
     rawObservable: state.device.rawObservable,
-    client: state.device.client,
     mainChannel: state.jupyter.mainChannel
   };
 }

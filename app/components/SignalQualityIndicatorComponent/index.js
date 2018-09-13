@@ -3,12 +3,11 @@ import React, { Component } from "react";
 import { isNil } from "lodash";
 import { Segment } from "semantic-ui-react";
 import * as d3 from "d3";
-import { Subscription } from "rxjs";
-import { Observable } from "rxjs/Observable";
+import { Observable, Subscription } from "rxjs";
 import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
 
 interface Props {
-  signalQualityObservable: Observable;
+  signalQualityObservable: ?Observable;
   plottingInterval: number;
 }
 
@@ -21,7 +20,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentDidMount() {
-    this.subscribeToObservable(this.props.signalQualityObservable);
+    if (!isNil(this.props.signalQualityObservable)) {
+      this.subscribeToObservable(this.props.signalQualityObservable);
+    }
   }
 
   componentDidUpdate(prevProps: Props) {

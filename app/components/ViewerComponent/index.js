@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from "react";
 import { Segment, Button } from "semantic-ui-react";
-import { Subscription } from "rxjs";
+import { Subscription, Observable } from "rxjs";
 import { isNil } from "lodash";
 import {
   MUSE_CHANNELS,
@@ -13,7 +13,7 @@ import {
 const Mousetrap = require("mousetrap");
 
 interface Props {
-  signalQualityObservable: any;
+  signalQualityObservable: ?Observable;
   deviceType: DEVICES;
   samplingRate: number;
   plottingInterval: number;
@@ -55,7 +55,9 @@ class ViewerComponent extends Component<Props, State> {
         channelColours: this.state.channels.map(() => "#66B0A9")
       });
       this.setKeyListeners();
-      this.subscribeToObservable(this.props.signalQualityObservable);
+      if (!isNil(this.props.signalQualityObservable)) {
+        this.subscribeToObservable(this.props.signalQualityObservable);
+      }
     });
   }
 
@@ -64,6 +66,14 @@ class ViewerComponent extends Component<Props, State> {
       this.props.signalQualityObservable !== prevProps.signalQualityObservable
     ) {
       this.subscribeToObservable(this.props.signalQualityObservable);
+    }
+    if (this.props.deviceType !== prevProps.deviceType) {
+      this.setState({
+        channels:
+          this.props.deviceType === DEVICES.MUSE
+            ? MUSE_CHANNELS
+            : EMOTIV_CHANNELS
+      });
     }
     if (this.state.channels !== prevState.channels) {
       this.graphView.send("updateChannels", this.state.channels);

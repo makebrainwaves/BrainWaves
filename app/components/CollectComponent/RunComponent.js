@@ -4,18 +4,22 @@ import { Grid, Button, Segment, Header, Input, List } from "semantic-ui-react";
 import { Experiment } from "jspsych-react";
 import { debounce } from "lodash";
 import { Link } from "react-router-dom";
-import styles from "./styles/common.css";
-import { injectEmotivMarker } from "../utils/eeg/emotiv";
-import { injectMuseMarker } from "../utils/eeg/muse";
-import callbackHTMLDisplay from "../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
-import { EXPERIMENTS, DEVICES } from "../constants/constants";
-import { parseTimeline, instantiateTimeline } from "../utils/jspsych/functions";
-import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
+import styles from "../styles/common.css";
+import { injectEmotivMarker } from "../../utils/eeg/emotiv";
+import { injectMuseMarker } from "../../utils/eeg/muse";
+import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
+import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
+import { EXPERIMENTS, DEVICES, SCREENS } from "../../constants/constants";
+import {
+  parseTimeline,
+  instantiateTimeline,
+  getImages
+} from "../../utils/jspsych/functions";
+import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
 import {
   readEEGDataDir,
   getCurrentEEGDataDir
-} from "../utils/filesystem/write";
+} from "../../utils/filesystem/write";
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -23,11 +27,9 @@ interface Props {
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
   timelines: { [string]: Timeline };
-  // dir: ?string,
   subject: string;
   session: number;
   deviceType: DEVICES;
-  client: ?any;
   experimentActions: Object;
 }
 
@@ -74,12 +76,19 @@ export default class Run extends Component<Props> {
         this.props.trials,
         this.props.timelines
       ),
-      (value, time) => injectionFunction(this.props.client, value, time), // event callback
+      (value, time) => injectionFunction(value, time), // event callback
       null, // start callback
       this.props.experimentActions.stop // stop callback
     );
-    console.log("timeline: ", timeline);
     return timeline;
+  }
+
+  handleImages() {
+    return getImages(
+      this.props.mainTimeline,
+      this.props.trials,
+      this.props.timelines
+    );
   }
 
   renderTrialList() {
@@ -154,7 +163,7 @@ export default class Run extends Component<Props> {
             </Header>
             {this.renderTrialList()}
           </Segment>
-          <Link to="/analyze">
+          <Link to={SCREENS.ANALYZE.route}>
             <Button>Analyze Data</Button>
           </Link>
         </div>
@@ -166,7 +175,8 @@ export default class Run extends Component<Props> {
           timeline: this.handleTimeline(),
           show_progress_bar: true,
           auto_update_progress_bar: false,
-          on_finish: this.props.experimentActions.stop
+          on_finish: this.props.experimentActions.stop,
+          preload_images: this.handleImages()
         }}
         plugins={{
           "callback-image-display": callbackImageDisplay,

@@ -10,6 +10,10 @@
   font-size: 1.4rem;
 }
 
+.mainSegment {
+  width: 100%;
+}
+
 .inputDiv {
   margin: 15px;
 }

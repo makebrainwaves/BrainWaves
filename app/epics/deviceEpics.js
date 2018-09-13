@@ -1,23 +1,21 @@
 import { combineEpics } from "redux-observable";
-import { Observable } from "rxjs";
+import { of, from, timer } from "rxjs";
 import { map, pluck, mergeMap, tap, filter, catchError } from "rxjs/operators";
-import { epoch, bandpassFilter, addInfo } from "eeg-pipes";
+import { epoch, bandpassFilter, addInfo } from "@neurosity/pipes";
+import { isNil, union } from "lodash";
 import { addSignalQuality, colorSignalQuality } from "../utils/eeg/pipes";
 import {
   CONNECT_TO_DEVICE,
-  SET_DEVICE_TYPE,
   SET_DEVICE_AVAILABILITY,
   setDeviceAvailability,
   setConnectionStatus
 } from "../actions/deviceActions";
 import {
-  initCortex,
   getEmotiv,
   connectToEmotiv,
   createRawEmotivObservable
 } from "../utils/eeg/emotiv";
 import {
-  initMuseClient,
   getMuse,
   connectToMuse,
   createRawMuseObservable
@@ -26,12 +24,14 @@ import {
   CONNECTION_STATUS,
   DEVICES,
   DEVICE_AVAILABILITY,
+  SEARCH_TIMER,
   PLOTTING_INTERVAL,
   EMOTIV_CHANNELS,
   MUSE_CHANNELS
 } from "../constants/constants";
 
-export const SET_CLIENT = "SET_CLIENT";
+export const DEVICE_FOUND = "DEVICE_FOUND";
+export const SET_DEVICE_TYPE = "DEVICE_TYPE";
 export const SET_CONNECTION_STATUS = "SET_CONNECTION_STATUS";
 export const SET_DEVICE_INFO = "SET_DEVICE_INFO";
 export const SET_AVAILABLE_DEVICES = "SET_AVAILABLE_DEVICES";
@@ -42,9 +42,14 @@ export const DEVICE_CLEANUP = "DEVICE_CLEANUP";
 // -------------------------------------------------------------------------
 // Action Creators
 
-const setClient = payload => ({
+const deviceFound = payload => ({
   payload,
-  type: SET_CLIENT
+  type: DEVICE_FOUND
+});
+
+const setDeviceType = payload => ({
+  payload,
+  type: SET_DEVICE_TYPE
 });
 
 const setRawObservable = payload => ({
@@ -72,30 +77,31 @@ const cleanup = () => ({ type: DEVICE_CLEANUP });
 // -------------------------------------------------------------------------
 // Epics
 
-const initEpic = action$ =>
-  action$.ofType(SET_DEVICE_TYPE).pipe(
-    pluck("payload"),
-    map(deviceType => {
-      if (deviceType === DEVICES.EMOTIV) {
-        return initCortex();
-      }
-      return initMuseClient();
-    }),
-    map(setClient)
-  );
-
-// TODO: Add timeout
-// NOTE: Uses a Promise.then inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
-const searchEpic = (action$, store) =>
+// NOTE: Uses a Promise.then inside b/c from leads to loss of user gesture propagation for web bluetooth
+const searchMuseEpic = action$ =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck("payload"),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
-    map(
-      () =>
-        store.getState().device.deviceType === DEVICES.EMOTIV
-          ? getEmotiv(store.getState().device.client)
-          : getMuse()
+    map(getMuse),
+    mergeMap(promise =>
+      promise.then(
+        devices => devices,
+        error => {
+          console.error("searchMuseEpic: ", error);
+          return [];
+        }
+      )
     ),
+    filter(devices => devices.length >= 1),
+    map(deviceFound)
+  );
+
+const searchEmotivEpic = action$ =>
+  action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
+    pluck("payload"),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
+    filter(() => process.platform === "darwin" || process.platform === "win32"),
+    map(getEmotiv),
     mergeMap(promise =>
       promise.then(
         devices => devices,
@@ -105,31 +111,47 @@ const searchEpic = (action$, store) =>
         }
       )
     ),
-    mergeMap(devices => {
-      if (devices.length > 1) {
-        return Observable.of(
-          setAvailableDevices(devices),
-          setDeviceAvailability(DEVICE_AVAILABILITY.MULTIPLE_AVAILABLE)
-        );
-      }
-      if (devices.length === 1) {
-        return Observable.of(
-          setAvailableDevices(devices),
-          setDeviceAvailability(DEVICE_AVAILABILITY.SINGLE_AVAILABLE)
-        );
-      }
-      return Observable.of(setDeviceAvailability(DEVICE_AVAILABILITY.NONE));
-    })
+    filter(devices => devices.length >= 1),
+    map(deviceFound)
   );
 
-const connectEpic = (action$, store) =>
+const deviceFoundEpic = (action$, state$) =>
+  action$.ofType(DEVICE_FOUND).pipe(
+    pluck("payload"),
+    map(foundDevices =>
+      foundDevices.reduce((acc, curr) => {
+        if (acc.find(device => device.id === curr.id)) {
+          return acc;
+        }
+        return acc.concat(curr);
+      }, state$.value.device.availableDevices)
+    ),
+    mergeMap(devices =>
+      of(
+        setAvailableDevices(devices),
+        setDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE)
+      )
+    )
+  );
+
+const searchTimerEpic = (action$, state$) =>
+  action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
+    pluck("payload"),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
+    mergeMap(() => timer(SEARCH_TIMER)),
+    filter(
+      () =>
+        state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+    ),
+    map(() => setDeviceAvailability(DEVICE_AVAILABILITY.NONE))
+  );
+
+const connectEpic = action$ =>
   action$.ofType(CONNECT_TO_DEVICE).pipe(
     pluck("payload"),
     map(
       device =>
-        store.getState().device.deviceType === DEVICES.EMOTIV
-          ? connectToEmotiv(store.getState().device.client, device)
-          : connectToMuse(store.getState().device.client, device)
+        isNil(device.name) ? connectToEmotiv(device) : connectToMuse(device)
     ),
     mergeMap(promise =>
       promise.then(
@@ -140,50 +162,44 @@ const connectEpic = (action$, store) =>
         }
       )
     ),
-    tap(console.log),
     mergeMap(deviceInfo => {
       if (deviceInfo) {
-        return Observable.of(
+        return of(
+          setDeviceType(
+            deviceInfo.name.includes("Muse") ? DEVICES.MUSE : DEVICES.EMOTIV
+          ),
           setDeviceInfo(deviceInfo),
           setConnectionStatus(CONNECTION_STATUS.CONNECTED)
         );
       }
-      return Observable.of(setConnectionStatus(CONNECTION_STATUS.DISCONNECTED));
+      return of(setConnectionStatus(CONNECTION_STATUS.DISCONNECTED));
     })
   );
 
-// TODO: Bring this back and make it only look for disconnection events
-// const autoConnectEpic = action$ =>
-//   action$.ofType(SET_AVAILABLE_DEVICES).pipe(
-//     pluck("payload"),
-//     filter(availableDevices => availableDevices.length === 1),
-//     map(availableDevices => availableDevices[0]),
-//     map(connectToDevice)
-//   );
+const isConnectingEpic = action$ =>
+  action$
+    .ofType(CONNECT_TO_DEVICE)
+    .pipe(map(() => setConnectionStatus(CONNECTION_STATUS.CONNECTING)));
 
-const setRawObservableEpic = (action$, store) =>
+const setRawObservableEpic = (action$, state$) =>
   action$.ofType(SET_DEVICE_INFO).pipe(
     mergeMap(() => {
-      if (store.getState().device.deviceType === DEVICES.EMOTIV) {
-        return Observable.from(
-          createRawEmotivObservable(store.getState().device.client)
-        );
+      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
+        return from(createRawEmotivObservable());
       }
-      return Observable.from(
-        createRawMuseObservable(store.getState().device.client)
-      );
+      return from(createRawMuseObservable());
     }),
     mergeMap(observable => {
       const samplingRate =
-        store.getState().device.deviceType === DEVICES.EMOTIV ? 128 : 256;
+        state$.value.device.deviceType === DEVICES.EMOTIV ? 128 : 256;
       const channelNames =
-        store.getState().device.deviceType === DEVICES.EMOTIV
+        state$.value.device.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS
           : MUSE_CHANNELS;
       const nbChannels =
-        store.getState().device.deviceType === DEVICES.EMOTIV ? 14 : 5;
+        state$.value.device.deviceType === DEVICES.EMOTIV ? 14 : 5;
       const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
-      return Observable.of(
+      return of(
         setRawObservable(observable),
         setSignalQualityObservable(
           observable.pipe(
@@ -208,32 +224,19 @@ const setRawObservableEpic = (action$, store) =>
     })
   );
 
-// const connectionStatusListenerEpic = action$ =>
-//   action$.ofType(SET_CLIENT).pipe(
-//     pluck("payload"),
-//     mergeMap(client => client.connectionStatus),
-//     map(connectionStatus => {
-//       if (connectionStatus) {
-//         return setConnectionStatus(CONNECTION_STATUS.CONNECTED);
-//       }
-//       return setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-//     })
-//   );
-
-// const cleanupEpic = action$ =>
-//   action$.ofType(SET_DEVICE_TYPE).pipe(map(cleanup));
-
 // TODO: Fix this error handling so epics can refire once they error out
 const rootEpic = (action$, state$) =>
   combineEpics(
-    initEpic,
-    searchEpic,
+    searchMuseEpic,
+    searchEmotivEpic,
+    deviceFoundEpic,
+    searchTimerEpic,
     connectEpic,
-    // autoConnectEpic,
+    isConnectingEpic,
     setRawObservableEpic
   )(action$, state$).pipe(
     catchError(error =>
-      Observable.of(error).pipe(
+      of(error).pipe(
         tap(console.log),
         map(cleanup)
       )
