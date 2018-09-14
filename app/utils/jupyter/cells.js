@@ -27,7 +27,7 @@ export const utils = () =>
   readFileSync(path.join(__dirname, "/utils/jupyter/utils.py"), "utf8");
 
 export const loadCSV = (
-  filePathArray: Array<{ name: string, dir: string }>,
+  filePathArray: Array<{ name: string, path: string }>,
   deviceType: DEVICES
 ) =>
   [
@@ -113,7 +113,10 @@ export const plotERP = (ch_ind: number) =>
 // -------------------------------------------
 // Helper methods
 
-const formatFilePaths = (filePathArray: Array<{ name: string, dir: string }>) =>
-  `[${filePathArray.map(
-    filepath => `"${path.join(filepath.dir, filepath.name)}"`
-  )}]`.replace(/\\/g, "/");
+const formatFilePaths = (
+  filePathArray: Array<{ name: string, path: string }>
+) =>
+  `[${filePathArray.map(filepath => `"${filepath.path}"`)}]`.replace(
+    /\\/g,
+    "/"
+  );

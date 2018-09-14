@@ -7,6 +7,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import recursive from "recursive-readdir";
 import mkdirp from "mkdirp";
 import { has } from "lodash";
 import { EEGData } from "../../constants/interfaces";
@@ -14,40 +15,38 @@ import { EXPERIMENTS } from "../../constants/constants";
 
 // Creates an appropriate filename and returns a writestream that will write to that file
 export const createEEGWriteStream = (
-  type: EXPERIMENTS,
+  title: string,
   subject: string,
   session: number
 ) => {
-  const dir = getCurrentEEGDataDir(type);
-  const fileName = `${subject}_${session}.csv`;
+  const dir = path.join(
+    os.homedir(),
+    "BrainWaves Workspaces",
+    title,
+    "data",
+    subject,
+    "EEG"
+  );
+  mkdirPathSync(dir);
+  const fileName = `${subject}_${session}_raw.csv`;
 
   return fs.createWriteStream(path.join(dir, fileName));
 };
 
 // Returns a list of the files in a directory for a given experiment
-export const readEEGDataDir = (type: EXPERIMENTS) => {
-  if (type === EXPERIMENTS.NONE) {
-    return [];
-  }
-  const dir = path.join(os.homedir(), "BrainWaves Data", type);
-  try {
-    const fileNames = fs.readdirSync(dir);
-    return fileNames.map(fileName => ({ name: fileName, dir }));
-  } catch (e) {
-    if (e.code === "ENOENT") {
-      mkdirPathSync(dir);
-    }
-    console.log(e);
-    return [];
-  }
+export const readWorkspaceRawEEGData = async (title: string) => {
+  const dir = path.join(os.homedir(), "BrainWaves Workspaces", title, "data");
+  // let files = [];
+  const files = await recursive(dir);
+  return files.map(filepath => ({
+    name: path.basename(filepath),
+    path: filepath
+  }));
 };
 
 // Gets what the EEG directory path should be for a given experiment
-export const getCurrentEEGDataDir = (type: EXPERIMENTS) => {
-  if (type === EXPERIMENTS.NONE) {
-    return "none";
-  }
-  return path.join(os.homedir(), "BrainWaves Data", type);
+export const getCurrentEEGDataDir = (title: string) => {
+  return path.join(os.homedir(), "BrainWaves Workspaces", title);
 };
 
 // Writes the header for a simple CSV EEG file format.

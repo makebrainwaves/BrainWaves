@@ -78,7 +78,7 @@ const startEpic = (action$, state$) =>
     ),
     map(() => {
       const writeStream = createEEGWriteStream(
-        state$.value.experiment.type,
+        state$.value.experiment.title,
         state$.value.experiment.subject,
         state$.value.experiment.session
       );

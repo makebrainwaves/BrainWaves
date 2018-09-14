@@ -229,6 +229,7 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-router-redux": "^5.0.0-alpha.9",
+    "recursive-readdir": "^2.2.2",
     "redux": "^4.0.0",
     "redux-observable": "^1.0.0",
     "redux-thunk": "^2.2.0",
