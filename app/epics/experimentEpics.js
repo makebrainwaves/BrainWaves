@@ -1,4 +1,5 @@
 import { combineEpics } from "redux-observable";
+import { executeRequest } from "@nteract/messaging";
 import {
   map,
   mapTo,
@@ -18,7 +19,8 @@ import {
 import {
   DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS
+  EMOTIV_CHANNELS,
+  KERNEL_STATUS
 } from "../constants/constants";
 import { loadTimeline } from "../utils/jspsych/functions";
 import {
@@ -30,6 +32,7 @@ import {
   storeExperimentState,
   createWorkspaceDir
 } from "../utils/filesystem/storage";
+import { saveEpochs } from "../utils/jupyter/cells";
 
 export const SET_TIMELINE = "LOAD_TIMELINE";
 export const SET_IS_RUNNING = "SET_IS_RUNNING";
@@ -112,6 +115,14 @@ const saveWorkspaceEpic = (action$, state$) =>
     throttleTime(1000),
     map(() => createWorkspaceDir(state$.value.experiment.title)),
     tap(dir => storeExperimentState(state$.value.experiment, dir)),
+    tap(dir => {
+      if (
+        state$.value.jupyter.epochsInfo &&
+        state$.value.jupyter.kernelStatus === KERNEL_STATUS.IDLE
+      ) {
+        state$.value.jupyter.mainChannel.next(executeRequest(saveEpochs(dir)));
+      }
+    }),
     ignoreElements()
   );
 

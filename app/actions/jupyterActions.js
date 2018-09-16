@@ -22,7 +22,7 @@ export const sendExecuteRequest = (payload: string) => ({
   type: SEND_EXECUTE_REQUEST
 });
 
-export const loadEpochs = (payload: Array<{ name: string, dir: string }>) => ({
+export const loadEpochs = (payload: Array<{ name: string, path: string }>) => ({
   payload,
   type: LOAD_EPOCHS
 });

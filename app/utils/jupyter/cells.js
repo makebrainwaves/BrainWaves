@@ -110,6 +110,19 @@ export const plotERP = (ch_ind: number) =>
     ci=97.5, n_boot=1000, title='')`
   ].join("\n");
 
+export const saveEpochs = (
+  workspaceDir: string,
+  subject: string,
+  session: string
+) =>
+  `epochs.save(${path.join(
+    workspaceDir,
+    "data",
+    subject,
+    "EEG",
+    `${subject}_${session}-epo.fif`
+  )})`;
+
 // -------------------------------------------
 // Helper methods
 

@@ -23,6 +23,7 @@ const client = new Cortex(options);
 // Gets a list of available Emotiv devices
 export const getEmotiv = async () => {
   const devices = await client.queryHeadsets();
+  console.log(devices);
   return devices;
 };
 

@@ -15,14 +15,12 @@ import {
   instantiateTimeline,
   getImages
 } from "../../utils/jspsych/functions";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import {
-  readEEGDataDir,
-  getCurrentEEGDataDir
-} from "../../utils/filesystem/write";
+import { MainTimeline, Trial } from "../../constants/interfaces";
+import { readWorkspaceRawEEGData } from "../../utils/filesystem/write";
 
 interface Props {
   type: ?EXPERIMENTS;
+  title: string;
   isRunning: boolean;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
@@ -91,49 +89,12 @@ export default class Run extends Component<Props> {
     );
   }
 
-  renderTrialList() {
-    return (
-      <div>
-        <List as="ul">
-          {readEEGDataDir(this.props.type).map(filename => (
-            <List.Item
-              icon="file"
-              key={filename.name}
-              description={filename.name}
-            />
-          ))}
-        </List>
-      </div>
-    );
-  }
-
-  renderExperimentTitle() {
-    switch (this.props.type) {
-      case EXPERIMENTS.N170:
-        return <Header as="h3">Faces and Houses N170 Experiment</Header>;
-      case EXPERIMENTS.P300:
-        return <Header as="h3">Visual Oddball P300 Experiment</Header>;
-      case EXPERIMENTS.SSVEP:
-        return (
-          <Header as="h3">
-            Steady-State Visual Evoked Potential Experiment
-          </Header>
-        );
-      case EXPERIMENTS.STROOP:
-        return <Header as="h3">Stroop Experiment</Header>;
-
-      case EXPERIMENTS.NONE:
-      default:
-        return <Header as="h3">No experiment selected</Header>;
-    }
-  }
-
   renderExperiment() {
     if (!this.props.isRunning) {
       return (
         <div>
           <Segment raised padded color="red">
-            {this.renderExperimentTitle()}
+            {this.props.title}
             <div className={styles.inputDiv}>
               <Input
                 focus
@@ -154,17 +115,8 @@ export default class Run extends Component<Props> {
               Start Experiment
             </Button>
           </Segment>
-          <Segment raised padded color="red">
-            <Header as="h3">
-              Collected Trials
-              <Header.Subheader>
-                {getCurrentEEGDataDir(this.props.type)}
-              </Header.Subheader>
-            </Header>
-            {this.renderTrialList()}
-          </Segment>
-          <Link to={SCREENS.ANALYZE.route}>
-            <Button>Analyze Data</Button>
+          <Link to={SCREENS.CLEAN.route}>
+            <Button>Clean Data</Button>
           </Link>
         </div>
       );

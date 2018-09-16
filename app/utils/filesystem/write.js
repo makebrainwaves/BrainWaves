@@ -28,7 +28,7 @@ export const createEEGWriteStream = (
     "EEG"
   );
   mkdirPathSync(dir);
-  const fileName = `${subject}_${session}_raw.csv`;
+  const fileName = `${subject}-${session}-raw.csv`;
 
   return fs.createWriteStream(path.join(dir, fileName));
 };
@@ -36,12 +36,44 @@ export const createEEGWriteStream = (
 // Returns a list of the files in a directory for a given experiment
 export const readWorkspaceRawEEGData = async (title: string) => {
   const dir = path.join(os.homedir(), "BrainWaves Workspaces", title, "data");
-  // let files = [];
-  const files = await recursive(dir);
-  return files.map(filepath => ({
-    name: path.basename(filepath),
-    path: filepath
-  }));
+  try {
+    const files = await recursive(dir);
+    console.log(files);
+    const rawFiles = files
+      .filter(filepath => filepath.slice(-7).includes("raw.csv"))
+      .map(filepath => ({
+        name: path.basename(filepath),
+        path: filepath
+      }));
+    console.log(rawFiles);
+
+    return rawFiles;
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      mkdirPathSync(dir);
+    }
+    console.log(e);
+    return [];
+  }
+};
+
+export const readWorkspaceCleanedEEGData = async (title: string) => {
+  const dir = path.join(os.homedir(), "BrainWaves Workspaces", title, "data");
+  try {
+    const files = await recursive(dir);
+    return files
+      .filter(filepath => filepath.slice(-7).includes("epo.fif"))
+      .map(filepath => ({
+        name: path.basename(filepath),
+        path: filepath
+      }));
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      mkdirPathSync(dir);
+    }
+    console.log(e);
+    return [];
+  }
 };
 
 // Gets what the EEG directory path should be for a given experiment

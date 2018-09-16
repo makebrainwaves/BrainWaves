@@ -56,12 +56,11 @@ export default class Clean extends Component<Props, State> {
     }
 
     const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
-    console.log(workspaceRawData);
     this.setState({
       eegFilePaths: workspaceRawData.map(filepath => ({
         key: filepath.name,
         text: filepath.name,
-        value: filepath.path
+        value: filepath
       }))
     });
   }
