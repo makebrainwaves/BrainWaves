@@ -8,19 +8,22 @@ import {
   Segment,
   List,
   Image,
+  Modal,
   Step
 } from "semantic-ui-react";
 import styles from "./styles/common.css";
 import { EXPERIMENTS, SCREENS } from "../constants/constants";
+
 import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
 import {
   readWorkspacesDir,
   readAndParseState
 } from "../utils/filesystem/storage";
+import InputModal from "./unused/InputModal";
 
 const HOME_STEPS = {
   RECENT: "RECENT",
-  PRE_DESIGNED: "PRE-DESIGNED EXPERIMENTS",
+  NEW: "NEW EXPERIMENT",
   PRACTICE: "PRACTICE"
 };
 
@@ -35,19 +38,26 @@ interface Props {
 interface State {
   activeStep: string;
   recentWorkspaces: Array<string>;
+  isNewExperimentModalOpen: boolean;
+  selectedExperimentType: EXPERIMENTS;
 }
 
 export default class Home extends Component<Props, State> {
   props: Props;
   state: State;
+  handleNewExperiment: EXPERIMENTS => void;
+
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: HOME_STEPS.PRE_DESIGNED,
-      recentWorkspaces: []
+      activeStep: HOME_STEPS.RECENT,
+      recentWorkspaces: [],
+      isNewExperimentModalOpen: false,
+      selectedExperimentType: EXPERIMENTS.NONE
     };
     this.handleStepClick = this.handleStepClick.bind(this);
-    this.handleExperimentSelect = this.handleExperimentSelect.bind(this);
+    this.handleNewExperiment = this.handleNewExperiment.bind(this);
+    this.handleLoadNewExperiment = this.handleLoadNewExperiment.bind(this);
   }
 
   componentDidMount() {
@@ -58,17 +68,31 @@ export default class Home extends Component<Props, State> {
     this.setState({ activeStep: props.title });
   }
 
-  handleExperimentSelect(experimentType: EXPERIMENTS) {
-    this.props.experimentActions.setType(experimentType);
-    if (experimentType === EXPERIMENTS.CUSTOM) {
-      this.props.experimentActions.loadDefaultTimeline();
-      this.props.experimentActions.setTitle("Dano custom experiment");
-      this.props.experimentActions.setSubject("Dano");
-      this.props.experimentActions.setSession(5);
-    } else {
-      this.props.experimentActions.loadDefaultTimeline();
-    }
+  handleNewExperiment(experimentType: EXPERIMENTS) {
+    this.setState({
+      isNewExperimentModalOpen: true,
+      selectedExperimentType: experimentType
+    });
   }
+
+  handleLoadNewExperiment(title: string) {
+    this.setState({ isNewExperimentModalOpen: false });
+    this.props.experimentActions.setType(this.state.selectedExperimentType);
+    this.props.experimentActions.setTitle(title);
+    this.props.experimentActions.loadDefaultTimeline();
+  }
+
+  // handleExperimentSelect(experimentType: EXPERIMENTS) {
+  //   this.props.experimentActions.setType(experimentType);
+  //   if (experimentType === EXPERIMENTS.CUSTOM) {
+  //     this.props.experimentActions.loadDefaultTimeline();
+  //     this.props.experimentActions.setTitle("Dano custom experiment");
+  //     this.props.experimentActions.setSubject("Dano");
+  //     this.props.experimentActions.setSession(5);
+  //   } else {
+  //     this.props.experimentActions.loadDefaultTimeline();
+  //   }
+  // }
 
   handleLoadRecentWorkspace(dir: string) {
     this.props.experimentActions.setState(readAndParseState(dir));
@@ -92,7 +116,7 @@ export default class Home extends Component<Props, State> {
             ))}
           </div>
         );
-      case HOME_STEPS.PRE_DESIGNED:
+      case HOME_STEPS.NEW:
       default:
         return (
           <Grid columns={2} relaxed padded>
@@ -117,38 +141,25 @@ export default class Home extends Component<Props, State> {
               <Grid.Column>
                 <Segment color="red">
                   <Header as="h3">Faces and Houses</Header>
-                  <List size="medium">
-                    <List.Item>
-                      <Link
-                        to={SCREENS.DESIGN.route}
-                        onClick={() =>
-                          this.handleExperimentSelect(EXPERIMENTS.N170)
-                        }
-                      >
-                        <Image size="small" src={faceHouseIcon} />
-                        <List.Content description="Detecting the N170 face-evoked potential" />
-                      </Link>
-                    </List.Item>
-                  </List>
+                  <Image size="small" src={faceHouseIcon} />
+                  "Detecting the N170 face-evoked potential"
+                  <Button
+                    secondary
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+                  >
+                    Start New Experiment
+                  </Button>
                 </Segment>
                 <Segment color="red">
                   <Header as="h3">Custom</Header>
-                  <List size="medium">
-                    <List.Item>
-                      <Image size="small" src={faceHouseIcon} />
-                      <List.Content description="Build your own neuroscience experiment!" />
-                      <Link to={SCREENS.DESIGN.route}>
-                        <Button
-                          secondary
-                          onClick={() =>
-                            this.handleExperimentSelect(EXPERIMENTS.CUSTOM)
-                          }
-                        >
-                          Review
-                        </Button>
-                      </Link>
-                    </List.Item>
-                  </List>
+                  <Image size="small" src={faceHouseIcon} />
+                  Build your own neuroscience experiment!
+                  <Button
+                    secondary
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+                  >
+                    Start New Experiment
+                  </Button>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
@@ -170,13 +181,19 @@ export default class Home extends Component<Props, State> {
             />
             <Step
               link
-              title={HOME_STEPS.PRE_DESIGNED}
-              active={this.state.activeStep === HOME_STEPS.PRE_DESIGNED}
+              title={HOME_STEPS.NEW}
+              active={this.state.activeStep === HOME_STEPS.NEW}
               onClick={this.handleStepClick}
             />
           </Step.Group>
         </Segment>
         {this.renderSectionContent()}
+        <InputModal
+          open={this.state.isNewExperimentModalOpen}
+          onClose={this.handleLoadNewExperiment}
+          placeholder={this.state.selectedExperimentType}
+          header="Please enter a title for this experiment"
+        />
       </div>
     );
   }

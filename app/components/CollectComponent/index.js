@@ -9,7 +9,7 @@ import {
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY
 } from "../../constants/constants";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
+import { MainTimeline, Trial } from "../../constants/interfaces";
 import PreTestComponent from "./PreTestComponent";
 import ConnectModal from "./ConnectModal";
 import RunComponent from "./RunComponent";

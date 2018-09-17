@@ -6,7 +6,8 @@ import { debounce } from "lodash";
 interface Props {
   open: boolean;
   onClose: string => void;
-  content: any;
+  placeholder: string;
+  header: string;
 }
 
 interface State {
@@ -40,8 +41,13 @@ export default class InputModal extends Component<Props, State> {
         size="small"
       >
         <Modal.Content>
-          {this.props.content}
-          <Input focus onChange={this.handleTextEntry} placeholder="Name" />
+          <Modal.Header as="h1">{this.props.header}</Modal.Header>
+          <Input
+            focus
+            fluid
+            onChange={this.handleTextEntry}
+            placeholder={this.props.placeholder}
+          />
         </Modal.Content>
         {/* <Input focus placeholder="Name.." /> */}
         <Modal.Actions>
