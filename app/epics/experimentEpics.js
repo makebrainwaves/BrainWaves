@@ -1,8 +1,10 @@
 import { combineEpics } from "redux-observable";
 import { executeRequest } from "@nteract/messaging";
+import { of } from "rxjs";
 import {
   map,
   mapTo,
+  mergeMap,
   pluck,
   filter,
   takeUntil,
@@ -11,10 +13,14 @@ import {
   tap
 } from "rxjs/operators";
 import {
+  setType,
+  setTitle,
+  loadDefaultTimeline,
   LOAD_DEFAULT_TIMELINE,
   START,
   STOP,
-  SAVE_WORKSPACE
+  SAVE_WORKSPACE,
+  CREATE_NEW_WORKSPACE
 } from "../actions/experimentActions";
 import {
   DEVICES,
@@ -64,6 +70,19 @@ const cleanup = () => ({
 // -------------------------------------------------------------------------
 // Epics
 
+const createNewWorkspaceEpic = (action$, state$) =>
+  action$.ofType(CREATE_NEW_WORKSPACE).pipe(
+    pluck("payload"),
+    tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
+    mergeMap(workspaceInfo => {
+      return of(
+        setType(workspaceInfo.type),
+        setTitle(workspaceInfo.title),
+        loadDefaultTimeline()
+      );
+    })
+  );
+
 const loadDefaultTimelineEpic = (action$, state$) =>
   action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
     map(() => state$.value.experiment.type),
@@ -111,9 +130,7 @@ const sessionCountEpic = (action$, state$) =>
 
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(
-    tap(() => console.log("saving workspace")),
     throttleTime(1000),
-    map(() => createWorkspaceDir(state$.value.experiment.title)),
     tap(dir => storeExperimentState(state$.value.experiment, dir)),
     tap(dir => {
       if (
@@ -135,6 +152,7 @@ const navigationCleanupEpic = action$ =>
 
 export default combineEpics(
   loadDefaultTimelineEpic,
+  createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
   sessionCountEpic,

@@ -14,9 +14,8 @@ const workspaces = path.join(os.homedir(), "BrainWaves Workspaces");
 // Creates a new directory for a given workspace with the passed title if it doesn't already exist
 export const createWorkspaceDir = (title: string) => {
   const workspaceDir = path.join(workspaces, title);
-
+  console.log(workspaceDir);
   mkdirPathSync(workspaceDir);
-
   return workspaceDir;
 };
 

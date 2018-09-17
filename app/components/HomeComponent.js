@@ -77,22 +77,18 @@ export default class Home extends Component<Props, State> {
 
   handleLoadNewExperiment(title: string) {
     this.setState({ isNewExperimentModalOpen: false });
-    this.props.experimentActions.setType(this.state.selectedExperimentType);
-    this.props.experimentActions.setTitle(title);
-    this.props.experimentActions.loadDefaultTimeline();
+    // Don't create new workspace if it already exists or title is too short
+    if (!this.state.recentWorkspaces.includes(title) && title.length >= 1) {
+      this.props.experimentActions.createNewWorkspace({
+        title,
+        type: this.state.selectedExperimentType
+      });
+      // this.props.experimentActions.setType(this.state.selectedExperimentType);
+      // this.props.experimentActions.setTitle(title);
+      // this.props.experimentActions.loadDefaultTimeline();
+      this.props.history.push(SCREENS.DESIGN.route);
+    }
   }
-
-  // handleExperimentSelect(experimentType: EXPERIMENTS) {
-  //   this.props.experimentActions.setType(experimentType);
-  //   if (experimentType === EXPERIMENTS.CUSTOM) {
-  //     this.props.experimentActions.loadDefaultTimeline();
-  //     this.props.experimentActions.setTitle("Dano custom experiment");
-  //     this.props.experimentActions.setSubject("Dano");
-  //     this.props.experimentActions.setSession(5);
-  //   } else {
-  //     this.props.experimentActions.loadDefaultTimeline();
-  //   }
-  // }
 
   handleLoadRecentWorkspace(dir: string) {
     this.props.experimentActions.setState(readAndParseState(dir));
@@ -119,50 +115,55 @@ export default class Home extends Component<Props, State> {
       case HOME_STEPS.NEW:
       default:
         return (
-          <Grid columns={2} relaxed padded>
-            <Grid.Row>
-              <Grid.Column>
-                <Segment raised color="red">
-                  <Header as="h2">Welcome to the BrainWaves App Alpha</Header>
-                  <p>
-                    The New York University (NYU) BrainWaves app allows you to
-                    learn to design and carry out original brain experiments
-                    using real brainwave scanning equipment in the classroom.
-                  </p>
-                  <p>
-                    Get started by choosing to practice a new skill, start an
-                    experiment, or pick up where you left off with a past
-                    workspace.
-                  </p>
-                </Segment>
-              </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-              <Grid.Column>
-                <Segment color="red">
-                  <Header as="h3">Faces and Houses</Header>
-                  <Image size="small" src={faceHouseIcon} />
-                  "Detecting the N170 face-evoked potential"
-                  <Button
-                    secondary
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
-                  >
-                    Start New Experiment
-                  </Button>
-                </Segment>
-                <Segment color="red">
-                  <Header as="h3">Custom</Header>
-                  <Image size="small" src={faceHouseIcon} />
-                  Build your own neuroscience experiment!
-                  <Button
-                    secondary
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
-                  >
-                    Start New Experiment
-                  </Button>
-                </Segment>
-              </Grid.Column>
-            </Grid.Row>
+          <Grid columns="equal" relaxed padded>
+            <Grid.Column>
+              <Segment basic>
+                <Image size="huge" src={faceHouseIcon} />
+                <Header as="h1">Faces and Houses</Header>
+                <p>
+                  Explore the N170 ERP that is produce in response to viewing
+                  faces (as compared to non human objects). It is called the
+                  N170 because it is a negative deflection that occurs around
+                  170ms after perceiving a face.
+                </p>
+                <Button
+                  primary
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+                >
+                  Start Experiment
+                </Button>
+              </Segment>
+            </Grid.Column>
+            <Grid.Column>
+              <Segment basic>
+                <Image size="huge" src={faceHouseIcon} />
+                <Header as="h1">Oddball</Header>
+                <p>
+                  Explore the P300 ERP that is produced after an unexpected
+                  'oddball' stimulus. The P300 ERP is a positive deflection that
+                  occurs 300ms after stimulus onset.
+                </p>
+                <Button
+                  primary
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.P300)}
+                >
+                  Start Experiment
+                </Button>
+              </Segment>
+            </Grid.Column>
+            <Grid.Column>
+              <Segment size="huge" basic>
+                <Image size="huge" src={faceHouseIcon} />
+                <Header as="h1">Custom</Header>
+                <p>Design your own EEG experiment!</p>
+                <Button
+                  primary
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+                >
+                  Start Experiment
+                </Button>
+              </Segment>
+            </Grid.Column>
           </Grid>
         );
     }
@@ -192,7 +193,7 @@ export default class Home extends Component<Props, State> {
           open={this.state.isNewExperimentModalOpen}
           onClose={this.handleLoadNewExperiment}
           placeholder={this.state.selectedExperimentType}
-          header="Please enter a title for this experiment"
+          header="Enter a title for this experiment"
         />
       </div>
     );
