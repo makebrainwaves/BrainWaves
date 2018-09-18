@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from "react";
+import React, { Component } from 'react';
 import {
   Grid,
   Button,
@@ -8,19 +8,19 @@ import {
   Header,
   Image,
   List
-} from "semantic-ui-react";
-import { isNil } from "lodash";
-import styles from "../styles/common.css";
-import { EXPERIMENTS } from "../../constants/constants";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
-import n170Example from "../../assets/face_house/n170_example.png";
+} from 'semantic-ui-react';
+import { isNil } from 'lodash';
+import styles from '../styles/common.css';
+import { EXPERIMENTS } from '../../constants/constants';
+import { MainTimeline, Trial } from '../../constants/interfaces';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
+import n170Example from '../../assets/face_house/n170_example.png';
 
 const DESIGN_STEPS = {
-  OVERVIEW: "Overview",
-  BACKGROUND: "Background",
-  PROTOCOL: "Experimental Protocol"
+  OVERVIEW: 'Overview',
+  BACKGROUND: 'Background',
+  PROTOCOL: 'Experimental Protocol'
 };
 
 interface Props {
@@ -73,6 +73,7 @@ export default class Design extends Component<Props, State> {
   }
 
   renderPreviewButton() {
+    console.log('testing precommit');
     if (!this.state.isPreviewing) {
       return (
         <Button secondary onClick={this.handlePreview}>
@@ -186,7 +187,7 @@ export default class Design extends Component<Props, State> {
   render() {
     return (
       <div className={styles.mainContainer}>
-        <Grid columns={1} centered style={{ height: "50%" }}>
+        <Grid columns={1} centered style={{ height: '50%' }}>
           <Grid.Row>
             <Segment raised color="red">
               <Header as="h3">{this.props.title}</Header>
@@ -212,7 +213,7 @@ export default class Design extends Component<Props, State> {
               </Step.Group>
             </Segment>
           </Grid.Row>
-          <Grid.Row stretched style={{ height: "100%" }}>
+          <Grid.Row stretched style={{ height: '100%' }}>
             <Segment raised className={styles.mainSegment} color="red">
               {this.renderSectionContent()}
             </Segment>
