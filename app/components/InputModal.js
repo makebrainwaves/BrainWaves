@@ -1,8 +1,8 @@
 // @flow
 import React, { Component } from "react";
-import { Input, Modal, Button, Segment } from "semantic-ui-react";
+import { Input, Modal, Button } from "semantic-ui-react";
 import { debounce } from "lodash";
-import styles from "../styles/collect.css";
+import styles from "./styles/collect.css";
 
 interface Props {
   open: boolean;

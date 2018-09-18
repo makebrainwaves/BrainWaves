@@ -16,11 +16,8 @@ import styles from "./styles/common.css";
 import { EXPERIMENTS, SCREENS } from "../constants/constants";
 
 import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
-import {
-  readWorkspaces,
-  readAndParseState
-} from "../utils/filesystem/storage";
-import InputModal from "./unused/InputModal";
+import { readWorkspaces, readAndParseState } from "../utils/filesystem/storage";
+import InputModal from "./InputModal";
 
 const HOME_STEPS = {
   RECENT: "RECENT",
@@ -98,22 +95,27 @@ export default class Home extends Component<Props, State> {
     }
   }
 
+  // TODO: Figure out how to make this not overflow. Lists?
   renderSectionContent() {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
         return (
           <div>
-            {this.state.recentWorkspaces.map((dir, index) => (
-              <Segment key={dir} basic>
-                <Button
-                  secondary
-                  onClick={() => this.handleLoadRecentWorkspace(dir)}
-                >
-                  Open Workspace
-                </Button>
-                {dir}
-              </Segment>
-            ))}
+            <Grid stackable columns="equal">
+              {this.state.recentWorkspaces.map((dir, index) => (
+                <Grid.Row>
+                  <Button
+                    secondary
+                    onClick={() => this.handleLoadRecentWorkspace(dir)}
+                  >
+                    Open Workspace
+                  </Button>
+                  <Segment basic compact textAlign="center">
+                    <Header as="h3"> {dir}</Header>
+                  </Segment>
+                </Grid.Row>
+              ))}
+            </Grid>
           </div>
         );
       case HOME_STEPS.NEW:
