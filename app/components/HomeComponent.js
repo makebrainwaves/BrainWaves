@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import { isNil } from "lodash";
 import {
   Grid,
   Button,
@@ -91,7 +92,10 @@ export default class Home extends Component<Props, State> {
   }
 
   handleLoadRecentWorkspace(dir: string) {
-    this.props.experimentActions.setState(readAndParseState(dir));
+    const recentWorkspaceState = readAndParseState(dir);
+    if (!isNil(recentWorkspaceState)) {
+      this.props.experimentActions.setState(readAndParseState(dir));
+    }
   }
 
   renderSectionContent() {

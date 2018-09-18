@@ -15,6 +15,7 @@ import {
 import {
   setType,
   setTitle,
+  saveWorkspace,
   loadDefaultTimeline,
   LOAD_DEFAULT_TIMELINE,
   START,
@@ -28,7 +29,7 @@ import {
   EMOTIV_CHANNELS,
   KERNEL_STATUS
 } from "../constants/constants";
-import { loadTimeline } from "../utils/jspsych/functions";
+import { loadTimeline, getBehaviouralData } from "../utils/jspsych/functions";
 import {
   createEEGWriteStream,
   writeHeader,
@@ -78,7 +79,8 @@ const createNewWorkspaceEpic = (action$, state$) =>
       return of(
         setType(workspaceInfo.type),
         setTitle(workspaceInfo.title),
-        loadDefaultTimeline()
+        loadDefaultTimeline(),
+        saveWorkspace()
       );
     })
   );
@@ -120,7 +122,11 @@ const startEpic = (action$, state$) =>
   );
 
 const experimentStopEpic = action$ =>
-  action$.ofType(STOP).pipe(map(() => setIsRunning(false)));
+  action$.ofType(STOP).pipe(
+    map(getBehaviouralData),  
+    tap(console.log),
+    map(() => setIsRunning(false))
+  );
 
 const sessionCountEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
@@ -131,7 +137,7 @@ const sessionCountEpic = (action$, state$) =>
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(
     throttleTime(1000),
-    tap(dir => storeExperimentState(state$.value.experiment, dir)),
+    map(() => storeExperimentState(state$.value.experiment)),
     tap(dir => {
       if (
         state$.value.jupyter.epochsInfo &&

@@ -34,7 +34,7 @@ export const loadTimeline = (type: EXPERIMENTS) => {
 export const parseTimeline = (
   mainTimeline: MainTimeline,
   trials: { [string]: Trial },
-  timelines: { }
+  timelines: {}
 ) => {
   // Combine trials and timelines into one object
   const jsPsychObject = { ...trials, ...timelines };
@@ -85,11 +85,19 @@ export const instantiateTimeline = (
     return jspsychObject;
   });
 
+// TODO: Filter out intertrial trials
+export const getBehaviouralData = () => {
+  return jsPsych.data
+    .get()
+    .ignore("internal_node_id")
+    .csv();
+};
+
 // Returns an array of images that are used in a timeline for use in preloading
 export const getImages = (
   mainTimeline: MainTimeline,
   trials: { [string]: Trial },
-  timelines: { }
+  timelines: {}
 ) => {
   const images = [];
   Object.values(timelines).forEach(element => {
@@ -110,6 +118,9 @@ export const getImages = (
   });
   return images;
 };
+
+// ---------------------------------------------------------
+// Helper Methods
 
 const isImagePath = (unknown: any) => {
   if (typeof unknown === "string") {

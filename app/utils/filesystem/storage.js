@@ -20,13 +20,13 @@ export const createWorkspaceDir = (title: string) => {
 };
 
 // Writes 'experiment' store state to file as a JSON object
-export const storeExperimentState = (
-  state: ExperimentStateType,
-  dir: string
-) => {
-  console.log("writing ", JSON.stringify(state), " to ", dir + "appState.json");
-
-  fs.writeFileSync(path.join(dir, "appState.json"), JSON.stringify(state));
+export const storeExperimentState = (state: ExperimentStateType) => {
+  const workspaceDir = path.join(workspaces, state.title);
+  fs.writeFileSync(
+    path.join(workspaceDir, "appState.json"),
+    JSON.stringify(state)
+  );
+  return workspaceDir;
 };
 
 // Returns a list of the files in the workspaces directory
@@ -44,8 +44,14 @@ export const readWorkspacesDir = () => {
 };
 
 export const readAndParseState = (dir: string) => {
-  console.log(dir);
-  return JSON.parse(
-    fs.readFileSync(path.join(workspaces, dir, "appState.json"))
-  );
+  try {
+    return JSON.parse(
+      fs.readFileSync(path.join(workspaces, dir, "appState.json"))
+    );
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      console.log("appState does not exist for recent workspace");
+    }
+    return null;
+  }
 };
