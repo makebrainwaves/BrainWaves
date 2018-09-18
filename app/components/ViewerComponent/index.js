@@ -93,6 +93,8 @@ class ViewerComponent extends Component<Props, State> {
     if (!isNil(this.signalQualitySubscription)) {
       this.signalQualitySubscription.unsubscribe();
     }
+    Mousetrap.unbind("up");
+    Mousetrap.unbind("down");
   }
 
   setKeyListeners() {
