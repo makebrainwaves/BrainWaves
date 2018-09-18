@@ -12,7 +12,7 @@ import { isNil } from "lodash";
 import styles from "./styles/common.css";
 import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from "../constants/constants";
 import { Kernel } from "../constants/interfaces";
-import { readWorkspaceRawEEGData } from "../utils/filesystem/write";
+import { readWorkspaceRawEEGData } from "../utils/filesystem/storage";
 
 interface Props {
   type: ?EXPERIMENTS;

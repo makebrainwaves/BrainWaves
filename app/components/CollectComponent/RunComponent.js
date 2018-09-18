@@ -16,7 +16,7 @@ import {
   getImages
 } from "../../utils/jspsych/functions";
 import { MainTimeline, Trial } from "../../constants/interfaces";
-import { readWorkspaceRawEEGData } from "../../utils/filesystem/write";
+import { readWorkspaceRawEEGData } from "../../utils/filesystem/storage";
 
 interface Props {
   type: ?EXPERIMENTS;

@@ -36,8 +36,10 @@ import {
   writeEEGData
 } from "../utils/filesystem/write";
 import {
+  getWorkspaceDir,
   storeExperimentState,
-  createWorkspaceDir
+  createWorkspaceDir,
+  storeBehaviouralData
 } from "../utils/filesystem/storage";
 import { saveEpochs } from "../utils/jupyter/cells";
 
@@ -71,7 +73,7 @@ const cleanup = () => ({
 // -------------------------------------------------------------------------
 // Epics
 
-const createNewWorkspaceEpic = (action$, state$) =>
+const createNewWorkspaceEpic = action$ =>
   action$.ofType(CREATE_NEW_WORKSPACE).pipe(
     pluck("payload"),
     tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
@@ -121,11 +123,20 @@ const startEpic = (action$, state$) =>
     map(setIsRunning)
   );
 
-const experimentStopEpic = action$ =>
+const experimentStopEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
-    map(getBehaviouralData),  
+    map(getBehaviouralData),
     tap(console.log),
-    map(() => setIsRunning(false))
+    map(csv =>
+      storeBehaviouralData(
+        csv,
+        state$.value.experiment.subject,
+        state$.value.experiment.session,
+        state$.value.experiment.title
+      )
+    ),
+    mapTo(false),
+    map(setIsRunning)
   );
 
 const sessionCountEpic = (action$, state$) =>
@@ -137,7 +148,8 @@ const sessionCountEpic = (action$, state$) =>
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(
     throttleTime(1000),
-    map(() => storeExperimentState(state$.value.experiment)),
+    map(() => getWorkspaceDir(state$.value.experiment.title)),
+    tap(() => storeExperimentState(state$.value.experiment)),
     tap(dir => {
       if (
         state$.value.jupyter.epochsInfo &&

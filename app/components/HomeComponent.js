@@ -17,7 +17,7 @@ import { EXPERIMENTS, SCREENS } from "../constants/constants";
 
 import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
 import {
-  readWorkspacesDir,
+  readWorkspaces,
   readAndParseState
 } from "../utils/filesystem/storage";
 import InputModal from "./unused/InputModal";
@@ -62,7 +62,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidMount() {
-    this.setState({ recentWorkspaces: readWorkspacesDir() });
+    this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
   handleStepClick(e: Object, props: Object) {
@@ -94,7 +94,7 @@ export default class Home extends Component<Props, State> {
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
     if (!isNil(recentWorkspaceState)) {
-      this.props.experimentActions.setState(readAndParseState(dir));
+      this.props.experimentActions.setState(recentWorkspaceState);
     }
   }
 

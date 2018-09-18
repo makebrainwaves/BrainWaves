@@ -7,11 +7,11 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import recursive from "recursive-readdir";
+// import recursive from "recursive-readdir";
 import mkdirp from "mkdirp";
 import { has } from "lodash";
+import { getWorkspaceDir } from "./storage";
 import { EEGData } from "../../constants/interfaces";
-import { EXPERIMENTS } from "../../constants/constants";
 
 // Creates an appropriate filename and returns a writestream that will write to that file
 export const createEEGWriteStream = (
@@ -19,66 +19,10 @@ export const createEEGWriteStream = (
   subject: string,
   session: number
 ) => {
-  const dir = path.join(
-    os.homedir(),
-    "BrainWaves Workspaces",
-    title,
-    "data",
-    subject,
-    "EEG"
-  );
+  const dir = path.join(getWorkspaceDir(title), "data", subject, "EEG");
+  const filename = `${subject}-${session}-raw.csv`;
   mkdirPathSync(dir);
-  const fileName = `${subject}-${session}-raw.csv`;
-
-  return fs.createWriteStream(path.join(dir, fileName));
-};
-
-// Returns a list of the files in a directory for a given experiment
-export const readWorkspaceRawEEGData = async (title: string) => {
-  const dir = path.join(os.homedir(), "BrainWaves Workspaces", title, "data");
-  try {
-    const files = await recursive(dir);
-    console.log(files);
-    const rawFiles = files
-      .filter(filepath => filepath.slice(-7).includes("raw.csv"))
-      .map(filepath => ({
-        name: path.basename(filepath),
-        path: filepath
-      }));
-    console.log(rawFiles);
-
-    return rawFiles;
-  } catch (e) {
-    if (e.code === "ENOENT") {
-      mkdirPathSync(dir);
-    }
-    console.log(e);
-    return [];
-  }
-};
-
-export const readWorkspaceCleanedEEGData = async (title: string) => {
-  const dir = path.join(os.homedir(), "BrainWaves Workspaces", title, "data");
-  try {
-    const files = await recursive(dir);
-    return files
-      .filter(filepath => filepath.slice(-7).includes("epo.fif"))
-      .map(filepath => ({
-        name: path.basename(filepath),
-        path: filepath
-      }));
-  } catch (e) {
-    if (e.code === "ENOENT") {
-      mkdirPathSync(dir);
-    }
-    console.log(e);
-    return [];
-  }
-};
-
-// Gets what the EEG directory path should be for a given experiment
-export const getCurrentEEGDataDir = (title: string) => {
-  return path.join(os.homedir(), "BrainWaves Workspaces", title);
+  return fs.createWriteStream(path.join(dir, filename));
 };
 
 // Writes the header for a simple CSV EEG file format.

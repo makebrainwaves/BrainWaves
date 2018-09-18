@@ -5,7 +5,7 @@ import { EXPERIMENTS } from "../../constants/constants";
 import { buildOddballTimeline } from "./timelines/oddball";
 import { buildN170Timeline } from "./timelines/n170";
 import { buildSSVEPTimeline } from "./timelines/ssvep";
-import { MainTimeline, Timeline, Trial } from "../../constants/interfaces";
+import { MainTimeline, Trial } from "../../constants/interfaces";
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
