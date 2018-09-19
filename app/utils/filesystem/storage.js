@@ -45,8 +45,50 @@ export const readWorkspacesDir = () => {
 };
 
 export const readAndParseState = (dir: string) => {
-  console.log(dir);
   return JSON.parse(
     fs.readFileSync(path.join(workspaces, dir, "appState.json"))
   );
 };
+
+// export const readAndParseState = (dir: string) => {
+//   const state = JSON.parse(
+//     fs.readFileSync(path.join(workspaces, dir, "appState.json")),
+//     (key, value) => {
+//       if (typeof value !== "string" || value.length < 8) {
+//         return value;
+//       }
+
+//       const prefix = value.substring(0, 8);
+
+//       if (prefix === "function") {
+//         return eval("(" + value + ")");
+//       }
+//       if (prefix === "_NuFrRa_") {
+//         return eval(value.slice(8));
+//       }
+//       return value;
+//     }
+//   );
+//   return state;
+// };
+
+// // Converts a JS Object to JSON but preserves functions
+// // TODO: Figure out how to get functions to be recreated when read
+// export const stringifyWithFunctions = (object: Object) => {
+//   const json = JSON.stringify(
+//     object,
+//     (key, value) => {
+//       if (typeof value === "function") {
+//         const fnBody = value.toString();
+//         if (fnBody.length < 8 || fnBody.substring(0, 8) !== "function") {
+//           //this is ES6 Arrow Function
+//           return "_NuFrRa_" + fnBody;
+//         }
+//         return fnBody;
+//       }
+//       return value;
+//     },
+//     2
+//   );
+//   return json;
+// };

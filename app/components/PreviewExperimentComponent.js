@@ -9,9 +9,15 @@ import {
   instantiateTimeline,
   getImages
 } from "../utils/jspsych/functions";
-import { MainTimeline, Trial, Timeline } from "../constants/interfaces";
+import {
+  MainTimeline,
+  Trial,
+  Timeline,
+  ExperimentParameters
+} from "../constants/interfaces";
 
 interface Props {
+  params: ExperimentParameters;
   isPreviewing: boolean;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
@@ -30,6 +36,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
   handleTimeline() {
     const timeline = instantiateTimeline(
       parseTimeline(
+        this.props.params,
         this.props.mainTimeline,
         this.props.trials,
         this.props.timelines
