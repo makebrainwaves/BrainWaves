@@ -32,7 +32,7 @@ export interface ExperimentStateType {
 }
 
 const initialState = {
-  type: EXPERIMENTS.N170,
+  type: EXPERIMENTS.NONE,
   title: "Test Experiment",
   params: {},
   mainTimeline: [],

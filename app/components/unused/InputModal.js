@@ -1,7 +1,8 @@
 // @flow
 import React, { Component } from "react";
-import { Input, Modal, Button } from "semantic-ui-react";
+import { Input, Modal, Button, Segment } from "semantic-ui-react";
 import { debounce } from "lodash";
+import styles from "../styles/collect.css";
 
 interface Props {
   open: boolean;
@@ -34,14 +35,16 @@ export default class InputModal extends Component<Props, State> {
   render() {
     return (
       <Modal
+        basic
+        centered
+        className={styles.connectModal}
         open={this.props.open}
         onClose={() => this.props.onClose(this.state.enteredText)}
-        basic
-        dimmer="blurring"
-        size="small"
       >
+        <Modal.Content className={styles.searchingText}>
+          {this.props.header}
+        </Modal.Content>
         <Modal.Content>
-          <Modal.Header as="h1">{this.props.header}</Modal.Header>
           <Input
             focus
             fluid
@@ -49,7 +52,6 @@ export default class InputModal extends Component<Props, State> {
             placeholder={this.props.placeholder}
           />
         </Modal.Content>
-        {/* <Input focus placeholder="Name.." /> */}
         <Modal.Actions>
           <Button
             color="blue"

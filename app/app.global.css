@@ -136,6 +136,10 @@ img {
   border-style: none !important;
 }
 
+.ui.modal > .actions {
+  border-style: none !important;
+}
+
 /* Webview-related styles */
 
 #eegView {
