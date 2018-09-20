@@ -1,6 +1,14 @@
 import { combineEpics } from "redux-observable";
 import { of, from, timer } from "rxjs";
-import { map, pluck, mergeMap, tap, filter, catchError } from "rxjs/operators";
+import {
+  map,
+  pluck,
+  mergeMap,
+  tap,
+  filter,
+  catchError,
+  share
+} from "rxjs/operators";
 import { epoch, bandpassFilter, addInfo } from "@neurosity/pipes";
 import { isNil, union } from "lodash";
 import { addSignalQuality, colorSignalQuality } from "../utils/eeg/pipes";
@@ -181,6 +189,8 @@ const isConnectingEpic = action$ =>
     .ofType(CONNECT_TO_DEVICE)
     .pipe(map(() => setConnectionStatus(CONNECTION_STATUS.CONNECTING)));
 
+let count = 0;
+
 const setRawObservableEpic = (action$, state$) =>
   action$.ofType(SET_DEVICE_INFO).pipe(
     mergeMap(() => {
@@ -190,14 +200,7 @@ const setRawObservableEpic = (action$, state$) =>
       return from(createRawMuseObservable());
     }),
     mergeMap(observable => {
-      const samplingRate =
-        state$.value.device.deviceType === DEVICES.EMOTIV ? 128 : 256;
-      const channelNames =
-        state$.value.device.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS
-          : MUSE_CHANNELS;
-      const nbChannels =
-        state$.value.device.deviceType === DEVICES.EMOTIV ? 14 : 5;
+      const { samplingRate, channels } = state$.value.device.connectedDevice;
       const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
       return of(
         setRawObservable(observable),
@@ -205,19 +208,22 @@ const setRawObservableEpic = (action$, state$) =>
           observable.pipe(
             addInfo({
               samplingRate,
-              channelNames
+              channels
             }),
+            // the sampling rate parameter can be taken out in the newest version of pipes
             epoch({
+              samplingRate,
               duration: intervalSamples,
               interval: intervalSamples
             }),
             bandpassFilter({
-              nbChannels,
+              nbChannels: channels.length,
               lowCutoff: 1,
               highCutoff: 50
             }),
             addSignalQuality(),
-            colorSignalQuality()
+            colorSignalQuality(),
+            share()
           )
         )
       );

@@ -48,7 +48,8 @@ export const connectToEmotiv = device =>
     .then(
       session => ({
         name: session.headset.id,
-        samplingRate: session.headset.settings.eegRate
+        samplingRate: session.headset.settings.eegRate,
+        channels: EMOTIV_CHANNELS
       }),
       err => console.log(err)
     );
