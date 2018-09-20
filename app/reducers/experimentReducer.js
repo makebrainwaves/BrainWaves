@@ -21,6 +21,7 @@ import {
 export interface ExperimentStateType {
   +type: ?EXPERIMENTS;
   +title: ?string;
+  +params: ?ExperimentParameters;
   +mainTimeline: MainTimeline;
   +trials: { [string]: Trial };
   +timelines: {};
@@ -33,6 +34,7 @@ export interface ExperimentStateType {
 const initialState = {
   type: EXPERIMENTS.NONE,
   title: "Test Experiment",
+  params: {},
   mainTimeline: [],
   trials: {},
   timelines: {},

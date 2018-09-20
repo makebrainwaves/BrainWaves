@@ -60,6 +60,7 @@ export default class PreTestComponent extends Component<Props, State> {
       return (
         <PreviewExperimentComponent
           isPreviewing={this.state.isPreviewing}
+          params={this.props.params}
           mainTimeline={this.props.mainTimeline}
           trials={this.props.trials}
           timelines={this.props.timelines}

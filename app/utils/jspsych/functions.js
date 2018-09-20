@@ -1,11 +1,16 @@
 import { isNil } from "lodash";
 import { jsPsych } from "jspsych-react";
-
+import * as path from "path";
+import { readdirSync } from "fs";
 import { EXPERIMENTS } from "../../constants/constants";
 import { buildOddballTimeline } from "./timelines/oddball";
 import { buildN170Timeline } from "./timelines/n170";
 import { buildSSVEPTimeline } from "./timelines/ssvep";
-import { MainTimeline, Trial } from "../../constants/interfaces";
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters
+} from "../../constants/interfaces";
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -32,12 +37,52 @@ export const loadTimeline = (type: EXPERIMENTS) => {
 
 // Converts a normalized timeline template into a classic jsPsych timeline array
 export const parseTimeline = (
+  params: ExperimentParameters,
   mainTimeline: MainTimeline,
   trials: { [string]: Trial },
   timelines: {}
 ) => {
+  const parsedTimelines = Object.assign(
+    ...Object.entries(timelines).map(([id, timeline]) => ({
+      [id]: {
+        ...timeline,
+        timeline: [
+          {
+            ...timeline.timeline[0],
+            trial_duration: () => params.iti + Math.random() * params.jitter
+          },
+          {
+            ...timeline.timeline[1],
+            stimulus: jsPsych.timelineVariable("stimulusVar"),
+            type: params.pluginName,
+            trial_duration: params.trialDuration
+          }
+        ],
+        sample: {
+          type: params.sampleType,
+          size: Math.round(
+            params.experimentDuration /
+              (params.trialDuration + params.iti + params.jitter / 2)
+          )
+        },
+        timeline_variables: readdirSync(params.stimulus1.dir)
+          .map(filename => ({
+            stimulusVar: path.join(params.stimulus1.dir, filename),
+            eventTypeVar: params.stimulus1.type
+          }))
+          .concat(
+            readdirSync(params.stimulus2.dir).map(filename => ({
+              stimulusVar: path.join(params.stimulus2.dir, filename),
+              eventTypeVar: params.stimulus2.type
+            }))
+          )
+      }
+    }))
+  );
+
+  console.table(parsedTimelines);
   // Combine trials and timelines into one object
-  const jsPsychObject = { ...trials, ...timelines };
+  const jsPsychObject = { ...trials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id
   return mainTimeline.map(id => jsPsychObject[id]);
 };

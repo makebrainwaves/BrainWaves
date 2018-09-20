@@ -8,14 +8,14 @@ import {
   Header,
   Image,
   List
-} from 'semantic-ui-react';
-import { isNil } from 'lodash';
-import styles from '../styles/common.css';
-import { EXPERIMENTS } from '../../constants/constants';
-import { MainTimeline, Trial } from '../../constants/interfaces';
-import PreviewExperimentComponent from '../PreviewExperimentComponent';
-import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
-import n170Example from '../../assets/face_house/n170_example.png';
+} from "semantic-ui-react";
+import { isNil } from "lodash";
+import styles from "../styles/common.css";
+import { EXPERIMENTS } from "../../constants/constants";
+import { MainTimeline, Trial, Timeline, ExperimentParameters } from "../../constants/interfaces";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
+import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
+import n170Example from "../../assets/face_house/n170_example.png";
 
 const DESIGN_STEPS = {
   OVERVIEW: 'Overview',
@@ -26,6 +26,7 @@ const DESIGN_STEPS = {
 interface Props {
   type: ?EXPERIMENTS;
   title: string;
+  params: ExperimentParameters;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
   timelines: {};
@@ -117,6 +118,7 @@ export default class Design extends Component<Props, State> {
             <Grid.Column width={6} textAlign="center">
               <Segment basic padded>
                 <PreviewExperimentComponent
+                  params={this.props.params}
                   isPreviewing={this.state.isPreviewing}
                   mainTimeline={this.props.mainTimeline}
                   trials={this.props.trials}

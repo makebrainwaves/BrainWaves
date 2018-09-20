@@ -31,8 +31,19 @@ const params = paramsFn();
 const rootFolder = __dirname;
 const facesDir = path.join(rootFolder, "assets", "face_house", "faces");
 const housesDir = path.join(rootFolder, "assets", "face_house", "houses");
+const fixation = path.join(rootFolder, "assets", "face_house", "fixation.jpg");
 
 export const buildN170Timeline = () => ({
+  params: {
+    trialDuration: 300,
+    experimentDuration: 120000,
+    iti: 800,
+    jitter: 200,
+    sampleType: "with-replacement",
+    pluginName: "callback-image-display",
+    stimulus1: { dir: facesDir, type: EVENTS.FACE },
+    stimulus2: { dir: housesDir, type: EVENTS.HOUSE }
+  },
   mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids
   trials: {
     welcome: {
@@ -55,40 +66,35 @@ export const buildN170Timeline = () => ({
         {
           id: "interTrial",
           type: "callback-image-display",
-          stimulus: path.join(
-            rootFolder,
-            "assets",
-            "face_house",
-            "fixation.jpg"
-          ),
-          trial_duration: () => params.iti + Math.random() * params.jitter
+          stimulus: fixation
+          // trial_duration: () => params.iti + Math.random() * params.jitter
         },
         {
           id: "trial",
-          stimulus: jsPsych.timelineVariable("stimulusVar"),
-          type: params.plugin_name,
-          choices: ["f", "j"],
-          trial_duration: params.trial_duration
+          // stimulus: jsPsych.timelineVariable("stimulusVar"),
+          // type: params.plugin_name,
+          choices: ["f", "j"]
+          // trial_duration: params.trial_duration
         }
       ],
       sample: {
-        type: "with-replacement",
-        size: params.n_trials
-      },
-      timeline_variables: readdirSync(facesDir)
-        .filter(filename => filename.includes("3"))
-        .map(filename => ({
-          stimulusVar: path.join(facesDir, filename),
-          eventTypeVar: EVENTS.FACE
-        }))
-        .concat(
-          readdirSync(housesDir)
-            .filter(filename => filename.includes("3"))
-            .map(filename => ({
-              stimulusVar: path.join(housesDir, filename),
-              eventTypeVar: EVENTS.HOUSE
-            }))
-        )
+        // type: "with-replacement",
+        // size: params.n_trials
+      }
+      // timeline_variables: readdirSync(facesDir)
+      //   .filter(filename => filename.includes("3"))
+      //   .map(filename => ({
+      //     stimulusVar: path.join(facesDir, filename),
+      //     eventTypeVar: EVENTS.FACE
+      //   }))
+      //   .concat(
+      //     readdirSync(housesDir)
+      //       .filter(filename => filename.includes("3"))
+      //       .map(filename => ({
+      //         stimulusVar: path.join(housesDir, filename),
+      //         eventTypeVar: EVENTS.HOUSE
+      //       }))
+      //   )
     }
   }
 });
