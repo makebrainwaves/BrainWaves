@@ -77,14 +77,13 @@ const createNewWorkspaceEpic = action$ =>
   action$.ofType(CREATE_NEW_WORKSPACE).pipe(
     pluck("payload"),
     tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
-    mergeMap(workspaceInfo => {
-      return of(
+    mergeMap(workspaceInfo =>
+      of(
         setType(workspaceInfo.type),
         setTitle(workspaceInfo.title),
-        loadDefaultTimeline(),
-        saveWorkspace()
-      );
-    })
+        loadDefaultTimeline()
+      )
+    )
   );
 
 const loadDefaultTimelineEpic = (action$, state$) =>
@@ -145,6 +144,9 @@ const sessionCountEpic = (action$, state$) =>
     map(() => setSession(state$.value.experiment.session + 1))
   );
 
+const autoSaveEpic = action$ =>
+  action$.ofType(SET_TIMELINE).pipe(map(saveWorkspace));
+
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(
     throttleTime(1000),
@@ -174,6 +176,7 @@ export default combineEpics(
   startEpic,
   experimentStopEpic,
   sessionCountEpic,
+  autoSaveEpic,
   saveWorkspaceEpic,
   navigationCleanupEpic
 );
