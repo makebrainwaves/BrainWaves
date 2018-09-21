@@ -3,14 +3,14 @@
 /**
  *  Functions for managing user data stored on disk
  */
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import recursive from 'recursive-readdir';
-import { ExperimentStateType } from '../../reducers/experimentReducer';
-import { mkdirPathSync } from './write';
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import recursive from "recursive-readdir";
+import { ExperimentStateType } from "../../reducers/experimentReducer";
+import { mkdirPathSync } from "./write";
 
-const workspaces = path.join(os.homedir(), 'BrainWaves Workspaces');
+const workspaces = path.join(os.homedir(), "BrainWaves Workspaces");
 
 // -----------------------------------------------------------------------------------------------
 // Creating and Getting
@@ -28,7 +28,7 @@ export const getWorkspaceDir = (title: string) => path.join(workspaces, title);
 // Writes 'experiment' store state to file as a JSON object
 export const storeExperimentState = (state: ExperimentStateType) =>
   fs.writeFileSync(
-    path.join(getWorkspaceDir(state.title), 'appState.json'),
+    path.join(getWorkspaceDir(state.title), "appState.json"),
     JSON.stringify(state)
   );
 
@@ -38,10 +38,30 @@ export const storeBehaviouralData = (
   subject: string,
   session: number
 ) => {
-  const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior');
+  const dir = path.join(getWorkspaceDir(title), "Data", subject, "Behavior");
   const filename = `${subject}-${session}-behavior.csv`;
   mkdirPathSync(dir);
-  fs.writeFile(path.join(dir, filename), csv);
+  fs.writeFile(path.join(dir, filename), csv, err => {
+    if (err) {
+      console.error(err);
+    }
+  });
+};
+
+// Stores an image to workspace dir
+export const storeJupyterImage = (
+  title: string,
+  imageTitle: string,
+  rawData: Buffer
+) => {
+  const dir = path.join(getWorkspaceDir(title), "Results", "Images");
+  const filename = `${imageTitle}.png`;
+  mkdirPathSync(dir);
+  fs.writeFile(path.join(dir, filename), rawData, err => {
+    if (err) {
+      console.error(err);
+    }
+  });
 };
 
 // -----------------------------------------------------------------------------------------------
@@ -52,7 +72,7 @@ export const readWorkspaces = () => {
   try {
     return fs.readdirSync(workspaces);
   } catch (e) {
-    if (e.code === 'ENOENT') {
+    if (e.code === "ENOENT") {
       mkdirPathSync(workspaces);
     }
     console.log(e);
@@ -65,16 +85,15 @@ export const readWorkspaces = () => {
 export const readWorkspaceRawEEGData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
-    console.log(files);
     const rawFiles = files
-      .filter(filepath => filepath.slice(-7).includes('raw.csv'))
+      .filter(filepath => filepath.slice(-7).includes("raw.csv"))
       .map(filepath => ({
         name: path.basename(filepath),
         path: filepath
       }));
     return rawFiles;
   } catch (e) {
-    if (e.code === 'ENOENT') {
+    if (e.code === "ENOENT") {
       console.log(e);
       return [];
     }
@@ -87,7 +106,7 @@ export const readWorkspaceCleanedEEGData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
     return files
-      .filter(filepath => filepath.slice(-7).includes('epo.fif'))
+      .filter(filepath => filepath.slice(-7).includes("epo.fif"))
       .map(filepath => ({
         name: path.basename(filepath),
         path: filepath
@@ -102,11 +121,11 @@ export const readWorkspaceCleanedEEGData = async (title: string) => {
 export const readAndParseState = (dir: string) => {
   try {
     return JSON.parse(
-      fs.readFileSync(path.join(workspaces, dir, 'appState.json'))
+      fs.readFileSync(path.join(workspaces, dir, "appState.json"))
     );
   } catch (e) {
-    if (e.code === 'ENOENT') {
-      console.log('appState does not exist for recent workspace');
+    if (e.code === "ENOENT") {
+      console.log("appState does not exist for recent workspace");
     }
     return null;
   }

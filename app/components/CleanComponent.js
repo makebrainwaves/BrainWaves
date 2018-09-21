@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   Grid,
   Button,
@@ -7,12 +7,12 @@ import {
   Segment,
   Header,
   Dropdown
-} from 'semantic-ui-react';
-import { isNil } from 'lodash';
-import styles from './styles/common.css';
-import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../constants/constants';
-import { Kernel } from '../constants/interfaces';
-import { readWorkspaceRawEEGData } from '../utils/filesystem/storage';
+} from "semantic-ui-react";
+import { isNil } from "lodash";
+import styles from "./styles/common.css";
+import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from "../constants/constants";
+import { Kernel } from "../constants/interfaces";
+import { readWorkspaceRawEEGData } from "../utils/filesystem/storage";
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -43,7 +43,7 @@ export default class Clean extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      eegFilePaths: [{ key: '', text: '', value: '' }],
+      eegFilePaths: [{ key: "", text: "", value: "" }],
       selectedFilePaths: []
     };
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
@@ -56,7 +56,6 @@ export default class Clean extends Component<Props, State> {
     }
 
     const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
-    console.log(workspaceRawData);
     this.setState({
       eegFilePaths: workspaceRawData.map(filepath => ({
         key: filepath.name,
@@ -81,7 +80,7 @@ export default class Clean extends Component<Props, State> {
         <div>
           {Object.keys(epochsInfo).map((key, index) => (
             <Segment key={key} basic>
-              <Icon name={['smile', 'home', 'x', 'book'][index]} />
+              <Icon name={["smile", "home", "x", "book"][index]} />
               {key}
               <p>{epochsInfo[key]} Trials</p>
             </Segment>

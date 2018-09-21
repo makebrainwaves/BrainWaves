@@ -19,6 +19,7 @@ import {
 import JupyterPlotWidget from "./JupyterPlotWidget";
 
 interface Props {
+  title: string;
   deviceType: DEVICES;
   epochsInfo: ?{ [string]: number };
   psdPlot: ?{ [string]: string };
@@ -26,13 +27,24 @@ interface Props {
   jupyterActions: Object;
 }
 
-export default class Analyze extends Component<Props> {
+interface State {
+  selectedChannel: string;
+}
+
+export default class Analyze extends Component<Props, State> {
   props: Props;
+  state: State;
   handleAnalyze: () => void;
   handleChannelDropdownChange: (Object, Object) => void;
 
   constructor(props: Props) {
     super(props);
+    this.state = {
+      selectedChannel:
+        props.deviceType === DEVICES.EMOTIV
+          ? EMOTIV_CHANNELS[0]
+          : MUSE_CHANNELS[0]
+    };
     this.handleAnalyze = this.handleAnalyze.bind(this);
     this.handleChannelDropdownChange = this.handleChannelDropdownChange.bind(
       this
@@ -45,6 +57,7 @@ export default class Analyze extends Component<Props> {
   }
 
   handleChannelDropdownChange(e: Object, props: Object) {
+    this.setState({ selectedChannel: props.value });
     this.props.jupyterActions.loadERP(props.value);
   }
 
@@ -105,13 +118,21 @@ export default class Analyze extends Component<Props> {
                 }))}
                 onChange={this.handleChannelDropdownChange}
               />
-              <JupyterPlotWidget plotMIMEBundle={this.props.erpPlot} />
+              <JupyterPlotWidget
+                title={this.props.title}
+                imageTitle={`${this.state.selectedChannel}-ERP`}
+                plotMIMEBundle={this.props.erpPlot}
+              />
             </Segment>
           </Grid.Column>
           <Grid.Column width={6}>
             <Segment raised padded color="red">
               <Header as="h2">Power Spectral Density</Header>
-              <JupyterPlotWidget plotMIMEBundle={this.props.psdPlot} />
+              <JupyterPlotWidget
+                title={this.props.title}
+                imageTitle="PSD"
+                plotMIMEBundle={this.props.psdPlot}
+              />
             </Segment>
           </Grid.Column>
         </Grid>

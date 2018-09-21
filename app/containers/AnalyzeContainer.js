@@ -7,6 +7,7 @@ import * as jupyterActions from "../actions/jupyterActions";
 
 function mapStateToProps(state) {
   return {
+    title: state.experiment.title,
     type: state.experiment.type,
     deviceType: state.device.deviceType,
     ...state.jupyter

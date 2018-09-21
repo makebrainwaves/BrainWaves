@@ -1,18 +1,17 @@
 // @flow
-import React, { Component } from 'react';
-import { isNil } from 'lodash';
-import { Grid, Button, Header, Segment, Image, Step } from 'semantic-ui-react';
-import styles from './styles/common.css';
-import { EXPERIMENTS, SCREENS } from '../constants/constants';
-
-import faceHouseIcon from '../assets/face_house/face_house_icon.jpg';
-import { readWorkspaces, readAndParseState } from '../utils/filesystem/storage';
-import InputModal from './InputModal';
+import React, { Component } from "react";
+import { isNil } from "lodash";
+import { Grid, Button, Header, Segment, Image, Step } from "semantic-ui-react";
+import styles from "./styles/common.css";
+import { EXPERIMENTS, SCREENS } from "../constants/constants";
+import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
+import { readWorkspaces, readAndParseState } from "../utils/filesystem/storage";
+import InputModal from "./InputModal";
 
 const HOME_STEPS = {
-  RECENT: 'RECENT',
-  NEW: 'NEW EXPERIMENT',
-  PRACTICE: 'PRACTICE'
+  RECENT: "RECENT",
+  NEW: "NEW EXPERIMENT",
+  PRACTICE: "PRACTICE"
 };
 
 interface Props {
@@ -71,9 +70,6 @@ export default class Home extends Component<Props, State> {
         title,
         type: this.state.selectedExperimentType
       });
-      // this.props.experimentActions.setType(this.state.selectedExperimentType);
-      // this.props.experimentActions.setTitle(title);
-      // this.props.experimentActions.loadDefaultTimeline();
       this.props.history.push(SCREENS.DESIGN.route);
     }
   }
@@ -83,6 +79,7 @@ export default class Home extends Component<Props, State> {
     if (!isNil(recentWorkspaceState)) {
       this.props.experimentActions.setState(recentWorkspaceState);
     }
+    this.props.history.push(SCREENS.DESIGN.route);
   }
 
   // TODO: Figure out how to make this not overflow. Lists?
