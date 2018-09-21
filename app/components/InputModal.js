@@ -2,11 +2,13 @@
 import React, { Component } from "react";
 import { Input, Modal, Button } from "semantic-ui-react";
 import { debounce } from "lodash";
+import styles from "./styles/collect.css";
 
 interface Props {
   open: boolean;
   onClose: string => void;
-  content: any;
+  placeholder: string;
+  header: string;
 }
 
 interface State {
@@ -33,17 +35,23 @@ export default class InputModal extends Component<Props, State> {
   render() {
     return (
       <Modal
+        basic
+        centered
+        className={styles.connectModal}
         open={this.props.open}
         onClose={() => this.props.onClose(this.state.enteredText)}
-        basic
-        dimmer="blurring"
-        size="small"
       >
-        <Modal.Content>
-          {this.props.content}
-          <Input focus onChange={this.handleTextEntry} placeholder="Name" />
+        <Modal.Content className={styles.searchingText}>
+          {this.props.header}
         </Modal.Content>
-        {/* <Input focus placeholder="Name.." /> */}
+        <Modal.Content>
+          <Input
+            focus
+            fluid
+            onChange={this.handleTextEntry}
+            placeholder={this.props.placeholder}
+          />
+        </Modal.Content>
         <Modal.Actions>
           <Button
             color="blue"

@@ -1,28 +1,26 @@
 // @flow
-import React, { Component } from "react";
-import { Segment, Button } from "semantic-ui-react";
-import { Subscription, Observable } from "rxjs";
-import { isNil } from "lodash";
+import React, { Component } from 'react';
+import { Segment, Button } from 'semantic-ui-react';
+import { Subscription, Observable } from 'rxjs';
+import { isNil } from 'lodash';
 import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   DEVICES,
   VIEWER_DEFAULTS
-} from "../../constants/constants";
+} from '../../constants/constants';
 
-const Mousetrap = require("mousetrap");
+const Mousetrap = require('mousetrap');
 
 interface Props {
   signalQualityObservable: ?Observable;
   deviceType: DEVICES;
-  samplingRate: number;
   plottingInterval: number;
 }
 
 interface State {
   channels: Array<string>;
   domain: number;
-  zoom: number;
   autoScale: boolean;
 }
 
@@ -44,15 +42,13 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   componentDidMount() {
-    this.graphView = document.querySelector("webview");
-    this.graphView.addEventListener("dom-ready", () => {
-      this.graphView.send("initGraph", {
+    this.graphView = document.querySelector('webview');
+    this.graphView.addEventListener('dom-ready', () => {
+      this.graphView.send('initGraph', {
         plottingInterval: this.props.plottingInterval,
-        samplingRate: this.props.samplingRate,
         channels: this.state.channels,
         domain: this.state.domain,
-        zoom: this.state.zoom,
-        channelColours: this.state.channels.map(() => "#66B0A9")
+        channelColours: this.state.channels.map(() => '#66B0A9')
       });
       this.setKeyListeners();
       if (!isNil(this.props.signalQualityObservable)) {
@@ -76,16 +72,16 @@ class ViewerComponent extends Component<Props, State> {
       });
     }
     if (this.state.channels !== prevState.channels) {
-      this.graphView.send("updateChannels", this.state.channels);
+      this.graphView.send('updateChannels', this.state.channels);
     }
     if (this.state.domain !== prevState.domain) {
-      this.graphView.send("updateDomain", this.state.domain);
+      this.graphView.send('updateDomain', this.state.domain);
     }
     if (this.state.channels !== prevState.channels) {
-      this.graphView.send("updateChannels", this.state.channels);
+      this.graphView.send('updateChannels', this.state.channels);
     }
     if (this.state.autoScale !== prevState.autoScale) {
-      this.graphView.send("autoScale");
+      this.graphView.send('autoScale');
     }
   }
 
@@ -93,11 +89,13 @@ class ViewerComponent extends Component<Props, State> {
     if (!isNil(this.signalQualitySubscription)) {
       this.signalQualitySubscription.unsubscribe();
     }
+    Mousetrap.unbind('up');
+    Mousetrap.unbind('down');
   }
 
   setKeyListeners() {
-    Mousetrap.bind("up", () => this.graphView.send("zoomIn"));
-    Mousetrap.bind("down", () => this.graphView.send("zoomOut"));
+    Mousetrap.bind('up', () => this.graphView.send('zoomIn'));
+    Mousetrap.bind('down', () => this.graphView.send('zoomOut'));
   }
 
   subscribeToObservable(observable: any) {
@@ -106,7 +104,7 @@ class ViewerComponent extends Component<Props, State> {
     }
     this.signalQualitySubscription = observable.subscribe(
       chunk => {
-        this.graphView.send("newData", chunk);
+        this.graphView.send('newData', chunk);
       },
       error => new Error(`Error in epochSubscription ${error}`)
     );

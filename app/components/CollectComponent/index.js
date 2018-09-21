@@ -1,18 +1,22 @@
 // @flow
-import React, { Component } from "react";
-import { Modal, Button, Segment } from "semantic-ui-react";
-import styles from "../styles/common.css";
+import React, { Component } from 'react';
+import { Modal, Button, Segment } from 'semantic-ui-react';
+import styles from '../styles/common.css';
 
 import {
   EXPERIMENTS,
   DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY
-} from "../../constants/constants";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import PreTestComponent from "./PreTestComponent";
-import ConnectModal from "./ConnectModal";
-import RunComponent from "./RunComponent";
+} from '../../constants/constants';
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters
+} from '../../constants/interfaces';
+import PreTestComponent from './PreTestComponent';
+import ConnectModal from './ConnectModal';
+import RunComponent from './RunComponent';
 
 interface Props {
   experimentActions: Object;
@@ -25,10 +29,10 @@ interface Props {
   availableDevices: Array<any>;
   type: ?EXPERIMENTS;
   isRunning: boolean;
+  params: ExperimentParameters;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
-  // dir: ?string,
+  timelines: {};
   subject: string;
   session: number;
 }
@@ -132,6 +136,7 @@ export default class Collect extends Component<Props, State> {
           availableDevices={this.props.availableDevices}
           type={this.props.type}
           isRunning={this.props.isRunning}
+          params={this.props.params}
           mainTimeline={this.props.mainTimeline}
           trials={this.props.trials}
           timelines={this.props.timelines}

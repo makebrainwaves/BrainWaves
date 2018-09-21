@@ -1,6 +1,6 @@
 import "hazardous";
 import { withLatestFrom, share, startWith } from "rxjs/operators";
-import { MUSE_SAMPLING_RATE } from "../../constants/constants";
+import { MUSE_SAMPLING_RATE, MUSE_CHANNELS } from "../../constants/constants";
 
 const bluetooth = require("bleat").webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
@@ -36,7 +36,7 @@ export const connectToMuse = async device => {
   } else {
     await client.connect();
   }
-  return { name: client.deviceName, samplingRate: MUSE_SAMPLING_RATE };
+  return { name: client.deviceName, samplingRate: MUSE_SAMPLING_RATE, channels: MUSE_CHANNELS };
 };
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream

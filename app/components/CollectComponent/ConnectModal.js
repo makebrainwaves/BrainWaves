@@ -107,7 +107,7 @@ export default class ConnectModal extends Component<Props, State> {
                 onClick={() => this.setState({ selectedDevice: device })}
               />
               <List.Content>
-                <List.Header>{this.getDeviceName(device)}</List.Header>
+                <List.Header>{ConnectModal.getDeviceName(device)}</List.Header>
               </List.Content>
             </List.Item>
           ))}
@@ -136,7 +136,8 @@ export default class ConnectModal extends Component<Props, State> {
             <Image src={blake} size="tiny" centered />
           </Modal.Content>
           <Modal.Content className={styles.searchingText}>
-            Connecting to {this.getDeviceName(this.state.selectedDevice)}
+            Connecting to{" "}
+            {ConnectModal.getDeviceName(this.state.selectedDevice)}
             ...
           </Modal.Content>
         </React.Fragment>

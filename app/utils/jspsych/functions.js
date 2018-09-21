@@ -1,11 +1,16 @@
-import { isNil } from "lodash";
-import { jsPsych } from "jspsych-react";
-
-import { EXPERIMENTS } from "../../constants/constants";
-import { buildOddballTimeline } from "./timelines/oddball";
-import { buildN170Timeline } from "./timelines/n170";
-import { buildSSVEPTimeline } from "./timelines/ssvep";
-import { MainTimeline, Timeline, Trial } from "../../constants/interfaces";
+import { isNil } from 'lodash';
+import { jsPsych } from 'jspsych-react';
+import * as path from 'path';
+import { readdirSync } from 'fs';
+import { EXPERIMENTS } from '../../constants/constants';
+import { buildOddballTimeline } from './timelines/oddball';
+import { buildN170Timeline } from './timelines/n170';
+import { buildSSVEPTimeline } from './timelines/ssvep';
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters
+} from '../../constants/interfaces';
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -24,7 +29,7 @@ export const loadTimeline = (type: EXPERIMENTS) => {
       break;
 
     default:
-      timeline = buildOddballTimeline();
+      timeline = buildN170Timeline();
       break;
   }
   return timeline;
@@ -32,12 +37,51 @@ export const loadTimeline = (type: EXPERIMENTS) => {
 
 // Converts a normalized timeline template into a classic jsPsych timeline array
 export const parseTimeline = (
+  params: ExperimentParameters,
   mainTimeline: MainTimeline,
   trials: { [string]: Trial },
-  timelines: { [string]: Timeline }
+  timelines: {}
 ) => {
+  const parsedTimelines = Object.assign(
+    ...Object.entries(timelines).map(([id, timeline]) => ({
+      [id]: {
+        ...timeline,
+        timeline: [
+          {
+            ...timeline.timeline[0],
+            trial_duration: () => params.iti + Math.random() * params.jitter
+          },
+          {
+            ...timeline.timeline[1],
+            stimulus: jsPsych.timelineVariable('stimulusVar'),
+            type: params.pluginName,
+            trial_duration: params.trialDuration
+          }
+        ],
+        sample: {
+          type: params.sampleType,
+          size: Math.round(
+            params.experimentDuration /
+              (params.trialDuration + params.iti + params.jitter / 2)
+          )
+        },
+        timeline_variables: readdirSync(params.stimulus1.dir)
+          .map(filename => ({
+            stimulusVar: path.join(params.stimulus1.dir, filename),
+            eventTypeVar: params.stimulus1.type
+          }))
+          .concat(
+            readdirSync(params.stimulus2.dir).map(filename => ({
+              stimulusVar: path.join(params.stimulus2.dir, filename),
+              eventTypeVar: params.stimulus2.type
+            }))
+          )
+      }
+    }))
+  );
+
   // Combine trials and timelines into one object
-  const jsPsychObject = { ...trials, ...timelines };
+  const jsPsychObject = { ...trials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id
   return mainTimeline.map(id => jsPsychObject[id]);
 };
@@ -61,12 +105,12 @@ export const instantiateTimeline = (
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (trial.id === "trial") {
+        if (trial.id === 'trial') {
           return {
             ...trial,
             on_start: () =>
               eventCallback(
-                jsPsych.timelineVariable("eventTypeVar")(),
+                jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
               ),
             on_finish: () => {
@@ -85,40 +129,21 @@ export const instantiateTimeline = (
     return jspsychObject;
   });
 
-// Returns an array of images that are used in a timeline for use in preloading
-export const getImages = (
-  mainTimeline: MainTimeline,
-  trials: { [string]: Trial },
-  timelines: { [string]: Timeline }
-) => {
-  const images = [];
-  Object.values(timelines).forEach(element => {
-    if ("timeline" in element) {
-      element["timeline"].forEach(trial => {
-        if (isImagePath(trial["stimulus"])) {
-          images.push(trial["stimulus"]);
-        }
-      });
-    }
-    if ("timeline_variables" in element) {
-      element["timeline_variables"].forEach(timelineVariable => {
-        if (isImagePath(timelineVariable["stimulusVar"])) {
-          images.push(timelineVariable["stimulusVar"]);
-        }
-      });
-    }
-  });
-  return images;
-};
+// Gets the last set of behavioural (key press) data stored in jsPsych
+export const getBehaviouralData = () =>
+  jsPsych.data
+    .get()
+    .filter(trial => !trial.stimulus.contains('fixation')) // Remove inter trial data
+    // .filter((trial) => trial.rt > 0) // Filter out trials with no responsre
+    .ignore('internal_node_id')
+    .csv();
 
-const isImagePath = (unknown: any) => {
-  if (typeof unknown === "string") {
-    if (unknown.slice(-3) === "jpg") {
-      return true;
-    }
-    if (unknown.slice(-3) === "png") {
-      return true;
-    }
-  }
-  return false;
-};
+// Returns an array of images that are used in a timeline for use in preloading
+export const getImages = (params: ExperimentParameters) =>
+  readdirSync(params.stimulus1.dir)
+    .map(filename => path.join(params.stimulus1.dir, filename))
+    .concat(
+      readdirSync(params.stimulus2.dir).map(filename =>
+        path.join(params.stimulus2.dir, filename)
+      )
+    );

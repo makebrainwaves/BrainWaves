@@ -1,14 +1,14 @@
-import React, { Component } from "react";
-import { isNil } from "lodash";
-import { Grid, Segment, Button, List } from "semantic-ui-react";
-import ViewerComponent from "../ViewerComponent";
-import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import styles from "../styles/collect.css";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Grid, Segment, Button, List } from 'semantic-ui-react';
+import ViewerComponent from '../ViewerComponent';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import styles from '../styles/collect.css';
 import {
   PLOTTING_INTERVAL,
-  CONNECTION_STATUS,
-} from "../../constants/constants";
+  CONNECTION_STATUS
+} from '../../constants/constants';
 
 interface Props {
   experimentActions: Object;
@@ -22,9 +22,10 @@ interface Props {
   availableDevices: Array<any>;
   type: ?EXPERIMENTS;
   isRunning: boolean;
+  params: ExperimentParameters;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
   // dir: ?string,
   subject: string;
   session: number;
@@ -60,6 +61,7 @@ export default class PreTestComponent extends Component<Props, State> {
       return (
         <PreviewExperimentComponent
           isPreviewing={this.state.isPreviewing}
+          params={this.props.params}
           mainTimeline={this.props.mainTimeline}
           trials={this.props.trials}
           timelines={this.props.timelines}
@@ -85,6 +87,10 @@ export default class PreTestComponent extends Component<Props, State> {
             <List.Item>
               <List.Icon name="circle" className={styles.badSignal} />
               <List.Content>Weak Signal</List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Icon name="circle" className={styles.noSignal} />
+              <List.Content>No Signal</List.Content>
             </List.Item>
           </List>
         </Segment>
@@ -127,7 +133,6 @@ export default class PreTestComponent extends Component<Props, State> {
           <ViewerComponent
             signalQualityObservable={this.props.signalQualityObservable}
             deviceType={this.props.deviceType}
-            samplingRate={this.props.connectedDevice["samplingRate"]}
             plottingInterval={PLOTTING_INTERVAL}
           />
         </Grid.Column>

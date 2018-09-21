@@ -12,10 +12,11 @@ import { isNil } from "lodash";
 import styles from "./styles/common.css";
 import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from "../constants/constants";
 import { Kernel } from "../constants/interfaces";
-import { readEEGDataDir } from "../utils/filesystem/write";
+import { readWorkspaceRawEEGData } from "../utils/filesystem/storage";
 
 interface Props {
   type: ?EXPERIMENTS;
+  title: string;
   deviceType: DEVICES;
   mainChannel: ?any;
   kernel: ?Kernel;
@@ -42,22 +43,24 @@ export default class Clean extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      eegFilePaths: [{ key: "", text: "", value: { name: "", dir: "" } }],
+      eegFilePaths: [{ key: "", text: "", value: "" }],
       selectedFilePaths: []
     };
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
   }
 
-  componentWillMount() {
+  async componentDidMount() {
     if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
       this.props.jupyterActions.launchKernel();
     }
+
+    const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
     this.setState({
-      eegFilePaths: readEEGDataDir(this.props.type).map(filepath => ({
+      eegFilePaths: workspaceRawData.map(filepath => ({
         key: filepath.name,
         text: filepath.name,
-        value: filepath
+        value: filepath.path
       }))
     });
   }

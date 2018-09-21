@@ -1,6 +1,8 @@
 // @flow
 import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 import TopNavComponent from "../components/TopNavComponent";
+import * as experimentActions from "../actions/experimentActions";
 
 function mapStateToProps(state) {
   return {
@@ -13,4 +15,13 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps)(TopNavComponent);
+function mapDispatchToProps(dispatch) {
+  return {
+    experimentActions: bindActionCreators(experimentActions, dispatch)
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TopNavComponent);

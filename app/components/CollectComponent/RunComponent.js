@@ -1,32 +1,30 @@
 // @flow
-import React, { Component } from "react";
-import { Grid, Button, Segment, Header, Input, List } from "semantic-ui-react";
-import { Experiment } from "jspsych-react";
-import { debounce } from "lodash";
-import { Link } from "react-router-dom";
-import styles from "../styles/common.css";
-import { injectEmotivMarker } from "../../utils/eeg/emotiv";
-import { injectMuseMarker } from "../../utils/eeg/muse";
-import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
-import { EXPERIMENTS, DEVICES, SCREENS } from "../../constants/constants";
+import React, { Component } from 'react';
+import { Grid, Button, Segment, Input } from 'semantic-ui-react';
+import { Experiment } from 'jspsych-react';
+import { debounce } from 'lodash';
+import { Link } from 'react-router-dom';
+import styles from '../styles/common.css';
+import { injectEmotivMarker } from '../../utils/eeg/emotiv';
+import { injectMuseMarker } from '../../utils/eeg/muse';
+import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
+import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
+import { EXPERIMENTS, DEVICES, SCREENS } from '../../constants/constants';
 import {
   parseTimeline,
   instantiateTimeline,
   getImages
-} from "../../utils/jspsych/functions";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import {
-  readEEGDataDir,
-  getCurrentEEGDataDir
-} from "../../utils/filesystem/write";
+} from '../../utils/jspsych/functions';
+import { MainTimeline, Trial } from '../../constants/interfaces';
 
 interface Props {
   type: ?EXPERIMENTS;
+  title: string;
   isRunning: boolean;
+  params: ExperimentParameters;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
   subject: string;
   session: number;
   deviceType: DEVICES;
@@ -68,10 +66,11 @@ export default class Run extends Component<Props> {
 
   handleTimeline() {
     const injectionFunction =
-      this.props.deviceType === "MUSE" ? injectMuseMarker : injectEmotivMarker;
+      this.props.deviceType === 'MUSE' ? injectMuseMarker : injectEmotivMarker;
 
     const timeline = instantiateTimeline(
       parseTimeline(
+        this.props.params,
         this.props.mainTimeline,
         this.props.trials,
         this.props.timelines
@@ -84,48 +83,7 @@ export default class Run extends Component<Props> {
   }
 
   handleImages() {
-    return getImages(
-      this.props.mainTimeline,
-      this.props.trials,
-      this.props.timelines
-    );
-  }
-
-  renderTrialList() {
-    return (
-      <div>
-        <List as="ul">
-          {readEEGDataDir(this.props.type).map(filename => (
-            <List.Item
-              icon="file"
-              key={filename.name}
-              description={filename.name}
-            />
-          ))}
-        </List>
-      </div>
-    );
-  }
-
-  renderExperimentTitle() {
-    switch (this.props.type) {
-      case EXPERIMENTS.N170:
-        return <Header as="h3">Faces and Houses N170 Experiment</Header>;
-      case EXPERIMENTS.P300:
-        return <Header as="h3">Visual Oddball P300 Experiment</Header>;
-      case EXPERIMENTS.SSVEP:
-        return (
-          <Header as="h3">
-            Steady-State Visual Evoked Potential Experiment
-          </Header>
-        );
-      case EXPERIMENTS.STROOP:
-        return <Header as="h3">Stroop Experiment</Header>;
-
-      case EXPERIMENTS.NONE:
-      default:
-        return <Header as="h3">No experiment selected</Header>;
-    }
+    return getImages(this.props.params);
   }
 
   renderExperiment() {
@@ -133,11 +91,11 @@ export default class Run extends Component<Props> {
       return (
         <div>
           <Segment raised padded color="red">
-            {this.renderExperimentTitle()}
+            {this.props.title}
             <div className={styles.inputDiv}>
               <Input
                 focus
-                label={{ basic: true, content: "Subject Name" }}
+                label={{ basic: true, content: 'Subject Name' }}
                 onChange={this.handleSubjectEntry}
                 placeholder="Name"
               />
@@ -145,7 +103,7 @@ export default class Run extends Component<Props> {
             <div className={styles.inputDiv}>
               <Input
                 focus
-                label={{ basic: true, content: "Session Number" }}
+                label={{ basic: true, content: 'Session Number' }}
                 onChange={this.handleSessionEntry}
                 placeholder={this.props.session}
               />
@@ -154,17 +112,8 @@ export default class Run extends Component<Props> {
               Start Experiment
             </Button>
           </Segment>
-          <Segment raised padded color="red">
-            <Header as="h3">
-              Collected Trials
-              <Header.Subheader>
-                {getCurrentEEGDataDir(this.props.type)}
-              </Header.Subheader>
-            </Header>
-            {this.renderTrialList()}
-          </Segment>
-          <Link to={SCREENS.ANALYZE.route}>
-            <Button>Analyze Data</Button>
+          <Link to={SCREENS.CLEAN.route}>
+            <Button>Clean Data</Button>
           </Link>
         </div>
       );
@@ -179,8 +128,8 @@ export default class Run extends Component<Props> {
           preload_images: this.handleImages()
         }}
         plugins={{
-          "callback-image-display": callbackImageDisplay,
-          "callback-html-display": callbackHTMLDisplay
+          'callback-image-display': callbackImageDisplay,
+          'callback-html-display': callbackHTMLDisplay
         }}
       />
     );

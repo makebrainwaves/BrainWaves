@@ -61,3 +61,7 @@
 .badSignal {
   color: #e06766;
 }
+
+.noSignal {
+  color: #bfbfbf;
+}

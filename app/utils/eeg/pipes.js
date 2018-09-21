@@ -10,8 +10,8 @@ export const addSignalQuality = () => source =>
   createPipe(
     source,
     map(epoch => {
-      const names = epoch.info.channelNames
-        ? epoch.info.channelNames
+      const names = epoch.info.channels
+        ? epoch.info.channels
         : epoch.data.map((_, i) => i);
       return {
         ...epoch,
@@ -38,7 +38,10 @@ export const colorSignalQuality = () => source =>
             if (signalQuality >= SIGNAL_QUALITY_THRESHOLDS.OK) {
               return { [channelName]: SIGNAL_QUALITY.OK };
             }
-            return { [channelName]: SIGNAL_QUALITY.GREAT };
+            if (signalQuality >= SIGNAL_QUALITY_THRESHOLDS.GREAT) {
+              return { [channelName]: SIGNAL_QUALITY.GREAT };
+            }
+            return { [channelName]: SIGNAL_QUALITY.DISCONNECTED };
           }
         )
       )

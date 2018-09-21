@@ -3,7 +3,14 @@ import { Grid } from "semantic-ui-react";
 import { NavLink } from "react-router-dom";
 import styles from "../styles/topnavbar.css";
 
-export default class PrimaryNavSegment extends Component {
+interface Props {
+  style: string;
+  route: string;
+  title: string;
+  order: number;
+}
+
+export default class PrimaryNavSegment extends Component<Props> {
   render() {
     return (
       <Grid.Column className={[this.props.style, styles.navColumn].join(" ")}>

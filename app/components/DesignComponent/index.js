@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from "react";
+import React, { Component } from 'react';
 import {
   Grid,
   Button,
@@ -8,26 +8,32 @@ import {
   Header,
   Image,
   List
-} from "semantic-ui-react";
-import { isNil } from "lodash";
-import styles from "../styles/common.css";
-import { EXPERIMENTS } from "../../constants/constants";
-import { MainTimeline, Trial, Timeline } from "../../constants/interfaces";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
-import n170Example from "../../assets/face_house/n170_example.png";
+} from 'semantic-ui-react';
+import { isNil } from 'lodash';
+import styles from '../styles/common.css';
+import { EXPERIMENTS } from '../../constants/constants';
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters
+} from '../../constants/interfaces';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
+import n170Example from '../../assets/face_house/n170_example.png';
 
 const DESIGN_STEPS = {
-  OVERVIEW: "Overview",
-  BACKGROUND: "Background",
-  PROTOCOL: "Experimental Protocol"
+  OVERVIEW: 'Overview',
+  BACKGROUND: 'Background',
+  PROTOCOL: 'Experimental Protocol'
 };
 
 interface Props {
   type: ?EXPERIMENTS;
+  title: string;
+  params: ExperimentParameters;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
-  timelines: { [string]: Timeline };
+  timelines: {};
   experimentActions: Object;
 }
 
@@ -115,6 +121,7 @@ export default class Design extends Component<Props, State> {
             <Grid.Column width={6} textAlign="center">
               <Segment basic padded>
                 <PreviewExperimentComponent
+                  params={this.props.params}
                   isPreviewing={this.state.isPreviewing}
                   mainTimeline={this.props.mainTimeline}
                   trials={this.props.trials}
@@ -185,10 +192,10 @@ export default class Design extends Component<Props, State> {
   render() {
     return (
       <div className={styles.mainContainer}>
-        <Grid columns={1} centered style={{ height: "50%" }}>
+        <Grid columns={1} centered style={{ height: '50%' }}>
           <Grid.Row>
             <Segment raised color="red">
-              <Header as="h3">Review Design</Header>
+              <Header as="h3">{this.props.title}</Header>
               <Step.Group>
                 <Step
                   link
@@ -211,7 +218,7 @@ export default class Design extends Component<Props, State> {
               </Step.Group>
             </Segment>
           </Grid.Row>
-          <Grid.Row stretched style={{ height: "100%" }}>
+          <Grid.Row stretched style={{ height: '100%' }}>
             <Segment raised className={styles.mainSegment} color="red">
               {this.renderSectionContent()}
             </Segment>
