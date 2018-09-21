@@ -1,16 +1,16 @@
-import { isNil } from "lodash";
-import { jsPsych } from "jspsych-react";
-import * as path from "path";
-import { readdirSync } from "fs";
-import { EXPERIMENTS } from "../../constants/constants";
-import { buildOddballTimeline } from "./timelines/oddball";
-import { buildN170Timeline } from "./timelines/n170";
-import { buildSSVEPTimeline } from "./timelines/ssvep";
+import { isNil } from 'lodash';
+import { jsPsych } from 'jspsych-react';
+import * as path from 'path';
+import { readdirSync } from 'fs';
+import { EXPERIMENTS } from '../../constants/constants';
+import { buildOddballTimeline } from './timelines/oddball';
+import { buildN170Timeline } from './timelines/n170';
+import { buildSSVEPTimeline } from './timelines/ssvep';
 import {
   MainTimeline,
   Trial,
   ExperimentParameters
-} from "../../constants/interfaces";
+} from '../../constants/interfaces';
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -53,7 +53,7 @@ export const parseTimeline = (
           },
           {
             ...timeline.timeline[1],
-            stimulus: jsPsych.timelineVariable("stimulusVar"),
+            stimulus: jsPsych.timelineVariable('stimulusVar'),
             type: params.pluginName,
             trial_duration: params.trialDuration
           }
@@ -80,7 +80,6 @@ export const parseTimeline = (
     }))
   );
 
-  console.table(parsedTimelines);
   // Combine trials and timelines into one object
   const jsPsychObject = { ...trials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id
@@ -106,12 +105,12 @@ export const instantiateTimeline = (
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (trial.id === "trial") {
+        if (trial.id === 'trial') {
           return {
             ...trial,
             on_start: () =>
               eventCallback(
-                jsPsych.timelineVariable("eventTypeVar")(),
+                jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
               ),
             on_finish: () => {
@@ -130,51 +129,21 @@ export const instantiateTimeline = (
     return jspsychObject;
   });
 
-// TODO: Filter out intertrial trials
-export const getBehaviouralData = () => {
-  return jsPsych.data
+// Gets the last set of behavioural (key press) data stored in jsPsych
+export const getBehaviouralData = () =>
+  jsPsych.data
     .get()
-    .ignore("internal_node_id")
+    .filter(trial => !trial.stimulus.contains('fixation')) // Remove inter trial data
+    // .filter((trial) => trial.rt > 0) // Filter out trials with no responsre
+    .ignore('internal_node_id')
     .csv();
-};
 
 // Returns an array of images that are used in a timeline for use in preloading
-export const getImages = (
-  mainTimeline: MainTimeline,
-  trials: { [string]: Trial },
-  timelines: {}
-) => {
-  const images = [];
-  Object.values(timelines).forEach(element => {
-    if ("timeline" in element) {
-      element["timeline"].forEach(trial => {
-        if (isImagePath(trial["stimulus"])) {
-          images.push(trial["stimulus"]);
-        }
-      });
-    }
-    if ("timeline_variables" in element) {
-      element["timeline_variables"].forEach(timelineVariable => {
-        if (isImagePath(timelineVariable["stimulusVar"])) {
-          images.push(timelineVariable["stimulusVar"]);
-        }
-      });
-    }
-  });
-  return images;
-};
-
-// ---------------------------------------------------------
-// Helper Methods
-
-const isImagePath = (unknown: any) => {
-  if (typeof unknown === "string") {
-    if (unknown.slice(-3) === "jpg") {
-      return true;
-    }
-    if (unknown.slice(-3) === "png") {
-      return true;
-    }
-  }
-  return false;
-};
+export const getImages = (params: ExperimentParameters) =>
+  readdirSync(params.stimulus1.dir)
+    .map(filename => path.join(params.stimulus1.dir, filename))
+    .concat(
+      readdirSync(params.stimulus2.dir).map(filename =>
+        path.join(params.stimulus2.dir, filename)
+      )
+    );

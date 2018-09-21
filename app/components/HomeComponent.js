@@ -1,28 +1,18 @@
 // @flow
-import React, { Component } from "react";
-import { Link } from "react-router-dom";
-import { isNil } from "lodash";
-import {
-  Grid,
-  Button,
-  Header,
-  Segment,
-  List,
-  Image,
-  Modal,
-  Step
-} from "semantic-ui-react";
-import styles from "./styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../constants/constants";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Grid, Button, Header, Segment, Image, Step } from 'semantic-ui-react';
+import styles from './styles/common.css';
+import { EXPERIMENTS, SCREENS } from '../constants/constants';
 
-import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
-import { readWorkspaces, readAndParseState } from "../utils/filesystem/storage";
-import InputModal from "./InputModal";
+import faceHouseIcon from '../assets/face_house/face_house_icon.jpg';
+import { readWorkspaces, readAndParseState } from '../utils/filesystem/storage';
+import InputModal from './InputModal';
 
 const HOME_STEPS = {
-  RECENT: "RECENT",
-  NEW: "NEW EXPERIMENT",
-  PRACTICE: "PRACTICE"
+  RECENT: 'RECENT',
+  NEW: 'NEW EXPERIMENT',
+  PRACTICE: 'PRACTICE'
 };
 
 interface Props {
@@ -102,8 +92,8 @@ export default class Home extends Component<Props, State> {
         return (
           <div>
             <Grid stackable columns="equal">
-              {this.state.recentWorkspaces.map((dir, index) => (
-                <Grid.Row>
+              {this.state.recentWorkspaces.map(dir => (
+                <Grid.Row key={dir}>
                   <Button
                     secondary
                     onClick={() => this.handleLoadRecentWorkspace(dir)}
@@ -146,7 +136,7 @@ export default class Home extends Component<Props, State> {
                 <Header as="h1">Oddball</Header>
                 <p>
                   Explore the P300 ERP that is produced after an unexpected
-                  'oddball' stimulus. The P300 ERP is a positive deflection that
+                  oddball stimulus. The P300 ERP is a positive deflection that
                   occurs 300ms after stimulus onset.
                 </p>
                 <Button

@@ -1,37 +1,34 @@
-import * as path from "path";
-import { readFileSync } from "fs";
+import * as path from 'path';
+import { readFileSync } from 'fs';
 import {
   DEVICES,
   EMOTIV_CHANNELS,
   MUSE_CHANNELS
-} from "../../constants/constants";
+} from '../../constants/constants';
 
 export const imports = () =>
   [
-    "from mne import Epochs, find_events, set_eeg_reference",
-    "from time import time, strftime, gmtime",
-    "import os",
-    "from collections import OrderedDict",
-    "from glob import glob",
-    "from mne import create_info, concatenate_raws",
-    "from mne.io import RawArray",
-    "from mne.io import RawArray",
-    "from mne.channels import read_montage",
-    "import pandas as pd",
-    "import numpy as np",
-    "import seaborn as sns",
-    "from matplotlib import pyplot as plt"
-  ].join("\n");
+    'from mne import Epochs, find_events, set_eeg_reference',
+    'from time import time, strftime, gmtime',
+    'import os',
+    'from collections import OrderedDict',
+    'from glob import glob',
+    'from mne import create_info, concatenate_raws',
+    'from mne.io import RawArray',
+    'from mne.io import RawArray',
+    'from mne.channels import read_montage',
+    'import pandas as pd',
+    'import numpy as np',
+    'import seaborn as sns',
+    'from matplotlib import pyplot as plt'
+  ].join('\n');
 
 export const utils = () =>
-  readFileSync(path.join(__dirname, "/utils/jupyter/utils.py"), "utf8");
+  readFileSync(path.join(__dirname, '/utils/jupyter/utils.py'), 'utf8');
 
-export const loadCSV = (
-  filePathArray: Array<{ name: string, path: string }>,
-  deviceType: DEVICES
-) =>
+export const loadCSV = (filePathArray: Array<string>, deviceType: DEVICES) =>
   [
-    `files = ${formatFilePaths(filePathArray)}`,
+    `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
     `sfreq = ${deviceType === DEVICES.EMOTIV ? 128.0 : 256.0}`,
     `ch_ind = [${
       deviceType === DEVICES.EMOTIV
@@ -47,24 +44,24 @@ export const loadCSV = (
     }`,
     `replace_ch_names = None`,
     `raw = load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
-  ].join("\n");
+  ].join('\n');
 
 export const loadCSVWithAux = (
-  filePathArray: Array<{ name: string, dir: string }>,
+  filePathArray: Array<string>,
   auxChannel: string
 ) =>
   [
-    `files = ${formatFilePaths(filePathArray)}`,
-    `sfreq = ${deviceType === DEVICES.EMOTIV ? 128.0 : 256.0}`,
+    `files = ${formatFilePath(filePathArray)}`,
+    `sfreq = 256.0`,
     `ch_ind = [${MUSE_CHANNELS.map((_, i) => i).toString()}]`,
     `stim_ind = ${MUSE_CHANNELS.length}`,
     `replace_ch_names = {'Right AUX': ${auxChannel}`,
     `raw = load_data(files, sfreq, ch_ind, stim_ind, replace_ch_names)`
-  ].join("\n");
+  ].join('\n');
 
 // NOTE: this command includes a ';' to prevent returning data
-export const filterIIR = (low_cutoff: number, high_cutoff: number) =>
-  `raw.filter(${low_cutoff}, ${high_cutoff}, method='iir');`;
+export const filterIIR = (lowCutoff: number, highCutoff: number) =>
+  `raw.filter(${lowCutoff}, ${highCutoff}, method='iir');`;
 
 export const cleanEpochsPlot = () =>
   [
@@ -73,63 +70,60 @@ export const cleanEpochsPlot = () =>
     `fig = plt.gcf()`,
     `fig.canvas.manager.window.activateWindow()`,
     `fig.canvas.manager.window.raise_()`
-  ].join("\n");
+  ].join('\n');
 
 export const plotPSD = () =>
-  [`%matplotlib inline`, `raw.plot_psd()`].join("\n");
+  [`%matplotlib inline`, `raw.plot_psd()`].join('\n');
 
 export const epochEvents = (
-  event_ids: { [string]: number },
+  eventIDs: { [string]: number },
   tmin: number,
   tmax: number,
-  reject?: Array<string> | string = "None"
+  reject?: Array<string> | string = 'None'
 ) => {
   const command = [
-    `event_ids = ${JSON.stringify(event_ids)}`,
+    `event_ids = ${JSON.stringify(eventIDs)}`,
     `tmin=${tmin}`,
     `tmax=${tmax}`,
     `baseline= (tmin, tmax)`,
     `picks = None`,
     `reject = ${reject}`,
-    "events = find_events(raw)",
+    'events = find_events(raw)',
     `epochs = Epochs(raw, events=events, event_id=event_ids, 
                     tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True, 
                     verbose=False, picks=picks)`
-  ].join("\n");
+  ].join('\n');
   return command;
 };
 
 export const requestEpochsInfo = () =>
   `get_epochs_info(epochs, events, event_ids)`;
 
-export const plotERP = (ch_ind: number) =>
+export const plotERP = (channelIndex: number) =>
   [
     `%matplotlib inline`,
     `conditions = OrderedDict({key: [value] for (key, value) in event_ids.items()})`,
-    `X, y = plot_conditions(epochs, ch_ind=${ch_ind}, conditions=conditions, 
+    `X, y = plot_conditions(epochs, ch_ind=${channelIndex}, conditions=conditions, 
     ci=97.5, n_boot=1000, title='')`
-  ].join("\n");
+  ].join('\n');
 
 export const saveEpochs = (
   workspaceDir: string,
   subject: string,
-  session: string
+  session: number
 ) =>
-  `epochs.save(${path.join(
-    workspaceDir,
-    "data",
-    subject,
-    "EEG",
-    `${subject}_${session}-epo.fif`
+  `epochs.save(${formatFilePath(
+    path.join(
+      workspaceDir,
+      'data',
+      subject,
+      'EEG',
+      `${subject}_${session}-epo.fif`
+    )
   )})`;
 
 // -------------------------------------------
 // Helper methods
 
-const formatFilePaths = (
-  filePathArray: Array<{ name: string, path: string }>
-) =>
-  `[${filePathArray.map(filepath => `"${filepath.path}"`)}]`.replace(
-    /\\/g,
-    "/"
-  );
+const formatFilePath = (filePath: string) =>
+  `"${filePath.replace(/\\/g, '/')}"`;

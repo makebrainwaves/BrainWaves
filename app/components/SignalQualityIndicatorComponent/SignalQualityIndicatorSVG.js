@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 const SvgComponent = props => (
   <svg
@@ -8,7 +8,7 @@ const SvgComponent = props => (
     viewBox="0 0 674.44 610.29"
     {...props}
   >
-    <title>Artboard 1 copy 4</title>
+    <title>Signal Quality Indicator</title>
     <g id="Head_Plot" data-name="Head Plot">
       <circle
         cx={336.54}
@@ -98,6 +98,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         T7
       </text>
@@ -116,6 +117,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         FC5
       </text>
@@ -134,6 +136,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         FC6
       </text>
@@ -152,6 +155,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         F3
       </text>
@@ -170,6 +174,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         F4
       </text>
@@ -188,6 +193,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         AF3
       </text>
@@ -206,6 +212,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         AF4
       </text>
@@ -224,6 +231,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         M1
       </text>
@@ -242,6 +250,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         P7
       </text>
@@ -260,6 +269,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         O1
       </text>
@@ -278,6 +288,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         O2
       </text>
@@ -296,6 +307,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         P8
       </text>
@@ -314,6 +326,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         T8
       </text>
@@ -332,6 +345,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         M2
       </text>
@@ -350,6 +364,7 @@ const SvgComponent = props => (
         fontSize={18}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         TP10
       </text>
@@ -368,6 +383,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         <tspan letterSpacing="-.03em">F</tspan>
         <tspan x={11.69} y={0}>
@@ -389,6 +405,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         TP9
       </text>
@@ -407,6 +424,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         AF7
       </text>
@@ -425,6 +443,7 @@ const SvgComponent = props => (
         fontSize={22}
         fontFamily="Lato-Bold,Lato"
         fontWeight={700}
+        fill="#000"
       >
         AF8
       </text>

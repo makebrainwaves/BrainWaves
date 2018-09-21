@@ -1,6 +1,6 @@
-import { combineEpics } from "redux-observable";
-import { executeRequest } from "@nteract/messaging";
-import { of } from "rxjs";
+import { combineEpics } from 'redux-observable';
+import { executeRequest } from '@nteract/messaging';
+import { of } from 'rxjs';
 import {
   map,
   mapTo,
@@ -11,7 +11,7 @@ import {
   throttleTime,
   ignoreElements,
   tap
-} from "rxjs/operators";
+} from 'rxjs/operators';
 import {
   setType,
   setTitle,
@@ -22,31 +22,31 @@ import {
   STOP,
   SAVE_WORKSPACE,
   CREATE_NEW_WORKSPACE
-} from "../actions/experimentActions";
+} from '../actions/experimentActions';
 import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   KERNEL_STATUS
-} from "../constants/constants";
-import { loadTimeline, getBehaviouralData } from "../utils/jspsych/functions";
+} from '../constants/constants';
+import { loadTimeline, getBehaviouralData } from '../utils/jspsych/functions';
 import {
   createEEGWriteStream,
   writeHeader,
   writeEEGData
-} from "../utils/filesystem/write";
+} from '../utils/filesystem/write';
 import {
   getWorkspaceDir,
   storeExperimentState,
   createWorkspaceDir,
   storeBehaviouralData
-} from "../utils/filesystem/storage";
-import { saveEpochs } from "../utils/jupyter/cells";
+} from '../utils/filesystem/storage';
+import { saveEpochs } from '../utils/jupyter/cells';
 
-export const SET_TIMELINE = "LOAD_TIMELINE";
-export const SET_IS_RUNNING = "SET_IS_RUNNING";
-export const SET_SESSION = "SET_SESSION";
-export const EXPERIMENT_CLEANUP = "EXPERIMENT_CLEANUP";
+export const SET_TIMELINE = 'LOAD_TIMELINE';
+export const SET_IS_RUNNING = 'SET_IS_RUNNING';
+export const SET_SESSION = 'SET_SESSION';
+export const EXPERIMENT_CLEANUP = 'EXPERIMENT_CLEANUP';
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -75,7 +75,7 @@ const cleanup = () => ({
 
 const createNewWorkspaceEpic = action$ =>
   action$.ofType(CREATE_NEW_WORKSPACE).pipe(
-    pluck("payload"),
+    pluck('payload'),
     tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
     mergeMap(workspaceInfo =>
       of(
@@ -99,7 +99,7 @@ const startEpic = (action$, state$) =>
       () =>
         !state$.value.experiment.isRunning &&
         state$.value.device.rawObservable &&
-        state$.value.experiment.subject !== ""
+        state$.value.experiment.subject !== ''
     ),
     map(() => {
       const writeStream = createEEGWriteStream(
@@ -125,13 +125,12 @@ const startEpic = (action$, state$) =>
 const experimentStopEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
     map(getBehaviouralData),
-    tap(console.log),
     map(csv =>
       storeBehaviouralData(
         csv,
+        state$.value.experiment.title,
         state$.value.experiment.subject,
-        state$.value.experiment.session,
-        state$.value.experiment.title
+        state$.value.experiment.session
       )
     ),
     mapTo(false),
@@ -157,16 +156,25 @@ const saveWorkspaceEpic = (action$, state$) =>
         state$.value.jupyter.epochsInfo &&
         state$.value.jupyter.kernelStatus === KERNEL_STATUS.IDLE
       ) {
-        state$.value.jupyter.mainChannel.next(executeRequest(saveEpochs(dir)));
+        console.log('passed epoch save criteria');
+        state$.value.jupyter.mainChannel.next(
+          executeRequest(
+            saveEpochs(
+              dir,
+              state$.value.experiment.subject,
+              state$.value.experiment.session
+            )
+          )
+        );
       }
     }),
     ignoreElements()
   );
 
 const navigationCleanupEpic = action$ =>
-  action$.ofType("@@router/LOCATION_CHANGE").pipe(
-    pluck("payload", "pathname"),
-    filter(pathname => pathname === "/"),
+  action$.ofType('@@router/LOCATION_CHANGE').pipe(
+    pluck('payload', 'pathname'),
+    filter(pathname => pathname === '/'),
     map(cleanup)
   );
 

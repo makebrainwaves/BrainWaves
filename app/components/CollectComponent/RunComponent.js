@@ -1,27 +1,27 @@
 // @flow
-import React, { Component } from "react";
-import { Grid, Button, Segment, Header, Input, List } from "semantic-ui-react";
-import { Experiment } from "jspsych-react";
-import { debounce } from "lodash";
-import { Link } from "react-router-dom";
-import styles from "../styles/common.css";
-import { injectEmotivMarker } from "../../utils/eeg/emotiv";
-import { injectMuseMarker } from "../../utils/eeg/muse";
-import callbackHTMLDisplay from "../../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../../utils/jspsych/plugins/callback-image-display";
-import { EXPERIMENTS, DEVICES, SCREENS } from "../../constants/constants";
+import React, { Component } from 'react';
+import { Grid, Button, Segment, Input } from 'semantic-ui-react';
+import { Experiment } from 'jspsych-react';
+import { debounce } from 'lodash';
+import { Link } from 'react-router-dom';
+import styles from '../styles/common.css';
+import { injectEmotivMarker } from '../../utils/eeg/emotiv';
+import { injectMuseMarker } from '../../utils/eeg/muse';
+import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
+import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
+import { EXPERIMENTS, DEVICES, SCREENS } from '../../constants/constants';
 import {
   parseTimeline,
   instantiateTimeline,
   getImages
-} from "../../utils/jspsych/functions";
-import { MainTimeline, Trial } from "../../constants/interfaces";
-import { readWorkspaceRawEEGData } from "../../utils/filesystem/storage";
+} from '../../utils/jspsych/functions';
+import { MainTimeline, Trial } from '../../constants/interfaces';
 
 interface Props {
   type: ?EXPERIMENTS;
   title: string;
   isRunning: boolean;
+  params: ExperimentParameters;
   mainTimeline: MainTimeline;
   trials: { [string]: Trial };
   timelines: {};
@@ -66,10 +66,11 @@ export default class Run extends Component<Props> {
 
   handleTimeline() {
     const injectionFunction =
-      this.props.deviceType === "MUSE" ? injectMuseMarker : injectEmotivMarker;
+      this.props.deviceType === 'MUSE' ? injectMuseMarker : injectEmotivMarker;
 
     const timeline = instantiateTimeline(
       parseTimeline(
+        this.props.params,
         this.props.mainTimeline,
         this.props.trials,
         this.props.timelines
@@ -82,11 +83,7 @@ export default class Run extends Component<Props> {
   }
 
   handleImages() {
-    return getImages(
-      this.props.mainTimeline,
-      this.props.trials,
-      this.props.timelines
-    );
+    return getImages(this.props.params);
   }
 
   renderExperiment() {
@@ -98,7 +95,7 @@ export default class Run extends Component<Props> {
             <div className={styles.inputDiv}>
               <Input
                 focus
-                label={{ basic: true, content: "Subject Name" }}
+                label={{ basic: true, content: 'Subject Name' }}
                 onChange={this.handleSubjectEntry}
                 placeholder="Name"
               />
@@ -106,7 +103,7 @@ export default class Run extends Component<Props> {
             <div className={styles.inputDiv}>
               <Input
                 focus
-                label={{ basic: true, content: "Session Number" }}
+                label={{ basic: true, content: 'Session Number' }}
                 onChange={this.handleSessionEntry}
                 placeholder={this.props.session}
               />
@@ -131,8 +128,8 @@ export default class Run extends Component<Props> {
           preload_images: this.handleImages()
         }}
         plugins={{
-          "callback-image-display": callbackImageDisplay,
-          "callback-html-display": callbackHTMLDisplay
+          'callback-image-display': callbackImageDisplay,
+          'callback-html-display': callbackHTMLDisplay
         }}
       />
     );

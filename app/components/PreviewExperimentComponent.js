@@ -1,20 +1,19 @@
 // @flow
-import React, { Component } from "react";
-import { Experiment } from "jspsych-react";
-import { Segment } from "semantic-ui-react";
-import callbackHTMLDisplay from "../utils/jspsych/plugins/callback-html-display";
-import callbackImageDisplay from "../utils/jspsych/plugins/callback-image-display";
+import React, { Component } from 'react';
+import { Experiment } from 'jspsych-react';
+import { Segment } from 'semantic-ui-react';
+import callbackHTMLDisplay from '../utils/jspsych/plugins/callback-html-display';
+import callbackImageDisplay from '../utils/jspsych/plugins/callback-image-display';
 import {
   parseTimeline,
   instantiateTimeline,
   getImages
-} from "../utils/jspsych/functions";
+} from '../utils/jspsych/functions';
 import {
   MainTimeline,
   Trial,
-  Timeline,
   ExperimentParameters
-} from "../constants/interfaces";
+} from '../constants/interfaces';
 
 interface Props {
   params: ExperimentParameters;
@@ -41,7 +40,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
         this.props.trials,
         this.props.timelines
       ),
-      (value, time) => console.log("event ", value, time), // event callback
+      (value, time) => console.log('event ', value, time), // event callback
       () => {}, // start callback
       () => {} // stop callback
     );
@@ -49,11 +48,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
   }
 
   handleImages() {
-    return getImages(
-      this.props.mainTimeline,
-      this.props.trials,
-      this.props.timelines
-    );
+    return getImages(this.props.params);
   }
 
   // async handleCustomExperimentLoad() {
@@ -73,8 +68,8 @@ export default class PreviewExperimentComponent extends Component<Props> {
           preload_images: this.handleImages()
         }}
         plugins={{
-          "callback-image-display": callbackImageDisplay,
-          "callback-html-display": callbackHTMLDisplay
+          'callback-image-display': callbackImageDisplay,
+          'callback-html-display': callbackHTMLDisplay
         }}
       />
     );
