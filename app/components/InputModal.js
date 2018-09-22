@@ -1,8 +1,8 @@
 // @flow
-import React, { Component } from "react";
-import { Input, Modal, Button } from "semantic-ui-react";
-import { debounce } from "lodash";
-import styles from "./styles/collect.css";
+import React, { Component } from 'react';
+import { Input, Modal, Button } from 'semantic-ui-react';
+import { debounce } from 'lodash';
+import styles from './styles/common.css';
 
 interface Props {
   open: boolean;
@@ -23,7 +23,7 @@ export default class InputModal extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      enteredText: ""
+      enteredText: ''
     };
     this.handleTextEntry = debounce(this.handleTextEntry, 500).bind(this);
   }
@@ -37,13 +37,12 @@ export default class InputModal extends Component<Props, State> {
       <Modal
         basic
         centered
-        className={styles.connectModal}
+        dimmer="inverted"
+        className={styles.inputModal}
         open={this.props.open}
         onClose={() => this.props.onClose(this.state.enteredText)}
       >
-        <Modal.Content className={styles.searchingText}>
-          {this.props.header}
-        </Modal.Content>
+        <Modal.Content>{this.props.header}</Modal.Content>
         <Modal.Content>
           <Input
             focus

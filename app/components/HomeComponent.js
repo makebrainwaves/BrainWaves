@@ -1,17 +1,19 @@
 // @flow
-import React, { Component } from "react";
-import { isNil } from "lodash";
-import { Grid, Button, Header, Segment, Image, Step } from "semantic-ui-react";
-import styles from "./styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../constants/constants";
-import faceHouseIcon from "../assets/face_house/face_house_icon.jpg";
-import { readWorkspaces, readAndParseState } from "../utils/filesystem/storage";
-import InputModal from "./InputModal";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
+import styles from './styles/common.css';
+import { EXPERIMENTS, SCREENS } from '../constants/constants';
+import faceHouseIcon from '../assets/face_house/face_house_icon.jpg';
+import brainwavesLogo from '../assets/common/brainwaves_logo_nih.png';
+import { readWorkspaces, readAndParseState } from '../utils/filesystem/storage';
+import InputModal from './InputModal';
+import SecondaryNavSegment from './SecondaryNavSegment';
 
 const HOME_STEPS = {
-  RECENT: "RECENT",
-  NEW: "NEW EXPERIMENT",
-  PRACTICE: "PRACTICE"
+  RECENT: 'RECENT',
+  NEW: 'NEW EXPERIMENT',
+  PRACTICE: 'PRACTICE'
 };
 
 interface Props {
@@ -51,8 +53,8 @@ export default class Home extends Component<Props, State> {
     this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
-  handleStepClick(e: Object, props: Object) {
-    this.setState({ activeStep: props.title });
+  handleStepClick(step: string) {
+    this.setState({ activeStep: step });
   }
 
   handleNewExperiment(experimentType: EXPERIMENTS) {
@@ -87,23 +89,21 @@ export default class Home extends Component<Props, State> {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
         return (
-          <div>
-            <Grid stackable columns="equal">
-              {this.state.recentWorkspaces.map(dir => (
-                <Grid.Row key={dir}>
-                  <Button
-                    secondary
-                    onClick={() => this.handleLoadRecentWorkspace(dir)}
-                  >
-                    Open Workspace
-                  </Button>
-                  <Segment basic compact textAlign="center">
-                    <Header as="h3"> {dir}</Header>
-                  </Segment>
-                </Grid.Row>
-              ))}
-            </Grid>
-          </div>
+          <Grid stackable padded columns="equal">
+            {this.state.recentWorkspaces.map(dir => (
+              <Grid.Row key={dir}>
+                <Button
+                  secondary
+                  onClick={() => this.handleLoadRecentWorkspace(dir)}
+                >
+                  Open Workspace
+                </Button>
+                <Segment basic compact textAlign="center">
+                  <Header as="h3"> {dir}</Header>
+                </Segment>
+              </Grid.Row>
+            ))}
+          </Grid>
         );
       case HOME_STEPS.NEW:
       default:
@@ -165,22 +165,29 @@ export default class Home extends Component<Props, State> {
   render() {
     return (
       <div className={styles.mainContainer} data-tid="container">
-        <Segment raised color="red">
-          <Step.Group>
-            <Step
-              link
-              title={HOME_STEPS.RECENT}
-              active={this.state.activeStep === HOME_STEPS.RECENT}
-              onClick={this.handleStepClick}
-            />
-            <Step
-              link
-              title={HOME_STEPS.NEW}
-              active={this.state.activeStep === HOME_STEPS.NEW}
-              onClick={this.handleStepClick}
-            />
-          </Step.Group>
-        </Segment>
+        <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
+          <Grid.Column width="4">
+            <Image className={styles.brainwavesLogo} src={brainwavesLogo} />
+          </Grid.Column>
+          <SecondaryNavSegment
+            title={HOME_STEPS.RECENT}
+            style={
+              this.state.activeStep === HOME_STEPS.RECENT
+                ? styles.activeSecondaryNavSegment
+                : styles.inactiveSecondaryNavSegment
+            }
+            onClick={() => this.handleStepClick(HOME_STEPS.RECENT)}
+          />
+          <SecondaryNavSegment
+            title={HOME_STEPS.NEW}
+            style={
+              this.state.activeStep === HOME_STEPS.NEW
+                ? styles.activeSecondaryNavSegment
+                : styles.inactiveSecondaryNavSegment
+            }
+            onClick={() => this.handleStepClick(HOME_STEPS.NEW)}
+          />
+        </Grid>
         {this.renderSectionContent()}
         <InputModal
           open={this.state.isNewExperimentModalOpen}

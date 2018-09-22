@@ -17,3 +17,54 @@
 .inputDiv {
   margin: 15px;
 }
+
+.brainwavesLogo {
+  height: auto;
+  width: 250px;
+  background-color: #007c70 !important;
+}
+
+.inputModal {
+  color: #1a1a1a !important;
+  font-size: 18px !important;
+  width: 25% !important;
+  text-align: center !important;
+}
+
+/* Secondary Nav related styles */
+
+.secondaryNavContainer {
+  margin-bottom: 50px !important;
+}
+
+.secondaryNavSegment {
+  display: flex !important;
+  justify-content: center;
+  height: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 17px;
+  letter-spacing: 0.5px;
+  border-style: solid;
+  border-width: 0px;
+  border-bottom-width: 4px;
+}
+
+.inactiveSecondaryNavSegment {
+  color: #666666;
+  border-color: #666666;
+  border-bottom-color: #fff;
+}
+
+.activeSecondaryNavSegment {
+  color: #1a1a1a;
+  border-bottom-color: #ffc107;
+}
+
+.inactiveSecondaryNavSegment:hover {
+  color: #1a1a1a;
+  border-bottom-color: #ffe69c;
+}
+
+.activeSecondaryNavSegment:hover {
+}

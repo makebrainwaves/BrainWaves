@@ -129,7 +129,8 @@ img {
 }
 
 .ui.dimmer.inverted {
-  background-image: none;
+  top: 0px !important;
+  background-image: none !important;
 }
 
 .ui.modal > .header {
