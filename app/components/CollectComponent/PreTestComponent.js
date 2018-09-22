@@ -1,14 +1,22 @@
-import React, { Component } from 'react';
-import { isNil } from 'lodash';
-import { Grid, Segment, Button, List } from 'semantic-ui-react';
-import ViewerComponent from '../ViewerComponent';
-import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
-import PreviewExperimentComponent from '../PreviewExperimentComponent';
-import styles from '../styles/collect.css';
+import React, { Component } from "react";
+import { isNil } from "lodash";
+import {
+  Grid,
+  Segment,
+  Button,
+  List,
+  Header,
+  Sidebar,
+  Menu
+} from "semantic-ui-react";
+import ViewerComponent from "../ViewerComponent";
+import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
+import styles from "../styles/collect.css";
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS
-} from '../../constants/constants';
+} from "../../constants/constants";
 
 interface Props {
   experimentActions: Object;
@@ -34,6 +42,7 @@ interface Props {
 
 interface State {
   isPreviewing: boolean;
+  isSidebarVisible: boolean;
 }
 
 export default class PreTestComponent extends Component<Props, State> {
@@ -44,9 +53,11 @@ export default class PreTestComponent extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      isPreviewing: false
+      isPreviewing: false,
+      isSidebarVisible: false
     };
     this.handlePreview = this.handlePreview.bind(this);
+    this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
   }
 
   handlePreview() {
@@ -54,6 +65,10 @@ export default class PreTestComponent extends Component<Props, State> {
       this.props.experimentActions.loadDefaultTimeline();
     }
     this.setState({ isPreviewing: !this.state.isPreviewing });
+  }
+
+  handleSidebarToggle() {
+    this.setState({ isSidebarVisible: !this.state.isSidebarVisible });
   }
 
   renderSignalQualityOrPreview() {
@@ -115,28 +130,66 @@ export default class PreTestComponent extends Component<Props, State> {
 
   render() {
     return (
-      <Grid columns="equal" textAlign="center" verticalAlign="middle">
-        <Grid.Column width={6}>
-          {this.renderSignalQualityOrPreview()}
-        </Grid.Column>
-        <Grid.Column width={8}>
-          {this.renderPreviewButton()}
-          <Button
-            primary
-            disabled={
-              this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED
-            }
-            onClick={this.props.openRunComponent}
-          >
-            Run & Record Experiment
-          </Button>
-          <ViewerComponent
-            signalQualityObservable={this.props.signalQualityObservable}
-            deviceType={this.props.deviceType}
-            plottingInterval={PLOTTING_INTERVAL}
-          />
-        </Grid.Column>
-      </Grid>
+      <Sidebar.Pushable as={Segment} basic>
+        <Sidebar
+          basic
+          vertical
+          direction="right"
+          as={Segment}
+          visible={this.state.isSidebarVisible}
+        >
+          <Header as="h1">What would you like to do?</Header>
+          <Menu>
+            <Menu.Item
+              icon="star"
+              content="Improve the quality of your sensors"
+            />
+
+          </Menu>
+        </Sidebar>
+        <Sidebar.Pusher>
+          <Grid columns="equal" textAlign="center" verticalAlign="middle">
+            <Grid.Row columns="equal">
+              <Grid.Column>
+                <Header as="h1" floated="left">
+                  Collect
+                </Header>
+              </Grid.Column>
+              <Grid.Column floated="right">
+                {this.renderPreviewButton()}
+                <Button
+                  primary
+                  disabled={
+                    this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED
+                  }
+                  onClick={this.props.openRunComponent}
+                >
+                  Run & Record Experiment
+                </Button>
+              </Grid.Column>
+            </Grid.Row>
+            <Grid.Row>
+              <Grid.Column stretched width={6}>
+                {this.renderSignalQualityOrPreview()}
+              </Grid.Column>
+              <Grid.Column width={10}>
+                <ViewerComponent
+                  signalQualityObservable={this.props.signalQualityObservable}
+                  deviceType={this.props.deviceType}
+                  plottingInterval={PLOTTING_INTERVAL}
+                />
+                <Button
+                  circular
+                  icon="question"
+                  className={styles.helpButton}
+                  floated="right"
+                  onClick={this.handleSidebarToggle}
+                />
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
+        </Sidebar.Pusher>
+      </Sidebar.Pushable>
     );
   }
 }

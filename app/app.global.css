@@ -140,10 +140,20 @@ img {
   border-style: none !important;
 }
 
+.pusher {
+  width: 100%;
+  transition: width 0.5s ease, transform 0.5s ease, -webkit-transform 0.5s ease !important;
+}
+
+.ui.sidebar.visible ~ .pusher {
+  width: calc(100% - 260px);
+  float: right;
+}
+
 /* Webview-related styles */
 
 #eegView {
-  height: 75vh;
+  height: 70vh;
 }
 
 #eegView.hide {
