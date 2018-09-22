@@ -1,8 +1,6 @@
 // @flow
 import React, { Component } from 'react';
 import { Modal, Button, Segment } from 'semantic-ui-react';
-import styles from '../styles/common.css';
-
 import {
   EXPERIMENTS,
   DEVICES,
@@ -100,7 +98,7 @@ export default class Collect extends Component<Props, State> {
       );
     }
     return (
-      <div className={styles.mainContainer}>
+      <div>
         <Modal
           basic
           centered

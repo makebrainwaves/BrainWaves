@@ -25,6 +25,10 @@
   font-size: 18px !important;
 }
 
+.preTestContainer {
+  padding: 3% !important;
+}
+
 .primaryButton {
   font-size: 18px !important;
   font-weight: normal !important;
@@ -73,4 +77,26 @@
 
 .noSignal {
   color: #bfbfbf;
+}
+
+.helpSidebar {
+  height: inherit;
+}
+
+.helpSidebar i {
+  color: #64c9e2;
+}
+
+.helpHeader {
+  margin-bottom: 18px !important;
+}
+
+.helpMenuItem {
+  font-size: 18px !important;
+  padding: 5px !important;
+}
+
+.helpContent {
+  font-size: 18px !important;
+  height: 80%;
 }

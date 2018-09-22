@@ -140,14 +140,20 @@ img {
   border-style: none !important;
 }
 
-.pusher {
-  width: 100%;
+.ui.sidebar {
+  box-shadow: none !important;
+  border: 2px solid #e6e6e6 !important;
   transition: width 0.5s ease, transform 0.5s ease, -webkit-transform 0.5s ease !important;
 }
 
-.ui.sidebar.visible ~ .pusher {
-  width: calc(100% - 260px);
+.pusher {
+  width: 100%;
+  transition: width 0.5s ease, transform 0.5s ease, -webkit-transform 0.5s ease !important;
   float: right;
+}
+
+.ui.sidebar.visible ~ .pusher {
+  width: calc(100% - 350px);
 }
 
 /* Webview-related styles */

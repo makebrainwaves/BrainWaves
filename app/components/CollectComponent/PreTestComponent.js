@@ -1,22 +1,22 @@
-import React, { Component } from "react";
-import { isNil } from "lodash";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
 import {
   Grid,
   Segment,
   Button,
   List,
   Header,
-  Sidebar,
-  Menu
-} from "semantic-ui-react";
-import ViewerComponent from "../ViewerComponent";
-import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import styles from "../styles/collect.css";
+  Sidebar
+} from 'semantic-ui-react';
+import ViewerComponent from '../ViewerComponent';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import HelpSidebar from './HelpSidebar';
+import styles from '../styles/collect.css';
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS
-} from "../../constants/constants";
+} from '../../constants/constants';
 
 interface Props {
   experimentActions: Object;
@@ -128,27 +128,38 @@ export default class PreTestComponent extends Component<Props, State> {
     );
   }
 
+  renderHelpButton() {
+    if (!this.state.isSidebarVisible) {
+      return (
+        <Button
+          circular
+          icon="question"
+          className={styles.helpButton}
+          floated="right"
+          onClick={this.handleSidebarToggle}
+        />
+      );
+    }
+  }
+
   render() {
     return (
       <Sidebar.Pushable as={Segment} basic>
         <Sidebar
-          basic
-          vertical
+          width="wide"
           direction="right"
           as={Segment}
           visible={this.state.isSidebarVisible}
         >
-          <Header as="h1">What would you like to do?</Header>
-          <Menu>
-            <Menu.Item
-              icon="star"
-              content="Improve the quality of your sensors"
-            />
-
-          </Menu>
+          <HelpSidebar handleClose={this.handleSidebarToggle} />
         </Sidebar>
         <Sidebar.Pusher>
-          <Grid columns="equal" textAlign="center" verticalAlign="middle">
+          <Grid
+            className={styles.preTestContainer}
+            columns="equal"
+            textAlign="center"
+            verticalAlign="middle"
+          >
             <Grid.Row columns="equal">
               <Grid.Column>
                 <Header as="h1" floated="left">
@@ -178,13 +189,7 @@ export default class PreTestComponent extends Component<Props, State> {
                   deviceType={this.props.deviceType}
                   plottingInterval={PLOTTING_INTERVAL}
                 />
-                <Button
-                  circular
-                  icon="question"
-                  className={styles.helpButton}
-                  floated="right"
-                  onClick={this.handleSidebarToggle}
-                />
+                {this.renderHelpButton()}
               </Grid.Column>
             </Grid.Row>
           </Grid>
