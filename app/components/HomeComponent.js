@@ -17,6 +17,7 @@ const HOME_STEPS = {
 };
 
 interface Props {
+  history: Object;
   jupyterActions: Object;
   deviceActions: Object;
   experimentActions: Object;
@@ -35,6 +36,8 @@ export default class Home extends Component<Props, State> {
   props: Props;
   state: State;
   handleNewExperiment: EXPERIMENTS => void;
+  handleStepClick: string => void;
+  handleLoadNewExperiment: string => void;
 
   constructor(props: Props) {
     super(props);
@@ -110,7 +113,7 @@ export default class Home extends Component<Props, State> {
         return (
           <Grid columns="equal" relaxed padded>
             <Grid.Column>
-              <Segment basic>
+              <Segment basic className={styles.descriptionContainer}>
                 <Image size="huge" src={faceHouseIcon} />
                 <Header as="h1">Faces and Houses</Header>
                 <p>
@@ -119,6 +122,9 @@ export default class Home extends Component<Props, State> {
                   N170 because it is a negative deflection that occurs around
                   170ms after perceiving a face.
                 </p>
+                <Button secondary disabled>
+                  Review
+                </Button>
                 <Button
                   primary
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
@@ -128,7 +134,7 @@ export default class Home extends Component<Props, State> {
               </Segment>
             </Grid.Column>
             <Grid.Column>
-              <Segment basic>
+              <Segment basic className={styles.descriptionContainer}>
                 <Image size="huge" src={faceHouseIcon} />
                 <Header as="h1">Oddball</Header>
                 <p>
@@ -136,7 +142,11 @@ export default class Home extends Component<Props, State> {
                   oddball stimulus. The P300 ERP is a positive deflection that
                   occurs 300ms after stimulus onset.
                 </p>
+                <Button secondary disabled>
+                  Review
+                </Button>
                 <Button
+                  disabled
                   primary
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.P300)}
                 >
@@ -145,11 +155,15 @@ export default class Home extends Component<Props, State> {
               </Segment>
             </Grid.Column>
             <Grid.Column>
-              <Segment size="huge" basic>
+              <Segment basic className={styles.descriptionContainer}>
                 <Image size="huge" src={faceHouseIcon} />
                 <Header as="h1">Custom</Header>
                 <p>Design your own EEG experiment!</p>
+                <Button secondary disabled>
+                  Review
+                </Button>
                 <Button
+                  disabled
                   primary
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
                 >
