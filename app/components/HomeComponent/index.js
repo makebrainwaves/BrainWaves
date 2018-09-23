@@ -2,18 +2,21 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
-import styles from './styles/common.css';
-import { EXPERIMENTS, SCREENS } from '../constants/constants';
-import faceHouseIcon from '../assets/face_house/face_house_icon.jpg';
-import brainwavesLogo from '../assets/common/brainwaves_logo_nih.png';
-import { readWorkspaces, readAndParseState } from '../utils/filesystem/storage';
-import InputModal from './InputModal';
-import SecondaryNavSegment from './SecondaryNavSegment';
+import styles from '../styles/common.css';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
+import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
+import brainwavesLogo from '../../assets/common/brainwaves_logo_nih.png';
+import {
+  readWorkspaces,
+  readAndParseState
+} from '../../utils/filesystem/storage';
+import InputModal from '../InputModal';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import OverviewComponent from './OverviewComponent';
 
 const HOME_STEPS = {
   RECENT: 'RECENT',
-  NEW: 'NEW EXPERIMENT',
-  PRACTICE: 'PRACTICE'
+  NEW: 'NEW EXPERIMENT'
 };
 
 interface Props {
@@ -29,6 +32,7 @@ interface State {
   activeStep: string;
   recentWorkspaces: Array<string>;
   isNewExperimentModalOpen: boolean;
+  isOverviewComponentOpen: boolean;
   selectedExperimentType: EXPERIMENTS;
 }
 
@@ -38,6 +42,7 @@ export default class Home extends Component<Props, State> {
   handleNewExperiment: EXPERIMENTS => void;
   handleStepClick: string => void;
   handleLoadNewExperiment: string => void;
+  handleOpenOverview: EXPERIMENTS => void;
 
   constructor(props: Props) {
     super(props);
@@ -45,11 +50,13 @@ export default class Home extends Component<Props, State> {
       activeStep: HOME_STEPS.RECENT,
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
+      isOverviewComponentOpen: false,
       selectedExperimentType: EXPERIMENTS.NONE
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
     this.handleLoadNewExperiment = this.handleLoadNewExperiment.bind(this);
+    this.handleOpenOverview = this.handleOpenOverview.bind(this);
   }
 
   componentDidMount() {
@@ -87,6 +94,13 @@ export default class Home extends Component<Props, State> {
     this.props.history.push(SCREENS.DESIGN.route);
   }
 
+  handleOpenOverview(type: EXPERIMENTS) {
+    this.setState({
+      selectedExperimentType: type,
+      isOverviewComponentOpen: true
+    });
+  }
+
   // TODO: Figure out how to make this not overflow. Lists?
   renderSectionContent() {
     switch (this.state.activeStep) {
@@ -122,7 +136,10 @@ export default class Home extends Component<Props, State> {
                   N170 because it is a negative deflection that occurs around
                   170ms after perceiving a face.
                 </p>
-                <Button secondary disabled>
+                <Button
+                  secondary
+                  onClick={() => this.handleOpenOverview(EXPERIMENTS.N170)}
+                >
                   Review
                 </Button>
                 <Button
@@ -177,31 +194,24 @@ export default class Home extends Component<Props, State> {
   }
 
   render() {
+    if (this.state.isOverviewComponentOpen) {
+      return (
+        <OverviewComponent
+          type={this.state.selectedExperimentType}
+          onStartExperiment={this.handleNewExperiment}
+        />
+      );
+    }
     return (
       <div className={styles.mainContainer} data-tid="container">
-        <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
-          <Grid.Column width="4">
+        <SecondaryNavComponent
+          title={
             <Image className={styles.brainwavesLogo} src={brainwavesLogo} />
-          </Grid.Column>
-          <SecondaryNavSegment
-            title={HOME_STEPS.RECENT}
-            style={
-              this.state.activeStep === HOME_STEPS.RECENT
-                ? styles.activeSecondaryNavSegment
-                : styles.inactiveSecondaryNavSegment
-            }
-            onClick={() => this.handleStepClick(HOME_STEPS.RECENT)}
-          />
-          <SecondaryNavSegment
-            title={HOME_STEPS.NEW}
-            style={
-              this.state.activeStep === HOME_STEPS.NEW
-                ? styles.activeSecondaryNavSegment
-                : styles.inactiveSecondaryNavSegment
-            }
-            onClick={() => this.handleStepClick(HOME_STEPS.NEW)}
-          />
-        </Grid>
+          }
+          steps={HOME_STEPS}
+          activeStep={this.state.activeStep}
+          onStepClick={this.handleStepClick}
+        />
         {this.renderSectionContent()}
         <InputModal
           open={this.state.isNewExperimentModalOpen}
