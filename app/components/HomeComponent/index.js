@@ -24,8 +24,6 @@ interface Props {
   jupyterActions: Object;
   deviceActions: Object;
   experimentActions: Object;
-  rawObservable: ?any;
-  mainChannel: ?any;
 }
 
 interface State {
@@ -43,6 +41,7 @@ export default class Home extends Component<Props, State> {
   handleStepClick: string => void;
   handleLoadNewExperiment: string => void;
   handleOpenOverview: EXPERIMENTS => void;
+  handleCloseOverview: () => void;
 
   constructor(props: Props) {
     super(props);
@@ -57,6 +56,7 @@ export default class Home extends Component<Props, State> {
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
     this.handleLoadNewExperiment = this.handleLoadNewExperiment.bind(this);
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
+    this.handleCloseOverview = this.handleCloseOverview.bind(this);
   }
 
   componentDidMount() {
@@ -98,6 +98,12 @@ export default class Home extends Component<Props, State> {
     this.setState({
       selectedExperimentType: type,
       isOverviewComponentOpen: true
+    });
+  }
+
+  handleCloseOverview() {
+    this.setState({
+      isOverviewComponentOpen: false
     });
   }
 
@@ -193,17 +199,18 @@ export default class Home extends Component<Props, State> {
     }
   }
 
-  render() {
+  renderOverviewOrHome() {
     if (this.state.isOverviewComponentOpen) {
       return (
         <OverviewComponent
           type={this.state.selectedExperimentType}
           onStartExperiment={this.handleNewExperiment}
+          onCloseOverview={this.handleCloseOverview}
         />
       );
     }
     return (
-      <div className={styles.mainContainer} data-tid="container">
+      <React.Fragment>
         <SecondaryNavComponent
           title={
             <Image className={styles.brainwavesLogo} src={brainwavesLogo} />
@@ -213,6 +220,14 @@ export default class Home extends Component<Props, State> {
           onStepClick={this.handleStepClick}
         />
         {this.renderSectionContent()}
+      </React.Fragment>
+    );
+  }
+
+  render() {
+    return (
+      <div className={styles.mainContainer} data-tid="container">
+        {this.renderOverviewOrHome()}
         <InputModal
           open={this.state.isNewExperimentModalOpen}
           onClose={this.handleLoadNewExperiment}

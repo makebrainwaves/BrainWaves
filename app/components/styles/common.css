@@ -1,5 +1,6 @@
 .mainContainer {
   padding: 3%;
+  height: 100vh;
 }
 
 .mainContainer h2 {
@@ -12,6 +13,10 @@
 
 .mainSegment {
   width: 100%;
+}
+
+.contentGrid {
+  height: 50%;
 }
 
 .inputDiv {
@@ -38,4 +43,9 @@
 
 .descriptionContainer button {
   margin-right: 20px !important;
+}
+
+.closeButton {
+  border: none !important;
+  box-shadow: none !important;
 }

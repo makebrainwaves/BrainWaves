@@ -8,6 +8,7 @@ interface Props {
   steps: { [string]: string };
   activeStep: string;
   onStepClick: string => void;
+  button?: React.ReactNode;
 }
 
 export default class SecondaryNavComponent extends Component<Props> {
@@ -33,6 +34,11 @@ export default class SecondaryNavComponent extends Component<Props> {
             onClick={() => this.props.onStepClick(stepTitle)}
           />
         ))}
+        {this.props.button ? (
+          <Grid.Column width={4} floated="right">
+            {this.props.button}
+          </Grid.Column>
+        ) : null}
       </React.Fragment>
     );
   }
@@ -40,7 +46,7 @@ export default class SecondaryNavComponent extends Component<Props> {
   render() {
     return (
       <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
-        <Grid.Column width="4">{this.renderTitle()}</Grid.Column>
+        <Grid.Column width={3}>{this.renderTitle()}</Grid.Column>
         {this.renderSteps()}
       </Grid>
     );

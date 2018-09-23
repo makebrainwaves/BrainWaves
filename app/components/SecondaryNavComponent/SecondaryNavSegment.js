@@ -14,13 +14,13 @@ export default class SecondaryNavSegment extends Component<Props> {
   render() {
     return (
       <Grid.Column
-        width={3}
+        as="a"
+        onClick={this.props.onClick}
+        width={2}
         textAlign="center"
         className={[this.props.style, styles.secondaryNavSegment].join(' ')}
       >
-        <a role="link" tabIndex={0} onClick={this.props.onClick}>
-          {this.props.title}
-        </a>
+        {this.props.title}
       </Grid.Column>
     );
   }
