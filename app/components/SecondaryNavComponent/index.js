@@ -14,7 +14,7 @@ interface Props {
 export default class SecondaryNavComponent extends Component<Props> {
   renderTitle() {
     if (typeof this.props.title === 'string') {
-      return <Header as="h1">{this.props.title}</Header>;
+      return <Header as="h2">{this.props.title}</Header>;
     }
     return this.props.title;
   }

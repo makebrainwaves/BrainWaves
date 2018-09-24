@@ -13,9 +13,9 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 
 const DESIGN_STEPS = {
-  OVERVIEW: 'Overview',
-  BACKGROUND: 'Background',
-  PROTOCOL: 'Experimental Protocol'
+  OVERVIEW: 'OVERVIEW',
+  BACKGROUND: 'BACKGROUND',
+  PROTOCOL: 'PROTOCOL'
 };
 
 interface Props {
@@ -172,7 +172,7 @@ export default class Design extends Component<Props, State> {
     return (
       <div className={styles.mainContainer}>
         <SecondaryNavComponent
-          title={this.props.type}
+          title="Experiment Design"
           steps={DESIGN_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
