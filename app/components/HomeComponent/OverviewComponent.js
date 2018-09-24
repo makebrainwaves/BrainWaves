@@ -1,54 +1,38 @@
-// @flow
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Header } from 'semantic-ui-react';
-import { isNil } from 'lodash';
+import { Grid, Header, Button, Segment } from 'semantic-ui-react';
 import styles from '../styles/common.css';
-import { EXPERIMENTS, SCREENS } from '../../constants/constants';
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters
-} from '../../constants/interfaces';
+import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import { loadTimeline } from '../../utils/jspsych/functions';
 
-const DESIGN_STEPS = {
-  OVERVIEW: 'Overview',
-  BACKGROUND: 'Background',
-  PROTOCOL: 'Experimental Protocol'
+const OVERVIEW_STEPS = {
+  OVERVIEW: 'OVERVIEW',
+  BACKGROUND: 'BACKGROUND',
+  PROTOCOL: 'PROTOCOL'
 };
 
 interface Props {
-  history: Object;
-  type: ?EXPERIMENTS;
-  title: string;
-  params: ExperimentParameters;
-  mainTimeline: MainTimeline;
-  trials: { [string]: Trial };
-  timelines: {};
-  experimentActions: Object;
+  type: EXPERIMENTS;
+  onStartExperiment: EXPERIMENTS => void;
+  onCloseOverview: () => void;
 }
 
 interface State {
-  activeStep: string;
+  activeStep: OVERVIEW_STEPS;
   isPreviewing: boolean;
 }
 
-export default class Design extends Component<Props, State> {
+export default class OverviewComponent extends Component<Props, State> {
   props: Props;
   state: State;
-  handleStepClick: (Object, Object) => void;
-  handleStartExperiment: Object => void;
-  handlePreview: () => void;
-
-  constructor(props: Props) {
+  constructor(props) {
     super(props);
     this.state = {
-      activeStep: DESIGN_STEPS.OVERVIEW,
+      activeStep: OVERVIEW_STEPS.OVERVIEW,
       isPreviewing: false
     };
     this.handleStepClick = this.handleStepClick.bind(this);
-    this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
   }
 
@@ -56,14 +40,7 @@ export default class Design extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  handleStartExperiment() {
-    this.props.history.push(SCREENS.COLLECT.route);
-  }
-
   handlePreview() {
-    if (isNil(this.props.mainTimeline)) {
-      this.props.experimentActions.loadDefaultTimeline();
-    }
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
@@ -84,7 +61,33 @@ export default class Design extends Component<Props, State> {
 
   renderSectionContent() {
     switch (this.state.activeStep) {
-      case DESIGN_STEPS.BACKGROUND:
+      case OVERVIEW_STEPS.PROTOCOL:
+        return (
+          <Grid relaxed padded className={styles.contentGrid}>
+            <Grid.Column
+              stretched
+              width={6}
+              textAlign="right"
+              verticalAlign="middle"
+            >
+              <PreviewExperimentComponent
+                {...loadTimeline(this.props.type)}
+                isPreviewing={this.state.isPreviewing}
+              />
+            </Grid.Column>
+            <Grid.Column width={6} verticalAlign="middle">
+              <Segment as="p" basic>
+                Subjects will view a series of images of{' '}
+                <b> faces and houses</b> for <b>120 seconds</b>
+              </Segment>
+              <Segment as="p" basic>
+                Subjects will mentally note which stimulus they are perceiving
+              </Segment>
+              <Segment basic>{this.renderPreviewButton()}</Segment>
+            </Grid.Column>
+          </Grid>
+        );
+      case OVERVIEW_STEPS.BACKGROUND:
         return (
           <Grid stretched relaxed padded className={styles.contentGrid}>
             <Grid.Column
@@ -114,36 +117,7 @@ export default class Design extends Component<Props, State> {
             </Grid.Column>
           </Grid>
         );
-      case DESIGN_STEPS.PROTOCOL:
-        return (
-          <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <PreviewExperimentComponent
-                params={this.props.params}
-                mainTimeline={this.props.mainTimeline}
-                trials={this.props.trials}
-                timelines={this.props.timelines}
-                isPreviewing={this.state.isPreviewing}
-              />
-            </Grid.Column>
-            <Grid.Column width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                Subjects will view a series of images of{' '}
-                <b> faces and houses</b> for <b>120 seconds</b>
-              </Segment>
-              <Segment as="p" basic>
-                Subjects will mentally note which stimulus they are perceiving
-              </Segment>
-              <Segment basic>{this.renderPreviewButton()}</Segment>
-            </Grid.Column>
-          </Grid>
-        );
-      case DESIGN_STEPS.OVERVIEW:
+      case OVERVIEW_STEPS.OVERVIEW:
       default:
         return (
           <Grid stretched relaxed padded className={styles.contentGrid}>
@@ -170,15 +144,27 @@ export default class Design extends Component<Props, State> {
 
   render() {
     return (
-      <div className={styles.mainContainer}>
+      <div>
+        <Button
+          basic
+          circular
+          size="huge"
+          floated="right"
+          icon="x"
+          className={styles.closeButton}
+          onClick={this.props.onCloseOverview}
+        />
         <SecondaryNavComponent
           title={this.props.type}
-          steps={DESIGN_STEPS}
+          steps={OVERVIEW_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           button={
-            <Button primary onClick={this.handleStartExperiment}>
-              Collect Data
+            <Button
+              primary
+              onClick={() => this.props.onStartExperiment(this.props.type)}
+            >
+              Start Experiment{' '}
             </Button>
           }
         />

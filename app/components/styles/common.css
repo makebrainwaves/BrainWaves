@@ -1,5 +1,6 @@
 .mainContainer {
   padding: 3%;
+  height: 100vh;
 }
 
 .mainContainer h2 {
@@ -14,6 +15,37 @@
   width: 100%;
 }
 
+.contentGrid {
+  height: 50%;
+}
+
 .inputDiv {
   margin: 15px;
+}
+
+.brainwavesLogo {
+  height: auto;
+  width: 250px;
+  background-color: #007c70 !important;
+}
+
+.inputModal {
+  color: #1a1a1a !important;
+  font-size: 18px !important;
+  width: 25% !important;
+  text-align: center !important;
+}
+
+.descriptionContainer p {
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+.descriptionContainer button {
+  margin-right: 20px !important;
+}
+
+.closeButton {
+  border: none !important;
+  box-shadow: none !important;
 }

@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import { Grid, Button } from "semantic-ui-react";
-import { NavLink } from "react-router-dom";
-import { EXPERIMENTS, SCREENS } from "../../constants/constants";
-import styles from "../styles/topnavbar.css";
-import PrimaryNavSegment from "./PrimaryNavSegment";
+import React, { Component } from 'react';
+import { Grid, Button } from 'semantic-ui-react';
+import { NavLink } from 'react-router-dom';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
+import styles from '../styles/topnavbar.css';
+import PrimaryNavSegment from './PrimaryNavSegment';
 
 interface Props {
   location: { pathname: string, search: string, hash: string };
@@ -31,6 +31,12 @@ export default class TopNavComponent extends Component<Props> {
   }
 
   render() {
+    if (
+      this.props.location.pathname === SCREENS.HOME.route ||
+      this.props.location.pathname === '/'
+    ) {
+      return null;
+    }
     return (
       <Grid
         className={styles.navContainer}

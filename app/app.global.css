@@ -19,10 +19,10 @@ body {
 }
 
 h1 {
-  font-size: 36px;
-  letter-spacing: 1.29px;
-  line-height: 44px;
-  font-weight: normal;
+  font-size: 36px !important;
+  letter-spacing: 1.29px !important;
+  line-height: 44px !important;
+  font-weight: normal !important;
 }
 
 h2 {
@@ -33,7 +33,8 @@ h2 {
 }
 
 p {
-  font-size: 18px;
+  font-size: 18px !important;
+  letter-spacing: 0.64px !important;
 }
 
 li {
@@ -43,6 +44,7 @@ li {
 a {
   color: inherit;
   text-decoration: none;
+  outline: none;
 }
 
 a:hover {
@@ -57,7 +59,7 @@ img {
 }
 
 .jspsych-display-element {
-  width: 50% !important;
+  width: 100% !important;
 }
 
 .ui.card {
@@ -129,7 +131,8 @@ img {
 }
 
 .ui.dimmer.inverted {
-  background-image: none;
+  top: 0px !important;
+  background-image: none !important;
 }
 
 .ui.modal > .header {

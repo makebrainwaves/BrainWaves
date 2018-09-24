@@ -15,7 +15,11 @@ import {
   instantiateTimeline,
   getImages
 } from '../../utils/jspsych/functions';
-import { MainTimeline, Trial } from '../../constants/interfaces';
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters
+} from '../../constants/interfaces';
 
 interface Props {
   type: ?EXPERIMENTS;
