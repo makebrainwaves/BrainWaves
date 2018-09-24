@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import { Modal, Button, Segment } from 'semantic-ui-react';
 import {
   EXPERIMENTS,
   DEVICES,
@@ -60,6 +59,12 @@ export default class Collect extends Component<Props, State> {
     this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
   }
 
+  componentDidMount() {
+    if (this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED) {
+      this.handleStartConnect();
+    }
+  }
+
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     if (
       this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
@@ -99,19 +104,6 @@ export default class Collect extends Component<Props, State> {
     }
     return (
       <div>
-        <Modal
-          basic
-          centered
-          open={this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
-          dimmer="inverted"
-          size="small"
-        >
-          <Segment basic textAlign="center">
-            <Button primary onClick={this.handleStartConnect}>
-              Connect Device
-            </Button>
-          </Segment>
-        </Modal>
         <ConnectModal
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
