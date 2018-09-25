@@ -14,43 +14,53 @@ sns.set_context('talk')
 sns.set_style('white')
 
 
-def load_csv_as_raw(filename, sfreq, ch_ind, stim_ind, replace_ch_names):
-    """Load CSV files into a Raw object.
+def load_data(fnames, sfreq=128., replace_ch_names=None):
+    """Load CSV files from the /data directory into a Raw object.
 
     Args:
-        filename (str or list): path or paths to CSV files to load
+        fnames (array): CSV filepaths from which to load data
 
     Keyword Args:
         sfreq (float): EEG sampling frequency
-        ch_ind (list): indices of the EEG channels to keep
-        stim_ind (int): index of the stim channel
         replace_ch_names (dict or None): dictionary containing a mapping to
-            rename channels.
+            rename channels. Useful when an external electrode was used.
 
     Returns:
         (mne.io.array.array.RawArray): loaded EEG
     """
-    n_channel = len(ch_ind)
 
     raw = []
-    print(filename)
-    for fname in filename:
+    print(fnames)
+    for fname in fnames:
         # read the file
         data = pd.read_csv(fname, index_col=0)
 
-        # name of each channels
-        ch_names = list(data.columns)[0:n_channel] + ['Stim']
+        data = data.dropna()
+
+        # get estimation of sampling rate and use to determine sfreq
+        # yes, this could probably be improved
+        srate = 1000 / (data.index.values[1] - data.index.values[0])
+        if srate >= 200:
+            sfreq = 256
+        else:
+            sfreq = 128
+
+        # name of each channel
+        ch_names = list(data.columns)
+
+        # indices of each channel
+        ch_ind = list(range(len(ch_names)))
 
         if replace_ch_names is not None:
             ch_names = [c if c not in replace_ch_names.keys()
                         else replace_ch_names[c] for c in ch_names]
 
         # type of each channels
-        ch_types = ['eeg'] * n_channel + ['stim']
+        ch_types = ['eeg'] * (len(ch_ind) - 1) + ['stim']
         montage = read_montage('standard_1005')
 
         # get data and exclude Aux channel
-        data = data.values[:, ch_ind + [stim_ind]].T
+        data = data.values[:, ch_ind].T
 
         # create MNE object
         info = create_info(ch_names=ch_names, ch_types=ch_types,
@@ -61,30 +71,6 @@ def load_csv_as_raw(filename, sfreq, ch_ind, stim_ind, replace_ch_names):
     raws = concatenate_raws(raw)
 
     return raws
-
-
-def load_data(fnames, sfreq=128.,
-              ch_ind=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-              stim_ind=14, replace_ch_names=None):
-    """Load CSV files from the /data directory into a Raw object.
-
-    Args:
-        fnames (array): CSV filepaths from which to load data
-
-    Keyword Args:
-        sfreq (float): EEG sampling frequency
-        ch_ind (list): indices of the EEG channels to keep
-        stim_ind (int): index of the stim channel
-        replace_ch_names (dict or None): dictionary containing a mapping to
-            rename channels. Useful when an external electrode was used.
-
-    Returns:
-        (mne.io.array.array.RawArray): loaded EEG
-    """
-
-    return load_csv_as_raw(fnames, sfreq=sfreq, ch_ind=ch_ind,
-                           stim_ind=stim_ind,
-                           replace_ch_names=replace_ch_names)
 
 
 def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=1000,
