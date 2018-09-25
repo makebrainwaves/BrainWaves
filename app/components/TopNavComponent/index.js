@@ -6,6 +6,7 @@ import styles from '../styles/topnavbar.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
 
 interface Props {
+  title: string;
   location: { pathname: string, search: string, hash: string };
   experimentActions: Object;
   type: EXPERIMENTS;
@@ -45,7 +46,7 @@ export default class TopNavComponent extends Component<Props> {
         verticalAlign="middle"
       >
         <Grid.Column width="3" className={styles.experimentTitleSegment}>
-          <NavLink to={SCREENS.HOME.route}>{this.props.type}</NavLink>
+          <NavLink to={SCREENS.HOME.route}>{this.props.title}</NavLink>
         </Grid.Column>
         <PrimaryNavSegment
           {...SCREENS.DESIGN}

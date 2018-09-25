@@ -7,7 +7,6 @@ import styles from './styles/common.css';
 interface Props {
   open: boolean;
   onClose: string => void;
-  placeholder: string;
   header: string;
 }
 
@@ -44,12 +43,7 @@ export default class InputModal extends Component<Props, State> {
       >
         <Modal.Content>{this.props.header}</Modal.Content>
         <Modal.Content>
-          <Input
-            focus
-            fluid
-            onChange={this.handleTextEntry}
-            placeholder={this.props.placeholder}
-          />
+          <Input focus fluid onChange={this.handleTextEntry} />
         </Modal.Content>
         <Modal.Actions>
           <Button

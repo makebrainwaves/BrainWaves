@@ -16,7 +16,7 @@ import OverviewComponent from './OverviewComponent';
 
 const HOME_STEPS = {
   RECENT: 'RECENT',
-  NEW: 'NEW EXPERIMENT'
+  NEW: 'EXPERIMENTS'
 };
 
 interface Props {
@@ -231,7 +231,6 @@ export default class Home extends Component<Props, State> {
         <InputModal
           open={this.state.isNewExperimentModalOpen}
           onClose={this.handleLoadNewExperiment}
-          placeholder={this.state.selectedExperimentType}
           header="Enter a title for this experiment"
         />
       </div>

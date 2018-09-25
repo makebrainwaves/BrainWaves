@@ -19,7 +19,7 @@
 .inactiveSecondaryNavSegment {
   color: #666666;
   border-color: #666666;
-  border-bottom-color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0);
 }
 
 .activeSecondaryNavSegment {

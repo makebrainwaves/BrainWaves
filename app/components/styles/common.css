@@ -1,6 +1,7 @@
 .mainContainer {
   padding: 3%;
   height: 100vh;
+  background: linear-gradient(#f9f9f9, #f0f0ff);
 }
 
 .mainContainer h2 {
@@ -39,6 +40,7 @@
 .descriptionContainer p {
   margin-top: 50px;
   margin-bottom: 50px;
+  min-height: 125px;
 }
 
 .descriptionContainer button {
