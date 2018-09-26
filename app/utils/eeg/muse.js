@@ -1,10 +1,10 @@
-import "hazardous";
-import { withLatestFrom, share, startWith } from "rxjs/operators";
-import { MUSE_SAMPLING_RATE, MUSE_CHANNELS } from "../../constants/constants";
+import 'hazardous';
+import { withLatestFrom, share, startWith } from 'rxjs/operators';
+import { MUSE_SAMPLING_RATE, MUSE_CHANNELS } from '../../constants/constants';
 
-const bluetooth = require("bleat").webbluetooth;
-const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
-const { from } = require("rxjs");
+const bluetooth = require('bleat').webbluetooth;
+const { MUSE_SERVICE, MuseClient, zipSamples } = require('muse-js');
+const { from } = require('rxjs');
 
 const INTER_SAMPLE_INTERVAL = (1 / 256) * 1000;
 
@@ -16,7 +16,7 @@ client.enableAux = true;
 // TODO: test whether this will ever return multiple devices if available
 export const getMuse = async () => {
   let device = {};
-  if (process.platform === "win32") {
+  if (process.platform === 'win32') {
     device = await bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]
     });
@@ -30,13 +30,17 @@ export const getMuse = async () => {
 
 // Attempts to connect to a muse device. If successful, returns a device info object
 export const connectToMuse = async device => {
-  if (process.platform === "win32") {
+  if (process.platform === 'win32') {
     const gatt = await device.gatt.connect();
     await client.connect(gatt);
   } else {
     await client.connect();
   }
-  return { name: client.deviceName, samplingRate: MUSE_SAMPLING_RATE, channels: MUSE_CHANNELS };
+  return {
+    name: client.deviceName,
+    samplingRate: MUSE_SAMPLING_RATE,
+    channels: MUSE_CHANNELS
+  };
 };
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream
@@ -61,10 +65,10 @@ export const injectMuseMarker = (value, time) => {
 
 const synchronizeTimestamp = (eegSample, marker) => {
   if (
-    eegSample["timestamp"] - marker["timestamp"] > 0 &&
-    eegSample["timestamp"] - marker["timestamp"] <= INTER_SAMPLE_INTERVAL
+    eegSample['timestamp'] - marker['timestamp'] > 0 &&
+    eegSample['timestamp'] - marker['timestamp'] <= INTER_SAMPLE_INTERVAL
   ) {
-    return { ...eegSample, marker: marker["value"] };
+    return { ...eegSample, marker: marker['value'] };
   }
   return eegSample;
 };
