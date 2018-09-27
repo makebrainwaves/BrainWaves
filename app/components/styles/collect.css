@@ -23,6 +23,7 @@
 
 .deviceItem {
   font-size: 18px !important;
+  border-top: none !important;
 }
 
 .preTestContainer {

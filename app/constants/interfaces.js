@@ -2,7 +2,7 @@
 * This file contains all the custom types that we use for Flow type checking
 */
 
-import { EVENTS } from "./constants";
+import { EVENTS } from './constants';
 
 // TODO: Write interfaces for device objects (Observables, Classes, etc)
 
@@ -12,14 +12,14 @@ import { EVENTS } from "./constants";
 // TODO: Write interface for jsPsych plugins
 
 export interface ExperimentParameters {
-  trialDuration: number;
-  experimentDuration: number;
-  iti: number;
-  jitter: number;
-  sampleType: string;
-  pluginName: string;
-  stimulus1: { dir: string, type: EVENTS };
-  stimulus2: { dir: string, type: EVENTS };
+  trialDuration?: number;
+  experimentDuration?: number;
+  iti?: number;
+  jitter?: number;
+  sampleType?: string;
+  pluginName?: string;
+  stimulus1?: { dir: string, type: EVENTS };
+  stimulus2?: { dir: string, type: EVENTS };
 }
 
 // Array of timeline and trial ids that will be presented in experiment

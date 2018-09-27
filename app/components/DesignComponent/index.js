@@ -22,10 +22,10 @@ interface Props {
   history: Object;
   type: ?EXPERIMENTS;
   title: string;
-  params: ExperimentParameters;
-  mainTimeline: MainTimeline;
-  trials: { [string]: Trial };
-  timelines: {};
+  params: ?ExperimentParameters;
+  mainTimeline: ?MainTimeline;
+  trials: ?{ [string]: Trial };
+  timelines: ?{};
   experimentActions: Object;
 }
 
@@ -50,6 +50,9 @@ export default class Design extends Component<Props, State> {
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
+    if (isNil(props.params)) {
+      props.experimentActions.loadDefaultTimeline();
+    }
   }
 
   handleStepClick(step: string) {

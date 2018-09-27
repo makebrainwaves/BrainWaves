@@ -1,17 +1,7 @@
 import { combineEpics } from 'redux-observable';
 import { of, from, timer } from 'rxjs';
-import {
-  map,
-  pluck,
-  mergeMap,
-  tap,
-  filter,
-  catchError,
-  share
-} from 'rxjs/operators';
-import { epoch, bandpassFilter, addInfo } from '@neurosity/pipes';
+import { map, pluck, mergeMap, tap, filter, catchError } from 'rxjs/operators';
 import { isNil } from 'lodash';
-import { addSignalQuality, colorSignalQuality } from '../utils/eeg/pipes';
 import {
   CONNECT_TO_DEVICE,
   SET_DEVICE_AVAILABILITY,
@@ -21,19 +11,20 @@ import {
 import {
   getEmotiv,
   connectToEmotiv,
-  createRawEmotivObservable
+  createRawEmotivObservable,
+  createEmotivSignalQualityObservable
 } from '../utils/eeg/emotiv';
 import {
   getMuse,
   connectToMuse,
-  createRawMuseObservable
+  createRawMuseObservable,
+  createMuseSignalQualityObservable
 } from '../utils/eeg/muse';
 import {
   CONNECTION_STATUS,
   DEVICES,
   DEVICE_AVAILABILITY,
-  SEARCH_TIMER,
-  PLOTTING_INTERVAL
+  SEARCH_TIMER
 } from '../constants/constants';
 
 export const DEVICE_FOUND = 'DEVICE_FOUND';
@@ -195,35 +186,25 @@ const setRawObservableEpic = (action$, state$) =>
       }
       return from(createRawMuseObservable());
     }),
-    mergeMap(observable => {
-      const { samplingRate, channels } = state$.value.device.connectedDevice;
-      const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
-      return of(
-        setRawObservable(observable),
-        setSignalQualityObservable(
-          observable.pipe(
-            addInfo({
-              samplingRate,
-              channels
-            }),
-            // the sampling rate parameter can be taken out in the newest version of pipes
-            epoch({
-              samplingRate,
-              duration: intervalSamples,
-              interval: intervalSamples
-            }),
-            bandpassFilter({
-              nbChannels: channels.length,
-              lowCutoff: 1,
-              highCutoff: 50
-            }),
-            addSignalQuality(),
-            colorSignalQuality(),
-            share()
-          )
-        )
+    map(setRawObservable)
+  );
+
+const setSignalQualityObservableEpic = (action$, state$) =>
+  action$.ofType(SET_RAW_OBSERVABLE).pipe(
+    pluck('payload'),
+    map(rawObservable => {
+      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
+        return createEmotivSignalQualityObservable(
+          rawObservable,
+          state$.value.device.connectedDevice
+        );
+      }
+      return createMuseSignalQualityObservable(
+        rawObservable,
+        state$.value.device.connectedDevice
       );
-    })
+    }),
+    map(setSignalQualityObservable)
   );
 
 // TODO: Fix this error handling so epics can refire once they error out
@@ -235,7 +216,8 @@ const rootEpic = (action$, state$) =>
     searchTimerEpic,
     connectEpic,
     isConnectingEpic,
-    setRawObservableEpic
+    setRawObservableEpic,
+    setSignalQualityObservableEpic
   )(action$, state$).pipe(
     catchError(error =>
       of(error).pipe(

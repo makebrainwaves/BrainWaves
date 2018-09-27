@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import { isNil } from 'lodash';
 import {
   EXPERIMENTS,
   DEVICES,
@@ -26,10 +27,10 @@ interface Props {
   availableDevices: Array<any>;
   type: ?EXPERIMENTS;
   isRunning: boolean;
-  params: ExperimentParameters;
-  mainTimeline: MainTimeline;
-  trials: { [string]: Trial };
-  timelines: {};
+  params: ?ExperimentParameters;
+  mainTimeline: ?MainTimeline;
+  trials: ?{ [string]: Trial };
+  timelines: ?{};
   subject: string;
   session: number;
 }
@@ -57,6 +58,9 @@ export default class Collect extends Component<Props, State> {
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleRunComponentOpen = this.handleRunComponentOpen.bind(this);
     this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
+    if (isNil(props.params)) {
+      props.experimentActions.loadDefaultTimeline();
+    }
   }
 
   componentDidMount() {

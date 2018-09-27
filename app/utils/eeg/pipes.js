@@ -1,29 +1,11 @@
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   SIGNAL_QUALITY,
   SIGNAL_QUALITY_THRESHOLDS
-} from "../../constants/constants";
+} from '../../constants/constants';
 
-// TODO: This can be removed once PR is filed in eeg-pipes
-export const addSignalQuality = () => source =>
-  createPipe(
-    source,
-    map(epoch => {
-      const names = epoch.info.channels
-        ? epoch.info.channels
-        : epoch.data.map((_, i) => i);
-      return {
-        ...epoch,
-        signalQuality: epoch.data.reduce((acc, curr, index) => {
-          acc[names[index]] = standardDeviation(curr);
-          return acc;
-        }, {})
-      };
-    })
-  );
-
-export const colorSignalQuality = () => source =>
+export const parseMuseSignalQuality = () => source =>
   createPipe(
     source,
     map(epoch => ({
@@ -48,22 +30,30 @@ export const colorSignalQuality = () => source =>
     }))
   );
 
-const mean = array => sum(array) / array.length;
-
-const variance = array => {
-  const arrayMean = mean(array);
-  return mean(array.map(num => Math.pow(num - arrayMean, 2)));
-};
-
-const standardDeviation = array => Math.sqrt(variance(array));
-
-const sum = array => {
-  let num = 0;
-  for (let i = 0, l = array.length; i < l; i++) {
-    num += array[i];
-  }
-  return num;
-};
+export const parseEmotivSignalQuality = () => source =>
+  createPipe(
+    source,
+    map(epoch => ({
+      ...epoch,
+      signalQuality: Object.assign(
+        {},
+        ...Object.entries(epoch.signalQuality).map(
+          ([channelName, signalQuality]) => {
+            if (signalQuality === 0) {
+              return { [channelName]: SIGNAL_QUALITY.DISCONNECTED };
+            }
+            if (signalQuality === 3) {
+              return { [channelName]: SIGNAL_QUALITY.OK };
+            }
+            if (signalQuality === 4) {
+              return { [channelName]: SIGNAL_QUALITY.GREAT };
+            }
+            return { [channelName]: SIGNAL_QUALITY.BAD };
+          }
+        )
+      )
+    }))
+  );
 
 const createPipe = (source, ...pipes) =>
   new Observable(observer =>

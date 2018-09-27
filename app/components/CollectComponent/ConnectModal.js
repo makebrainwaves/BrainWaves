@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { isNil, debounce } from "lodash";
+import React, { Component } from 'react';
+import { isNil, debounce } from 'lodash';
 import {
   Modal,
   Button,
@@ -8,14 +8,14 @@ import {
   List,
   Grid,
   Divider
-} from "semantic-ui-react";
+} from 'semantic-ui-react';
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS
-} from "../../constants/constants";
-import styles from "../styles/collect.css";
-import blake from "../../assets/face_house/faces/Blake_1.jpg";
+} from '../../constants/constants';
+import styles from '../styles/collect.css';
+import blake from '../../assets/face_house/faces/Blake_3.jpg';
 
 interface Props {
   open: boolean;
@@ -99,8 +99,8 @@ export default class ConnectModal extends Component<Props, State> {
                 link
                 name={
                   this.state.selectedDevice === device
-                    ? "check circle outline"
-                    : "circle outline"
+                    ? 'check circle outline'
+                    : 'circle outline'
                 }
                 size="large"
                 verticalAlign="middle"
@@ -136,7 +136,7 @@ export default class ConnectModal extends Component<Props, State> {
             <Image src={blake} size="tiny" centered />
           </Modal.Content>
           <Modal.Content className={styles.searchingText}>
-            Connecting to{" "}
+            Connecting to{' '}
             {ConnectModal.getDeviceName(this.state.selectedDevice)}
             ...
           </Modal.Content>

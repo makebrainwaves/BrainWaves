@@ -3,17 +3,19 @@
  * an RxJS Observable of raw EEG data
  *
  */
-import { fromEvent } from "rxjs";
-import { map } from "rxjs/operators";
+import { fromEvent } from 'rxjs';
+import { map, withLatestFrom, share } from 'rxjs/operators';
+import { addInfo, epoch, bandpassFilter } from '@neurosity/pipes';
+import { parseEmotivSignalQuality } from './pipes';
 import {
   USERNAME,
   PASSWORD,
   CLIENT_ID,
   CLIENT_SECRET,
   LICENSE_ID
-} from "../../../keys";
-import { EMOTIV_CHANNELS } from "../../constants/constants";
-import Cortex from "./cortex";
+} from '../../../keys';
+import { EMOTIV_CHANNELS, PLOTTING_INTERVAL } from '../../constants/constants';
+import Cortex from './cortex';
 
 // Just returns the Cortex object from SDK
 const verbose = process.env.LOG_LEVEL || 1;
@@ -41,7 +43,7 @@ export const connectToEmotiv = device =>
     )
     .then(() =>
       client.createSession({
-        status: "active",
+        status: 'active',
         headset: device.id
       })
     )
@@ -56,13 +58,41 @@ export const connectToEmotiv = device =>
 
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
 export const createRawEmotivObservable = async () => {
-  const subs = await client.subscribe({ streams: ["eeg"] });
-  if (!subs[0].eeg) throw new Error("failed to subscribe");
-  return fromEvent(client, "eeg").pipe(map(createEEGSample));
+  const subs = await client.subscribe({ streams: ['eeg', 'dev'] });
+  if (!subs[0].eeg) throw new Error('failed to subscribe');
+  return fromEvent(client, 'eeg').pipe(map(createEEGSample));
+};
+
+// Creates an observable that will epoch, filter, and add signal quality to EEG stream
+export const createEmotivSignalQualityObservable = rawObservable => {
+  const signalQualityObservable = fromEvent(client, 'dev');
+  const samplingRate = 128;
+  const channels = EMOTIV_CHANNELS;
+  const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
+  return rawObservable.pipe(
+    addInfo({
+      samplingRate,
+      channels
+    }),
+    // the sampling rate parameter can be taken out in the newest version of pipes
+    epoch({
+      samplingRate,
+      duration: intervalSamples,
+      interval: intervalSamples
+    }),
+    bandpassFilter({
+      nbChannels: channels.length,
+      lowCutoff: 1,
+      highCutoff: 50
+    }),
+    withLatestFrom(signalQualityObservable, integrateSignalQuality),
+    parseEmotivSignalQuality(),
+    share()
+  );
 };
 
 export const injectEmotivMarker = (value, time) => {
-  client.injectMarker({ label: "event", value, time });
+  client.injectMarker({ label: 'event', value, time });
 };
 
 // ---------------------------------------------------------------------
@@ -83,3 +113,12 @@ const createEEGSample = eegEvent => {
   }
   return { data: prunedArray, timestamp: eegEvent.time * 1000 };
 };
+
+const integrateSignalQuality = (newEpoch, devSample) => ({
+  ...newEpoch,
+  signalQuality: Object.assign(
+    ...devSample.dev[2].map((signalQuality, index) => ({
+      [EMOTIV_CHANNELS[index]]: signalQuality
+    }))
+  )
+});

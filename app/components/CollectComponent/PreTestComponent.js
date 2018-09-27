@@ -30,11 +30,10 @@ interface Props {
   availableDevices: Array<any>;
   type: ?EXPERIMENTS;
   isRunning: boolean;
-  params: ExperimentParameters;
-  mainTimeline: MainTimeline;
-  trials: { [string]: Trial };
-  timelines: {};
-  // dir: ?string,
+  params: ?ExperimentParameters;
+  mainTimeline: ?MainTimeline;
+  trials: ?{ [string]: Trial };
+  timelines: ?{};
   subject: string;
   session: number;
   openRunComponent: () => void;

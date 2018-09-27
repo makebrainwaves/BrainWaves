@@ -1,6 +1,17 @@
 import 'hazardous';
 import { withLatestFrom, share, startWith } from 'rxjs/operators';
-import { MUSE_SAMPLING_RATE, MUSE_CHANNELS } from '../../constants/constants';
+import {
+  addInfo,
+  epoch,
+  bandpassFilter,
+  addSignalQuality
+} from '@neurosity/pipes';
+import { parseMuseSignalQuality } from './pipes';
+import {
+  MUSE_SAMPLING_RATE,
+  MUSE_CHANNELS,
+  PLOTTING_INTERVAL
+} from '../../constants/constants';
 
 const bluetooth = require('bleat').webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require('muse-js');
@@ -44,13 +55,41 @@ export const connectToMuse = async device => {
 };
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream
-// TODO: Research how withLatestFrom can be initiated with a default value so we don't have to fire an arbitrary event whenever subscribing to the rawObservable
 export const createRawMuseObservable = async () => {
   await client.start();
   const eegStream = await client.eegReadings;
   const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
   return from(zipSamples(eegStream)).pipe(
     withLatestFrom(markers, synchronizeTimestamp),
+    share()
+  );
+};
+
+// Creates an observable that will epoch, filter, and add signal quality to EEG stream
+export const createMuseSignalQualityObservable = (
+  rawObservable,
+  deviceInfo
+) => {
+  const { samplingRate, channels: channelNames } = deviceInfo;
+  const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
+  return rawObservable.pipe(
+    addInfo({
+      samplingRate,
+      channelNames
+    }),
+    // the sampling rate parameter can be taken out in the newest version of pipes
+    epoch({
+      samplingRate,
+      duration: intervalSamples,
+      interval: intervalSamples
+    }),
+    bandpassFilter({
+      nbChannels: channelNames.length,
+      lowCutoff: 1,
+      highCutoff: 50
+    }),
+    addSignalQuality(),
+    parseMuseSignalQuality(),
     share()
   );
 };
