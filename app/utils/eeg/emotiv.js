@@ -56,6 +56,11 @@ export const connectToEmotiv = device =>
       err => console.log(err)
     );
 
+export const disconnectFromEmotiv = async () => {
+  const sessionStatus = await client.updateSession({ status: 'close' });
+  return sessionStatus;
+};
+
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
 export const createRawEmotivObservable = async () => {
   const subs = await client.subscribe({ streams: ['eeg', 'dev'] });
@@ -74,9 +79,7 @@ export const createEmotivSignalQualityObservable = rawObservable => {
       samplingRate,
       channels
     }),
-    // the sampling rate parameter can be taken out in the newest version of pipes
     epoch({
-      samplingRate,
       duration: intervalSamples,
       interval: intervalSamples
     }),

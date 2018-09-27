@@ -1,5 +1,5 @@
 // @flow
-import { Observable } from "rxjs";
+import { Observable } from 'rxjs';
 import {
   SET_DEVICE_INFO,
   SET_DEVICE_TYPE,
@@ -8,14 +8,14 @@ import {
   SET_RAW_OBSERVABLE,
   SET_SIGNAL_OBSERVABLE,
   DEVICE_CLEANUP
-} from "../epics/deviceEpics";
+} from '../epics/deviceEpics';
 import {
   DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY
-} from "../constants/constants";
-import { ActionType, DeviceInfo } from "../constants/interfaces";
-import { SET_DEVICE_AVAILABILITY } from "../actions/deviceActions";
+} from '../constants/constants';
+import { ActionType, DeviceInfo } from '../constants/interfaces';
+import { SET_DEVICE_AVAILABILITY } from '../actions/deviceActions';
 
 interface DeviceStateType {
   +availableDevices: Array<any>;
@@ -29,7 +29,7 @@ interface DeviceStateType {
 
 const initialState = {
   availableDevices: [],
-  connectedDevice: { name: "disconnected", samplingRate: 0 },
+  connectedDevice: { name: 'disconnected', samplingRate: 0 },
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
@@ -85,9 +85,7 @@ export default function device(
       };
 
     case DEVICE_CLEANUP:
-      return {
-        ...initialState
-      };
+      return initialState;
 
     default:
       return state;

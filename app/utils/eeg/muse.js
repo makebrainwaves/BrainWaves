@@ -54,6 +54,8 @@ export const connectToMuse = async device => {
   };
 };
 
+export const disconnectFromMuse = () => client.disconnect();
+
 // Awaits Muse connectivity before sending an observable rep. EEG stream
 export const createRawMuseObservable = async () => {
   await client.start();
@@ -77,9 +79,7 @@ export const createMuseSignalQualityObservable = (
       samplingRate,
       channelNames
     }),
-    // the sampling rate parameter can be taken out in the newest version of pipes
     epoch({
-      samplingRate,
       duration: intervalSamples,
       interval: intervalSamples
     }),

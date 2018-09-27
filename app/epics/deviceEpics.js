@@ -12,13 +12,15 @@ import {
   getEmotiv,
   connectToEmotiv,
   createRawEmotivObservable,
-  createEmotivSignalQualityObservable
+  createEmotivSignalQualityObservable,
+  disconnectFromEmotiv
 } from '../utils/eeg/emotiv';
 import {
   getMuse,
   connectToMuse,
   createRawMuseObservable,
-  createMuseSignalQualityObservable
+  createMuseSignalQualityObservable,
+  disconnectFromMuse
 } from '../utils/eeg/muse';
 import {
   CONNECTION_STATUS,
@@ -26,6 +28,7 @@ import {
   DEVICE_AVAILABILITY,
   SEARCH_TIMER
 } from '../constants/constants';
+import { EXPERIMENT_CLEANUP } from './experimentEpics';
 
 export const DEVICE_FOUND = 'DEVICE_FOUND';
 export const SET_DEVICE_TYPE = 'DEVICE_TYPE';
@@ -207,6 +210,22 @@ const setSignalQualityObservableEpic = (action$, state$) =>
     map(setSignalQualityObservable)
   );
 
+const deviceCleanupEpic = (action$, state$) =>
+  action$.ofType(EXPERIMENT_CLEANUP).pipe(
+    filter(
+      () =>
+        state$.value.device.connectionStatus !==
+        CONNECTION_STATUS.NOT_YET_CONNECTED
+    ),
+    map(() => {
+      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
+        disconnectFromEmotiv();
+      }
+      disconnectFromMuse();
+    }),
+    map(cleanup)
+  );
+
 // TODO: Fix this error handling so epics can refire once they error out
 const rootEpic = (action$, state$) =>
   combineEpics(
@@ -217,7 +236,8 @@ const rootEpic = (action$, state$) =>
     connectEpic,
     isConnectingEpic,
     setRawObservableEpic,
-    setSignalQualityObservableEpic
+    setSignalQualityObservableEpic,
+    deviceCleanupEpic
   )(action$, state$).pipe(
     catchError(error =>
       of(error).pipe(

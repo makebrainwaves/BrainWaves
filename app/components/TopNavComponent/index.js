@@ -6,7 +6,7 @@ import styles from '../styles/topnavbar.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
 
 interface Props {
-  title: string;
+  title: ?string;
   location: { pathname: string, search: string, hash: string };
   experimentActions: Object;
   type: EXPERIMENTS;

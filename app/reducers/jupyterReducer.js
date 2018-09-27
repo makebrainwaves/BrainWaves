@@ -8,9 +8,10 @@ import {
   SET_PSD_PLOT,
   SET_ERP_PLOT,
   RECEIVE_EXECUTE_RETURN
-} from "../epics/jupyterEpics";
-import { ActionType, Kernel } from "../constants/interfaces";
-import { KERNEL_STATUS } from "../constants/constants";
+} from '../epics/jupyterEpics';
+import { ActionType, Kernel } from '../constants/interfaces';
+import { KERNEL_STATUS } from '../constants/constants';
+import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
 
 export interface JupyterStateType {
   +kernel: ?Kernel;
@@ -72,6 +73,14 @@ export default function jupyter(
       return {
         ...state,
         erpPlot: action.payload
+      };
+
+    case EXPERIMENT_CLEANUP:
+      return {
+        ...state,
+        epochsInfo: null,
+        psdPlot: null,
+        erpPlot: null
       };
 
     case RECEIVE_EXECUTE_RETURN:
