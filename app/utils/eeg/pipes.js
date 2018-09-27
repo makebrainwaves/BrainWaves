@@ -1,13 +1,12 @@
-import { Observable } from 'rxjs';
+import { pipe } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   SIGNAL_QUALITY,
   SIGNAL_QUALITY_THRESHOLDS
 } from '../../constants/constants';
 
-export const parseMuseSignalQuality = () => source =>
-  createPipe(
-    source,
+export const parseMuseSignalQuality = () =>
+  pipe(
     map(epoch => ({
       ...epoch,
       signalQuality: Object.assign(
@@ -30,9 +29,8 @@ export const parseMuseSignalQuality = () => source =>
     }))
   );
 
-export const parseEmotivSignalQuality = () => source =>
-  createPipe(
-    source,
+export const parseEmotivSignalQuality = () =>
+  pipe(
     map(epoch => ({
       ...epoch,
       signalQuality: Object.assign(
@@ -53,19 +51,4 @@ export const parseEmotivSignalQuality = () => source =>
         )
       )
     }))
-  );
-
-const createPipe = (source, ...pipes) =>
-  new Observable(observer =>
-    source.pipe(...pipes).subscribe({
-      next(event) {
-        observer.next(event);
-      },
-      error(err) {
-        observer.error(err);
-      },
-      complete() {
-        observer.complete();
-      }
-    })
   );
