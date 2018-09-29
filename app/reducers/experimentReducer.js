@@ -9,7 +9,8 @@ import {
   SET_TYPE,
   SET_SUBJECT,
   SET_TITLE,
-  SET_EXPERIMENT_STATE
+  SET_EXPERIMENT_STATE,
+  SET_PARAMS
 } from "../actions/experimentActions";
 import { EXPERIMENTS } from "../constants/constants";
 import {
@@ -69,6 +70,12 @@ export default function experiment(
       return {
         ...state,
         session: action.payload
+      };
+
+    case SET_PARAMS:
+      return {
+        ...state,
+        params: { ...state.params, ...action.payload }
       };
 
     case SET_TIMELINE:

@@ -11,7 +11,7 @@
  * @flow
  */
 import { app, BrowserWindow, ipcMain } from "electron";
-import { loadFile } from "./utils/filesystem/dialog";
+import { loadDialog } from "./utils/filesystem/dialog";
 import MenuBuilder from "./menu";
 
 app.commandLine.appendSwitch("enable-experimental-web-platform-features", true);
@@ -71,7 +71,7 @@ app.on("ready", async () => {
   });
 
   // IPC Listener for file dialog events
-  ipcMain.on("loadFile", loadFile);
+  ipcMain.on("loadDialog", loadDialog);
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 

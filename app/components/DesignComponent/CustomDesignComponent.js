@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { Grid, Button, Segment, Header, Form } from "semantic-ui-react";
 import { isNil, debounce } from "lodash";
 import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../../constants/constants";
+import { EXPERIMENTS, SCREENS, EVENTS } from "../../constants/constants";
 import {
   MainTimeline,
   Trial,
@@ -72,6 +72,7 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
+    this.handleSaveParams = this.handleSaveParams.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
     }
@@ -90,6 +91,21 @@ export default class CustomDesign extends Component<Props, State> {
       this.props.experimentActions.loadDefaultTimeline();
     }
     this.setState({ isPreviewing: !this.state.isPreviewing });
+  }
+
+  handleSaveParams() {
+    this.props.experimentActions.setParams({
+      stimulus1: {
+        dir: this.state.stim1Dir,
+        title: this.state.stim1Name,
+        type: EVENTS.FACE
+      },
+      stimulus2: {
+        dir: this.state.stim2Dir,
+        title: this.state.stim2Name,
+        type: EVENTS.FACE
+      }
+    });
   }
 
   renderPreviewButton() {
@@ -122,12 +138,14 @@ export default class CustomDesign extends Component<Props, State> {
               num={1}
               name={this.state.stim1Name}
               response={this.state.stim1Response}
+              dir={this.state.stim1Dir}
               onChange={(key, data) => this.setState({ [key]: data })}
             />
             <StimuliDesignColumn
               num={2}
               name={this.state.stim2Name}
               response={this.state.stim2Response}
+              dir={this.state.stim2Dir}
               onChange={(key, data) => this.setState({ [key]: data })}
             />
           </Grid>
@@ -139,7 +157,8 @@ export default class CustomDesign extends Component<Props, State> {
               stretched
               width={6}
               textAlign="right"
-              verticalAlign="middle"
+              verticalAlign="top"
+              className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
                 params={this.props.params}
@@ -223,9 +242,14 @@ export default class CustomDesign extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           button={
-            <Button primary onClick={this.handleStartExperiment}>
-              Collect Data
-            </Button>
+            <div>
+              <Button secondary onClick={this.handleSaveParams}>
+                Save Experiment
+              </Button>
+              <Button primary onClick={this.handleStartExperiment}>
+                Collect Data
+              </Button>
+            </div>
           }
         />
         {this.renderSectionContent()}

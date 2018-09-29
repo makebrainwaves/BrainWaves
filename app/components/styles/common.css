@@ -17,7 +17,7 @@
 }
 
 .contentGrid {
-  height: 50%;
+  height: 75%;
 }
 
 .inputDiv {
@@ -50,4 +50,8 @@
 .closeButton {
   border: none !important;
   box-shadow: none !important;
+}
+
+.jsPsychColumn {
+  height: 100%;
 }

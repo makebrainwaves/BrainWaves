@@ -159,6 +159,10 @@ img {
   width: calc(100% - 350px);
 }
 
+.ui.selection.dropdown {
+  min-width: 50px !important;
+}
+
 /* Webview-related styles */
 
 #eegView {

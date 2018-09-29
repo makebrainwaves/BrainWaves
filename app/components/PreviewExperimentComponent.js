@@ -52,7 +52,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
   }
 
   // async handleCustomExperimentLoad() {
-  //   const timelinePath = await loadFileFromSystemDialog(FILE_TYPES.TIMELINE);
+  //   const timelinePath = await loadFromSystemDialog(FILE_TYPES.TIMELINE);
   // }
 
   render() {

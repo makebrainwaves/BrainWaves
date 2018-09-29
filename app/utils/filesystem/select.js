@@ -5,11 +5,13 @@
  */
 
 import { ipcRenderer } from "electron";
+import { FILE_TYPES } from "../../constants/constants";
 
-export const loadFileFromSystemDialog = (fileType: string) =>
+export const loadFromSystemDialog = (fileType: FILE_TYPES) =>
   new Promise(resolve => {
-    ipcRenderer.send("loadFile", fileType);
-    ipcRenderer.on("loadFileReply", (event, result) => {
+    ipcRenderer.send("loadDialog", fileType);
+    ipcRenderer.on("loadDialogReply", (event, result) => {
+      console.log("got reply", result);
       resolve(result);
     });
   });
