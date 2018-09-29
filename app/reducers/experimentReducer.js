@@ -93,7 +93,7 @@ export default function experiment(
 
     case SET_DESCRIPTION:
       return {
-        state,
+        ...state,
         description: action.payload
       };
 

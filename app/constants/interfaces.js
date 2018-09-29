@@ -18,6 +18,7 @@ export interface ExperimentParameters {
   jitter?: number;
   sampleType?: string;
   pluginName?: string;
+  intro?: string;
   stimulus1?: { dir: string, type: EVENTS };
   stimulus2?: { dir: string, type: EVENTS };
 }
@@ -35,7 +36,7 @@ export type MainTimeline = Array<string>;
 export interface Trial {
   id: string;
   type: string;
-  stimulus: string | StimulusVariable;
+  stimulus?: string | StimulusVariable;
   trial_duration?: number | (() => number);
   post_trial_gap?: number;
   on_load?: string => void | StimulusVariable;

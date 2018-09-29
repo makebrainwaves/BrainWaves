@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { isNil } from 'lodash';
+import React, { Component } from "react";
+import { isNil } from "lodash";
 import {
   Grid,
   Segment,
@@ -7,16 +7,16 @@ import {
   List,
   Header,
   Sidebar
-} from 'semantic-ui-react';
-import ViewerComponent from '../ViewerComponent';
-import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
-import PreviewExperimentComponent from '../PreviewExperimentComponent';
-import HelpSidebar from './HelpSidebar';
-import styles from '../styles/collect.css';
+} from "semantic-ui-react";
+import ViewerComponent from "../ViewerComponent";
+import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
+import HelpSidebar from "./HelpSidebar";
+import styles from "../styles/collect.css";
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS
-} from '../../constants/constants';
+} from "../../constants/constants";
 
 interface Props {
   experimentActions: Object;
@@ -179,7 +179,7 @@ export default class PreTestComponent extends Component<Props, State> {
               </Grid.Column>
             </Grid.Row>
             <Grid.Row>
-              <Grid.Column stretched width={6}>
+              <Grid.Column stretched width={6} className={styles.previewColumn}>
                 {this.renderSignalQualityOrPreview()}
               </Grid.Column>
               <Grid.Column width={10}>

@@ -2,7 +2,7 @@ import * as path from "path";
 import { EVENTS } from "../../../constants/constants";
 
 // Default directories containing stimuli
-const rootFolder = __dirname;// Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
+const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
 const facesDir = path.join(rootFolder, "assets", "face_house", "faces");
 const housesDir = path.join(rootFolder, "assets", "face_house", "houses");
@@ -16,15 +16,16 @@ export const buildN170Timeline = () => ({
     jitter: 200,
     sampleType: "with-replacement",
     pluginName: "callback-image-display",
+    intro:
+      "You will view a series of faces and houses for two minutes. Please mentally note which stimulus you are viewing. Press any key to continue",
     stimulus1: { dir: facesDir, title: "Face", type: EVENTS.FACE },
     stimulus2: { dir: housesDir, title: "House", type: EVENTS.HOUSE }
   },
-  mainTimeline: ["welcome", "faceHouseTimeline", "end"], // array of trial and timeline ids
+  mainTimeline: ["intro", "faceHouseTimeline", "end"], // array of trial and timeline ids
   trials: {
-    welcome: {
+    intro: {
       type: "callback-html-display",
-      id: "welcome",
-      stimulus: "Welcome to the experiment. Press any key to begin.",
+      id: "intro",
       post_trial_gap: 1000
     },
     end: {

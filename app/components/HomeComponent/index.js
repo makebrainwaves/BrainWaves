@@ -201,13 +201,11 @@ export default class Home extends Component<Props, State> {
   renderOverviewOrHome() {
     if (this.state.isOverviewComponentOpen) {
       return (
-        <div className={styles.homeContentContainer}>
-          <OverviewComponent
-            type={this.state.selectedExperimentType}
-            onStartExperiment={this.handleNewExperiment}
-            onCloseOverview={this.handleCloseOverview}
-          />
-        </div>
+        <OverviewComponent
+          type={this.state.selectedExperimentType}
+          onStartExperiment={this.handleNewExperiment}
+          onCloseOverview={this.handleCloseOverview}
+        />
       );
     }
     return (

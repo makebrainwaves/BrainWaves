@@ -25,7 +25,8 @@ const CUSTOM_STEPS = {
 const FIELDS = {
   QUESTION: "Research Question",
   HYPOTHESIS: "Hypothesis",
-  METHODS: "Methods"
+  METHODS: "Methods",
+  INTRO: "Experiment Instructions"
 };
 
 interface Props {
@@ -65,11 +66,12 @@ export default class CustomDesign extends Component<Props, State> {
       methods: isNil(props.description) ? "" : props.description.methods,
       trialDuration: props.params.trialDuration,
       iti: props.params.iti,
+      intro: props.params.intro,
       stim1Name: "",
       stim1Response: 1,
       stim1Dir: "",
       stim2Name: "",
-      stim2Response: 1,
+      stim2Response: 9,
       stim2Dir: ""
     };
     this.handleStepClick = this.handleStepClick.bind(this);
@@ -98,6 +100,9 @@ export default class CustomDesign extends Component<Props, State> {
 
   handleSaveParams() {
     this.props.experimentActions.setParams({
+      iti: this.state.iti,
+      trialDuration: this.state.trialDuration,
+      intro: this.state.intro,
       stimulus1: {
         dir: this.state.stim1Dir,
         title: this.state.stim1Name,
@@ -221,8 +226,19 @@ export default class CustomDesign extends Component<Props, State> {
               />
             </Grid.Column>
             <Grid.Column width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                Blah
+              <Segment basic>
+                <Form>
+                  <Form.TextArea
+                    autoHeight
+                    style={{ minHeight: 100 }}
+                    label={FIELDS.INTRO}
+                    value={this.state.intro}
+                    placeholder="You will view a series of images..."
+                    onChange={(event, data) =>
+                      this.setState({ intro: data.value })
+                    }
+                  />
+                </Form>
               </Segment>
               <Segment basic>{this.renderPreviewButton()}</Segment>
             </Grid.Column>
@@ -295,10 +311,10 @@ export default class CustomDesign extends Component<Props, State> {
           onStepClick={this.handleStepClick}
           button={
             <div>
-              <Button secondary onClick={this.handleSaveParams}>
+              <Button compact size="small" secondary onClick={this.handleSaveParams}>
                 Save Experiment
               </Button>
-              <Button primary onClick={this.handleStartExperiment}>
+              <Button compact size="small" primary onClick={this.handleStartExperiment}>
                 Collect Data
               </Button>
             </div>

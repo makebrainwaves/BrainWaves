@@ -1,15 +1,15 @@
-import React, { Component } from 'react';
-import { Grid, Header, Button, Segment } from 'semantic-ui-react';
-import styles from '../styles/common.css';
-import { EXPERIMENTS } from '../../constants/constants';
-import SecondaryNavComponent from '../SecondaryNavComponent';
-import PreviewExperimentComponent from '../PreviewExperimentComponent';
-import { loadTimeline } from '../../utils/jspsych/functions';
+import React, { Component } from "react";
+import { Grid, Header, Button, Segment } from "semantic-ui-react";
+import styles from "../styles/common.css";
+import { EXPERIMENTS } from "../../constants/constants";
+import SecondaryNavComponent from "../SecondaryNavComponent";
+import PreviewExperimentComponent from "../PreviewExperimentComponent";
+import { loadTimeline } from "../../utils/jspsych/functions";
 
 const OVERVIEW_STEPS = {
-  OVERVIEW: 'OVERVIEW',
-  BACKGROUND: 'BACKGROUND',
-  PROTOCOL: 'PROTOCOL'
+  OVERVIEW: "OVERVIEW",
+  BACKGROUND: "BACKGROUND",
+  PROTOCOL: "PROTOCOL"
 };
 
 interface Props {
@@ -69,6 +69,7 @@ export default class OverviewComponent extends Component<Props, State> {
               width={6}
               textAlign="right"
               verticalAlign="middle"
+              className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
                 {...loadTimeline(this.props.type)}
@@ -77,7 +78,7 @@ export default class OverviewComponent extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                Subjects will view a series of images of{' '}
+                Subjects will view a series of images of{" "}
                 <b> faces and houses</b> for <b>120 seconds</b>
               </Segment>
               <Segment as="p" basic>
@@ -144,7 +145,7 @@ export default class OverviewComponent extends Component<Props, State> {
 
   render() {
     return (
-      <div>
+      <React.Fragment>
         <Button
           basic
           circular
@@ -164,12 +165,14 @@ export default class OverviewComponent extends Component<Props, State> {
               primary
               onClick={() => this.props.onStartExperiment(this.props.type)}
             >
-              Start Experiment{' '}
+              Start Experiment{" "}
             </Button>
           }
         />
-        {this.renderSectionContent()}
-      </div>
+        <div className={styles.homeContentContainer}>
+          {this.renderSectionContent()}
+        </div>
+      </React.Fragment>
     );
   }
 }

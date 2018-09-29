@@ -55,6 +55,10 @@ img {
   max-width: 100% !important;
 }
 
+button:active {
+  transform: scale(0.95) !important;
+}
+
 .jspsych-display-element {
   width: 100% !important;
 }

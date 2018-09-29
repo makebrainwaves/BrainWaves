@@ -1,16 +1,16 @@
-import { isNil } from 'lodash';
-import { jsPsych } from 'jspsych-react';
-import * as path from 'path';
-import { readdirSync } from 'fs';
-import { EXPERIMENTS } from '../../constants/constants';
-import { buildOddballTimeline } from './timelines/oddball';
-import { buildN170Timeline } from './timelines/n170';
-import { buildSSVEPTimeline } from './timelines/ssvep';
+import { isNil } from "lodash";
+import { jsPsych } from "jspsych-react";
+import * as path from "path";
+import { readdirSync } from "fs";
+import { EXPERIMENTS } from "../../constants/constants";
+import { buildOddballTimeline } from "./timelines/oddball";
+import { buildN170Timeline } from "./timelines/n170";
+import { buildSSVEPTimeline } from "./timelines/ssvep";
 import {
   MainTimeline,
   Trial,
   ExperimentParameters
-} from '../../constants/interfaces';
+} from "../../constants/interfaces";
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -53,7 +53,7 @@ export const parseTimeline = (
           },
           {
             ...timeline.timeline[1],
-            stimulus: jsPsych.timelineVariable('stimulusVar'),
+            stimulus: jsPsych.timelineVariable("stimulusVar"),
             type: params.pluginName,
             trial_duration: params.trialDuration
           }
@@ -80,8 +80,20 @@ export const parseTimeline = (
     }))
   );
 
+  // Inserts param.intro as stimulus property of first trial
+  const parsedTrials = Object.assign(
+    ...Object.entries(trials).map(([id, trial]) => {
+      if (id === mainTimeline[0]) {
+        return { [id]: { ...trial, stimulus: params.intro } };
+      }
+      return { [id]: trial };
+    })
+  );
+
+  console.log(parsedTrials);
+
   // Combine trials and timelines into one object
-  const jsPsychObject = { ...trials, ...parsedTimelines };
+  const jsPsychObject = { ...parsedTrials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id
   return mainTimeline.map(id => jsPsychObject[id]);
 };
@@ -96,21 +108,21 @@ export const instantiateTimeline = (
 ) =>
   timeline.map((jspsychObject, index) => {
     if (index === 0) {
-      // start
+      // intro
       return { ...jspsychObject, on_finish: startCallback };
     }
     if (index === timeline.length - 1) {
-      // stop
+      // end
       return { ...jspsychObject, on_load: stopCallback };
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (trial.id === 'trial') {
+        if (trial.id === "trial") {
           return {
             ...trial,
             on_start: () =>
               eventCallback(
-                jsPsych.timelineVariable('eventTypeVar')(),
+                jsPsych.timelineVariable("eventTypeVar")(),
                 new Date().getTime()
               ),
             on_finish: () => {
@@ -133,9 +145,9 @@ export const instantiateTimeline = (
 export const getBehaviouralData = () =>
   jsPsych.data
     .get()
-    .filter(trial => !trial.stimulus.contains('fixation')) // Remove inter trial data
+    .filter(trial => !trial.stimulus.contains("fixation")) // Remove inter trial data
     // .filter((trial) => trial.rt > 0) // Filter out trials with no responsre
-    .ignore('internal_node_id')
+    .ignore("internal_node_id")
     .csv();
 
 // Returns an array of images that are used in a timeline for use in preloading

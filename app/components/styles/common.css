@@ -1,5 +1,6 @@
 .homeContentContainer {
   padding-top: 50px !important;
+  height: 100%;
 }
 
 .mainContainer {
@@ -29,7 +30,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: 14px !important;
   font-weight: bold;
   line-height: 17px;
 }

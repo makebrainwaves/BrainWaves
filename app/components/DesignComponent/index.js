@@ -128,6 +128,7 @@ export default class Design extends Component<Props, State> {
               width={6}
               textAlign="right"
               verticalAlign="middle"
+              className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
                 params={this.props.params}

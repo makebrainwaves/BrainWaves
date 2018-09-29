@@ -1,4 +1,4 @@
-import { Label, Segment } from "semantic-ui-react";
+import { Segment } from "semantic-ui-react";
 import React, { PureComponent } from "react";
 import Slider from "rc-slider";
 import styles from "../styles/common.css";
@@ -16,6 +16,9 @@ const marks = {
   4: "2"
 };
 
+// Converts from a 1-4 scale to a range from 500 to 2000 ms
+const MS_CONVERSION = 500;
+
 export default class ParamSlider extends PureComponent<Props> {
   render() {
     return (
@@ -27,8 +30,8 @@ export default class ParamSlider extends PureComponent<Props> {
             marks={marks}
             min={1}
             max={4}
-            value={this.props.value * 2}
-            onChange={value => this.props.onChange(value / 2)}
+            value={this.props.value / MS_CONVERSION}
+            onChange={value => this.props.onChange(value * MS_CONVERSION)}
             defaultValue={1}
           />
         </Segment>
