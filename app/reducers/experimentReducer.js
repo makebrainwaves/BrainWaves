@@ -4,15 +4,22 @@ import {
   SET_IS_RUNNING,
   SET_SESSION,
   EXPERIMENT_CLEANUP
-} from '../epics/experimentEpics';
+} from "../epics/experimentEpics";
 import {
   SET_TYPE,
   SET_SUBJECT,
   SET_TITLE,
   SET_EXPERIMENT_STATE
-} from '../actions/experimentActions';
-import { EXPERIMENTS } from '../constants/constants';
-import { MainTimeline, Trial, ActionType } from '../constants/interfaces';
+} from "../actions/experimentActions";
+import { EXPERIMENTS } from "../constants/constants";
+import {
+  MainTimeline,
+  Trial,
+  Timeline,
+  ActionType,
+  ExperimentDescription,
+  ExperimentParameters
+} from "../constants/interfaces";
 
 export interface ExperimentStateType {
   +type: ?EXPERIMENTS;
@@ -25,17 +32,18 @@ export interface ExperimentStateType {
   +subject: string;
   +session: number;
   +isRunning: boolean;
+  +description?: ExperimentDescription;
 }
 
 const initialState = {
   type: EXPERIMENTS.NONE,
-  title: '',
+  title: "",
   params: {},
   mainTimeline: [],
   trials: {},
   timelines: {},
   plugins: {},
-  subject: '',
+  subject: "",
   session: 1,
   isRunning: false
 };

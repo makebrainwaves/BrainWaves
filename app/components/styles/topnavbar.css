@@ -1,4 +1,5 @@
 .navContainer {
+  margin-top: 0px !important;
   position: relative;
   z-index: 999;
   height: 60px;

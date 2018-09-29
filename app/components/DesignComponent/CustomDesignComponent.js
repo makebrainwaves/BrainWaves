@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from "react";
-import { Grid, Button, Segment, Header } from "semantic-ui-react";
-import { isNil } from "lodash";
+import { Grid, Button, Segment, Header, Form } from "semantic-ui-react";
+import { isNil, debounce } from "lodash";
 import styles from "../styles/common.css";
 import { EXPERIMENTS, SCREENS } from "../../constants/constants";
 import {
@@ -12,12 +12,19 @@ import {
 } from "../../constants/interfaces";
 import SecondaryNavComponent from "../SecondaryNavComponent";
 import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import CustomDesign from "./CustomDesignComponent";
+import StimuliDesignColumn from "./StimuliDesignColumn";
 
-const DESIGN_STEPS = {
+const CUSTOM_STEPS = {
   OVERVIEW: "OVERVIEW",
-  BACKGROUND: "BACKGROUND",
-  PROTOCOL: "PROTOCOL"
+  STIMULI: "STIMULI",
+  PARAMETERS: "PARAMETERS",
+  PREVIEW: "PREVIEW"
+};
+
+const FIELDS = {
+  QUESTION: "Research Question",
+  HYPOTHESIS: "Hypothesis",
+  METHODS: "Methods"
 };
 
 interface Props {
@@ -35,9 +42,12 @@ interface Props {
 interface State {
   activeStep: string;
   isPreviewing: boolean;
+  question: string;
+  hypothesis: string;
+  methods: string;
 }
 
-export default class Design extends Component<Props, State> {
+export default class CustomDesign extends Component<Props, State> {
   props: Props;
   state: State;
   handleStepClick: (Object, Object) => void;
@@ -47,8 +57,17 @@ export default class Design extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: DESIGN_STEPS.OVERVIEW,
-      isPreviewing: false
+      activeStep: CUSTOM_STEPS.OVERVIEW,
+      isPreviewing: false,
+      question: "",
+      hypothesis: "",
+      methods: "",
+      stim1Name: "",
+      stim1Response: 1,
+      stim1Dir: "",
+      stim2Name: "",
+      stim2Response: 1,
+      stim2Dir: ""
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -90,37 +109,30 @@ export default class Design extends Component<Props, State> {
 
   renderSectionContent() {
     switch (this.state.activeStep) {
-      case DESIGN_STEPS.BACKGROUND:
+      case CUSTOM_STEPS.STIMULI:
         return (
-          <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <Header as="h1">The N170 ERP</Header>
-            </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                The N170 is a large negative event-related potential (ERP)
-                component that occurs after the detection of faces, but not
-                objects, scrambled faces, or other body parts such as hands. The
-                N170 occurs around 170ms after face perception and is most
-                easily detected at lateral posterior electrodes such as T5 and
-                T6. Frontal or profile views of human (and animal) faces elicit
-                the strongest N170 and the strength of the N170 does not seem to
-                be influenced by how familiar a face is. Thus, although there is
-                no consensus on the specific source of the N170, researchers
-                believe it is related to activity in the fusiform face area, an
-                area of the brain that shows a similar response pattern and is
-                involved in encoding the holistic representation of a face (i.e
-                eyes, nose mouth all arranged in the appropriate way).
-              </Segment>
-            </Grid.Column>
+          <Grid
+            stretched
+            padded
+            relaxed="very"
+            columns="equal"
+            className={styles.contentGrid}
+          >
+            <StimuliDesignColumn
+              num={1}
+              name={this.state.stim1Name}
+              response={this.state.stim1Response}
+              onChange={(key, data) => this.setState({ [key]: data })}
+            />
+            <StimuliDesignColumn
+              num={2}
+              name={this.state.stim2Name}
+              response={this.state.stim2Response}
+              onChange={(key, data) => this.setState({ [key]: data })}
+            />
           </Grid>
         );
-      case DESIGN_STEPS.PROTOCOL:
+      case CUSTOM_STEPS.PREVIEW:
         return (
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
@@ -139,35 +151,63 @@ export default class Design extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                Subjects will view a series of images of{" "}
-                <b> faces and houses</b> for <b>120 seconds</b>
-              </Segment>
-              <Segment as="p" basic>
-                Subjects will mentally note which stimulus they are perceiving
+                Blah
               </Segment>
               <Segment basic>{this.renderPreviewButton()}</Segment>
             </Grid.Column>
           </Grid>
         );
-      case DESIGN_STEPS.OVERVIEW:
+      case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
-          <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <Header as="h1">{this.props.type}</Header>
+          <Grid
+            stretched
+            relaxed
+            padded
+            columns="equal"
+            className={styles.contentGrid}
+          >
+            <Grid.Column stretched verticalAlign="middle">
+              <Form>
+                <Form.TextArea
+                  autoHeight
+                  style={{ minHeight: 100 }}
+                  label={FIELDS.QUESTION}
+                  value={this.state.question}
+                  placeholder="Explain your research question here."
+                  onChange={(event, data) =>
+                    this.setState({ question: data.value })
+                  }
+                />
+              </Form>
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                Faces contain a lot of information that is relevant to our
-                survival. It
-                {"'"}s important to be able to quickly recognize people you can
-                trust and read emotions in both strangers and people you know
-              </Segment>
+            <Grid.Column stretched verticalAlign="middle">
+              <Form>
+                <Form.TextArea
+                  autoHeight
+                  style={{ minHeight: 100 }}
+                  label={FIELDS.HYPOTHESIS}
+                  value={this.state.hypothesis}
+                  placeholder="Describe your hypothesis here."
+                  onChange={(event, data) =>
+                    this.setState({ hypothesis: data.value })
+                  }
+                />
+              </Form>
+            </Grid.Column>
+            <Grid.Column stretched verticalAlign="middle">
+              <Form>
+                <Form.TextArea
+                  autoHeight
+                  style={{ minHeight: 100 }}
+                  label={FIELDS.METHODS}
+                  value={this.state.methods}
+                  placeholder="Explain how you will design your experiment to answer the question here."
+                  onChange={(event, data) =>
+                    this.setState({ methods: data.value })
+                  }
+                />
+              </Form>
             </Grid.Column>
           </Grid>
         );
@@ -175,14 +215,11 @@ export default class Design extends Component<Props, State> {
   }
 
   render() {
-    if (this.props.type === EXPERIMENTS.CUSTOM) {
-      return <CustomDesign {...this.props} />;
-    }
     return (
       <div className={styles.mainContainer}>
         <SecondaryNavComponent
           title="Experiment Design"
-          steps={DESIGN_STEPS}
+          steps={CUSTOM_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           button={

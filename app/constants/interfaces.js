@@ -2,7 +2,7 @@
 * This file contains all the custom types that we use for Flow type checking
 */
 
-import { EVENTS } from './constants';
+import { EVENTS } from "./constants";
 
 // TODO: Write interfaces for device objects (Observables, Classes, etc)
 
@@ -22,6 +22,12 @@ export interface ExperimentParameters {
   stimulus2?: { dir: string, type: EVENTS };
 }
 
+export type ExperimentDescription = {
+  question?: string,
+  hypothesis?: string,
+  methods?: string
+};
+
 // Array of timeline and trial ids that will be presented in experiment
 export type MainTimeline = Array<string>;
 
@@ -37,12 +43,12 @@ export interface Trial {
 }
 
 // Timeline of jsPsych trials
-export interface Timeline {
-  id: string;
-  timeline: Array<Trial>;
-  sample?: SampleParameter;
-  timeline_variables?: Array<Object>;
-}
+export type Timeline = {
+  id: string,
+  timeline: Array<Trial>,
+  sample?: SampleParameter,
+  timeline_variables?: Array<Object>
+};
 
 export interface SampleParameter {
   type: string;

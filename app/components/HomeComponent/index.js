@@ -186,7 +186,6 @@ export default class Home extends Component<Props, State> {
                   Review
                 </Button>
                 <Button
-                  disabled
                   primary
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
                 >

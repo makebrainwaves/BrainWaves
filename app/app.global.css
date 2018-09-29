@@ -14,10 +14,6 @@ body {
   overflow-y: hidden;
 }
 
-#root {
-  margin-top: 15px;
-}
-
 h1 {
   font-size: 36px !important;
   letter-spacing: 1.29px !important;
@@ -62,6 +58,12 @@ img {
   width: 100% !important;
 }
 
+/* Semantic UI OVerrides */
+
+.ui.form .field > label {
+  font-size: 14px;
+}
+
 .ui.card {
   width: auto;
 }
@@ -69,8 +71,6 @@ img {
 .ui.avatar.image {
   width: auto;
 }
-
-/* Semantic UI OVerrides */
 
 .ui.modal > .image.content {
   display: block;
