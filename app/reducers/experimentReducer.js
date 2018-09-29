@@ -10,7 +10,8 @@ import {
   SET_SUBJECT,
   SET_TITLE,
   SET_EXPERIMENT_STATE,
-  SET_PARAMS
+  SET_PARAMS,
+  SET_DESCRIPTION
 } from "../actions/experimentActions";
 import { EXPERIMENTS } from "../constants/constants";
 import {
@@ -88,6 +89,12 @@ export default function experiment(
       return {
         ...state,
         title: action.payload
+      };
+
+    case SET_DESCRIPTION:
+      return {
+        state,
+        description: action.payload
       };
 
     case SET_IS_RUNNING:

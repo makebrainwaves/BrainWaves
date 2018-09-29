@@ -1,3 +1,7 @@
+.homeContentContainer {
+  padding-top: 50px !important;
+}
+
 .mainContainer {
   padding: 3%;
   height: 100vh;
@@ -24,6 +28,12 @@
   margin: 15px;
 }
 
+.label {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 17px;
+}
+
 .brainwavesLogo {
   height: auto;
   width: 250px;
@@ -31,7 +41,7 @@
 }
 
 .inputModal {
-  color: #1a1a1a !important;
+  color: #fff !important;
   font-size: 18px !important;
   width: 25% !important;
   text-align: center !important;
@@ -40,7 +50,7 @@
 .descriptionContainer p {
   margin-top: 50px;
   margin-bottom: 50px;
-  min-height: 125px;
+  min-height: 150px;
 }
 
 .descriptionContainer button {
@@ -54,4 +64,8 @@
 
 .jsPsychColumn {
   height: 100%;
+}
+
+.paramSlider {
+  width: 200px;
 }

@@ -5,6 +5,7 @@
 @import "~font-awesome/css/font-awesome.css";
 @import "~semantic-ui-css/semantic.min.css";
 @import "~jspsych-react/css/jspsych.css";
+@import "~rc-slider/assets/index.css";
 
 body {
   position: relative;
@@ -132,7 +133,6 @@ img {
 
 .ui.dimmer.inverted {
   top: 0px !important;
-  background-image: none !important;
 }
 
 .ui.modal > .header {
@@ -171,4 +171,41 @@ img {
 
 #eegView.hide {
   visibility: hidden;
+}
+
+/* rc-slider-related styles */
+
+.rc-slider-with-marks {
+  width: 150px;
+}
+
+.rc-slider-rail {
+  background-color: #cccccc !important;
+}
+
+.rc-slider-track {
+  background-color: #cccccc !important;
+}
+
+.rc-slider-dot {
+  width: 10px;
+  height: 10px;
+  bottom: -3px;
+  border-color: #ccc;
+  background-color: #ccc;
+}
+
+.rc-slider-handle {
+  margin-left: -16px;
+  margin-top: -16px;
+  box-sizing: border-box;
+  height: 32px;
+  width: 32px;
+  border: 2px solid #007c70;
+  background-color: #007c70;
+}
+
+.rc-slider-mark-text {
+  font-size: 14px;
+  margin-top: 10px;
 }

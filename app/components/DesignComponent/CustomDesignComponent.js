@@ -13,6 +13,7 @@ import {
 import SecondaryNavComponent from "../SecondaryNavComponent";
 import PreviewExperimentComponent from "../PreviewExperimentComponent";
 import StimuliDesignColumn from "./StimuliDesignColumn";
+import ParamSlider from "./ParamSlider";
 
 const CUSTOM_STEPS = {
   OVERVIEW: "OVERVIEW",
@@ -59,9 +60,11 @@ export default class CustomDesign extends Component<Props, State> {
     this.state = {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: false,
-      question: "",
-      hypothesis: "",
-      methods: "",
+      question: isNil(props.description) ? "" : props.description.question,
+      hypothesis: isNil(props.description) ? "" : props.description.hypothesis,
+      methods: isNil(props.description) ? "" : props.description.methods,
+      trialDuration: props.params.trialDuration,
+      iti: props.params.iti,
       stim1Name: "",
       stim1Response: 1,
       stim1Dir: "",
@@ -106,6 +109,11 @@ export default class CustomDesign extends Component<Props, State> {
         type: EVENTS.FACE
       }
     });
+    this.props.experimentActions.setDescription({
+      question: this.state.question,
+      hypothesis: this.state.hypothesis,
+      methods: this.state.methods
+    });
   }
 
   renderPreviewButton() {
@@ -148,6 +156,50 @@ export default class CustomDesign extends Component<Props, State> {
               dir={this.state.stim2Dir}
               onChange={(key, data) => this.setState({ [key]: data })}
             />
+          </Grid>
+        );
+      case CUSTOM_STEPS.PARAMETERS:
+        return (
+          <Grid
+            stretched
+            padded
+            relaxed="very"
+            columns="equal"
+            className={styles.contentGrid}
+          >
+            <Grid.Column stretched verticalAlign="middle">
+              <Segment basic>
+                <Header as="h1">Trial Duration</Header>
+                <p>
+                  Select the trial duration. This determines the amount of time
+                  each image will be displayed during the experiment.
+                </p>
+              </Segment>
+              <Segment basic>
+                <ParamSlider
+                  label="Trial Duration (seconds)"
+                  value={this.state.trialDuration}
+                  onChange={value => this.setState({ trialDuration: value })}
+                />
+              </Segment>
+            </Grid.Column>
+            <Grid.Column stretched verticalAlign="middle">
+              <Segment basic>
+                <Header as="h1">ITI Duration</Header>
+                <p>
+                  Select the intertrial interval duration. This is the amount of
+                  time between trials measured from the end of one trial to the
+                  start of the next one.
+                </p>
+              </Segment>
+              <Segment basic>
+                <ParamSlider
+                  label="ITI Duration (seconds)"
+                  value={this.state.iti}
+                  onChange={value => this.setState({ iti: value })}
+                />
+              </Segment>
+            </Grid.Column>
           </Grid>
         );
       case CUSTOM_STEPS.PREVIEW:
