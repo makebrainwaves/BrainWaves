@@ -1,22 +1,22 @@
 // @flow
-import React, { Component } from "react";
-import { isNil } from "lodash";
-import { Grid, Button, Header, Segment, Image } from "semantic-ui-react";
-import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../../constants/constants";
-import faceHouseIcon from "../../assets/face_house/face_house_icon.jpg";
-import brainwavesLogo from "../../assets/common/brainwaves_logo_nih.png";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
+import styles from '../styles/common.css';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
+import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
+import brainwavesLogo from '../../assets/common/brainwaves_logo_nih.png';
 import {
   readWorkspaces,
   readAndParseState
-} from "../../utils/filesystem/storage";
-import InputModal from "../InputModal";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import OverviewComponent from "./OverviewComponent";
+} from '../../utils/filesystem/storage';
+import InputModal from '../InputModal';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import OverviewComponent from './OverviewComponent';
 
 const HOME_STEPS = {
-  RECENT: "RECENT",
-  NEW: "EXPERIMENTS"
+  RECENT: 'RECENT',
+  NEW: 'EXPERIMENTS'
 };
 
 interface Props {

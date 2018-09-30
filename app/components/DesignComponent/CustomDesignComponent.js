@@ -14,6 +14,7 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
 import ParamSlider from './ParamSlider';
+import PreviewButton from '../PreviewButtonComponent';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -73,25 +74,6 @@ export default class CustomDesign extends Component<Props, State> {
     }
   }
 
-  // customDesignStateToParams() {
-  //   return {
-  //     ...this.props.params,
-  //     iti: this.state.iti,
-  //     trialDuration: this.state.trialDuration,
-  //     intro: this.state.intro,
-  //     stimulus1: {
-  //       dir: this.state.stim1Dir,
-  //       title: this.state.stim1Name,
-  //       type: EVENTS.FACE
-  //     },
-  //     stimulus2: {
-  //       dir: this.state.stim2Dir,
-  //       title: this.state.stim2Name,
-  //       type: EVENTS.FACE
-  //     }
-  //   };
-  // }
-
   handleStepClick(step: string) {
     this.setState({ activeStep: step });
   }
@@ -101,30 +83,12 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handlePreview() {
-    if (isNil(this.props.mainTimeline)) {
-      this.props.experimentActions.loadDefaultTimeline();
-    }
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
   handleSaveParams() {
     this.props.experimentActions.setParams(this.state.params);
     this.props.experimentActions.setDescription(this.state.description);
-  }
-
-  renderPreviewButton() {
-    if (!this.state.isPreviewing) {
-      return (
-        <Button secondary onClick={this.handlePreview}>
-          Preview Experiment
-        </Button>
-      );
-    }
-    return (
-      <Button negative onClick={this.handlePreview}>
-        Stop Preview
-      </Button>
-    );
   }
 
   renderSectionContent() {
@@ -251,10 +215,14 @@ export default class CustomDesign extends Component<Props, State> {
                   />
                 </Form>
               </Segment>
-              <Segment basic>{this.renderPreviewButton()}</Segment>
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={this.handlePreview}
+              />
             </Grid.Column>
           </Grid>
         );
+
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (

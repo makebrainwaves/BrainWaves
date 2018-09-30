@@ -1,16 +1,16 @@
-import { isNil } from "lodash";
-import { jsPsych } from "jspsych-react";
-import * as path from "path";
-import { readdirSync } from "fs";
-import { EXPERIMENTS } from "../../constants/constants";
-import { buildOddballTimeline } from "./timelines/oddball";
-import { buildN170Timeline } from "./timelines/n170";
-import { buildSSVEPTimeline } from "./timelines/ssvep";
+import { isNil } from 'lodash';
+import { jsPsych } from 'jspsych-react';
+import * as path from 'path';
+import { readdirSync } from 'fs';
+import { EXPERIMENTS } from '../../constants/constants';
+import { buildOddballTimeline } from './timelines/oddball';
+import { buildN170Timeline } from './timelines/n170';
+import { buildSSVEPTimeline } from './timelines/ssvep';
 import {
   MainTimeline,
   Trial,
   ExperimentParameters
-} from "../../constants/interfaces";
+} from '../../constants/interfaces';
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -53,9 +53,10 @@ export const parseTimeline = (
           },
           {
             ...timeline.timeline[1],
-            stimulus: jsPsych.timelineVariable("stimulusVar"),
+            stimulus: jsPsych.timelineVariable('stimulusVar'),
             type: params.pluginName,
-            trial_duration: params.trialDuration
+            trial_duration: params.trialDuration,
+            choices: [params.stimulus1.response, params.stimulus2.response]
           }
         ],
         sample: {
@@ -117,12 +118,12 @@ export const instantiateTimeline = (
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (trial.id === "trial") {
+        if (trial.id === 'trial') {
           return {
             ...trial,
             on_start: () =>
               eventCallback(
-                jsPsych.timelineVariable("eventTypeVar")(),
+                jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
               ),
             on_finish: () => {
@@ -145,9 +146,9 @@ export const instantiateTimeline = (
 export const getBehaviouralData = () =>
   jsPsych.data
     .get()
-    .filter(trial => !trial.stimulus.contains("fixation")) // Remove inter trial data
+    .filter(trial => !trial.stimulus.contains('fixation')) // Remove inter trial data
     // .filter((trial) => trial.rt > 0) // Filter out trials with no responsre
-    .ignore("internal_node_id")
+    .ignore('internal_node_id')
     .csv();
 
 // Returns an array of images that are used in a timeline for use in preloading

@@ -1,7 +1,7 @@
-import React, { Component } from "react";
-import { Grid, Header } from "semantic-ui-react";
-import styles from "../styles/secondarynav.css";
-import SecondaryNavSegment from "./SecondaryNavSegment";
+import React, { Component } from 'react';
+import { Grid, Header } from 'semantic-ui-react';
+import styles from '../styles/secondarynav.css';
+import SecondaryNavSegment from './SecondaryNavSegment';
 
 interface Props {
   title: string | React.ReactNode;
@@ -13,14 +13,11 @@ interface Props {
 
 export default class SecondaryNavComponent extends Component<Props> {
   shouldComponentUpdate(nextProps) {
-    if (nextProps.activeStep !== this.props.activeStep) {
-      return true;
-    }
-    return false;
+    return nextProps.activeStep !== this.props.activeStep;
   }
 
   renderTitle() {
-    if (typeof this.props.title === "string") {
+    if (typeof this.props.title === 'string') {
       return <Header as="h2">{this.props.title}</Header>;
     }
     return this.props.title;

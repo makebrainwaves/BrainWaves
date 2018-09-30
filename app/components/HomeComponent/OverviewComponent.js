@@ -1,15 +1,16 @@
-import React, { Component } from "react";
-import { Grid, Header, Button, Segment } from "semantic-ui-react";
-import styles from "../styles/common.css";
-import { EXPERIMENTS } from "../../constants/constants";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import { loadTimeline } from "../../utils/jspsych/functions";
+import React, { Component } from 'react';
+import { Grid, Header, Button, Segment } from 'semantic-ui-react';
+import styles from '../styles/common.css';
+import { EXPERIMENTS } from '../../constants/constants';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import PreviewButton from '../PreviewButtonComponent';
+import { loadTimeline } from '../../utils/jspsych/functions';
 
 const OVERVIEW_STEPS = {
-  OVERVIEW: "OVERVIEW",
-  BACKGROUND: "BACKGROUND",
-  PROTOCOL: "PROTOCOL"
+  OVERVIEW: 'OVERVIEW',
+  BACKGROUND: 'BACKGROUND',
+  PROTOCOL: 'PROTOCOL'
 };
 
 interface Props {
@@ -44,21 +45,6 @@ export default class OverviewComponent extends Component<Props, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
-  renderPreviewButton() {
-    if (!this.state.isPreviewing) {
-      return (
-        <Button secondary onClick={this.handlePreview}>
-          Preview Experiment
-        </Button>
-      );
-    }
-    return (
-      <Button negative onClick={this.handlePreview}>
-        Stop Preview
-      </Button>
-    );
-  }
-
   renderSectionContent() {
     switch (this.state.activeStep) {
       case OVERVIEW_STEPS.PROTOCOL:
@@ -78,13 +64,16 @@ export default class OverviewComponent extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                Subjects will view a series of images of{" "}
+                Subjects will view a series of images of{' '}
                 <b> faces and houses</b> for <b>120 seconds</b>
               </Segment>
               <Segment as="p" basic>
                 Subjects will mentally note which stimulus they are perceiving
               </Segment>
-              <Segment basic>{this.renderPreviewButton()}</Segment>
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={this.handlePreview}
+              />
             </Grid.Column>
           </Grid>
         );
@@ -165,7 +154,7 @@ export default class OverviewComponent extends Component<Props, State> {
               primary
               onClick={() => this.props.onStartExperiment(this.props.type)}
             >
-              Start Experiment{" "}
+              Start Experiment{' '}
             </Button>
           }
         />

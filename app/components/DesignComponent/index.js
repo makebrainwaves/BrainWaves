@@ -1,35 +1,36 @@
 // @flow
-import React, { Component } from "react";
-import { Grid, Button, Segment, Header } from "semantic-ui-react";
-import { isNil } from "lodash";
-import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../../constants/constants";
+import React, { Component } from 'react';
+import { Grid, Button, Segment, Header } from 'semantic-ui-react';
+import { isNil } from 'lodash';
+import styles from '../styles/common.css';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
   MainTimeline,
   Trial,
   ExperimentParameters,
   ExperimentDescription
-} from "../../constants/interfaces";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import CustomDesign from "./CustomDesignComponent";
+} from '../../constants/interfaces';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import CustomDesign from './CustomDesignComponent';
+import PreviewButton from '../PreviewButtonComponent';
 
 const DESIGN_STEPS = {
-  OVERVIEW: "OVERVIEW",
-  BACKGROUND: "BACKGROUND",
-  PROTOCOL: "PROTOCOL"
+  OVERVIEW: 'OVERVIEW',
+  BACKGROUND: 'BACKGROUND',
+  PROTOCOL: 'PROTOCOL'
 };
 
 interface Props {
   history: Object;
-  type: ?EXPERIMENTS;
+  type: EXPERIMENTS;
   title: string;
-  params: ?ExperimentParameters;
-  mainTimeline: ?MainTimeline;
-  trials: ?{ [string]: Trial };
-  timelines: ?{};
+  params: ExperimentParameters;
+  mainTimeline: MainTimeline;
+  trials: { [string]: Trial };
+  timelines: {};
   experimentActions: Object;
-  description?: ExperimentDescription;
+  description: ExperimentDescription;
 }
 
 interface State {
@@ -67,25 +68,7 @@ export default class Design extends Component<Props, State> {
   }
 
   handlePreview() {
-    if (isNil(this.props.mainTimeline)) {
-      this.props.experimentActions.loadDefaultTimeline();
-    }
     this.setState({ isPreviewing: !this.state.isPreviewing });
-  }
-
-  renderPreviewButton() {
-    if (!this.state.isPreviewing) {
-      return (
-        <Button secondary onClick={this.handlePreview}>
-          Preview Experiment
-        </Button>
-      );
-    }
-    return (
-      <Button negative onClick={this.handlePreview}>
-        Stop Preview
-      </Button>
-    );
   }
 
   renderSectionContent() {
@@ -140,13 +123,16 @@ export default class Design extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                Subjects will view a series of images of{" "}
+                Subjects will view a series of images of{' '}
                 <b> faces and houses</b> for <b>120 seconds</b>
               </Segment>
               <Segment as="p" basic>
                 Subjects will mentally note which stimulus they are perceiving
               </Segment>
-              <Segment basic>{this.renderPreviewButton()}</Segment>
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={this.handlePreview}
+              />
             </Grid.Column>
           </Grid>
         );
