@@ -1,52 +1,51 @@
 // @flow
-import React, { Component } from "react";
-import { Grid, Button, Segment, Header, Form } from "semantic-ui-react";
-import { isNil, debounce } from "lodash";
-import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS, EVENTS } from "../../constants/constants";
+import React, { Component } from 'react';
+import { Grid, Button, Segment, Header, Form } from 'semantic-ui-react';
+import { isNil, debounce } from 'lodash';
+import styles from '../styles/common.css';
+import { EXPERIMENTS, SCREENS, EVENTS } from '../../constants/constants';
 import {
   MainTimeline,
   Trial,
   ExperimentParameters,
   ExperimentDescription
-} from "../../constants/interfaces";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import StimuliDesignColumn from "./StimuliDesignColumn";
-import ParamSlider from "./ParamSlider";
+} from '../../constants/interfaces';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import StimuliDesignColumn from './StimuliDesignColumn';
+import ParamSlider from './ParamSlider';
 
 const CUSTOM_STEPS = {
-  OVERVIEW: "OVERVIEW",
-  STIMULI: "STIMULI",
-  PARAMETERS: "PARAMETERS",
-  PREVIEW: "PREVIEW"
+  OVERVIEW: 'OVERVIEW',
+  STIMULI: 'STIMULI',
+  PARAMETERS: 'PARAMETERS',
+  PREVIEW: 'PREVIEW'
 };
 
 const FIELDS = {
-  QUESTION: "Research Question",
-  HYPOTHESIS: "Hypothesis",
-  METHODS: "Methods",
-  INTRO: "Experiment Instructions"
+  QUESTION: 'Research Question',
+  HYPOTHESIS: 'Hypothesis',
+  METHODS: 'Methods',
+  INTRO: 'Experiment Instructions'
 };
 
 interface Props {
   history: Object;
   type: ?EXPERIMENTS;
   title: string;
-  params: ?ExperimentParameters;
-  mainTimeline: ?MainTimeline;
-  trials: ?{ [string]: Trial };
-  timelines: ?{};
+  params: ExperimentParameters;
+  mainTimeline: MainTimeline;
+  trials: { [string]: Trial };
+  timelines: {};
   experimentActions: Object;
-  description?: ExperimentDescription;
+  description: ExperimentDescription;
 }
 
 interface State {
   activeStep: string;
   isPreviewing: boolean;
-  question: string;
-  hypothesis: string;
-  methods: string;
+  description: ExperimentDescription;
+  params: ExperimentParameters;
 }
 
 export default class CustomDesign extends Component<Props, State> {
@@ -55,24 +54,15 @@ export default class CustomDesign extends Component<Props, State> {
   handleStepClick: (Object, Object) => void;
   handleStartExperiment: Object => void;
   handlePreview: () => void;
+  handleSaveParams: () => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: false,
-      question: isNil(props.description) ? "" : props.description.question,
-      hypothesis: isNil(props.description) ? "" : props.description.hypothesis,
-      methods: isNil(props.description) ? "" : props.description.methods,
-      trialDuration: props.params.trialDuration,
-      iti: props.params.iti,
-      intro: props.params.intro,
-      stim1Name: "",
-      stim1Response: 1,
-      stim1Dir: "",
-      stim2Name: "",
-      stim2Response: 9,
-      stim2Dir: ""
+      description: props.description,
+      params: props.params
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -82,6 +72,25 @@ export default class CustomDesign extends Component<Props, State> {
       props.experimentActions.loadDefaultTimeline();
     }
   }
+
+  // customDesignStateToParams() {
+  //   return {
+  //     ...this.props.params,
+  //     iti: this.state.iti,
+  //     trialDuration: this.state.trialDuration,
+  //     intro: this.state.intro,
+  //     stimulus1: {
+  //       dir: this.state.stim1Dir,
+  //       title: this.state.stim1Name,
+  //       type: EVENTS.FACE
+  //     },
+  //     stimulus2: {
+  //       dir: this.state.stim2Dir,
+  //       title: this.state.stim2Name,
+  //       type: EVENTS.FACE
+  //     }
+  //   };
+  // }
 
   handleStepClick(step: string) {
     this.setState({ activeStep: step });
@@ -99,26 +108,8 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleSaveParams() {
-    this.props.experimentActions.setParams({
-      iti: this.state.iti,
-      trialDuration: this.state.trialDuration,
-      intro: this.state.intro,
-      stimulus1: {
-        dir: this.state.stim1Dir,
-        title: this.state.stim1Name,
-        type: EVENTS.FACE
-      },
-      stimulus2: {
-        dir: this.state.stim2Dir,
-        title: this.state.stim2Name,
-        type: EVENTS.FACE
-      }
-    });
-    this.props.experimentActions.setDescription({
-      question: this.state.question,
-      hypothesis: this.state.hypothesis,
-      methods: this.state.methods
-    });
+    this.props.experimentActions.setParams(this.state.params);
+    this.props.experimentActions.setDescription(this.state.description);
   }
 
   renderPreviewButton() {
@@ -149,17 +140,27 @@ export default class CustomDesign extends Component<Props, State> {
           >
             <StimuliDesignColumn
               num={1}
-              name={this.state.stim1Name}
-              response={this.state.stim1Response}
-              dir={this.state.stim1Dir}
-              onChange={(key, data) => this.setState({ [key]: data })}
+              onChange={(key, data) =>
+                this.setState({
+                  params: {
+                    ...this.state.params,
+                    stimulus1: { ...this.state.params.stimulus1, [key]: data }
+                  }
+                })
+              }
+              {...this.props.params.stimulus1}
             />
             <StimuliDesignColumn
               num={2}
-              name={this.state.stim2Name}
-              response={this.state.stim2Response}
-              dir={this.state.stim2Dir}
-              onChange={(key, data) => this.setState({ [key]: data })}
+              onChange={(key, data) =>
+                this.setState({
+                  params: {
+                    ...this.state.params,
+                    stimulus1: { ...this.state.params.stimulus2, [key]: data }
+                  }
+                })
+              }
+              {...this.props.params.stimulus2}
             />
           </Grid>
         );
@@ -183,8 +184,12 @@ export default class CustomDesign extends Component<Props, State> {
               <Segment basic>
                 <ParamSlider
                   label="Trial Duration (seconds)"
-                  value={this.state.trialDuration}
-                  onChange={value => this.setState({ trialDuration: value })}
+                  value={this.state.params.trialDuration}
+                  onChange={value =>
+                    this.setState({
+                      params: { ...this.state.params, trialDuration: value }
+                    })
+                  }
                 />
               </Segment>
             </Grid.Column>
@@ -200,8 +205,12 @@ export default class CustomDesign extends Component<Props, State> {
               <Segment basic>
                 <ParamSlider
                   label="ITI Duration (seconds)"
-                  value={this.state.iti}
-                  onChange={value => this.setState({ iti: value })}
+                  value={this.state.params.iti}
+                  onChange={value =>
+                    this.setState({
+                      params: { ...this.state.params, iti: value }
+                    })
+                  }
                 />
               </Segment>
             </Grid.Column>
@@ -218,7 +227,7 @@ export default class CustomDesign extends Component<Props, State> {
               className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
-                params={this.props.params}
+                params={this.state.params}
                 mainTimeline={this.props.mainTimeline}
                 trials={this.props.trials}
                 timelines={this.props.timelines}
@@ -232,10 +241,12 @@ export default class CustomDesign extends Component<Props, State> {
                     autoHeight
                     style={{ minHeight: 100 }}
                     label={FIELDS.INTRO}
-                    value={this.state.intro}
+                    value={this.state.params.intro}
                     placeholder="You will view a series of images..."
                     onChange={(event, data) =>
-                      this.setState({ intro: data.value })
+                      this.setState({
+                        params: { ...this.state.params, intro: data.value }
+                      })
                     }
                   />
                 </Form>
@@ -260,10 +271,15 @@ export default class CustomDesign extends Component<Props, State> {
                   autoHeight
                   style={{ minHeight: 100 }}
                   label={FIELDS.QUESTION}
-                  value={this.state.question}
+                  value={this.state.description.question}
                   placeholder="Explain your research question here."
                   onChange={(event, data) =>
-                    this.setState({ question: data.value })
+                    this.setState({
+                      description: {
+                        ...this.state.description,
+                        question: data.value
+                      }
+                    })
                   }
                 />
               </Form>
@@ -274,10 +290,15 @@ export default class CustomDesign extends Component<Props, State> {
                   autoHeight
                   style={{ minHeight: 100 }}
                   label={FIELDS.HYPOTHESIS}
-                  value={this.state.hypothesis}
+                  value={this.state.description.hypothesis}
                   placeholder="Describe your hypothesis here."
                   onChange={(event, data) =>
-                    this.setState({ hypothesis: data.value })
+                    this.setState({
+                      description: {
+                        ...this.state.description,
+                        hypothesis: data.value
+                      }
+                    })
                   }
                 />
               </Form>
@@ -288,10 +309,15 @@ export default class CustomDesign extends Component<Props, State> {
                   autoHeight
                   style={{ minHeight: 100 }}
                   label={FIELDS.METHODS}
-                  value={this.state.methods}
+                  value={this.state.description.methods}
                   placeholder="Explain how you will design your experiment to answer the question here."
                   onChange={(event, data) =>
-                    this.setState({ methods: data.value })
+                    this.setState({
+                      description: {
+                        ...this.state.description,
+                        methods: data.value
+                      }
+                    })
                   }
                 />
               </Form>
@@ -311,10 +337,20 @@ export default class CustomDesign extends Component<Props, State> {
           onStepClick={this.handleStepClick}
           button={
             <div>
-              <Button compact size="small" secondary onClick={this.handleSaveParams}>
+              <Button
+                compact
+                size="small"
+                secondary
+                onClick={this.handleSaveParams}
+              >
                 Save Experiment
               </Button>
-              <Button compact size="small" primary onClick={this.handleStartExperiment}>
+              <Button
+                compact
+                size="small"
+                primary
+                onClick={this.handleStartExperiment}
+              >
                 Collect Data
               </Button>
             </div>
