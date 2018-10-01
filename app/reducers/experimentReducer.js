@@ -17,7 +17,6 @@ import { EXPERIMENTS } from '../constants/constants';
 import {
   MainTimeline,
   Trial,
-  Timeline,
   ActionType,
   ExperimentDescription,
   ExperimentParameters
@@ -40,7 +39,7 @@ export interface ExperimentStateType {
 const initialState = {
   type: EXPERIMENTS.NONE,
   title: '',
-  params: {},
+  params: null,
   mainTimeline: [],
   trials: {},
   timelines: {},

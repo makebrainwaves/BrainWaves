@@ -10,14 +10,14 @@ export default class PreviewButton extends PureComponent<Props> {
   render() {
     if (!this.props.isPreviewing) {
       return (
-        <Button secondary onClick={this.onClick}>
+        <Button secondary onClick={this.props.onClick}>
           Preview Experiment
         </Button>
       );
     }
     return (
       <Segment basic>
-        <Button negative onClick={this.onClick}>
+        <Button negative onClick={this.props.onClick}>
           Stop Preview
         </Button>
       </Segment>

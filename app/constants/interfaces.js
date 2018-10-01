@@ -11,17 +11,17 @@ import { EVENTS } from './constants';
 
 // TODO: Write interface for jsPsych plugins
 
-export interface ExperimentParameters {
-  trialDuration: number;
-  experimentDuration: number;
-  iti: number;
-  jitter: number;
-  sampleType: string;
-  pluginName: string;
-  intro: string;
-  stimulus1: { dir: string, type: EVENTS, title: string, response: number };
-  stimulus2: { dir: string, type: EVENTS, title: string, response: number };
-}
+export type ExperimentParameters = {
+  trialDuration: number,
+  experimentDuration: number,
+  iti: number,
+  jitter: number,
+  sampleType: string,
+  pluginName: string,
+  intro: string,
+  stimulus1: { dir: string, type: EVENTS, title: string, response: number },
+  stimulus2: { dir: string, type: EVENTS, title: string, response: number }
+};
 
 export type ExperimentDescription = {
   question: string,

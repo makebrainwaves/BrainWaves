@@ -1,13 +1,13 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
-import React, { Component } from "react";
-import { Grid, Segment, Header, Form } from "semantic-ui-react";
-import { loadFromSystemDialog } from "../../utils/filesystem/select";
-import { FILE_TYPES } from "../../constants/constants";
+import React, { Component } from 'react';
+import { Grid, Segment, Header, Form } from 'semantic-ui-react';
+import { loadFromSystemDialog } from '../../utils/filesystem/select';
+import { FILE_TYPES } from '../../constants/constants';
 
 interface Props {
   num: number;
-  name: string;
+  title: string;
   response: number;
   dir: string;
   onChange: (string, string) => void;
@@ -25,7 +25,7 @@ export default class StimuliDesignColumn extends Component<Props> {
 
   shouldComponentUpdate(nextProps) {
     if (
-      nextProps.name !== this.props.name ||
+      nextProps.title !== this.props.title ||
       nextProps.response !== this.props.response ||
       nextProps.dir !== this.props.dir
     ) {
@@ -36,18 +36,16 @@ export default class StimuliDesignColumn extends Component<Props> {
 
   async handleSelectFolder() {
     const dir = await loadFromSystemDialog(FILE_TYPES.STIMULUS_DIR);
-    console.log(dir);
-    this.props.onChange(`stim${this.props.num}Dir`, dir);
+    this.props.onChange('dir', dir);
   }
 
   render() {
-    console.log(this.props.dir);
     return (
       <Grid.Column stretched verticalAlign="middle">
         <Segment basic>
           <Header as="h1">Stimuli {this.props.num}</Header>
           <p>
-            Give your stimuli group a name, select the location of your images,
+            Give your stimuli group a title, select the location of your images,
             and choose the correct key response
           </p>
         </Segment>
@@ -56,10 +54,10 @@ export default class StimuliDesignColumn extends Component<Props> {
             <Form.Group>
               <Form.Input
                 width={10}
-                label="Name"
-                value={this.props.name}
+                label="Title"
+                value={this.props.title}
                 onChange={(event, data) =>
-                  this.props.onChange(`stim${this.props.num}Name`, data.value)
+                  this.props.onChange('title', data.value)
                 }
                 placeholder="e.g. Faces"
               />
@@ -69,10 +67,7 @@ export default class StimuliDesignColumn extends Component<Props> {
                 label="Correct Response"
                 value={this.props.response}
                 onChange={(event, data) =>
-                  this.props.onChange(
-                    `stim${this.props.num}Response`,
-                    data.value
-                  )
+                  this.props.onChange('response', data.value)
                 }
                 placeholder="Response"
                 options={RESPONSE_OPTIONS}

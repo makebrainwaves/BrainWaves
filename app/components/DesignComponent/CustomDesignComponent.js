@@ -1,9 +1,9 @@
 // @flow
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Header, Form } from 'semantic-ui-react';
-import { isNil, debounce } from 'lodash';
+import { isNil } from 'lodash';
 import styles from '../styles/common.css';
-import { EXPERIMENTS, SCREENS, EVENTS } from '../../constants/constants';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
   MainTimeline,
   Trial,
@@ -104,6 +104,7 @@ export default class CustomDesign extends Component<Props, State> {
           >
             <StimuliDesignColumn
               num={1}
+              {...this.state.params.stimulus1}
               onChange={(key, data) =>
                 this.setState({
                   params: {
@@ -112,19 +113,18 @@ export default class CustomDesign extends Component<Props, State> {
                   }
                 })
               }
-              {...this.props.params.stimulus1}
             />
             <StimuliDesignColumn
               num={2}
+              {...this.state.params.stimulus2}
               onChange={(key, data) =>
                 this.setState({
                   params: {
                     ...this.state.params,
-                    stimulus1: { ...this.state.params.stimulus2, [key]: data }
+                    stimulus2: { ...this.state.params.stimulus2, [key]: data }
                   }
                 })
               }
-              {...this.props.params.stimulus2}
             />
           </Grid>
         );

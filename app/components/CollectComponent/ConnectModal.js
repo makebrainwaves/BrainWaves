@@ -12,12 +12,14 @@ import {
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
-  CONNECTION_STATUS
+  CONNECTION_STATUS,
+  SCREENS
 } from '../../constants/constants';
 import styles from '../styles/collect.css';
 import blake from '../../assets/face_house/faces/Blake_3.jpg';
 
 interface Props {
+  history: Object;
   open: boolean;
   connectedDevice: Object;
   signalQualityObservable: ?any;
@@ -30,8 +32,14 @@ interface Props {
 
 interface State {
   selectedDevice: ?any;
-  tutorialProgress: number;
+  instructionProgress: number;
 }
+
+const INSTRUCTION_PROGRESS = {
+  SEARCHING: 0,
+  TURN_ON: 1,
+  COMPUTER_CONNECTABILITY: 2
+};
 
 export default class ConnectModal extends Component<Props, State> {
   handleConnect: () => void;
@@ -46,7 +54,7 @@ export default class ConnectModal extends Component<Props, State> {
     super(props);
     this.state = {
       selectedDevice: null,
-      tutorialProgress: 0
+      instructionProgress: INSTRUCTION_PROGRESS.SEARCHING
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
@@ -56,7 +64,7 @@ export default class ConnectModal extends Component<Props, State> {
       leading: true,
       trailing: false
     });
-    this.handleTutorialProgress = this.handleTutorialProgress.bind(this);
+    this.handleinstructionProgress = this.handleinstructionProgress.bind(this);
   }
 
   componentWillUpdate(nextProps: Props) {
@@ -64,18 +72,18 @@ export default class ConnectModal extends Component<Props, State> {
       nextProps.deviceAvailability === DEVICE_AVAILABILITY.NONE &&
       this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
     ) {
-      this.setState({ tutorialProgress: 1 });
+      this.setState({ instructionProgress: 1 });
     }
     if (
       nextProps.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE &&
       this.props.deviceAvailability === DEVICE_AVAILABILITY.NONE
     ) {
-      this.setState({ tutorialProgress: 0 });
+      this.setState({ instructionProgress: 0 });
     }
   }
 
   handleSearch() {
-    this.setState({ tutorialProgress: 0 });
+    this.setState({ instructionProgress: 0 });
     this.props.deviceActions.setDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
@@ -85,8 +93,12 @@ export default class ConnectModal extends Component<Props, State> {
     this.props.deviceActions.connectToDevice(this.state.selectedDevice);
   }
 
-  handleTutorialProgress(step: number) {
-    this.setState({ tutorialProgress: step });
+  handleinstructionProgress(step: INSTRUCTION_PROGRESS) {
+    if (step === 0) {
+      this.props.history.push(SCREENS.DESIGN.route);
+    } else {
+      this.setState({ instructionProgress: step });
+    }
   }
 
   renderAvailableDeviceList() {
@@ -143,7 +155,7 @@ export default class ConnectModal extends Component<Props, State> {
         </React.Fragment>
       );
     }
-    if (this.state.tutorialProgress === 1) {
+    if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
       return (
         <React.Fragment>
           <Modal.Header className={styles.connectHeader}>
@@ -161,7 +173,7 @@ export default class ConnectModal extends Component<Props, State> {
                 <Button
                   fluid
                   className={styles.secondaryButton}
-                  onClick={() => this.handleTutorialProgress(0)}
+                  onClick={() => this.handleinstructionProgress(0)}
                 >
                   Back
                 </Button>
@@ -170,7 +182,11 @@ export default class ConnectModal extends Component<Props, State> {
                 <Button
                   fluid
                   className={styles.primaryButton}
-                  onClick={() => this.handleTutorialProgress(2)}
+                  onClick={() =>
+                    this.handleinstructionProgress(
+                      INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
+                    )
+                  }
                 >
                   Next
                 </Button>
@@ -180,7 +196,10 @@ export default class ConnectModal extends Component<Props, State> {
         </React.Fragment>
       );
     }
-    if (this.state.tutorialProgress === 2) {
+    if (
+      this.state.instructionProgress ===
+      INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
+    ) {
       return (
         <React.Fragment>
           <Modal.Header className={styles.connectHeader}>
@@ -198,7 +217,9 @@ export default class ConnectModal extends Component<Props, State> {
                 <Button
                   fluid
                   className={styles.secondaryButton}
-                  onClick={() => this.handleTutorialProgress(1)}
+                  onClick={() =>
+                    this.handleinstructionProgress(INSTRUCTION_PROGRESS.TURN_ON)
+                  }
                 >
                   Back
                 </Button>
@@ -234,7 +255,7 @@ export default class ConnectModal extends Component<Props, State> {
                 <Button
                   fluid
                   className={styles.secondaryButton}
-                  onClick={() => this.handleTutorialProgress(1)}
+                  onClick={() => this.handleinstructionProgress(1)}
                 >
                   Back
                 </Button>
@@ -255,7 +276,7 @@ export default class ConnectModal extends Component<Props, State> {
             <a
               role="link"
               tabIndex={0}
-              onClick={() => this.handleTutorialProgress(1)}
+              onClick={() => this.handleinstructionProgress(1)}
             >
               Don&#39;t see your device?
             </a>

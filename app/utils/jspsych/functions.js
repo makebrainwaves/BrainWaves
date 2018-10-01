@@ -91,8 +91,6 @@ export const parseTimeline = (
     })
   );
 
-  console.log(parsedTrials);
-
   // Combine trials and timelines into one object
   const jsPsychObject = { ...parsedTrials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id

@@ -17,6 +17,7 @@ import ConnectModal from './ConnectModal';
 import RunComponent from './RunComponent';
 
 interface Props {
+  history: Object;
   experimentActions: Object;
   connectedDevice: Object;
   signalQualityObservable: ?any;
@@ -109,6 +110,7 @@ export default class Collect extends Component<Props, State> {
     return (
       <div>
         <ConnectModal
+          history={this.props.history}
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
