@@ -4,6 +4,7 @@ import styles from '../styles/common.css';
 import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import PreviewButton from '../PreviewButtonComponent';
 import { loadTimeline } from '../../utils/jspsych/functions';
 
 const OVERVIEW_STEPS = {
@@ -44,21 +45,6 @@ export default class OverviewComponent extends Component<Props, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
-  renderPreviewButton() {
-    if (!this.state.isPreviewing) {
-      return (
-        <Button secondary onClick={this.handlePreview}>
-          Preview Experiment
-        </Button>
-      );
-    }
-    return (
-      <Button negative onClick={this.handlePreview}>
-        Stop Preview
-      </Button>
-    );
-  }
-
   renderSectionContent() {
     switch (this.state.activeStep) {
       case OVERVIEW_STEPS.PROTOCOL:
@@ -69,6 +55,7 @@ export default class OverviewComponent extends Component<Props, State> {
               width={6}
               textAlign="right"
               verticalAlign="middle"
+              className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
                 {...loadTimeline(this.props.type)}
@@ -83,7 +70,10 @@ export default class OverviewComponent extends Component<Props, State> {
               <Segment as="p" basic>
                 Subjects will mentally note which stimulus they are perceiving
               </Segment>
-              <Segment basic>{this.renderPreviewButton()}</Segment>
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={this.handlePreview}
+              />
             </Grid.Column>
           </Grid>
         );
@@ -144,7 +134,7 @@ export default class OverviewComponent extends Component<Props, State> {
 
   render() {
     return (
-      <div>
+      <React.Fragment>
         <Button
           basic
           circular
@@ -168,8 +158,10 @@ export default class OverviewComponent extends Component<Props, State> {
             </Button>
           }
         />
-        {this.renderSectionContent()}
-      </div>
+        <div className={styles.homeContentContainer}>
+          {this.renderSectionContent()}
+        </div>
+      </React.Fragment>
     );
   }
 }

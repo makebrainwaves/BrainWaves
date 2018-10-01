@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { isNil } from 'lodash';
 import {
   Grid,
   Segment,
@@ -11,6 +10,7 @@ import {
 import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import PreviewButton from '../PreviewButtonComponent';
 import HelpSidebar from './HelpSidebar';
 import styles from '../styles/collect.css';
 import {
@@ -28,12 +28,12 @@ interface Props {
   deviceActions: Object;
   experimentActions: Object;
   availableDevices: Array<any>;
-  type: ?EXPERIMENTS;
+  type: EXPERIMENTS;
   isRunning: boolean;
-  params: ?ExperimentParameters;
-  mainTimeline: ?MainTimeline;
-  trials: ?{ [string]: Trial };
-  timelines: ?{};
+  params: ExperimentParameters;
+  mainTimeline: MainTimeline;
+  trials: { [string]: Trial };
+  timelines: {};
   subject: string;
   session: number;
   openRunComponent: () => void;
@@ -60,9 +60,6 @@ export default class PreTestComponent extends Component<Props, State> {
   }
 
   handlePreview() {
-    if (isNil(this.props.mainTimeline)) {
-      this.props.experimentActions.loadDefaultTimeline();
-    }
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
@@ -74,11 +71,11 @@ export default class PreTestComponent extends Component<Props, State> {
     if (this.state.isPreviewing) {
       return (
         <PreviewExperimentComponent
-          isPreviewing={this.state.isPreviewing}
           params={this.props.params}
           mainTimeline={this.props.mainTimeline}
           trials={this.props.trials}
           timelines={this.props.timelines}
+          isPreviewing={this.state.isPreviewing}
         />
       );
     }
@@ -109,21 +106,6 @@ export default class PreTestComponent extends Component<Props, State> {
           </List>
         </Segment>
       </Segment>
-    );
-  }
-
-  renderPreviewButton() {
-    if (!this.state.isPreviewing) {
-      return (
-        <Button secondary onClick={this.handlePreview}>
-          Preview Experiment
-        </Button>
-      );
-    }
-    return (
-      <Button negative onClick={this.handlePreview}>
-        Stop Preview
-      </Button>
     );
   }
 
@@ -166,7 +148,10 @@ export default class PreTestComponent extends Component<Props, State> {
                 </Header>
               </Grid.Column>
               <Grid.Column floated="right">
-                {this.renderPreviewButton()}
+                <PreviewButton
+                  isPreviewing={this.state.isPreviewing}
+                  onClick={this.handlePreview}
+                />
                 <Button
                   primary
                   disabled={
@@ -179,7 +164,7 @@ export default class PreTestComponent extends Component<Props, State> {
               </Grid.Column>
             </Grid.Row>
             <Grid.Row>
-              <Grid.Column stretched width={6}>
+              <Grid.Column stretched width={6} className={styles.previewColumn}>
                 {this.renderSignalQualityOrPreview()}
               </Grid.Column>
               <Grid.Column width={10}>

@@ -186,7 +186,6 @@ export default class Home extends Component<Props, State> {
                   Review
                 </Button>
                 <Button
-                  disabled
                   primary
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
                 >
@@ -219,7 +218,9 @@ export default class Home extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />
-        {this.renderSectionContent()}
+        <div className={styles.homeContentContainer}>
+          {this.renderSectionContent()}
+        </div>
       </React.Fragment>
     );
   }

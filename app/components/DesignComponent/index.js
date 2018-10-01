@@ -7,10 +7,13 @@ import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
   MainTimeline,
   Trial,
-  ExperimentParameters
+  ExperimentParameters,
+  ExperimentDescription
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import CustomDesign from './CustomDesignComponent';
+import PreviewButton from '../PreviewButtonComponent';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -20,13 +23,14 @@ const DESIGN_STEPS = {
 
 interface Props {
   history: Object;
-  type: ?EXPERIMENTS;
+  type: EXPERIMENTS;
   title: string;
-  params: ?ExperimentParameters;
-  mainTimeline: ?MainTimeline;
-  trials: ?{ [string]: Trial };
-  timelines: ?{};
+  params: ExperimentParameters;
+  mainTimeline: MainTimeline;
+  trials: { [string]: Trial };
+  timelines: {};
   experimentActions: Object;
+  description: ExperimentDescription;
 }
 
 interface State {
@@ -64,25 +68,7 @@ export default class Design extends Component<Props, State> {
   }
 
   handlePreview() {
-    if (isNil(this.props.mainTimeline)) {
-      this.props.experimentActions.loadDefaultTimeline();
-    }
     this.setState({ isPreviewing: !this.state.isPreviewing });
-  }
-
-  renderPreviewButton() {
-    if (!this.state.isPreviewing) {
-      return (
-        <Button secondary onClick={this.handlePreview}>
-          Preview Experiment
-        </Button>
-      );
-    }
-    return (
-      <Button negative onClick={this.handlePreview}>
-        Stop Preview
-      </Button>
-    );
   }
 
   renderSectionContent() {
@@ -125,6 +111,7 @@ export default class Design extends Component<Props, State> {
               width={6}
               textAlign="right"
               verticalAlign="middle"
+              className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
                 params={this.props.params}
@@ -142,7 +129,10 @@ export default class Design extends Component<Props, State> {
               <Segment as="p" basic>
                 Subjects will mentally note which stimulus they are perceiving
               </Segment>
-              <Segment basic>{this.renderPreviewButton()}</Segment>
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={this.handlePreview}
+              />
             </Grid.Column>
           </Grid>
         );
@@ -172,6 +162,9 @@ export default class Design extends Component<Props, State> {
   }
 
   render() {
+    if (this.props.type === EXPERIMENTS.CUSTOM) {
+      return <CustomDesign {...this.props} />;
+    }
     return (
       <div className={styles.mainContainer}>
         <SecondaryNavComponent

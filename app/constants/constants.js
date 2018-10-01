@@ -123,5 +123,6 @@ export const SIGNAL_QUALITY_THRESHOLDS = {
 };
 
 export const FILE_TYPES = {
+  STIMULUS_DIR: 'STIMULUS_DIR',
   TIMELINE: 'TIMELINE'
 };

@@ -11,16 +11,23 @@ import { EVENTS } from './constants';
 
 // TODO: Write interface for jsPsych plugins
 
-export interface ExperimentParameters {
-  trialDuration?: number;
-  experimentDuration?: number;
-  iti?: number;
-  jitter?: number;
-  sampleType?: string;
-  pluginName?: string;
-  stimulus1?: { dir: string, type: EVENTS };
-  stimulus2?: { dir: string, type: EVENTS };
-}
+export type ExperimentParameters = {
+  trialDuration: number,
+  experimentDuration: number,
+  iti: number,
+  jitter: number,
+  sampleType: string,
+  pluginName: string,
+  intro: string,
+  stimulus1: { dir: string, type: EVENTS, title: string, response: number },
+  stimulus2: { dir: string, type: EVENTS, title: string, response: number }
+};
+
+export type ExperimentDescription = {
+  question: string,
+  hypothesis: string,
+  methods: string
+};
 
 // Array of timeline and trial ids that will be presented in experiment
 export type MainTimeline = Array<string>;
@@ -29,7 +36,7 @@ export type MainTimeline = Array<string>;
 export interface Trial {
   id: string;
   type: string;
-  stimulus: string | StimulusVariable;
+  stimulus?: string | StimulusVariable;
   trial_duration?: number | (() => number);
   post_trial_gap?: number;
   on_load?: string => void | StimulusVariable;
@@ -37,12 +44,12 @@ export interface Trial {
 }
 
 // Timeline of jsPsych trials
-export interface Timeline {
-  id: string;
-  timeline: Array<Trial>;
-  sample?: SampleParameter;
-  timeline_variables?: Array<Object>;
-}
+export type Timeline = {
+  id: string,
+  timeline: Array<Trial>,
+  sample?: SampleParameter,
+  timeline_variables?: Array<Object>
+};
 
 export interface SampleParameter {
   type: string;

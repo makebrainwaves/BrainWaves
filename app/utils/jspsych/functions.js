@@ -55,7 +55,8 @@ export const parseTimeline = (
             ...timeline.timeline[1],
             stimulus: jsPsych.timelineVariable('stimulusVar'),
             type: params.pluginName,
-            trial_duration: params.trialDuration
+            trial_duration: params.trialDuration,
+            choices: [params.stimulus1.response, params.stimulus2.response]
           }
         ],
         sample: {
@@ -80,8 +81,18 @@ export const parseTimeline = (
     }))
   );
 
+  // Inserts param.intro as stimulus property of first trial
+  const parsedTrials = Object.assign(
+    ...Object.entries(trials).map(([id, trial]) => {
+      if (id === mainTimeline[0]) {
+        return { [id]: { ...trial, stimulus: params.intro } };
+      }
+      return { [id]: trial };
+    })
+  );
+
   // Combine trials and timelines into one object
-  const jsPsychObject = { ...trials, ...parsedTimelines };
+  const jsPsychObject = { ...parsedTrials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id
   return mainTimeline.map(id => jsPsychObject[id]);
 };
@@ -96,11 +107,11 @@ export const instantiateTimeline = (
 ) =>
   timeline.map((jspsychObject, index) => {
     if (index === 0) {
-      // start
+      // intro
       return { ...jspsychObject, on_finish: startCallback };
     }
     if (index === timeline.length - 1) {
-      // stop
+      // end
       return { ...jspsychObject, on_load: stopCallback };
     }
     if (!isNil(jspsychObject.timeline)) {

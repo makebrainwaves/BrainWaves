@@ -9,10 +9,18 @@ import {
   SET_TYPE,
   SET_SUBJECT,
   SET_TITLE,
-  SET_EXPERIMENT_STATE
+  SET_EXPERIMENT_STATE,
+  SET_PARAMS,
+  SET_DESCRIPTION
 } from '../actions/experimentActions';
 import { EXPERIMENTS } from '../constants/constants';
-import { MainTimeline, Trial, ActionType } from '../constants/interfaces';
+import {
+  MainTimeline,
+  Trial,
+  ActionType,
+  ExperimentDescription,
+  ExperimentParameters
+} from '../constants/interfaces';
 
 export interface ExperimentStateType {
   +type: ?EXPERIMENTS;
@@ -25,19 +33,21 @@ export interface ExperimentStateType {
   +subject: string;
   +session: number;
   +isRunning: boolean;
+  +description: ExperimentDescription;
 }
 
 const initialState = {
   type: EXPERIMENTS.NONE,
   title: '',
-  params: {},
+  params: null,
   mainTimeline: [],
   trials: {},
   timelines: {},
   plugins: {},
   subject: '',
   session: 1,
-  isRunning: false
+  isRunning: false,
+  description: { question: '', hypothesis: '', methods: '' }
 };
 
 export default function experiment(
@@ -63,6 +73,12 @@ export default function experiment(
         session: action.payload
       };
 
+    case SET_PARAMS:
+      return {
+        ...state,
+        params: { ...state.params, ...action.payload }
+      };
+
     case SET_TIMELINE:
       return {
         ...state,
@@ -73,6 +89,12 @@ export default function experiment(
       return {
         ...state,
         title: action.payload
+      };
+
+    case SET_DESCRIPTION:
+      return {
+        ...state,
+        description: action.payload
       };
 
     case SET_IS_RUNNING:

@@ -30,6 +30,10 @@
   padding: 3% !important;
 }
 
+.previewColumn {
+  height: 100%;
+}
+
 .primaryButton {
   font-size: 18px !important;
   font-weight: normal !important;

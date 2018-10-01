@@ -46,7 +46,9 @@ export default class TopNavComponent extends Component<Props> {
         verticalAlign="middle"
       >
         <Grid.Column width="3" className={styles.experimentTitleSegment}>
-          <NavLink to={SCREENS.HOME.route}>{this.props.title}</NavLink>
+          <NavLink to={SCREENS.HOME.route}>
+            {this.props.title ? this.props.title : 'Untitled'}
+          </NavLink>
         </Grid.Column>
         <PrimaryNavSegment
           {...SCREENS.DESIGN}

@@ -6,11 +6,14 @@
 import { dialog } from "electron";
 import { FILE_TYPES } from "../../constants/constants";
 
-export const loadFile = (event, arg) => {
+export const loadDialog = (event, arg) => {
   switch (arg) {
+    case FILE_TYPES.STIMULUS_DIR:
+      return selectStimulusFolder(event);
+
     case FILE_TYPES.TIMELINE:
     default:
-      selectTimeline(event);
+      return selectTimeline(event);
   }
 };
 
@@ -22,8 +25,20 @@ const selectTimeline = event => {
     },
     filePaths => {
       if (filePaths) {
-        event.sender.send("loadFileReply", filePaths[0]);
+        event.sender.send("loadDialogReply", filePaths[0]);
       }
+    }
+  );
+};
+
+const selectStimulusFolder = event => {
+  dialog.showOpenDialog(
+    {
+      title: "Select a folder of images",
+      properties: ["openDirectory"]
+    },
+    dir => {
+      event.sender.send("loadDialogReply", dir[0]);
     }
   );
 };
