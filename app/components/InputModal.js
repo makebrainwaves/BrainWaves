@@ -28,6 +28,7 @@ export default class InputModal extends Component<Props, State> {
       isError: false
     };
     this.handleTextEntry = debounce(this.handleTextEntry, 500).bind(this);
+    this.handleClose = this.handleClose.bind(this);
   }
 
   handleTextEntry(event, data) {
@@ -37,8 +38,9 @@ export default class InputModal extends Component<Props, State> {
   handleClose() {
     if (this.state.enteredText.length > 1) {
       this.props.onClose(this.state.enteredText);
+    } else {
+      this.setState({ isError: true });
     }
-    this.setState({ isError: true });
   }
 
   render() {

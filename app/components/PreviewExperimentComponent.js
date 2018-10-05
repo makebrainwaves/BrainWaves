@@ -42,7 +42,8 @@ export default class PreviewExperimentComponent extends Component<Props> {
       ),
       (value, time) => console.log('event ', value, time), // event callback
       () => {}, // start callback
-      () => {} // stop callback
+      () => {}, // stop callback
+      this.props.params.showProgessBar
     );
     return timeline;
   }
@@ -51,6 +52,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
     return getImages(this.props.params);
   }
 
+  // This function could be used in the future in order to load custom pre-coded jspsych experiments
   // async handleCustomExperimentLoad() {
   //   const timelinePath = await loadFromSystemDialog(FILE_TYPES.TIMELINE);
   // }
@@ -63,7 +65,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
       <Experiment
         settings={{
           timeline: this.handleTimeline(),
-          show_progress_bar: true,
+          show_progress_bar: this.props.params.showProgessBar,
           auto_update_progress_bar: false,
           preload_images: this.handleImages()
         }}

@@ -18,6 +18,7 @@ export const buildN170Timeline = () => ({
     pluginName: 'callback-image-display',
     intro:
       'You will view a series of faces and houses for two minutes. Please mentally note which stimulus you are viewing. Press any key to continue',
+    showProgressBar: false,
     stimulus1: { dir: facesDir, title: 'Face', type: EVENTS.FACE, response: 1 },
     stimulus2: {
       dir: housesDir,

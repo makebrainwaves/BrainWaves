@@ -103,7 +103,8 @@ export const instantiateTimeline = (
   timeline: Object,
   eventCallback: (?string) => void,
   startCallback: ?() => void = null,
-  stopCallback: ?() => void = null
+  stopCallback: ?() => void = null,
+  showProgessBar: ?boolean = false
 ) =>
   timeline.map((jspsychObject, index) => {
     if (index === 0) {
@@ -124,13 +125,15 @@ export const instantiateTimeline = (
                 jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
               ),
-            on_finish: () => {
-              jsPsych.setProgressBar(
-                jsPsych.progress().current_trial_global /
-                  2 /
-                  jspsychObject.sample.size
-              );
-            }
+            on_finish: showProgessBar
+              ? () => {
+                  jsPsych.setProgressBar(
+                    jsPsych.progress().current_trial_global /
+                      2 /
+                      jspsychObject.sample.size
+                  );
+                }
+              : null
           };
         }
         return trial;

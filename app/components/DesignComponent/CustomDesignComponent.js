@@ -1,6 +1,13 @@
 // @flow
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Header, Form } from 'semantic-ui-react';
+import {
+  Grid,
+  Button,
+  Segment,
+  Header,
+  Form,
+  Checkbox
+} from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
@@ -52,10 +59,11 @@ interface State {
 export default class CustomDesign extends Component<Props, State> {
   props: Props;
   state: State;
-  handleStepClick: (Object, Object) => void;
+  handleStepClick: string => void;
   handleStartExperiment: Object => void;
   handlePreview: () => void;
   handleSaveParams: () => void;
+  handleProgressBar: (Object, Object) => void;
 
   constructor(props: Props) {
     super(props);
@@ -69,6 +77,7 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSaveParams = this.handleSaveParams.bind(this);
+    this.handleProgressBar = this.handleProgressBar.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
     }
@@ -76,6 +85,12 @@ export default class CustomDesign extends Component<Props, State> {
 
   handleStepClick(step: string) {
     this.setState({ activeStep: step });
+  }
+
+  handleProgressBar(event: Object, data: Object) {
+    this.setState({
+      params: { ...this.state.params, showProgessBar: data.checked }
+    });
   }
 
   handleStartExperiment() {
@@ -175,6 +190,22 @@ export default class CustomDesign extends Component<Props, State> {
                       params: { ...this.state.params, iti: value }
                     })
                   }
+                />
+              </Segment>
+            </Grid.Column>
+            <Grid.Column stretched verticalAlign="middle">
+              <Segment basic>
+                <Header as="h1">Progress Bar</Header>
+                <p>
+                  This will display a small progress bar at the top of the
+                  experiment window
+                </p>
+              </Segment>
+              <Segment basic>
+                <Checkbox
+                  checked={this.state.params.showProgessBar}
+                  label="Enable progress bar"
+                  onChange={this.handleProgressBar}
                 />
               </Segment>
             </Grid.Column>

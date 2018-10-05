@@ -45,7 +45,7 @@ import {
 } from '../utils/filesystem/storage';
 import { saveEpochs } from '../utils/jupyter/cells';
 
-export const SET_TIMELINE = 'LOAD_TIMELINE';
+export const SET_TIMELINE = 'SET_TIMELINE';
 export const SET_IS_RUNNING = 'SET_IS_RUNNING';
 export const UPDATE_SESSION = 'UPDATE_SESSION';
 export const SET_SESSION = 'SET_SESSION';
@@ -100,11 +100,10 @@ const loadDefaultTimelineEpic = (action$, state$) =>
 
 const startEpic = (action$, state$) =>
   action$.ofType(START).pipe(
+    tap(console.log),
     filter(
       () =>
-        !state$.value.experiment.isRunning &&
-        state$.value.device.rawObservable &&
-        state$.value.experiment.subject !== ''
+        !state$.value.experiment.isRunning && state$.value.device.rawObservable
     ),
     map(() => {
       const writeStream = createEEGWriteStream(
@@ -147,21 +146,21 @@ const setSubjectEpic = action$ =>
 // TODO: Refactor this to use redux-observable state stream
 const updateSessionEpic = (action$, state$) =>
   action$.ofType(UPDATE_SESSION).pipe(
-    mapTo(state$.value.experiment.subject),
-    mergeMap(subject =>
-      from(readWorkspaceRawEEGData(state$.value.experiment.title)).pipe(
-        map(rawFiles => {
-          if (rawFiles.length > 0) {
-            console.log(rawFiles[0].slice(0, rawFiles[0].length - 8));
-            const subjectFiles = rawFiles.filter(filepath =>
-              filepath.path.includes(subject)
-            );
-            return subjectFiles.length;
-          }
-          return 1;
-        })
-      )
+    mergeMap(() =>
+      from(readWorkspaceRawEEGData(state$.value.experiment.title))
     ),
+    map(rawFiles => {
+      if (rawFiles.length > 0) {
+        const subjectFiles = rawFiles.filter(
+          filepath =>
+            filepath.name.slice(0, filepath.name.length - 10) ===
+            state$.value.experiment.subject
+        );
+        console.log(subjectFiles.length + 1);
+        return subjectFiles.length + 1;
+      }
+      return 1;
+    }),
     map(setSession)
   );
 

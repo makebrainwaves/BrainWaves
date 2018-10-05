@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Button, Segment } from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 
 interface Props {
   isPreviewing: boolean;
@@ -16,11 +16,9 @@ export default class PreviewButton extends PureComponent<Props> {
       );
     }
     return (
-      <Segment basic>
-        <Button negative onClick={this.props.onClick}>
-          Stop Preview
-        </Button>
-      </Segment>
+      <Button negative onClick={this.props.onClick}>
+        Stop Preview
+      </Button>
     );
   }
 }

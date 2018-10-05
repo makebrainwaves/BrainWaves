@@ -99,7 +99,8 @@ export default class Run extends Component<Props, State> {
       ),
       (value, time) => injectionFunction(value, time), // event callback
       null, // start callback
-      this.props.experimentActions.stop // stop callback
+      this.props.experimentActions.stop, // stop callback
+      this.props.params.showProgessBar
     );
     return timeline;
   }
@@ -144,21 +145,11 @@ export default class Run extends Component<Props, State> {
             <Segment basic className={styles.infoSegment}>
               Session Number: <b>{this.props.session}</b>
             </Segment>
-            {/* <Grid.Column>
-              <Button
-                fluid
-                className={styles.secondaryButton}
-                onClick={() => this.handleinstructionProgress(1)}
-              >
-                Back
-              </Button>
-            </Grid.Column> */}
             <Divider hidden section />
-
             <Button fluid primary onClick={this.handleStartExperiment}>
-              Start Experiment
+              Run Experiment
             </Button>
-            {this.renderCleanButton}
+            {this.renderCleanButton()}
           </Segment>
         </div>
       );
@@ -167,7 +158,7 @@ export default class Run extends Component<Props, State> {
       <Experiment
         settings={{
           timeline: this.handleTimeline(),
-          show_progress_bar: true,
+          show_progress_bar: this.props.params.showProgessBar,
           auto_update_progress_bar: false,
           on_finish: this.props.experimentActions.stop,
           preload_images: this.handleImages()
