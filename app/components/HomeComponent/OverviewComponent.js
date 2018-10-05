@@ -63,13 +63,13 @@ export default class OverviewComponent extends Component<Props, State> {
               />
             </Grid.Column>
             <Grid.Column width={6} verticalAlign="middle">
-              <Segment as="p" basic>
+              <p>
                 Subjects will view a series of images of{' '}
                 <b> faces and houses</b> for <b>120 seconds</b>
-              </Segment>
-              <Segment as="p" basic>
+              </p>
+              <p>
                 Subjects will mentally note which stimulus they are perceiving
-              </Segment>
+              </p>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
                 onClick={this.handlePreview}

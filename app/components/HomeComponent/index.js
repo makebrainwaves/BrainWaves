@@ -46,7 +46,7 @@ export default class Home extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: HOME_STEPS.RECENT,
+      activeStep: HOME_STEPS.NEW,
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,

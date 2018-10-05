@@ -30,6 +30,10 @@
   padding: 3% !important;
 }
 
+.preTestPushable {
+  height: 100vh !important;
+}
+
 .previewColumn {
   height: 100%;
 }
