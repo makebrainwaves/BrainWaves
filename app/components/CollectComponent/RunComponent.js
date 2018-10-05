@@ -1,15 +1,16 @@
 // @flow
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Input } from 'semantic-ui-react';
+import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
 import { Experiment } from 'jspsych-react';
 import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import styles from '../styles/common.css';
+import InputModal from '../InputModal';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
 import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
 import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
-import { EXPERIMENTS, DEVICES, SCREENS } from '../../constants/constants';
+import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import {
   parseTimeline,
   instantiateTimeline,
@@ -35,19 +36,31 @@ interface Props {
   experimentActions: Object;
 }
 
-export default class Run extends Component<Props> {
+interface State {
+  isInputModalOpen: boolean;
+}
+
+export default class Run extends Component<Props, State> {
   props: Props;
+  state: State;
   handleSubjectEntry: (Object, Object) => void;
   handleSessionEntry: (Object, Object) => void;
   handleStartExperiment: () => void;
   handleTimeline: () => void;
+  handleCloseInputModal: () => void;
+  handleClean: () => void;
 
   constructor(props: Props) {
     super(props);
+    this.state = {
+      isInputModalOpen: props.subject.length === 0
+    };
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleTimeline = this.handleTimeline.bind(this);
+    this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
+    // this.handleClean = this.handleClean.bind(this);
   }
 
   componentDidMount() {
@@ -66,6 +79,11 @@ export default class Run extends Component<Props> {
 
   handleStartExperiment() {
     this.props.experimentActions.start();
+  }
+
+  handleCloseInputModal(name: string) {
+    this.props.experimentActions.setSubject(name);
+    this.setState({ isInputModalOpen: false });
   }
 
   handleTimeline() {
@@ -90,35 +108,58 @@ export default class Run extends Component<Props> {
     return getImages(this.props.params);
   }
 
+  renderCleanButton() {
+    if (this.props.session > 1) {
+      return (
+        <Link to="/clean">
+          <Button fluid secondary>
+            Clean Data
+          </Button>
+        </Link>
+      );
+    }
+  }
+
   renderExperiment() {
     if (!this.props.isRunning) {
       return (
-        <div>
-          <Segment raised padded color="red">
-            {this.props.title}
-            <div className={styles.inputDiv}>
-              <Input
-                focus
-                label={{ basic: true, content: 'Subject Name' }}
-                onChange={this.handleSubjectEntry}
-                placeholder="Name"
+        <div className={styles.mainContainer}>
+          <Segment
+            basic
+            textAlign="left"
+            className={styles.descriptionContainer}
+          >
+            <Header as="h1">{this.props.type}</Header>
+            <Segment basic className={styles.infoSegment}>
+              Subject Name: <b>{this.props.subject}</b>
+              <Button
+                basic
+                circular
+                size="huge"
+                icon="edit"
+                className={styles.closeButton}
+                onClick={() => this.setState({ isInputModalOpen: true })}
               />
-            </div>
-            <div className={styles.inputDiv}>
-              <Input
-                focus
-                label={{ basic: true, content: 'Session Number' }}
-                onChange={this.handleSessionEntry}
-                placeholder={this.props.session}
-              />
-            </div>
-            <Button onClick={this.handleStartExperiment}>
+            </Segment>
+            <Segment basic className={styles.infoSegment}>
+              Session Number: <b>{this.props.session}</b>
+            </Segment>
+            {/* <Grid.Column>
+              <Button
+                fluid
+                className={styles.secondaryButton}
+                onClick={() => this.handleinstructionProgress(1)}
+              >
+                Back
+              </Button>
+            </Grid.Column> */}
+            <Divider hidden section />
+
+            <Button fluid primary onClick={this.handleStartExperiment}>
               Start Experiment
             </Button>
+            {this.renderCleanButton}
           </Segment>
-          <Link to={SCREENS.CLEAN.route}>
-            <Button>Clean Data</Button>
-          </Link>
         </div>
       );
     }
@@ -141,12 +182,15 @@ export default class Run extends Component<Props> {
 
   render() {
     return (
-      <div>
-        <div className={styles.mainContainer} data-tid="container">
-          <Grid columns={1} divided relaxed>
-            <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
-          </Grid>
-        </div>
+      <div className={styles.mainContainer} data-tid="container">
+        <Grid columns={1} divided relaxed>
+          <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
+        </Grid>
+        <InputModal
+          open={this.state.isInputModalOpen}
+          onClose={this.handleCloseInputModal}
+          header="Enter Subject Name"
+        />
       </div>
     );
   }

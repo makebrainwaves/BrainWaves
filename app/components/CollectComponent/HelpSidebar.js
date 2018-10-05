@@ -45,7 +45,7 @@ export default class HelpSidebar extends Component<Props, State> {
   handleNext() {
     if (
       this.state.helpStep === HELP_STEP.SIGNAL_MOVEMENT ||
-      this.state.helpStep === HELP_STEP.LEARN_THOUGHTS
+      this.state.helpStep === HELP_STEP.LEARN_ALPHA
     ) {
       this.setState({ helpStep: HELP_STEP.MENU });
     } else {
@@ -158,10 +158,12 @@ export default class HelpSidebar extends Component<Props, State> {
     return (
       <Segment basic padded vertical className={styles.helpSidebar}>
         <Button
-          inverted
+          basic
           circular
+          size="large"
           floated="right"
           icon="x"
+          className={styles.closeButton}
           onClick={this.props.handleClose}
         />
         {this.renderHelpContent()}

@@ -125,7 +125,7 @@ export default class PreTestComponent extends Component<Props, State> {
 
   render() {
     return (
-      <Sidebar.Pushable as={Segment} basic>
+      <Sidebar.Pushable as={Segment} className={styles.preTestPushable} basic>
         <Sidebar
           width="wide"
           direction="right"

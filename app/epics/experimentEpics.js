@@ -1,6 +1,6 @@
 import { combineEpics } from 'redux-observable';
 import { executeRequest } from '@nteract/messaging';
-import { of } from 'rxjs';
+import { from, of } from 'rxjs';
 import {
   map,
   mapTo,
@@ -21,7 +21,8 @@ import {
   START,
   STOP,
   SAVE_WORKSPACE,
-  CREATE_NEW_WORKSPACE
+  CREATE_NEW_WORKSPACE,
+  SET_SUBJECT
 } from '../actions/experimentActions';
 import {
   DEVICES,
@@ -39,12 +40,14 @@ import {
   getWorkspaceDir,
   storeExperimentState,
   createWorkspaceDir,
-  storeBehaviouralData
+  storeBehaviouralData,
+  readWorkspaceRawEEGData
 } from '../utils/filesystem/storage';
 import { saveEpochs } from '../utils/jupyter/cells';
 
 export const SET_TIMELINE = 'LOAD_TIMELINE';
 export const SET_IS_RUNNING = 'SET_IS_RUNNING';
+export const UPDATE_SESSION = 'UPDATE_SESSION';
 export const SET_SESSION = 'SET_SESSION';
 export const EXPERIMENT_CLEANUP = 'EXPERIMENT_CLEANUP';
 
@@ -60,6 +63,8 @@ const setIsRunning = payload => ({
   payload,
   type: SET_IS_RUNNING
 });
+
+const updateSession = () => ({ type: UPDATE_SESSION });
 
 const setSession = payload => ({
   payload,
@@ -133,15 +138,38 @@ const experimentStopEpic = (action$, state$) =>
         state$.value.experiment.session
       )
     ),
-    mapTo(false),
-    map(setIsRunning)
+    mergeMap(() => of(setIsRunning(false), updateSession()))
   );
 
-const sessionCountEpic = (action$, state$) =>
-  action$.ofType(STOP).pipe(
-    filter(() => state$.value.experiment.isRunning),
-    map(() => setSession(state$.value.experiment.session + 1))
+const setSubjectEpic = action$ =>
+  action$.ofType(SET_SUBJECT).pipe(map(updateSession));
+
+// TODO: Refactor this to use redux-observable state stream
+const updateSessionEpic = (action$, state$) =>
+  action$.ofType(UPDATE_SESSION).pipe(
+    mapTo(state$.value.experiment.subject),
+    mergeMap(subject =>
+      from(readWorkspaceRawEEGData(state$.value.experiment.title)).pipe(
+        map(rawFiles => {
+          if (rawFiles.length > 0) {
+            console.log(rawFiles[0].slice(0, rawFiles[0].length - 8));
+            const subjectFiles = rawFiles.filter(filepath =>
+              filepath.path.includes(subject)
+            );
+            return subjectFiles.length;
+          }
+          return 1;
+        })
+      )
+    ),
+    map(setSession)
   );
+
+// const sessionCountEpic = (action$, state$) =>
+//   action$.ofType(STOP).pipe(
+//     filter(() => state$.value.experiment.isRunning),
+//     map(() => setSession(state$.value.experiment.session + 1))
+//   );
 
 const autoSaveEpic = action$ =>
   action$.ofType(SET_TIMELINE).pipe(map(saveWorkspace));
@@ -149,6 +177,7 @@ const autoSaveEpic = action$ =>
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(
     throttleTime(1000),
+    filter(() => state$.value.experiment.title.length > 1),
     map(() => getWorkspaceDir(state$.value.experiment.title)),
     tap(() => storeExperimentState(state$.value.experiment)),
     tap(dir => {
@@ -183,7 +212,8 @@ export default combineEpics(
   createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
-  sessionCountEpic,
+  setSubjectEpic,
+  updateSessionEpic,
   autoSaveEpic,
   saveWorkspaceEpic,
   navigationCleanupEpic
