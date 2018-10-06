@@ -1,43 +1,45 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Viewer</title>
     <style>
-    body {
-        position: relative;
-        color: #484848;
-        width: 95vw;
-        height: 95vh;
-        background-color: #ffffff;
-        font-family: Helvetica Neue, serif;
-    }
-    #graph {
-        width: 100%;
-        height: 100%;
-        padding-left: 20px;
-    }
+        body {
+            position: relative;
+            color: #484848;
+            width: 95vw;
+            height: 95vh;
+            background-color: rgba(255, 255, 255, 0);
+            font-family: Helvetica Neue, serif;
+        }
 
-    .axis line,
-    .axis path,
-    .axis {
-        stroke: none;
-        fill: none;
-    }
+        #graph {
+            width: 100%;
+            height: 100%;
+            padding-left: 20px;
+        }
 
-    .axis text {
-        font-size: 14px;
-        fill: #484848;
-        stroke: none;
-    }
+        .axis line,
+        .axis path,
+        .axis {
+            stroke: none;
+            fill: none;
+        }
 
-    .legend {
-        font-size: 14px;
-    }
+        .axis text {
+            font-size: 14px;
+            fill: #484848;
+            stroke: none;
+        }
 
-    .line {
-        fill: none;
-    }
+        .legend {
+            font-size: 14px;
+        }
+
+        .line {
+            fill: none;
+        }
     </style>
 </head>
 
@@ -45,23 +47,23 @@
     <svg id="graph" />
 </body>
 <script>
-{
-    const scripts = [];
+    {
+        const scripts = [];
 
-    // Insert the app script in the viewer process
-    if (process.env.NODE_ENV === 'development') {
-      scripts.push('./viewer.js');
-    }
-    else {
-      scripts.push('./dist/viewer.entry.js');
-    }
+        // Insert the app script in the viewer process
+        if (process.env.NODE_ENV === 'development') {
+            scripts.push('./viewer.js');
+        }
+        else {
+            scripts.push('./dist/viewer.entry.js');
+        }
 
-    document.write(
-        scripts
-        .map(script => '<script defer src="' + script + '"><\/script>')
-        .join('')
-    );
-}
+        document.write(
+            scripts
+                .map(script => '<script defer src="' + script + '"><\/script>')
+                .join('')
+        );
+    }
 </script>
 
 </html>
