@@ -128,6 +128,7 @@ const startEpic = (action$, state$) =>
 
 const experimentStopEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
+    filter(() => state$.value.experiment.isRunning),
     map(getBehaviouralData),
     map(csv =>
       storeBehaviouralData(

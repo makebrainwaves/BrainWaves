@@ -7,6 +7,7 @@ import {
   Header,
   Sidebar
 } from 'semantic-ui-react';
+import Mousetrap from 'mousetrap';
 import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
@@ -57,6 +58,14 @@ export default class PreTestComponent extends Component<Props, State> {
     };
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
+  }
+
+  componentDidMount() {
+    Mousetrap.bind('esc', this.props.experimentActions.stop);
+  }
+
+  componentWillUnmount() {
+    Mousetrap.unbind('esc');
   }
 
   handlePreview() {

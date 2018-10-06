@@ -80,7 +80,6 @@ export default function experiment(
       };
 
     case SET_TIMELINE:
-      console.log(action.payload);
       return {
         ...state,
         ...action.payload

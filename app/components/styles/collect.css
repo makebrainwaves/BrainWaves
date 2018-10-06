@@ -32,6 +32,7 @@
 
 .preTestPushable {
   height: 100vh !important;
+  background: linear-gradient(#f9f9f9, #f0f0ff) !important;
 }
 
 .previewColumn {

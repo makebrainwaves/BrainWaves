@@ -112,11 +112,13 @@ export default class Run extends Component<Props, State> {
   renderCleanButton() {
     if (this.props.session > 1) {
       return (
-        <Link to="/clean">
-          <Button fluid secondary>
-            Clean Data
-          </Button>
-        </Link>
+        <Grid.Column>
+          <Link to="/clean">
+            <Button fluid secondary>
+              Clean Data
+            </Button>
+          </Link>
+        </Grid.Column>
       );
     }
   }
@@ -146,10 +148,14 @@ export default class Run extends Component<Props, State> {
               Session Number: <b>{this.props.session}</b>
             </Segment>
             <Divider hidden section />
-            <Button fluid primary onClick={this.handleStartExperiment}>
-              Run Experiment
-            </Button>
-            {this.renderCleanButton()}
+            <Grid textAlign="center" columns="equal">
+              <Grid.Column>
+                <Button fluid primary onClick={this.handleStartExperiment}>
+                  Run Experiment
+                </Button>
+              </Grid.Column>
+              {this.renderCleanButton()}
+            </Grid>
           </Segment>
         </div>
       );

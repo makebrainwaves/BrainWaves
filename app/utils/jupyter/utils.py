@@ -202,4 +202,4 @@ def plot_highlight_regions(x, y, hue, hue_thresh=0, xlabel='', ylabel='',
 
 
 def get_epochs_info(epochs, events, event_id):
-    return {"totalEpochs": len(epochs.events), "dropPercentage": (1 - len(epochs.events)/len(events)) * 100, **{x: len(epochs[x]) for x in event_id}}
+    return {"totalEpochs": len(epochs.events), "dropPercentage": round((1 - len(epochs.events)/len(events)) * 100, 2), **{x: len(epochs[x]) for x in event_id}}
