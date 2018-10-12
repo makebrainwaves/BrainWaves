@@ -13,7 +13,7 @@ import { EVENTS } from './constants';
 
 export type ExperimentParameters = {
   trialDuration: number,
-  experimentDuration: number,
+  nbTrials: number,
   iti: number,
   jitter: number,
   sampleType: string,

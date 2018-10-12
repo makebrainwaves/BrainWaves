@@ -88,7 +88,7 @@ const searchMuseEpic = action$ =>
       promise.then(
         devices => devices,
         error => {
-          console.error('searchMuseEpic: ', error);
+          toast.error(`"Device Error: " ${error.toString()}`);
           toast.error('Device Error: ', error);
           return [];
         }
@@ -108,8 +108,8 @@ const searchEmotivEpic = action$ =>
       promise.then(
         devices => devices,
         error => {
-          toast.error('Device Error: ', error);
-          console.error('searchEpic: ', error);
+          toast.error(`"Device Error: " ${error.toString()}`);
+          console.error('searchEpic: ', error.toString());
           return [];
         }
       )
@@ -245,7 +245,7 @@ const rootEpic = (action$, state$) =>
   )(action$, state$).pipe(
     catchError(error =>
       of(error).pipe(
-        tap(err => toast.error('Device Error: ', err)),
+        tap(err => toast.error(`"Device Error: " ${err.toString()}`)),
         map(cleanup)
       )
     )

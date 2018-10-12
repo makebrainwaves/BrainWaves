@@ -61,10 +61,7 @@ export const parseTimeline = (
         ],
         sample: {
           type: params.sampleType,
-          size: Math.round(
-            params.experimentDuration /
-              (params.trialDuration + params.iti + params.jitter / 2)
-          )
+          size: params.nbTrials
         },
         timeline_variables: readdirSync(params.stimulus1.dir)
           .map(filename => ({

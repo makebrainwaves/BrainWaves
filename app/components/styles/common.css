@@ -75,3 +75,7 @@
 .paramSlider {
   width: 200px;
 }
+
+.recentDirSegment {
+  margin-left: 20px !important;
+}

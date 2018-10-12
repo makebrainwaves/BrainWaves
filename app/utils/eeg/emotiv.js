@@ -6,6 +6,7 @@
 import { fromEvent } from 'rxjs';
 import { map, withLatestFrom, share } from 'rxjs/operators';
 import { addInfo, epoch, bandpassFilter } from '@neurosity/pipes';
+import { toast } from 'react-toastify';
 import { parseEmotivSignalQuality } from './pipes';
 import {
   USERNAME,
@@ -24,6 +25,7 @@ const client = new Cortex(options);
 
 // Gets a list of available Emotiv devices
 export const getEmotiv = async () => {
+  console.log(client);
   const devices = await client.queryHeadsets();
   return devices;
 };
@@ -53,7 +55,7 @@ export const connectToEmotiv = device =>
         samplingRate: session.headset.settings.eegRate,
         channels: EMOTIV_CHANNELS
       }),
-      err => console.log(err)
+      err => toast('Device Error: ', err)
     );
 
 export const disconnectFromEmotiv = async () => {

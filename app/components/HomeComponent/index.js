@@ -5,10 +5,11 @@ import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
 import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
-import brainwavesLogo from '../../assets/common/brainwaves_logo_nih.png';
+import brainwavesLogo from '../../assets/common/brainwaves_logo.png';
 import {
   readWorkspaces,
-  readAndParseState
+  readAndParseState,
+  openWorkspaceDir
 } from '../../utils/filesystem/storage';
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
@@ -123,11 +124,19 @@ export default class Home extends Component<Props, State> {
                   secondary
                   onClick={() => this.handleLoadRecentWorkspace(dir)}
                 >
-                  Open Workspace
+                  Open Experiment
                 </Button>
-                <Segment basic compact textAlign="center">
-                  <Header as="h3"> {dir}</Header>
+                <Segment className={styles.recentDirSegment} vertical basic>
+                  <Header as="h3">{dir}</Header>
                 </Segment>
+                <Button
+                  icon="folder open outline"
+                  basic
+                  circular
+                  size="huge"
+                  className={styles.closeButton}
+                  onClick={() => openWorkspaceDir(dir)}
+                />
               </Grid.Row>
             ))}
           </Grid>
@@ -163,19 +172,20 @@ export default class Home extends Component<Props, State> {
             <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
                 <Image size="huge" src={faceHouseIcon} />
-                <Header as="h1">Oddball</Header>
+                <Header as="h1">Stroop</Header>
                 <p>
-                  Explore the P300 ERP that is produced after an unexpected
-                  oddball stimulus. The P300 ERP is a positive deflection that
-                  occurs 300ms after stimulus onset.
+                  Investigate the cognitive process of selective attention with
+                  the Stroop Task, a challenging experiment requiring the
+                  subject to name the color of a word instead of reading the
+                  word itself.
                 </p>
-                <Button secondary disabled>
+                <Button disabled secondary>
                   Review
                 </Button>
                 <Button
                   disabled
                   primary
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.P300)}
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
                 >
                   Start Experiment
                 </Button>
@@ -215,9 +225,7 @@ export default class Home extends Component<Props, State> {
     return (
       <React.Fragment>
         <SecondaryNavComponent
-          title={
-            <Image className={styles.brainwavesLogo} src={brainwavesLogo} />
-          }
+          title={<Image src={brainwavesLogo} />}
           steps={HOME_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}

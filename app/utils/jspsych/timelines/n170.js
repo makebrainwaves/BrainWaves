@@ -6,12 +6,12 @@ const rootFolder = __dirname; // Note: there's a weird issue where the fs readdi
 
 const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
 const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
-const fixation = path.join(rootFolder, 'assets', 'face_house', 'fixation.jpg');
+const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const buildN170Timeline = () => ({
   params: {
     trialDuration: 300,
-    experimentDuration: 120000,
+    nbTrials: 200,
     iti: 800,
     jitter: 200,
     sampleType: 'with-replacement',

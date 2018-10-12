@@ -1,10 +1,10 @@
 export const EXPERIMENTS = {
   NONE: 'NONE',
-  P300: 'P300 Experiment',
-  N170: 'Faces Houses Experiment',
-  SSVEP: 'SSVEP Experiment',
-  STROOP: 'Stroop Task Experiment',
-  CUSTOM: 'Custom Experiment'
+  P300: 'P300',
+  N170: 'N170',
+  SSVEP: 'SSVEP',
+  STROOP: 'STROOP',
+  CUSTOM: 'CUSTOM'
 };
 
 export const SCREENS = {
@@ -110,7 +110,7 @@ export const VIEWER_DEFAULTS = {
 };
 
 export const SIGNAL_QUALITY = {
-  BAD: '#E06766',
+  BAD: '#ed5a5a',
   OK: '#FFCD39',
   GREAT: '#66B0A9',
   DISCONNECTED: '#BFBFBF'

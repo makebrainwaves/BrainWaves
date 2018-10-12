@@ -35,10 +35,7 @@ export const filterIIR = (lowCutoff: number, highCutoff: number) =>
 export const cleanEpochsPlot = () =>
   [
     `%matplotlib`,
-    `epochs.plot(scalings='auto')`,
-    `fig = plt.gcf()`,
-    `fig.canvas.manager.window.activateWindow()`,
-    `fig.canvas.manager.window.raise_()`
+    `epochs.plot(scalings='auto', n_epochs=8, title="", events=None)`
   ].join('\n');
 
 export const plotPSD = () =>
