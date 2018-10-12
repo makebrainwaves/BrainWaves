@@ -2,6 +2,7 @@ import { combineEpics } from 'redux-observable';
 import { of, from, timer } from 'rxjs';
 import { map, pluck, mergeMap, tap, filter, catchError } from 'rxjs/operators';
 import { isNil } from 'lodash';
+import { toast } from 'react-toastify';
 import {
   CONNECT_TO_DEVICE,
   SET_DEVICE_AVAILABILITY,
@@ -88,6 +89,7 @@ const searchMuseEpic = action$ =>
         devices => devices,
         error => {
           console.error('searchMuseEpic: ', error);
+          toast.error('Device Error: ', error);
           return [];
         }
       )
@@ -106,6 +108,7 @@ const searchEmotivEpic = action$ =>
       promise.then(
         devices => devices,
         error => {
+          toast.error('Device Error: ', error);
           console.error('searchEpic: ', error);
           return [];
         }
@@ -158,6 +161,7 @@ const connectEpic = action$ =>
         deviceInfo => deviceInfo,
         error => {
           console.error('connectEpic: ', error);
+          toast.error('Device Error: ', error);
           return null;
         }
       )
@@ -241,7 +245,7 @@ const rootEpic = (action$, state$) =>
   )(action$, state$).pipe(
     catchError(error =>
       of(error).pipe(
-        tap(console.log),
+        tap(err => toast.error('Device Error: ', err)),
         map(cleanup)
       )
     )

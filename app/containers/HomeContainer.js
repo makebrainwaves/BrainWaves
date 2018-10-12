@@ -1,15 +1,14 @@
 // @flow
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import Home from "../components/HomeComponent";
-import * as deviceActions from "../actions/deviceActions";
-import * as jupyterActions from "../actions/jupyterActions";
-import * as experimentActions from "../actions/experimentActions";
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import Home from '../components/HomeComponent';
+import * as deviceActions from '../actions/deviceActions';
+import * as jupyterActions from '../actions/jupyterActions';
+import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {
-    rawObservable: state.device.rawObservable,
-    mainChannel: state.jupyter.mainChannel
+    kernelStatus: state.jupyter.kernelStatus
   };
 }
 

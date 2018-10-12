@@ -14,6 +14,7 @@ import { launchSpec } from 'spawnteract';
 import { createMainChannel } from 'enchannel-zmq-backend';
 import { isNil } from 'lodash';
 import { kernelInfoRequest, executeRequest } from '@nteract/messaging';
+import { toast } from 'react-toastify';
 import { execute, awaitOkMessage } from '../utils/jupyter/pipes';
 import {
   LAUNCH_KERNEL,
@@ -127,6 +128,14 @@ const receiveStream = payload => ({
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
     mergeMap(() => from(find('brainwaves'))),
+    tap(kernelInfo => {
+      if (isNil(kernelInfo)) {
+        toast.error(
+          "Could not find 'brainwaves' jupyter kernel. Have you installed Python?"
+        );
+      }
+    }),
+    filter(kernelInfo => !isNil(kernelInfo)),
     mergeMap(kernelInfo =>
       from(
         launchSpec(kernelInfo.spec, {
@@ -144,6 +153,7 @@ const launchEpic = action$ =>
       kernel.spawn.stderr.on('data', data => {
         const text = data.toString();
         console.log('KERNEL STDERR: ', text);
+        toast.error('Jupyter: ', text);
       });
 
       kernel.spawn.on('close', () => {

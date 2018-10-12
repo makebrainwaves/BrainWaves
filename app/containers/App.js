@@ -1,6 +1,7 @@
 // @flow
-import * as React from "react";
-import TopNav from "./TopNavBarContainer";
+import * as React from 'react';
+import { ToastContainer } from 'react-toastify';
+import TopNav from './TopNavBarContainer';
 
 type Props = {
   children: React.Node
@@ -14,6 +15,7 @@ export default class App extends React.Component<Props> {
       <div>
         <TopNav />
         {this.props.children}
+        <ToastContainer autoclose={false} />
       </div>
     );
   }

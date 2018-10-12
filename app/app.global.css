@@ -6,6 +6,8 @@
 @import "~semantic-ui-css/semantic.min.css";
 @import "~jspsych-react/css/jspsych.css";
 @import "~rc-slider/assets/index.css";
+@import "~react-toastify/dist/ReactToastify.css";
+
 
 body {
   position: relative;

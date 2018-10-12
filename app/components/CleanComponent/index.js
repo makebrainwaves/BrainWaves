@@ -65,10 +65,6 @@ export default class Clean extends Component<Props, State> {
   }
 
   async componentDidMount() {
-    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.jupyterActions.launchKernel();
-    }
-
     const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
     this.setState({
       subjects: workspaceRawData
