@@ -108,7 +108,11 @@ const searchEmotivEpic = action$ =>
       promise.then(
         devices => devices,
         error => {
-          toast.error(`"Device Error: " ${error.toString()}`);
+          if (error.toString().contains('client.queryHeadsets')) {
+            toast.error('Device Error: Could not find Cortex Service');
+          } else {
+            toast.error(`"Device Error: " ${error.toString()}`);
+          }
           console.error('searchEpic: ', error.toString());
           return [];
         }
@@ -161,7 +165,7 @@ const connectEpic = action$ =>
         deviceInfo => deviceInfo,
         error => {
           console.error('connectEpic: ', error);
-          toast.error('Device Error: ', error);
+          toast.error(`"Device Error: " ${error.toString()}`);
           return null;
         }
       )

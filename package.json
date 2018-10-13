@@ -216,7 +216,7 @@
     "font-awesome": "^4.7.0",
     "hazardous": "^0.3.0",
     "history": "^4.7.2",
-    "jspsych-react": "^0.2.1",
+    "jspsych-react": "git+https://github.com/makebrainwaves/jspsych-react.git",
     "kernelspecs": "^2.0.0",
     "lodash": "^4.17.10",
     "mkdirp": "^0.5.1",

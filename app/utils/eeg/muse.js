@@ -1,5 +1,5 @@
 import 'hazardous';
-import { withLatestFrom, share, startWith } from 'rxjs/operators';
+import { withLatestFrom, share, startWith, filter } from 'rxjs/operators';
 import {
   addInfo,
   epoch,
@@ -17,7 +17,7 @@ const bluetooth = require('bleat').webbluetooth;
 const { MUSE_SERVICE, MuseClient, zipSamples } = require('muse-js');
 const { from } = require('rxjs');
 
-const INTER_SAMPLE_INTERVAL = (1 / 256) * 1000;
+const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
 // Just returns the client object from Muse JS
 const client = new MuseClient();
@@ -62,6 +62,7 @@ export const createRawMuseObservable = async () => {
   const eegStream = await client.eegReadings;
   const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
   return from(zipSamples(eegStream)).pipe(
+    filter(sample => !sample.data.includes(NaN)),
     withLatestFrom(markers, synchronizeTimestamp),
     share()
   );
@@ -89,8 +90,7 @@ export const createMuseSignalQualityObservable = (
       highCutoff: 50
     }),
     addSignalQuality(),
-    parseMuseSignalQuality(),
-    share()
+    parseMuseSignalQuality()
   );
 };
 
@@ -104,8 +104,8 @@ export const injectMuseMarker = (value, time) => {
 
 const synchronizeTimestamp = (eegSample, marker) => {
   if (
-    eegSample['timestamp'] - marker['timestamp'] > 0 &&
-    eegSample['timestamp'] - marker['timestamp'] <= INTER_SAMPLE_INTERVAL
+    eegSample['timestamp'] - marker['timestamp'] < 0 &&
+    eegSample['timestamp'] - marker['timestamp'] >= INTER_SAMPLE_INTERVAL
   ) {
     return { ...eegSample, marker: marker['value'] };
   }
