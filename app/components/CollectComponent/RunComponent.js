@@ -1,9 +1,10 @@
 // @flow
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
-import { Experiment } from 'jspsych-react';
+import { Experiment, jsPsych } from 'jspsych-react';
 import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
+import Mousetrap from 'mousetrap';
 import styles from '../styles/common.css';
 import InputModal from '../InputModal';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
@@ -67,6 +68,11 @@ export default class Run extends Component<Props, State> {
     if (this.props.mainTimeline.length <= 0) {
       this.props.experimentActions.loadDefaultTimeline();
     }
+    Mousetrap.bind('esc', jsPsych.endCurrentTimeline);
+  }
+
+  componentWillUnmount() {
+    Mousetrap.unbind('esc');
   }
 
   handleSubjectEntry(event: Object, data: Object) {
@@ -99,7 +105,7 @@ export default class Run extends Component<Props, State> {
       ),
       (value, time) => injectionFunction(value, time), // event callback
       null, // start callback
-      this.props.experimentActions.stop, // stop callback
+      null, // stop callback
       this.props.params.showProgessBar
     );
     return timeline;
@@ -180,7 +186,12 @@ export default class Run extends Component<Props, State> {
   render() {
     return (
       <div className={styles.mainContainer} data-tid="container">
-        <Grid columns={1} divided relaxed>
+        <Grid
+          columns={1}
+          divided
+          relaxed
+          className={styles.experimentContainer}
+        >
           <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
         </Grid>
         <InputModal

@@ -79,3 +79,7 @@
 .recentDirSegment {
   margin-left: 20px !important;
 }
+
+.experimentContainer {
+  height: 100%;
+}

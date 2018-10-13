@@ -8,6 +8,7 @@ import PrimaryNavSegment from './PrimaryNavSegment';
 interface Props {
   title: ?string;
   location: { pathname: string, search: string, hash: string };
+  isRunning: boolean;
   experimentActions: Object;
   type: EXPERIMENTS;
 }
@@ -34,7 +35,8 @@ export default class TopNavComponent extends Component<Props> {
   render() {
     if (
       this.props.location.pathname === SCREENS.HOME.route ||
-      this.props.location.pathname === '/'
+      this.props.location.pathname === '/' ||
+      this.props.isRunning
     ) {
       return null;
     }

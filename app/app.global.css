@@ -8,7 +8,6 @@
 @import "~rc-slider/assets/index.css";
 @import "~react-toastify/dist/ReactToastify.css";
 
-
 body {
   position: relative;
   height: 100vh;
@@ -54,7 +53,11 @@ a:hover {
 }
 
 img {
-  max-width: 100% !important;
+  min-width: 100% !important;
+}
+
+#jspsych-image-keyboard-response-stimulus {
+  width: 100% !important;
 }
 
 button:active {

@@ -6,13 +6,10 @@ import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {
-    location: state.router.location,
     title: state.experiment.title,
-    type: state.experiment.type,
-    deviceType: state.device.deviceType,
-    connectionStatus: state.device.connectionStatus,
-    rawObservable: state.device.rawObservable,
-    kernelStatus: state.jupyter.kernelStatus
+    location: state.router.location,
+    isRunning: state.experiment.isRunning,
+    type: state.experiment.type
   };
 }
 
