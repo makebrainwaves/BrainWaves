@@ -144,7 +144,7 @@ export const instantiateTimeline = (
 export const getBehaviouralData = () =>
   jsPsych.data
     .get()
-    .filter(trial => !trial.stimulus.contains('fixation')) // Remove inter trial data
+    .filter(trial => !trial.stimulus.includes('fixation')) // Remove inter trial data
     // .filter((trial) => trial.rt > 0) // Filter out trials with no responsre
     .ignore('internal_node_id')
     .csv();

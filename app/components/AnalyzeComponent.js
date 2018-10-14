@@ -176,7 +176,7 @@ export default class Analyze extends Component<Props, State> {
             verticalAlign="middle"
             className={styles.contentGrid}
           >
-            <Grid.Column width={4}>
+            <Grid.Column width={4} className={styles.analyzeColumn}>
               <Segment basic textAlign="left" className={styles.infoSegment}>
                 <Header as="h1">ERP</Header>
                 <p>
