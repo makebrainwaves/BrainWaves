@@ -9,7 +9,6 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-
 sns.set_context('talk')
 sns.set_style('white')
 
@@ -76,11 +75,24 @@ def load_data(fnames, sfreq=128., replace_ch_names=None):
 def plot_topo(epochs, conditions=OrderedDict()):
     palette = sns.color_palette("hls", len(conditions) + 1)
     evokeds = [epochs[name].average() for name in (conditions)]
+
     evoked_topo = viz.plot_evoked_topo(
-        evokeds, color=palette[0:len(conditions)])
+        evokeds, vline=None, color=palette[0:len(conditions)], show=False)
+    #evoked_topo.facecolor = 'lightslategray'
+    evoked_topo.patch.set_alpha(0)
+    evoked_topo.set_size_inches(10,8)
     for axis in evoked_topo.axes:
         for line in axis.lines:
             line.set_linewidth(2)
+
+    legend_loc = 0
+    labels = [e.comment if e.comment else 'Unknown' for e in evokeds]
+    legend = plt.legend(labels, loc=legend_loc, prop={'size': 20})
+    legend.get_frame().set_facecolor(axis_facecolor)
+    txts = legend.get_texts()
+    for txt, col in zip(txts, palette):
+        txt.set_color(col)
+
     return evoked_topo
 
 
