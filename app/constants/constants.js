@@ -49,10 +49,10 @@ export const DEVICE_AVAILABILITY = {
 export const SEARCH_TIMER = 3000;
 
 export const EVENTS = {
-  FACE: 1,
-  HOUSE: 2,
-  TARGET: 1,
-  NONTARGET: 2
+  FACE: 2,
+  HOUSE: 1,
+  TARGET: 2,
+  NONTARGET: 1
 };
 
 export const CHANNELS = {

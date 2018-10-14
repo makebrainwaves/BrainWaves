@@ -1,7 +1,7 @@
 from glob import glob
 import os
 from collections import OrderedDict
-from mne import create_info, concatenate_raws
+from mne import create_info, concatenate_raws, viz
 from mne.io import RawArray
 from mne.channels import read_montage
 import pandas as pd
@@ -71,6 +71,17 @@ def load_data(fnames, sfreq=128., replace_ch_names=None):
     raws = concatenate_raws(raw)
 
     return raws
+
+
+def plot_topo(epochs, conditions=OrderedDict()):
+    palette = sns.color_palette("hls", len(conditions) + 1)
+    evokeds = [epochs[name].average() for name in (conditions)]
+    evoked_topo = viz.plot_evoked_topo(
+        evokeds, color=palette[0:len(conditions)])
+    for axis in evoked_topo.axes:
+        for line in axis.lines:
+            line.set_linewidth(2)
+    return evoked_topo
 
 
 def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=1000,
@@ -201,5 +212,5 @@ def plot_highlight_regions(x, y, hue, hue_thresh=0, xlabel='', ylabel='',
     return fig, axes
 
 
-def get_epochs_info(epochs, events, event_id):
-    return {"totalEpochs": len(epochs.events), "dropPercentage": round((1 - len(epochs.events)/len(events)) * 100, 2), **{x: len(epochs[x]) for x in event_id}}
+def get_epochs_info(epochs):
+    return {"totalEpochs": len(epochs.events), "dropPercentage": round((1 - len(epochs.events)/len(epochs.drop_log)) * 100, 2), **{x: len(epochs[x]) for x in epochs.event_id}}

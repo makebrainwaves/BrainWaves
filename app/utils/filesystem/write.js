@@ -4,12 +4,12 @@
  *  Functions for writing EEG data to disk
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import mkdirp from 'mkdirp';
-import { has } from 'lodash';
-import { getWorkspaceDir } from './storage';
-import { EEGData } from '../../constants/interfaces';
+import * as fs from "fs";
+import * as path from "path";
+import mkdirp from "mkdirp";
+import { has } from "lodash";
+import { getWorkspaceDir } from "./storage";
+import { EEGData } from "../../constants/interfaces";
 
 // Creates an appropriate filename and returns a writestream that will write to that file
 export const createEEGWriteStream = (
@@ -18,12 +18,12 @@ export const createEEGWriteStream = (
   session: number
 ) => {
   try {
-    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
+    const dir = path.join(getWorkspaceDir(title), "Data", subject, "EEG");
     const filename = `${subject}-${session}-raw.csv`;
     mkdirPathSync(dir);
     return fs.createWriteStream(path.join(dir, filename));
   } catch (e) {
-    console.log('createEEGWriteStream: ', e);
+    console.log("createEEGWriteStream: ", e);
   }
 };
 
@@ -34,10 +34,10 @@ export const writeHeader = (
   channels: Array<string>
 ) => {
   try {
-    const headerLabels = `Timestamp,${channels.join(',')},Marker\n`;
+    const headerLabels = `Timestamp,${channels.join(",")},Marker\n`;
     writeStream.write(headerLabels);
   } catch (e) {
-    console.log('writeHeader: ', e);
+    console.log("writeHeader: ", e);
   }
 };
 
@@ -48,8 +48,8 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
   for (let i = 0; i < len; i++) {
     writeStream.write(`${eegData.data[i].toString()},`); // Round data
   }
-  if (has(eegData, 'marker')) {
-    writeStream.write(`${eegData['marker']}\n`);
+  if (has(eegData, "marker")) {
+    writeStream.write(`${eegData["marker"]}\n`);
   } else {
     writeStream.write(`0\n`);
   }

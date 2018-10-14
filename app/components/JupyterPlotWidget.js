@@ -6,6 +6,7 @@ import {
   standardDisplayOrder,
   standardTransforms
 } from "@nteract/transforms";
+import { isNil } from "lodash";
 import { storeJupyterImage } from "../utils/filesystem/storage";
 
 interface Props {
@@ -32,7 +33,10 @@ export default class JupyterPlotWidget extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.plotMIMEBundle !== prevProps.plotMIMEBundle) {
+    if (
+      this.props.plotMIMEBundle !== prevProps.plotMIMEBundle &&
+      !isNil(this.props.plotMIMEBundle)
+    ) {
       const bundle: { [string]: string } = this.props.plotMIMEBundle;
       const mimeType = richestMimetype(
         bundle,

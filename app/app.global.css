@@ -172,6 +172,10 @@ button:active {
   min-width: 50px !important;
 }
 
+.ui.multiple.dropdown > .label {
+  font-size: 0.8em !important;
+}
+
 /* Webview-related styles */
 
 #eegView {

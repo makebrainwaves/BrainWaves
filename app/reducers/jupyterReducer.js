@@ -6,12 +6,13 @@ import {
   SET_KERNEL_INFO,
   SET_EPOCH_INFO,
   SET_PSD_PLOT,
+  SET_TOPO_PLOT,
   SET_ERP_PLOT,
   RECEIVE_EXECUTE_RETURN
-} from '../epics/jupyterEpics';
-import { ActionType, Kernel } from '../constants/interfaces';
-import { KERNEL_STATUS } from '../constants/constants';
-import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
+} from "../epics/jupyterEpics";
+import { ActionType, Kernel } from "../constants/interfaces";
+import { KERNEL_STATUS } from "../constants/constants";
+import { EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
 
 export interface JupyterStateType {
   +kernel: ?Kernel;
@@ -19,6 +20,7 @@ export interface JupyterStateType {
   +mainChannel: ?any;
   +epochsInfo: ?{ [string]: number };
   +psdPlot: ?{ [string]: string };
+  +topoPlot: ?{ [string]: string };
   +erpPlot: ?{ [string]: string };
 }
 
@@ -28,6 +30,7 @@ const initialState = {
   mainChannel: null,
   epochsInfo: null,
   psdPlot: null,
+  topoPlot: null,
   erpPlot: null
 };
 
@@ -67,6 +70,12 @@ export default function jupyter(
       return {
         ...state,
         psdPlot: action.payload
+      };
+
+    case SET_TOPO_PLOT:
+      return {
+        ...state,
+        topoPlot: action.payload
       };
 
     case SET_ERP_PLOT:

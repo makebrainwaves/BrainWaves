@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   Grid,
   Button,
@@ -10,14 +10,14 @@ import {
   Sidebar,
   SidebarPusher,
   Divider
-} from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
-import { isNil } from 'lodash';
-import styles from './../styles/collect.css';
-import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
-import { Kernel } from '../../constants/interfaces';
-import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
-import CleanSidebar from './CleanSidebar';
+} from "semantic-ui-react";
+import { Link } from "react-router-dom";
+import { isNil } from "lodash";
+import styles from "./../styles/collect.css";
+import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from "../../constants/constants";
+import { Kernel } from "../../constants/interfaces";
+import { readWorkspaceRawEEGData } from "../../utils/filesystem/storage";
+import CleanSidebar from "./CleanSidebar";
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -28,6 +28,7 @@ interface Props {
   kernelStatus: KERNEL_STATUS;
   epochsInfo: ?{ [string]: number };
   jupyterActions: Object;
+  experimentActions: Object;
   subject: string;
   session: number;
 }
@@ -54,7 +55,7 @@ export default class Clean extends Component<Props, State> {
     super(props);
     this.state = {
       subjects: [],
-      eegFilePaths: [{ key: '', text: '', value: '' }],
+      eegFilePaths: [{ key: "", text: "", value: "" }],
       selectedFilePaths: [],
       selectedSubject: props.subject
     };
@@ -78,9 +79,7 @@ export default class Clean extends Component<Props, State> {
             text: curr,
             value: curr
           });
-        }, [])
-    });
-    this.setState({
+        }, []),
       eegFilePaths: workspaceRawData.map(filepath => ({
         key: filepath.name,
         text: filepath.name,
@@ -89,7 +88,7 @@ export default class Clean extends Component<Props, State> {
     });
   }
 
-  handleRecordingChange(e: Object, data: Object) {
+  handleRecordingChange(event: Object, data: Object) {
     this.setState({ selectedFilePaths: data.value });
   }
 
@@ -98,6 +97,7 @@ export default class Clean extends Component<Props, State> {
   }
 
   handleLoadData() {
+    this.props.experimentActions.setSubject(this.state.selectedSubject);
     this.props.jupyterActions.loadEpochs(this.state.selectedFilePaths);
   }
 
@@ -106,16 +106,18 @@ export default class Clean extends Component<Props, State> {
   }
 
   renderEpochLabels() {
-    if (!isNil(this.props.epochsInfo)) {
+    if (
+      !isNil(this.props.epochsInfo) &&
+      this.state.selectedFilePaths.length >= 1
+    ) {
       const epochsInfo: { [string]: number } = { ...this.props.epochsInfo };
       return (
         <Segment basic textAlign="left">
-          <Header as="h3">Loaded Epochs:</Header>
           {Object.keys(epochsInfo).map((key, index) => (
             <Segment key={key} basic>
-              <Icon name={['smile', 'home', 'x', 'book'][index]} />
+              <Icon name={["smile", "home", "x", "book"][index]} />
               {key}
-              <p>{epochsInfo[key]} Trials</p>
+              <p>{epochsInfo[key]}</p>
             </Segment>
           ))}
           <Link to="/analyze">
@@ -160,7 +162,7 @@ export default class Clean extends Component<Props, State> {
                     Ready to clean some data? Select a subject and one or more
                     EEG recordings, then launch the editor
                   </p>
-                  <Header as="h3">Select Subject</Header>
+                  <Header as="h4">Select Subject</Header>
                   <Dropdown
                     fluid
                     selection
@@ -169,7 +171,7 @@ export default class Clean extends Component<Props, State> {
                     options={this.state.subjects}
                     onChange={this.handleSubjectChange}
                   />
-                  <Header as="h3">Select Recordings</Header>
+                  <Header as="h4">Select Recordings</Header>
                   <Dropdown
                     fluid
                     multiple
