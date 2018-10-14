@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from "react";
+import React, { Component } from 'react';
 import {
   Grid,
   Icon,
@@ -7,28 +7,29 @@ import {
   Header,
   Dropdown,
   Divider
-} from "semantic-ui-react";
-import { isNil } from "lodash";
-import styles from "./styles/common.css";
+} from 'semantic-ui-react';
+import { isNil } from 'lodash';
+import styles from './styles/common.css';
 import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS
-} from "../constants/constants";
-import { readWorkspaceCleanedEEGData } from "../utils/filesystem/storage";
-import SecondaryNavComponent from "./SecondaryNavComponent";
-import JupyterPlotWidget from "./JupyterPlotWidget";
+} from '../constants/constants';
+import { readWorkspaceCleanedEEGData } from '../utils/filesystem/storage';
+import SecondaryNavComponent from './SecondaryNavComponent';
+import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
+import JupyterPlotWidget from './JupyterPlotWidget';
 
 const ANALYZE_STEPS = {
-  OVERVIEW: "OVERVIEW",
-  ERP: "ERP",
-  NOTES: "NOTES"
+  OVERVIEW: 'OVERVIEW',
+  ERP: 'ERP'
 };
 
 interface Props {
   title: string;
   deviceType: DEVICES;
-  epochsInfo: ?{ [string]: number };
+  epochsInfo: ?Array<{ [string]: number | string }>;
+  channelInfo: ?Array<string>;
   psdPlot: ?{ [string]: string };
   topoPlot: ?{ [string]: string };
   erpPlot: ?{ [string]: string };
@@ -51,7 +52,7 @@ export default class Analyze extends Component<Props, State> {
   props: Props;
   state: State;
   handleAnalyze: () => void;
-  handleChannelDropdownChange: (Object, Object) => void;
+  handleChannelSelect: string => void;
   handleStepClick: (Object, Object) => void;
   handleDatasetChange: (Object, Object) => void;
   handleStepClick: (Object, Object) => void;
@@ -60,7 +61,7 @@ export default class Analyze extends Component<Props, State> {
     super(props);
     this.state = {
       activeStep: ANALYZE_STEPS.OVERVIEW,
-      eegFilePaths: [{ key: "", text: "", value: "" }],
+      eegFilePaths: [{ key: '', text: '', value: '' }],
       selectedFilePaths: [],
       selectedChannel:
         props.deviceType === DEVICES.EMOTIV
@@ -68,9 +69,7 @@ export default class Analyze extends Component<Props, State> {
           : MUSE_CHANNELS[0]
     };
     this.handleAnalyze = this.handleAnalyze.bind(this);
-    this.handleChannelDropdownChange = this.handleChannelDropdownChange.bind(
-      this
-    );
+    this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
   }
@@ -79,7 +78,6 @@ export default class Analyze extends Component<Props, State> {
     const workspaceCleanData = await readWorkspaceCleanedEEGData(
       this.props.title
     );
-    console.log(workspaceCleanData);
     this.setState({
       eegFilePaths: workspaceCleanData.map(filepath => ({
         key: filepath.name,
@@ -102,9 +100,9 @@ export default class Analyze extends Component<Props, State> {
     this.props.jupyterActions.loadCleanedEpochs(data.value);
   }
 
-  handleChannelDropdownChange(e: Object, props: Object) {
-    this.setState({ selectedChannel: props.value });
-    this.props.jupyterActions.loadERP(props.value);
+  handleChannelSelect(channelName: string) {
+    this.setState({ selectedChannel: channelName });
+    this.props.jupyterActions.loadERP(channelName);
   }
 
   renderEpochLabels() {
@@ -112,15 +110,14 @@ export default class Analyze extends Component<Props, State> {
       !isNil(this.props.epochsInfo) &&
       this.state.selectedFilePaths.length >= 1
     ) {
-      const epochsInfo: { [string]: number } = { ...this.props.epochsInfo };
       return (
         <div>
-          {Object.keys(epochsInfo)
-            .map((key, index) => (
-              <React.Fragment key={key}>
-                <Header as="h4">{key}</Header>
-                <Icon name="circle" color={["red", "green"][index]} />
-                {epochsInfo[key]}
+          {this.props.epochsInfo
+            .map((infoObj, index) => (
+              <React.Fragment key={infoObj.name}>
+                <Header as="h4">{infoObj.name}</Header>
+                <Icon name="circle" color={['red', 'green'][index]} />
+                {infoObj.value}
               </React.Fragment>
             ))
             .slice(0, 2)}
@@ -158,7 +155,7 @@ export default class Analyze extends Component<Props, State> {
                   options={this.state.eegFilePaths}
                   onChange={this.handleDatasetChange}
                 />
-                <Divider basic hidden />
+                <Divider hidden />
                 {this.renderEpochLabels()}
               </Segment>
             </Grid.Column>
@@ -186,20 +183,11 @@ export default class Analyze extends Component<Props, State> {
                   The event-related potential represents EEG activity elicited
                   by a particular sensory event
                 </p>
-                <Header as="h4">Electrode(s)</Header>
-                <Dropdown
-                  fluid
-                  selection
-                  closeOnChange
-                  value={this.state.selectedChannel}
-                  options={EMOTIV_CHANNELS.map(channelName => ({
-                    key: channelName,
-                    text: channelName,
-                    value: channelName
-                  }))}
-                  onChange={this.handleChannelDropdownChange}
+                <ClickableHeadDiagramSVG
+                  channelinfo={this.props.channelInfo}
+                  onclick={this.handleChannelSelect}
                 />
-                <Divider basic hidden />
+                <Divider hidden />
                 {this.renderEpochLabels()}
               </Segment>
             </Grid.Column>

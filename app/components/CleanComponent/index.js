@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from "react";
+import React, { Component } from 'react';
 import {
   Grid,
   Button,
@@ -10,14 +10,14 @@ import {
   Sidebar,
   SidebarPusher,
   Divider
-} from "semantic-ui-react";
-import { Link } from "react-router-dom";
-import { isNil } from "lodash";
-import styles from "./../styles/collect.css";
-import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from "../../constants/constants";
-import { Kernel } from "../../constants/interfaces";
-import { readWorkspaceRawEEGData } from "../../utils/filesystem/storage";
-import CleanSidebar from "./CleanSidebar";
+} from 'semantic-ui-react';
+import { Link } from 'react-router-dom';
+import { isNil } from 'lodash';
+import styles from './../styles/collect.css';
+import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
+import { Kernel } from '../../constants/interfaces';
+import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
+import CleanSidebar from './CleanSidebar';
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -26,7 +26,7 @@ interface Props {
   mainChannel: ?any;
   kernel: ?Kernel;
   kernelStatus: KERNEL_STATUS;
-  epochsInfo: ?{ [string]: number };
+  epochsInfo: ?Array<{ [string]: number | string }>;
   jupyterActions: Object;
   experimentActions: Object;
   subject: string;
@@ -55,7 +55,7 @@ export default class Clean extends Component<Props, State> {
     super(props);
     this.state = {
       subjects: [],
-      eegFilePaths: [{ key: "", text: "", value: "" }],
+      eegFilePaths: [{ key: '', text: '', value: '' }],
       selectedFilePaths: [],
       selectedSubject: props.subject
     };
@@ -110,14 +110,13 @@ export default class Clean extends Component<Props, State> {
       !isNil(this.props.epochsInfo) &&
       this.state.selectedFilePaths.length >= 1
     ) {
-      const epochsInfo: { [string]: number } = { ...this.props.epochsInfo };
       return (
         <Segment basic textAlign="left">
-          {Object.keys(epochsInfo).map((key, index) => (
-            <Segment key={key} basic>
-              <Icon name={["smile", "home", "x", "book"][index]} />
-              {key}
-              <p>{epochsInfo[key]}</p>
+          {this.props.epochsInfo.map((infoObj, index) => (
+            <Segment key={infoObj.name} basic>
+              <Icon name={['smile', 'home', 'x', 'book'][index]} />
+              {infoObj.name}
+              <p>{infoObj.value}</p>
             </Segment>
           ))}
           <Link to="/analyze">

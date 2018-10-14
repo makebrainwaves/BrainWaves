@@ -1,5 +1,5 @@
-import { combineEpics } from "redux-observable";
-import { from, of } from "rxjs";
+import { combineEpics } from 'redux-observable';
+import { from, of } from 'rxjs';
 import {
   map,
   mergeMap,
@@ -8,15 +8,15 @@ import {
   ignoreElements,
   filter,
   take
-} from "rxjs/operators";
-import { find } from "kernelspecs";
-import { launchSpec } from "spawnteract";
-import { createMainChannel } from "enchannel-zmq-backend";
-import { isNil } from "lodash";
-import { kernelInfoRequest, executeRequest } from "@nteract/messaging";
-import { toast } from "react-toastify";
-import { execute, awaitOkMessage } from "../utils/jupyter/pipes";
-import { getWorkspaceDir } from "../utils/filesystem/storage";
+} from 'rxjs/operators';
+import { find } from 'kernelspecs';
+import { launchSpec } from 'spawnteract';
+import { createMainChannel } from 'enchannel-zmq-backend';
+import { isNil } from 'lodash';
+import { kernelInfoRequest, executeRequest } from '@nteract/messaging';
+import { toast } from 'react-toastify';
+import { execute, awaitOkMessage } from '../utils/jupyter/pipes';
+import { getWorkspaceDir } from '../utils/filesystem/storage';
 import {
   LAUNCH_KERNEL,
   REQUEST_KERNEL_INFO,
@@ -29,7 +29,7 @@ import {
   CLOSE_KERNEL,
   loadTopo,
   loadERP
-} from "../actions/jupyterActions";
+} from '../actions/jupyterActions';
 import {
   imports,
   utils,
@@ -38,42 +38,47 @@ import {
   filterIIR,
   epochEvents,
   requestEpochsInfo,
+  requestChannelInfo,
   cleanEpochsPlot,
   plotPSD,
   plotERP,
   plotTopoMap,
   saveEpochs
-} from "../utils/jupyter/cells";
+} from '../utils/jupyter/cells';
 import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
   MUSE_CHANNELS
-} from "../constants/constants";
+} from '../constants/constants';
 import {
   parseSingleQuoteJSON,
   parseKernelStatus,
   debugParseMessage
-} from "../utils/jupyter/functions";
+} from '../utils/jupyter/functions';
 
-export const GET_EPOCHS_INFO = "GET_EPOCHS_INFO";
-export const SET_KERNEL = "SET_KERNEL";
-export const SET_KERNEL_STATUS = "SET_KERNEL_STATUS";
-export const SET_KERNEL_INFO = "SET_KERNEL_INFO";
-export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
-export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
-export const SET_PSD_PLOT = "SET_PSD_PLOT";
-export const SET_ERP_PLOT = "SET_ERP_PLOT";
-export const SET_TOPO_PLOT = "SET_TOPO_PLOT";
-export const RECEIVE_EXECUTE_REPLY = "RECEIVE_EXECUTE_REPLY";
-export const RECEIVE_EXECUTE_RESULT = "RECEIVE_EXECUTE_RESULT";
-export const RECEIVE_STREAM = "RECEIVE_STREAM";
-export const RECEIVE_DISPLAY_DATA = "RECEIVE_DISPLAY_DATA";
+export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
+export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
+export const SET_KERNEL = 'SET_KERNEL';
+export const SET_KERNEL_STATUS = 'SET_KERNEL_STATUS';
+export const SET_KERNEL_INFO = 'SET_KERNEL_INFO';
+export const SET_MAIN_CHANNEL = 'SET_MAIN_CHANNEL';
+export const SET_EPOCH_INFO = 'SET_EPOCH_INFO';
+export const SET_CHANNEL_INFO = 'SET_CHANNEL_INFO';
+export const SET_PSD_PLOT = 'SET_PSD_PLOT';
+export const SET_ERP_PLOT = 'SET_ERP_PLOT';
+export const SET_TOPO_PLOT = 'SET_TOPO_PLOT';
+export const RECEIVE_EXECUTE_REPLY = 'RECEIVE_EXECUTE_REPLY';
+export const RECEIVE_EXECUTE_RESULT = 'RECEIVE_EXECUTE_RESULT';
+export const RECEIVE_STREAM = 'RECEIVE_STREAM';
+export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
 
 // -------------------------------------------------------------------------
 // Action Creators
 
 const getEpochsInfo = () => ({ type: GET_EPOCHS_INFO });
+
+const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
 const setKernel = payload => ({
   payload,
@@ -98,6 +103,11 @@ const setMainChannel = payload => ({
 const setEpochInfo = payload => ({
   payload,
   type: SET_EPOCH_INFO
+});
+
+const setChannelInfo = payload => ({
+  payload,
+  type: SET_CHANNEL_INFO
 });
 
 const setPSDPlot = payload => ({
@@ -140,7 +150,7 @@ const receiveStream = payload => ({
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => from(find("brainwaves"))),
+    mergeMap(() => from(find('brainwaves'))),
     tap(kernelInfo => {
       if (isNil(kernelInfo)) {
         toast.error(
@@ -153,24 +163,24 @@ const launchEpic = action$ =>
       from(
         launchSpec(kernelInfo.spec, {
           // No STDIN, opt in to STDOUT and STDERR as node streams
-          stdio: ["ignore", "pipe", "pipe"]
+          stdio: ['ignore', 'pipe', 'pipe']
         })
       )
     ),
     tap(kernel => {
       // Route everything that we won't get in messages to our own stdout
-      kernel.spawn.stdout.on("data", data => {
+      kernel.spawn.stdout.on('data', data => {
         const text = data.toString();
-        console.log("KERNEL STDOUT: ", text);
+        console.log('KERNEL STDOUT: ', text);
       });
-      kernel.spawn.stderr.on("data", data => {
+      kernel.spawn.stderr.on('data', data => {
         const text = data.toString();
-        console.log("KERNEL STDERR: ", text);
-        toast.error("Jupyter: ", text);
+        console.log('KERNEL STDERR: ', text);
+        toast.error('Jupyter: ', text);
       });
 
-      kernel.spawn.on("close", () => {
-        console.log("Kernel closed");
+      kernel.spawn.on('close', () => {
+        console.log('Kernel closed');
       });
     }),
     map(setKernel)
@@ -178,7 +188,7 @@ const launchEpic = action$ =>
 
 const setUpChannelEpic = action$ =>
   action$.ofType(SET_KERNEL).pipe(
-    pluck("payload"),
+    pluck('payload'),
     mergeMap(kernel => from(createMainChannel(kernel.config))),
     tap(mainChannel => mainChannel.next(executeRequest(imports()))),
     tap(mainChannel => mainChannel.next(executeRequest(utils()))),
@@ -191,18 +201,18 @@ const receiveChannelMessageEpic = (action$, state$) =>
       state$.value.jupyter.mainChannel.pipe(
         map(msg => {
           console.log(debugParseMessage(msg));
-          switch (msg["header"]["msg_type"]) {
-            case "kernel_info_reply":
+          switch (msg['header']['msg_type']) {
+            case 'kernel_info_reply':
               return setKernelInfo(msg);
-            case "status":
+            case 'status':
               return setKernelStatus(parseKernelStatus(msg));
-            case "stream":
+            case 'stream':
               return receiveStream(msg);
-            case "execute_reply":
+            case 'execute_reply':
               return receiveExecuteReply(msg);
-            case "execute_result":
+            case 'execute_result':
               return receiveExecuteResult(msg);
-            case "display_data":
+            case 'display_data':
               return receiveDisplayData(msg);
             default:
           }
@@ -221,7 +231,7 @@ const requestKernelInfoEpic = (action$, state$) =>
 
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
-    pluck("payload"),
+    pluck('payload'),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray =>
       state$.value.jupyter.mainChannel.next(
@@ -241,7 +251,7 @@ const loadEpochsEpic = (action$, state$) =>
 
 const loadCleanedEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
-    pluck("payload"),
+    pluck('payload'),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray =>
       state$.value.jupyter.mainChannel.next(
@@ -249,7 +259,7 @@ const loadCleanedEpochsEpic = (action$, state$) =>
       )
     ),
     awaitOkMessage(action$),
-    mergeMap(() => of(getEpochsInfo(), loadTopo()))
+    mergeMap(() => of(getEpochsInfo(), getChannelInfo(), loadTopo()))
   );
 
 const cleanEpochsEpic = (action$, state$) =>
@@ -257,11 +267,11 @@ const cleanEpochsEpic = (action$, state$) =>
     execute(cleanEpochsPlot(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_STREAM).pipe(
-        pluck("payload"),
+        pluck('payload'),
         filter(
           msg =>
-            msg.channel === "iopub" &&
-            msg.content.text.includes("Channels marked as bad")
+            msg.channel === 'iopub' &&
+            msg.content.text.includes('Channels marked as bad')
         ),
         take(1)
       )
@@ -285,13 +295,38 @@ const getEpochsInfoEpic = (action$, state$) =>
     execute(requestEpochsInfo(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
-        pluck("payload"),
-        filter(msg => msg.channel === "iopub" && !isNil(msg.content.data)),
-        pluck("content", "data", "text/plain"),
+        pluck('payload'),
+        filter(msg => msg.channel === 'iopub' && !isNil(msg.content.data)),
+        pluck('content', 'data', 'text/plain'),
+        filter(msg => msg.includes('Drop Percentage')),
         take(1)
       )
     ),
-    map(epochInfoString => setEpochInfo(parseSingleQuoteJSON(epochInfoString)))
+    map(epochInfoString =>
+      parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
+        name: Object.keys(infoObj)[0],
+        value: infoObj[Object.keys(infoObj)[0]]
+      }))
+    ),
+    map(setEpochInfo)
+  );
+
+const getChannelInfoEpic = (action$, state$) =>
+  action$.ofType(GET_CHANNEL_INFO).pipe(
+    execute(requestChannelInfo(), state$),
+    mergeMap(() =>
+      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
+        pluck('payload'),
+        filter(msg => msg.channel === 'iopub' && !isNil(msg.content.data)),
+        pluck('content', 'data', 'text/plain'),
+        // Filter to prevent this from reading requestEpochsInfo returns
+        filter(msg => !msg.includes('Drop Percentage')),
+        take(1)
+      )
+    ),
+    map(channelInfoString =>
+      setChannelInfo(parseSingleQuoteJSON(channelInfoString))
+    )
   );
 
 const loadPSDEpic = (action$, state$) =>
@@ -299,10 +334,10 @@ const loadPSDEpic = (action$, state$) =>
     execute(plotPSD(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
-        pluck("payload"),
+        pluck('payload'),
         // PSD graphs should have two axes
-        filter(msg => msg.content.data["text/plain"].includes("2 Axes")),
-        pluck("content", "data"),
+        filter(msg => msg.content.data['text/plain'].includes('2 Axes')),
+        pluck('content', 'data'),
         take(1)
       )
     ),
@@ -314,8 +349,8 @@ const loadTopoEpic = (action$, state$) =>
     execute(plotTopoMap(), state$),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
-        pluck("payload"),
-        pluck("content", "data"),
+        pluck('payload'),
+        pluck('content', 'data'),
         take(1)
       )
     ),
@@ -324,7 +359,7 @@ const loadTopoEpic = (action$, state$) =>
 
 const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
-    pluck("payload"),
+    pluck('payload'),
     map(channelName => {
       const channels =
         state$.value.device.deviceType === DEVICES.EMOTIV
@@ -342,10 +377,10 @@ const loadERPEpic = (action$, state$) =>
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
-        pluck("payload"),
+        pluck('payload'),
         // ERP graphs should have 1 axis according to MNE
-        filter(msg => msg.content.data["text/plain"].includes("1 Axes")),
-        pluck("content", "data"),
+        filter(msg => msg.content.data['text/plain'].includes('1 Axes')),
+        pluck('content', 'data'),
         take(1)
       )
     ),
@@ -370,6 +405,7 @@ export default combineEpics(
   loadCleanedEpochsEpic,
   cleanEpochsEpic,
   getEpochsInfoEpic,
+  getChannelInfoEpic,
   loadPSDEpic,
   loadTopoEpic,
   loadERPEpic,

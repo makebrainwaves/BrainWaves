@@ -1,7 +1,7 @@
 /* eslint prefer-template: 0 */
-const d3 = require("d3");
-const throttle = require("lodash/throttle");
-const simplify = require("simplify-js");
+const d3 = require('d3');
+const throttle = require('lodash/throttle');
+const simplify = require('simplify-js');
 
 class EEGViewer {
   constructor(svg, parameters) {
@@ -23,7 +23,7 @@ class EEGViewer {
     this.resetData();
     this.init();
     const resize = this.resize.bind(this);
-    d3.select(window).on("resize.updatesvg", throttle(resize, 200));
+    d3.select(window).on('resize.updatesvg', throttle(resize, 200));
   }
 
   updateData(epoch) {
@@ -96,20 +96,20 @@ class EEGViewer {
 
   init() {
     try {
-      d3.selectAll("svg > *").remove();
+      d3.selectAll('svg > *').remove();
       this.width =
-        parseInt(d3.select("#graph").style("width"), 10) -
+        parseInt(d3.select('#graph').style('width'), 10) -
         (this.margin.left + this.margin.right);
       this.height =
-        parseInt(d3.select("#graph").style("height"), 10) -
+        parseInt(d3.select('#graph').style('height'), 10) -
         (this.margin.top + this.margin.bottom);
       this.graph = this.canvas
-        .attr("width", this.width)
-        .attr("height", this.height)
-        .append("g")
+        .attr('width', this.width)
+        .attr('height', this.height)
+        .append('g')
         .attr(
-          "transform",
-          "translate(" + this.margin.left + "," + this.margin.top + ")"
+          'transform',
+          'translate(' + this.margin.left + ',' + this.margin.top + ')'
         );
       this.addScales();
       this.addAxes();
@@ -142,34 +142,34 @@ class EEGViewer {
       .axisLeft()
       .scale(this.yScaleLabels)
       .tickSize(2)
-      .tickFormat((d, i) => this.channels[i].replace(/\s/g, ""))
+      .tickFormat((d, i) => this.channels[i].replace(/\s/g, ''))
       .tickValues(d3.range(this.channels.length));
 
     this.axisY = this.graph
-      .append("g")
-      .attr("class", "axis")
+      .append('g')
+      .attr('class', 'axis')
       .call(this.yAxis);
   }
 
   addLines() {
-    this.graph.selectAll(".legend").remove();
-    this.graph.select("#lines").remove();
-    this.graph.selectAll("#clip").remove();
+    this.graph.selectAll('.legend').remove();
+    this.graph.select('#lines').remove();
+    this.graph.selectAll('#clip').remove();
     this.paths = [];
     this.graph
-      .append("clipPath")
-      .attr("id", "clip")
-      .append("rect")
-      .attr("height", this.height + this.height / this.channels.length)
-      .attr("width", this.width)
+      .append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+      .attr('height', this.height + this.height / this.channels.length)
+      .attr('width', this.width)
       .attr(
-        "transform",
-        "translate(0," + -this.height / this.channels.length + ")"
+        'transform',
+        'translate(0,' + -this.height / this.channels.length + ')'
       );
     this.lines = this.graph
-      .append("g")
-      .attr("id", "lines")
-      .attr("clip-path", "url(#clip)");
+      .append('g')
+      .attr('id', 'lines')
+      .attr('clip-path', 'url(#clip)');
     this.line = d3
       .line()
       .x(d => this.xScale(d.x))
@@ -188,13 +188,13 @@ class EEGViewer {
         .range(EEGViewer.getLineRange(i, this.channels.length, this.height));
 
       this.paths[i] = this.lines
-        .append("path")
+        .append('path')
         .data([channelData])
-        .attr("class", "line")
-        .attr("id", "line" + i + 1)
-        .attr("d", this.line)
-        .attr("stroke", this.channelColours[i])
-        .attr("stroke-width", this.lineWidth);
+        .attr('class', 'line')
+        .attr('id', 'line' + i + 1)
+        .attr('d', this.line)
+        .attr('stroke', this.channelColours[i])
+        .attr('stroke-width', this.lineWidth);
     }
   }
 
@@ -215,19 +215,19 @@ class EEGViewer {
           .duration(this.plottingInterval)
           .ease(d3.easeLinear)
           .attr(
-            "transform",
-            "translate(" +
+            'transform',
+            'translate(' +
               -(
                 this.xScale(channelData[channelData.length - 1].x) - this.width
               ) +
-              ", 0)"
+              ', 0)'
           )
-          .attr("stroke", this.channelColours[i]);
+          .attr('stroke', this.channelColours[i]);
 
         this.paths[i]
           .data([channelData])
-          .attr("d", this.line)
-          .attr("transform", "translate(0,0)");
+          .attr('d', this.line)
+          .attr('transform', 'translate(0,0)');
       }
 
       this.xScale
@@ -242,12 +242,12 @@ class EEGViewer {
   resize() {
     if (this.paths != null) {
       this.width =
-        parseInt(d3.select("#graph").style("width"), 10) -
+        parseInt(d3.select('#graph').style('width'), 10) -
         (this.margin.left + this.margin.right);
       this.height =
-        parseInt(d3.select("#graph").style("height"), 10) -
+        parseInt(d3.select('#graph').style('height'), 10) -
         (this.margin.top + this.margin.bottom);
-      this.lines.attr("height", this.height).attr("width", this.width);
+      this.lines.attr('height', this.height).attr('width', this.width);
       this.xScale.range([this.width, 0]);
       this.yScaleLines.range([this.height, 0]);
       this.yScaleLabels.range([

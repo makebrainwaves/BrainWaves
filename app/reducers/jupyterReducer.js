@@ -5,20 +5,22 @@ import {
   SET_MAIN_CHANNEL,
   SET_KERNEL_INFO,
   SET_EPOCH_INFO,
+  SET_CHANNEL_INFO,
   SET_PSD_PLOT,
   SET_TOPO_PLOT,
   SET_ERP_PLOT,
   RECEIVE_EXECUTE_RETURN
-} from "../epics/jupyterEpics";
-import { ActionType, Kernel } from "../constants/interfaces";
-import { KERNEL_STATUS } from "../constants/constants";
-import { EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
+} from '../epics/jupyterEpics';
+import { ActionType, Kernel } from '../constants/interfaces';
+import { KERNEL_STATUS } from '../constants/constants';
+import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
 
 export interface JupyterStateType {
   +kernel: ?Kernel;
   +kernelStatus: KERNEL_STATUS;
   +mainChannel: ?any;
-  +epochsInfo: ?{ [string]: number };
+  +epochsInfo: ?Array<{ [string]: number | string }>;
+  +channelInfo: ?Array<string>;
   +psdPlot: ?{ [string]: string };
   +topoPlot: ?{ [string]: string };
   +erpPlot: ?{ [string]: string };
@@ -29,6 +31,7 @@ const initialState = {
   kernelStatus: KERNEL_STATUS.OFFLINE,
   mainChannel: null,
   epochsInfo: null,
+  channelInfo: [],
   psdPlot: null,
   topoPlot: null,
   erpPlot: null
@@ -64,6 +67,12 @@ export default function jupyter(
       return {
         ...state,
         epochsInfo: action.payload
+      };
+
+    case SET_CHANNEL_INFO:
+      return {
+        ...state,
+        channelInfo: action.payload
       };
 
     case SET_PSD_PLOT:

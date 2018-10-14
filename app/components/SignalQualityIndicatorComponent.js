@@ -1,14 +1,14 @@
 // @flow
-import React, { Component } from "react";
-import { isNil } from "lodash";
-import { Segment } from "semantic-ui-react";
-import * as d3 from "d3";
-import { Observable, Subscription } from "rxjs";
-import SignalQualityIndicatorSVG from "./SignalQualityIndicatorSVG";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Segment } from 'semantic-ui-react';
+import * as d3 from 'd3';
+import { Observable, Subscription } from 'rxjs';
+import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
 
 interface Props {
   signalQualityObservable: ?Observable;
-  plottingInterval: number;
+  plottingInterval: ?number;
 }
 
 class SignalQualityIndicatorComponent extends Component<Props> {
@@ -48,12 +48,12 @@ class SignalQualityIndicatorComponent extends Component<Props> {
       epoch => {
         Object.keys(epoch.signalQuality).forEach(key => {
           d3.select(`#${key}`)
-            .attr("visibility", "show")
-            .attr("stroke", "#000")
+            .attr('visibility', 'show')
+            .attr('stroke', '#000')
             .transition()
             .duration(this.props.plottingInterval)
             .ease(d3.easeLinear)
-            .attr("fill", epoch.signalQuality[key]);
+            .attr('fill', epoch.signalQuality[key]);
         });
       },
       error => new Error(`Error in signalQualitySubscription ${error}`)

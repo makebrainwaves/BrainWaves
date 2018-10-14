@@ -80,7 +80,7 @@ def plot_topo(epochs, conditions=OrderedDict()):
         evokeds, vline=None, color=palette[0:len(conditions)], show=False)
     #evoked_topo.facecolor = 'lightslategray'
     evoked_topo.patch.set_alpha(0)
-    evoked_topo.set_size_inches(10,8)
+    evoked_topo.set_size_inches(10, 8)
     for axis in evoked_topo.axes:
         for line in axis.lines:
             line.set_linewidth(2)
@@ -166,6 +166,8 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=
     if title:
         fig.suptitle(title, fontsize=20)
 
+    fig.set_size_inches(10, 8)
+
     return fig, ax
 
 
@@ -225,4 +227,4 @@ def plot_highlight_regions(x, y, hue, hue_thresh=0, xlabel='', ylabel='',
 
 
 def get_epochs_info(epochs):
-    return {"totalEpochs": len(epochs.events), "dropPercentage": round((1 - len(epochs.events)/len(epochs.drop_log)) * 100, 2), **{x: len(epochs[x]) for x in epochs.event_id}}
+    return [*[{x: len(epochs[x])} for x in epochs.event_id], {"Drop Percentage": round((1 - len(epochs.events)/len(epochs.drop_log)) * 100, 2)}, {"Total Epochs": len(epochs.events)}]
