@@ -2,7 +2,7 @@ import React from 'react';
 
 interface Props {
   channelinfo: Array<string>;
-  onclick: string => void;
+  onChannelClick: string => void;
 }
 
 const SvgComponent = (props: Props) => (
@@ -93,7 +93,7 @@ const SvgComponent = (props: Props) => (
       className="channelCircle"
       id="T7"
       visibility={props.channelinfo.includes('T7') ? 'show' : 'hidden'}
-      onClick={() => props.onclick('T7')}
+      onClick={() => props.onChannelClick('T7')}
     >
       <circle
         cx={124.37}
@@ -116,7 +116,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="FC5"
-      onClick={() => props.onclick('FC5')}
+      onClick={() => props.onChannelClick('FC5')}
       visibility={props.channelinfo.includes('FC5') ? 'show' : 'hidden'}
     >
       <circle
@@ -140,7 +140,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="FC6"
-      onClick={() => props.onclick('FC6')}
+      onClick={() => props.onChannelClick('FC6')}
       visibility={props.channelinfo.includes('FC6') ? 'show' : 'hidden'}
     >
       <circle
@@ -164,7 +164,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="F3"
-      onClick={() => props.onclick('F3')}
+      onClick={() => props.onChannelClick('F3')}
       visibility={props.channelinfo.includes('F3') ? 'show' : 'hidden'}
     >
       <circle
@@ -188,7 +188,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="F4"
-      onClick={() => props.onclick('F4')}
+      onClick={() => props.onChannelClick('F4')}
       visibility={props.channelinfo.includes('F4') ? 'show' : 'hidden'}
     >
       <circle
@@ -212,7 +212,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="AF3"
-      onClick={() => props.onclick('AF3')}
+      onClick={() => props.onChannelClick('AF3')}
       visibility={props.channelinfo.includes('AF3') ? 'show' : 'hidden'}
     >
       <circle
@@ -236,7 +236,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="AF4"
-      onClick={() => props.onclick('AF4')}
+      onClick={() => props.onChannelClick('AF4')}
       visibility={props.channelinfo.includes('AF4') ? 'show' : 'hidden'}
     >
       <circle
@@ -260,7 +260,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="M1"
-      onClick={() => props.onclick('M1')}
+      onClick={() => props.onChannelClick('M1')}
       visibility={props.channelinfo.includes('M1') ? 'show' : 'hidden'}
     >
       <circle
@@ -284,7 +284,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="P7"
-      onClick={() => props.onclick('P7')}
+      onClick={() => props.onChannelClick('P7')}
       visibility={props.channelinfo.includes('P7') ? 'show' : 'hidden'}
     >
       <circle
@@ -308,7 +308,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="O1"
-      onClick={() => props.onclick('O1')}
+      onClick={() => props.onChannelClick('O1')}
       visibility={props.channelinfo.includes('O1') ? 'show' : 'hidden'}
     >
       <circle
@@ -332,7 +332,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="O2"
-      onClick={() => props.onclick('O2')}
+      onClick={() => props.onChannelClick('O2')}
       visibility={props.channelinfo.includes('O2') ? 'show' : 'hidden'}
     >
       <circle
@@ -356,7 +356,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="P8"
-      onClick={() => props.onclick('P8')}
+      onClick={() => props.onChannelClick('P8')}
       visibility={props.channelinfo.includes('P8') ? 'show' : 'hidden'}
     >
       <circle
@@ -380,7 +380,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="T8"
-      onClick={() => props.onclick('T8')}
+      onClick={() => props.onChannelClick('T8')}
       visibility={props.channelinfo.includes('T8') ? 'show' : 'hidden'}
     >
       <circle
@@ -404,7 +404,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="M2"
-      onClick={() => props.onclick('M2')}
+      onClick={() => props.onChannelClick('M2')}
       visibility={props.channelinfo.includes('M2') ? 'show' : 'hidden'}
     >
       <circle
@@ -428,7 +428,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="TP10"
-      onClick={() => props.onclick('TP10')}
+      onClick={() => props.onChannelClick('TP10')}
       visibility={props.channelinfo.includes('TP10') ? 'show' : 'hidden'}
     >
       <circle
@@ -452,7 +452,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="Fpz"
-      onClick={() => props.onclick('Fpz')}
+      onClick={() => props.onChannelClick('Fpz')}
       visibility={props.channelinfo.includes('Fpz') ? 'show' : 'hidden'}
     >
       <circle
@@ -479,7 +479,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="TP9"
-      onClick={() => props.onclick('TP9')}
+      onClick={() => props.onChannelClick('TP9')}
       visibility={props.channelinfo.includes('TP9') ? 'show' : 'hidden'}
     >
       <circle
@@ -503,7 +503,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="AF7"
-      onClick={() => props.onclick('AF7')}
+      onClick={() => props.onChannelClick('AF7')}
       visibility={props.channelinfo.includes('AF7') ? 'show' : 'hidden'}
     >
       <circle
@@ -527,7 +527,7 @@ const SvgComponent = (props: Props) => (
     <g
       className="channelCircle"
       id="AF8"
-      onClick={() => props.onclick('AF8')}
+      onClick={() => props.onChannelClick('AF8')}
       visibility={props.channelinfo.includes('AF8') ? 'show' : 'hidden'}
     >
       <circle

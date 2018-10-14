@@ -185,7 +185,7 @@ export default class Analyze extends Component<Props, State> {
                 </p>
                 <ClickableHeadDiagramSVG
                   channelinfo={this.props.channelInfo}
-                  onclick={this.handleChannelSelect}
+                  onChannelClick={this.handleChannelSelect}
                 />
                 <Divider hidden />
                 {this.renderEpochLabels()}

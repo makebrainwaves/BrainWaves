@@ -4,7 +4,7 @@ import {
   Modal,
   Button,
   Segment,
-  Image,
+  // Image,
   List,
   Grid,
   Divider
@@ -16,7 +16,6 @@ import {
   SCREENS
 } from '../../constants/constants';
 import styles from '../styles/collect.css';
-import blake from '../../assets/face_house/faces/Blake_3.jpg';
 
 interface Props {
   history: Object;
@@ -132,9 +131,9 @@ export default class ConnectModal extends Component<Props, State> {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
         <React.Fragment>
-          <Modal.Content image>
+          {/* <Modal.Content image>
             <Image src={blake} size="tiny" centered />
-          </Modal.Content>
+          </Modal.Content> */}
           <Modal.Content className={styles.searchingText}>
             Searching for available headset(s)...
           </Modal.Content>
@@ -144,9 +143,9 @@ export default class ConnectModal extends Component<Props, State> {
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
         <React.Fragment>
-          <Modal.Content image>
+          {/* <Modal.Content image>
             <Image src={blake} size="tiny" centered />
-          </Modal.Content>
+          </Modal.Content> */}
           <Modal.Content className={styles.searchingText}>
             Connecting to{' '}
             {ConnectModal.getDeviceName(this.state.selectedDevice)}

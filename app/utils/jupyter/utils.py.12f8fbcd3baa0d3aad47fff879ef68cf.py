@@ -87,6 +87,7 @@ def plot_topo(epochs, conditions=OrderedDict()):
     legend_loc = 0
     labels = [e.comment if e.comment else 'Unknown' for e in evokeds]
     legend = plt.legend(labels, loc=legend_loc, prop={'size': 20})
+    legend.get_frame().set_facecolor(axis.facecolor)
     txts = legend.get_texts()
     for txt, col in zip(txts, palette):
         txt.set_color(col)

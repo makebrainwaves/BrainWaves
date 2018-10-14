@@ -169,7 +169,7 @@ export default class Home extends Component<Props, State> {
                 </Button>
               </Segment>
             </Grid.Column>
-            <Grid.Column>
+            {/* <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
                 <Image size="huge" src={faceHouseIcon} />
                 <Header as="h1">Stroop</Header>
@@ -189,8 +189,8 @@ export default class Home extends Component<Props, State> {
                 >
                   Start Experiment
                 </Button>
-              </Segment>
-            </Grid.Column>
+              </Segment> */}
+            {/* </Grid.Column> */}
             <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
                 <Image size="huge" src={faceHouseIcon} />

@@ -85,7 +85,12 @@ export default class StimuliDesignColumn extends Component<Props> {
               </Grid.Column>
               <Grid.Column verticalAlign="bottom" floated="left" width={4}>
                 <Segment basic compact>
-                  <em>{this.props.dir}</em>
+                  {
+                    // Kind of hacky. Set to empty string if dir is inside app itself
+                  }
+                  <em>
+                    {this.props.dir.includes('app') ? '' : this.props.dir}
+                  </em>
                 </Segment>
               </Grid.Column>
             </Grid>
