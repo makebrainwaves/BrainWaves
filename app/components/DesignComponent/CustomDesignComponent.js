@@ -6,7 +6,8 @@ import {
   Segment,
   Header,
   Form,
-  Checkbox
+  Checkbox,
+  Image
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
@@ -22,6 +23,9 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
 import ParamSlider from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
+import researchQuestionImage from '../../assets/common/research_question.png';
+import methodsImage from '../../assets/common/methods.png';
+import hypothesisImage from '../../assets/common/hypothesis.png';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -265,10 +269,11 @@ export default class CustomDesign extends Component<Props, State> {
             className={styles.contentGrid}
           >
             <Grid.Column stretched verticalAlign="middle">
+              <Image as={Segment} basic centered src={researchQuestionImage} />
               <Form>
                 <Form.TextArea
                   autoHeight
-                  style={{ minHeight: 100 }}
+                  style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.QUESTION}
                   value={this.state.description.question}
                   placeholder="Explain your research question here."
@@ -284,10 +289,11 @@ export default class CustomDesign extends Component<Props, State> {
               </Form>
             </Grid.Column>
             <Grid.Column stretched verticalAlign="middle">
+              <Image as={Segment} basic centered src={methodsImage} />
               <Form>
                 <Form.TextArea
                   autoHeight
-                  style={{ minHeight: 100 }}
+                  style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.HYPOTHESIS}
                   value={this.state.description.hypothesis}
                   placeholder="Describe your hypothesis here."
@@ -302,11 +308,12 @@ export default class CustomDesign extends Component<Props, State> {
                 />
               </Form>
             </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
+            <Grid.Column verticalAlign="middle">
+              <Image as={Segment} basic centered src={hypothesisImage} />
               <Form>
                 <Form.TextArea
                   autoHeight
-                  style={{ minHeight: 100 }}
+                  style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.METHODS}
                   value={this.state.description.methods}
                   placeholder="Explain how you will design your experiment to answer the question here."
