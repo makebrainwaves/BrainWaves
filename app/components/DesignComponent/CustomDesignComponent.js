@@ -289,7 +289,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Form>
             </Grid.Column>
             <Grid.Column stretched verticalAlign="middle">
-              <Image as={Segment} basic centered src={methodsImage} />
+              <Image as={Segment} basic centered src={hypothesisImage} />
               <Form>
                 <Form.TextArea
                   autoHeight
@@ -309,7 +309,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Form>
             </Grid.Column>
             <Grid.Column verticalAlign="middle">
-              <Image as={Segment} basic centered src={hypothesisImage} />
+              <Image as={Segment} basic centered src={methodsImage} />
               <Form>
                 <Form.TextArea
                   autoHeight
