@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
+import { toast } from 'react-toastify';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
 import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
@@ -82,13 +83,19 @@ export default class Home extends Component<Props, State> {
   handleLoadNewExperiment(title: string) {
     this.setState({ isNewExperimentModalOpen: false });
     // Don't create new workspace if it already exists or title is too short
-    if (!this.state.recentWorkspaces.includes(title) && title.length >= 1) {
-      this.props.experimentActions.createNewWorkspace({
-        title,
-        type: this.state.selectedExperimentType
-      });
-      this.props.history.push(SCREENS.DESIGN.route);
+    if (this.state.recentWorkspaces.includes(title)) {
+      toast.error(`Experiment already exists`);
+      return;
     }
+    if (title.length <= 3) {
+      toast.error(`Experiment name is too short`);
+      return;
+    }
+    this.props.experimentActions.createNewWorkspace({
+      title,
+      type: this.state.selectedExperimentType
+    });
+    this.props.history.push(SCREENS.DESIGN.route);
   }
 
   handleLoadRecentWorkspace(dir: string) {
@@ -244,6 +251,7 @@ export default class Home extends Component<Props, State> {
         <InputModal
           open={this.state.isNewExperimentModalOpen}
           onClose={this.handleLoadNewExperiment}
+          onExit={() => this.setState({ isNewExperimentModalOpen: false })}
           header="Enter a title for this experiment"
         />
       </div>

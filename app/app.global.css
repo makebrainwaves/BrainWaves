@@ -141,7 +141,7 @@ button:active {
 }
 
 .ui.dimmer.inverted {
-  top: 0px !important;
+  background-image: none;
 }
 
 .ui.modal > .header {
