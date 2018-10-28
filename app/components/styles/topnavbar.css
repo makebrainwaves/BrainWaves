@@ -8,6 +8,7 @@
 }
 
 .experimentTitleSegment {
+  white-space: nowrap;
   display: flex !important;
   justify-content: center;
   height: inherit;
@@ -60,12 +61,6 @@
   border-bottom-color: #ffe69c;
 }
 
-.visitedNavColumn:hover {
-}
-
-.activeNavColumn:hover {
-}
-
 .numberBubble {
   font-size: 14px;
   display: inline-block;
@@ -90,4 +85,9 @@
 .activeNavColumn .numberBubble {
   color: #ffc107;
   border: 2px solid #ffc107;
+}
+
+.closeButton {
+  border: none !important;
+  box-shadow: none !important;
 }

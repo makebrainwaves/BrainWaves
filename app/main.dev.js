@@ -10,34 +10,34 @@
  *
  * @flow
  */
-import { app, BrowserWindow, ipcMain } from "electron";
-import { loadDialog } from "./utils/filesystem/dialog";
-import MenuBuilder from "./menu";
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { loadDialog } from './utils/filesystem/dialog';
+import MenuBuilder from './menu';
 
-app.commandLine.appendSwitch("enable-experimental-web-platform-features", true);
-app.commandLine.appendSwitch("user-activation-v2", true);
+app.commandLine.appendSwitch('enable-experimental-web-platform-features', true);
+app.commandLine.appendSwitch('user-activation-v2', true);
 
 let mainWindow = null;
 
-if (process.env.NODE_ENV === "production") {
-  const sourceMapSupport = require("source-map-support");
+if (process.env.NODE_ENV === 'production') {
+  const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
 }
 
 if (
-  process.env.NODE_ENV === "development" ||
-  process.env.DEBUG_PROD === "true"
+  process.env.NODE_ENV === 'development' ||
+  process.env.DEBUG_PROD === 'true'
 ) {
-  require("electron-debug")();
-  const path = require("path");
-  const p = path.join(__dirname, "..", "app", "node_modules");
-  require("module").globalPaths.push(p);
+  require('electron-debug')();
+  const path = require('path');
+  const p = path.join(__dirname, '..', 'app', 'node_modules');
+  require('module').globalPaths.push(p);
 }
 
 const installExtensions = async () => {
-  const installer = require("electron-devtools-installer");
+  const installer = require('electron-devtools-installer');
   const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ["REACT_DEVELOPER_TOOLS", "REDUX_DEVTOOLS"];
+  const extensions = ['REACT_DEVELOPER_TOOLS', 'REDUX_DEVTOOLS'];
 
   return Promise.all(
     extensions.map(name => installer.default(installer[name], forceDownload))
@@ -48,36 +48,38 @@ const installExtensions = async () => {
  * Add event listeners...
  */
 
-app.on("window-all-closed", () => {
+app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
-  if (process.platform !== "darwin") {
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-app.on("ready", async () => {
+app.on('ready', async () => {
   if (
-    process.env.NODE_ENV === "development" ||
-    process.env.DEBUG_PROD === "true"
+    process.env.NODE_ENV === 'development' ||
+    process.env.DEBUG_PROD === 'true'
   ) {
     await installExtensions();
   }
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728
+    width: 1280,
+    height: 800
   });
 
+  mainWindow.setMinimumSize(1075, 708);
+
   // IPC Listener for file dialog events
-  ipcMain.on("loadDialog", loadDialog);
+  ipcMain.on('loadDialog', loadDialog);
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
-  mainWindow.webContents.on("did-finish-load", () => {
+  mainWindow.webContents.on('did-finish-load', () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
@@ -85,7 +87,7 @@ app.on("ready", async () => {
     mainWindow.focus();
   });
 
-  mainWindow.on("closed", () => {
+  mainWindow.on('closed', () => {
     mainWindow = null;
   });
 

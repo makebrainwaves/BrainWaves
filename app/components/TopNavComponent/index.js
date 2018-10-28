@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { Grid, Button } from 'semantic-ui-react';
+import { Grid, Button, Segment } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import styles from '../styles/topnavbar.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
+import { openWorkspaceDir } from '../../utils/filesystem/storage';
 
 interface Props {
   title: ?string;
@@ -48,9 +49,16 @@ export default class TopNavComponent extends Component<Props> {
         verticalAlign="middle"
       >
         <Grid.Column width="3" className={styles.experimentTitleSegment}>
-          <NavLink to={SCREENS.HOME.route}>
+          <Segment basic as="p">
             {this.props.title ? this.props.title : 'Untitled'}
-          </NavLink>
+            <Button
+              icon="folder open outline"
+              basic
+              circular
+              className={styles.closeButton}
+              onClick={() => openWorkspaceDir(this.props.title)}
+            />
+          </Segment>
         </Grid.Column>
         <PrimaryNavSegment
           {...SCREENS.DESIGN}
@@ -76,6 +84,11 @@ export default class TopNavComponent extends Component<Props> {
           >
             Save Workspace
           </Button>
+          <NavLink to={SCREENS.HOME.route}>
+            <Button secondary size="medium">
+              Exit Workspace
+            </Button>
+          </NavLink>
         </Grid.Column>
       </Grid>
     );

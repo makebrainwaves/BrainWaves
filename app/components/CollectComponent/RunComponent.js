@@ -197,6 +197,7 @@ export default class Run extends Component<Props, State> {
         <InputModal
           open={this.state.isInputModalOpen}
           onClose={this.handleCloseInputModal}
+          onExit={() => this.setState({ isInputModalOpen: false })}
           header="Enter Subject Name"
         />
       </div>

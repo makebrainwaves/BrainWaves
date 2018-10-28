@@ -119,13 +119,24 @@ export default class Clean extends Component<Props, State> {
               <p>{infoObj.value}</p>
             </Segment>
           ))}
-          <Link to="/analyze">
-            <Button primary>Analyze Dataset</Button>
-          </Link>
         </Segment>
       );
     }
     return <div />;
+  }
+
+  renderAnalyzeButton() {
+    if (
+      !isNil(this.props.epochsInfo) &&
+      this.props.epochsInfo.find(infoObj => infoObj.name === 'Drop Percentage')
+        .value >= 2
+    ) {
+      return (
+        <Link to="/analyze">
+          <Button primary>Analyze Dataset</Button>
+        </Link>
+      );
+    }
   }
 
   render() {
@@ -207,13 +218,16 @@ export default class Clean extends Component<Props, State> {
                         disabled={isNil(this.props.epochsInfo)}
                         onClick={this.props.jupyterActions.cleanEpochs}
                       >
-                        Launch Editor
+                        Clean Data
                       </Button>
                     </Grid.Column>
                   </Grid>
                 </Segment>
               </Grid.Column>
-              <Grid.Column width={4}>{this.renderEpochLabels()}</Grid.Column>
+              <Grid.Column width={4}>
+                {this.renderEpochLabels()}
+                {this.renderAnalyzeButton()}
+              </Grid.Column>
             </Grid.Row>
           </Grid>
         </SidebarPusher>

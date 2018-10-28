@@ -7,7 +7,7 @@ import styles from './styles/common.css';
 interface Props {
   open: boolean;
   onClose: string => void;
-  +onExit: string => void;
+  onExit: string => void;
   header: string;
 }
 

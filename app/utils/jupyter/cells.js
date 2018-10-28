@@ -73,7 +73,7 @@ export const requestChannelInfo = () =>
 export const cleanEpochsPlot = () =>
   [
     `%matplotlib`,
-    `epochs.plot(scalings='auto', n_epochs=8, title="", events=None)`
+    `epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`
   ].join('\n');
 
 export const plotTopoMap = () =>
