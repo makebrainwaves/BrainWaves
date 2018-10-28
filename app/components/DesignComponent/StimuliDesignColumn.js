@@ -2,6 +2,8 @@
 
 import React, { Component } from 'react';
 import { Grid, Segment, Header, Form } from 'semantic-ui-react';
+import { toast } from 'react-toastify';
+import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
 
@@ -36,6 +38,12 @@ export default class StimuliDesignColumn extends Component<Props> {
 
   async handleSelectFolder() {
     const dir = await loadFromSystemDialog(FILE_TYPES.STIMULUS_DIR);
+    const images = readImages(dir);
+    console.log(images);
+
+    if (images.length < 1) {
+      toast.error('No images in folder!');
+    }
     this.props.onChange('dir', dir);
   }
 
@@ -43,10 +51,10 @@ export default class StimuliDesignColumn extends Component<Props> {
     return (
       <Grid.Column stretched verticalAlign="middle">
         <Segment basic>
-          <Header as="h1">Stimuli {this.props.num}</Header>
+          <Header as="h1">Condition {this.props.num}</Header>
           <p>
-            Give your stimuli group a title, select the location of your images,
-            and choose the correct key response
+            Give your condition a title, select the location of your images, and
+            choose the correct key response
           </p>
         </Segment>
         <Segment basic>

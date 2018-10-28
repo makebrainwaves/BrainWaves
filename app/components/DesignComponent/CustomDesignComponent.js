@@ -158,7 +158,7 @@ export default class CustomDesign extends Component<Props, State> {
           >
             <Grid.Column stretched verticalAlign="middle">
               <Segment basic>
-                <Header as="h1">Trial Duration</Header>
+                <Header as="h1">Image Duration</Header>
                 <p>
                   Select the trial duration. This determines the amount of time
                   each image will be displayed during the experiment.
@@ -166,7 +166,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
               <Segment basic>
                 <ParamSlider
-                  label="Trial Duration (seconds)"
+                  label="Image Duration (seconds)"
                   value={this.state.params.trialDuration}
                   onChange={value =>
                     this.setState({
@@ -178,11 +178,11 @@ export default class CustomDesign extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column stretched verticalAlign="middle">
               <Segment basic>
-                <Header as="h1">ITI Duration</Header>
+                <Header as="h1">Time Interval</Header>
                 <p>
-                  Select the intertrial interval duration. This is the amount of
-                  time between trials measured from the end of one trial to the
-                  start of the next one.
+                  Select the inter-trial interval duration. This is the amount
+                  of time between trials measured from the end of one trial to
+                  the start of the next one.
                 </p>
               </Segment>
               <Segment basic>

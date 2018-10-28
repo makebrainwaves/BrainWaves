@@ -54,7 +54,7 @@ export default class PreTestComponent extends Component<Props, State> {
     super(props);
     this.state = {
       isPreviewing: false,
-      isSidebarVisible: false
+      isSidebarVisible: true
     };
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);

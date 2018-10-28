@@ -121,7 +121,7 @@ export default class HelpSidebar extends Component<Props, State> {
       case HELP_STEP.SIGNAL_CONTACT:
         return this.renderHelp(
           'Tip #2: Ensure the sensors are making firm contact',
-          'Re-seat the headset to make sure that all sensors contact the head with some tension. You may need to sweep hair out of the way to accomplish this'
+          'Re-seat the headset to make sure that all sensors contact the head with some tension. Take extra care to make sure the reference electrodes (the ones right behind the ears) make proper contact.  You may need to sweep hair out of the way to accomplish this'
         );
       case HELP_STEP.SIGNAL_MOVEMENT:
         return this.renderHelp(
@@ -158,7 +158,6 @@ export default class HelpSidebar extends Component<Props, State> {
     return (
       <Segment basic padded vertical className={styles.helpSidebar}>
         <Button
-          basic
           circular
           size="large"
           floated="right"
