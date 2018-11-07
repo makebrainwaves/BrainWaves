@@ -77,13 +77,6 @@ export default class TopNavComponent extends Component<Props> {
           style={this.getStyleForScreen(SCREENS.ANALYZE)}
         />
         <Grid.Column width="6">
-          <Button
-            secondary
-            size="medium"
-            onClick={this.props.experimentActions.saveWorkspace}
-          >
-            Save Workspace
-          </Button>
           <NavLink to={SCREENS.HOME.route}>
             <Button secondary size="medium">
               Exit Workspace

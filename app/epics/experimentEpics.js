@@ -169,7 +169,11 @@ const updateSessionEpic = (action$, state$) =>
 //   );
 
 const autoSaveEpic = action$ =>
-  action$.ofType(SET_TIMELINE).pipe(map(saveWorkspace));
+  action$.ofType('@@router/LOCATION_CHANGE').pipe(
+    pluck('payload', 'pathname'),
+    filter(pathname => pathname !== '/'),
+    map(saveWorkspace)
+  );
 
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(
