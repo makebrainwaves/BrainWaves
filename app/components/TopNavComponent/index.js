@@ -76,7 +76,7 @@ export default class TopNavComponent extends Component<Props> {
           {...SCREENS.ANALYZE}
           style={this.getStyleForScreen(SCREENS.ANALYZE)}
         />
-        <Grid.Column width="6">
+        <Grid.Column width="3">
           <NavLink to={SCREENS.HOME.route}>
             <Button secondary size="medium">
               Exit Workspace

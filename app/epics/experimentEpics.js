@@ -26,7 +26,8 @@ import {
 import {
   DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS
+  EMOTIV_CHANNELS,
+  CONNECTION_STATUS
 } from '../constants/constants';
 import { loadTimeline, getBehaviouralData } from '../utils/jspsych/functions';
 import {
@@ -98,26 +99,27 @@ const loadDefaultTimelineEpic = (action$, state$) =>
 const startEpic = (action$, state$) =>
   action$.ofType(START).pipe(
     tap(console.log),
-    filter(
-      () =>
-        !state$.value.experiment.isRunning && state$.value.device.rawObservable
-    ),
+    filter(() => !state$.value.experiment.isRunning),
     map(() => {
-      const writeStream = createEEGWriteStream(
-        state$.value.experiment.title,
-        state$.value.experiment.subject,
-        state$.value.experiment.session
-      );
+      if (
+        state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
+      ) {
+        const writeStream = createEEGWriteStream(
+          state$.value.experiment.title,
+          state$.value.experiment.subject,
+          state$.value.experiment.session
+        );
 
-      writeHeader(
-        writeStream,
-        state$.value.device.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS
-          : MUSE_CHANNELS
-      );
-      state$.value.device.rawObservable
-        .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
-        .subscribe(eegData => writeEEGData(writeStream, eegData));
+        writeHeader(
+          writeStream,
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS
+            : MUSE_CHANNELS
+        );
+        state$.value.device.rawObservable
+          .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
+          .subscribe(eegData => writeEEGData(writeStream, eegData));
+      }
     }),
     mapTo(true),
     map(setIsRunning)

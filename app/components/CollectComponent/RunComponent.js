@@ -34,6 +34,7 @@ interface Props {
   subject: string;
   session: number;
   deviceType: DEVICES;
+  isEEGEnabled: boolean;
   experimentActions: Object;
 }
 
@@ -61,7 +62,6 @@ export default class Run extends Component<Props, State> {
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleTimeline = this.handleTimeline.bind(this);
     this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
-    // this.handleClean = this.handleClean.bind(this);
   }
 
   componentDidMount() {
@@ -93,8 +93,13 @@ export default class Run extends Component<Props, State> {
   }
 
   handleTimeline() {
-    const injectionFunction =
-      this.props.deviceType === 'MUSE' ? injectMuseMarker : injectEmotivMarker;
+    let injectionFunction = () => null;
+    if (this.props.isEEGEnabled) {
+      injectionFunction =
+        this.props.deviceType === 'MUSE'
+          ? injectMuseMarker
+          : injectEmotivMarker;
+    }
 
     const timeline = instantiateTimeline(
       parseTimeline(

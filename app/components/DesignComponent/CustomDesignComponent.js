@@ -50,6 +50,7 @@ interface Props {
   trials: { [string]: Trial };
   timelines: {};
   experimentActions: Object;
+  isEEGEnabled: boolean;
   description: ExperimentDescription;
 }
 
@@ -82,6 +83,7 @@ export default class CustomDesign extends Component<Props, State> {
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSaveParams = this.handleSaveParams.bind(this);
     this.handleProgressBar = this.handleProgressBar.bind(this);
+    this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
     }
@@ -95,6 +97,10 @@ export default class CustomDesign extends Component<Props, State> {
     this.setState({
       params: { ...this.state.params, showProgessBar: data.checked }
     });
+  }
+
+  handleEEGEnabled(event: Object, data: Object) {
+    this.props.experimentActions.setEEGEnabled(data.checked);
   }
 
   handleStartExperiment() {
@@ -207,9 +213,20 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
               <Segment basic>
                 <Checkbox
-                  checked={this.state.params.showProgessBar}
+                  checked={this.props.params.showProgessBar}
                   label="Enable progress bar"
                   onChange={this.handleProgressBar}
+                />
+              </Segment>
+              <Segment basic>
+                <Header as="h1">EEG Enabled</Header>
+                <p>EEG data collection will be enabled for this experiment</p>
+              </Segment>
+              <Segment basic>
+                <Checkbox
+                  checked={this.props.isEEGEnabled}
+                  label="Enable EEG"
+                  onChange={this.handleEEGEnabled}
                 />
               </Segment>
             </Grid.Column>
@@ -342,24 +359,17 @@ export default class CustomDesign extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           button={
-            <div>
-              <Button
-                compact
-                size="small"
-                secondary
-                onClick={this.handleSaveParams}
-              >
-                Save Experiment
-              </Button>
-              <Button
-                compact
-                size="small"
-                primary
-                onClick={this.handleStartExperiment}
-              >
-                Collect Data
-              </Button>
-            </div>
+            <Button
+              compact
+              size="small"
+              primary
+              onClick={() => {
+                this.handleSaveParams();
+                this.handleStartExperiment();
+              }}
+            >
+              Collect Data
+            </Button>
           }
         />
         {this.renderSectionContent()}
