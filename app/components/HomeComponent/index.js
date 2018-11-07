@@ -34,7 +34,7 @@ interface State {
   recentWorkspaces: Array<string>;
   isNewExperimentModalOpen: boolean;
   isOverviewComponentOpen: boolean;
-  selectedExperimentType: EXPERIMENTS;
+  overviewExperimentType: EXPERIMENTS;
 }
 
 export default class Home extends Component<Props, State> {
@@ -42,7 +42,7 @@ export default class Home extends Component<Props, State> {
   state: State;
   handleNewExperiment: EXPERIMENTS => void;
   handleStepClick: string => void;
-  handleLoadNewExperiment: string => void;
+  handleLoadCustomExperiment: string => void;
   handleOpenOverview: EXPERIMENTS => void;
   handleCloseOverview: () => void;
 
@@ -53,11 +53,13 @@ export default class Home extends Component<Props, State> {
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
-      selectedExperimentType: EXPERIMENTS.NONE
+      overviewExperimentType: EXPERIMENTS.NONE
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
-    this.handleLoadNewExperiment = this.handleLoadNewExperiment.bind(this);
+    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(
+      this
+    );
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
   }
@@ -73,14 +75,25 @@ export default class Home extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
+  // If pre-designed experiment is selected,
+  // create new workspace if it does not exist, otherwise open existing workspace
   handleNewExperiment(experimentType: EXPERIMENTS) {
-    this.setState({
-      isNewExperimentModalOpen: true,
-      selectedExperimentType: experimentType
-    });
+    if (experimentType === EXPERIMENTS.CUSTOM) {
+      this.setState({
+        isNewExperimentModalOpen: true
+      });
+    } else if (this.state.recentWorkspaces.includes(experimentType)) {
+      this.handleLoadRecentWorkspace(experimentType);
+    } else {
+      this.props.experimentActions.createNewWorkspace({
+        title: experimentType,
+        type: experimentType
+      });
+      this.props.history.push(SCREENS.DESIGN.route);
+    }
   }
 
-  handleLoadNewExperiment(title: string) {
+  handleLoadCustomExperiment(title: string) {
     this.setState({ isNewExperimentModalOpen: false });
     // Don't create new workspace if it already exists or title is too short
     if (this.state.recentWorkspaces.includes(title)) {
@@ -93,7 +106,7 @@ export default class Home extends Component<Props, State> {
     }
     this.props.experimentActions.createNewWorkspace({
       title,
-      type: this.state.selectedExperimentType
+      type: EXPERIMENTS.CUSTOM
     });
     this.props.history.push(SCREENS.DESIGN.route);
   }
@@ -108,7 +121,7 @@ export default class Home extends Component<Props, State> {
 
   handleOpenOverview(type: EXPERIMENTS) {
     this.setState({
-      selectedExperimentType: type,
+      overviewExperimentType: type,
       isOverviewComponentOpen: true
     });
   }
@@ -119,7 +132,7 @@ export default class Home extends Component<Props, State> {
     });
   }
 
-  // TODO: Figure out how to make this not overflow. Lists?
+  // TODO: Figure out how to make this not overflow when there's tons of workspaces. Lists?
   renderSectionContent() {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
@@ -223,7 +236,7 @@ export default class Home extends Component<Props, State> {
     if (this.state.isOverviewComponentOpen) {
       return (
         <OverviewComponent
-          type={this.state.selectedExperimentType}
+          type={this.state.overviewExperimentType}
           onStartExperiment={this.handleNewExperiment}
           onCloseOverview={this.handleCloseOverview}
         />
@@ -250,7 +263,7 @@ export default class Home extends Component<Props, State> {
         {this.renderOverviewOrHome()}
         <InputModal
           open={this.state.isNewExperimentModalOpen}
-          onClose={this.handleLoadNewExperiment}
+          onClose={this.handleLoadCustomExperiment}
           onExit={() => this.setState({ isNewExperimentModalOpen: false })}
           header="Enter a title for this experiment"
         />

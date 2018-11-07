@@ -1,10 +1,10 @@
 export const EXPERIMENTS = {
   NONE: 'NONE',
-  P300: 'P300',
-  N170: 'N170',
-  SSVEP: 'SSVEP',
-  STROOP: 'STROOP',
-  CUSTOM: 'CUSTOM'
+  P300: 'Visual Oddball',
+  N170: 'Faces and Houses',
+  SSVEP: 'Steady-state Visual Evoked Potential',
+  STROOP: 'Stroop Task',
+  CUSTOM: 'Custom'
 };
 
 export const SCREENS = {

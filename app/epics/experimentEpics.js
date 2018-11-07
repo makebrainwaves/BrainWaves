@@ -1,6 +1,5 @@
-import { combineEpics } from "redux-observable";
-import { executeRequest } from "@nteract/messaging";
-import { from, of } from "rxjs";
+import { combineEpics } from 'redux-observable';
+import { from, of } from 'rxjs';
 import {
   map,
   mapTo,
@@ -11,7 +10,7 @@ import {
   throttleTime,
   ignoreElements,
   tap
-} from "rxjs/operators";
+} from 'rxjs/operators';
 import {
   setType,
   setTitle,
@@ -23,33 +22,31 @@ import {
   SAVE_WORKSPACE,
   CREATE_NEW_WORKSPACE,
   SET_SUBJECT
-} from "../actions/experimentActions";
+} from '../actions/experimentActions';
 import {
   DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS,
-  KERNEL_STATUS
-} from "../constants/constants";
-import { loadTimeline, getBehaviouralData } from "../utils/jspsych/functions";
+  EMOTIV_CHANNELS
+} from '../constants/constants';
+import { loadTimeline, getBehaviouralData } from '../utils/jspsych/functions';
 import {
   createEEGWriteStream,
   writeHeader,
   writeEEGData
-} from "../utils/filesystem/write";
+} from '../utils/filesystem/write';
 import {
   getWorkspaceDir,
   storeExperimentState,
   createWorkspaceDir,
   storeBehaviouralData,
   readWorkspaceRawEEGData
-} from "../utils/filesystem/storage";
-import { saveEpochs } from "../utils/jupyter/cells";
+} from '../utils/filesystem/storage';
 
-export const SET_TIMELINE = "SET_TIMELINE";
-export const SET_IS_RUNNING = "SET_IS_RUNNING";
-export const UPDATE_SESSION = "UPDATE_SESSION";
-export const SET_SESSION = "SET_SESSION";
-export const EXPERIMENT_CLEANUP = "EXPERIMENT_CLEANUP";
+export const SET_TIMELINE = 'SET_TIMELINE';
+export const SET_IS_RUNNING = 'SET_IS_RUNNING';
+export const UPDATE_SESSION = 'UPDATE_SESSION';
+export const SET_SESSION = 'SET_SESSION';
+export const EXPERIMENT_CLEANUP = 'EXPERIMENT_CLEANUP';
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -80,7 +77,7 @@ const cleanup = () => ({
 
 const createNewWorkspaceEpic = action$ =>
   action$.ofType(CREATE_NEW_WORKSPACE).pipe(
-    pluck("payload"),
+    pluck('payload'),
     tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
     mergeMap(workspaceInfo =>
       of(
@@ -184,9 +181,9 @@ const saveWorkspaceEpic = (action$, state$) =>
   );
 
 const navigationCleanupEpic = action$ =>
-  action$.ofType("@@router/LOCATION_CHANGE").pipe(
-    pluck("payload", "pathname"),
-    filter(pathname => pathname === "/"),
+  action$.ofType('@@router/LOCATION_CHANGE').pipe(
+    pluck('payload', 'pathname'),
+    filter(pathname => pathname === '/'),
     map(cleanup)
   );
 
