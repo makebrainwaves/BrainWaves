@@ -65,6 +65,7 @@ var plugin = (function() {
   };
 
   plugin.trial = function(display_element, trial) {
+    document.getElementById("experiment").focus();
     var new_html =
       '<img src="' +
       trial.stimulus +
@@ -119,8 +120,7 @@ var plugin = (function() {
       // which can be used to provide visual feedback that a response was recorded
       display_element.querySelector(
         "#jspsych-image-keyboard-response-stimulus"
-      ).className +=
-        " responded";
+      ).className += " responded";
 
       // only record the first response
       if (response.key == -1) {
@@ -148,8 +148,7 @@ var plugin = (function() {
       jsPsych.pluginAPI.setTimeout(function() {
         display_element.querySelector(
           "#jspsych-image-keyboard-response-stimulus"
-        ).style.visibility =
-          "hidden";
+        ).style.visibility = "hidden";
       }, trial.stimulus_duration);
     }
 

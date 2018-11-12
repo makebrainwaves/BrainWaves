@@ -19,12 +19,12 @@ export const buildN170Timeline = () => ({
     intro:
       'You will view a series of faces and houses. Mentally note which stimulus you are viewing. Press any key to continue',
     showProgressBar: false,
-    stimulus1: { dir: facesDir, title: 'Face', type: EVENTS.FACE, response: 1 },
+    stimulus1: { dir: facesDir, title: 'Face', type: EVENTS.FACE, response: '1' },
     stimulus2: {
       dir: housesDir,
       title: 'House',
       type: EVENTS.HOUSE,
-      response: 9
+      response: '9'
     }
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids

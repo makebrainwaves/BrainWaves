@@ -1,23 +1,27 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
-import React, { Component } from 'react';
-import { Grid, Segment, Header, Form } from 'semantic-ui-react';
-import { toast } from 'react-toastify';
-import { readImages } from '../../utils/filesystem/storage';
-import { loadFromSystemDialog } from '../../utils/filesystem/select';
-import { FILE_TYPES } from '../../constants/constants';
+import React, { Component } from "react";
+import { Grid, Segment, Header, Form } from "semantic-ui-react";
+import { toast } from "react-toastify";
+import { readImages } from "../../utils/filesystem/storage";
+import { loadFromSystemDialog } from "../../utils/filesystem/select";
+import { FILE_TYPES } from "../../constants/constants";
 
 interface Props {
   num: number;
   title: string;
-  response: number;
+  response: string;
   dir: string;
   onChange: (string, string) => void;
 }
 
 const RESPONSE_OPTIONS = new Array(10)
   .fill(0)
-  .map((_, i) => ({ key: i, text: i, value: i }));
+  .map((_, i) => ({
+    key: i.toString(),
+    text: i.toString(),
+    value: i.toString()
+  }));
 
 export default class StimuliDesignColumn extends Component<Props> {
   constructor(props: Props) {
@@ -42,12 +46,14 @@ export default class StimuliDesignColumn extends Component<Props> {
     console.log(images);
 
     if (images.length < 1) {
-      toast.error('No images in folder!');
+      toast.error("No images in folder!");
     }
-    this.props.onChange('dir', dir);
+    this.props.onChange("dir", dir);
   }
 
   render() {
+    console.log(this.props.response);
+    console.log(RESPONSE_OPTIONS);
     return (
       <Grid.Column stretched verticalAlign="middle">
         <Segment basic>
@@ -65,7 +71,7 @@ export default class StimuliDesignColumn extends Component<Props> {
                 label="Title"
                 value={this.props.title}
                 onChange={(event, data) =>
-                  this.props.onChange('title', data.value)
+                  this.props.onChange("title", data.value)
                 }
                 placeholder="e.g. Faces"
               />
@@ -75,7 +81,7 @@ export default class StimuliDesignColumn extends Component<Props> {
                 label="Correct Response"
                 value={this.props.response}
                 onChange={(event, data) =>
-                  this.props.onChange('response', data.value)
+                  this.props.onChange("response", data.value)
                 }
                 placeholder="Response"
                 options={RESPONSE_OPTIONS}
@@ -97,7 +103,7 @@ export default class StimuliDesignColumn extends Component<Props> {
                     // Kind of hacky. Set to empty string if dir is inside app itself
                   }
                   <em>
-                    {this.props.dir.includes('app') ? '' : this.props.dir}
+                    {this.props.dir.includes("app") ? "" : this.props.dir}
                   </em>
                 </Segment>
               </Grid.Column>

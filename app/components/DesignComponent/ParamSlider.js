@@ -33,7 +33,7 @@ export default class ParamSlider extends PureComponent<Props> {
             dots
             marks={marks}
             min={1}
-            max={4}
+            max={8}
             value={this.props.value / MS_CONVERSION}
             onChange={value => this.props.onChange(value * MS_CONVERSION)}
             defaultValue={1}
