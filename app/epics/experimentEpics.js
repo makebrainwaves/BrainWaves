@@ -1,5 +1,4 @@
 import { combineEpics } from "redux-observable";
-import { executeRequest } from "@nteract/messaging";
 import { from, of } from "rxjs";
 import {
   map,
@@ -28,7 +27,7 @@ import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
-  KERNEL_STATUS
+  CONNECTION_STATUS
 } from "../constants/constants";
 import { loadTimeline, getBehaviouralData } from "../utils/jspsych/functions";
 import {
@@ -41,9 +40,8 @@ import {
   storeExperimentState,
   createWorkspaceDir,
   storeBehaviouralData,
-  readWorkspaceRawEEGData
+  readWorkspaceBehaviorData
 } from "../utils/filesystem/storage";
-import { saveEpochs } from "../utils/jupyter/cells";
 
 export const SET_TIMELINE = "SET_TIMELINE";
 export const SET_IS_RUNNING = "SET_IS_RUNNING";
@@ -101,26 +99,27 @@ const loadDefaultTimelineEpic = (action$, state$) =>
 const startEpic = (action$, state$) =>
   action$.ofType(START).pipe(
     tap(console.log),
-    filter(
-      () =>
-        !state$.value.experiment.isRunning && state$.value.device.rawObservable
-    ),
+    filter(() => !state$.value.experiment.isRunning),
     map(() => {
-      const writeStream = createEEGWriteStream(
-        state$.value.experiment.title,
-        state$.value.experiment.subject,
-        state$.value.experiment.session
-      );
+      if (
+        state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
+      ) {
+        const writeStream = createEEGWriteStream(
+          state$.value.experiment.title,
+          state$.value.experiment.subject,
+          state$.value.experiment.session
+        );
 
-      writeHeader(
-        writeStream,
-        state$.value.device.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS
-          : MUSE_CHANNELS
-      );
-      state$.value.device.rawObservable
-        .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
-        .subscribe(eegData => writeEEGData(writeStream, eegData));
+        writeHeader(
+          writeStream,
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS
+            : MUSE_CHANNELS
+        );
+        state$.value.device.rawObservable
+          .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
+          .subscribe(eegData => writeEEGData(writeStream, eegData));
+      }
     }),
     mapTo(true),
     map(setIsRunning)
@@ -148,16 +147,15 @@ const setSubjectEpic = action$ =>
 const updateSessionEpic = (action$, state$) =>
   action$.ofType(UPDATE_SESSION).pipe(
     mergeMap(() =>
-      from(readWorkspaceRawEEGData(state$.value.experiment.title))
+      from(readWorkspaceBehaviorData(state$.value.experiment.title))
     ),
-    map(rawFiles => {
-      if (rawFiles.length > 0) {
-        const subjectFiles = rawFiles.filter(
+    map(behaviorFiles => {
+      if (behaviorFiles.length > 0) {
+        const subjectFiles = behaviorFiles.filter(
           filepath =>
-            filepath.name.slice(0, filepath.name.length - 10) ===
+            filepath.name.slice(0, filepath.name.length - 15) ===
             state$.value.experiment.subject
         );
-        console.log(subjectFiles.length + 1);
         return subjectFiles.length + 1;
       }
       return 1;
@@ -172,7 +170,11 @@ const updateSessionEpic = (action$, state$) =>
 //   );
 
 const autoSaveEpic = action$ =>
-  action$.ofType(SET_TIMELINE).pipe(map(saveWorkspace));
+  action$.ofType("@@router/LOCATION_CHANGE").pipe(
+    pluck("payload", "pathname"),
+    filter(pathname => pathname !== "/"),
+    map(saveWorkspace)
+  );
 
 const saveWorkspaceEpic = (action$, state$) =>
   action$.ofType(SAVE_WORKSPACE).pipe(

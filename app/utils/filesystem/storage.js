@@ -120,6 +120,25 @@ export const readWorkspaceCleanedEEGData = async (title: string) => {
   }
 };
 
+// Returns a list of the behavioral CSV files in a workspace
+export const readWorkspaceBehaviorData = async (title: string) => {
+  try {
+    const files = await recursive(getWorkspaceDir(title));
+    const behaviorFiles = files
+      .filter(filepath => filepath.slice(-12).includes('behavior.csv'))
+      .map(filepath => ({
+        name: path.basename(filepath),
+        path: filepath
+      }));
+    return behaviorFiles;
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      console.log(e);
+      return [];
+    }
+  }
+};
+
 // Reads an experiment state tree from disk and parses it from JSON
 export const readAndParseState = (dir: string) => {
   try {

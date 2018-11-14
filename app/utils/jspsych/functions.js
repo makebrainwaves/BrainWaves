@@ -1,16 +1,16 @@
-import { isNil } from 'lodash';
-import { jsPsych } from 'jspsych-react';
-import * as path from 'path';
-import { readdirSync } from 'fs';
-import { EXPERIMENTS } from '../../constants/constants';
-import { buildOddballTimeline } from './timelines/oddball';
-import { buildN170Timeline } from './timelines/n170';
-import { buildSSVEPTimeline } from './timelines/ssvep';
+import { isNil } from "lodash";
+import { jsPsych } from "jspsych-react";
+import * as path from "path";
+import { readdirSync } from "fs";
+import { EXPERIMENTS } from "../../constants/constants";
+import { buildOddballTimeline } from "./timelines/oddball";
+import { buildN170Timeline } from "./timelines/n170";
+import { buildSSVEPTimeline } from "./timelines/ssvep";
 import {
   MainTimeline,
   Trial,
   ExperimentParameters
-} from '../../constants/interfaces';
+} from "../../constants/interfaces";
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -53,7 +53,7 @@ export const parseTimeline = (
           },
           {
             ...timeline.timeline[1],
-            stimulus: jsPsych.timelineVariable('stimulusVar'),
+            stimulus: jsPsych.timelineVariable("stimulusVar"),
             type: params.pluginName,
             trial_duration: params.trialDuration,
             choices: [params.stimulus1.response, params.stimulus2.response]
@@ -114,12 +114,12 @@ export const instantiateTimeline = (
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (trial.id === 'trial') {
+        if (trial.id === "trial") {
           return {
             ...trial,
             on_start: () =>
               eventCallback(
-                jsPsych.timelineVariable('eventTypeVar')(),
+                jsPsych.timelineVariable("eventTypeVar")(),
                 new Date().getTime()
               ),
             on_finish: showProgessBar
@@ -141,13 +141,32 @@ export const instantiateTimeline = (
   });
 
 // Gets the last set of behavioural (key press) data stored in jsPsych
-export const getBehaviouralData = () =>
-  jsPsych.data
+export const getBehaviouralData = () => {
+  const rawData = jsPsych.data.get().values();
+  console.log(rawData);
+
+  // Mutate rawData array to customize behavioural results output
+  for (let index = 0; index < rawData.length; index++) {
+    rawData[index] = {
+      ...rawData[index],
+      reaction_time: rawData[index].rt, // rename rt to reaction_time
+      key_press: jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(
+        rawData[index].key_press
+      ), // change keycodes to key strings
+      trial_index: rawData[index].trial_index / 2 // Remove fixations from trial index
+    };
+  }
+  rawData.shift(); // Remove first 'welcome' trial
+  rawData.pop(); // Remove last 'thanks for participating' trial
+
+  return jsPsych.data
     .get()
-    .filter(trial => !trial.stimulus.includes('fixation')) // Remove inter trial data
-    // .filter((trial) => trial.rt > 0) // Filter out trials with no responsre
-    .ignore('internal_node_id')
+    .filterCustom(trial => !trial.stimulus.includes("fixation")) // Remove inter trial data
+    .ignore("rt")
+    .ignore("internal_node_id")
+    .ignore("trial_type")
     .csv();
+};
 
 // Returns an array of images that are used in a timeline for use in preloading
 export const getImages = (params: ExperimentParameters) =>

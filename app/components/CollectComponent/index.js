@@ -34,6 +34,7 @@ interface Props {
   timelines: ?{};
   subject: string;
   session: number;
+  isEEGEnabled: boolean;
 }
 
 interface State {
@@ -53,7 +54,7 @@ export default class Collect extends Component<Props, State> {
     super(props);
     this.state = {
       isConnectModalOpen: false,
-      isRunComponentOpen: false
+      isRunComponentOpen: !props.isEEGEnabled
     };
     this.handleStartConnect = this.handleStartConnect.bind(this);
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
@@ -65,7 +66,10 @@ export default class Collect extends Component<Props, State> {
   }
 
   componentDidMount() {
-    if (this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED) {
+    if (
+      this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED &&
+      this.props.isEEGEnabled
+    ) {
       this.handleStartConnect();
     }
   }

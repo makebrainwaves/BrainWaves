@@ -39,7 +39,7 @@ export default class SecondaryNavComponent extends Component<Props> {
           />
         ))}
         {this.props.button ? (
-          <Grid.Column width="5" floated="right">
+          <Grid.Column width="5" floated="right" textAlign="right">
             {this.props.button}
           </Grid.Column>
         ) : null}

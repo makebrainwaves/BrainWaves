@@ -21,8 +21,8 @@ export type ExperimentParameters = {
   intro: string,
   // Setting this to any prevents ridiculous flow runtime errors
   showProgessBar: any,
-  stimulus1: { dir: string, type: EVENTS, title: string, response: number },
-  stimulus2: { dir: string, type: EVENTS, title: string, response: number }
+  stimulus1: { dir: string, type: EVENTS, title: string, response: string },
+  stimulus2: { dir: string, type: EVENTS, title: string, response: string }
 };
 
 export type ExperimentDescription = {

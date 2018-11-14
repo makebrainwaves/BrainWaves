@@ -11,7 +11,8 @@ import {
   SET_TITLE,
   SET_EXPERIMENT_STATE,
   SET_PARAMS,
-  SET_DESCRIPTION
+  SET_DESCRIPTION,
+  SET_EEG_ENABLED
 } from '../actions/experimentActions';
 import { EXPERIMENTS } from '../constants/constants';
 import {
@@ -33,6 +34,7 @@ export interface ExperimentStateType {
   +subject: string;
   +session: number;
   +isRunning: boolean;
+  +isEEGEnabled: boolean;
   +description: ExperimentDescription;
 }
 
@@ -47,6 +49,7 @@ const initialState = {
   subject: '',
   session: 1,
   isRunning: false,
+  isEEGEnabled: true,
   description: { question: '', hypothesis: '', methods: '' }
 };
 
@@ -101,6 +104,12 @@ export default function experiment(
       return {
         ...state,
         isRunning: action.payload
+      };
+
+    case SET_EEG_ENABLED:
+      return {
+        ...state,
+        isEEGEnabled: action.payload
       };
 
     case SET_EXPERIMENT_STATE:

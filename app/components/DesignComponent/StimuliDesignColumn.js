@@ -10,14 +10,16 @@ import { FILE_TYPES } from '../../constants/constants';
 interface Props {
   num: number;
   title: string;
-  response: number;
+  response: string;
   dir: string;
   onChange: (string, string) => void;
 }
 
-const RESPONSE_OPTIONS = new Array(10)
-  .fill(0)
-  .map((_, i) => ({ key: i, text: i, value: i }));
+const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
+  key: i.toString(),
+  text: i.toString(),
+  value: i.toString()
+}));
 
 export default class StimuliDesignColumn extends Component<Props> {
   constructor(props: Props) {
@@ -39,7 +41,6 @@ export default class StimuliDesignColumn extends Component<Props> {
   async handleSelectFolder() {
     const dir = await loadFromSystemDialog(FILE_TYPES.STIMULUS_DIR);
     const images = readImages(dir);
-    console.log(images);
 
     if (images.length < 1) {
       toast.error('No images in folder!');
@@ -93,11 +94,9 @@ export default class StimuliDesignColumn extends Component<Props> {
               </Grid.Column>
               <Grid.Column verticalAlign="bottom" floated="left" width={4}>
                 <Segment basic compact>
-                  {
-                    // Kind of hacky. Set to empty string if dir is inside app itself
-                  }
                   <em>
-                    {this.props.dir.includes('app') ? '' : this.props.dir}
+                    {// Kind of hacky. Set to empty string if dir is inside app itself (default images)
+                    this.props.dir.includes('app') ? '' : this.props.dir}
                   </em>
                 </Segment>
               </Grid.Column>
