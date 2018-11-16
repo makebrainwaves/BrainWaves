@@ -1,36 +1,40 @@
-import 'hazardous';
-import { withLatestFrom, share, startWith, filter } from 'rxjs/operators';
+import "hazardous";
+import { withLatestFrom, share, startWith, filter } from "rxjs/operators";
 import {
   addInfo,
   epoch,
   bandpassFilter,
   addSignalQuality
-} from '@neurosity/pipes';
-import { parseMuseSignalQuality } from './pipes';
+} from "@neurosity/pipes";
+import { release } from "os";
+import { parseMuseSignalQuality } from "./pipes";
 import {
   MUSE_SAMPLING_RATE,
   MUSE_CHANNELS,
   PLOTTING_INTERVAL
-} from '../../constants/constants';
+} from "../../constants/constants";
 
-const bluetooth = require('bleat').webbluetooth;
-const { MUSE_SERVICE, MuseClient, zipSamples } = require('muse-js');
-const { from } = require('rxjs');
+if (process.platform != "win32" || release().split(".")[0] >= 10) {
+  const bluetooth = require("bleat").webbluetooth;
+  const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
+  const { from } = require("rxjs");
 
-const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
+  const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
-// Just returns the client object from Muse JS
-const client = new MuseClient();
-client.enableAux = true;
-
+  // Just returns the client object from Muse JS
+  const client = new MuseClient();
+  client.enableAux = true;
+}
 // Gets an available Muse device
 // TODO: test whether this will ever return multiple devices if available
 export const getMuse = async () => {
   let device = {};
-  if (process.platform === 'win32') {
-    device = await bluetooth.requestDevice({
-      filters: [{ services: [MUSE_SERVICE] }]
-    });
+  if (process.platform === "win32") {
+    if (release().split(".")[0] >= 10) {
+      device = await bluetooth.requestDevice({
+        filters: [{ services: [MUSE_SERVICE] }]
+      });
+    }
   } else {
     device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]
@@ -41,7 +45,7 @@ export const getMuse = async () => {
 
 // Attempts to connect to a muse device. If successful, returns a device info object
 export const connectToMuse = async device => {
-  if (process.platform === 'win32') {
+  if (process.platform === "win32") {
     const gatt = await device.gatt.connect();
     await client.connect(gatt);
   } else {
@@ -104,10 +108,10 @@ export const injectMuseMarker = (value, time) => {
 
 const synchronizeTimestamp = (eegSample, marker) => {
   if (
-    eegSample['timestamp'] - marker['timestamp'] < 0 &&
-    eegSample['timestamp'] - marker['timestamp'] >= INTER_SAMPLE_INTERVAL
+    eegSample["timestamp"] - marker["timestamp"] < 0 &&
+    eegSample["timestamp"] - marker["timestamp"] >= INTER_SAMPLE_INTERVAL
   ) {
-    return { ...eegSample, marker: marker['value'] };
+    return { ...eegSample, marker: marker["value"] };
   }
   return eegSample;
 };
