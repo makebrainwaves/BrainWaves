@@ -23,9 +23,9 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
 import ParamSlider from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
-import researchQuestionImage from '../../assets/common/research_question.png';
-import methodsImage from '../../assets/common/methods.png';
-import hypothesisImage from '../../assets/common/hypothesis.png';
+import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
+import methodsImage from '../../assets/common/Methods2.png';
+import hypothesisImage from '../../assets/common/Hypothesis2.png';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',

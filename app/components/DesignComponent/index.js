@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Header } from 'semantic-ui-react';
+import { Grid, Button, Segment, Header, Image } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
@@ -14,6 +14,7 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import CustomDesign from './CustomDesignComponent';
 import PreviewButton from '../PreviewButtonComponent';
+import facesHousesOverview from '../../assets/common/FacesHouses_Overview.png';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -140,9 +141,14 @@ export default class Design extends Component<Props, State> {
       default:
         return (
           <Grid stretched relaxed padded className={styles.contentGrid}>
+            <Grid.Column width={3}>
+              <Segment basic padded>
+                <Image src={facesHousesOverview} />
+              </Segment>
+            </Grid.Column>
             <Grid.Column
               stretched
-              width={6}
+              width={3}
               textAlign="right"
               verticalAlign="middle"
             >

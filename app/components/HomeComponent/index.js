@@ -5,7 +5,8 @@ import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
-import faceHouseIcon from '../../assets/face_house/face_house_icon.jpg';
+import faceHouseIcon from '../../assets/common/FacesHouses.png';
+import customIcon from '../../assets/common/Custom.png';
 import brainwavesLogo from '../../assets/common/brainwaves_logo.png';
 import {
   readWorkspaces,
@@ -167,7 +168,7 @@ export default class Home extends Component<Props, State> {
           <Grid columns="equal" relaxed padded>
             <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
-                <Image size="huge" src={faceHouseIcon} />
+                <Image src={faceHouseIcon} />
                 <Header as="h1">Faces and Houses</Header>
                 <p>
                   Explore the N170 ERP that is produce in response to viewing
@@ -213,7 +214,7 @@ export default class Home extends Component<Props, State> {
             {/* </Grid.Column> */}
             <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
-                <Image size="huge" src={faceHouseIcon} />
+                <Image src={customIcon} />
                 <Header as="h1">Custom</Header>
                 <p>Design your own EEG experiment!</p>
                 <Button secondary disabled>
