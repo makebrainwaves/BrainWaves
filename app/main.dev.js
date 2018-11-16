@@ -12,7 +12,6 @@
  */
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { loadDialog } from './utils/filesystem/dialog';
-import MenuBuilder from './menu';
 
 app.commandLine.appendSwitch('enable-experimental-web-platform-features', true);
 app.commandLine.appendSwitch('user-activation-v2', true);
@@ -91,6 +90,7 @@ app.on('ready', async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  mainWindow.setMenu(null);
+  // const menuBuilder = new MenuBuilder(mainWindow);
+  // menuBuilder.buildMenu();
 });
