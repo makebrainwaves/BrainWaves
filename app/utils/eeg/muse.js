@@ -14,15 +14,16 @@ import {
   PLOTTING_INTERVAL
 } from "../../constants/constants";
 
+const bluetooth = require("bleat").webbluetooth;
+const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
+const { from } = require("rxjs");
+
+const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
+
+let client = {};
 if (process.platform != "win32" || release().split(".")[0] >= 10) {
-  const bluetooth = require("bleat").webbluetooth;
-  const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
-  const { from } = require("rxjs");
-
-  const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
-
   // Just returns the client object from Muse JS
-  const client = new MuseClient();
+  client = new MuseClient();
   client.enableAux = true;
 }
 // Gets an available Muse device
