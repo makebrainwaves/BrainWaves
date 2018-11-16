@@ -76,15 +76,15 @@ export default class Home extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  // If pre-designed experiment is selected,
-  // create new workspace if it does not exist, otherwise open existing workspace
   handleNewExperiment(experimentType: EXPERIMENTS) {
     if (experimentType === EXPERIMENTS.CUSTOM) {
       this.setState({
         isNewExperimentModalOpen: true
       });
+      // If pre-designed experiment, load existing workspace
     } else if (this.state.recentWorkspaces.includes(experimentType)) {
       this.handleLoadRecentWorkspace(experimentType);
+      // Create pre-designed workspace if opened for first time
     } else {
       this.props.experimentActions.createNewWorkspace({
         title: experimentType,
