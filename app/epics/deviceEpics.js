@@ -84,16 +84,17 @@ const searchMuseEpic = action$ =>
     pluck('payload'),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     map(getMuse),
+    tap(console.log),
     mergeMap(promise =>
       promise.then(
         devices => devices,
         error => {
           toast.error(`"Device Error: " ${error.toString()}`);
-          toast.error('Device Error: ', error);
           return [];
         }
       )
     ),
+    filter(devices => devices), // filter out nulls if running on win7
     filter(devices => devices.length >= 1),
     map(deviceFound)
   );

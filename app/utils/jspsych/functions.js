@@ -143,7 +143,6 @@ export const instantiateTimeline = (
 // Gets the last set of behavioural (key press) data stored in jsPsych
 export const getBehaviouralData = () => {
   const rawData = jsPsych.data.get().values();
-  console.log(rawData);
 
   // Mutate rawData array to customize behavioural results output
   for (let index = 0; index < rawData.length; index++) {

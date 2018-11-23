@@ -31,11 +31,14 @@ if (process.platform !== "win32" || release().split(".")[0] >= 10) {
 export const getMuse = async () => {
   let device = {};
   if (process.platform === "win32") {
-    if (release().split(".")[0] >= 10) {
+    if (release().split(".")[0] < 10) {
+      console.log('win 7 ')
+      return null
+    }
       device = await bluetooth.requestDevice({
         filters: [{ services: [MUSE_SERVICE] }]
       });
-    }
+    
   } else {
     device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]

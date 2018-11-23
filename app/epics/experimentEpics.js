@@ -98,7 +98,6 @@ const loadDefaultTimelineEpic = (action$, state$) =>
 
 const startEpic = (action$, state$) =>
   action$.ofType(START).pipe(
-    tap(console.log),
     filter(() => !state$.value.experiment.isRunning),
     map(() => {
       if (
@@ -143,7 +142,6 @@ const experimentStopEpic = (action$, state$) =>
 const setSubjectEpic = action$ =>
   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
 
-// TODO: Refactor this to use redux-observable state stream
 const updateSessionEpic = (action$, state$) =>
   action$.ofType(UPDATE_SESSION).pipe(
     mergeMap(() =>
@@ -162,12 +160,6 @@ const updateSessionEpic = (action$, state$) =>
     }),
     map(setSession)
   );
-
-// const sessionCountEpic = (action$, state$) =>
-//   action$.ofType(STOP).pipe(
-//     filter(() => state$.value.experiment.isRunning),
-//     map(() => setSession(state$.value.experiment.session + 1))
-//   );
 
 const autoSaveEpic = action$ =>
   action$.ofType("@@router/LOCATION_CHANGE").pipe(
