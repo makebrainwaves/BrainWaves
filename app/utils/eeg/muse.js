@@ -13,16 +13,17 @@ import {
   MUSE_CHANNELS,
   PLOTTING_INTERVAL
 } from "../../constants/constants";
+import { MUSE_SERVICE, MuseClient, zipSamples } from "muse-js"
+import { from } from "rxjs"
 
-const bluetooth = require("bleat").webbluetooth;
-const { MUSE_SERVICE, MuseClient, zipSamples } = require("muse-js");
-const { from } = require("rxjs");
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
+let bluetooth = {}
 let client = {};
 if (process.platform != "win32" || release().split(".")[0] >= 10) {
   // Just returns the client object from Muse JS
+  bluetooth = require("bleat").webbluetooth;
   client = new MuseClient();
   client.enableAux = true;
 }
