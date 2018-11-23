@@ -25,6 +25,10 @@
   height: 75%;
 }
 
+.overviewImage {
+  height: 140px !important;
+}
+
 .inputDiv {
   margin: 15px;
 }

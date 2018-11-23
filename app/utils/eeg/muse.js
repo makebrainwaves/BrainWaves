@@ -7,21 +7,20 @@ import {
   addSignalQuality
 } from "@neurosity/pipes";
 import { release } from "os";
+import { MUSE_SERVICE, MuseClient, zipSamples } from "muse-js"
+import { from } from "rxjs"
 import { parseMuseSignalQuality } from "./pipes";
 import {
   MUSE_SAMPLING_RATE,
   MUSE_CHANNELS,
   PLOTTING_INTERVAL
 } from "../../constants/constants";
-import { MUSE_SERVICE, MuseClient, zipSamples } from "muse-js"
-import { from } from "rxjs"
-
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
 let bluetooth = {}
 let client = {};
-if (process.platform != "win32" || release().split(".")[0] >= 10) {
+if (process.platform !== "win32" || release().split(".")[0] >= 10) {
   // Just returns the client object from Muse JS
   bluetooth = require("bleat").webbluetooth;
   client = new MuseClient();

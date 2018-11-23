@@ -188,10 +188,6 @@ button:active {
 
 /* rc-slider-related styles */
 
-.rc-slider-with-marks {
-  width: 150px;
-}
-
 .rc-slider-rail {
   background-color: #cccccc !important;
 }
