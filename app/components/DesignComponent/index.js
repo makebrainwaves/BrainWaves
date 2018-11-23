@@ -86,21 +86,19 @@ export default class Design extends Component<Props, State> {
               <Header as="h1">The N170 ERP</Header>
             </Grid.Column>
             <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                The N170 is a large negative event-related potential (ERP)
-                component that occurs after the detection of faces, but not
+              <Segment basic>
+              <p>The N170 is a large negative event-related potential (ERP)
+                component that occurs around 170ms after the detection of faces, but not
                 objects, scrambled faces, or other body parts such as hands. The
-                N170 occurs around 170ms after face perception and is most
-                easily detected at lateral posterior electrodes such as T5 and
-                T6. Frontal or profile views of human (and animal) faces elicit
-                the strongest N170 and the strength of the N170 does not seem to
-                be influenced by how familiar a face is. Thus, although there is
-                no consensus on the specific source of the N170, researchers
+                The N170 is most easily detected at lateral posterior electrodes.</p>
+              <p>Although there is no consensus on the specific source of the N170, researchers
                 believe it is related to activity in the fusiform face area, an
                 area of the brain that shows a similar response pattern and is
                 involved in encoding the holistic representation of a face (i.e
-                eyes, nose mouth all arranged in the appropriate way).
+                eyes, nose mouth all arranged in the appropriate way).</p>
+
               </Segment>
+
             </Grid.Column>
           </Grid>
         );

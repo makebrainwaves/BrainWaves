@@ -40,7 +40,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
         this.props.trials,
         this.props.timelines
       ),
-      (value, time) => console.log('event ', value, time), // event callback
+      (value, time) => {}, // event callback
       () => {}, // start callback
       () => {}, // stop callback
       this.props.params.showProgessBar
