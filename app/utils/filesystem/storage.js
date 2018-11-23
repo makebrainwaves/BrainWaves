@@ -159,3 +159,8 @@ export const readImages = (dir: string) =>
     const extension = filename.slice(-3);
     return extension === 'png' || extension === 'jpg' || extension === 'gif';
   });
+
+// -----------------------------------------------------------------------------------------------
+// Util
+
+export const getSubjectNamesFromFiles = (filePaths: Array<?string>) => filePaths.map(filePath => path.basename(filePath)).map(fileName => fileName.substring(0, fileName.indexOf('-')))

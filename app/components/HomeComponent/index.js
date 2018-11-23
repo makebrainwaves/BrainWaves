@@ -95,8 +95,6 @@ export default class Home extends Component<Props, State> {
   }
 
   handleLoadCustomExperiment(title: string) {
-    console.log(title)
-    console.log(this.state.recentWorkspaces)
     this.setState({ isNewExperimentModalOpen: false });
     // Don't create new workspace if it already exists or title is too short
     if (this.state.recentWorkspaces.includes(title)) {

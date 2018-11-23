@@ -15,7 +15,7 @@ import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS
 } from '../constants/constants';
-import { readWorkspaceCleanedEEGData } from '../utils/filesystem/storage';
+import { readWorkspaceCleanedEEGData, getSubjectNamesFromFiles } from '../utils/filesystem/storage';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
@@ -45,6 +45,7 @@ interface State {
     value: { name: string, dir: string }
   }>;
   selectedFilePaths: Array<?string>;
+  selectedSubjects: Array<?string>;
 }
 // TODO: Add a channel callback from reading epochs so this screen can be aware of which channels are
 // available in dataset
@@ -63,6 +64,7 @@ export default class Analyze extends Component<Props, State> {
       activeStep: ANALYZE_STEPS.OVERVIEW,
       eegFilePaths: [{ key: '', text: '', value: '' }],
       selectedFilePaths: [],
+      selectedSubjects: [],
       selectedChannel:
         props.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS[0]
@@ -96,13 +98,19 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleDatasetChange(event: Object, data: Object) {
-    this.setState({ selectedFilePaths: data.value });
+    this.setState({ selectedFilePaths: data.value,
+       selectedSubjects: getSubjectNamesFromFiles(data.value) });
     this.props.jupyterActions.loadCleanedEpochs(data.value);
   }
 
   handleChannelSelect(channelName: string) {
     this.setState({ selectedChannel: channelName });
     this.props.jupyterActions.loadERP(channelName);
+  }
+
+  concatSubjectNames(subjects: Array<?string>) {
+    if(subjects.length < 1) { return '' }
+    return subjects.reduce((acc, curr) => `${acc}-${curr}`)
   }
 
   renderEpochLabels() {
@@ -162,7 +170,7 @@ export default class Analyze extends Component<Props, State> {
             <Grid.Column width={8}>
               <JupyterPlotWidget
                 title={this.props.title}
-                imageTitle="Topoplot"
+                imageTitle={`${this.concatSubjectNames(this.state.selectedSubjects)}-Topoplot`}
                 plotMIMEBundle={this.props.topoPlot}
               />
             </Grid.Column>
@@ -194,7 +202,8 @@ export default class Analyze extends Component<Props, State> {
             <Grid.Column width={8}>
               <JupyterPlotWidget
                 title={this.props.title}
-                imageTitle={`${this.state.selectedChannel}-ERP`}
+                imageTitle={
+                  `${this.concatSubjectNames(this.state.selectedSubjects)}-${this.state.selectedChannel}-ERP`}
                 plotMIMEBundle={this.props.erpPlot}
               />
             </Grid.Column>

@@ -130,7 +130,7 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=
     if palette is None:
         palette = sns.color_palette("hls", len(conditions) + 1)
 
-    X = epochs.get_data() * 1e6
+    X = epochs.get_data()
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots()
