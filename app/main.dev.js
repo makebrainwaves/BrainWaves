@@ -91,6 +91,7 @@ app.on('ready', async () => {
   });
 
   mainWindow.setMenu(null);
+  // mainWindow.toggleDevTools();
   // const menuBuilder = new MenuBuilder(mainWindow);
   // menuBuilder.buildMenu();
 });
