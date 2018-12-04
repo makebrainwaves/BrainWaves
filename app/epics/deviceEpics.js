@@ -165,14 +165,12 @@ const connectEpic = action$ =>
       promise.then(
         deviceInfo => deviceInfo,
         error => {
-          console.error('connectEpic: ', error);
           toast.error(`"Device Error: " ${error.toString()}`);
-          return null;
         }
       )
     ),
     mergeMap(deviceInfo => {
-      if (deviceInfo) {
+      if (!isNil(deviceInfo.name)) {
         return of(
           setDeviceType(
             deviceInfo.name.includes('Muse') ? DEVICES.MUSE : DEVICES.EMOTIV
