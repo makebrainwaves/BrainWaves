@@ -50,6 +50,7 @@ export default class Clean extends Component<Props, State> {
   handleRecordingChange: (Object, Object) => void;
   handleLoadData: () => void;
   handleSubjectChange: (Object, Object) => void;
+  icons: string[];
 
   constructor(props: Props) {
     super(props);
@@ -63,6 +64,10 @@ export default class Clean extends Component<Props, State> {
     this.handleLoadData = this.handleLoadData.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
+    this.icons =
+      props.type === EXPERIMENTS.N170
+        ? ['smile', 'home', 'x', 'book']
+        : ['star', 'star outline', 'x', 'book'];
   }
 
   async componentDidMount() {
@@ -114,7 +119,7 @@ export default class Clean extends Component<Props, State> {
         <Segment basic textAlign="left">
           {this.props.epochsInfo.map((infoObj, index) => (
             <Segment key={infoObj.name} basic>
-              <Icon name={['smile', 'home', 'x', 'book'][index]} />
+              <Icon name={this.icons[index]} />
               {infoObj.name}
               <p>{infoObj.value}</p>
             </Segment>

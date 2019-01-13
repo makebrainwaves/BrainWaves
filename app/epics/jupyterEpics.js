@@ -241,9 +241,18 @@ const loadEpochsEpic = (action$, state$) =>
     awaitOkMessage(action$),
     execute(filterIIR(1, 30), state$),
     awaitOkMessage(action$),
-    execute(
-      epochEvents({ House: EVENTS.HOUSE, Face: EVENTS.FACE }, -0.1, 0.8),
-      state$
+    map(() =>
+      epochEvents(
+        {
+          [state$.value.experiment.params.stimulus1.title]: EVENTS.STIMULUS_1,
+          [state$.value.experiment.params.stimulus2.title]: EVENTS.STIMULUS_2
+        },
+        -0.1,
+        0.8
+      )
+    ),
+    map(epochEventsCommand =>
+      state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
     map(getEpochsInfo)
