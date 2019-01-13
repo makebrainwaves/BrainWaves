@@ -1,6 +1,7 @@
 .homeContentContainer {
   padding-top: 50px !important;
   height: 100%;
+  overflow-y: auto;
 }
 
 .mainContainer {
