@@ -17,6 +17,7 @@
     "flowtype/union-intersection-spacing": ["error", "always"],
     "flowtype/use-flow-type": "error",
     "flowtype/valid-syntax": "error",
+    "react/no-will-update-set-state": "warn",
     "dot-notation": "off",
     "linebreak-style": 0,
     "import/prefer-default-export": 0

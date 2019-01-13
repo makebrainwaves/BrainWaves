@@ -157,10 +157,18 @@ export const readAndParseState = (dir: string) => {
 export const readImages = (dir: string) =>
   fs.readdirSync(dir).filter(filename => {
     const extension = filename.slice(-3);
-    return extension === 'png' || extension === 'jpg' || extension === 'gif';
+    return (
+      extension === 'png' ||
+      extension === 'jpg' ||
+      extension === 'gif' ||
+      extension === 'peg' // support .jpeg?
+    );
   });
 
 // -----------------------------------------------------------------------------------------------
 // Util
 
-export const getSubjectNamesFromFiles = (filePaths: Array<?string>) => filePaths.map(filePath => path.basename(filePath)).map(fileName => fileName.substring(0, fileName.indexOf('-')))
+export const getSubjectNamesFromFiles = (filePaths: Array<?string>) =>
+  filePaths
+    .map(filePath => path.basename(filePath))
+    .map(fileName => fileName.substring(0, fileName.indexOf('-')));

@@ -19,7 +19,12 @@ export const buildN170Timeline = () => ({
     intro:
       'You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press any key to continue',
     showProgressBar: false,
-    stimulus1: { dir: facesDir, title: 'Face', type: EVENTS.FACE, response: '1' },
+    stimulus1: {
+      dir: facesDir,
+      title: 'Face',
+      type: EVENTS.FACE,
+      response: '1'
+    },
     stimulus2: {
       dir: housesDir,
       title: 'House',
@@ -37,7 +42,7 @@ export const buildN170Timeline = () => ({
     end: {
       id: 'end',
       type: 'callback-html-display',
-      stimulus: 'Thanks for participating',
+      stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
       post_trial_gap: 500
     }
