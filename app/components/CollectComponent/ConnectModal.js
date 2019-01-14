@@ -50,7 +50,7 @@ export default class ConnectModal extends Component<Props, State> {
       if (Object.prototype.hasOwnProperty.call(device, 'name')) {
         return device.name;
       }
-      if (Object.prototype.hasOwnProperty.call(device, 'name')) {
+      if (Object.prototype.hasOwnProperty.call(device, 'id')) {
         return device.id;
       }
     }
