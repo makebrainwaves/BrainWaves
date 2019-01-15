@@ -45,16 +45,8 @@ export default class ConnectModal extends Component<Props, State> {
   handleSearch: () => void;
   handleStartTutorial: () => void;
 
-  static getDeviceName(device: any): string {
-    if (!isNil(device)) {
-      if (Object.prototype.hasOwnProperty.call(device, 'name')) {
-        return device.name;
-      }
-      if (Object.prototype.hasOwnProperty.call(device, 'id')) {
-        return device.id;
-      }
-    }
-    return '';
+  static getDeviceName(device: any) {
+    return isNil(device.name) ? device.id : device.name;
   }
 
   constructor(props: Props) {
