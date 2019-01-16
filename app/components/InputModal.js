@@ -1,8 +1,8 @@
 // @flow
-import React, { Component } from 'react';
-import { Input, Modal, Button } from 'semantic-ui-react';
-import { debounce } from 'lodash';
-import styles from './styles/common.css';
+import React, { Component } from "react";
+import { Input, Modal, Button } from "semantic-ui-react";
+import { debounce } from "lodash";
+import styles from "./styles/common.css";
 
 interface Props {
   open: boolean;
@@ -27,13 +27,16 @@ export default class InputModal extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      enteredText: '',
+      enteredText: "",
       isError: false
     };
     this.handleTextEntry = debounce(this.handleTextEntry, 100).bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.handleEnterSubmit = this.handleEnterSubmit.bind(this);
     this.handleExit = this.handleExit.bind(this);
+  }
+  sanitizeTextInput(text: string) {
+    return text.replace(/[|&;$%@"<>()+,./]/g, "");
   }
 
   handleTextEntry(event, data) {
@@ -42,7 +45,7 @@ export default class InputModal extends Component<Props, State> {
 
   handleClose() {
     if (this.state.enteredText.length > 1) {
-      this.props.onClose(this.state.enteredText);
+      this.props.onClose(this.sanitizeTextInput(this.state.enteredText));
     } else {
       this.setState({ isError: true });
     }
@@ -53,7 +56,7 @@ export default class InputModal extends Component<Props, State> {
   }
 
   handleEnterSubmit(event: Object) {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       this.handleClose();
     }
   }
