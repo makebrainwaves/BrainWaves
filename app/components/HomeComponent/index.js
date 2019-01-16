@@ -171,10 +171,9 @@ export default class Home extends Component<Props, State> {
                 <Image src={faceHouseIcon} />
                 <Header as="h1">Faces and Houses</Header>
                 <p>
-                  Explore the N170 ERP that is produce in response to viewing
-                  faces (as compared to non human objects). It is called the
-                  N170 because it is a negative deflection that occurs around
-                  170ms after perceiving a face.
+                  Explore the N170 event-related potential that is produced in response to viewing
+                  faces. It is called the N170 because it is a negative, downwards-facing wave that occurs around
+                  170 milliseconds after perceiving a face.
                 </p>
                 <Button
                   secondary

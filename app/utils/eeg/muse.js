@@ -7,8 +7,8 @@ import {
   addSignalQuality
 } from "@neurosity/pipes";
 import { release } from "os";
-import { MUSE_SERVICE, MuseClient, zipSamples } from "muse-js"
-import { from } from "rxjs"
+import { MUSE_SERVICE, MuseClient, zipSamples } from "muse-js";
+import { from } from "rxjs";
 import { parseMuseSignalQuality } from "./pipes";
 import {
   MUSE_SAMPLING_RATE,
@@ -18,7 +18,7 @@ import {
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
-let bluetooth = {}
+let bluetooth = {};
 let client = {};
 if (process.platform !== "win32" || release().split(".")[0] >= 10) {
   // Just returns the client object from Muse JS
@@ -32,13 +32,12 @@ export const getMuse = async () => {
   let device = {};
   if (process.platform === "win32") {
     if (release().split(".")[0] < 10) {
-      console.log('win 7 ')
-      return null
+      console.log("win 7 ");
+      return null;
     }
-      device = await bluetooth.requestDevice({
-        filters: [{ services: [MUSE_SERVICE] }]
-      });
-    
+    device = await bluetooth.requestDevice({
+      filters: [{ services: [MUSE_SERVICE] }]
+    });
   } else {
     device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]

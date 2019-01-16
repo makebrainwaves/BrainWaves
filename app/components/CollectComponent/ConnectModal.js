@@ -1,21 +1,20 @@
-import React, { Component } from 'react';
-import { isNil, debounce } from 'lodash';
+import React, { Component } from "react";
+import { isNil, debounce } from "lodash";
 import {
   Modal,
   Button,
   Segment,
-  // Image,
   List,
   Grid,
   Divider
-} from 'semantic-ui-react';
+} from "semantic-ui-react";
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
   SCREENS
-} from '../../constants/constants';
-import styles from '../styles/collect.css';
+} from "../../constants/constants";
+import styles from "../styles/collect.css";
 
 interface Props {
   history: Object;
@@ -46,7 +45,10 @@ export default class ConnectModal extends Component<Props, State> {
   handleStartTutorial: () => void;
 
   static getDeviceName(device: any) {
-    return isNil(device.name) ? device.id : device.name;
+    if (!isNil(device)) {
+      return isNil(device.name) ? device.id : device.name;
+    }
+    return "";
   }
 
   constructor(props: Props) {
@@ -110,8 +112,8 @@ export default class ConnectModal extends Component<Props, State> {
                 link
                 name={
                   this.state.selectedDevice === device
-                    ? 'check circle outline'
-                    : 'circle outline'
+                    ? "check circle outline"
+                    : "circle outline"
                 }
                 size="large"
                 verticalAlign="middle"
@@ -131,9 +133,6 @@ export default class ConnectModal extends Component<Props, State> {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
         <React.Fragment>
-          {/* <Modal.Content image>
-            <Image src={blake} size="tiny" centered />
-          </Modal.Content> */}
           <Modal.Content className={styles.searchingText}>
             Searching for available headset(s)...
           </Modal.Content>
@@ -143,11 +142,8 @@ export default class ConnectModal extends Component<Props, State> {
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
         <React.Fragment>
-          {/* <Modal.Content image>
-            <Image src={blake} size="tiny" centered />
-          </Modal.Content> */}
           <Modal.Content className={styles.searchingText}>
-            Connecting to{' '}
+            Connecting to{" "}
             {ConnectModal.getDeviceName(this.state.selectedDevice)}
             ...
           </Modal.Content>
@@ -205,7 +201,7 @@ export default class ConnectModal extends Component<Props, State> {
             Insert the USB Receiver
           </Modal.Header>
           <Modal.Content>
-            Inser the USB receiver into a USB port on your computer. Ensure that
+            Insert the USB receiver into a USB port on your computer. Ensure that
             the LED on the receiver is continously lit or flickering rapidly. If
             it is blinking slowly or not illuminated, remove and reinsert the
             receiver

@@ -6,8 +6,8 @@
  * We use it both in the browser and NodeJS code.
  *
  * It makes extensive use of Promises for flow control; all requests return a
- * Promise with their result. 
- * 
+ * Promise with their result.
+ *
  * For the subscription types in Cortex, we use an event emitter. Each kind of
  * event (mot, eeg, etc) is emitted as its own event that you can listen for
  * whether or not there are any active subscriptions at the time.
