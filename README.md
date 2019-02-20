@@ -13,8 +13,9 @@
 - Supports Emotiv Epoc+ and Muse devices
 
 ## Screenshots
-
-<img src="BrainWaves_Home.png" width="600">
+<p align="center">
+  <img src="BrainWaves_Home.png" width="600">
+</p>
 
 ## Prerequisites
 
