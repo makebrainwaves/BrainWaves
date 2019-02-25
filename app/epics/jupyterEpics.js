@@ -49,7 +49,8 @@ import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
-  MUSE_CHANNELS
+  MUSE_CHANNELS,
+  JUPYTER_VARIABLE_NAMES
 } from '../constants/constants';
 import {
   parseSingleQuoteJSON,
@@ -76,7 +77,7 @@ export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
 // -------------------------------------------------------------------------
 // Action Creators
 
-const getEpochsInfo = () => ({ type: GET_EPOCHS_INFO });
+const getEpochsInfo = payload => ({ payload, type: GET_EPOCHS_INFO });
 
 const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
@@ -255,7 +256,7 @@ const loadEpochsEpic = (action$, state$) =>
       state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
-    map(getEpochsInfo)
+    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const loadCleanedEpochsEpic = (action$, state$) =>
@@ -268,7 +269,13 @@ const loadCleanedEpochsEpic = (action$, state$) =>
       )
     ),
     awaitOkMessage(action$),
-    mergeMap(() => of(getEpochsInfo(), getChannelInfo(), loadTopo()))
+    mergeMap(() =>
+      of(
+        getEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS),
+        getChannelInfo(),
+        loadTopo()
+      )
+    )
   );
 
 const cleanEpochsEpic = (action$, state$) =>
@@ -296,12 +303,17 @@ const cleanEpochsEpic = (action$, state$) =>
       )
     ),
     awaitOkMessage(action$),
-    map(getEpochsInfo)
+    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
-    execute(requestEpochsInfo(), state$),
+    pluck('payload'),
+    map(variableName =>
+      state$.value.jupyter.mainChannel.next(
+        executeRequest(requestEpochsInfo(variableName))
+      )
+    ),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck('payload'),
