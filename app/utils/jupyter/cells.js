@@ -69,7 +69,7 @@ export const requestEpochsInfo = (variableName: string) =>
   `get_epochs_info(${variableName})`;
 
 export const requestChannelInfo = () =>
-  `[ch for ch in raw_epochs.ch_names if ch != 'Marker']`;
+  `[ch for ch in clean_epochs.ch_names if ch != 'Marker']`;
 
 export const cleanEpochsPlot = () =>
   [

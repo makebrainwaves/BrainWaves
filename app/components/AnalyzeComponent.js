@@ -15,7 +15,10 @@ import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS
 } from '../constants/constants';
-import { readWorkspaceCleanedEEGData, getSubjectNamesFromFiles } from '../utils/filesystem/storage';
+import {
+  readWorkspaceCleanedEEGData,
+  getSubjectNamesFromFiles
+} from '../utils/filesystem/storage';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
@@ -52,7 +55,6 @@ interface State {
 export default class Analyze extends Component<Props, State> {
   props: Props;
   state: State;
-  handleAnalyze: () => void;
   handleChannelSelect: string => void;
   handleStepClick: (Object, Object) => void;
   handleDatasetChange: (Object, Object) => void;
@@ -70,7 +72,6 @@ export default class Analyze extends Component<Props, State> {
           ? EMOTIV_CHANNELS[0]
           : MUSE_CHANNELS[0]
     };
-    this.handleAnalyze = this.handleAnalyze.bind(this);
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
@@ -93,13 +94,11 @@ export default class Analyze extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  handleAnalyze() {
-    this.props.jupyterActions.loadERP(null);
-  }
-
   handleDatasetChange(event: Object, data: Object) {
-    this.setState({ selectedFilePaths: data.value,
-       selectedSubjects: getSubjectNamesFromFiles(data.value) });
+    this.setState({
+      selectedFilePaths: data.value,
+      selectedSubjects: getSubjectNamesFromFiles(data.value)
+    });
     this.props.jupyterActions.loadCleanedEpochs(data.value);
   }
 
@@ -109,8 +108,10 @@ export default class Analyze extends Component<Props, State> {
   }
 
   concatSubjectNames(subjects: Array<?string>) {
-    if(subjects.length < 1) { return '' }
-    return subjects.reduce((acc, curr) => `${acc}-${curr}`)
+    if (subjects.length < 1) {
+      return '';
+    }
+    return subjects.reduce((acc, curr) => `${acc}-${curr}`);
   }
 
   renderEpochLabels() {
@@ -170,7 +171,9 @@ export default class Analyze extends Component<Props, State> {
             <Grid.Column width={8}>
               <JupyterPlotWidget
                 title={this.props.title}
-                imageTitle={`${this.concatSubjectNames(this.state.selectedSubjects)}-Topoplot`}
+                imageTitle={`${this.concatSubjectNames(
+                  this.state.selectedSubjects
+                )}-Topoplot`}
                 plotMIMEBundle={this.props.topoPlot}
               />
             </Grid.Column>
@@ -202,8 +205,9 @@ export default class Analyze extends Component<Props, State> {
             <Grid.Column width={8}>
               <JupyterPlotWidget
                 title={this.props.title}
-                imageTitle={
-                  `${this.concatSubjectNames(this.state.selectedSubjects)}-${this.state.selectedChannel}-ERP`}
+                imageTitle={`${this.concatSubjectNames(
+                  this.state.selectedSubjects
+                )}-${this.state.selectedChannel}-ERP`}
                 plotMIMEBundle={this.props.erpPlot}
               />
             </Grid.Column>

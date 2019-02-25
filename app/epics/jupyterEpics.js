@@ -375,21 +375,32 @@ const loadTopoEpic = (action$, state$) =>
         take(1)
       )
     ),
-    mergeMap(topoPlot => of(setTopoPlot(topoPlot), loadERP()))
+    mergeMap(topoPlot =>
+      of(
+        setTopoPlot(topoPlot),
+        loadERP(
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS[0]
+            : MUSE_CHANNELS[0]
+        )
+      )
+    )
   );
 
 const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
     pluck('payload'),
     map(channelName => {
-      const channels =
-        state$.value.device.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS
-          : MUSE_CHANNELS;
-      if (channels.includes(channelName)) {
-        return channels.indexOf(channelName);
+      console.log(channelName);
+      if (MUSE_CHANNELS.includes(channelName)) {
+        return MUSE_CHANNELS.indexOf(channelName);
+      } else if (EMOTIV_CHANNELS.includes(channelName)) {
+        return EMOTIV_CHANNELS.indexOf(channelName);
       }
-      return 0;
+      console.warn(
+        'channel name supplied to loadERPEpic does not belong to either device'
+      );
+      return EMOTIV_CHANNELS[0];
     }),
     map(channelIndex =>
       state$.value.jupyter.mainChannel.next(
