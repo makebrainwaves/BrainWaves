@@ -156,7 +156,7 @@ export const instantiateTimeline = (
     return jspsychObject;
   });
 
-// Gets the last set of behaviral (key press) data stored in jsPsych
+// Gets the last set of behavioral (key press) data stored in jsPsych
 export const getBehaviouralData = () => {
   const rawData = jsPsych.data.get().values();
 
