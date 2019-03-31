@@ -24,6 +24,7 @@
     "no-use-before-define": "off",
     "no-multi-assign": "off",
     "no-plusplus": "off",
+    "no-param-reassign": "warn",
     "promise/param-names": "error",
     "promise/always-return": "error",
     "promise/catch-or-return": "error",
