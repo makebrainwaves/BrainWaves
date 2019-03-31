@@ -1,16 +1,16 @@
-import { isNil } from "lodash";
-import { jsPsych } from "jspsych-react";
-import * as path from "path";
-import { readdirSync } from "fs";
-import { EXPERIMENTS } from "../../constants/constants";
-import { buildOddballTimeline } from "./timelines/oddball";
-import { buildN170Timeline } from "./timelines/n170";
-import { buildSSVEPTimeline } from "./timelines/ssvep";
+import { isNil } from 'lodash';
+import { jsPsych } from 'jspsych-react';
+import * as path from 'path';
+import { readdirSync } from 'fs';
+import { EXPERIMENTS } from '../../constants/constants';
+import { buildOddballTimeline } from './timelines/oddball';
+import { buildN170Timeline } from './timelines/n170';
+import { buildSSVEPTimeline } from './timelines/ssvep';
 import {
   MainTimeline,
   Trial,
   ExperimentParameters
-} from "../../constants/interfaces";
+} from '../../constants/interfaces';
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -53,10 +53,12 @@ export const parseTimeline = (
           },
           {
             ...timeline.timeline[1],
-            stimulus: jsPsych.timelineVariable("stimulusVar"),
+            stimulus: jsPsych.timelineVariable('stimulusVar'),
             type: params.pluginName,
             trial_duration: params.trialDuration,
-            choices: [params.stimulus1.response, params.stimulus2.response]
+            choices: [params.stimulus1.response, params.stimulus2.response],
+            event_title: jsPsych.timelineVariable('eventTitleVar'),
+            correct_response: jsPsych.timelineVariable('responseVar')
           }
         ],
         sample: {
@@ -66,12 +68,16 @@ export const parseTimeline = (
         timeline_variables: readdirSync(params.stimulus1.dir)
           .map(filename => ({
             stimulusVar: path.join(params.stimulus1.dir, filename),
-            eventTypeVar: params.stimulus1.type
+            eventTypeVar: params.stimulus1.type,
+            eventTitleVar: params.stimulus1.title,
+            responseVar: params.stimulus1.response
           }))
           .concat(
             readdirSync(params.stimulus2.dir).map(filename => ({
               stimulusVar: path.join(params.stimulus2.dir, filename),
-              eventTypeVar: params.stimulus2.type
+              eventTypeVar: params.stimulus2.type,
+              eventTitleVar: params.stimulus2.title,
+              responseVar: params.stimulus2.response
             }))
           )
       }
@@ -114,23 +120,33 @@ export const instantiateTimeline = (
     }
     if (!isNil(jspsychObject.timeline)) {
       const timelineWithCallback = jspsychObject.timeline.map(trial => {
-        if (trial.id === "trial") {
+        if (trial.id === 'trial') {
           return {
             ...trial,
             on_start: () =>
               eventCallback(
-                jsPsych.timelineVariable("eventTypeVar")(),
+                jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
               ),
-            on_finish: showProgessBar
-              ? () => {
-                  jsPsych.setProgressBar(
-                    jsPsych.progress().current_trial_global /
-                      2 /
-                      jspsychObject.sample.size
-                  );
-                }
-              : null
+            on_finish: (data: any) => {
+              data.key_press = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(
+                data.key_press
+              );
+              data.expected_key_press = trial.correct_response();
+              data.event_title = trial.event_title();
+              if (data.key_press === data.expected_key_press) {
+                data.correct = true;
+              } else {
+                data.correct = false;
+              }
+              if (showProgessBar) {
+                jsPsych.setProgressBar(
+                  jsPsych.progress().current_trial_global /
+                    2 /
+                    jspsychObject.sample.size
+                );
+              }
+            }
           };
         }
         return trial;
@@ -140,7 +156,7 @@ export const instantiateTimeline = (
     return jspsychObject;
   });
 
-// Gets the last set of behavioural (key press) data stored in jsPsych
+// Gets the last set of behaviral (key press) data stored in jsPsych
 export const getBehaviouralData = () => {
   const rawData = jsPsych.data.get().values();
 
@@ -149,9 +165,6 @@ export const getBehaviouralData = () => {
     rawData[index] = {
       ...rawData[index],
       reaction_time: rawData[index].rt, // rename rt to reaction_time
-      key_press: jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(
-        rawData[index].key_press
-      ), // change keycodes to key strings
       trial_index: rawData[index].trial_index / 2 // Remove fixations from trial index
     };
   }
@@ -160,10 +173,10 @@ export const getBehaviouralData = () => {
 
   return jsPsych.data
     .get()
-    .filterCustom(trial => !trial.stimulus.includes("fixation")) // Remove inter trial data
-    .ignore("rt")
-    .ignore("internal_node_id")
-    .ignore("trial_type")
+    .filterCustom(trial => !trial.stimulus.includes('fixation')) // Remove inter trial data
+    .ignore('rt')
+    .ignore('internal_node_id')
+    .ignore('trial_type')
     .csv();
 };
 

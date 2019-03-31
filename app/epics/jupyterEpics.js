@@ -391,7 +391,6 @@ const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
     pluck('payload'),
     map(channelName => {
-      console.log(channelName);
       if (MUSE_CHANNELS.includes(channelName)) {
         return MUSE_CHANNELS.indexOf(channelName);
       } else if (EMOTIV_CHANNELS.includes(channelName)) {
