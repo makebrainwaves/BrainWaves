@@ -49,7 +49,8 @@ import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
-  MUSE_CHANNELS
+  MUSE_CHANNELS,
+  JUPYTER_VARIABLE_NAMES
 } from '../constants/constants';
 import {
   parseSingleQuoteJSON,
@@ -76,7 +77,7 @@ export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
 // -------------------------------------------------------------------------
 // Action Creators
 
-const getEpochsInfo = () => ({ type: GET_EPOCHS_INFO });
+const getEpochsInfo = payload => ({ payload, type: GET_EPOCHS_INFO });
 
 const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
@@ -255,7 +256,7 @@ const loadEpochsEpic = (action$, state$) =>
       state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
-    map(getEpochsInfo)
+    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const loadCleanedEpochsEpic = (action$, state$) =>
@@ -268,7 +269,13 @@ const loadCleanedEpochsEpic = (action$, state$) =>
       )
     ),
     awaitOkMessage(action$),
-    mergeMap(() => of(getEpochsInfo(), getChannelInfo(), loadTopo()))
+    mergeMap(() =>
+      of(
+        getEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS),
+        getChannelInfo(),
+        loadTopo()
+      )
+    )
   );
 
 const cleanEpochsEpic = (action$, state$) =>
@@ -296,12 +303,17 @@ const cleanEpochsEpic = (action$, state$) =>
       )
     ),
     awaitOkMessage(action$),
-    map(getEpochsInfo)
+    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
-    execute(requestEpochsInfo(), state$),
+    pluck('payload'),
+    map(variableName =>
+      state$.value.jupyter.mainChannel.next(
+        executeRequest(requestEpochsInfo(variableName))
+      )
+    ),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck('payload'),
@@ -363,21 +375,32 @@ const loadTopoEpic = (action$, state$) =>
         take(1)
       )
     ),
-    mergeMap(topoPlot => of(setTopoPlot(topoPlot), loadERP()))
+    mergeMap(topoPlot =>
+      of(
+        setTopoPlot(topoPlot),
+        loadERP(
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS[0]
+            : MUSE_CHANNELS[0]
+        )
+      )
+    )
   );
 
 const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
     pluck('payload'),
     map(channelName => {
-      const channels =
-        state$.value.device.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS
-          : MUSE_CHANNELS;
-      if (channels.includes(channelName)) {
-        return channels.indexOf(channelName);
+      console.log(channelName);
+      if (MUSE_CHANNELS.includes(channelName)) {
+        return MUSE_CHANNELS.indexOf(channelName);
+      } else if (EMOTIV_CHANNELS.includes(channelName)) {
+        return EMOTIV_CHANNELS.indexOf(channelName);
       }
-      return 0;
+      console.warn(
+        'channel name supplied to loadERPEpic does not belong to either device'
+      );
+      return EMOTIV_CHANNELS[0];
     }),
     map(channelIndex =>
       state$.value.jupyter.mainChannel.next(

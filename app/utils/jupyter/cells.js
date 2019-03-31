@@ -32,8 +32,8 @@ export const loadCSV = (filePathArray: Array<string>) =>
 export const loadCleanedEpochs = (filePathArray: Array<string>) =>
   [
     `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
-    `epochs = concatenate_epochs([read_epochs(file) for file in files])`,
-    `conditions = OrderedDict({key: [value] for (key, value) in epochs.event_id.items()})`
+    `clean_epochs = concatenate_epochs([read_epochs(file) for file in files])`,
+    `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`
   ].join('\n');
 
 // NOTE: this command includes a ';' to prevent returning data
@@ -57,37 +57,38 @@ export const epochEvents = (
     `picks = None`,
     `reject = ${reject}`,
     'events = find_events(raw)',
-    `epochs = Epochs(raw, events=events, event_id=event_id, 
+    `raw_epochs = Epochs(raw, events=events, event_id=event_id, 
                       tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True, 
                       verbose=False, picks=picks)`,
-    `conditions = OrderedDict({key: [value] for (key, value) in epochs.event_id.items()})`
+    `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`
   ].join('\n');
   return command;
 };
 
-export const requestEpochsInfo = () => `get_epochs_info(epochs)`;
+export const requestEpochsInfo = (variableName: string) =>
+  `get_epochs_info(${variableName})`;
 
 export const requestChannelInfo = () =>
-  `[ch for ch in epochs.ch_names if ch != 'Marker']`;
+  `[ch for ch in clean_epochs.ch_names if ch != 'Marker']`;
 
 export const cleanEpochsPlot = () =>
   [
     `%matplotlib`,
-    `epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`
+    `raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`
   ].join('\n');
 
 export const plotTopoMap = () =>
-  [`%matplotlib inline`, `plot_topo(epochs, conditions)`].join('\n');
+  [`%matplotlib inline`, `plot_topo(clean_epochs, conditions)`].join('\n');
 
 export const plotERP = (channelIndex: number) =>
   [
     `%matplotlib inline`,
-    `X, y = plot_conditions(epochs, ch_ind=${channelIndex}, conditions=conditions, 
+    `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, 
     ci=97.5, n_boot=1000, title='', diff_waveform=None)`
   ].join('\n');
 
 export const saveEpochs = (workspaceDir: string, subject: string) =>
-  `epochs.save(${formatFilePath(
+  `raw_epochs.save(${formatFilePath(
     path.join(
       workspaceDir,
       'Data',

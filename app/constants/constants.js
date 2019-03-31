@@ -46,6 +46,12 @@ export const DEVICE_AVAILABILITY = {
   AVAILABLE: 'AVAILABLE'
 };
 
+// Names of variables in the jupyter kernel
+export const JUPYTER_VARIABLE_NAMES = {
+  RAW_EPOCHS: 'raw_epochs',
+  CLEAN_EPOCHS: 'clean_epochs'
+};
+
 export const SEARCH_TIMER = 3000;
 
 // NOTE: the actual marker id values of stimulus 1 and 2 are reversed
