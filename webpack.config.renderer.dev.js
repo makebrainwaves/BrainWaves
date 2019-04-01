@@ -265,7 +265,7 @@ export default merge.smart(baseConfig, {
     lazy: false,
     hot: true,
     headers: { "Access-Control-Allow-Origin": "*" },
-    contentBase: path.join(__dirname, "dist"),
+    contentBase: [path.join(__dirname, "app", "dist"), path.join(__dirname, "app", "utils", "pyodide")],
     watchOptions: {
       aggregateTimeout: 300,
       ignored: /node_modules/,
@@ -275,7 +275,7 @@ export default merge.smart(baseConfig, {
       verbose: true,
       disableDotRule: false
     },
-    before() {
+    before(app) {
       if (process.env.START_HOT) {
         console.log("Starting Main Process...");
         spawn("npm", ["run", "start-main-dev"], {
