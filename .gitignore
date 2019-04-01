@@ -91,3 +91,5 @@ main.js.map
 .idea
 npm-debug.log.*
 keys.js
+
+app/utils/pyodide/src
