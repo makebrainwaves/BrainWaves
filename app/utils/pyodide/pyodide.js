@@ -1,12 +1,11 @@
 /**
  * The main bootstrap script for loading pyodide.
  */
+const port = process.env.PORT || 1212;
 
-var languagePluginLoader = new Promise((resolve, reject) => {
-  // This is filled in by the Makefile to be either a local file or the
-  // deployed location. TODO: This should be done in a less hacky
-  // way.
-  var baseURL = 'http://localhost:1212/src/';
+export const languagePluginLoader = new Promise((resolve, reject) => {
+
+  var baseURL = 'http://localhost:' + port + '/src/';
   // var baseURL = self.languagePluginUrl || 'https://iodide.io/pyodide-demo/';
   baseURL = baseURL.substr(0, baseURL.lastIndexOf('/')) + '/';
 
@@ -359,4 +358,3 @@ var languagePluginLoader = new Promise((resolve, reject) => {
     }, () => {});
   }, () => {});
 });
-// languagePluginLoader
