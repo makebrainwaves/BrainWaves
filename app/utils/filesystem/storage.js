@@ -75,7 +75,9 @@ export const storeJupyterImage = (
 // Returns a list of workspaces in the workspaces directory. Will make the workspaces dir if it doesn't exist yet
 export const readWorkspaces = () => {
   try {
-    return fs.readdirSync(workspaces);
+    return fs
+      .readdirSync(workspaces)
+      .filter(workspace => workspace !== '.DS_Store');
   } catch (e) {
     if (e.code === 'ENOENT') {
       mkdirPathSync(workspaces);
