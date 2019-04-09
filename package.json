@@ -136,7 +136,6 @@
     "setupFiles": ["./internals/scripts/CheckBuiltsExist.js"]
   },
   "devDependencies": {
-    "@nteract/core": "^6.0.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.2.1",
@@ -218,8 +217,6 @@
   },
   "dependencies": {
     "@babel/runtime-corejs2": "^7.0.0",
-    "@nteract/messaging": "^4.0.1",
-    "@nteract/transforms": "^4.3.0",
     "ajv": "^6.5.3",
     "babel-runtime": "^6.26.0",
     "d3": "^5.5.0",
@@ -259,7 +256,6 @@
     "simple-statistics": "^7.0.2",
     "simplify-js": "^1.2.3",
     "source-map-support": "^0.5.3",
-    "spawnteract": "^4.0.0",
     "ws": "^5.2.0"
   },
   "devEngines": {

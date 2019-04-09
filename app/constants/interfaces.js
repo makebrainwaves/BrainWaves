@@ -62,16 +62,6 @@ export interface SampleParameter {
 export type StimulusVariable = () => any;
 
 // --------------------------------------------------------------------
-// Jupyter
-
-export interface Kernel {
-  config: Object;
-  connectionFile: string;
-  kernelSpec: Object;
-  spawn: ChildProcess;
-}
-
-// --------------------------------------------------------------------
 // Device
 
 export interface EEGData {
