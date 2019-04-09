@@ -28,7 +28,6 @@ let sessionID = null;
 // Gets a list of available Emotiv devices
 export const getEmotiv = async () => {
   const devices = await client.queryHeadsets();
-  devices.push([{ id: 'Emotiv-debug' }]);
   return devices;
 };
 
