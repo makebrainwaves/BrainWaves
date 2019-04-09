@@ -50,8 +50,8 @@ export enum DEVICE_AVAILABILITY {
   AVAILABLE = 'AVAILABLE',
 }
 
-// Names of variables in the jupyter kernel
-export enum JUPYTER_VARIABLE_NAMES {
+// Names of variables in the pyodide kernel
+export enum PYODIDE_VARIABLE_NAMES {
   RAW_EPOCHS = 'raw_epochs',
   CLEAN_EPOCHS = 'clean_epochs',
 }
