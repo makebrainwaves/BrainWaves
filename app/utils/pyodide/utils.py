@@ -14,18 +14,22 @@ sns.set_style('white')
 
 
 def load_data(fnames, sfreq=128., replace_ch_names=None):
-    """Load CSV files from the /data directory into a Raw object.
+    """Load CSV files from the /data directory into a RawArray object.
 
-    Args:
-        fnames (array): CSV filepaths from which to load data
+    Parameters
+    ----------
+    fnames : list
+        CSV filepaths from which to load data
+    sfreq : float
+        EEG sampling frequency
+    replace_ch_names : dict | None
+        A dict containing a mapping to rename channels.
+        Useful when an external electrode was used during recording.
 
-    Keyword Args:
-        sfreq (float): EEG sampling frequency
-        replace_ch_names (dict or None): dictionary containing a mapping to
-            rename channels. Useful when an external electrode was used.
-
-    Returns:
-        (mne.io.array.array.RawArray): loaded EEG
+    Returns
+    -------
+    raw : an instance of mne.io.RawArray
+        The loaded data.
     """
 
     raw = []
@@ -94,35 +98,48 @@ def plot_topo(epochs, conditions=OrderedDict()):
     return evoked_topo
 
 
-def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=1000,
-                    title='', palette=None,
-                    diff_waveform=(4, 3)):
+def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
+                    n_boot=1000, title='', palette=None, diff_waveform=(4, 3)):
     """Plot Averaged Epochs with ERP conditions.
 
-    Args:
-        epochs (mne.epochs): EEG epochs
+    Parameters
+    ----------
+    epochs : an instance of mne.epochs
+        EEG epochs
+    conditions : an instance of OrderedDict
+        An ordered dictionary that contains the names of the
+        conditions to plot as keys, and the list of corresponding marker
+        numbers as value.
 
-    Keyword Args:
-        conditions (OrderedDict): dictionary that contains the names of the
-            conditions to plot as keys, and the list of corresponding marker
-            numbers as value. E.g.,
+        E.g.,
 
-                conditions = {'Non-target': [0, 1],
-                               'Target': [2, 3, 4]}
+        conditions = {'Non-target': [0, 1],
+                      'Target': [2, 3, 4]}
 
-        ch_ind (int): index of channel to plot data from
-        ci (float): confidence interval in range [0, 100]
-        n_boot (int): number of bootstrap samples
-        title (str): title of the figure
-        palette (list): color palette to use for conditions
-        ylim (tuple): (ymin, ymax)
-        diff_waveform (tuple or None): tuple of ints indicating which
-            conditions to subtract for producing the difference waveform.
+        ch_ind : int
+            An index of channel to plot data from.
+        ci : float
+            The confidence interval of the measurement within
+            the range [0, 100].
+        n_boot : int
+            Number of bootstrap samples.
+        title : str
+            Title of the figure.
+        palette : list
+            Color palette to use for conditions.
+        ylim : tuple
+            (ymin, ymax)
+        diff_waveform : tuple | None
+            tuple of ints indicating which conditions to subtract for
+            producing the difference waveform.
             If None, do not plot a difference waveform
 
-    Returns:
-        (matplotlib.figure.Figure): figure object
-        (list of matplotlib.axes._subplots.AxesSubplot): list of axes
+    Returns
+    -------
+    fig : an instance of matplotlib.figure.Figure
+        A figure object.
+    ax : list of matplotlib.axes._subplots.AxesSubplot
+        A list of axes
     """
     if isinstance(conditions, dict):
         conditions = OrderedDict(conditions)
@@ -172,4 +189,7 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=
     return fig, ax
 
 def get_epochs_info(epochs):
-    return [*[{x: len(epochs[x])} for x in epochs.event_id], {"Drop Percentage": round((1 - len(epochs.events)/len(epochs.drop_log)) * 100, 2)}, {"Total Epochs": len(epochs.events)}]
+    return [*[{x: len(epochs[x])} for x in epochs.event_id],
+            {"Drop Percentage": round((1 - len(epochs.events) /
+                                       len(epochs.drop_log)) * 100, 2)},
+            {"Total Epochs": len(epochs.events)}]
