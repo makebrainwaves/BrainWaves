@@ -8,7 +8,7 @@ export const imports = () =>
   readFileSync(path.join(__dirname, '/utils/pyodide/pyimport.py'), 'utf8');
 
 export const utils = () =>
-  readFileSync(path.join(__dirname, '/utils/jupyter/utils.py'), 'utf8');
+  readFileSync(path.join(__dirname, '/utils/pyodide/utils.py'), 'utf8');
 
 export const loadCSV = (filePathArray: Array<string>) =>
   [

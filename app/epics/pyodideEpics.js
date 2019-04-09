@@ -1,23 +1,24 @@
 import { combineEpics } from 'redux-observable';
 import { from, of } from 'rxjs';
-import { map, mergeMap, tap, pluck, ignoreElements, filter, take } from 'rxjs/operators';
-import { find } from 'kernelspecs';
-import { launchSpec } from 'spawnteract';
-import { createMainChannel } from 'enchannel-zmq-backend';
+import {
+  map,
+  mergeMap,
+  tap,
+  pluck,
+  ignoreElements,
+  filter,
+  take
+} from 'rxjs/operators';
 import { isNil } from 'lodash';
-import { kernelInfoRequest, executeRequest } from '@nteract/messaging';
 import { toast } from 'react-toastify';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
 import {
-  LAUNCH_KERNEL,
-  REQUEST_KERNEL_INFO,
   LOAD_EPOCHS,
   LOAD_CLEANED_EPOCHS,
   LOAD_PSD,
   LOAD_ERP,
   LOAD_TOPO,
   CLEAN_EPOCHS,
-  CLOSE_KERNEL,
   loadTopo,
   loadERP
 } from '../actions/pyodideActions';
@@ -41,13 +42,9 @@ import {
   EVENTS,
   DEVICES,
   MUSE_CHANNELS,
-  JUPYTER_VARIABLE_NAMES,
+  PYODIDE_VARIABLE_NAMES
 } from '../constants/constants';
-import {
-  parseSingleQuoteJSON,
-  parseKernelStatus,
-  debugParseMessage
-} from '../utils/pyodide/functions';
+
 
 export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
 export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
@@ -140,85 +137,6 @@ const receiveStream = (payload) => ({
 // -------------------------------------------------------------------------
 // Epics
 
-const launchEpic = (action$) =>
-  action$.ofType(LAUNCH_KERNEL).pipe(
-    mergeMap(() => from(find('brainwaves'))),
-    tap((kernelInfo) => {
-      if (isNil(kernelInfo)) {
-        toast.error("Could not find 'brainwaves' jupyter kernel. Have you installed Python?");
-      }
-    }),
-    filter((kernelInfo) => !isNil(kernelInfo)),
-    mergeMap((kernelInfo) =>
-      from(
-        launchSpec(kernelInfo.spec, {
-          // No STDIN, opt in to STDOUT and STDERR as node streams
-          stdio: ['ignore', 'pipe', 'pipe'],
-        })
-      )
-    ),
-    tap((kernel) => {
-      // Route everything that we won't get in messages to our own stdout
-      kernel.spawn.stdout.on('data', (data) => {
-        const text = data.toString();
-        console.log('KERNEL STDOUT: ', text);
-      });
-      kernel.spawn.stderr.on('data', (data) => {
-        const text = data.toString();
-        console.log('KERNEL STDERR: ', text);
-        toast.error('Jupyter: ', text);
-      });
-
-      kernel.spawn.on('close', () => {
-        console.log('Kernel closed');
-      });
-    }),
-    map(setKernel)
-  );
-
-const setUpChannelEpic = (action$) =>
-  action$.ofType(SET_KERNEL).pipe(
-    pluck('payload'),
-    mergeMap((kernel) => from(createMainChannel(kernel.config))),
-    tap((mainChannel) => mainChannel.next(executeRequest(imports()))),
-    tap((mainChannel) => mainChannel.next(executeRequest(utils()))),
-    map(setMainChannel)
-  );
-
-const receiveChannelMessageEpic = (action$, state$) =>
-  action$.ofType(SET_MAIN_CHANNEL).pipe(
-    mergeMap(() =>
-      state$.value.jupyter.mainChannel.pipe(
-        map((msg) => {
-          console.log(debugParseMessage(msg));
-          switch (msg['header']['msg_type']) {
-            case 'kernel_info_reply':
-              return setKernelInfo(msg);
-            case 'status':
-              return setKernelStatus(parseKernelStatus(msg));
-            case 'stream':
-              return receiveStream(msg);
-            case 'execute_reply':
-              return receiveExecuteReply(msg);
-            case 'execute_result':
-              return receiveExecuteResult(msg);
-            case 'display_data':
-              return receiveDisplayData(msg);
-            default:
-          }
-        }),
-        filter((action) => !isNil(action))
-      )
-    )
-  );
-
-const requestKernelInfoEpic = (action$, state$) =>
-  action$.ofType(REQUEST_KERNEL_INFO).pipe(
-    filter(() => state$.value.jupyter.mainChannel),
-    map(() => state$.value.jupyter.mainChannel.next(kernelInfoRequest())),
-    ignoreElements()
-  );
-
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck('payload'),
@@ -246,7 +164,7 @@ const loadEpochsEpic = (action$, state$) =>
       state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
-    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
+    map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const loadCleanedEpochsEpic = (action$, state$) =>
@@ -258,7 +176,11 @@ const loadCleanedEpochsEpic = (action$, state$) =>
     ),
     awaitOkMessage(action$),
     mergeMap(() =>
-      of(getEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS), getChannelInfo(), loadTopo())
+      of(
+        getEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
+        getChannelInfo(),
+        loadTopo()
+      )
     )
   );
 
@@ -285,7 +207,7 @@ const cleanEpochsEpic = (action$, state$) =>
       )
     ),
     awaitOkMessage(action$),
-    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
+    map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const getEpochsInfoEpic = (action$, state$) =>
