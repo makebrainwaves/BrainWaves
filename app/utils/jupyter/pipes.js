@@ -1,11 +1,13 @@
 import { pipe } from 'rxjs';
 import { map, pluck, filter, take, mergeMap } from 'rxjs/operators';
 import { executeRequest } from '@nteract/messaging';
-import { RECEIVE_EXECUTE_REPLY } from '../../epics/jupyterEpics';
+import { RECEIVE_EXECUTE_REPLY } from '../../epics/pyodideEpics';
 
 // Refactor this so command can be calculated either up stream or inside pipe
 export const execute = (command, state$) =>
-  pipe(map(() => state$.value.jupyter.mainChannel.next(executeRequest(command))));
+  pipe(
+    map(() => state$.value.pyodide.mainChannel.next(executeRequest(command)))
+  );
 
 export const awaitOkMessage = (action$) =>
   pipe(

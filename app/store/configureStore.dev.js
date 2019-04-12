@@ -6,7 +6,7 @@ import { routerMiddleware, routerActions } from 'react-router-redux';
 import { createLogger } from 'redux-logger';
 import rootReducer from '../reducers';
 import rootEpic from '../epics';
-import * as jupyterActions from '../actions/jupyterActions';
+import * as pyodideActions from '../actions/pyodideActions';
 import * as deviceActions from '../actions/deviceActions';
 
 const history = createHashHistory();
@@ -41,8 +41,8 @@ const configureStore = (initialState?: AppState) => {
   // Redux DevTools Configuration
   const actionCreators = {
     ...deviceActions,
-    ...jupyterActions,
-    ...routerActions,
+    ...pyodideActions,
+    ...routerActions
   };
   // If Redux DevTools Extension is installed use it, otherwise use Redux compose
   /* eslint-disable no-underscore-dangle */

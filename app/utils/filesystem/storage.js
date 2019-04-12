@@ -59,7 +59,11 @@ export const storeBehaviouralData = (
 };
 
 // Stores an image to workspace dir
-export const storeJupyterImage = (title: string, imageTitle: string, rawData: Buffer) => {
+export const storePyodideImage = (
+  title: string,
+  imageTitle: string,
+  rawData: Buffer
+) => {
   const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
   const filename = `${imageTitle}.png`;
   mkdirPathSync(dir);

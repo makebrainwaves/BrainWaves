@@ -6,13 +6,7 @@ import { toast } from 'react-toastify';
 import * as moment from 'moment';
 
 import styles from '../styles/common.css';
-import {
-  EXPERIMENTS,
-  SCREENS,
-  KERNEL_STATUS,
-  CONNECTION_STATUS,
-  DEVICE_AVAILABILITY,
-} from '../../constants/constants';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import faceHouseIcon from '../../assets/common/FacesHouses.png';
 import stroopIcon from '../../assets/common/Stroop.png';
 import multitaskingIcon from '../../assets/common/Multitasking.png';
@@ -48,14 +42,7 @@ const HOME_STEPS = {
 };
 
 interface Props {
-  kernelStatus: KERNEL_STATUS;
   history: Object;
-  jupyterActions: Object;
-  connectedDevice: Object;
-  signalQualityObservable: ?any;
-  deviceType: DEVICES;
-  deviceAvailability: DEVICE_AVAILABILITY;
-  connectionStatus: CONNECTION_STATUS;
   deviceActions: Object;
   availableDevices: Array<any>;
   experimentActions: Object;

@@ -14,8 +14,7 @@ import {
 import { Link } from 'react-router-dom';
 import { isNil } from 'lodash';
 import styles from './../styles/collect.css';
-import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
-import { Kernel } from '../../constants/interfaces';
+import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
 import * as path from 'path';
@@ -25,10 +24,8 @@ interface Props {
   title: string;
   deviceType: DEVICES;
   mainChannel: ?any;
-  kernel: ?Kernel;
-  kernelStatus: KERNEL_STATUS;
   epochsInfo: ?Array<{ [string]: number | string }>;
-  jupyterActions: Object;
+  pyodideActions: Object;
   experimentActions: Object;
   subject: string;
   session: number;
@@ -107,7 +104,7 @@ export default class Clean extends Component<Props, State> {
 
   handleLoadData() {
     this.props.experimentActions.setSubject(this.state.selectedSubject);
-    this.props.jupyterActions.loadEpochs(this.state.selectedFilePaths);
+    this.props.pyodideActions.loadEpochs(this.state.selectedFilePaths);
   }
 
   handleSidebarToggle() {
@@ -200,11 +197,6 @@ export default class Clean extends Component<Props, State> {
                     <Grid.Column>
                       <Button
                         secondary
-                        disabled={this.props.kernelStatus !== KERNEL_STATUS.IDLE}
-                        loading={
-                          this.props.kernelStatus === KERNEL_STATUS.STARTING ||
-                          this.props.kernelStatus === KERNEL_STATUS.BUSY
-                        }
                         onClick={this.handleLoadData}
                       >
                         Load Dataset
@@ -214,7 +206,7 @@ export default class Clean extends Component<Props, State> {
                       <Button
                         primary
                         disabled={isNil(this.props.epochsInfo)}
-                        onClick={this.props.jupyterActions.cleanEpochs}
+                        onClick={this.props.pyodideActions.cleanEpochs}
                       >
                         Clean Data
                       </Button>
