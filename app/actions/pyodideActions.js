@@ -8,7 +8,6 @@ export const LOAD_PSD = "LOAD_PSD";
 export const LOAD_ERP = "LOAD_ERP";
 export const LOAD_TOPO = "LOAD_TOPO";
 export const CLEAN_EPOCHS = "CLEAN_EPOCHS";
-export const CLOSE_KERNEL = "CLOSE_KERNEL";
 
 // -------------------------------------------------------------------------
 // Actions

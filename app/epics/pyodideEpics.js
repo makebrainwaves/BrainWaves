@@ -48,9 +48,6 @@ import {
 
 export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
 export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
-export const SET_KERNEL = 'SET_KERNEL';
-export const SET_KERNEL_STATUS = 'SET_KERNEL_STATUS';
-export const SET_KERNEL_INFO = 'SET_KERNEL_INFO';
 export const SET_MAIN_CHANNEL = 'SET_MAIN_CHANNEL';
 export const SET_EPOCH_INFO = 'SET_EPOCH_INFO';
 export const SET_CHANNEL_INFO = 'SET_CHANNEL_INFO';
@@ -69,22 +66,7 @@ const getEpochsInfo = (payload) => ({ payload, type: GET_EPOCHS_INFO });
 
 const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
-const setKernel = (payload) => ({
-  payload,
-  type: SET_KERNEL,
-});
-
-const setKernelStatus = (payload) => ({
-  payload,
-  type: SET_KERNEL_STATUS,
-});
-
-const setKernelInfo = (payload) => ({
-  payload,
-  type: SET_KERNEL_INFO,
-});
-
-const setMainChannel = (payload) => ({
+const setMainChannel = payload => ({
   payload,
   type: SET_MAIN_CHANNEL,
 });
@@ -140,9 +122,11 @@ const receiveStream = (payload) => ({
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck('payload'),
-    filter((filePathsArray) => filePathsArray.length >= 1),
-    map((filePathsArray) =>
-      state$.value.jupyter.mainChannel.next(executeRequest(loadCSV(filePathsArray)))
+    filter(filePathsArray => filePathsArray.length >= 1),
+    map(filePathsArray =>
+      state$.value.pyodide.mainChannel.next(
+        executeRequest(loadCSV(filePathsArray))
+      )
     ),
     awaitOkMessage(action$),
     execute(filterIIR(1, 30), state$),
@@ -159,9 +143,8 @@ const loadEpochsEpic = (action$, state$) =>
         0.8
       )
     ),
-    tap((e)=> {console.log('e', e)}),
-    map((epochEventsCommand) =>
-      state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
+    map(epochEventsCommand =>
+      state$.value.pyodide.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
@@ -170,9 +153,11 @@ const loadEpochsEpic = (action$, state$) =>
 const loadCleanedEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
     pluck('payload'),
-    filter((filePathsArray) => filePathsArray.length >= 1),
-    map((filePathsArray) =>
-      state$.value.jupyter.mainChannel.next(executeRequest(loadCleanedEpochs(filePathsArray)))
+    filter(filePathsArray => filePathsArray.length >= 1),
+    map(filePathsArray =>
+      state$.value.pyodide.mainChannel.next(
+        executeRequest(loadCleanedEpochs(filePathsArray))
+      )
     ),
     awaitOkMessage(action$),
     mergeMap(() =>
@@ -197,7 +182,7 @@ const cleanEpochsEpic = (action$, state$) =>
       )
     ),
     map(() =>
-      state$.value.jupyter.mainChannel.next(
+      state$.value.pyodide.mainChannel.next(
         executeRequest(
           saveEpochs(
             getWorkspaceDir(state$.value.experiment.title),
@@ -213,8 +198,10 @@ const cleanEpochsEpic = (action$, state$) =>
 const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
     pluck('payload'),
-    map((variableName) =>
-      state$.value.jupyter.mainChannel.next(executeRequest(requestEpochsInfo(variableName)))
+    map(variableName =>
+      state$.value.pyodide.mainChannel.next(
+        executeRequest(requestEpochsInfo(variableName))
+      )
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
@@ -293,8 +280,10 @@ const loadERPEpic = (action$, state$) =>
       console.warn('channel name supplied to loadERPEpic does not belong to either device');
       return EMOTIV_CHANNELS[0];
     }),
-    map((channelIndex) =>
-      state$.value.jupyter.mainChannel.next(executeRequest(plotERP(channelIndex)))
+    map(channelIndex =>
+      state$.value.pyodide.mainChannel.next(
+        executeRequest(plotERP(channelIndex))
+      )
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
@@ -308,19 +297,9 @@ const loadERPEpic = (action$, state$) =>
     map(setERPPlot)
   );
 
-const closeKernelEpic = (action$, state$) =>
-  action$.ofType(CLOSE_KERNEL).pipe(
-    map(() => {
-      state$.value.jupyter.kernel.spawn.kill();
-      state$.value.jupyter.mainChannel.complete();
-    }),
-    ignoreElements()
-  );
-
 export default combineEpics(
   launchEpic,
   setUpChannelEpic,
-  requestKernelInfoEpic,
   receiveChannelMessageEpic,
   loadEpochsEpic,
   loadCleanedEpochsEpic,
@@ -330,5 +309,4 @@ export default combineEpics(
   loadPSDEpic,
   loadTopoEpic,
   loadERPEpic,
-  closeKernelEpic
 );

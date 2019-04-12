@@ -1,7 +1,7 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Analyze from '../components/AnalyzeComponent';
-import { JupyterActions, ExperimentActions } from '../actions';
+import { PyodideActions, ExperimentActions } from '../actions';
 
 function mapStateToProps(state) {
   return {
@@ -9,14 +9,14 @@ function mapStateToProps(state) {
     type: state.experiment.type,
     deviceType: state.device.deviceType,
     isEEGEnabled: state.experiment.isEEGEnabled,
-    ...state.jupyter,
+    ...state.pyodide
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     ExperimentActions: bindActionCreators(ExperimentActions, dispatch),
-    JupyterActions: bindActionCreators(JupyterActions, dispatch),
+    PyodideActions: bindActionCreators(PyodideActions, dispatch),
   };
 }
 

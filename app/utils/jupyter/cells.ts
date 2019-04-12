@@ -91,6 +91,7 @@ export const plotTopoMap = () =>
 export const plotERP = (channelIndex: number | string) =>
   [
     `%matplotlib inline`,
+    `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions`,
     `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions,
     ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
   ].join('\n');

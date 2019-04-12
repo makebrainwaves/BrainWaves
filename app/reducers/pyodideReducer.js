@@ -1,9 +1,6 @@
 // @flow
 import {
-  SET_KERNEL,
-  SET_KERNEL_STATUS,
   SET_MAIN_CHANNEL,
-  SET_KERNEL_INFO,
   SET_EPOCH_INFO,
   SET_CHANNEL_INFO,
   SET_PSD_PLOT,
@@ -11,13 +8,10 @@ import {
   SET_ERP_PLOT,
   RECEIVE_EXECUTE_RETURN
 } from '../epics/pyodideEpics';
-import { ActionType, Kernel } from '../constants/interfaces';
-import { KERNEL_STATUS } from '../constants/constants';
+import { ActionType } from '../constants/interfaces';
 import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
 
-export interface JupyterStateType {
-  +kernel: ?Kernel;
-  +kernelStatus: KERNEL_STATUS;
+export interface PyodideStateType {
   +mainChannel: ?any;
   +epochsInfo: ?Array<{ [string]: number | string }>;
   +channelInfo: ?Array<string>;
@@ -27,8 +21,6 @@ export interface JupyterStateType {
 }
 
 const initialState = {
-  kernel: null,
-  kernelStatus: KERNEL_STATUS.OFFLINE,
   mainChannel: null,
   epochsInfo: null,
   channelInfo: [],
@@ -37,28 +29,16 @@ const initialState = {
   erpPlot: null,
 };
 
-export default function jupyter(state: JupyterStateType = initialState, action: ActionType) {
+export default function pyodide(
+  state: PyodideStateType = initialState,
+  action: ActionType
+) {
   switch (action.type) {
-    case SET_KERNEL:
-      return {
-        ...state,
-        kernel: action.payload,
-      };
-
-    case SET_KERNEL_STATUS:
-      return {
-        ...state,
-        kernelStatus: action.payload,
-      };
-
     case SET_MAIN_CHANNEL:
       return {
         ...state,
         mainChannel: action.payload,
       };
-
-    case SET_KERNEL_INFO:
-      return state;
 
     case SET_EPOCH_INFO:
       return {
