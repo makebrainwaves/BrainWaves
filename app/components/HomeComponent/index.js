@@ -7,7 +7,7 @@ import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
 import faceHouseIcon from '../../assets/common/FacesHouses.png';
 import customIcon from '../../assets/common/Custom.png';
-import brainwavesLogo from '../../assets/common/brainwaves_logo.png';
+import appLogo from '../../assets/common/app_logo.png';
 import {
   readWorkspaces,
   readAndParseState,
@@ -171,9 +171,10 @@ export default class Home extends Component<Props, State> {
                 <Image src={faceHouseIcon} />
                 <Header as="h1">Faces and Houses</Header>
                 <p>
-                  Explore the N170 event-related potential that is produced in response to viewing
-                  faces. It is called the N170 because it is a negative, downwards-facing wave that occurs around
-                  170 milliseconds after perceiving a face.
+                  Explore the N170 event-related potential that is produced in
+                  response to viewing faces. It is called the N170 because it is
+                  a negative, downwards-facing wave that occurs around 170
+                  milliseconds after perceiving a face.
                 </p>
                 <Button
                   secondary
@@ -245,7 +246,7 @@ export default class Home extends Component<Props, State> {
     return (
       <React.Fragment>
         <SecondaryNavComponent
-          title={<Image src={brainwavesLogo} />}
+          title={<Image src={appLogo} />}
           steps={HOME_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
