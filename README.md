@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="banner" src="Brainwaves_Logo_Purple.png" width="600">
+  <img alt="banner" src="app_logo.png" width="600">
 </p>
 <p align="center" href="">
   An easy-to-use platform for EEG experimentation in the classroom
@@ -14,7 +14,7 @@
 
 ## Screenshots
 <p align="center">
-  <img src="BrainWaves_Home.png" width="600">
+  <img src="app_home.png" width="600">
 </p>
 
 ## Prerequisites
@@ -46,7 +46,7 @@ following command on Windows_
 ## Download
 
 - Windows:
-  [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.7.5/BrainWaves.Setup.0.7.5.exe)
+  [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.1/BrainWaves.Setup.0.8.1.exe)
 - MacOS: coming soon
 - Linux (only supports Muse):
   [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.7.5/BrainWaves_0.7.4_amd64.deb)
