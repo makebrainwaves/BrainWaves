@@ -30,7 +30,7 @@ dependencies to run its analysis.
    [Miniconda installer for Python 3.6 available from this page](https://conda.io/miniconda.html)
 https://github.com/makebrainwaves/BrainWaves
 2. Download the BrainWaves
-   [environment file](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.0/environment.yml)
+   [environment file](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.1/environment.yml)
    or grab it by cloning this repository
 
 _Note: you may need to install Microsoft Visual C++ Build Tools to run this
