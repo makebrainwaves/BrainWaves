@@ -1,7 +1,11 @@
 {
   "name": "BrainWaves",
   "productName": "BrainWaves",
+<<<<<<< HEAD
   "version": "0.8.2",
+=======
+  "version": "0.8.1",
+>>>>>>> 5c00516deb2d235345710f32f1f8e1651121721c
   "description": "EEG Experiment Desktop Application",
   "scripts": {
     "build": "concurrently \"npm run build-main\" \"npm run build-renderer\"",

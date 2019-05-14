@@ -13,3 +13,4 @@ dependencies:
 - jupyter
 - pip:
   - mne
+  - pyzmq>=18.0.1
