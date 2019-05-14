@@ -22,8 +22,6 @@ import Cortex from './cortex';
 const verbose = process.env.LOG_LEVEL || 1;
 const options = { verbose };
 const client = new Cortex(options);
-// Used to explictly link event markers to session
-let sessionID = null;
 
 // Gets a list of available Emotiv devices
 export const getEmotiv = async () => {
@@ -48,7 +46,6 @@ export const connectToEmotiv = device =>
       toast.error(`Authentication failed. ${err}`);
       return err;
     })
-    .then(() => client.getLicenseInfo())
     .then(() =>
       client.createSession({
         status: 'active',
@@ -63,7 +60,6 @@ export const connectToEmotiv = device =>
       if (session.headset === undefined) {
         return new Error('Session does not exist');
       }
-      sessionID = session.id;
 
       return {
         name: session.headset.id,
@@ -117,9 +113,7 @@ export const createEmotivSignalQualityObservable = rawObservable => {
 };
 
 export const injectEmotivMarker = (value, time) => {
-  if (sessionID !== null) {
-    client.injectMarker({ label: 'event', id: sessionID, value, time });
-  }
+  console.log('injecting marker:', value, time);
   client.injectMarker({ label: 'event', value, time });
 };
 
@@ -137,6 +131,7 @@ const createEEGSample = eegEvent => {
   }
   if (eegEvent.eeg[eegEvent.eeg.length - 1] >= 1) {
     const marker = eegEvent.eeg[eegEvent.eeg.length - 1];
+    console.log('recording marker:', marker);
     return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
   }
   return { data: prunedArray, timestamp: eegEvent.time * 1000 };
