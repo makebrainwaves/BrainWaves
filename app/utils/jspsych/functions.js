@@ -15,15 +15,15 @@ import {
 
 // create and open an outlet to stream data
 const info = lsl.create_streaminfo(
-  'Dummy',
+  'jsPsych',
   'Marker', // type
   1, // number of channels
-  10, // sample rate in 1 sec.
+  0, // irregular sample rate
   lsl.channel_format_t.cft_float32,
-  'Dummy Marker Device'
+  'jspsych_brainwaves' // source_id
 );
 const desc = lsl.get_desc(info);
-lsl.append_child_value(desc, 'manufacturer', 'Random Inc.');
+lsl.append_child_value(desc, 'manufacturer', 'BrainWaves');
 const channels = lsl.append_child(desc, 'channels');
 const channel = lsl.append_child(channels, 'channel');
 lsl.append_child_value(channel, 'type', 'Marker');
@@ -140,15 +140,13 @@ export const instantiateTimeline = (
         if (trial.id === 'trial') {
           return {
             ...trial,
-            on_start: e => {
-              if (e) {
-                const correctResponse = parseFloat(e.correct_response);
-                lsl.push_sample_ft(
-                  outlet,
-                  new lsl.FloatArray([correctResponse]),
-                  lsl.local_clock()
-                );
-              }
+            on_start: () => {
+              const eventType = jsPsych.timelineVariable('eventTypeVar')() || 0;
+              lsl.push_sample_ft(
+                outlet,
+                new lsl.FloatArray([eventType]),
+                lsl.local_clock()
+              );
               eventCallback(
                 jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
