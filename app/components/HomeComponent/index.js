@@ -16,10 +16,26 @@ import {
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
-import { languagePluginLoader } from "../../utils/pyodide/pyodide";
+import { languagePluginLoader } from '../../utils/pyodide/pyodide';
 
 // this initiates pyodide
-languagePluginLoader;
+async function pyodideLoader() {
+  await languagePluginLoader;
+  // using window.pyodide instead of pyodide to get linter to stop yelling ;)
+  await window.pyodide.loadPackage(['mne']);
+
+  const mneCommands = [
+    `import numpy as np`,
+    `import mne`,
+    `data = np.repeat(np.atleast_2d(np.arange(1000)), 8, axis=0)`,
+    `info = mne.create_info(8, 250)`,
+    `raw = mne.io.RawArray(data=data, info=info)`,
+    `raw.save("test_brainwaves.fif")`
+  ];
+  await window.pyodide.runPython(mneCommands.join('; '));
+}
+
+pyodideLoader();
 
 const HOME_STEPS = {
   RECENT: 'RECENT',
