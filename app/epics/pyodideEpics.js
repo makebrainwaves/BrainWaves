@@ -12,7 +12,9 @@ import {
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
+import { languagePluginLoader } from '../../utils/pyodide/pyodide';
 import {
+  LAUNCH,
   LOAD_EPOCHS,
   LOAD_CLEANED_EPOCHS,
   LOAD_PSD,
@@ -44,7 +46,6 @@ import {
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES
 } from '../constants/constants';
-
 
 export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
 export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
@@ -119,18 +120,18 @@ const receiveStream = (payload) => ({
 // -------------------------------------------------------------------------
 // Epics
 
+const launchEpic = (action$, state$) =>
+  action$.ofType(LAUNCH).pipe(
+    mergeMap(languagePluginLoader),
+    tap(() => console.log('launched pyodide'))
+  );
+
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck('payload'),
     filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathsArray =>
-      state$.value.pyodide.mainChannel.next(
-        executeRequest(loadCSV(filePathsArray))
-      )
-    ),
-    awaitOkMessage(action$),
-    execute(filterIIR(1, 30), state$),
-    awaitOkMessage(action$),
+    map(filePathsArray => loadCSV(filePathsArray)),
+    map(() => filterIIR(1, 30)),
     map(() =>
       epochEvents(
         {
@@ -143,10 +144,7 @@ const loadEpochsEpic = (action$, state$) =>
         0.8
       )
     ),
-    map(epochEventsCommand =>
-      state$.value.pyodide.mainChannel.next(executeRequest(epochEventsCommand))
-    ),
-    awaitOkMessage(action$),
+    map(epochEventsCommand => epochEventsCommand),
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
@@ -154,12 +152,7 @@ const loadCleanedEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
     pluck('payload'),
     filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathsArray =>
-      state$.value.pyodide.mainChannel.next(
-        executeRequest(loadCleanedEpochs(filePathsArray))
-      )
-    ),
-    awaitOkMessage(action$),
+    map(filePathsArray => loadCleanedEpochs(filePathsArray)),
     mergeMap(() =>
       of(
         getEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
@@ -171,49 +164,22 @@ const loadCleanedEpochsEpic = (action$, state$) =>
 
 const cleanEpochsEpic = (action$, state$) =>
   action$.ofType(CLEAN_EPOCHS).pipe(
-    execute(cleanEpochsPlot(), state$),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_STREAM).pipe(
-        pluck('payload'),
-        filter(
-          (msg) => msg.channel === 'iopub' && msg.content.text.includes('Channels marked as bad')
-        ),
-        take(1)
-      )
-    ),
+    map(cleanEpochsPlot),
     map(() =>
-      state$.value.pyodide.mainChannel.next(
-        executeRequest(
-          saveEpochs(
-            getWorkspaceDir(state$.value.experiment.title),
-            state$.value.experiment.subject
-          )
-        )
+      saveEpochs(
+        getWorkspaceDir(state$.value.experiment.title),
+        state$.value.experiment.subject
       )
     ),
-    awaitOkMessage(action$),
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
     pluck('payload'),
-    map(variableName =>
-      state$.value.pyodide.mainChannel.next(
-        executeRequest(requestEpochsInfo(variableName))
-      )
-    ),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
-        pluck('payload'),
-        filter((msg) => msg.channel === 'iopub' && !isNil(msg.content.data)),
-        pluck('content', 'data', 'text/plain'),
-        filter((msg) => msg.includes('Drop Percentage')),
-        take(1)
-      )
-    ),
-    map((epochInfoString) =>
-      parseSingleQuoteJSON(epochInfoString).map((infoObj) => ({
+    map(variableName => requestEpochsInfo(variableName)),
+    map(epochInfoString =>
+      parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
         name: Object.keys(infoObj)[0],
         value: infoObj[Object.keys(infoObj)[0]],
       }))
@@ -223,42 +189,22 @@ const getEpochsInfoEpic = (action$, state$) =>
 
 const getChannelInfoEpic = (action$, state$) =>
   action$.ofType(GET_CHANNEL_INFO).pipe(
-    execute(requestChannelInfo(), state$),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
-        pluck('payload'),
-        filter((msg) => msg.channel === 'iopub' && !isNil(msg.content.data)),
-        pluck('content', 'data', 'text/plain'),
-        // Filter to prevent this from reading requestEpochsInfo returns
-        filter((msg) => !msg.includes('Drop Percentage')),
-        take(1)
-      )
-    ),
-    map((channelInfoString) => setChannelInfo(parseSingleQuoteJSON(channelInfoString)))
+    map(requestChannelInfo),
+    map(channelInfoString =>
+      setChannelInfo(parseSingleQuoteJSON(channelInfoString))
+    )
   );
 
 const loadPSDEpic = (action$, state$) =>
   action$.ofType(LOAD_PSD).pipe(
-    execute(plotPSD(), state$),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
-        pluck('payload'),
-        // PSD graphs should have two axes
-        filter((msg) => msg.content.data['text/plain'].includes('2 Axes')),
-        pluck('content', 'data'),
-        take(1)
-      )
-    ),
+    map(plotPSD),
     map(setPSDPlot)
   );
 
 const loadTopoEpic = (action$, state$) =>
   action$.ofType(LOAD_TOPO).pipe(
-    execute(plotTopoMap(), state$),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(pluck('payload'), pluck('content', 'data'), take(1))
-    ),
-    mergeMap((topoPlot) =>
+    map(plotTopoMap),
+    mergeMap(topoPlot =>
       of(
         setTopoPlot(topoPlot),
         loadERP(
@@ -280,20 +226,7 @@ const loadERPEpic = (action$, state$) =>
       console.warn('channel name supplied to loadERPEpic does not belong to either device');
       return EMOTIV_CHANNELS[0];
     }),
-    map(channelIndex =>
-      state$.value.pyodide.mainChannel.next(
-        executeRequest(plotERP(channelIndex))
-      )
-    ),
-    mergeMap(() =>
-      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
-        pluck('payload'),
-        // ERP graphs should have 1 axis according to MNE
-        filter((msg) => msg.content.data['text/plain'].includes('1 Axes')),
-        pluck('content', 'data'),
-        take(1)
-      )
-    ),
+    map(channelIndex => plotERP(channelIndex)),
     map(setERPPlot)
   );
 
@@ -308,5 +241,5 @@ export default combineEpics(
   getChannelInfoEpic,
   loadPSDEpic,
   loadTopoEpic,
-  loadERPEpic,
+  loadERPEpic
 );

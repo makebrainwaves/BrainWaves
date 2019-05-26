@@ -1,6 +1,7 @@
 // -------------------------------------------------------------------------
 // Action Types
 
+export const LAUNCH = "LAUNCH";
 export const SEND_EXECUTE_REQUEST = "SEND_EXECUTE_REQUEST";
 export const LOAD_EPOCHS = "LOAD_EPOCHS";
 export const LOAD_CLEANED_EPOCHS = "LOAD_CLEANED_EPOCHS";
@@ -11,6 +12,12 @@ export const CLEAN_EPOCHS = "CLEAN_EPOCHS";
 
 // -------------------------------------------------------------------------
 // Actions
+
+
+export const launch = () => ({
+  type: LAUNCH
+});
+
 
 export const sendExecuteRequest = (payload: string) => ({
   payload,

@@ -29,7 +29,7 @@ import {
   deleteWorkspaceDir,
 } from '../../utils/filesystem/storage';
 import {
-  JupyterActions,
+  PyodideActions,
   DeviceActions,
   ExperimentActions,
 } from '../../actions';
@@ -64,7 +64,7 @@ export interface Props {
   deviceType: DEVICES;
   ExperimentActions: typeof ExperimentActions;
   history: History;
-  JupyterActions: typeof JupyterActions;
+  PyodideActions: typeof PyodideActions;
   kernelStatus: KERNEL_STATUS;
   signalQualityObservable?: Observable<SignalQualityData>;
 }
@@ -98,6 +98,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidMount() {
+    this.props.pyodideActions.launch();
     this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
