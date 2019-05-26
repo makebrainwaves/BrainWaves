@@ -24,12 +24,8 @@ import {
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
-import { loadProtocol } from '../../utils/labjs/functions';
-import EEGExplorationComponent from '../EEGExplorationComponent';
+import { loadTimeline } from '../../utils/jspsych/functions';
 import { languagePluginLoader } from '../../utils/pyodide/pyodide';
-
-import { remote } from 'electron';
-const { dialog } = remote;
 
 // this initiates pyodide
 languagePluginLoader;
@@ -46,6 +42,7 @@ interface Props {
   deviceActions: Object;
   availableDevices: Array<any>;
   experimentActions: Object;
+  pyodideActions: Object;
 }
 
 interface State {
@@ -84,6 +81,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidMount() {
+    this.props.pyodideActions.launch();
     this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
