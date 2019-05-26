@@ -19,7 +19,8 @@ import { EMOTIV_CHANNELS, PLOTTING_INTERVAL } from '../../constants/constants';
 import Cortex from './cortex';
 
 // Creates the Cortex object from SDK
-const verbose = process.env.LOG_LEVEL || 1;
+const verbose = 3;
+// const verbose = process.env.LOG_LEVEL || 1;
 const options = { verbose };
 const client = new Cortex(options);
 
