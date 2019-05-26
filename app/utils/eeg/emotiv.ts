@@ -26,7 +26,8 @@ interface EmotivHeadset {
 }
 
 // Creates the Cortex object from SDK
-const verbose = process.env.LOG_LEVEL || 1;
+const verbose = 3;
+// const verbose = process.env.LOG_LEVEL || 1;
 const options = { verbose };
 
 // This global client is used in every Cortex API call
