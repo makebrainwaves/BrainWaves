@@ -1,18 +1,15 @@
-import { combineEpics } from 'redux-observable';
-import { from, of } from 'rxjs';
+import { combineEpics } from "redux-observable";
+import { of } from "rxjs";
 import {
   map,
   mergeMap,
   tap,
   pluck,
   ignoreElements,
-  filter,
-  take
-} from 'rxjs/operators';
-import { isNil } from 'lodash';
-import { toast } from 'react-toastify';
-import { getWorkspaceDir } from '../utils/filesystem/storage';
-import { languagePluginLoader } from '../../utils/pyodide/pyodide';
+  filter
+} from "rxjs/operators";
+import { getWorkspaceDir } from "../utils/filesystem/storage";
+import { languagePluginLoader } from "../utils/pyodide/pyodide";
 import {
   LAUNCH,
   LOAD_EPOCHS,
@@ -23,10 +20,10 @@ import {
   CLEAN_EPOCHS,
   loadTopo,
   loadERP
-} from '../actions/pyodideActions';
+} from "../actions/pyodideActions";
 import {
+  test,
   imports,
-  utils,
   loadCSV,
   loadCleanedEpochs,
   filterIIR,
@@ -38,27 +35,29 @@ import {
   plotERP,
   plotTopoMap,
   saveEpochs
-} from '../utils/pyodide/commands';
+} from "../utils/pyodide/commands";
 import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
   MUSE_CHANNELS,
-  PYODIDE_VARIABLE_NAMES
-} from '../constants/constants';
+  PYODIDE_VARIABLE_NAMES,
+  PYODIDE_STATUS
+} from "../constants/constants";
 
-export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
-export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
-export const SET_MAIN_CHANNEL = 'SET_MAIN_CHANNEL';
-export const SET_EPOCH_INFO = 'SET_EPOCH_INFO';
-export const SET_CHANNEL_INFO = 'SET_CHANNEL_INFO';
-export const SET_PSD_PLOT = 'SET_PSD_PLOT';
-export const SET_ERP_PLOT = 'SET_ERP_PLOT';
-export const SET_TOPO_PLOT = 'SET_TOPO_PLOT';
-export const RECEIVE_EXECUTE_REPLY = 'RECEIVE_EXECUTE_REPLY';
-export const RECEIVE_EXECUTE_RESULT = 'RECEIVE_EXECUTE_RESULT';
-export const RECEIVE_STREAM = 'RECEIVE_STREAM';
-export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
+export const GET_EPOCHS_INFO = "GET_EPOCHS_INFO";
+export const GET_CHANNEL_INFO = "GET_CHANNEL_INFO";
+export const SET_MAIN_CHANNEL = "SET_MAIN_CHANNEL";
+export const SET_EPOCH_INFO = "SET_EPOCH_INFO";
+export const SET_CHANNEL_INFO = "SET_CHANNEL_INFO";
+export const SET_PSD_PLOT = "SET_PSD_PLOT";
+export const SET_ERP_PLOT = "SET_ERP_PLOT";
+export const SET_TOPO_PLOT = "SET_TOPO_PLOT";
+export const SET_PYODIDE_STATUS = "SET_PYODIDE_STATUS";
+export const RECEIVE_EXECUTE_REPLY = "RECEIVE_EXECUTE_REPLY";
+export const RECEIVE_EXECUTE_RESULT = "RECEIVE_EXECUTE_RESULT";
+export const RECEIVE_STREAM = "RECEIVE_STREAM";
+export const RECEIVE_DISPLAY_DATA = "RECEIVE_DISPLAY_DATA";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -67,12 +66,7 @@ const getEpochsInfo = (payload) => ({ payload, type: GET_EPOCHS_INFO });
 
 const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
-const setMainChannel = payload => ({
-  payload,
-  type: SET_MAIN_CHANNEL,
-});
-
-const setEpochInfo = (payload) => ({
+const setEpochInfo = payload => ({
   payload,
   type: SET_EPOCH_INFO,
 });
@@ -97,7 +91,12 @@ const setERPPlot = (payload) => ({
   type: SET_ERP_PLOT,
 });
 
-const receiveExecuteReply = (payload) => ({
+const setPyodideStatus = payload => ({
+  payload,
+  type: SET_PYODIDE_STATUS
+});
+
+const receiveExecuteReply = payload => ({
   payload,
   type: RECEIVE_EXECUTE_REPLY,
 });
@@ -120,15 +119,22 @@ const receiveStream = (payload) => ({
 // -------------------------------------------------------------------------
 // Epics
 
-const launchEpic = (action$, state$) =>
+const launchEpic = action$ =>
   action$.ofType(LAUNCH).pipe(
-    mergeMap(languagePluginLoader),
-    tap(() => console.log('launched pyodide'))
+    tap(() => console.log("launching")),
+    mergeMap(async () => {
+      await languagePluginLoader;
+      console.log("loaded language plugin");
+      // using window.pyodide instead of pyodide to get linter to stop yelling ;)
+      await window.pyodide.loadPackage(["mne"]);
+      console.log("loaded mne package");
+    }),
+    map(() => setPyodideStatus(PYODIDE_STATUS.LOADED))
   );
 
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
-    pluck('payload'),
+    pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray => loadCSV(filePathsArray)),
     map(() => filterIIR(1, 30)),
@@ -150,7 +156,7 @@ const loadEpochsEpic = (action$, state$) =>
 
 const loadCleanedEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
-    pluck('payload'),
+    pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray => loadCleanedEpochs(filePathsArray)),
     mergeMap(() =>
@@ -176,7 +182,7 @@ const cleanEpochsEpic = (action$, state$) =>
 
 const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
-    pluck('payload'),
+    pluck("payload"),
     map(variableName => requestEpochsInfo(variableName)),
     map(epochInfoString =>
       parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
@@ -216,14 +222,25 @@ const loadTopoEpic = (action$, state$) =>
 
 const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
+<<<<<<< HEAD
     pluck('payload'),
     map((channelName) => {
+=======
+    pluck("payload"),
+    map(channelName => {
+>>>>>>> Added loading of pyodide within app epics
       if (MUSE_CHANNELS.includes(channelName)) {
         return MUSE_CHANNELS.indexOf(channelName);
       } else if (EMOTIV_CHANNELS.includes(channelName)) {
         return EMOTIV_CHANNELS.indexOf(channelName);
       }
+<<<<<<< HEAD
       console.warn('channel name supplied to loadERPEpic does not belong to either device');
+=======
+      console.warn(
+        "channel name supplied to loadERPEpic does not belong to either device"
+      );
+>>>>>>> Added loading of pyodide within app epics
       return EMOTIV_CHANNELS[0];
     }),
     map(channelIndex => plotERP(channelIndex)),
@@ -232,8 +249,6 @@ const loadERPEpic = (action$, state$) =>
 
 export default combineEpics(
   launchEpic,
-  setUpChannelEpic,
-  receiveChannelMessageEpic,
   loadEpochsEpic,
   loadCleanedEpochsEpic,
   cleanEpochsEpic,
