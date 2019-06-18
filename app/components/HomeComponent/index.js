@@ -24,11 +24,6 @@ import {
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
-import { loadTimeline } from '../../utils/jspsych/functions';
-import { languagePluginLoader } from '../../utils/pyodide/pyodide';
-
-// this initiates pyodide
-languagePluginLoader;
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now

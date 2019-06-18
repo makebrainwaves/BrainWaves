@@ -1,21 +1,42 @@
-import * as path from 'path';
-import { readFileSync } from 'fs';
+import * as path from "path";
+import { readFileSync } from "fs";
 
+let pyodide;
 // -----------------------------
 // Imports and Utility functions
 
+export const test = async () => {
+  await window.pyodide.loadPackage(["mne"]);
+
+  const mneCommands = [
+    `import numpy as np`,
+    `import mne`,
+    `data = np.repeat(np.atleast_2d(np.arange(1000)), 8, axis=0)`,
+    `info = mne.create_info(8, 250)`,
+    `raw = mne.io.RawArray(data=data, info=info)`,
+    `raw.save("test_brainwaves.fif")`
+  ];
+  await window.pyodide.runPython(mneCommands.join("; "));
+};
+
+export const loadPackages = async () => window.pyodide.loadPackage(["mne"]);
+
 export const imports = () =>
-  readFileSync(path.join(__dirname, '/utils/pyodide/pyimport.py'), 'utf8');
+  pyodide.runPython(
+    readFileSync(path.join(__dirname, "/utils/pyodide/pyimport.py"), "utf8")
+  );
 
 export const utils = () =>
-  readFileSync(path.join(__dirname, '/utils/pyodide/utils.py'), 'utf8');
+  pyodide.runPython(
+    readFileSync(path.join(__dirname, "/utils/pyodide/utils.py"), "utf8")
+  );
 
 export const loadCSV = (filePathArray: Array<string>) =>
   [
     `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
     `replace_ch_names = None`,
     `raw = load_data(files, replace_ch_names)`
-  ].join('\n');
+  ].join("\n");
 
 // ---------------------------
 // MNE-Related Data Processing
@@ -24,7 +45,7 @@ export const loadCleanedEpochs = (filePathArray: Array<string>) =>
     `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
     `clean_epochs = concatenate_epochs([read_epochs(file) for file in files])`,
     `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`
-  ].join('\n');
+  ].join("\n");
 
 // NOTE: this command includes a ';' to prevent returning data
 export const filterIIR = (lowCutoff: number, highCutoff: number) =>
@@ -34,7 +55,7 @@ export const epochEvents = (
   eventIDs: { [string]: number },
   tmin: number,
   tmax: number,
-  reject?: Array<string> | string = 'None'
+  reject?: Array<string> | string = "None"
 ) => {
   const command = [
     `event_id = ${JSON.stringify(eventIDs)}`,
@@ -43,12 +64,12 @@ export const epochEvents = (
     `baseline= (tmin, tmax)`,
     `picks = None`,
     `reject = ${reject}`,
-    'events = find_events(raw)',
+    "events = find_events(raw)",
     `raw_epochs = Epochs(raw, events=events, event_id=event_id,
                       tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True,
                       verbose=False, picks=picks)`,
     `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`
-  ].join('\n');
+  ].join("\n");
   return command;
 };
 
@@ -76,9 +97,9 @@ export const saveEpochs = (workspaceDir: string, subject: string) =>
   `raw_epochs.save(${formatFilePath(
     path.join(
       workspaceDir,
-      'Data',
+      "Data",
       subject,
-      'EEG',
+      "EEG",
       `${subject}-cleaned-epo.fif`
     )
   )})`;
@@ -87,4 +108,4 @@ export const saveEpochs = (workspaceDir: string, subject: string) =>
 // Helper methods
 
 const formatFilePath = (filePath: string) =>
-  `"${filePath.replace(/\\/g, '/')}"`;
+  `"${filePath.replace(/\\/g, "/")}"`;
