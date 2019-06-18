@@ -6,10 +6,12 @@ import {
   SET_PSD_PLOT,
   SET_TOPO_PLOT,
   SET_ERP_PLOT,
-  RECEIVE_EXECUTE_RETURN
-} from '../epics/pyodideEpics';
-import { ActionType } from '../constants/interfaces';
-import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
+  RECEIVE_EXECUTE_RETURN,
+  SET_PYODIDE_STATUS
+} from "../epics/pyodideEpics";
+import { ActionType } from "../constants/interfaces";
+import { PYODIDE_STATUS } from "../constants/constants";
+import { EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
 
 export interface PyodideStateType {
   +mainChannel: ?any;
@@ -27,6 +29,7 @@ const initialState = {
   psdPlot: null,
   topoPlot: null,
   erpPlot: null,
+  status: PYODIDE_STATUS.NOT_LOADED
 };
 
 export default function pyodide(
@@ -80,6 +83,12 @@ export default function pyodide(
 
     case RECEIVE_EXECUTE_RETURN:
       return state;
+
+    case SET_PYODIDE_STATUS:
+      return {
+        ...state,
+        status: action.payload
+      };
 
     default:
       return state;
