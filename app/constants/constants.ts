@@ -37,20 +37,13 @@ export enum CONNECTION_STATUS {
   BLUETOOTH_DISABLED = 'BLUETOOTH_DISABLED',
 }
 
-export enum KERNEL_STATUS {
-  OFFLINE = 'Offline',
-  BUSY = 'Busy',
-  IDLE = 'Idle',
-  STARTING = 'Starting',
-}
-
 export enum DEVICE_AVAILABILITY {
   NONE = 'NONE',
   SEARCHING = 'SEARCHING',
   AVAILABLE = 'AVAILABLE',
 }
 
-// Names of variables in the pyodide kernel
+// Names of variables in pyodide
 export enum PYODIDE_VARIABLE_NAMES {
   RAW_EPOCHS = 'raw_epochs',
   CLEAN_EPOCHS = 'clean_epochs',
