@@ -17,15 +17,20 @@ import {
 } from '../constants/constants';
 import {
   readWorkspaceCleanedEEGData,
-  getSubjectNamesFromFiles
+  getSubjectNamesFromFiles,
+  readWorkspaceBehaviorData,
+  readBehaviouralData,
 } from '../utils/filesystem/storage';
+import { aggregateData, getMeans } from '../utils/behavior/compute';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
+import Plot from 'react-plotly.js';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
-  ERP: 'ERP'
+  ERP: 'ERP',
+  BEHAVIOR: 'BEHAVIOR'
 };
 
 interface Props {
@@ -47,8 +52,19 @@ interface State {
     text: string,
     value: { name: string, dir: string }
   }>;
+  behaviorFilePaths: Array<?{
+    key: string,
+    text: string,
+    value: { name: string, dir: string }
+  }>;
   selectedFilePaths: Array<?string>;
   selectedSubjects: Array<?string>;
+  selectedDependentVariable: string;
+  dependentVariables: Array<?{
+    key: string,
+    text: string,
+    value: { name: string, dir: string }
+  }>;
 }
 // TODO: Add a channel callback from reading epochs so this screen can be aware of which channels are
 // available in dataset
@@ -58,6 +74,8 @@ export default class Analyze extends Component<Props, State> {
   handleChannelSelect: string => void;
   handleStepClick: (Object, Object) => void;
   handleDatasetChange: (Object, Object) => void;
+  handleBehaviorDatasetChange: (Object, Object) => void;
+  handleDependentVariableChange: (Object, Object) => void;
   handleStepClick: (Object, Object) => void;
 
   constructor(props: Props) {
@@ -65,6 +83,11 @@ export default class Analyze extends Component<Props, State> {
     this.state = {
       activeStep: ANALYZE_STEPS.OVERVIEW,
       eegFilePaths: [{ key: '', text: '', value: '' }],
+      behaviorFilePaths: [{ key: '', text: '', value: '' }],
+      dependentVariables: [{ key: '', text: '', value: '' }],
+      dataToPlot:[],
+      layout: {},
+      selectedDependentVariable: "",
       selectedFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
@@ -74,6 +97,8 @@ export default class Analyze extends Component<Props, State> {
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
+    this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
+    this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
   }
 
@@ -81,12 +106,24 @@ export default class Analyze extends Component<Props, State> {
     const workspaceCleanData = await readWorkspaceCleanedEEGData(
       this.props.title
     );
+    const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
       eegFilePaths: workspaceCleanData.map(filepath => ({
         key: filepath.name,
         text: filepath.name,
         value: filepath.path
-      }))
+      })),
+      behaviorFilePaths: behavioralData.map(filepath => ({
+        key: filepath.name,
+        text: filepath.name,
+        value: filepath.path
+      })),
+      dependentVariables: ['Response Time', 'Accuracy'].map(dv => ({
+        key: dv,
+        text: dv,
+        value: dv
+      })),
+      selectedDependentVariable: 'Response Time',
     });
   }
 
@@ -100,6 +137,33 @@ export default class Analyze extends Component<Props, State> {
       selectedSubjects: getSubjectNamesFromFiles(data.value)
     });
     this.props.jupyterActions.loadCleanedEpochs(data.value);
+  }
+
+  handleBehaviorDatasetChange(event: Object, data: Object) {
+    const { dataToPlot, layout } = aggregateData(
+      readBehaviouralData(data.value),
+      this.state.selectedDependentVariable,
+      data.value
+    );
+    this.setState({
+      selectedFilePaths: data.value,
+      selectedSubjects: getSubjectNamesFromFiles(data.value),
+      dataToPlot: dataToPlot,
+      layout: layout
+    });
+  }
+
+  handleDependentVariableChange(event: Object, data: Object){
+    const { dataToPlot, layout } = aggregateData(
+      readBehaviouralData(this.state.selectedFilePaths),
+      data.value,
+      this.state.selectedFilePaths
+    );
+    this.setState({
+      selectedDependentVariable: data.value,
+      dataToPlot: dataToPlot,
+      layout: layout
+    });
   }
 
   handleChannelSelect(channelName: string) {
@@ -210,6 +274,54 @@ export default class Analyze extends Component<Props, State> {
                 )}-${this.state.selectedChannel}-ERP`}
                 plotMIMEBundle={this.props.erpPlot}
               />
+            </Grid.Column>
+          </Grid>
+        );
+      case ANALYZE_STEPS.BEHAVIOR:
+        return (
+          <Grid
+            columns="equal"
+            textAlign="center"
+            verticalAlign="middle"
+            className={styles.contentGrid}
+          >
+            <Grid.Column width={4}>
+              <Segment basic textAlign="left" className={styles.infoSegment}>
+                <Header as="h1">Overview</Header>
+                <p>
+                  Load datasets from different subjects and view
+                  behavioral results
+                </p>
+                <Header as="h4">Select Datasets</Header>
+                <Dropdown
+                  fluid
+                  multiple
+                  selection
+                  closeOnChange
+                  value={this.state.selectedFilePaths}
+                  options={this.state.behaviorFilePaths}
+                  onChange={this.handleBehaviorDatasetChange}
+                />
+                <Divider hidden />
+                <Header as="h4">Select a Dependent Variable</Header>
+                <Dropdown
+                  fluid
+                  selection
+                  closeOnChange
+                  value={this.state.selectedDependentVariable}
+                  options={this.state.dependentVariables}
+                  onChange={this.handleDependentVariableChange}
+                />
+
+              </Segment>
+            </Grid.Column>
+            <Grid.Column width={8}>
+
+              <Plot
+                data={this.state.dataToPlot}
+                layout={this.state.layout}
+              />
+
             </Grid.Column>
           </Grid>
         );
