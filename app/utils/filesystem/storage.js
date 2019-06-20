@@ -8,6 +8,7 @@ import * as os from 'os';
 import * as path from 'path';
 import recursive from 'recursive-readdir';
 import { shell } from 'electron';
+import Papa from 'papaparse';
 import { ExperimentStateType } from '../../reducers/experimentReducer';
 import { mkdirPathSync } from './write';
 
@@ -174,3 +175,23 @@ export const getSubjectNamesFromFiles = (filePaths: Array<?string>) =>
   filePaths
     .map(filePath => path.basename(filePath))
     .map(fileName => fileName.substring(0, fileName.indexOf('-')));
+
+// Read CSV files with behavioral data and return an object
+export const readBehaviouralData = (files: Array<?string>) => {
+  try {
+    return files
+      .map(file => fs.readFileSync(file, 'utf-8'))
+      .map(csv => convertCSVToObject(csv))
+  } catch (e) {
+    console.log('error', e);
+    return null;
+  }
+};
+
+// convert csv to an object with Papaparse
+const convertCSVToObject = (csv) => {
+  const data = Papa.parse(csv, {
+      header: true
+    });
+  return data;
+};
