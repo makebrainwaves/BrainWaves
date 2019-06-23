@@ -6,9 +6,11 @@ import {
   Segment,
   Header,
   Dropdown,
-  Divider
+  Divider,
+  Button
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
+import Plot from 'react-plotly.js';
 import styles from './styles/common.css';
 import {
   DEVICES,
@@ -20,12 +22,13 @@ import {
   getSubjectNamesFromFiles,
   readWorkspaceBehaviorData,
   readBehaviouralData,
+  storeAggregatedBehavioralData,
 } from '../utils/filesystem/storage';
-import { aggregateData, getMeans } from '../utils/behavior/compute';
+import { aggregateData } from '../utils/behavior/compute';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
-import Plot from 'react-plotly.js';
+
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -76,6 +79,7 @@ export default class Analyze extends Component<Props, State> {
   handleDatasetChange: (Object, Object) => void;
   handleBehaviorDatasetChange: (Object, Object) => void;
   handleDependentVariableChange: (Object, Object) => void;
+  saveSelectedDatasets: () => void;
   handleStepClick: (Object, Object) => void;
 
   constructor(props: Props) {
@@ -99,6 +103,7 @@ export default class Analyze extends Component<Props, State> {
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
     this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
     this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
+    this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
   }
 
@@ -164,6 +169,10 @@ export default class Analyze extends Component<Props, State> {
       dataToPlot: dataToPlot,
       layout: layout
     });
+  }
+
+  saveSelectedDatasets(){
+    storeAggregatedBehavioralData(this.state.selectedFilePaths, this.props.title);
   }
 
   handleChannelSelect(channelName: string) {
@@ -301,6 +310,13 @@ export default class Analyze extends Component<Props, State> {
                   value={this.state.selectedFilePaths}
                   options={this.state.behaviorFilePaths}
                   onChange={this.handleBehaviorDatasetChange}
+                />
+                <Button
+                  icon="save outline"
+                  basic
+                  circular
+                  className={styles.closeButton}
+                  onClick={this.saveSelectedDatasets}
                 />
                 <Divider hidden />
                 <Header as="h4">Select a Dependent Variable</Header>

@@ -7,12 +7,13 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import recursive from 'recursive-readdir';
-import { shell } from 'electron';
+import { shell, remote } from 'electron';
 import Papa from 'papaparse';
 import { ExperimentStateType } from '../../reducers/experimentReducer';
 import { mkdirPathSync } from './write';
 
 const workspaces = path.join(os.homedir(), 'BrainWaves Workspaces');
+const { dialog } = remote;
 
 // -----------------------------------------------------------------------------------------------
 // Creating and Getting
@@ -180,18 +181,61 @@ export const getSubjectNamesFromFiles = (filePaths: Array<?string>) =>
 export const readBehaviouralData = (files: Array<?string>) => {
   try {
     return files
-      .map(file => fs.readFileSync(file, 'utf-8'))
-      .map(csv => convertCSVToObject(csv))
+      .map(file => {
+          const csv = fs.readFileSync(file, 'utf-8')
+          const obj = convertCSVToObject(csv);
+          obj.meta.datafile = file;
+          return obj;
+        }
+      )
   } catch (e) {
     console.log('error', e);
     return null;
   }
 };
 
-// convert csv to an object with Papaparse
+export const storeAggregatedBehavioralData = (paths, title) => {
+  const data = readBehaviouralData(paths);
+  const aggregateData = data
+    .map(e => {
+      e.data.map(line => {
+            line.subject = e.meta.datafile.split('/').pop().split('-')[0];
+            line.session = e.meta.datafile.split('/').pop().split('-')[1];
+            return line;
+          }
+        )
+      return e.data
+      })
+    .reduce((a, b) => a.concat(b), []);
+  const csv = convertObjectToSCV(aggregateData);
+  saveFileOnDisk(csv, title);
+}
+
+const saveFileOnDisk = (data, title) => {
+  dialog.showSaveDialog(
+    {
+      title: "Select a folder to save the data",
+      defaultPath: path.join(getWorkspaceDir(title), 'Data', `aggregated.csv`)
+    },
+    filename => {
+      if(filename && typeof(filename) !== 'undefined'){
+        fs.writeFile(filename, data, err => {
+          if (err) console.error(err)
+        });
+      }
+    });
+}
+
+// convert a csv file to an object with Papaparse
 const convertCSVToObject = (csv) => {
   const data = Papa.parse(csv, {
       header: true
     });
   return data;
+};
+
+// convert an object to a csv file with Papaparse
+const convertObjectToSCV = (data) => {
+  const csv = Papa.unparse(data);
+  return csv;
 };
