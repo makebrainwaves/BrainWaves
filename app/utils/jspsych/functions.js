@@ -2,7 +2,6 @@ import { isNil } from 'lodash';
 import { jsPsych } from 'jspsych-react';
 import * as path from 'path';
 import { readdirSync } from 'fs';
-import lsl from 'node-lsl';
 import { EXPERIMENTS } from '../../constants/constants';
 import { buildOddballTimeline } from './timelines/oddball';
 import { buildN170Timeline } from './timelines/n170';
@@ -12,22 +11,6 @@ import {
   Trial,
   ExperimentParameters
 } from '../../constants/interfaces';
-
-// create and open an outlet to stream data
-const info = lsl.create_streaminfo(
-  'jsPsych',
-  'Marker', // type
-  1, // number of channels
-  0, // irregular sample rate
-  lsl.channel_format_t.cft_float32,
-  'jspsych_brainwaves' // source_id
-);
-const desc = lsl.get_desc(info);
-lsl.append_child_value(desc, 'manufacturer', 'BrainWaves');
-const channels = lsl.append_child(desc, 'channels');
-const channel = lsl.append_child(channels, 'channel');
-lsl.append_child_value(channel, 'type', 'Marker');
-const outlet = lsl.create_outlet(info, 0, 360);
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (type: EXPERIMENTS) => {
@@ -141,12 +124,6 @@ export const instantiateTimeline = (
           return {
             ...trial,
             on_start: () => {
-              const eventType = jsPsych.timelineVariable('eventTypeVar')() || 0;
-              lsl.push_sample_ft(
-                outlet,
-                new lsl.FloatArray([eventType]),
-                lsl.local_clock()
-              );
               eventCallback(
                 jsPsych.timelineVariable('eventTypeVar')(),
                 new Date().getTime()
