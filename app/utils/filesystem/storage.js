@@ -178,7 +178,7 @@ export const getSubjectNamesFromFiles = (filePaths: Array<?string>) =>
     .map(fileName => fileName.substring(0, fileName.indexOf('-')));
 
 // Read CSV files with behavioral data and return an object
-export const readBehaviouralData = (files: Array<?string>) => {
+export const readBehaviorData = (files: Array<?string>) => {
   try {
     return files
       .map(file => {
@@ -194,20 +194,8 @@ export const readBehaviouralData = (files: Array<?string>) => {
   }
 };
 
-export const storeAggregatedBehavioralData = (paths, title) => {
-  const data = readBehaviouralData(paths);
-  const aggregateData = data
-    .map(e => {
-      e.data.map(line => {
-            line.subject = e.meta.datafile.split('/').pop().split('-')[0];
-            line.session = e.meta.datafile.split('/').pop().split('-')[1];
-            return line;
-          }
-        )
-      return e.data
-      })
-    .reduce((a, b) => a.concat(b), []);
-  const csv = convertObjectToSCV(aggregateData);
+export const storeAggregatedBehaviorData = (data, title) => {
+  const csv = convertObjectToSCV(data);
   saveFileOnDisk(csv, title);
 }
 
