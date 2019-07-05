@@ -7,7 +7,8 @@ import {
   Header,
   Dropdown,
   Divider,
-  Button
+  Button,
+  Checkbox
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
@@ -21,10 +22,10 @@ import {
   readWorkspaceCleanedEEGData,
   getSubjectNamesFromFiles,
   readWorkspaceBehaviorData,
-  readBehaviouralData,
-  storeAggregatedBehavioralData,
+  readBehaviorData,
+  storeAggregatedBehaviorData,
 } from '../utils/filesystem/storage';
-import { aggregateData } from '../utils/behavior/compute';
+import { aggregateDataForPlot, aggregateBehaviorDataToSave } from '../utils/behavior/compute';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
@@ -58,15 +59,16 @@ interface State {
   behaviorFilePaths: Array<?{
     key: string,
     text: string,
-    value: { name: string, dir: string }
+    value: string
   }>;
   selectedFilePaths: Array<?string>;
   selectedSubjects: Array<?string>;
   selectedDependentVariable: string;
+  removeOutliers: boolean;
   dependentVariables: Array<?{
     key: string,
     text: string,
-    value: { name: string, dir: string }
+    value: string
   }>;
 }
 // TODO: Add a channel callback from reading epochs so this screen can be aware of which channels are
@@ -79,6 +81,7 @@ export default class Analyze extends Component<Props, State> {
   handleDatasetChange: (Object, Object) => void;
   handleBehaviorDatasetChange: (Object, Object) => void;
   handleDependentVariableChange: (Object, Object) => void;
+  handleRemoveOutliers: (Object, Object) => void;
   saveSelectedDatasets: () => void;
   handleStepClick: (Object, Object) => void;
 
@@ -92,6 +95,7 @@ export default class Analyze extends Component<Props, State> {
       dataToPlot:[],
       layout: {},
       selectedDependentVariable: "",
+      removeOutliers: false,
       selectedFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
@@ -103,6 +107,7 @@ export default class Analyze extends Component<Props, State> {
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
     this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
     this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
+    this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
   }
@@ -145,10 +150,10 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleBehaviorDatasetChange(event: Object, data: Object) {
-    const { dataToPlot, layout } = aggregateData(
-      readBehaviouralData(data.value),
+    const { dataToPlot, layout } = aggregateDataForPlot(
+      readBehaviorData(data.value),
       this.state.selectedDependentVariable,
-      data.value
+      this.state.removeOutliers,
     );
     this.setState({
       selectedFilePaths: data.value,
@@ -159,10 +164,10 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleDependentVariableChange(event: Object, data: Object){
-    const { dataToPlot, layout } = aggregateData(
-      readBehaviouralData(this.state.selectedFilePaths),
+    const { dataToPlot, layout } = aggregateDataForPlot(
+      readBehaviorData(this.state.selectedFilePaths),
       data.value,
-      this.state.selectedFilePaths
+      this.state.removeOutliers,
     );
     this.setState({
       selectedDependentVariable: data.value,
@@ -171,8 +176,23 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
+  handleRemoveOutliers(event: Object, data: Object){
+    const { dataToPlot, layout } = aggregateDataForPlot(
+      readBehaviorData(this.state.selectedFilePaths),
+      this.state.selectedDependentVariable,
+      !this.state.removeOutliers,
+    );
+    this.setState({
+      removeOutliers: !this.state.removeOutliers,
+      dataToPlot: dataToPlot,
+      layout: layout
+    });
+  }
+
   saveSelectedDatasets(){
-    storeAggregatedBehavioralData(this.state.selectedFilePaths, this.props.title);
+    const data = readBehaviorData(this.state.selectedFilePaths);
+    const aggregatedData = aggregateBehaviorDataToSave(data, this.state.removeOutliers);
+    storeAggregatedBehaviorData(aggregatedData, this.props.title);
   }
 
   handleChannelSelect(channelName: string) {
@@ -312,12 +332,11 @@ export default class Analyze extends Component<Props, State> {
                   onChange={this.handleBehaviorDatasetChange}
                 />
                 <Button
-                  icon="save outline"
-                  basic
-                  circular
-                  className={styles.closeButton}
+                  secondary
                   onClick={this.saveSelectedDatasets}
-                />
+                  >
+                  Export
+                </Button>
                 <Divider hidden />
                 <Header as="h4">Select a Dependent Variable</Header>
                 <Dropdown
@@ -327,6 +346,11 @@ export default class Analyze extends Component<Props, State> {
                   value={this.state.selectedDependentVariable}
                   options={this.state.dependentVariables}
                   onChange={this.handleDependentVariableChange}
+                />
+                <Checkbox
+                  checked={this.state.removeOutliers}
+                  label="Remove outliers"
+                  onChange={this.handleRemoveOutliers}
                 />
 
               </Segment>
