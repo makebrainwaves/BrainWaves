@@ -65,6 +65,7 @@ interface State {
   selectedSubjects: Array<?string>;
   selectedDependentVariable: string;
   removeOutliers: boolean;
+  showDataPoints: boolean;
   dependentVariables: Array<?{
     key: string,
     text: string,
@@ -82,6 +83,7 @@ export default class Analyze extends Component<Props, State> {
   handleBehaviorDatasetChange: (Object, Object) => void;
   handleDependentVariableChange: (Object, Object) => void;
   handleRemoveOutliers: (Object, Object) => void;
+  handleDataPoints: (Object, Object) => void;
   saveSelectedDatasets: () => void;
   handleStepClick: (Object, Object) => void;
 
@@ -96,6 +98,7 @@ export default class Analyze extends Component<Props, State> {
       layout: {},
       selectedDependentVariable: "",
       removeOutliers: false,
+      showDataPoints: false,
       selectedFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
@@ -108,6 +111,7 @@ export default class Analyze extends Component<Props, State> {
     this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
     this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
     this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
+    this.handleDataPoints = this.handleDataPoints.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
   }
@@ -154,6 +158,7 @@ export default class Analyze extends Component<Props, State> {
       readBehaviorData(data.value),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
+      this.state.showDataPoints,
     );
     this.setState({
       selectedFilePaths: data.value,
@@ -168,6 +173,7 @@ export default class Analyze extends Component<Props, State> {
       readBehaviorData(this.state.selectedFilePaths),
       data.value,
       this.state.removeOutliers,
+      this.state.showDataPoints,
     );
     this.setState({
       selectedDependentVariable: data.value,
@@ -181,9 +187,24 @@ export default class Analyze extends Component<Props, State> {
       readBehaviorData(this.state.selectedFilePaths),
       this.state.selectedDependentVariable,
       !this.state.removeOutliers,
+      this.state.showDataPoints,
     );
     this.setState({
       removeOutliers: !this.state.removeOutliers,
+      dataToPlot: dataToPlot,
+      layout: layout
+    });
+  }
+
+  handleDataPoints(event: Object, data: Object){
+    const { dataToPlot, layout } = aggregateDataForPlot(
+      readBehaviorData(this.state.selectedFilePaths),
+      this.state.selectedDependentVariable,
+      this.state.removeOutliers,
+      !this.state.showDataPoints,
+    );
+    this.setState({
+      showDataPoints: !this.state.showDataPoints,
       dataToPlot: dataToPlot,
       layout: layout
     });
@@ -314,7 +335,7 @@ export default class Analyze extends Component<Props, State> {
             verticalAlign="middle"
             className={styles.contentGrid}
           >
-            <Grid.Column width={4}>
+            <Grid.Column width={6}>
               <Segment basic textAlign="left" className={styles.infoSegment}>
                 <Header as="h1">Overview</Header>
                 <p>
@@ -326,6 +347,7 @@ export default class Analyze extends Component<Props, State> {
                   fluid
                   multiple
                   selection
+                  search
                   closeOnChange
                   value={this.state.selectedFilePaths}
                   options={this.state.behaviorFilePaths}
@@ -347,10 +369,17 @@ export default class Analyze extends Component<Props, State> {
                   options={this.state.dependentVariables}
                   onChange={this.handleDependentVariableChange}
                 />
+                <p></p>
                 <Checkbox
                   checked={this.state.removeOutliers}
                   label="Remove outliers"
                   onChange={this.handleRemoveOutliers}
+                />
+                <p></p>
+                <Checkbox
+                  checked={this.state.showDataPoints}
+                  label="Show individual data points"
+                  onChange={this.handleDataPoints}
                 />
 
               </Segment>
