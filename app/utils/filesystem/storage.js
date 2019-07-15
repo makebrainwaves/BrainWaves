@@ -129,7 +129,7 @@ export const readWorkspaceBehaviorData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
     const behaviorFiles = files
-      .filter(filepath => filepath.slice(-12).includes('behavior.csv'))
+      .filter(filepath => filepath.slice(-12).includes('behavior.csv') || filepath.includes('aggregated'))
       .map(filepath => ({
         name: path.basename(filepath),
         path: filepath
