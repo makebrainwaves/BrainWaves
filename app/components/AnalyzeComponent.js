@@ -114,6 +114,7 @@ export default class Analyze extends Component<Props, State> {
     this.handleDataPoints = this.handleDataPoints.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
+    this.handleDropdownClick = this.handleDropdownClick.bind(this);
   }
 
   async componentDidMount() {
@@ -166,6 +167,19 @@ export default class Analyze extends Component<Props, State> {
       dataToPlot: dataToPlot,
       layout: layout
     });
+  }
+
+  async handleDropdownClick(){
+    const behavioralData = await readWorkspaceBehaviorData(this.props.title);
+    if(behavioralData.length != this.state.behaviorFilePaths.length){
+      this.setState({
+        behaviorFilePaths: behavioralData.map(filepath => ({
+          key: filepath.name,
+          text: filepath.name,
+          value: filepath.path
+        }))
+      });
+    }
   }
 
   handleDependentVariableChange(event: Object, data: Object){
@@ -352,6 +366,7 @@ export default class Analyze extends Component<Props, State> {
                   value={this.state.selectedFilePaths}
                   options={this.state.behaviorFilePaths}
                   onChange={this.handleBehaviorDatasetChange}
+                  onClick={this.handleDropdownClick}
                 />
                 <Button
                   secondary
