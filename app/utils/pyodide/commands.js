@@ -1,80 +1,69 @@
 import * as path from "path";
 import { readFileSync } from "fs";
+import { languagePluginLoader } from "./pyodide";
+
 
 let pyodide;
 // -----------------------------
 // Imports and Utility functions
 
-export const test = async () => {
-  await window.pyodide.loadPackage(["mne"]);
+export const loadPackages = async () => {
+  await languagePluginLoader;
+  console.log("loaded language plugin");
+  // using window.pyodide instead of pyodide to get linter to stop yelling ;)
+  await window.pyodide.loadPackage(["matplotlib", "mne", "pandas"]);
+  await window.pyodide.runPython("import js");
+  console.log("loaded mne package");
 
-  const mneCommands = [
-    `import numpy as np`,
-    `import mne`,
-    `data = np.repeat(np.atleast_2d(np.arange(1000)), 8, axis=0)`,
-    `info = mne.create_info(8, 250)`,
-    `raw = mne.io.RawArray(data=data, info=info)`,
-    `raw.save("test_brainwaves.fif")`
-  ];
-  await window.pyodide.runPython(mneCommands.join("; "));
-};
+}
 
-export const loadPackages = async () => window.pyodide.loadPackage(["mne"]);
-
-export const imports = () =>
-  pyodide.runPython(
-    readFileSync(path.join(__dirname, "/utils/pyodide/pyimport.py"), "utf8")
-  );
-
-export const utils = () =>
-  pyodide.runPython(
+export const utils = async () =>
+  window.pyodide.runPython(
     readFileSync(path.join(__dirname, "/utils/pyodide/utils.py"), "utf8")
   );
 
-export const loadCSV = (filePathArray: Array<string>) =>
-  [
-    `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
-    `replace_ch_names = None`,
-    `raw = load_data(files, replace_ch_names)`
-  ].join("\n");
+export const loadCSV = async (csvArray: Array<any>) => {
+  window.csvArray = csvArray;
+  // TODO: Pass attached variable name as parameter to load_data
+  await window.pyodide.runPython(
+    `raw = load_data()`)
+}
 
 // ---------------------------
 // MNE-Related Data Processing
-export const loadCleanedEpochs = (filePathArray: Array<string>) =>
+export const loadCleanedEpochs = (epocsArray: Array<any>) =>
   [
-    `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
     `clean_epochs = concatenate_epochs([read_epochs(file) for file in files])`,
     `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`
   ].join("\n");
 
 // NOTE: this command includes a ';' to prevent returning data
-export const filterIIR = (lowCutoff: number, highCutoff: number) =>
-  `raw.filter(${lowCutoff}, ${highCutoff}, method='iir');`;
+export const filterIIR = async (lowCutoff: number, highCutoff: number) =>
+  window.pyodide.runPython(`raw.filter(${lowCutoff}, ${highCutoff}, method='iir');`)
 
-export const epochEvents = (
+export const epochEvents = async (
   eventIDs: { [string]: number },
   tmin: number,
   tmax: number,
   reject?: Array<string> | string = "None"
-) => {
-  const command = [
-    `event_id = ${JSON.stringify(eventIDs)}`,
-    `tmin=${tmin}`,
-    `tmax=${tmax}`,
-    `baseline= (tmin, tmax)`,
-    `picks = None`,
-    `reject = ${reject}`,
-    "events = find_events(raw)",
-    `raw_epochs = Epochs(raw, events=events, event_id=event_id,
+) => window.pyodide.runPython([
+  `event_id = ${JSON.stringify(eventIDs)}`,
+  `tmin=${tmin}`,
+  `tmax=${tmax}`,
+  `baseline= (tmin, tmax)`,
+  `picks = None`,
+  `reject = ${reject}`,
+  "events = find_events(raw)",
+  `raw_epochs = Epochs(raw, events=events, event_id=event_id,
                       tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True,
                       verbose=False, picks=picks)`,
-    `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`
-  ].join("\n");
-  return command;
-};
+  `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`
+].join("\n"))
 
-export const requestEpochsInfo = (variableName: string) =>
-  `get_epochs_info(${variableName})`;
+export const requestEpochsInfo = async (variableName: string) => {
+  const pyodideReturn = await window.pyodide.runPython(`get_epochs_info(${variableName})`);
+  return pyodideReturn
+}
 
 export const requestChannelInfo = () =>
   `[ch for ch in clean_epochs.ch_names if ch != 'Marker']`;
@@ -104,8 +93,3 @@ export const saveEpochs = (workspaceDir: string, subject: string) =>
     )
   )})`;
 
-// -------------------------------------------
-// Helper methods
-
-const formatFilePath = (filePath: string) =>
-  `"${filePath.replace(/\\/g, "/")}"`;

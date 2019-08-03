@@ -5,11 +5,11 @@ import {
   mergeMap,
   tap,
   pluck,
-  ignoreElements,
   filter
 } from "rxjs/operators";
 import { getWorkspaceDir } from "../utils/filesystem/storage";
-import { languagePluginLoader } from "../utils/pyodide/pyodide";
+import { parseSingleQuoteJSON } from "../utils/pyodide/functions"
+import { readFiles } from "../utils/filesystem/read";
 import {
   LAUNCH,
   LOAD_EPOCHS,
@@ -22,8 +22,8 @@ import {
   loadERP
 } from "../actions/pyodideActions";
 import {
-  test,
-  imports,
+  loadPackages,
+  utils,
   loadCSV,
   loadCleanedEpochs,
   filterIIR,
@@ -34,7 +34,7 @@ import {
   plotPSD,
   plotERP,
   plotTopoMap,
-  saveEpochs
+  saveEpochs,
 } from "../utils/pyodide/commands";
 import {
   EMOTIV_CHANNELS,
@@ -96,39 +96,14 @@ const setPyodideStatus = payload => ({
   type: SET_PYODIDE_STATUS
 });
 
-const receiveExecuteReply = payload => ({
-  payload,
-  type: RECEIVE_EXECUTE_REPLY,
-});
-
-const receiveExecuteResult = (payload) => ({
-  payload,
-  type: RECEIVE_EXECUTE_RESULT,
-});
-
-const receiveDisplayData = (payload) => ({
-  payload,
-  type: RECEIVE_DISPLAY_DATA,
-});
-
-const receiveStream = (payload) => ({
-  payload,
-  type: RECEIVE_STREAM,
-});
-
 // -------------------------------------------------------------------------
 // Epics
 
 const launchEpic = action$ =>
   action$.ofType(LAUNCH).pipe(
     tap(() => console.log("launching")),
-    mergeMap(async () => {
-      await languagePluginLoader;
-      console.log("loaded language plugin");
-      // using window.pyodide instead of pyodide to get linter to stop yelling ;)
-      await window.pyodide.loadPackage(["mne"]);
-      console.log("loaded mne package");
-    }),
+    mergeMap(loadPackages),
+    mergeMap(utils),
     map(() => setPyodideStatus(PYODIDE_STATUS.LOADED))
   );
 
@@ -136,9 +111,12 @@ const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathsArray => loadCSV(filePathsArray)),
-    map(() => filterIIR(1, 30)),
-    map(() =>
+    tap(files => console.log('files:', files)),
+    map((filePathsArray => readFiles(filePathsArray))),
+    tap(csvArray => console.log('csvs:', csvArray)),
+    mergeMap(csvArray => loadCSV(csvArray)),
+    mergeMap(() => filterIIR(1, 30)),
+    mergeMap(() =>
       epochEvents(
         {
           [state$.value.experiment.params.stimulus1.title]: EVENTS.STIMULUS_1,
@@ -150,11 +128,10 @@ const loadEpochsEpic = (action$, state$) =>
         0.8
       )
     ),
-    map(epochEventsCommand => epochEventsCommand),
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
-const loadCleanedEpochsEpic = (action$, state$) =>
+const loadCleanedEpochsEpic = (action$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
     pluck("payload"),
     filter(filePathsArray => filePathsArray.length >= 1),
@@ -180,12 +157,13 @@ const cleanEpochsEpic = (action$, state$) =>
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
-const getEpochsInfoEpic = (action$, state$) =>
+const getEpochsInfoEpic = (action$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
     pluck("payload"),
-    map(variableName => requestEpochsInfo(variableName)),
-    map(epochInfoString =>
-      parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
+    tap(payload => console.log('payload: ', payload)),
+    mergeMap(requestEpochsInfo),
+    map(epochInfoArray =>
+      epochInfoArray.map(infoObj => ({
         name: Object.keys(infoObj)[0],
         value: infoObj[Object.keys(infoObj)[0]],
       }))
