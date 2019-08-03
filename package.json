@@ -19,9 +19,8 @@
     "package-all": "npm run build && build -mwl",
     "package-linux": "npm run build && build --linux",
     "package-win": "npm run build && build --win --x64",
-    "postinstall": "node -r babel-register internals/scripts/CheckNativeDep.js && npm run build-dll && electron-builder install-app-deps && node node_modules/fbjs-scripts/node/check-dev-engines.js package.json && node -r babel-register internals/scripts/InstallPyodide.js",
-    "postlint-fix": "prettier --ignore-path .eslintignore --single-quote --write '**/*.js'",
-    "precommit": "lint-staged",
+    "postinstall": "node -r babel-register internals/scripts/CheckNativeDep.js && npm run build-dll && electron-builder install-app-deps && node node_modules/fbjs-scripts/node/check-dev-engines.js package.json",
+    "postlint-fix": "prettier --ignore-path .eslintignore --write '**/*.js'",
     "prestart": "npm run build",
     "start": "cross-env NODE_ENV=production electron ./app/",
     "start-main-dev": "cross-env HOT=1 NODE_ENV=development electron -r babel-register ./app/main.dev.js",
@@ -36,7 +35,9 @@
   },
   "browserslist": "electron 1.6",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["cross-env NODE_ENV=development eslint --cache"],
+    "*.{js,jsx,ts,tsx}": [
+      "cross-env NODE_ENV=development eslint --cache"
+    ],
     "{*.json,.{babelrc,eslintrc,prettierrc,stylelintrc}}": [
       "prettier --ignore-path .eslintignore --parser json --write"
     ],
@@ -44,7 +45,9 @@
       "stylelint --ignore-path .eslintignore --syntax scss --fix",
       "prettier --ignore-path .eslintignore --single-quote --write"
     ],
-    "*.{html,md,yml}": ["prettier --ignore-path .eslintignore --single-quote --write"]
+    "*.{html,md,yml}": [
+      "prettier --ignore-path .eslintignore --single-quote --write"
+    ]
   },
   "build": {
     "productName": "BrainWaves",
@@ -53,7 +56,8 @@
       "dist/",
       "node_modules/",
       "assets/",
-      "utils/jupyter/utils.py",
+      "utils/pyodide/utils.py",
+      "utils/pyodide/pyimport.py",
       "app.html",
       "viewer.html",
       "main.prod.js",
@@ -75,10 +79,15 @@
       ]
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "linux": {
-      "target": ["deb", "AppImage"],
+      "target": [
+        "deb",
+        "AppImage"
+      ],
       "category": "Development"
     },
     "directories": {
@@ -128,14 +137,22 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
     },
-    "moduleFileExtensions": ["js"],
-    "moduleDirectories": ["node_modules", "app/node_modules"],
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "app/node_modules"
+    ],
     "transform": {
       "^.+\\.js$": "babel-jest"
     },
-    "setupFiles": ["./internals/scripts/CheckBuiltsExist.js"]
+    "setupFiles": [
+      "./internals/scripts/CheckBuiltsExist.js"
+    ]
   },
   "devDependencies": {
+    "@nteract/core": "^6.0.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.2.1",
@@ -186,7 +203,6 @@
     "flow-bin": "^0.72.0",
     "flow-runtime": "^0.17.0",
     "flow-typed": "^2.4.0",
-    "gunzip-maybe": "^1.4.1",
     "husky": "^0.14.3",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^23.0.0",
@@ -199,7 +215,6 @@
     "prettier": "^1.12.1",
     "react-test-renderer": "^16.4.0",
     "redux-logger": "^3.0.6",
-    "request": "^2.88.0",
     "rimraf": "^2.6.2",
     "sass-loader": "^7.0.1",
     "sinon": "^5.0.10",
@@ -209,13 +224,12 @@
     "stylelint": "^13.0.0",
     "stylelint-config-prettier": "^8.0.1",
     "stylelint-config-standard": "^19.0.0",
-    "tar-fs": "^2.0.0",
     "uglifyjs-webpack-plugin": "1.2.5",
     "url-loader": "^1.0.1",
     "webpack": "^4.28.4",
     "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.2.1",
-    "webpack-dev-server": "^3.2.1",
+    "webpack-dev-server": "^3.1.4",
     "webpack-merge": "^4.1.2"
   },
   "dependencies": {
@@ -229,7 +243,6 @@
     "hazardous": "^0.3.0",
     "history": "^4.7.2",
     "jspsych-react": "^0.3.0",
-    "kernelspecs": "^2.0.0",
     "lodash": "^4.17.15",
     "lodash.clonedeep": "^4.5.0",
     "mkdirp": "^0.5.1",
