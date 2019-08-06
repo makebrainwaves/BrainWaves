@@ -66,6 +66,7 @@ interface State {
   selectedDependentVariable: string;
   removeOutliers: boolean;
   showDataPoints: boolean;
+  displayMode: string,
   dependentVariables: Array<?{
     key: string,
     text: string,
@@ -83,6 +84,7 @@ export default class Analyze extends Component<Props, State> {
   handleBehaviorDatasetChange: (Object, Object) => void;
   handleDependentVariableChange: (Object, Object) => void;
   handleRemoveOutliers: (Object, Object) => void;
+  handleDisplayModeChange: string => void;
   handleDataPoints: (Object, Object) => void;
   saveSelectedDatasets: () => void;
   handleStepClick: (Object, Object) => void;
@@ -96,9 +98,10 @@ export default class Analyze extends Component<Props, State> {
       dependentVariables: [{ key: '', text: '', value: '' }],
       dataToPlot:[],
       layout: {},
-      selectedDependentVariable: "",
+      selectedDependentVariable: '',
       removeOutliers: false,
       showDataPoints: false,
+      displayMode: 'datapoints',
       selectedFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
@@ -111,6 +114,7 @@ export default class Analyze extends Component<Props, State> {
     this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
     this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
     this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
+    this.handleDisplayModeChange = this.handleDisplayModeChange.bind(this);
     this.handleDataPoints = this.handleDataPoints.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
@@ -160,6 +164,7 @@ export default class Analyze extends Component<Props, State> {
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       this.state.showDataPoints,
+      this.state.displayMode
     );
     this.setState({
       selectedFilePaths: data.value,
@@ -188,6 +193,7 @@ export default class Analyze extends Component<Props, State> {
       data.value,
       this.state.removeOutliers,
       this.state.showDataPoints,
+      this.state.displayMode
     );
     this.setState({
       selectedDependentVariable: data.value,
@@ -202,6 +208,7 @@ export default class Analyze extends Component<Props, State> {
       this.state.selectedDependentVariable,
       !this.state.removeOutliers,
       this.state.showDataPoints,
+      this.state.displayMode
     );
     this.setState({
       removeOutliers: !this.state.removeOutliers,
@@ -216,12 +223,31 @@ export default class Analyze extends Component<Props, State> {
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       !this.state.showDataPoints,
+      this.state.displayMode
     );
     this.setState({
       showDataPoints: !this.state.showDataPoints,
       dataToPlot: dataToPlot,
       layout: layout
     });
+  }
+
+  handleDisplayModeChange(displayMode){
+    if(this.state.selectedFilePaths && this.state.selectedFilePaths.length > 0){
+      console.log("displayMode", displayMode)
+      const { dataToPlot, layout } = aggregateDataForPlot(
+        readBehaviorData(this.state.selectedFilePaths),
+        this.state.selectedDependentVariable,
+        this.state.removeOutliers,
+        this.state.showDataPoints,
+        displayMode
+      );
+      this.setState({
+        dataToPlot: dataToPlot,
+        layout: layout,
+        displayMode: displayMode
+      });
+    }
   }
 
   saveSelectedDatasets(){
@@ -356,7 +382,18 @@ export default class Analyze extends Component<Props, State> {
                   Load datasets from different subjects and view
                   behavioral results
                 </p>
-                <Header as="h4">Select Datasets</Header>
+
+                <div>
+                  <span className="ui header">Datasets</span>
+                  <Button className='export'
+                    onClick={this.saveSelectedDatasets}
+                    >
+                    <Icon name="download" />
+                    Export
+                  </Button>
+                </div>
+                <p></p>
+
                 <Dropdown
                   fluid
                   multiple
@@ -368,14 +405,10 @@ export default class Analyze extends Component<Props, State> {
                   onChange={this.handleBehaviorDatasetChange}
                   onClick={this.handleDropdownClick}
                 />
-                <Button
-                  secondary
-                  onClick={this.saveSelectedDatasets}
-                  >
-                  Export
-                </Button>
+                <p></p>
                 <Divider hidden />
-                <Header as="h4">Select a Dependent Variable</Header>
+                <span className="ui header">Dependent Variable</span>
+                <p></p>
                 <Dropdown
                   fluid
                   selection
@@ -384,28 +417,48 @@ export default class Analyze extends Component<Props, State> {
                   options={this.state.dependentVariables}
                   onChange={this.handleDependentVariableChange}
                 />
+
+              </Segment>
+            </Grid.Column>
+            <Grid.Column width={8}>
+
+              <Segment basic textAlign="left" className={styles.plotSegment}>
+                <Plot
+                  data={this.state.dataToPlot}
+                  layout={this.state.layout}
+                />
                 <p></p>
                 <Checkbox
                   checked={this.state.removeOutliers}
                   label="Remove outliers"
                   onChange={this.handleRemoveOutliers}
                 />
+
                 <p></p>
-                <Checkbox
-                  checked={this.state.showDataPoints}
-                  label="Show individual data points"
-                  onChange={this.handleDataPoints}
-                />
-
+                <Button.Group>
+                  <Button className='tertiary'
+                    toggle
+                    active={this.state.displayMode === 'datapoints'}
+                    onClick={()=> this.handleDisplayModeChange('datapoints')}
+                    >
+                    Data Points
+                  </Button>
+                  <Button className='tertiary'
+                    toggle
+                    active={this.state.displayMode === 'errorbars'}
+                    onClick={()=> this.handleDisplayModeChange('errorbars')}
+                    >
+                    Bar Graph
+                  </Button>
+                  <Button className='tertiary'
+                    toggle
+                    active={this.state.displayMode === 'whiskers'}
+                    onClick={()=> this.handleDisplayModeChange('whiskers')}
+                    >
+                    Box Plot
+                  </Button>
+                </Button.Group>
               </Segment>
-            </Grid.Column>
-            <Grid.Column width={8}>
-
-              <Plot
-                data={this.state.dataToPlot}
-                layout={this.state.layout}
-              />
-
             </Grid.Column>
           </Grid>
         );

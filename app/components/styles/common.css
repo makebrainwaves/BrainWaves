@@ -67,6 +67,11 @@
   font-size: 18px !important;
 }
 
+.plotSegment {
+  padding: 20% !important;
+  font-size: 18px !important;
+}
+
 .closeButton {
   border: none !important;
   box-shadow: none !important;
