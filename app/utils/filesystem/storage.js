@@ -12,7 +12,7 @@ import Papa from 'papaparse';
 import { ExperimentStateType } from '../../reducers/experimentReducer';
 import { mkdirPathSync } from './write';
 
-const workspaces = path.join(os.homedir(), 'BrainWaves Workspaces');
+const workspaces = path.join(os.homedir(), 'BrainWaves_Workspaces');
 const { dialog } = remote;
 
 // -----------------------------------------------------------------------------------------------
@@ -129,7 +129,11 @@ export const readWorkspaceBehaviorData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
     const behaviorFiles = files
-      .filter(filepath => filepath.slice(-12).includes('behavior.csv') || filepath.includes('aggregated'))
+      .filter(
+        filepath =>
+          filepath.slice(-12).includes('behavior.csv') ||
+          filepath.includes('aggregated')
+      )
       .map(filepath => ({
         name: path.basename(filepath),
         path: filepath
@@ -180,14 +184,12 @@ export const getSubjectNamesFromFiles = (filePaths: Array<?string>) =>
 // Read CSV files with behavioral data and return an object
 export const readBehaviorData = (files: Array<?string>) => {
   try {
-    return files
-      .map(file => {
-          const csv = fs.readFileSync(file, 'utf-8')
-          const obj = convertCSVToObject(csv);
-          obj.meta.datafile = file;
-          return obj;
-        }
-      )
+    return files.map(file => {
+      const csv = fs.readFileSync(file, 'utf-8');
+      const obj = convertCSVToObject(csv);
+      obj.meta.datafile = file;
+      return obj;
+    });
   } catch (e) {
     console.log('error', e);
     return null;
@@ -197,33 +199,34 @@ export const readBehaviorData = (files: Array<?string>) => {
 export const storeAggregatedBehaviorData = (data, title) => {
   const csv = convertObjectToSCV(data);
   saveFileOnDisk(csv, title);
-}
+};
 
 const saveFileOnDisk = (data, title) => {
   dialog.showSaveDialog(
     {
-      title: "Select a folder to save the data",
+      title: 'Select a folder to save the data',
       defaultPath: path.join(getWorkspaceDir(title), 'Data', `aggregated.csv`)
     },
     filename => {
-      if(filename && typeof(filename) !== 'undefined'){
+      if (filename && typeof filename !== 'undefined') {
         fs.writeFile(filename, data, err => {
-          if (err) console.error(err)
+          if (err) console.error(err);
         });
       }
-    });
-}
+    }
+  );
+};
 
 // convert a csv file to an object with Papaparse
-const convertCSVToObject = (csv) => {
+const convertCSVToObject = csv => {
   const data = Papa.parse(csv, {
-      header: true
-    });
+    header: true
+  });
   return data;
 };
 
 // convert an object to a csv file with Papaparse
-const convertObjectToSCV = (data) => {
+const convertObjectToSCV = data => {
   const csv = Papa.unparse(data);
   return csv;
 };
