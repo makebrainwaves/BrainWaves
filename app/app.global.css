@@ -86,6 +86,39 @@ button:active {
   display: block;
 }
 
+.info {
+  font-size: 16px !important;
+  letter-spacing: 0.64px !important;
+}
+
+.ui.button.export {
+  float: right;
+  font-size: 18px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0);
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.ui.button.tertiary {
+  border-left: 2px solid #ebe8e5 !important;
+  font-size: 18px;
+  font-weight: normal !important;
+  color: #007c70 !important;
+  border-radius: 4px;
+  border: 2px solid #ebe8e5;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.ui.button.tertiary.toggle.active {
+  font-size: 18px;
+  font-weight: bold !important;
+  color: #007c70 !important;
+  border-radius: 4px;
+  border: 2px solid #ebe8e5;
+  background-color: white !important;
+}
+
 .ui.secondary.button {
   font-size: 18px;
   font-weight: normal !important;
