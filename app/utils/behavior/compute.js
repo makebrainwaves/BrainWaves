@@ -22,7 +22,7 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
         let accuracy = e
           .filter(row => row.condition === condition && row.correct)
           .map(row => row.correct)
-        accuracyPercent[condition] = accuracy.length ? accuracy.length / 1.5 : ss.mean(e.filter(r => r.condition === condition).map(r => r.accuracy));
+        accuracyPercent[condition] = accuracy.length ? accuracy.length / 0.75 : ss.mean(e.filter(r => r.condition === condition).map(r => r.accuracy));
       }
       return {
         subject: e.map(r => r.subject)[0],
@@ -165,7 +165,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
           if(d.filter(l => l.accuracy).length > 0){
             return d.map(l => l.accuracy)
           } else {
-            return d.length / 1.5
+            return d.length / 0.75
           }
         }).reduce( (acc, item) => acc.concat(item), []);
         const xRaw = correctDataForCondition.map(d => {
@@ -185,7 +185,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
       dataToPlot['tickvals'] = tickValuesX;
       dataToPlot['ticktext'] = tickTextX;
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = 100;
+      dataToPlot['upperLimit'] = 105;
       return makeDataPointsGraph(dataToPlot, conditions, colors, dependentVariable)
 
     case "errorbars":
@@ -201,7 +201,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
             })
           } else {
             return ({
-              accuracy: d.length / 1.5,
+              accuracy: d.length / 0.75,
               subject: d.map(r => r.subject)[0],
             })
           }
@@ -223,7 +223,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
         return obj;
       }, {})
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = 100;
+      dataToPlot['upperLimit'] = 105;
       return makeBarGraph(dataToPlot, conditions, colors, dependentVariable)
 
     case "whiskers":
@@ -233,7 +233,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
           if(d.filter(l => l.accuracy).length > 0){
             return d.map(l => l.accuracy)
           } else {
-            return d.length / 1.5
+            return d.length / 0.75
           }
         }).reduce( (acc, item) => acc.concat(item), []);
         const xRaw = correctDataForCondition.map(d => {
@@ -247,7 +247,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
         return obj;
       }, {})
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = 100;
+      dataToPlot['upperLimit'] = 105;
       return makeBoxPlot(dataToPlot, conditions, colors, dependentVariable)
   }
 }
@@ -255,6 +255,7 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
 // Rendering functions
 const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
   let dataForCondition;
+  let symbols = ['circle', 'cross', 'diamond', 'square'];
   const dataToPlot = conditions.map((condition,i) => {
     dataForCondition = data[condition];
     return {
@@ -264,7 +265,8 @@ const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
       type: 'scatter',
       marker: {
         color: colors[i],
-        size: 7
+        size: 7,
+        symbol: symbols[i],
       },
       mode: 'markers',
     }
@@ -275,7 +277,7 @@ const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
       ticktext: data.ticktext,
     },
     yaxis: {
-      title: `${dependentVariable}`,
+      title: `${dependentVariable == 'Response Time' ? 'ms.' : '% correct'}`,
       range: [data.lowerLimit, data.upperLimit],
     },
     title: `${dependentVariable}`
@@ -307,7 +309,7 @@ const makeBarGraph = (data, conditions, colors, dependentVariable) => {
   })
   const layout = {
     yaxis: {
-        title: `${dependentVariable}`,
+        title: `${dependentVariable == 'Response Time' ? 'ms.' : '% correct'}`,
         zeroline: false,
         range: [data.lowerLimit, data.upperLimit],
       },
@@ -321,6 +323,7 @@ const makeBarGraph = (data, conditions, colors, dependentVariable) => {
 }
 
 const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
+  let symbols = ['circle', 'cross', 'diamond', 'square'];
   const dataToPlot = conditions.map((condition,i) => {
     const dataForCondition = data[condition];
     return {
@@ -330,7 +333,8 @@ const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
       type: 'box',
       marker: {
         color: colors[i],
-        size: 7
+        size: 7,
+        symbol: symbols[i],
       },
       boxpoints: 'false',
       pointpos: 0,
@@ -338,7 +342,7 @@ const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
   })
   const layout = {
     yaxis: {
-        title: `${dependentVariable}`,
+        title: `${dependentVariable == 'Response Time' ? 'ms.' : '% correct'}`,
         zeroline: false,
         range: [data.lowerLimit, data.upperLimit],
       },

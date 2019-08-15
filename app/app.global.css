@@ -86,6 +86,11 @@ button:active {
   display: block;
 }
 
+.info {
+  font-size: 16px !important;
+  letter-spacing: 0.64px !important;
+}
+
 .ui.button.export {
   float: right;
   font-size: 18px;
