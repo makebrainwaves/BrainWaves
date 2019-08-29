@@ -127,10 +127,8 @@ const startEpic = (action$, state$) =>
 const experimentStopEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
     filter(() => state$.value.experiment.isRunning),
-    map(getBehaviouralData),
-    map(csv =>
-      storeBehaviouralData(
-        csv,
+    map( ({payload}) => storeBehaviouralData(
+        payload.data,
         state$.value.experiment.title,
         state$.value.experiment.subject,
         state$.value.experiment.session
@@ -138,6 +136,23 @@ const experimentStopEpic = (action$, state$) =>
     ),
     mergeMap(() => of(setIsRunning(false), updateSession()))
   );
+
+  // const experimentStopEpic = (action$, state$) =>
+  //   action$.ofType(STOP).pipe(
+  //     filter( ({payload}) => {
+  //       return state$.value.experiment.isRunning
+  //     }),
+  //     map(getBehaviouralData),
+  //     map(csv =>
+  //       storeBehaviouralData(
+  //         csv,
+  //         state$.value.experiment.title,
+  //         state$.value.experiment.subject,
+  //         state$.value.experiment.session
+  //       )
+  //     ),
+  //     mergeMap(() => of(setIsRunning(false), updateSession()))
+  //   );
 
 const setSubjectEpic = action$ =>
   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
