@@ -12,6 +12,8 @@ import { injectMuseMarker } from '../../utils/eeg/muse';
 import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
 import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
+import { Labjs } from '../../utils/labjs';
+
 import {
   parseTimeline,
   instantiateTimeline,
@@ -172,19 +174,11 @@ export default class Run extends Component<Props, State> {
       );
     }
     return (
-      <Experiment
-        settings={{
-          timeline: this.handleTimeline(),
-          show_progress_bar: this.props.params.showProgessBar,
-          auto_update_progress_bar: false,
-          on_finish: this.props.experimentActions.stop,
-          preload_images: this.handleImages()
-        }}
-        plugins={{
-          'callback-image-display': callbackImageDisplay,
-          'callback-html-display': callbackHTMLDisplay
-        }}
-      />
+      <Labjs settings={{
+          on_finish: (csv) => {
+            this.props.experimentActions.stop({data: csv});
+          }
+        }} />
     );
   }
 
