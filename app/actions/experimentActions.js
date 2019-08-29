@@ -21,7 +21,8 @@ export const SET_EEG_ENABLED = 'SET_EEG_ENABLED';
 
 export const start = () => ({ type: START });
 export const pause = () => ({ type: PAUSE });
-export const stop = () => ({ type: STOP });
+// export const stop = () => ({ type: STOP });
+export const stop = payload => ({ payload, type: STOP });
 export const setType = payload => ({ payload, type: SET_TYPE });
 export const setSubject = payload => ({ payload, type: SET_SUBJECT });
 export const setSession = payload => ({ payload, type: SET_SESSION });
