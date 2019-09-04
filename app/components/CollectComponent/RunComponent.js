@@ -12,7 +12,7 @@ import { injectMuseMarker } from '../../utils/eeg/muse';
 import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
 import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
-import { Labjs } from '../../utils/labjs';
+import { ExperimentWindow } from '../../utils/labjs';
 
 import {
   parseTimeline,
@@ -174,7 +174,7 @@ export default class Run extends Component<Props, State> {
       );
     }
     return (
-      <Labjs settings={{
+      <ExperimentWindow settings={{
           on_finish: (csv) => {
             this.props.experimentActions.stop({data: csv});
           }
