@@ -1,7 +1,7 @@
 {
   "name": "BrainWaves",
   "productName": "BrainWaves",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "EEG Experiment Desktop Application",
   "scripts": {
     "build": "concurrently \"npm run build-main\" \"npm run build-renderer\"",
@@ -96,6 +96,22 @@
     "email": "dano@neurotechx.com",
     "url": "https://github.com/makebrainwaves"
   },
+  "contributors": [
+    {
+      "name": "Dano Morrison",
+      "email": "dano@neurotechx.com",
+      "url": "https://github.com/makebrainwaves"
+    },
+    {
+      "name": "Teon L Brooks",
+      "email": "teon.brooks@gmail.com",
+      "url": "https://teonbrooks.github.io"
+    },
+    {
+      "name": "Yury Shevchenko",
+      "url": "https://yuryshevchenko.com/"
+    }
+  ],
   "license": "MIT",
   "keywords": [
     "electron",
@@ -218,7 +234,8 @@
     "history": "^4.7.2",
     "jspsych-react": "git+https://github.com/makebrainwaves/jspsych-react.git",
     "kernelspecs": "^2.0.0",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.15",
+    "lodash.clonedeep": "^4.5.0",
     "mkdirp": "^0.5.1",
     "mousetrap": "^1.6.2",
     "muse-js": "^3.1.0",

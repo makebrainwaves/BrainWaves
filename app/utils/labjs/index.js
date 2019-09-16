@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import clonedeep from "lodash.clonedeep";
-import * as lab from './lib/lab';
+import * as lab from "./lib/lab";
 
 import task from './scripts/stroop';
 
-class Labjs extends Component {
+class ExperimentWindow extends Component {
   constructor(props) {
     super(props);
   }
@@ -43,4 +43,4 @@ class Labjs extends Component {
 
 }
 
-export { Labjs };
+export { ExperimentWindow };

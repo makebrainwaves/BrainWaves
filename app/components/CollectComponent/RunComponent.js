@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
-import { Experiment, jsPsych } from 'jspsych-react';
+// import { Experiment, jsPsych } from 'jspsych-react';
 import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import Mousetrap from 'mousetrap';
@@ -9,10 +9,10 @@ import styles from '../styles/common.css';
 import InputModal from '../InputModal';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
-import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
-import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
+// import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
+// import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
-import { Labjs } from '../../utils/labjs';
+import { ExperimentWindow } from '../../utils/labjs';
 
 import {
   parseTimeline,
@@ -174,11 +174,12 @@ export default class Run extends Component<Props, State> {
       );
     }
     return (
-      <Labjs settings={{
+      <ExperimentWindow settings={{
           on_finish: (csv) => {
             this.props.experimentActions.stop({data: csv});
           }
-        }} />
+        }}
+      />
     );
   }
 

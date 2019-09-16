@@ -87,6 +87,7 @@ dll/renderer.dev.dll.js
 dll/renderer.json
 main.js
 main.js.map
+app/utils/pyodide/src
 
 .idea
 npm-debug.log.*
