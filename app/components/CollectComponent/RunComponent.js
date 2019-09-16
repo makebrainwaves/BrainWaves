@@ -178,7 +178,8 @@ export default class Run extends Component<Props, State> {
           on_finish: (csv) => {
             this.props.experimentActions.stop({data: csv});
           }
-        }} />
+        }}
+      />
     );
   }
 
