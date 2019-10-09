@@ -9,8 +9,6 @@ import {
   Divider,
   Button,
   Checkbox,
-  Transition,
-  Container,
   Sidebar
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
@@ -109,7 +107,7 @@ export default class Analyze extends Component<Props, State> {
       removeOutliers: false,
       showDataPoints: false,
       isSidebarVisible: false,
-      displayOutlierVisible: false,
+      // displayOutlierVisible: false,
       displayMode: 'datapoints',
       helpMode: 'datapoints',
       selectedFilePaths: [],
@@ -180,8 +178,8 @@ export default class Analyze extends Component<Props, State> {
     this.setState({
       selectedFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value),
-      dataToPlot: dataToPlot,
-      layout: layout
+      dataToPlot,
+      layout
     });
   }
 
@@ -208,8 +206,8 @@ export default class Analyze extends Component<Props, State> {
     );
     this.setState({
       selectedDependentVariable: data.value,
-      dataToPlot: dataToPlot,
-      layout: layout
+      dataToPlot,
+      layout
     });
   }
 
@@ -223,8 +221,8 @@ export default class Analyze extends Component<Props, State> {
     );
     this.setState({
       removeOutliers: !this.state.removeOutliers,
-      dataToPlot: dataToPlot,
-      layout: layout,
+      dataToPlot,
+      layout,
       helpMode: 'outliers'
     });
   }
@@ -239,8 +237,8 @@ export default class Analyze extends Component<Props, State> {
     );
     this.setState({
       showDataPoints: !this.state.showDataPoints,
-      dataToPlot: dataToPlot,
-      layout: layout
+      dataToPlot,
+      layout
     });
   }
 
@@ -254,9 +252,9 @@ export default class Analyze extends Component<Props, State> {
         displayMode
       );
       this.setState({
-        dataToPlot: dataToPlot,
-        layout: layout,
-        displayMode: displayMode,
+        dataToPlot,
+        layout,
+        displayMode,
         helpMode: displayMode,
       });
     }
@@ -538,10 +536,9 @@ export default class Analyze extends Component<Props, State> {
                     toggle
                     active={this.state.displayMode === 'whiskers'}
                     onClick={()=> this.handleDisplayModeChange('whiskers')}
-                    >
-                    Box Plot
+                  >
+                  Box Plot
                   </Button>
-
                 </Button.Group>
 
                 <Button
