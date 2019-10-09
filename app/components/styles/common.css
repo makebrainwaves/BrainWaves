@@ -79,6 +79,7 @@
 
 .jsPsychColumn {
   height: 100%;
+  align-items: center;
 }
 
 .paramSlider {
@@ -95,4 +96,25 @@
 
 .analyzeColumn {
   height: 100%;
+}
+
+.helpButton {
+  height: 44px !important;
+  width: 44px !important;
+  color: #fff !important;
+  background-color: #007c70 !important;
+  border-radius: 22px !important;
+}
+
+.helpSidebar {
+  height: inherit;
+}
+
+.helpHeader {
+  margin-bottom: 18px !important;
+}
+
+.helpContent {
+  font-size: 18px !important;
+  height: 80%;
 }

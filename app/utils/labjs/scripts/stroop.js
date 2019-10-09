@@ -29,7 +29,7 @@ const studyObject = {
         "keypress(Space)": "continue"
       },
       "title": "Instruction",
-      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EStroop Task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n  \u003Cp\u003E\n    Welcome to the \u003Cstrong\u003EStroop experiment\u003C\u002Fstrong\u003E!\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this experiment, your task will be to \n    \u003Cstrong\u003Eidentify the color of the word shown \n    on the screen\u003C\u002Fstrong\u003E.\u003Cbr\u003E\n    The word itself is immaterial &mdash; \n    you can safely ignore it.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    To indicate the color of the word, \n    please use the keys \u003Cstrong\u003Er\u003C\u002Fstrong\u003E, \n    \u003Cstrong\u003Eg\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eb\u003C\u002Fstrong\u003E and \n    \u003Cstrong\u003Eo\u003C\u002Fstrong\u003E for \n    \u003Cspan style=\"color: red;\"\u003Ered\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: green;\"\u003Egreen\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: blue;\"\u003Eblue\u003C\u002Fspan\u003E and \n    \u003Cspan style=\"color: orange;\"\u003Eorange\u003C\u002Fspan\u003E, \n    respectively.\u003Cbr\u003E\n    Please answer quickly, and as \n    accurately as you can.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\u003Cfooter class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Cp\u003EPlease press the space bar when you're ready.\u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E\n",
+      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EStroop Task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n  \u003Cp\u003E\n    Welcome to the \u003Cstrong\u003EStroop experiment\u003C\u002Fstrong\u003E!\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this experiment, your task will be to \n    \u003Cstrong\u003Eidentify the color of the word shown \n    on the screen\u003C\u002Fstrong\u003E.\u003Cbr\u003E\n    The word itself is immaterial &mdash; \n    you can safely ignore it.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    To indicate the color of the word, \n    please use the keys \u003Cstrong\u003Er\u003C\u002Fstrong\u003E, \n    \u003Cstrong\u003Eg\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eb\u003C\u002Fstrong\u003E and \n    \u003Cstrong\u003Eo\u003C\u002Fstrong\u003E for \n    \u003Cspan style=\"color: red;\"\u003Ered\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: green;\"\u003Egreen\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: blue;\"\u003Eblue\u003C\u002Fspan\u003E and \n    \u003Cspan style=\"color: orange;\"\u003Eorange\u003C\u002Fspan\u003E, \n    respectively.\u003Cbr\u003E\n    Please answer quickly, and as \n    accurately as you can.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\u003Cfooter class=\"content-vertical-center content-horizontal-center\"\u003E\n  Please press the space bar when you're ready.\n\u003C\u002Ffooter\u003E\n",
       "parameters": {},
       "files": {}
     },
@@ -138,7 +138,12 @@ const studyObject = {
               "files": {},
               "parameters": {},
               "responses": {},
-              "messageHandlers": {},
+              "messageHandlers": {
+                "run": function anonymous(
+) {
+this.data.correct = 'empty'
+}
+              },
               "viewport": [
                 800,
                 600
@@ -220,13 +225,34 @@ const studyObject = {
               "files": {},
               "parameters": {},
               "responses": {},
-              "messageHandlers": {},
+              "messageHandlers": {
+                "before:prepare": function anonymous(
+) {
+this.data.trial_number = 1 + parseInt(this.options.id.split('_')[this.options.id.split('_').length-2]);
+
+this.data.condition = this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch';
+
+this.data.reaction_time = this.state.duration;
+
+if(this.state.response === this.parameters.color){
+  this.data.correct_response = true;
+} else {
+  this.data.correct_response = false;
+}
+
+this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
+
+
+
+}
+              },
               "viewport": [
                 800,
                 600
               ],
               "title": "Inter-trial interval",
-              "timeout": "500"
+              "timeout": "500",
+              "tardy": true
             }
           ]
         }
@@ -249,130 +275,153 @@ const studyObject = {
           {
             "color": "red",
             "word": "red",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "red",
             "word": "red",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "red",
             "word": "red",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "red",
             "word": "green",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "red",
             "word": "blue",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "red",
             "word": "orange",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "green",
             "word": "red",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "green",
             "word": "green",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "green",
             "word": "green",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "green",
             "word": "green",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "green",
             "word": "blue",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "green",
             "word": "orange",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "blue",
             "word": "red",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "blue",
             "word": "green",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "blue",
             "word": "blue",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "blue",
             "word": "blue",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "blue",
             "word": "blue",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "blue",
             "word": "orange",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "orange",
             "word": "red",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "orange",
             "word": "green",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "orange",
             "word": "blue",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "no"
           },
           {
             "color": "orange",
             "word": "orange",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "orange",
             "word": "orange",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           },
           {
             "color": "orange",
             "word": "orange",
-            "phase": "task"
+            "phase": "task",
+            "congruent": "yes"
           }
         ],
         "title": "Stroop task",
         "parameters": {},
         "files": {},
         "sample": {
-          "mode": "draw-shuffle",
-          "n": "16"
+          "mode": "draw-shuffle"
         },
         "shuffleGroups": [],
         "template": {
@@ -438,7 +487,12 @@ const studyObject = {
               "files": {},
               "parameters": {},
               "responses": {},
-              "messageHandlers": {},
+              "messageHandlers": {
+                "run": function anonymous(
+) {
+this.data.correct = 'empty'
+}
+              },
               "viewport": [
                 800,
                 600
@@ -520,13 +574,34 @@ const studyObject = {
               "files": {},
               "parameters": {},
               "responses": {},
-              "messageHandlers": {},
+              "messageHandlers": {
+                "before:prepare": function anonymous(
+) {
+this.data.trial_number = 1 + parseInt(this.options.id.split('_')[this.options.id.split('_').length-2]);
+
+this.data.condition = this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch';
+
+this.data.reaction_time = this.state.duration;
+
+if(this.state.response === this.parameters.color){
+  this.data.correct_response = true;
+} else {
+  this.data.correct_response = false;
+}
+
+this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
+
+
+
+}
+              },
               "viewport": [
                 800,
                 600
               ],
               "title": "Inter-trial interval",
-              "timeout": "500"
+              "timeout": "500",
+              "tardy": true
             }
           ]
         }
@@ -537,8 +612,8 @@ const studyObject = {
       "type": "lab.html.Screen",
       "responses": {},
       "title": "Thanks",
-      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EThank you!\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n  \u003Cp\u003E\n    You did a great job, thanks for taking the time!\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\n",
-      "timeout": "2000",
+      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EThank you!\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n  \u003Cp\u003E\n    You did a great job, thanks for taking the time!\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\u003Cfooter class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Cp\u003E\n    If you have any questions or comments about this \n    experiment,\u003Cbr\u003E please be invited to contact\n    \u003Ca href=\"http:\u002F\u002Ffelixhenninger.com\"\u003E\n    Felix Henninger\u003C\u002Fa\u003E.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E\n",
+      "timeout": "10",
       "parameters": {},
       "files": {}
     }

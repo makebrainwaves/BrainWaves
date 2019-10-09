@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Grid, Header, Button, Segment } from 'semantic-ui-react';
+import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
@@ -35,6 +36,7 @@ export default class OverviewComponent extends Component<Props, State> {
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
+    this.endPreview = this.endPreview.bind(this);
   }
 
   handleStepClick(step: string) {
@@ -45,6 +47,10 @@ export default class OverviewComponent extends Component<Props, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
+  endPreview() {
+    this.setState({ isPreviewing: false });
+  }
+
   renderSectionContent() {
     switch (this.state.activeStep) {
       case OVERVIEW_STEPS.PROTOCOL:
@@ -52,7 +58,7 @@ export default class OverviewComponent extends Component<Props, State> {
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
-              width={6}
+              width={10}
               textAlign="right"
               verticalAlign="middle"
               className={styles.jsPsychColumn}
@@ -60,16 +66,14 @@ export default class OverviewComponent extends Component<Props, State> {
               <PreviewExperimentComponent
                 {...loadTimeline(this.props.type)}
                 isPreviewing={this.state.isPreviewing}
+                onEnd={this.endPreview}
+                type={this.props.type}
               />
             </Grid.Column>
-            <Grid.Column width={6} verticalAlign="middle">
-              <p>
-                Subjects will view a series of images of{' '}
-                <b> faces and houses</b> for <b>120 seconds</b>
-              </p>
-              <p>
-                Subjects will mentally note which stimulus they are perceiving
-              </p>
+            <Grid.Column stretched width={6} verticalAlign="middle">
+              <Segment as="p" basic>
+                {this.props.protocol}
+              </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
                 onClick={this.handlePreview}
@@ -86,23 +90,11 @@ export default class OverviewComponent extends Component<Props, State> {
               textAlign="right"
               verticalAlign="middle"
             >
-              <Header as="h1">The N170 ERP</Header>
+              <Header as="h1">{this.props.background_title}</Header>
             </Grid.Column>
             <Grid.Column stretched width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                The N170 is a large negative event-related potential (ERP)
-                component that occurs after the detection of faces, but not
-                objects, scrambled faces, or other body parts such as hands. The
-                N170 occurs around 170ms after face perception and is most
-                easily detected at lateral posterior electrodes such as T5 and
-                T6. Frontal or profile views of human (and animal) faces elicit
-                the strongest N170 and the strength of the N170 does not seem to
-                be influenced by how familiar a face is. Thus, although there is
-                no consensus on the specific source of the N170, researchers
-                believe it is related to activity in the fusiform face area, an
-                area of the brain that shows a similar response pattern and is
-                involved in encoding the holistic representation of a face (i.e
-                eyes, nose mouth all arranged in the appropriate way).
+                {this.props.background}
               </Segment>
             </Grid.Column>
           </Grid>
@@ -121,10 +113,7 @@ export default class OverviewComponent extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column stretched width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                Faces contain a lot of information that is relevant to our
-                survival. It
-                {"'"}s important to be able to quickly recognize people you can
-                trust and read emotions in both strangers and people you know
+                {this.props.overview}
               </Segment>
             </Grid.Column>
           </Grid>
