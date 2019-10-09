@@ -4,6 +4,8 @@ import { Experiment } from 'jspsych-react';
 import { Segment } from 'semantic-ui-react';
 import callbackHTMLDisplay from '../utils/jspsych/plugins/callback-html-display';
 import callbackImageDisplay from '../utils/jspsych/plugins/callback-image-display';
+import { ExperimentWindow } from '../utils/labjs';
+
 import {
   parseTimeline,
   instantiateTimeline,
@@ -62,18 +64,25 @@ export default class PreviewExperimentComponent extends Component<Props> {
       return <Segment basic />;
     }
     return (
-      <Experiment
-        settings={{
-          timeline: this.handleTimeline(),
-          show_progress_bar: this.props.params.showProgessBar,
-          auto_update_progress_bar: false,
-          preload_images: this.handleImages()
-        }}
-        plugins={{
-          'callback-image-display': callbackImageDisplay,
-          'callback-html-display': callbackHTMLDisplay
-        }}
-      />
+      <ExperimentWindow
+      settings={{
+          script: this.props.type,
+          on_finish: (csv) => {
+            this.props.onEnd()
+          }
+        }} />
+      // <Experiment
+      //   settings={{
+      //     timeline: this.handleTimeline(),
+      //     show_progress_bar: this.props.params.showProgessBar,
+      //     auto_update_progress_bar: false,
+      //     preload_images: this.handleImages()
+      //   }}
+      //   plugins={{
+      //     'callback-image-display': callbackImageDisplay,
+      //     'callback-html-display': callbackHTMLDisplay
+      //   }}
+      // />
     );
   }
 }

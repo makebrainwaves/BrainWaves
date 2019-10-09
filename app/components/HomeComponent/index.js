@@ -16,6 +16,7 @@ import {
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
+import { loadTimeline } from '../../utils/jspsych/functions';
 
 const HOME_STEPS = {
   RECENT: 'RECENT',
@@ -190,9 +191,9 @@ export default class Home extends Component<Props, State> {
                 </Button>
               </Segment>
             </Grid.Column>
-            {/* <Grid.Column>
+            <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
-                <Image size="huge" src={faceHouseIcon} />
+                <Image src={faceHouseIcon} />
                 <Header as="h1">Stroop</Header>
                 <p>
                   Investigate the cognitive process of selective attention with
@@ -200,18 +201,65 @@ export default class Home extends Component<Props, State> {
                   subject to name the color of a word instead of reading the
                   word itself.
                 </p>
-                <Button disabled secondary>
+                <Button
+                  secondary
+                  onClick={() => this.handleOpenOverview(EXPERIMENTS.STROOP)}
+                >
                   Review
                 </Button>
+                <Button secondary>
+                  Customize
+                </Button>
                 <Button
-                  disabled
                   primary
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
                 >
                   Start Experiment
                 </Button>
-              </Segment> */}
-            {/* </Grid.Column> */}
+              </Segment>
+            </Grid.Column>
+            <Grid.Column>
+              <Segment basic className={styles.descriptionContainer}>
+                <Image src={faceHouseIcon} />
+                <Header as="h1">Multi-tasking</Header>
+                <p>
+                  The multi-tasking test
+                </p>
+                <Button
+                  secondary
+                  onClick={() => this.handleOpenOverview(EXPERIMENTS.MULTI)}
+                >
+                  Review
+                </Button>
+                <Button
+                  primary
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
+                >
+                  Start Experiment
+                </Button>
+              </Segment>
+            </Grid.Column>
+            <Grid.Column>
+              <Segment basic className={styles.descriptionContainer}>
+                <Image src={faceHouseIcon} />
+                <Header as="h1">Attention</Header>
+                <p>
+                  The visual search task
+                </p>
+                <Button
+                  secondary
+                  onClick={() => this.handleOpenOverview(EXPERIMENTS.SEARCH)}
+                >
+                  Review
+                </Button>
+                <Button
+                  primary
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
+                >
+                  Start Experiment
+                </Button>
+              </Segment>
+            </Grid.Column>
             <Grid.Column>
               <Segment basic className={styles.descriptionContainer}>
                 <Image src={customIcon} />
@@ -237,6 +285,7 @@ export default class Home extends Component<Props, State> {
     if (this.state.isOverviewComponentOpen) {
       return (
         <OverviewComponent
+          {...loadTimeline(this.state.overviewExperimentType)}
           type={this.state.overviewExperimentType}
           onStartExperiment={this.handleNewExperiment}
           onCloseOverview={this.handleCloseOverview}

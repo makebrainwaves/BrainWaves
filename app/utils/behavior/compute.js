@@ -15,14 +15,15 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
       let rtMean = {}, accuracyPercent = {};
       for(let condition of conditions){
         let rt = e
+          .filter(row =>  row.response_given === 'yes')
+          .filter(row => row.correct_response === 'true')
           .filter(row => row.condition === condition)
           .map(row => row.reaction_time)
           .map(value => parseFloat(value))
-        rtMean[condition] =  ss.mean(rt);
+        rtMean[condition] =  Math.round(ss.mean(rt));
         let accuracy = e
-          .filter(row => row.condition === condition && row.correct)
-          .map(row => row.correct)
-        accuracyPercent[condition] = accuracy.length ? accuracy.length / 0.75 : ss.mean(e.filter(r => r.condition === condition).map(r => r.accuracy));
+          .filter(row => row.condition === condition && row.correct_response === 'true' && row.response_given === 'yes')
+        accuracyPercent[condition] = accuracy.length ? Math.round(100 * (accuracy.length / e.filter(r => r.condition === condition ).length)) : ss.mean(e.filter(r => r.condition === condition).map(r => r.accuracy));
       }
       return {
         subject: e.map(r => r.subject)[0],
@@ -31,6 +32,8 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
         ['RT_' + conditions[1]]: rtMean[conditions[1]],
         ['Accuracy_' + conditions[0]]: accuracyPercent[conditions[0]],
         ['Accuracy_' + conditions[1]]: accuracyPercent[conditions[1]],
+        response_given: 'yes',
+        correct_response: 'true'
       }
     })
     return aggregatedData;
@@ -67,6 +70,8 @@ const transformAggregated = (result) => {
         condition: condition,
         session: e.session,
         accuracy: parseFloat(e[`Accuracy_${condition}`]),
+        response_given: e.response_given,
+        correct_response: e.correct_response
       }
     })
   });
@@ -76,36 +81,39 @@ const transformAggregated = (result) => {
 
 const filterData = (data, removeOutliers) => {
   let filteredData = data.data
+      .filter(row => row.trial_number)
       .map(row => {
         return {
-          condition: row.event_title,
+          condition: row.condition,
           subject: data.meta.datafile.split('/').pop().split('-')[0],
           session: data.meta.datafile.split('/').pop().split('-')[1],
           reaction_time: parseFloat(row.reaction_time),
-          correct: row.correct === 'true',
+          correct_response: row.correct_response,
+          trial_number: row.trial_number,
+          response_given: row.response_given
         }
       })
-      .filter(row => row.reaction_time > 0 && row.correct)
+      // .filter(row => row.reaction_time > 0 && row.correct)
   if(removeOutliers){
-    const mean = ss.mean(filteredData.map(r => r.reaction_time));
-    const standardDeviation = ss.sampleStandardDeviation(filteredData.map(r => r.reaction_time));
+    const mean = ss.mean(filteredData.filter(r => r.response_given === 'yes' && r.correct_response === 'true').map(r => r.reaction_time));
+    const standardDeviation = ss.sampleStandardDeviation(filteredData.filter(r => r.response_given === 'yes' && r.correct_response === 'true').map(r => r.reaction_time));
     const upperBoarder = mean + 2 * standardDeviation;
     const lowerBoarder = mean - 2 * standardDeviation;
-    filteredData = filteredData.filter(r => r.reaction_time > lowerBoarder && r.reaction_time < upperBoarder);
+    filteredData = filteredData.filter(r => (r.reaction_time > lowerBoarder && r.reaction_time < upperBoarder) || isNaN(r.reaction_time));
   }
   return filteredData;
 }
 
 const computeRT = (data, dependentVariable, conditions, showDataPoints, colors, displayMode) => {
-  let dataToPlot;
-
+  let dataToPlot, maxValue = 0;
   switch (displayMode) {
     case "datapoints":
     default:
       let tickValuesX, tickTextX;
       dataToPlot = conditions.reduce((obj, condition, i) => {
-        const xRaw = data.reduce((a, b) => a.concat(b), []).filter(e => e.condition === condition).map(r => r.subject);
-        const y = data.reduce((a, b) => a.concat(b), []).filter(e => e.condition === condition).map(r => r.reaction_time);
+        const xRaw = data.reduce((a, b) => a.concat(b), []).filter(r => r.response_given === 'yes' && r.correct_response === 'true').filter(e => e.condition === condition).map(r => r.subject);
+        const y = data.reduce((a, b) => a.concat(b), []).filter(r => r.response_given === 'yes' && r.correct_response === 'true').filter(e => e.condition === condition).map(r => r.reaction_time);
+        maxValue = Math.max(...y) > maxValue ? Math.max(...y) : maxValue;
         const subjects = Array.from(new Set(xRaw))
         const x = xRaw.map(x => (subjects.indexOf(x) + 1 + i/4 + (Math.random() - 0.5)/5 ));
         tickValuesX = subjects.map(x => subjects.indexOf(x) + 1 + 1/8);
@@ -116,38 +124,42 @@ const computeRT = (data, dependentVariable, conditions, showDataPoints, colors, 
       dataToPlot['tickvals'] = tickValuesX;
       dataToPlot['ticktext'] = tickTextX;
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = 1000;
+      dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + 100 : 1000;
       return makeDataPointsGraph(dataToPlot, conditions, colors, dependentVariable)
 
     case "errorbars":
+      let maxValueSE = 0;
       dataToPlot = conditions.reduce((obj, condition, i) => {
-        const xRaw = data.reduce((a, b) => a.concat(b), []).filter(e => e.condition === condition).map(r => r.subject);
+        const xRaw = data.reduce((a, b) => a.concat(b), []).filter(r => r.response_given === 'yes' && r.correct_response === 'true').filter(e => e.condition === condition).map(r => r.subject);
         const x = Array.from(new Set(xRaw))
-        const data_condition = data.map(d => d.filter(e => e.condition == condition));
+        const data_condition = data.map(d => d.filter(r => r.response_given === 'yes' && r.correct_response === 'true').filter(e => e.condition == condition));
         const y_bars_prep = x.map(
           a => data_condition.map(
             d => {return d.filter(e => e.subject === a)}
           ).filter(d => d.length > 0)
         );
         const y = y_bars_prep.map(y => ss.mean(y.reduce((a, b) => a.concat(b), []).map(r => r.reaction_time)));
+        maxValue = Math.max(...y) > maxValue ? Math.max(...y) : maxValue;
         const stErrorFunction = (array) => {return ss.sampleStandardDeviation(array) / Math.sqrt(array.length)};
-        const stErrors = data_condition.map(a => stErrorFunction(a.map(r => r.reaction_time)));
+        const stErrors = data_condition.map(a => a.length  > 1 ? stErrorFunction(a.map(r => r.reaction_time)) : 0);
+        maxValueSE = Math.max(...stErrors) > maxValueSE ? Math.max(...stErrors) : maxValueSE;
         obj[condition] = { x: x, y: y, stErrors: stErrors };
         return obj;
       }, {})
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = 1000;
+      dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + maxValueSE + 100 : 1000;
       return makeBarGraph(dataToPlot, conditions, colors, dependentVariable)
 
     case "whiskers":
       dataToPlot = conditions.reduce((obj, condition, i) => {
-        const x = data.reduce((a, b) => a.concat(b), []).filter(e => e.condition === condition).map(r => r.subject);
-        const y = data.reduce((a, b) => a.concat(b), []).filter(e => e.condition === condition).map(r => r.reaction_time);
+        const x = data.reduce((a, b) => a.concat(b), []).filter(r => r.response_given === 'yes' && r.correct_response === 'true').filter(e => e.condition === condition).map(r => r.subject);
+        const y = data.reduce((a, b) => a.concat(b), []).filter(r => r.response_given === 'yes' && r.correct_response === 'true').filter(e => e.condition === condition).map(r => r.reaction_time);
+        maxValue = Math.max(...y) > maxValue ? Math.max(...y) : maxValue;
         obj[condition] = { x: x, y: y };
         return obj;
       }, {})
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = 1000;
+      dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + 100 : 1000;
       return makeBoxPlot(dataToPlot, conditions, colors, dependentVariable)
   }
 }
@@ -161,13 +173,16 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
       let tickValuesX, tickTextX;
       dataToPlot = conditions.reduce((obj, condition, i) => {
         const correctDataForCondition = data.map(d => d.filter(e => e.condition == condition));
+
         const y = correctDataForCondition.map(d => {
           if(d.filter(l => l.accuracy).length > 0){
             return d.map(l => l.accuracy)
           } else {
-            return d.length / 0.75
+            const c = d.filter(e => e.response_given === 'yes' && e.correct_response === 'true')
+            return Math.round((c.length / d.length) * 100)
           }
         }).reduce( (acc, item) => acc.concat(item), []);
+
         const xRaw = correctDataForCondition.map(d => {
           if(d.filter(l => l.accuracy).length > 0){
             return d.map(l => l.subject)
@@ -200,8 +215,9 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
               })
             })
           } else {
+            const c = d.filter(e => e.response_given === 'yes' && e.correct_response === 'true');
             return ({
-              accuracy: d.length / 0.75,
+              accuracy: Math.round((c.length / d.length) * 100),
               subject: d.map(r => r.subject)[0],
             })
           }
@@ -233,7 +249,8 @@ const computeAccuracy = (data, dependentVariable, conditions, showDataPoints, co
           if(d.filter(l => l.accuracy).length > 0){
             return d.map(l => l.accuracy)
           } else {
-            return d.length / 0.75
+            const c = d.filter(e => e.response_given === 'yes' && e.correct_response === 'true')
+            return Math.round((c.length / d.length) * 100)
           }
         }).reduce( (acc, item) => acc.concat(item), []);
         const xRaw = correctDataForCondition.map(d => {

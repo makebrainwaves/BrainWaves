@@ -4,7 +4,7 @@ import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
 import { Experiment, jsPsych } from 'jspsych-react';
 import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
-import Mousetrap from 'mousetrap';
+// import Mousetrap from 'mousetrap';
 import styles from '../styles/common.css';
 import InputModal from '../InputModal';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
@@ -70,11 +70,11 @@ export default class Run extends Component<Props, State> {
     if (this.props.mainTimeline.length <= 0) {
       this.props.experimentActions.loadDefaultTimeline();
     }
-    Mousetrap.bind('esc', jsPsych.endCurrentTimeline);
+    // Mousetrap.bind('esc', jsPsych.endCurrentTimeline);
   }
 
   componentWillUnmount() {
-    Mousetrap.unbind('esc');
+    // Mousetrap.unbind('esc');
   }
 
   handleSubjectEntry(event: Object, data: Object) {
@@ -175,6 +175,7 @@ export default class Run extends Component<Props, State> {
     }
     return (
       <ExperimentWindow settings={{
+          script: this.props.type,
           on_finish: (csv) => {
             this.props.experimentActions.stop({data: csv});
           }

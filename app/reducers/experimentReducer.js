@@ -49,7 +49,7 @@ const initialState = {
   subject: '',
   session: 1,
   isRunning: false,
-  isEEGEnabled: true,
+  isEEGEnabled: false,
   description: { question: '', hypothesis: '', methods: '' }
 };
 

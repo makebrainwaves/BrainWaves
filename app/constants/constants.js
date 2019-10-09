@@ -4,6 +4,8 @@ export const EXPERIMENTS = {
   N170: 'Faces and Houses',
   SSVEP: 'Steady-state Visual Evoked Potential',
   STROOP: 'Stroop Task',
+  MULTI: 'Multi-tasking',
+  SEARCH: 'Visual search',
   CUSTOM: 'Custom'
 };
 

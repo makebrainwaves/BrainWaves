@@ -2,7 +2,10 @@ import React, { Component } from "react";
 import clonedeep from "lodash.clonedeep";
 import * as lab from "./lib/lab";
 
-import task from './scripts/stroop';
+import visualsearch from './scripts/visualsearch';
+import stroop from './scripts/stroop';
+import multitasking from './scripts/multitasking';
+import faceshouses from './scripts/faceshouses';
 
 class ExperimentWindow extends Component {
   constructor(props) {
@@ -11,18 +14,44 @@ class ExperimentWindow extends Component {
 
   componentDidMount() {
     const {props} = this;
-    this.study = lab.util.fromObject(clonedeep(task), lab);
+    switch (props.settings.script) {
+      case 'Multi-tasking':
+        this.study = lab.util.fromObject(clonedeep(multitasking), lab);
+        break;
+      case 'Visual search':
+        this.study = lab.util.fromObject(clonedeep(visualsearch), lab);
+        break;
+      case 'Stroop Task':
+        this.study = lab.util.fromObject(clonedeep(stroop), lab);
+        break;
+      case 'Faces and Houses':
+        this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
+        break;
+      default:
+        this.study = lab.util.fromObject(clonedeep(stroop), lab);
+    };
     this.study.run();
     this.study.on('end', () => {
       const csv = this.study.options.datastore.exportCsv();
       this.study = undefined;
       props.settings.on_finish(csv);
-    })
+    });
+    this.study.options.events['keydown'] = async (e) => {
+      if(e.code === 'Escape'){
+        if(this.study){
+          await this.study.internals.controller.audioContext.close();
+          this.study.end();
+        }
+      };
+    };
   }
 
   componentWillUnmount() {
     try {
-      if(this.study) this.study.end();
+      if(this.study){
+        this.study.internals.controller.audioContext.close();
+        this.study.end();
+      }
     } catch (e) {
       console.log("Experiment closed before unmount");
     }

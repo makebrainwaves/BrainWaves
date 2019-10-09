@@ -7,6 +7,10 @@ import { EXPERIMENTS } from '../../constants/constants';
 import { buildOddballTimeline } from './timelines/oddball';
 import { buildN170Timeline } from './timelines/n170';
 import { buildSSVEPTimeline } from './timelines/ssvep';
+import { buildStroopTimeline } from './timelines/stroop';
+import { buildMultiTimeline } from './timelines/multi';
+import { buildSearchTimeline } from './timelines/search';
+
 import {
   MainTimeline,
   Trial,
@@ -43,6 +47,18 @@ export const loadTimeline = (type: EXPERIMENTS) => {
 
     case EXPERIMENTS.SSVEP:
       timeline = buildSSVEPTimeline();
+      break;
+
+    case EXPERIMENTS.STROOP:
+      timeline = buildStroopTimeline();
+      break;
+
+    case EXPERIMENTS.MULTI:
+      timeline = buildMultiTimeline();
+      break;
+
+    case EXPERIMENTS.SEARCH:
+      timeline = buildSearchTimeline();
       break;
 
     default:
