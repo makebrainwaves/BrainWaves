@@ -11,7 +11,8 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
   const aggregatedData = processedData
     .map(e => {
       const conditionsArray = e.map(row => row.condition);
-      const conditions = [... new Set(conditionsArray)];
+      const unsortedConditions = [... new Set(conditionsArray)].sort();
+      const conditions = unsortedConditions.sort(function(a, b){return parseInt(a)-parseInt(b)});
       let rtMean = {}, accuracyPercent = {};
       for(let condition of conditions){
         let rt = e
@@ -25,16 +26,17 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
           .filter(row => row.condition === condition && row.correct_response === 'true' && row.response_given === 'yes')
         accuracyPercent[condition] = accuracy.length ? Math.round(100 * (accuracy.length / e.filter(r => r.condition === condition ).length)) : ss.mean(e.filter(r => r.condition === condition).map(r => r.accuracy));
       }
-      return {
+      const row = {
         subject: e.map(r => r.subject)[0],
         session: e.map(r => r.session)[0],
-        [`RT_${conditions[0]}`]: rtMean[conditions[0]],
-        [`RT_${conditions[1]}`]: rtMean[conditions[1]],
-        [`Accuracy_${conditions[0]}`]: accuracyPercent[conditions[0]],
-        [`Accuracy_${conditions[1]}`]: accuracyPercent[conditions[1]],
         response_given: 'yes',
         correct_response: 'true'
       }
+      for(let condition of conditions){
+        row['RT_' + condition] = rtMean[condition];
+        row['Accuracy_' + condition] = accuracyPercent[condition];
+      }
+      return row;
     })
     return aggregatedData;
 };
@@ -49,7 +51,8 @@ export const aggregateDataForPlot = (data, dependentVariable, removeOutliers, sh
 
     });
     const colors = ['#28619E','#3DBBDB'];
-    const conditions = [... new Set(processedData[0].map(row => row.condition))];
+    const unsortedConditions = [... new Set(processedData[0].map(row => row.condition))].sort();
+    const conditions = unsortedConditions.sort(function(a, b){return parseInt(a)-parseInt(b)});
     switch (dependentVariable) {
       case "RT":
       default:
@@ -61,7 +64,8 @@ export const aggregateDataForPlot = (data, dependentVariable, removeOutliers, sh
 };
 
 const transformAggregated = (result) => {
-  const conditions = result.meta.fields.filter(field => field.startsWith('RT_')).map(c => c.split('RT_')[1]);
+  const unsortedConditions = [... new Set(processedData[0].map(row => row.condition))].sort();
+  const conditions = unsortedConditions.sort(function(a, b){return parseInt(a)-parseInt(b)});
   const transformed = conditions.map((condition) => result.data.map(e => ({
         reaction_time: parseFloat(e[`RT_${condition}`]),
         subject: result.meta.datafile.split('/').pop().split('.csv')[0],
@@ -142,7 +146,7 @@ const computeRT = (data, dependentVariable, conditions, showDataPoints, colors, 
         return obj;
       }, {})
       dataToPlot['lowerLimit'] = 0;
-      dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + maxValueSE + 100 : 1000;
+      dataToPlot['upperLimit'] = maxValue + maxValueSE > 1000 ? maxValue + maxValueSE + 100 : 1000;
       return makeBarGraph(dataToPlot, conditions, colors, dependentVariable)
 
     case "whiskers":

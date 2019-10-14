@@ -1,3 +1,7 @@
+import * as path from 'path';
+const rootFolder = __dirname;
+const assetsDirectory = path.join(rootFolder, 'assets', 'labjs', 'multitasking');
+
 // Define study
 const studyObject = {
   "title": "root",
@@ -43,17 +47,17 @@ const studyObject = {
         {
           "type": "lab.html.Screen",
           "files": {
-            "diamond_2.png": "./utils/labjs/scripts/multitasking/diamond_2.png",
-            "diamond_3.png": "./utils/labjs/scripts/multitasking/diamond_3.png",
-            "rectangle_2.png": "./utils/labjs/scripts/multitasking/rectangle_2.png",
-            "rectangle_3.png": "./utils/labjs/scripts/multitasking/rectangle_3.png",
-            "filling.png": "./utils/labjs/scripts/multitasking/filling.png",
-            "shape.png": "./utils/labjs/scripts/multitasking/shape.png",
-            "example_1.png": "./utils/labjs/scripts/multitasking/example_1.png",
-            "example_2.png": "./utils/labjs/scripts/multitasking/example_2.png",
-            "example_3.png": "./utils/labjs/scripts/multitasking/example_3.png",
-            "example_4.png": "./utils/labjs/scripts/multitasking/example_4.png",
-            "all_conditions.png": "./utils/labjs/scripts/multitasking/all_conditions.png"
+            "diamond_2.png": `${assetsDirectory}/diamond_2.png`,
+            "diamond_3.png": `${assetsDirectory}/diamond_3.png`,
+            "rectangle_2.png": `${assetsDirectory}/rectangle_2.png`,
+            "rectangle_3.png": `${assetsDirectory}/rectangle_3.png`,
+            "filling.png": `${assetsDirectory}/filling.png`,
+            "shape.png": `${assetsDirectory}/shape.png`,
+            "example_1.png": `${assetsDirectory}/example_1.png`,
+            "example_2.png": `${assetsDirectory}/example_2.png`,
+            "example_3.png": `${assetsDirectory}/example_3.png`,
+            "example_4.png": `${assetsDirectory}/example_4.png`,
+            "all_conditions.png": `${assetsDirectory}/all_conditions.png`
           },
           "parameters": {},
           "responses": {

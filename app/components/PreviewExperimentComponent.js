@@ -71,18 +71,6 @@ export default class PreviewExperimentComponent extends Component<Props> {
             this.props.onEnd()
           }
         }} />
-      // <Experiment
-      //   settings={{
-      //     timeline: this.handleTimeline(),
-      //     show_progress_bar: this.props.params.showProgessBar,
-      //     auto_update_progress_bar: false,
-      //     preload_images: this.handleImages()
-      //   }}
-      //   plugins={{
-      //     'callback-image-display': callbackImageDisplay,
-      //     'callback-html-display': callbackHTMLDisplay
-      //   }}
-      // />
     );
   }
 }

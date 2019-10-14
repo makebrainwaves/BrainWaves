@@ -58,7 +58,7 @@ export default class OverviewComponent extends Component<Props, State> {
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
-              width={10}
+              width={12}
               textAlign="right"
               verticalAlign="middle"
               className={styles.jsPsychColumn}
@@ -70,7 +70,7 @@ export default class OverviewComponent extends Component<Props, State> {
                 type={this.props.type}
               />
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
+            <Grid.Column stretched width={4} verticalAlign="middle">
               <Segment as="p" basic>
                 {this.props.protocol}
               </Segment>

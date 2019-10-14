@@ -1,3 +1,7 @@
+import * as path from 'path';
+const rootFolder = __dirname;
+const assetsDirectory = path.join(rootFolder, 'assets', 'labjs', 'faceshouses');
+
 // Define study
 const studyObject = {
   "title": "root",
@@ -24,30 +28,30 @@ const studyObject = {
     {
       "type": "lab.flow.Sequence",
       "files": {
-        "Annie_3.jpg": "./utils/labjs/scripts/faceshouses/7a536fba60226293bf351cb6f9719fee15f3b693915c0a55b0f107377f10a7e1.jpg",
-        "Blake_3.jpg": "./utils/labjs/scripts/faceshouses/3138f2fd1cba5a07f0b0ac61f8ee4754e6e0f07bd3ea520a75bc39c2d05ecece.jpg",
-        "Don_3.jpg": "./utils/labjs/scripts/faceshouses/cc6bf44e75c27e0d57956ae95d4c2c64f0d41f666a1e3f9fff20927fe3844dfd.jpg",
-        "Estelle_3.jpg": "./utils/labjs/scripts/faceshouses/5ce843ee780ba0c902ee1b06326c7e65fe840769c8621a8d9f8b75b5eb67bcd9.jpg",
-        "Frank_3.jpg": "./utils/labjs/scripts/faceshouses/856ae9bd5ec82567011ae41e10dcfa2de9cfa7ddadc5c1388df2998142ab4d7f.jpg",
-        "Janie_3.jpg": "./utils/labjs/scripts/faceshouses/a82a652abb85637af9fba1f4dbf7f69d906a14172a70df610e3be33c0058b9f6.jpg",
-        "Joan_3.jpg": "./utils/labjs/scripts/faceshouses/d92c1965ad53b7533d5f00ace843e8f1c161ae7e72ad52b4511f3ab84a8eea73.jpg",
-        "Jodi_3.jpg": "./utils/labjs/scripts/faceshouses/b746cdfd1099dfbe200a661a81ef2315935a5eafc855b8b373d9b633fadd8e6c.jpg",
-        "Joe_3.jpg": "./utils/labjs/scripts/faceshouses/3e55b3ce099ffea5a4ebde02c7a0cb055fb6f9768116efc932e77e4319841bea.jpg",
-        "Tim_3.jpg": "./utils/labjs/scripts/faceshouses/56136f19fc574a3a99761c9a7ce1fcc5149d6edcc60e942cc8e5db2f66e0db91.jpg",
-        "Tom_3.jpg": "./utils/labjs/scripts/faceshouses/b87301f741db5d27e05e8d127ae729af9bb7e2e38484c8f29b52e442c333989d.jpg",
-        "Wallace_3.jpg": "./utils/labjs/scripts/faceshouses/5ba782ee30b8213b554d61adb62091b63c509a539bdd693ed27c1cbc3db40272.jpg",
-        "house1.3.jpg": "./utils/labjs/scripts/faceshouses/9f0121c6a70040d4abbcd41daf909797cef7438f406fc471c0def07f477f920e.jpg",
-        "house2.2.jpg": "./utils/labjs/scripts/faceshouses/461aa813adbb5117b26b791c02864b2e88e6c2899c821f14d58b042c26628b92.jpg",
-        "house3.1.jpg": "./utils/labjs/scripts/faceshouses/269317cfd165abfdbc48e400a6cfc89c2cfcd98a9c738ece5222e8d513bcf83a.jpg",
-        "house4.3.jpg": "./utils/labjs/scripts/faceshouses/a87186061326f3e11259a95ba1229cfc3f1a4f4b06fb50c16ad3757105a2b69c.jpg",
-        "house5.2.jpg": "./utils/labjs/scripts/faceshouses/f78f496ab685b1ae4661c6071358f1a6ab0e1238a0ed1bd157a32317c41a8eaf.jpg",
-        "house6.3.jpg": "./utils/labjs/scripts/faceshouses/b589ac23b4918605f777f45ad32149fa7327fccdd452d4037451c8c28e19c7c0.jpg",
-        "house7.1.jpg": "./utils/labjs/scripts/faceshouses/f528aa7c5e2618c4e8b7ae1e1eced370788e698a339b60be085b46c0044b58e3.jpg",
-        "house8.4.jpg": "./utils/labjs/scripts/faceshouses/28f97e1e523564c8fa7942675ea1609265532de0c715e1b4058cf8ceb4220f9b.jpg",
-        "house9.2.jpg": "./utils/labjs/scripts/faceshouses/6720b60aa89355682657837dca11fc69d684e77cca2cd26029115ac49e940efe.jpg",
-        "house10.4.jpg": "./utils/labjs/scripts/faceshouses/c424a87e1b2220efb59423664e7293de2ed37e60d463bfe3261d8b967183740f.jpg",
-        "house11.2.jpg": "./utils/labjs/scripts/faceshouses/19a8664bab5a3c491510b7f3485d5498c41b680c4695c317be659b4d8e092358.jpg",
-        "house12.1.jpg": "./utils/labjs/scripts/faceshouses/38178a7ec6cc54ed9e61b5fec7790dc85d2debe2dad0b3e960686db660d9428c.jpg"
+        "Annie_3.jpg": `${assetsDirectory}/7a536fba60226293bf351cb6f9719fee15f3b693915c0a55b0f107377f10a7e1.jpg`,
+        "Blake_3.jpg": `${assetsDirectory}/3138f2fd1cba5a07f0b0ac61f8ee4754e6e0f07bd3ea520a75bc39c2d05ecece.jpg`,
+        "Don_3.jpg": `${assetsDirectory}/cc6bf44e75c27e0d57956ae95d4c2c64f0d41f666a1e3f9fff20927fe3844dfd.jpg`,
+        "Estelle_3.jpg": `${assetsDirectory}/5ce843ee780ba0c902ee1b06326c7e65fe840769c8621a8d9f8b75b5eb67bcd9.jpg`,
+        "Frank_3.jpg": `${assetsDirectory}/856ae9bd5ec82567011ae41e10dcfa2de9cfa7ddadc5c1388df2998142ab4d7f.jpg`,
+        "Janie_3.jpg": `${assetsDirectory}/a82a652abb85637af9fba1f4dbf7f69d906a14172a70df610e3be33c0058b9f6.jpg`,
+        "Joan_3.jpg": `${assetsDirectory}/d92c1965ad53b7533d5f00ace843e8f1c161ae7e72ad52b4511f3ab84a8eea73.jpg`,
+        "Jodi_3.jpg": `${assetsDirectory}/b746cdfd1099dfbe200a661a81ef2315935a5eafc855b8b373d9b633fadd8e6c.jpg`,
+        "Joe_3.jpg": `${assetsDirectory}/3e55b3ce099ffea5a4ebde02c7a0cb055fb6f9768116efc932e77e4319841bea.jpg`,
+        "Tim_3.jpg": `${assetsDirectory}/56136f19fc574a3a99761c9a7ce1fcc5149d6edcc60e942cc8e5db2f66e0db91.jpg`,
+        "Tom_3.jpg": `${assetsDirectory}/b87301f741db5d27e05e8d127ae729af9bb7e2e38484c8f29b52e442c333989d.jpg`,
+        "Wallace_3.jpg": `${assetsDirectory}/5ba782ee30b8213b554d61adb62091b63c509a539bdd693ed27c1cbc3db40272.jpg`,
+        "house1.3.jpg": `${assetsDirectory}/9f0121c6a70040d4abbcd41daf909797cef7438f406fc471c0def07f477f920e.jpg`,
+        "house2.2.jpg": `${assetsDirectory}/461aa813adbb5117b26b791c02864b2e88e6c2899c821f14d58b042c26628b92.jpg`,
+        "house3.1.jpg": `${assetsDirectory}/269317cfd165abfdbc48e400a6cfc89c2cfcd98a9c738ece5222e8d513bcf83a.jpg`,
+        "house4.3.jpg": `${assetsDirectory}/a87186061326f3e11259a95ba1229cfc3f1a4f4b06fb50c16ad3757105a2b69c.jpg`,
+        "house5.2.jpg": `${assetsDirectory}/f78f496ab685b1ae4661c6071358f1a6ab0e1238a0ed1bd157a32317c41a8eaf.jpg`,
+        "house6.3.jpg": `${assetsDirectory}/b589ac23b4918605f777f45ad32149fa7327fccdd452d4037451c8c28e19c7c0.jpg`,
+        "house7.1.jpg": `${assetsDirectory}/f528aa7c5e2618c4e8b7ae1e1eced370788e698a339b60be085b46c0044b58e3.jpg`,
+        "house8.4.jpg": `${assetsDirectory}/28f97e1e523564c8fa7942675ea1609265532de0c715e1b4058cf8ceb4220f9b.jpg`,
+        "house9.2.jpg": `${assetsDirectory}/6720b60aa89355682657837dca11fc69d684e77cca2cd26029115ac49e940efe.jpg`,
+        "house10.4.jpg": `${assetsDirectory}/c424a87e1b2220efb59423664e7293de2ed37e60d463bfe3261d8b967183740f.jpg`,
+        "house11.2.jpg": `${assetsDirectory}/19a8664bab5a3c491510b7f3485d5498c41b680c4695c317be659b4d8e092358.jpg`,
+        "house12.1.jpg": `${assetsDirectory}/38178a7ec6cc54ed9e61b5fec7790dc85d2debe2dad0b3e960686db660d9428c.jpg`
       },
       "parameters": {
         "fixationCrossDuration": 500,

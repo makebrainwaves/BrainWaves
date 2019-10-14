@@ -1,3 +1,7 @@
+import * as path from 'path';
+const rootFolder = __dirname;
+const assetsDirectory = path.join(rootFolder, 'assets', 'labjs', 'visualsearch');
+
 // Define study
 const studyObject = {
   "title": "root",
@@ -321,7 +325,7 @@ if(this.parameters.target === 'yes'){
 ) {
 this.data.trial_number = 1 + parseInt(this.options.id.split('_')[this.options.id.split('_').length-2]);
 
-this.data.condition = this.parameters.target === 'yes' ? 'Target' : 'No target';
+this.data.condition = this.parameters.size + ' letters';
 
 this.data.reaction_time = this.state.duration;
 
@@ -343,7 +347,7 @@ this.data.response_given = this.state.response === 'noresponse' ? 'no' : 'yes';
           {
             "type": "lab.html.Screen",
             "files": {
-              "grid.gif": "./utils/labjs/scripts/visualsearch/grid.gif"
+              "grid.gif": `${assetsDirectory}/grid.gif`
             },
             "parameters": {},
             "responses": {},
