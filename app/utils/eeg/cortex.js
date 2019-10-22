@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle, camelcase */
 /*
  * JS Cortex Wrapper
  * *****************
@@ -20,7 +21,7 @@
 const WebSocket = require('ws');
 const EventEmitter = require('events');
 
-const CORTEX_URL = 'wss://emotivcortex.com:54321';
+const CORTEX_URL = 'wss://localhost:6868';
 
 const safeParse = msg => {
   try {
@@ -70,8 +71,11 @@ class Cortex extends EventEmitter {
       .then(() => this._log('ws: Socket opened'))
       .then(() => this.call('inspectApi'))
       .then(methods => {
-        for (const m of methods) this.defineMethod(m.methodName, m.params);
+        methods.forEach(m => {
+          this.defineMethod(m.methodName, m.params);
+        });
         this._log(`rpc: Added ${methods.length} methods from inspectApi`);
+        return methods;
       });
   }
   _onmsg(msg) {
@@ -95,9 +99,10 @@ class Cortex extends EventEmitter {
       const dataKeys = Object.keys(data).filter(
         k => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
       );
-      for (const k of dataKeys) {
-        this.emit(k, data) || this._warn('no listeners for stream event', k);
-      }
+      dataKeys.forEach(
+        k =>
+          this.emit(k, data) || this._warn('no listeners for stream event', k)
+      );
     } else {
       this._log('rpc: Unrecognised data', data);
     }
@@ -111,34 +116,20 @@ class Cortex extends EventEmitter {
   _debug(...msg) {
     if (this.verbose > 2) console.debug('[Cortex DEBUG]', ...msg);
   }
-  init({ username, password, client_id, client_secret, license, debit } = {}) {
-    const result = this.getUserLogin()
-      .then(users => {
-        if (users[0] && users[0] !== username) {
-          this._log('init: Logging out other user', users[0]);
-          return this.logout({ username: users[0] }).then(() => []);
-        }
-        if (username) {
-          this._log('init: Reusing existing login');
-        } else {
-          this._log('init: Logging in anonymously');
-        }
-        return users;
-      })
-      .then(users => {
-        if (!users[0] && username && password) {
-          this._log('init: Logging in as', username);
-          return this.login({ username, password, client_id, client_secret });
-        }
-      })
-      .then(() => this.authorize({ client_id, client_secret, license, debit }))
-      .then(({ _auth }) => {
-        this._log('init: Got auth token');
-        this._debug('init: Auth token', _auth);
-        this._auth = _auth;
-      });
+  init({ client_id, client_secret, license, debit } = {}) {
+    const token = this.authorize({
+      client_id,
+      client_secret,
+      license,
+      debit
+    }).then(({ cortexToken }) => {
+      this._log('init: Got auth token');
+      this._debug('init: Auth token', cortexToken);
+      this.cortexToken = cortexToken;
+      return cortexToken;
+    });
 
-    return result;
+    return token;
   }
   close() {
     return new Promise(resolve => {
@@ -165,12 +156,12 @@ class Cortex extends EventEmitter {
   }
   defineMethod(methodName, paramDefs = []) {
     if (this[methodName]) return;
-    const needsAuth = paramDefs.some(p => p.name === '_auth');
+    const needsAuth = paramDefs.some(p => p.name === 'cortexToken');
     const requiredParams = paramDefs.filter(p => p.required).map(p => p.name);
 
     this[methodName] = (params = {}) => {
-      if (needsAuth && this._auth && !params._auth) {
-        params = Object.assign({}, params, { _auth: this._auth });
+      if (needsAuth && this.cortexToken && !params.cortexToken) {
+        params = Object.assign({}, params, { cortexToken: this.cortexToken });
       }
       const missingParams = requiredParams.filter(p => params[p] == null);
       if (missingParams.length > 0) {
