@@ -8,13 +8,7 @@ import { map, withLatestFrom, share } from 'rxjs/operators';
 import { addInfo, epoch, bandpassFilter } from '@neurosity/pipes';
 import { toast } from 'react-toastify';
 import { parseEmotivSignalQuality } from './pipes';
-import {
-  USERNAME,
-  PASSWORD,
-  CLIENT_ID,
-  CLIENT_SECRET,
-  LICENSE_ID
-} from '../../../keys';
+import { CLIENT_ID, CLIENT_SECRET, LICENSE_ID } from '../../../keys';
 import { EMOTIV_CHANNELS, PLOTTING_INTERVAL } from '../../constants/constants';
 import Cortex from './cortex';
 
@@ -34,8 +28,6 @@ export const connectToEmotiv = device =>
     .then(() =>
       client.init({
         // These values need to be filled with personal Emotiv credentials
-        username: USERNAME,
-        password: PASSWORD,
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
         license: LICENSE_ID,
@@ -47,11 +39,19 @@ export const connectToEmotiv = device =>
       return err;
     })
     .then(() =>
-      client.createSession({
+      client.controlDevice({ command: 'connect', headset: device.id })
+    )
+    .catch(err => {
+      toast.error(`Emotiv connection failed. ${err}`);
+      return err;
+    })
+    .then(({ message }) => {
+      console.log(message);
+      return client.createSession({
         status: 'active',
         headset: device.id
-      })
-    )
+      });
+    })
     .catch(err => {
       toast.error(`Session creation failed. ${err} `);
       return err;
