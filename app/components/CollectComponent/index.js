@@ -33,6 +33,7 @@ interface Props {
   trials: ?{ [string]: Trial };
   timelines: ?{};
   subject: string;
+  group: string;
   session: number;
   isEEGEnabled: boolean;
 }
@@ -141,6 +142,7 @@ export default class Collect extends Component<Props, State> {
           trials={this.props.trials}
           timelines={this.props.timelines}
           subject={this.props.subject}
+          group={this.props.group}
           session={this.props.session}
           openRunComponent={this.handleRunComponentOpen}
         />

@@ -13,6 +13,7 @@ import {
 } from "rxjs/operators";
 import {
   setType,
+  setParadigm,
   setTitle,
   saveWorkspace,
   loadDefaultTimeline,
@@ -21,7 +22,8 @@ import {
   STOP,
   SAVE_WORKSPACE,
   CREATE_NEW_WORKSPACE,
-  SET_SUBJECT
+  SET_SUBJECT,
+  SET_GROUP
 } from "../actions/experimentActions";
 import {
   DEVICES,
@@ -83,6 +85,7 @@ const createNewWorkspaceEpic = action$ =>
     mergeMap(workspaceInfo =>
       of(
         setType(workspaceInfo.type),
+        setParadigm(workspaceInfo.paradigm),
         setTitle(workspaceInfo.title),
         loadDefaultTimeline()
       )
@@ -91,7 +94,7 @@ const createNewWorkspaceEpic = action$ =>
 
 const loadDefaultTimelineEpic = (action$, state$) =>
   action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
-    map(() => state$.value.experiment.type),
+    map(() => (state$.value.experiment.paradigm)),
     map(loadTimeline),
     map(setTimeline)
   );
@@ -106,6 +109,7 @@ const startEpic = (action$, state$) =>
         const writeStream = createEEGWriteStream(
           state$.value.experiment.title,
           state$.value.experiment.subject,
+          state$.value.experiment.group,
           state$.value.experiment.session
         );
 
@@ -131,6 +135,7 @@ const experimentStopEpic = (action$, state$) =>
         payload.data,
         state$.value.experiment.title,
         state$.value.experiment.subject,
+        state$.value.experiment.group,
         state$.value.experiment.session
       )
     ),
@@ -156,6 +161,9 @@ const experimentStopEpic = (action$, state$) =>
 
 const setSubjectEpic = action$ =>
   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
+
+const setGroupEpic = action$ =>
+  action$.ofType(SET_GROUP).pipe(map(updateSession));
 
 const updateSessionEpic = (action$, state$) =>
   action$.ofType(UPDATE_SESSION).pipe(
@@ -205,6 +213,7 @@ export default combineEpics(
   startEpic,
   experimentStopEpic,
   setSubjectEpic,
+  setGroupEpic,
   updateSessionEpic,
   autoSaveEpic,
   saveWorkspaceEpic,

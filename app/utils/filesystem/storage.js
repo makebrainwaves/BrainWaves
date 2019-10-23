@@ -43,10 +43,12 @@ export const storeBehaviouralData = (
   csv: string,
   title: string,
   subject: string,
+  group: string,
   session: number
 ) => {
+  console.log('storing group', group);
   const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior');
-  const filename = `${subject}-${session}-behavior.csv`;
+  const filename = `${subject}-${group}-${session}-behavior.csv`;
   mkdirPathSync(dir);
   fs.writeFile(path.join(dir, filename), csv, err => {
     if (err) {

@@ -8,11 +8,11 @@ const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
 const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
-export const buildMultiTimeline = () => ({
-  overview: 'Here is the placeholder for the overview of the Multi-tasking task',
-  background: 'Here is the background of the Multi-tasking task',
+export const buildCustomLine = () => ({
+  overview: 'Here is the placeholder for the overview of the Visual Search task',
+  background: 'Here is the background of the Visual Search task',
   background_title: `Title`,
-  protocol: 'Here is the protocol of the Multi-tasking task',
+  protocol: 'Here is the protocol of the Visual Search task',
   params: {
     trialDuration: 1000,
     nbTrials: 150,
@@ -21,7 +21,7 @@ export const buildMultiTimeline = () => ({
     sampleType: 'with-replacement',
     pluginName: 'callback-image-display',
     intro:
-      'You will see the multi-tasking test. Press any key to continue',
+      'You will see the visual search task. Press 1 when a face appears and 9 for a house. Press any key to continue',
     showProgressBar: false,
     stimulus1: {
       dir: facesDir,

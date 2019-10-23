@@ -10,6 +10,7 @@ function mapStateToProps(state) {
     title: state.experiment.title,
     type: state.experiment.type,
     deviceType: state.device.deviceType,
+    isEEGEnabled: state.experiment.isEEGEnabled,
     ...state.jupyter
   };
 }

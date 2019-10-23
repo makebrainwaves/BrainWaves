@@ -10,10 +10,6 @@ const studyObject = {
   "plugins": [
     {
       "type": "lab.plugins.Metadata"
-    },
-    {
-      "type": "lab.plugins.Download",
-      "filePrefix": "the-face-house-task"
     }
   ],
   "metadata": {
@@ -201,7 +197,7 @@ const studyObject = {
           ],
           "sample": {
             "mode": "draw-shuffle",
-            "n": ""
+            "n": "96"
           },
           "responses": {},
           "messageHandlers": {},

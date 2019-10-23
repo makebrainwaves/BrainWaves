@@ -64,7 +64,7 @@ export const aggregateDataForPlot = (data, dependentVariable, removeOutliers, sh
 };
 
 const transformAggregated = (result) => {
-  const unsortedConditions = [... new Set(processedData[0].map(row => row.condition))].sort();
+  const unsortedConditions = result.meta.fields.filter(field => field.startsWith('RT_')).map(c => c.split('RT_')[1]).sort();
   const conditions = unsortedConditions.sort(function(a, b){return parseInt(a)-parseInt(b)});
   const transformed = conditions.map((condition) => result.data.map(e => ({
         reaction_time: parseFloat(e[`RT_${condition}`]),
@@ -291,7 +291,7 @@ const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
       ticktext: data.ticktext,
     },
     yaxis: {
-      title: `${dependentVariable == 'Response Time' ? 'ms.' : '% correct'}`,
+      title: `${dependentVariable == 'Response Time' ? 'Response Time (milliseconds)' : '% correct'}`,
       range: [data.lowerLimit, data.upperLimit],
     },
     title: `${dependentVariable}`
@@ -323,7 +323,7 @@ const makeBarGraph = (data, conditions, colors, dependentVariable) => {
   })
   const layout = {
     yaxis: {
-        title: `${dependentVariable == 'Response Time' ? 'ms.' : '% correct'}`,
+        title: `${dependentVariable == 'Response Time' ? 'Response Time (milliseconds)' : '% correct'}`,
         zeroline: false,
         range: [data.lowerLimit, data.upperLimit],
       },
@@ -356,7 +356,7 @@ const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
   })
   const layout = {
     yaxis: {
-        title: `${dependentVariable == 'Response Time' ? 'ms.' : '% correct'}`,
+        title: `${dependentVariable == 'Response Time' ? 'Response Time (milliseconds)' : '% correct'}`,
         zeroline: false,
         range: [data.lowerLimit, data.upperLimit],
       },

@@ -10,14 +10,10 @@ const studyObject = {
   "plugins": [
     {
       "type": "lab.plugins.Metadata"
-    },
-    {
-      "type": "lab.plugins.Download",
-      "filePrefix": "study"
     }
   ],
   "metadata": {
-    "title": "",
+    "title": "Multitasking",
     "description": "",
     "repository": "",
     "contributors": ""
@@ -61,13 +57,19 @@ const studyObject = {
           },
           "parameters": {},
           "responses": {
-            "keypress(q)": "continue"
+            "keypress(p)": "continue"
           },
           "messageHandlers": {
             "before:prepare": function anonymous(
 ) {
 this.options.events['keydown'] = (e) => {
-  if(e.code === 'ArrowLeft' || e.code === 'ArrowRight'){
+
+  if (e.code === 'KeyT') {
+    this.data.skipTraining = true
+    this.end()
+  }
+
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
 
     let instructions = document.querySelectorAll('div.instruction')
     let notFound = true
@@ -98,7 +100,7 @@ this.options.events['keydown'] = (e) => {
 }
           },
           "title": "Instructions",
-          "content": "\u003Cmain\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_1' style=\"display:block\"\u003E\n  \u003Cp\u003E\n    In the following, you will respond to various figures. These are the figures that you will see: diamonds and rectangles with a filling of 2 or 3 dots:\n  \u003C\u002Fp\u003E\n  \u003Ctable\u003E\n      \u003Cthead\u003E\n      \u003Ctr\u003E\n          \u003Cth\u003EDiamond with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003EDiamond with filling of 2 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 2 dots\u003C\u002Fth\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Fthead\u003E\n      \u003Ctbody\u003E\n      \u003Ctr\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['diamond_3.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['diamond_2.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['rectangle_3.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['rectangle_2.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Ftbody\u003E\n  \u003C\u002Ftable\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_2' style=\"display:none\"\u003E\n\n  \u003Cp\u003E\n    You will be shown these figures in sequences of trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Each time you will need to respond with a button press.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    How exactly will be explained in the next screens.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_3' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    In the shape task, a diamond requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, a rectangle requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this task, ignore the filling (dots) of the shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['shape.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_4' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    In the filling task, a filling of two dots requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, a filling with three dots requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, ignore the outer shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['filling.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_5' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Example 1. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a diamond, which requires a button press of the keyboard key \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling dots!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['example_1.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_6' style=\"display:none\" style=\"width:400px\"\u003E\n  \u003Cp\u003E\n    Example 2. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 3 dots, and thus press the keyboard key \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['example_2.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_7' style=\"display:none\"\u003E\n  \u003Cimg src=${this.files['example_3.png']} style=\"width:400px\"\u003E\n  \u003Cp\u003E\n    Example 3. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a rectangle, which requires the \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling (here 2 dots)!!!\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_8' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Example 4. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 2 dots, and thus press \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['example_4.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\n\u003Cdiv class=\"instruction\" id='screen_9' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Here, you can see how to respond in all conditions...\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Just look at shape in the shape task, and at the dots in the filling task...\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['all_conditions.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_10' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Are you ready? Press the \"q\" button on your keyboard to quit the instructions and start doing the task.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Or you can browse back to the previous screens until you understand what you need to do in the two tasks (use the arrow keys).\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter\u003E\n  Use left\u002Fright arrow keys to go further or back.\n\u003C\u002Ffooter\u003E"
+          "content": "\u003Cmain\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_1' style=\"display:block\"\u003E\n  \u003Cp\u003E\n    In the following, you will respond to various figures. These are the figures that you will see: diamonds and rectangles with a filling of 2 or 3 dots:\n  \u003C\u002Fp\u003E\n  \u003Ctable\u003E\n      \u003Cthead\u003E\n      \u003Ctr\u003E\n          \u003Cth\u003EDiamond with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003EDiamond with filling of 2 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 2 dots\u003C\u002Fth\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Fthead\u003E\n      \u003Ctbody\u003E\n      \u003Ctr\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['diamond_3.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['diamond_2.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['rectangle_3.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files['rectangle_2.png']} style=\"width:100px\"\u003E\u003C\u002Ftd\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Ftbody\u003E\n  \u003C\u002Ftable\u003E\n  \u003Cp\u003E\n    Use the right arrow key to move to the next instruction.\n  \u003C\u002Fp\u003E\n\n  \u003Cp\u003E\n    If you want to skip the instruction with practice trials and go directly to the task, press the \"t\" button on your keyboard.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_2' style=\"display:none\"\u003E\n\n  \u003Cp\u003E\n    You will be shown these figures in sequences of trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Each time you will need to respond with a button press.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    How exactly will be explained in the next screens.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_3' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    In the shape task, a diamond requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, a rectangle requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this task, ignore the filling (dots) of the shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['shape.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_4' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    In the filling task, a filling of two dots requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, a filling with three dots requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, ignore the outer shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['filling.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_5' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Example 1. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a diamond, which requires a button press of the keyboard key \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling dots!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['example_1.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_6' style=\"display:none\" style=\"width:400px\"\u003E\n  \u003Cp\u003E\n    Example 2. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 3 dots, and thus press the keyboard key \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['example_2.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_7' style=\"display:none\"\u003E\n  \u003Cimg src=${this.files['example_3.png']} style=\"width:400px\"\u003E\n  \u003Cp\u003E\n    Example 3. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a rectangle, which requires the \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling (here 2 dots)!!!\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_8' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Example 4. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 2 dots, and thus press \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['example_4.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\n\u003Cdiv class=\"instruction\" id='screen_9' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Here, you can see how to respond in all conditions...\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Just look at shape in the shape task, and at the dots in the filling task...\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files['all_conditions.png']} style=\"width:400px\"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class=\"instruction\" id='screen_10' style=\"display:none\"\u003E\n  \u003Cp\u003E\n    Are you ready? Press the \"p\" button on your keyboard to quit the instructions and start doing the practice trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Or you can browse back to the previous screens until you understand what you need to do in the two tasks (use the arrow keys).\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    If you want to skip practice trials and go directly to the task, press the \"t\" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter\u003E\n  Use left\u002Fright arrow keys to go further or back.\n\u003C\u002Ffooter\u003E"
         },
         {
           "type": "lab.flow.Loop",
@@ -108,32 +110,38 @@ this.options.events['keydown'] = (e) => {
             {
               "block": "shape",
               "task": "training",
-              "num_trials": "5"
+              "num_trials": "5",
+              "cond": "No switching"
             },
             {
               "block": "filling",
               "task": "training",
-              "num_trials": "5"
+              "num_trials": "5",
+              "cond": "No switching"
             },
             {
               "block": "mixed",
               "task": "training",
-              "num_trials": "10"
+              "num_trials": "10",
+              "cond": "Switching"
             },
             {
               "block": "shape",
               "task": "main",
-              "num_trials": "15"
+              "num_trials": "15",
+              "cond": "No switching"
             },
             {
               "block": "filling",
               "task": "main",
-              "num_trials": "15"
+              "num_trials": "15",
+              "cond": "No switching"
             },
             {
               "block": "mixed",
               "task": "main",
-              "num_trials": "30"
+              "num_trials": "30",
+              "cond": "Switching"
             }
           ],
           "sample": {
@@ -143,6 +151,7 @@ this.options.events['keydown'] = (e) => {
           "responses": {},
           "messageHandlers": {},
           "title": "Block loop",
+          "tardy": true,
           "shuffleGroups": [],
           "template": {
             "type": "lab.flow.Sequence",
@@ -151,6 +160,7 @@ this.options.events['keydown'] = (e) => {
             "responses": {},
             "messageHandlers": {},
             "title": "Block sequence",
+            "skip": "${this.parameters.task === 'training' && this.state.skipTraining === true}",
             "content": [
               {
                 "type": "lab.canvas.Screen",
@@ -1908,9 +1918,8 @@ this.data.correct = 'empty'
                       "messageHandlers": {
                         "before:prepare": function anonymous(
 ) {
-
 this.data.trial_number = 1 + parseInt(this.options.id.split('_')[this.options.id.split('_').length-2]);
-this.data.condition = this.parameters.type.charAt(0).toUpperCase() + this.parameters.type.slice(1);
+this.data.condition = this.parameters.cond;
 this.data.reaction_time = this.state.duration;
 
 if(this.state.response === this.parameters.cor_response){
@@ -1919,10 +1928,11 @@ if(this.state.response === this.parameters.cor_response){
   this.data.correct_response = false;
 }
 
-this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
-
-
-
+if(this.parameters.task === 'main'){
+  this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
+} else {
+  this.data.response_given = 'practice';
+}
 
 
 }

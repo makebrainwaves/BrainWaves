@@ -1,5 +1,5 @@
 .homeContentContainer {
-  padding-top: 50px !important;
+  padding-top: 20px !important;
   height: 100%;
   overflow-y: auto;
 }
@@ -55,7 +55,7 @@
 .descriptionContainer p {
   margin-top: 50px;
   margin-bottom: 50px;
-  min-height: 150px;
+  min-height: 130px;
 }
 
 .descriptionContainer button {
@@ -117,4 +117,38 @@
 .helpContent {
   font-size: 18px !important;
   height: 80%;
+}
+
+.experimentCard {
+  border-radius: 5px;
+	background-color: #FFFFFF;
+	box-shadow: 0 0 8px 0 rgba(0,0,0,0.1);
+  border: 4px solid transparent;
+}
+
+.experimentCard:hover {
+  border: 4px solid #007C70;
+  cursor: pointer;
+}
+
+.experimentCardImage {
+  align-self: center;
+}
+
+/* Header, Faces/Houses, Stroop, Mult-tasking, Visual Search */
+.experimentCardHeader {
+	color: #1A1A1A;
+	font-family: Lato;
+	font-size: 24px;
+	letter-spacing: 0.86px;
+	line-height: 29px;
+}
+
+/* Description copy */
+.experimentCardDescription {
+	color: #4A4A4A;
+	font-family: Lato;
+	font-size: 16px;
+	letter-spacing: 0.57px;
+	line-height: 24px;
 }

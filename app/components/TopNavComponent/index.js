@@ -68,14 +68,23 @@ export default class TopNavComponent extends Component<Props> {
           {...SCREENS.COLLECT}
           style={this.getStyleForScreen(SCREENS.COLLECT)}
         />
-        <PrimaryNavSegment
-          {...SCREENS.CLEAN}
-          style={this.getStyleForScreen(SCREENS.CLEAN)}
-        />
-        <PrimaryNavSegment
-          {...SCREENS.ANALYZE}
-          style={this.getStyleForScreen(SCREENS.ANALYZE)}
-        />
+        {this.props.isEEGEnabled ?
+          <PrimaryNavSegment
+            {...SCREENS.CLEAN}
+            style={this.getStyleForScreen(SCREENS.CLEAN)}
+          /> : null
+        }
+        {this.props.isEEGEnabled ?
+          <PrimaryNavSegment
+            {...SCREENS.ANALYZE}
+            style={this.getStyleForScreen(SCREENS.ANALYZE)}
+          />
+          :
+          <PrimaryNavSegment
+            {...SCREENS.ANALYZEBEHAVIOR}
+            style={this.getStyleForScreen(SCREENS.ANALYZE)}
+          />
+        }
         <Grid.Column width="3">
           <NavLink to={SCREENS.HOME.route}>
             <Button secondary size="medium">

@@ -26,13 +26,20 @@ import PreviewButton from '../PreviewButtonComponent';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
+import { loadTimeline } from '../../utils/jspsych/functions';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
-  STIMULI: 'STIMULI',
   PARAMETERS: 'PARAMETERS',
   PREVIEW: 'PREVIEW'
 };
+
+// const CUSTOM_STEPS = {
+//   OVERVIEW: 'OVERVIEW',
+//   STIMULI: 'STIMULI',
+//   PARAMETERS: 'PARAMETERS',
+//   PREVIEW: 'PREVIEW'
+// };
 
 const FIELDS = {
   QUESTION: 'Research Question',
@@ -86,7 +93,12 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
-    }
+    };
+    this.endPreview = this.endPreview.bind(this);
+  }
+
+  endPreview() {
+    this.setState({ isPreviewing: false });
   }
 
   handleStepClick(step: string) {
@@ -107,7 +119,8 @@ export default class CustomDesign extends Component<Props, State> {
     this.props.history.push(SCREENS.COLLECT.route);
   }
 
-  handlePreview() {
+  handlePreview(e) {
+    e.target.blur();
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
@@ -164,61 +177,6 @@ export default class CustomDesign extends Component<Props, State> {
           >
             <Grid.Column stretched verticalAlign="middle">
               <Segment basic>
-                <Header as="h1">Image Duration</Header>
-                <p>
-                  Select the trial duration. This determines the amount of time
-                  each image will be displayed during the experiment.
-                </p>
-              </Segment>
-              <Segment basic>
-                <ParamSlider
-                  label="Image Duration (seconds)"
-                  value={this.state.params.trialDuration}
-                  onChange={value =>
-                    this.setState({
-                      params: { ...this.state.params, trialDuration: value }
-                    })
-                  }
-                />
-              </Segment>
-            </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
-              <Segment basic>
-                <Header as="h1">Time Interval</Header>
-                <p>
-                  Select the inter-trial interval duration. This is the amount
-                  of time between trials measured from the end of one trial to
-                  the start of the next one.
-                </p>
-              </Segment>
-              <Segment basic>
-                <ParamSlider
-                  label="ITI Duration (seconds)"
-                  value={this.state.params.iti}
-                  onChange={value =>
-                    this.setState({
-                      params: { ...this.state.params, iti: value }
-                    })
-                  }
-                />
-              </Segment>
-            </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
-              <Segment basic>
-                <Header as="h1">Progress Bar</Header>
-                <p>
-                  This will display a small progress bar at the top of the
-                  experiment window
-                </p>
-              </Segment>
-              <Segment basic>
-                <Checkbox
-                  checked={this.props.params.showProgessBar}
-                  label="Enable progress bar"
-                  onChange={this.handleProgressBar}
-                />
-              </Segment>
-              <Segment basic>
                 <Header as="h1">EEG Enabled</Header>
                 <p>EEG data collection will be enabled for this experiment</p>
               </Segment>
@@ -237,20 +195,20 @@ export default class CustomDesign extends Component<Props, State> {
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
-              width={6}
+              width={12}
               textAlign="right"
-              verticalAlign="top"
+              verticalAlign="middle"
               className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
-                params={this.state.params}
-                mainTimeline={this.props.mainTimeline}
-                trials={this.props.trials}
-                timelines={this.props.timelines}
+                {...loadTimeline(this.props.paradigm)}
                 isPreviewing={this.state.isPreviewing}
+                onEnd={this.endPreview}
+                type={this.props.type}
+                paradigm={this.props.paradigm}
               />
             </Grid.Column>
-            <Grid.Column width={6} verticalAlign="middle">
+            <Grid.Column width={4} verticalAlign="middle">
               <Segment basic>
                 <Form>
                   <Form.TextArea
@@ -269,7 +227,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={this.handlePreview}
+                onClick={(e) => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>
@@ -377,3 +335,61 @@ export default class CustomDesign extends Component<Props, State> {
     );
   }
 }
+
+// <Grid.Column stretched verticalAlign="middle">
+//   <Segment basic>
+//     <Header as="h1">Image Duration</Header>
+//     <p>
+//       Select the trial duration. This determines the amount of time
+//       each image will be displayed during the experiment.
+//     </p>
+//   </Segment>
+//   <Segment basic>
+//     <ParamSlider
+//       label="Image Duration (seconds)"
+//       value={this.state.params.trialDuration}
+//       onChange={value =>
+//         this.setState({
+//           params: { ...this.state.params, trialDuration: value }
+//         })
+//       }
+//     />
+//   </Segment>
+// </Grid.Column>
+// <Grid.Column stretched verticalAlign="middle">
+//   <Segment basic>
+//     <Header as="h1">Time Interval</Header>
+//     <p>
+//       Select the inter-trial interval duration. This is the amount
+//       of time between trials measured from the end of one trial to
+//       the start of the next one.
+//     </p>
+//   </Segment>
+//   <Segment basic>
+//     <ParamSlider
+//       label="ITI Duration (seconds)"
+//       value={this.state.params.iti}
+//       onChange={value =>
+//         this.setState({
+//           params: { ...this.state.params, iti: value }
+//         })
+//       }
+//     />
+//   </Segment>
+// </Grid.Column>
+
+
+// <Segment basic>
+//   <Header as="h1">Progress Bar</Header>
+//   <p>
+//     This will display a small progress bar at the top of the
+//     experiment window
+//   </p>
+// </Segment>
+// <Segment basic>
+//   <Checkbox
+//     checked={this.props.params.showProgessBar}
+//     label="Enable progress bar"
+//     onChange={this.handleProgressBar}
+//   />
+// </Segment>

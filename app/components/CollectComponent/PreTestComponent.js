@@ -36,6 +36,7 @@ interface Props {
   trials: { [string]: Trial };
   timelines: {};
   subject: string;
+  group: string;
   session: number;
   openRunComponent: () => void;
 }

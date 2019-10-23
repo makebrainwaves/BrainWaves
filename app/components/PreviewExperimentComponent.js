@@ -66,7 +66,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
     return (
       <ExperimentWindow
       settings={{
-          script: this.props.type,
+          script: this.props.paradigm,
           on_finish: (csv) => {
             this.props.onEnd()
           }

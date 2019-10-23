@@ -7,7 +7,9 @@ import {
 } from '../epics/experimentEpics';
 import {
   SET_TYPE,
+  SET_PARADIGM,
   SET_SUBJECT,
+  SET_GROUP,
   SET_TITLE,
   SET_EXPERIMENT_STATE,
   SET_PARAMS,
@@ -32,6 +34,7 @@ export interface ExperimentStateType {
   +timelines: {};
   +plugins: Object;
   +subject: string;
+  +group: string;
   +session: number;
   +isRunning: boolean;
   +isEEGEnabled: boolean;
@@ -47,6 +50,7 @@ const initialState = {
   timelines: {},
   plugins: {},
   subject: '',
+  group: '',
   session: 1,
   isRunning: false,
   isEEGEnabled: false,
@@ -64,10 +68,22 @@ export default function experiment(
         type: action.payload
       };
 
+    case SET_PARADIGM:
+      return {
+        ...state,
+        paradigm: action.payload
+      };
+
     case SET_SUBJECT:
       return {
         ...state,
         subject: action.payload
+      };
+
+    case SET_GROUP:
+      return {
+        ...state,
+        group: action.payload
       };
 
     case SET_SESSION:

@@ -9,7 +9,8 @@ function mapStateToProps(state) {
     title: state.experiment.title,
     location: state.router.location,
     isRunning: state.experiment.isRunning,
-    type: state.experiment.type
+    type: state.experiment.type,
+    isEEGEnabled: state.experiment.isEEGEnabled
   };
 }
 

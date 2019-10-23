@@ -6,6 +6,9 @@ import { toast } from 'react-toastify';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
 import faceHouseIcon from '../../assets/common/FacesHouses.png';
+import stroopIcon from '../../assets/common/Stroop.png';
+import multitaskingIcon from '../../assets/common/Multitasking.png';
+import searchIcon from '../../assets/common/VisualSearch.png';
 import customIcon from '../../assets/common/Custom.png';
 import appLogo from '../../assets/common/app_logo.png';
 import {
@@ -89,7 +92,8 @@ export default class Home extends Component<Props, State> {
     } else {
       this.props.experimentActions.createNewWorkspace({
         title: experimentType,
-        type: experimentType
+        type: experimentType,
+        paradigm: experimentType
       });
       this.props.history.push(SCREENS.DESIGN.route);
     }
@@ -166,116 +170,114 @@ export default class Home extends Component<Props, State> {
       case HOME_STEPS.NEW:
       default:
         return (
-          <Grid columns="equal" relaxed padded>
-            <Grid.Column>
-              <Segment basic className={styles.descriptionContainer}>
-                <Image src={faceHouseIcon} />
-                <Header as="h1">Faces and Houses</Header>
-                <p>
-                  Explore the N170 event-related potential that is produced in
-                  response to viewing faces. It is called the N170 because it is
-                  a negative, downwards-facing wave that occurs around 170
-                  milliseconds after perceiving a face.
-                </p>
-                <Button
-                  secondary
-                  onClick={() => this.handleOpenOverview(EXPERIMENTS.N170)}
-                >
-                  Review
-                </Button>
-                <Button
-                  primary
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
-                >
-                  Start Experiment
-                </Button>
-              </Segment>
-            </Grid.Column>
-            <Grid.Column>
-              <Segment basic className={styles.descriptionContainer}>
-                <Image src={faceHouseIcon} />
-                <Header as="h1">Stroop</Header>
-                <p>
-                  Investigate the cognitive process of selective attention with
-                  the Stroop Task, a challenging experiment requiring the
-                  subject to name the color of a word instead of reading the
-                  word itself.
-                </p>
-                <Button
-                  secondary
-                  onClick={() => this.handleOpenOverview(EXPERIMENTS.STROOP)}
-                >
-                  Review
-                </Button>
-                <Button secondary>
-                  Customize
-                </Button>
-                <Button
-                  primary
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
-                >
-                  Start Experiment
-                </Button>
-              </Segment>
-            </Grid.Column>
-            <Grid.Column>
-              <Segment basic className={styles.descriptionContainer}>
-                <Image src={faceHouseIcon} />
-                <Header as="h1">Multi-tasking</Header>
-                <p>
-                  The multi-tasking test
-                </p>
-                <Button
-                  secondary
-                  onClick={() => this.handleOpenOverview(EXPERIMENTS.MULTI)}
-                >
-                  Review
-                </Button>
-                <Button
-                  primary
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
-                >
-                  Start Experiment
-                </Button>
-              </Segment>
-            </Grid.Column>
-            <Grid.Column>
-              <Segment basic className={styles.descriptionContainer}>
-                <Image src={faceHouseIcon} />
-                <Header as="h1">Attention</Header>
-                <p>
-                  The visual search task
-                </p>
-                <Button
-                  secondary
-                  onClick={() => this.handleOpenOverview(EXPERIMENTS.SEARCH)}
-                >
-                  Review
-                </Button>
-                <Button
-                  primary
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
-                >
-                  Start Experiment
-                </Button>
-              </Segment>
-            </Grid.Column>
-            <Grid.Column>
-              <Segment basic className={styles.descriptionContainer}>
-                <Image src={customIcon} />
-                <Header as="h1">Custom</Header>
-                <p>Design your own EEG experiment!</p>
-                <Button secondary disabled>
-                  Review
-                </Button>
-                <Button
-                  primary
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
-                >
-                  Start Experiment
-                </Button>
-              </Segment>
-            </Grid.Column>
+          <Grid columns="two" relaxed padded>
+            <Grid.Row>
+              <Grid.Column>
+                <Segment>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+                  >
+                    <Grid.Row>
+                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                        <Image src={faceHouseIcon} />
+                      </Grid.Column>
+                      <Grid.Column width={12} className={styles.descriptionContainer}>
+                        <Header as="h1" className={styles.experimentCardHeader}>Faces/Houses</Header>
+                        <div className={styles.experimentCardDescription}>
+                          <p>
+                            Explore the N170 event-related potential that is produced in
+                            response to viewing faces. It is called the N170 because it is
+                            a negative, downwards-facing wave that occurs around 170
+                            milliseconds after perceiving a face.
+                          </p>
+                        </div>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+
+              </Grid.Column>
+
+              <Grid.Column>
+                <Segment>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
+                  >
+                    <Grid.Row>
+                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                        <Image src={stroopIcon} />
+                      </Grid.Column>
+                      <Grid.Column width={12} className={styles.descriptionContainer}>
+                        <Header as="h1" className={styles.experimentCardHeader}>Stroop</Header>
+                        <div className={styles.experimentCardDescription}>
+                          <p>
+                            Investigate the cognitive process of selective attention with
+                            the Stroop Task, a challenging experiment requiring the
+                            subject to name the color of a word instead of reading the
+                            word itself.
+                          </p>
+                        </div>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+              </Grid.Column>
+
+            </Grid.Row>
+
+            <Grid.Row>
+              <Grid.Column>
+                <Segment>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
+                  >
+                    <Grid.Row>
+                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                        <Image src={multitaskingIcon} />
+                      </Grid.Column>
+                      <Grid.Column width={12} className={styles.descriptionContainer}>
+                        <Header as="h1" className={styles.experimentCardHeader}>Multi-tasking</Header>
+                        <div className={styles.experimentCardDescription}>
+                          <p>
+                            The multi-tasking test
+                          </p>
+                        </div>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+              </Grid.Column>
+
+              <Grid.Column>
+                <Segment>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
+                  >
+                    <Grid.Row>
+                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                        <Image src={searchIcon} />
+                      </Grid.Column>
+                      <Grid.Column width={12} className={styles.descriptionContainer}>
+                        <Header as="h1" className={styles.experimentCardHeader}>Attention</Header>
+                        <div className={styles.experimentCardDescription}>
+                          <p>
+                            The visual search task
+                          </p>
+                        </div>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+              </Grid.Column>
+            </Grid.Row>
           </Grid>
         );
     }
