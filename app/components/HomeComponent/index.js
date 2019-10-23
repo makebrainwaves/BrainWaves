@@ -187,10 +187,7 @@ export default class Home extends Component<Props, State> {
                         <Header as="h1" className={styles.experimentCardHeader}>Faces/Houses</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Explore the N170 event-related potential that is produced in
-                            response to viewing faces. It is called the N170 because it is
-                            a negative, downwards-facing wave that occurs around 170
-                            milliseconds after perceiving a face.
+                            Explore how people react to different kinds of images.
                           </p>
                         </div>
                       </Grid.Column>
@@ -215,10 +212,7 @@ export default class Home extends Component<Props, State> {
                         <Header as="h1" className={styles.experimentCardHeader}>Stroop</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Investigate the cognitive process of selective attention with
-                            the Stroop Task, a challenging experiment requiring the
-                            subject to name the color of a word instead of reading the
-                            word itself.
+                            Investigate why it is hard to name the color of the word "RED" when it is printed in blue.
                           </p>
                         </div>
                       </Grid.Column>
@@ -245,7 +239,7 @@ export default class Home extends Component<Props, State> {
                         <Header as="h1" className={styles.experimentCardHeader}>Multi-tasking</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            The multi-tasking test
+                            Explore why it is challenging to carry out multiple tasks at the same time.
                           </p>
                         </div>
                       </Grid.Column>
@@ -266,10 +260,10 @@ export default class Home extends Component<Props, State> {
                         <Image src={searchIcon} />
                       </Grid.Column>
                       <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as="h1" className={styles.experimentCardHeader}>Attention</Header>
+                        <Header as="h1" className={styles.experimentCardHeader}>Visual Search</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            The visual search task
+                            Examine why it is hard to find your keys in a messy room.
                           </p>
                         </div>
                       </Grid.Column>
