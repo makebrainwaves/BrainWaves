@@ -10,6 +10,7 @@ import { buildSSVEPTimeline } from './timelines/ssvep';
 import { buildStroopTimeline } from './timelines/stroop';
 import { buildMultiTimeline } from './timelines/multi';
 import { buildSearchTimeline } from './timelines/search';
+import { buildCustomLine } from './timelines/custom';
 
 import {
   MainTimeline,
@@ -34,9 +35,10 @@ lsl.append_child_value(channel, 'type', 'Marker');
 const outlet = lsl.create_outlet(info, 0, 360);
 
 // loads a normalized timeline for the default experiments with specific callback fns
-export const loadTimeline = (type: EXPERIMENTS) => {
+export const loadTimeline = (paradigm: EXPERIMENTS) => {
+  console.log('paradigm', paradigm)
   let timeline;
-  switch (type) {
+  switch (paradigm) {
     case EXPERIMENTS.P300:
       timeline = buildOddballTimeline();
       break;
@@ -59,6 +61,10 @@ export const loadTimeline = (type: EXPERIMENTS) => {
 
     case EXPERIMENTS.SEARCH:
       timeline = buildSearchTimeline();
+      break;
+
+    case EXPERIMENTS.CUSTOM:
+      timeline = buildN170Timeline();
       break;
 
     default:
