@@ -6,10 +6,6 @@ const studyObject = {
   "plugins": [
     {
       "type": "lab.plugins.Metadata"
-    },
-    {
-      "type": "lab.plugins.Download",
-      "filePrefix": "visual-search"
     }
   ],
   "metadata": {
@@ -321,7 +317,7 @@ if(this.parameters.target === 'yes'){
 ) {
 this.data.trial_number = 1 + parseInt(this.options.id.split('_')[this.options.id.split('_').length-2]);
 
-this.data.condition = this.parameters.target === 'yes' ? 'Target' : 'No target';
+this.data.condition = this.parameters.size + ' letters';
 
 this.data.reaction_time = this.state.duration;
 
@@ -342,14 +338,11 @@ this.data.response_given = this.state.response === 'noresponse' ? 'no' : 'yes';
           },
           {
             "type": "lab.html.Screen",
-            "files": {
-              "grid.gif": "./utils/labjs/scripts/visualsearch/grid.gif"
-            },
+            "files": {},
             "parameters": {},
             "responses": {},
             "messageHandlers": {},
             "title": "Grid",
-            "content": "\u003Cheader\u003E\n\n\u003C\u002Fheader\u003E\n\n\u003Cmain class=\"content-vertical-center content-horizontal-center\"\u003E\n\n  \u003Cimg src=${this.files['grid.gif']} style=\"height: 400px; width: auto;\"\u003E\n\n\u003C\u002Fmain\u003E\n\n",
             "timeout": "500"
           }
         ]
@@ -5744,6 +5737,5 @@ this.data.response_given = this.state.response === 'noresponse' ? 'no' : 'yes';
     }
   ]
 }
-
 // export
 export default studyObject;
