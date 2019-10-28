@@ -15,11 +15,12 @@ import { EEGData } from "../../constants/interfaces";
 export const createEEGWriteStream = (
   title: string,
   subject: string,
+  group: string,
   session: number
 ) => {
   try {
     const dir = path.join(getWorkspaceDir(title), "Data", subject, "EEG");
-    const filename = `${subject}-${session}-raw.csv`;
+    const filename = `${subject}-${group}-${session}-raw.csv`;
     mkdirPathSync(dir);
     return fs.createWriteStream(path.join(dir, filename));
   } catch (e) {

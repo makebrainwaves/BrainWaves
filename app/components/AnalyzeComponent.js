@@ -33,9 +33,13 @@ import JupyterPlotWidget from './JupyterPlotWidget';
 import HelpSidebar from './CollectComponent/HelpSidebar';
 
 const ANALYZE_STEPS = {
+  BEHAVIOR: 'BEHAVIOR',
   OVERVIEW: 'OVERVIEW',
-  ERP: 'ERP',
-  BEHAVIOR: 'BEHAVIOR'
+  ERP: 'ERP'
+};
+
+const ANALYZE_STEPS_BEHAVIOR = {
+  BEHAVIOR: 'BEHAVIOR',
 };
 
 interface Props {
@@ -97,19 +101,19 @@ export default class Analyze extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: ANALYZE_STEPS.OVERVIEW,
+      activeStep: ANALYZE_STEPS.BEHAVIOR,
       eegFilePaths: [{ key: '', text: '', value: '' }],
       behaviorFilePaths: [{ key: '', text: '', value: '' }],
       dependentVariables: [{ key: '', text: '', value: '' }],
       dataToPlot:[],
       layout: {},
       selectedDependentVariable: '',
-      removeOutliers: false,
+      removeOutliers: true,
       showDataPoints: false,
       isSidebarVisible: false,
       // displayOutlierVisible: false,
-      displayMode: 'datapoints',
-      helpMode: 'datapoints',
+      displayMode: 'errorbars',
+      helpMode: 'errorbars',
       selectedFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
@@ -572,7 +576,7 @@ export default class Analyze extends Component<Props, State> {
       <div className={styles.mainContainer}>
         <SecondaryNavComponent
           title="Analyze"
-          steps={ANALYZE_STEPS}
+          steps={this.props.isEEGEnabled === true ? ANALYZE_STEPS : ANALYZE_STEPS_BEHAVIOR}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />
