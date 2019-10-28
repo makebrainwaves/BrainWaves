@@ -43,7 +43,8 @@ export default class OverviewComponent extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  handlePreview() {
+  handlePreview(e) {
+    e.target.blur();
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
@@ -58,25 +59,26 @@ export default class OverviewComponent extends Component<Props, State> {
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
-              width={10}
+              width={12}
               textAlign="right"
               verticalAlign="middle"
               className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
-                {...loadTimeline(this.props.type)}
+                {...loadTimeline(this.props.paradigm)}
                 isPreviewing={this.state.isPreviewing}
                 onEnd={this.endPreview}
                 type={this.props.type}
+                paradigm={this.props.paradigm}
               />
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
+            <Grid.Column stretched width={4} verticalAlign="middle">
               <Segment as="p" basic>
                 {this.props.protocol}
               </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={this.handlePreview}
+                onClick={(e) => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>

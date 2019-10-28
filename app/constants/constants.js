@@ -15,7 +15,8 @@ export const SCREENS = {
   COLLECT: { route: '/collect', title: 'COLLECT', order: 2 },
   RUN: { route: '/run', title: 'RUN', order: 5 },
   CLEAN: { route: '/clean', title: 'CLEAN', order: 3 },
-  ANALYZE: { route: '/analyze', title: 'ANALYZE', order: 4 }
+  ANALYZE: { route: '/analyze', title: 'ANALYZE', order: 4 },
+  ANALYZEBEHAVIOR: { route: '/analyze', title: 'ANALYZE', order: 3 }
 };
 
 export const DEVICES = {

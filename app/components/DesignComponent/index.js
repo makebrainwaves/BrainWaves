@@ -5,6 +5,9 @@ import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
+  readWorkspaces
+} from '../../utils/filesystem/storage';
+import {
   MainTimeline,
   Trial,
   ExperimentParameters,
@@ -14,7 +17,16 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import CustomDesign from './CustomDesignComponent';
 import PreviewButton from '../PreviewButtonComponent';
+
 import facesHousesOverview from '../../assets/common/FacesHouses_Overview.png';
+import stroopOverview from '../../assets/common/Stroop.png';
+import multitaskingOverview from '../../assets/common/Multitasking.png';
+import searchOverview from '../../assets/common/VisualSearch.png';
+import customOverview from '../../assets/common/Custom.png';
+
+import { loadTimeline } from '../../utils/jspsych/functions';
+import { toast } from 'react-toastify';
+import InputModal from '../InputModal';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -25,6 +37,7 @@ const DESIGN_STEPS = {
 interface Props {
   history: Object;
   type: EXPERIMENTS;
+  paradigm: EXPERIMENTS;
   title: string;
   params: ExperimentParameters;
   mainTimeline: MainTimeline;
@@ -37,6 +50,8 @@ interface Props {
 interface State {
   activeStep: string;
   isPreviewing: boolean;
+  isNewExperimentModalOpen: boolean;
+  recentWorkspaces: Array<string>;
 }
 
 export default class Design extends Component<Props, State> {
@@ -44,20 +59,31 @@ export default class Design extends Component<Props, State> {
   state: State;
   handleStepClick: (Object, Object) => void;
   handleStartExperiment: Object => void;
-  handlePreview: () => void;
+  handleCustomizeExperiment: Object => void;
+  handlePreview: (Object) => void;
+  handleLoadCustomExperiment: string => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
       activeStep: DESIGN_STEPS.OVERVIEW,
-      isPreviewing: false
+      isPreviewing: false,
+      isNewExperimentModalOpen: false,
+      recentWorkspaces: [],
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
+    this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
+    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
+    this.endPreview = this.endPreview.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
     }
+  }
+
+  componentDidMount() {
+    this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
   handleStepClick(step: string) {
@@ -68,8 +94,63 @@ export default class Design extends Component<Props, State> {
     this.props.history.push(SCREENS.COLLECT.route);
   }
 
-  handlePreview() {
+  handleCustomizeExperiment(){
+    this.setState({
+      isNewExperimentModalOpen: true
+    });
+  }
+
+  handleLoadCustomExperiment(title: string) {
+    this.setState({ isNewExperimentModalOpen: false });
+    // Don't create new workspace if it already exists or title is too short
+    if (this.state.recentWorkspaces.includes(title)) {
+      toast.error(`Experiment already exists`);
+      return;
+    }
+    if (title.length <= 3) {
+      toast.error(`Experiment name is too short`);
+      return;
+    }
+    console.log('paradigm', this.props.paradigm)
+    this.props.experimentActions.createNewWorkspace({
+      title,
+      type: EXPERIMENTS.CUSTOM,
+      paradigm: this.props.paradigm
+    });
+  }
+
+  handlePreview(e) {
+    e.target.blur();
     this.setState({ isPreviewing: !this.state.isPreviewing });
+  }
+
+  endPreview() {
+    this.setState({ isPreviewing: false });
+  }
+
+  renderOverviewIcon(type) {
+    switch (type) {
+      case EXPERIMENTS.N170:
+        return facesHousesOverview;
+        break;
+
+      case EXPERIMENTS.STROOP:
+        return stroopOverview;
+        break;
+
+      case EXPERIMENTS.MULTI:
+        return multitaskingOverview;
+        break;
+
+      case EXPERIMENTS.SEARCH:
+        return searchOverview;
+        break;
+
+      case EXPERIMENTS.CUSTOM:
+      default:
+        return customOverview;
+        break;
+    }
   }
 
   renderSectionContent() {
@@ -83,20 +164,11 @@ export default class Design extends Component<Props, State> {
               textAlign="right"
               verticalAlign="middle"
             >
-              <Header as="h1">The N170 ERP</Header>
+            <Header as="h1">{this.props.background_title}</Header>
             </Grid.Column>
             <Grid.Column stretched width={6} verticalAlign="middle">
               <Segment basic>
-              <p>The N170 is a large negative event-related potential (ERP)
-                component that occurs around 170ms after the detection of faces, but not
-                objects, scrambled faces, or other body parts such as hands. The
-                The N170 is most easily detected at lateral posterior electrodes.</p>
-              <p>Although there is no consensus on the specific source of the N170, researchers
-                believe it is related to activity in the fusiform face area, an
-                area of the brain that shows a similar response pattern and is
-                involved in encoding the holistic representation of a face (i.e
-                eyes, nose mouth all arranged in the appropriate way).</p>
-
+                {this.props.background}
               </Segment>
 
             </Grid.Column>
@@ -107,30 +179,26 @@ export default class Design extends Component<Props, State> {
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
-              width={6}
+              width={12}
               textAlign="right"
               verticalAlign="middle"
               className={styles.jsPsychColumn}
             >
               <PreviewExperimentComponent
-                params={this.props.params}
-                mainTimeline={this.props.mainTimeline}
-                trials={this.props.trials}
-                timelines={this.props.timelines}
+                {...loadTimeline(this.props.paradigm)}
                 isPreviewing={this.state.isPreviewing}
+                onEnd={this.endPreview}
+                type={this.props.type}
+                paradigm={this.props.paradigm}
               />
             </Grid.Column>
-            <Grid.Column width={6} verticalAlign="middle">
-              <p>
-                Subjects will view a series of images of{' '}
-                <b> faces and houses</b> for <b>120 seconds</b>
-              </p>
-              <p>
-                Subjects will mentally note which stimulus they are perceiving
-              </p>
+            <Grid.Column width={4} verticalAlign="middle">
+              <Segment as="p" basic>
+                {this.props.protocol}
+              </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={this.handlePreview}
+                onClick={(e) => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>
@@ -141,7 +209,7 @@ export default class Design extends Component<Props, State> {
           <Grid stretched relaxed padded className={styles.contentGrid}>
             <Grid.Column width={3}>
               <Segment basic padded>
-                <Image src={facesHousesOverview} />
+                <Image src={this.renderOverviewIcon(this.props.type)} />
               </Segment>
             </Grid.Column>
             <Grid.Column
@@ -154,10 +222,7 @@ export default class Design extends Component<Props, State> {
             </Grid.Column>
             <Grid.Column stretched width={6} verticalAlign="middle">
               <Segment as="p" basic>
-                Faces contain a lot of information that is relevant to our
-                survival. It
-                {"'"}s important to be able to quickly recognize people you can
-                trust and read emotions in both strangers and people you know
+                {this.props.overview}
               </Segment>
             </Grid.Column>
           </Grid>
@@ -176,6 +241,11 @@ export default class Design extends Component<Props, State> {
           steps={DESIGN_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
+          customizeButton={
+            <Button secondary onClick={this.handleCustomizeExperiment}>
+              Customize
+            </Button>
+          }
           button={
             <Button primary onClick={this.handleStartExperiment}>
               Collect Data
@@ -183,6 +253,12 @@ export default class Design extends Component<Props, State> {
           }
         />
         {this.renderSectionContent()}
+        <InputModal
+          open={this.state.isNewExperimentModalOpen}
+          onClose={this.handleLoadCustomExperiment}
+          onExit={() => this.setState({ isNewExperimentModalOpen: false })}
+          header="Enter a title for this experiment"
+        />
       </div>
     );
   }

@@ -34,6 +34,7 @@ interface Props {
   trials: { [string]: Trial };
   timelines: {};
   subject: string;
+  group: string;
   session: number;
   deviceType: DEVICES;
   isEEGEnabled: boolean;
@@ -42,6 +43,7 @@ interface Props {
 
 interface State {
   isInputModalOpen: boolean;
+  isGroupInputModalOpen: boolean;
 }
 
 export default class Run extends Component<Props, State> {
@@ -52,18 +54,21 @@ export default class Run extends Component<Props, State> {
   handleStartExperiment: () => void;
   handleTimeline: () => void;
   handleCloseInputModal: () => void;
+  handleCloseGroupInputModal: () => void;
   handleClean: () => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
-      isInputModalOpen: props.subject.length === 0
+      isInputModalOpen: props.subject.length === 0,
+      isGroupInputModalOpen: false
     };
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleTimeline = this.handleTimeline.bind(this);
     this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
+    this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(this);
   }
 
   componentDidMount() {
@@ -92,6 +97,11 @@ export default class Run extends Component<Props, State> {
   handleCloseInputModal(name: string) {
     this.props.experimentActions.setSubject(name);
     this.setState({ isInputModalOpen: false });
+  }
+
+  handleCloseGroupInputModal(name: string) {
+    this.props.experimentActions.setGroup(name);
+    this.setState({ isGroupInputModalOpen: false });
   }
 
   handleTimeline() {
@@ -144,6 +154,7 @@ export default class Run extends Component<Props, State> {
             basic
             textAlign="left"
             className={styles.descriptionContainer}
+            vertical
           >
             <Header as="h1">{this.props.type}</Header>
             <Segment basic className={styles.infoSegment}>
@@ -157,6 +168,19 @@ export default class Run extends Component<Props, State> {
                 onClick={() => this.setState({ isInputModalOpen: true })}
               />
             </Segment>
+
+            <Segment basic className={styles.infoSegment}>
+              Group Name: <b>{this.props.group}</b>
+              <Button
+                basic
+                circular
+                size="huge"
+                icon="edit"
+                className={styles.closeButton}
+                onClick={() => this.setState({ isGroupInputModalOpen: true })}
+              />
+            </Segment>
+
             <Segment basic className={styles.infoSegment}>
               Session Number: <b>{this.props.session}</b>
             </Segment>
@@ -175,7 +199,7 @@ export default class Run extends Component<Props, State> {
     }
     return (
       <ExperimentWindow settings={{
-          script: this.props.type,
+          script: this.props.paradigm,
           on_finish: (csv) => {
             this.props.experimentActions.stop({data: csv});
           }
@@ -200,6 +224,12 @@ export default class Run extends Component<Props, State> {
           onClose={this.handleCloseInputModal}
           onExit={() => this.setState({ isInputModalOpen: false })}
           header="Enter Subject Name"
+        />
+        <InputModal
+          open={this.state.isGroupInputModalOpen}
+          onClose={this.handleCloseGroupInputModal}
+          onExit={() => this.setState({ isGroupInputModalOpen: false })}
+          header="Enter Group Name"
         />
       </div>
     );

@@ -1,5 +1,9 @@
 /* Secondary Nav related styles */
 
+.secondaryNavContainer {
+  margin-bottom: 0px !important;
+}
+
 .secondaryNavSegment {
   display: flex !important;
   justify-content: center;

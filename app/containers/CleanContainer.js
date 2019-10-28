@@ -10,6 +10,7 @@ function mapStateToProps(state) {
     type: state.experiment.type,
     title: state.experiment.title,
     subject: state.experiment.subject,
+    group: state.experiment.group,
     session: state.experiment.session,
     deviceType: state.device.deviceType,
     ...state.jupyter

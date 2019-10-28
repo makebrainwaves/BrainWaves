@@ -66,23 +66,11 @@ export default class PreviewExperimentComponent extends Component<Props> {
     return (
       <ExperimentWindow
       settings={{
-          script: this.props.type,
+          script: this.props.paradigm,
           on_finish: (csv) => {
             this.props.onEnd()
           }
         }} />
-      // <Experiment
-      //   settings={{
-      //     timeline: this.handleTimeline(),
-      //     show_progress_bar: this.props.params.showProgessBar,
-      //     auto_update_progress_bar: false,
-      //     preload_images: this.handleImages()
-      //   }}
-      //   plugins={{
-      //     'callback-image-display': callbackImageDisplay,
-      //     'callback-html-display': callbackHTMLDisplay
-      //   }}
-      // />
     );
   }
 }
