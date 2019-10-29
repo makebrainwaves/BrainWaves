@@ -91,7 +91,9 @@ app.on('ready', async () => {
   });
 
   mainWindow.setMenu(null);
-  mainWindow.toggleDevTools();
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.toggleDevTools();
+  }
   // const menuBuilder = new MenuBuilder(mainWindow);
   // menuBuilder.buildMenu();
 });
