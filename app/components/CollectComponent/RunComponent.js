@@ -133,7 +133,7 @@ export default class Run extends Component<Props, State> {
   }
 
   renderCleanButton() {
-    if (this.props.session > 1) {
+    if (this.props.session > 1 && this.props.isEEGEnabled) {
       return (
         <Grid.Column>
           <Link to="/clean">

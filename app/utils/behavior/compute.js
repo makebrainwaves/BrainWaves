@@ -28,9 +28,8 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
       }
       const row = {
         subject: e.map(r => r.subject)[0],
-        session: e.map(r => r.session)[0],
-        response_given: 'yes',
-        correct_response: 'true'
+        group: e.map(r => r.group)[0],
+        session: e.map(r => r.session)[0]
       }
       for(let condition of conditions){
         row['RT_' + condition] = rtMean[condition];
@@ -48,7 +47,6 @@ export const aggregateDataForPlot = (data, dependentVariable, removeOutliers, sh
         return transformAggregated(result)
       }
         return filterData(result, removeOutliers)
-
     });
     const colors = ['#28619E','#3DBBDB'];
     const unsortedConditions = [... new Set(processedData[0].map(row => row.condition))].sort();
@@ -70,10 +68,11 @@ const transformAggregated = (result) => {
         reaction_time: parseFloat(e[`RT_${condition}`]),
         subject: result.meta.datafile.split('/').pop().split('.csv')[0],
         condition,
+        group: e.group,
         session: e.session,
         accuracy: parseFloat(e[`Accuracy_${condition}`]),
-        response_given: e.response_given,
-        correct_response: e.correct_response
+        response_given: 'yes',
+        correct_response: 'true'
       })));
   const data = transformed.reduce( (acc, item) => acc.concat(item), []);
   return data
@@ -85,13 +84,13 @@ const filterData = (data, removeOutliers) => {
       .map(row => ({
           condition: row.condition,
           subject: data.meta.datafile.split('/').pop().split('-')[0],
-          session: data.meta.datafile.split('/').pop().split('-')[1],
-          reaction_time: parseFloat(row.reaction_time),
+          group: data.meta.datafile.split('/').pop().split('-')[1],
+          session: data.meta.datafile.split('/').pop().split('-')[2],
+          reaction_time: Math.round(parseFloat(row.reaction_time)),
           correct_response: row.correct_response,
           trial_number: row.trial_number,
           response_given: row.response_given
         }))
-      // .filter(row => row.reaction_time > 0 && row.correct)
   if(removeOutliers){
     const mean = ss.mean(filteredData.filter(r => r.response_given === 'yes' && r.correct_response === 'true').map(r => r.reaction_time));
     const standardDeviation = ss.sampleStandardDeviation(filteredData.filter(r => r.response_given === 'yes' && r.correct_response === 'true').map(r => r.reaction_time));
@@ -137,10 +136,10 @@ const computeRT = (data, dependentVariable, conditions, showDataPoints, colors, 
             d => d.filter(e => e.subject === a)
           ).filter(d => d.length > 0)
         );
-        const y = y_bars_prep.map(y => ss.mean(y.reduce((a, b) => a.concat(b), []).map(r => r.reaction_time)));
+        const y = y_bars_prep.map(y => ss.mean(y.reduce((a, b) => a.concat(b), []).map(r => r.reaction_time))).map(v => Math.round(v));
         maxValue = Math.max(...y) > maxValue ? Math.max(...y) : maxValue;
         const stErrorFunction = (array) => ss.sampleStandardDeviation(array) / Math.sqrt(array.length);
-        const stErrors = data_condition.map(a => a.length  > 1 ? stErrorFunction(a.map(r => r.reaction_time)) : 0);
+        const stErrors = data_condition.map(a => a.length  > 1 ? stErrorFunction(a.map(r => r.reaction_time)) : 0).map(v => Math.round(v));
         maxValueSE = Math.max(...stErrors) > maxValueSE ? Math.max(...stErrors) : maxValueSE;
         obj[condition] = { x, y, stErrors };
         return obj;

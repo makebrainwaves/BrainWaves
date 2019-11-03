@@ -6,6 +6,10 @@ const studyObject = {
   "plugins": [
     {
       "type": "lab.plugins.Metadata"
+    },
+    {
+      "type": "lab.plugins.Download",
+      "filePrefix": "stroop-task"
     }
   ],
   "metadata": {
@@ -22,10 +26,11 @@ const studyObject = {
       "messageHandlers": {},
       "type": "lab.html.Screen",
       "responses": {
-        "keypress(Space)": "continue"
+        "keypress(Space)": "continue",
+        "keypress(q)": "skipPractice"
       },
       "title": "Instruction",
-      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EStroop Task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n  \u003Cp\u003E\n    Welcome to the \u003Cstrong\u003EStroop experiment\u003C\u002Fstrong\u003E!\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this experiment, your task will be to \n    \u003Cstrong\u003Eidentify the color of the word shown \n    on the screen\u003C\u002Fstrong\u003E.\u003Cbr\u003E\n    The word itself is immaterial &mdash; \n    you can safely ignore it.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    To indicate the color of the word, \n    please use the keys \u003Cstrong\u003Er\u003C\u002Fstrong\u003E, \n    \u003Cstrong\u003Eg\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eb\u003C\u002Fstrong\u003E and \n    \u003Cstrong\u003Ey\u003C\u002Fstrong\u003E for \n    \u003Cspan style=\"color: red;\"\u003Ered\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: green;\"\u003Egreen\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: blue;\"\u003Eblue\u003C\u002Fspan\u003E and \n    \u003Cspan style=\"color: #ffe32a;\"\u003Eyellow\u003C\u002Fspan\u003E, \n    respectively.\u003Cbr\u003E\n    Please answer quickly, and as \n    accurately as you can.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\u003Cfooter class=\"content-vertical-center content-horizontal-center\"\u003E\n  Please press the space bar when you're ready.\n\u003C\u002Ffooter\u003E\n",
+      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EStroop Task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n  \u003Cp\u003E\n    Welcome to the \u003Cstrong\u003EStroop experiment\u003C\u002Fstrong\u003E!\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this experiment, your task will be to \n    \u003Cstrong\u003Eidentify the color of the word shown \n    on the screen\u003C\u002Fstrong\u003E.\u003Cbr\u003E\n    The word itself is immaterial &mdash; \n    you can safely ignore it.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    To indicate the color of the word, \n    please use the keys \u003Cstrong\u003Er\u003C\u002Fstrong\u003E, \n    \u003Cstrong\u003Eg\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eb\u003C\u002Fstrong\u003E and \n    \u003Cstrong\u003Ey\u003C\u002Fstrong\u003E for \n    \u003Cspan style=\"color: red;\"\u003Ered\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: green;\"\u003Egreen\u003C\u002Fspan\u003E, \n    \u003Cspan style=\"color: blue;\"\u003Eblue\u003C\u002Fspan\u003E and \n    \u003Cspan style=\"color: #ffe32a;\"\u003Eyellow\u003C\u002Fspan\u003E, \n    respectively.\u003Cbr\u003E\n    Please answer quickly, and as \n    accurately as you can.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Press the the space bar on your keyboard to start doing the practice trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    If you want to skip the practice trials and go directly to the task, press the \"q\" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\u003Cfooter class=\"content-vertical-center content-horizontal-center\"\u003E\n  \n\u003C\u002Ffooter\u003E\n\n\n",
       "parameters": {},
       "files": {}
     },
@@ -38,6 +43,8 @@ const studyObject = {
       "responses": {},
       "messageHandlers": {},
       "title": "Practice frame",
+      "tardy": true,
+      "skip": "${ state.response === 'skipPractice' }",
       "content": {
         "messageHandlers": {},
         "type": "lab.flow.Loop",
@@ -61,6 +68,26 @@ const studyObject = {
           {
             "color": "#ffe32a",
             "word": "yellow",
+            "phase": "practice"
+          },
+          {
+            "color": "red",
+            "word": "green",
+            "phase": "practice"
+          },
+          {
+            "color": "green",
+            "word": "blue",
+            "phase": "practice"
+          },
+          {
+            "color": "blue",
+            "word": "yellow",
+            "phase": "practice"
+          },
+          {
+            "color": "#ffe32a",
+            "word": "red",
             "phase": "practice"
           }
         ],
@@ -217,7 +244,56 @@ this.data.correct = 'empty'
             },
             {
               "type": "lab.canvas.Screen",
-              "content": [],
+              "content": [
+                {
+                  "type": "i-text",
+                  "version": "2.7.0",
+                  "originX": "center",
+                  "originY": "center",
+                  "left": 0,
+                  "top": "${ parameters.phase == 'practice' ? 0 : 1000 }",
+                  "width": 1246.91,
+                  "height": 58.76,
+                  "fill": "${ state.correct ? 'green' : 'red' }",
+                  "stroke": null,
+                  "strokeWidth": 1,
+                  "strokeDashArray": null,
+                  "strokeLineCap": "butt",
+                  "strokeDashOffset": 0,
+                  "strokeLineJoin": "round",
+                  "strokeMiterLimit": 4,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "angle": 0,
+                  "flipX": false,
+                  "flipY": false,
+                  "opacity": 1,
+                  "shadow": null,
+                  "visible": true,
+                  "clipTo": null,
+                  "backgroundColor": "",
+                  "fillRule": "nonzero",
+                  "paintFirst": "fill",
+                  "globalCompositeOperation": "source-over",
+                  "transformMatrix": null,
+                  "skewX": 0,
+                  "skewY": 0,
+                  "text": "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
+                  "fontSize": "52",
+                  "fontWeight": "bold",
+                  "fontFamily": "sans-serif",
+                  "fontStyle": "normal",
+                  "lineHeight": 1.16,
+                  "underline": false,
+                  "overline": false,
+                  "linethrough": false,
+                  "textAlign": "center",
+                  "textBackgroundColor": "",
+                  "charSpacing": 0,
+                  "id": "24",
+                  "styles": {}
+                }
+              ],
               "files": {},
               "parameters": {},
               "responses": {},
@@ -247,12 +323,23 @@ this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
                 600
               ],
               "title": "Inter-trial interval",
-              "timeout": "500",
+              "timeout": "${ parameters.phase == 'practice' ? 1000 : 500 }",
               "tardy": true
             }
           ]
         }
       }
+    },
+    {
+      "messageHandlers": {},
+      "type": "lab.html.Screen",
+      "responses": {
+        "keypress(Space)": "continue"
+      },
+      "title": "Main task",
+      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EReady for the real data collection?\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n    Press the the space bar to start the main task.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fmain\u003E\n\u003Cfooter class=\"content-vertical-center content-horizontal-center\"\u003E\n  \n\u003C\u002Ffooter\u003E\n\n\n",
+      "parameters": {},
+      "files": {}
     },
     {
       "type": "lab.canvas.Frame",
@@ -567,7 +654,56 @@ this.data.correct = 'empty'
             },
             {
               "type": "lab.canvas.Screen",
-              "content": [],
+              "content": [
+                {
+                  "type": "i-text",
+                  "version": "2.7.0",
+                  "originX": "center",
+                  "originY": "center",
+                  "left": 0,
+                  "top": "${ parameters.phase == 'practice' ? 0 : 1000 }",
+                  "width": 1246.91,
+                  "height": 58.76,
+                  "fill": "${ state.correct ? 'green' : 'red' }",
+                  "stroke": null,
+                  "strokeWidth": 1,
+                  "strokeDashArray": null,
+                  "strokeLineCap": "butt",
+                  "strokeDashOffset": 0,
+                  "strokeLineJoin": "round",
+                  "strokeMiterLimit": 4,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "angle": 0,
+                  "flipX": false,
+                  "flipY": false,
+                  "opacity": 1,
+                  "shadow": null,
+                  "visible": true,
+                  "clipTo": null,
+                  "backgroundColor": "",
+                  "fillRule": "nonzero",
+                  "paintFirst": "fill",
+                  "globalCompositeOperation": "source-over",
+                  "transformMatrix": null,
+                  "skewX": 0,
+                  "skewY": 0,
+                  "text": "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
+                  "fontSize": "52",
+                  "fontWeight": "bold",
+                  "fontFamily": "sans-serif",
+                  "fontStyle": "normal",
+                  "lineHeight": 1.16,
+                  "underline": false,
+                  "overline": false,
+                  "linethrough": false,
+                  "textAlign": "center",
+                  "textBackgroundColor": "",
+                  "charSpacing": 0,
+                  "id": "24",
+                  "styles": {}
+                }
+              ],
               "files": {},
               "parameters": {},
               "responses": {},
@@ -597,7 +733,7 @@ this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
                 600
               ],
               "title": "Inter-trial interval",
-              "timeout": "500",
+              "timeout": "${ parameters.phase == 'practice' ? 1000 : 500 }",
               "tardy": true
             }
           ]
@@ -607,10 +743,11 @@ this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
     {
       "messageHandlers": {},
       "type": "lab.html.Screen",
-      "responses": {},
+      "responses": {
+        "keypress(Space)": "end"
+      },
       "title": "Thanks",
-      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \u003Ch1\u003EThank you!\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Cp\u003E\n    You did a great job, thanks for taking the time!\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\n",
-      "timeout": "1000",
+      "content": "\u003Cheader class=\"content-vertical-center content-horizontal-center\"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n",
       "parameters": {},
       "files": {}
     }

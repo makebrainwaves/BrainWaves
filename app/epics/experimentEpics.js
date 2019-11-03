@@ -142,23 +142,6 @@ const experimentStopEpic = (action$, state$) =>
     mergeMap(() => of(setIsRunning(false), updateSession()))
   );
 
-  // const experimentStopEpic = (action$, state$) =>
-  //   action$.ofType(STOP).pipe(
-  //     filter( ({payload}) => {
-  //       return state$.value.experiment.isRunning
-  //     }),
-  //     map(getBehaviouralData),
-  //     map(csv =>
-  //       storeBehaviouralData(
-  //         csv,
-  //         state$.value.experiment.title,
-  //         state$.value.experiment.subject,
-  //         state$.value.experiment.session
-  //       )
-  //     ),
-  //     mergeMap(() => of(setIsRunning(false), updateSession()))
-  //   );
-
 const setSubjectEpic = action$ =>
   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
 
@@ -174,8 +157,7 @@ const updateSessionEpic = (action$, state$) =>
       if (behaviorFiles.length > 0) {
         const subjectFiles = behaviorFiles.filter(
           filepath =>
-            filepath.name.slice(0, filepath.name.length - 15) ===
-            state$.value.experiment.subject
+            filepath.name.startsWith(state$.value.experiment.subject)
         );
         return subjectFiles.length + 1;
       }
