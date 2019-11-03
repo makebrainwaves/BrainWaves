@@ -46,7 +46,6 @@ export const storeBehaviouralData = (
   group: string,
   session: number
 ) => {
-  console.log('storing group', group);
   const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior');
   const filename = `${subject}-${group}-${session}-behavior.csv`;
   mkdirPathSync(dir);
