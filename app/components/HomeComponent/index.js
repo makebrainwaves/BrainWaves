@@ -187,7 +187,7 @@ export default class Home extends Component<Props, State> {
                         <Header as="h1" className={styles.experimentCardHeader}>Faces/Houses</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Explore how people react to different kinds of images.
+                            Explore how people react to different kinds of images, like faces vs. houses.
                           </p>
                         </div>
                       </Grid.Column>
@@ -212,7 +212,7 @@ export default class Home extends Component<Props, State> {
                         <Header as="h1" className={styles.experimentCardHeader}>Stroop</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Investigate why it is hard to name the color of the word "RED" when it is printed in blue.
+                            Investigate why it is hard to deal with contradictory information (like the word "RED" printed in blue).
                           </p>
                         </div>
                       </Grid.Column>
@@ -263,7 +263,7 @@ export default class Home extends Component<Props, State> {
                         <Header as="h1" className={styles.experimentCardHeader}>Visual Search</Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Examine why it is hard to find your keys in a messy room.
+                            Examine why it is difficult to find your keys in a messy room.
                           </p>
                         </div>
                       </Grid.Column>

@@ -9,10 +9,30 @@ const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const buildSearchTimeline = () => ({
-  overview: 'Here is the placeholder for the overview of the Visual Search task',
-  background: 'Here is the background of the Visual Search task',
-  background_title: `Title`,
-  protocol: 'Here is the protocol of the Visual Search task',
+  overview_title: `Visual Search Experiment`,
+  overview: `Imagine yourself looking for your keys in a messy room.
+    Visual search corresponds to looking for a specific object (e.g. keys) surrounded by other objects (e.g. clothing and books).
+    In the Visual Search Task, you will explore how irrelevant objects affect how well you can find the object you are looking for,
+    and what this may tell us about how your brain can find and focus on relevant information from all the task-irrelevant
+    information around us.`,
+  background_first_column: `Say you’re meeting a friend in a public space: do you think it easier to find each other on a street corner
+    than in the middle of Times Square around rush hour? What about a parking lot filled with cars?
+    Scientists have long wondered how our brains allow us to navigate a world full of irrelevant visual information with such relative ease.
+    One way to investigate this is to ask people to complete a visual search task.`,
+  background_first_column_question: ``,
+  background_second_column: `The hypothesis would be that if you see objects that are very similar to what you are looking for
+    (like other people who might look like your friend, as opposed to parked cars),
+    these might distract you, making it harder to complete your search.
+    Brain scientists aren’t the only ones who are interested in exploring the most optimal way in which visual searches occur.`,
+  background_second_column_question: `Can you think of who else might want to know this?`,
+  protocol_title: `What participants are shown`,
+  protocol: `In the Visual Search Task, your goal is to find the right-side up orange T while ignoring upside-down orange T’s or T’s in other colors.`,
+  protocol_condition_first_img: `conditionOrangeT`,
+  protocol_condition_first_title: `Orange T`,
+  protocol_condition_first: `If you find the orange T, you should press the ‘b’ key. `,
+  protocol_condition_second_img: `conditionNoOrangeT`,
+  protocol_condition_second_title: `No orange T`,
+  protocol_condition_second: `If the orange T is not on the screen, press the ‘n’ key instead.`,
   params: {
     trialDuration: 1000,
     nbTrials: 150,
