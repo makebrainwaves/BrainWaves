@@ -116,18 +116,32 @@ class Cortex extends EventEmitter {
   _debug(...msg) {
     if (this.verbose > 2) console.debug('[Cortex DEBUG]', ...msg);
   }
-  init({ client_id, client_secret, license, debit } = {}) {
-    const token = this.authorize({
-      client_id,
-      client_secret,
-      license,
-      debit
-    }).then(({ cortexToken }) => {
-      this._log('init: Got auth token');
-      this._debug('init: Auth token', cortexToken);
-      this.cortexToken = cortexToken;
-      return cortexToken;
-    });
+  init({ clientId, clientSecret, license, debit } = {}) {
+    const token = this.getUserLogin()
+      .then(users => {
+        if (users.length === 0) {
+          return Promise.Reject(new Error('No logged in user'));
+        }
+        return this.requestAccess({ clientId, clientSecret });
+      })
+      .then(({ accessGranted }) => {
+        if (!accessGranted) {
+          return Promise.Reject(
+            new Error('Please approve this application in the EMOTIV app')
+          );
+        }
+        return this.authorize({
+          clientId,
+          clientSecret,
+          license,
+          debit
+        }).then(({ cortexToken }) => {
+          this._log('init: Got auth token');
+          this._debug('init: Auth token', cortexToken);
+          this.cortexToken = cortexToken;
+          return cortexToken;
+        });
+      });
 
     return token;
   }
