@@ -23,54 +23,43 @@ export const getEmotiv = async () => {
   return devices;
 };
 
-export const connectToEmotiv = device =>
-  client.ready
-    .then(() =>
-      client.init({
-        // These values need to be filled with personal Emotiv credentials
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        license: LICENSE_ID,
-        debit: 1
-      })
-    )
-    .catch(err => {
-      toast.error(`Authentication failed. ${err}`);
-      return err;
-    })
-    .then(() =>
-      client.controlDevice({ command: 'connect', headset: device.id })
-    )
-    .catch(err => {
-      toast.error(`Emotiv connection failed. ${err}`);
-      return err;
-    })
-    .then(({ message }) => {
-      console.log(message);
-      return client.createSession({
-        status: 'active',
-        headset: device.id
-      });
-    })
-    .catch(err => {
-      toast.error(`Session creation failed. ${err} `);
-      return err;
-    })
-    .then(session => {
-      if (session.headset === undefined) {
-        return new Error('Session does not exist');
-      }
+export const connectToEmotiv = async device => {
+  await client.ready;
 
-      return {
-        name: session.headset.id,
-        samplingRate: session.headset.settings.eegRate,
-        channels: EMOTIV_CHANNELS
-      };
-    })
-    .catch(err => {
-      toast.error(`Couldn't connect to device ${device.id}: ${err}`);
-      return err;
+  // Authenticate
+  try {
+    await client.init({
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+      license: LICENSE_ID,
+      debit: 1
     });
+  } catch (err) {
+    toast.error(`Authentication failed. ${err.message}`);
+    return;
+  }
+  // Connect
+  try {
+    await client.controlDevice({ command: 'connect', headset: device.id });
+  } catch (err) {
+    toast.error(`Emotiv connection failed. ${err.message}`);
+    return;
+  }
+  // Create Session
+  try {
+    const session = await client.createSession({
+      status: 'active',
+      headset: device.id
+    });
+    return {
+      name: session.headset.id,
+      samplingRate: session.headset.settings.eegRate,
+      channels: EMOTIV_CHANNELS
+    };
+  } catch (err) {
+    toast.error(`Session creation failed. ${err.message} `);
+  }
+};
 
 export const disconnectFromEmotiv = async () => {
   const sessionStatus = await client.updateSession({ status: 'close' });

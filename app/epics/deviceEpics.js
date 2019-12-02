@@ -164,7 +164,7 @@ const connectEpic = action$ =>
     ),
     mergeMap(promise => promise.then(deviceInfo => deviceInfo)),
     mergeMap(deviceInfo => {
-      if (!isNil(deviceInfo.samplingRate)) {
+      if (!isNil(deviceInfo) && !isNil(deviceInfo.samplingRate)) {
         return of(
           setDeviceType(
             deviceInfo.name.includes('Muse') ? DEVICES.MUSE : DEVICES.EMOTIV
