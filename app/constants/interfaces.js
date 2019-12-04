@@ -1,6 +1,6 @@
 /*
-* This file contains all the custom types that we use for Flow type checking
-*/
+ * This file contains all the custom types that we use for Flow type checking
+ */
 
 import { EVENTS } from './constants';
 

@@ -68,7 +68,9 @@ export default class Run extends Component<Props, State> {
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleTimeline = this.handleTimeline.bind(this);
     this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
-    this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(this);
+    this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(
+      this
+    );
   }
 
   componentDidMount() {
@@ -198,10 +200,11 @@ export default class Run extends Component<Props, State> {
       );
     }
     return (
-      <ExperimentWindow settings={{
+      <ExperimentWindow
+        settings={{
           script: this.props.paradigm,
-          on_finish: (csv) => {
-            this.props.experimentActions.stop({data: csv});
+          on_finish: csv => {
+            this.props.experimentActions.stop({ data: csv });
           }
         }}
       />

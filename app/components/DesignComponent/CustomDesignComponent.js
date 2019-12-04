@@ -93,7 +93,7 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
-    };
+    }
     this.endPreview = this.endPreview.bind(this);
   }
 
@@ -227,7 +227,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={(e) => this.handlePreview(e)}
+                onClick={e => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>
@@ -244,7 +244,13 @@ export default class CustomDesign extends Component<Props, State> {
             className={styles.contentGrid}
           >
             <Grid.Column stretched verticalAlign="middle">
-              <Image as={Segment} basic centered src={researchQuestionImage} className={styles.overviewImage} />
+              <Image
+                as={Segment}
+                basic
+                centered
+                src={researchQuestionImage}
+                className={styles.overviewImage}
+              />
               <Form>
                 <Form.TextArea
                   autoHeight
@@ -264,7 +270,13 @@ export default class CustomDesign extends Component<Props, State> {
               </Form>
             </Grid.Column>
             <Grid.Column stretched verticalAlign="middle">
-              <Image as={Segment} basic centered src={hypothesisImage} className={styles.overviewImage} />
+              <Image
+                as={Segment}
+                basic
+                centered
+                src={hypothesisImage}
+                className={styles.overviewImage}
+              />
               <Form>
                 <Form.TextArea
                   autoHeight
@@ -284,7 +296,13 @@ export default class CustomDesign extends Component<Props, State> {
               </Form>
             </Grid.Column>
             <Grid.Column verticalAlign="middle">
-              <Image as={Segment} basic centered src={methodsImage} className={styles.overviewImage} />
+              <Image
+                as={Segment}
+                basic
+                centered
+                src={methodsImage}
+                className={styles.overviewImage}
+              />
               <Form>
                 <Form.TextArea
                   autoHeight
@@ -377,7 +395,6 @@ export default class CustomDesign extends Component<Props, State> {
 //     />
 //   </Segment>
 // </Grid.Column>
-
 
 // <Segment basic>
 //   <Header as="h1">Progress Bar</Header>

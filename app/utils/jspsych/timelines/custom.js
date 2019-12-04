@@ -9,7 +9,8 @@ const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const buildCustomLine = () => ({
-  overview: 'Here is the placeholder for the overview of the Visual Search task',
+  overview:
+    'Here is the placeholder for the overview of the Visual Search task',
   background: 'Here is the background of the Visual Search task',
   background_title: `Title`,
   protocol: 'Here is the protocol of the Visual Search task',

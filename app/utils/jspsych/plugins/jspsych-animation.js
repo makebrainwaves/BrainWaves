@@ -4,54 +4,54 @@
  *
  * documentation: docs.jspsych.org
  */
-import { jsPsych } from "jspsych-react";
+import { jsPsych } from 'jspsych-react';
 
 var plugin = (function() {
   var plugin = {};
 
-  jsPsych.pluginAPI.registerPreload("animation", "stimuli", "image");
+  jsPsych.pluginAPI.registerPreload('animation', 'stimuli', 'image');
 
   plugin.info = {
-    name: "animation",
-    description: "",
+    name: 'animation',
+    description: '',
     parameters: {
       stimuli: {
         type: jsPsych.plugins.parameterType.STRING,
-        pretty_name: "Stimuli",
+        pretty_name: 'Stimuli',
         default: undefined,
         array: true,
-        description: "The images to be displayed."
+        description: 'The images to be displayed.'
       },
       frame_time: {
         type: jsPsych.plugins.parameterType.INT,
-        pretty_name: "Frame time",
+        pretty_name: 'Frame time',
         default: 250,
-        description: "Duration to display each image."
+        description: 'Duration to display each image.'
       },
       frame_isi: {
         type: jsPsych.plugins.parameterType.INT,
-        pretty_name: "Frame gap",
+        pretty_name: 'Frame gap',
         default: 0,
-        description: "Length of gap to be shown between each image."
+        description: 'Length of gap to be shown between each image.'
       },
       sequence_reps: {
         type: jsPsych.plugins.parameterType.INT,
-        pretty_name: "Sequence repetitions",
+        pretty_name: 'Sequence repetitions',
         default: 1,
-        description: "Number of times to show entire sequence."
+        description: 'Number of times to show entire sequence.'
       },
       choices: {
         type: jsPsych.plugins.parameterType.KEYCODE,
-        pretty_name: "Choices",
+        pretty_name: 'Choices',
         default: jsPsych.ALL_KEYS,
         array: true,
-        description: "Keys subject uses to respond to stimuli."
+        description: 'Keys subject uses to respond to stimuli.'
       },
       prompt: {
         type: jsPsych.plugins.parameterType.STRING,
-        pretty_name: "Prompt",
+        pretty_name: 'Prompt',
         default: null,
-        description: "Any content here will be displayed below stimulus."
+        description: 'Any content here will be displayed below stimulus.'
       }
     }
   };
@@ -63,11 +63,11 @@ var plugin = (function() {
     var startTime = new Date().getTime();
     var animation_sequence = [];
     var responses = [];
-    var current_stim = "";
+    var current_stim = '';
 
     var animate_interval = setInterval(function() {
       var showImage = true;
-      display_element.innerHTML = ""; // clear everything
+      display_element.innerHTML = ''; // clear everything
       animate_frame++;
       if (animate_frame == trial.stimuli.length) {
         animate_frame = 0;
@@ -105,13 +105,12 @@ var plugin = (function() {
       if (trial.frame_isi > 0) {
         jsPsych.pluginAPI.setTimeout(function() {
           display_element.querySelector(
-            "#jspsych-animation-image"
-          ).style.visibility =
-            "hidden";
-          current_stim = "blank";
+            '#jspsych-animation-image'
+          ).style.visibility = 'hidden';
+          current_stim = 'blank';
           // record when blank image was shown
           animation_sequence.push({
-            stimulus: "blank",
+            stimulus: 'blank',
             time: new Date().getTime() - startTime
           });
         }, trial.frame_time);
@@ -127,8 +126,8 @@ var plugin = (function() {
 
       // after a valid response, the stimulus will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
-      display_element.querySelector("#jspsych-animation-image").className +=
-        " responded";
+      display_element.querySelector('#jspsych-animation-image').className +=
+        ' responded';
     };
 
     // hold the jspsych response listener object in memory
@@ -137,7 +136,7 @@ var plugin = (function() {
     var response_listener = jsPsych.pluginAPI.getKeyboardResponse({
       callback_function: after_response,
       valid_responses: trial.choices,
-      rt_method: "performance",
+      rt_method: 'performance',
       persist: true,
       allow_held_key: false
     });

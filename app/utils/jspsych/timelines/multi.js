@@ -37,8 +37,7 @@ export const buildMultiTimeline = () => ({
     jitter: 200,
     sampleType: 'with-replacement',
     pluginName: 'callback-image-display',
-    intro:
-      'You will see the multi-tasking test. Press any key to continue',
+    intro: 'You will see the multi-tasking test. Press any key to continue',
     showProgressBar: false,
     stimulus1: {
       dir: facesDir,

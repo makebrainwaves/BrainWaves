@@ -180,21 +180,29 @@ export default class Home extends Component<Props, State> {
                     onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
                   >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={faceHouseIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as="h1" className={styles.experimentCardHeader}>Faces/Houses</Header>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
+                          Faces/Houses
+                        </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Explore how people react to different kinds of images, like faces vs. houses.
+                            Explore how people react to different kinds of
+                            images, like faces vs. houses.
                           </p>
                         </div>
                       </Grid.Column>
                     </Grid.Row>
                   </Grid>
                 </Segment>
-
               </Grid.Column>
 
               <Grid.Column>
@@ -205,14 +213,24 @@ export default class Home extends Component<Props, State> {
                     onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
                   >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={stroopIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as="h1" className={styles.experimentCardHeader}>Stroop</Header>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
+                          Stroop
+                        </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Investigate why it is hard to deal with contradictory information (like the word "RED" printed in blue).
+                            Investigate why it is hard to deal with
+                            contradictory information (like the word "RED"
+                            printed in blue).
                           </p>
                         </div>
                       </Grid.Column>
@@ -220,7 +238,6 @@ export default class Home extends Component<Props, State> {
                   </Grid>
                 </Segment>
               </Grid.Column>
-
             </Grid.Row>
 
             <Grid.Row>
@@ -232,14 +249,23 @@ export default class Home extends Component<Props, State> {
                     onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
                   >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={multitaskingIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as="h1" className={styles.experimentCardHeader}>Multi-tasking</Header>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
+                          Multi-tasking
+                        </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Explore why it is challenging to carry out multiple tasks at the same time.
+                            Explore why it is challenging to carry out multiple
+                            tasks at the same time.
                           </p>
                         </div>
                       </Grid.Column>
@@ -256,14 +282,23 @@ export default class Home extends Component<Props, State> {
                     onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
                   >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={searchIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as="h1" className={styles.experimentCardHeader}>Visual Search</Header>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
+                          Visual Search
+                        </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Examine why it is difficult to find your keys in a messy room.
+                            Examine why it is difficult to find your keys in a
+                            messy room.
                           </p>
                         </div>
                       </Grid.Column>
