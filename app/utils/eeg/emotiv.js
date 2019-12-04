@@ -15,7 +15,14 @@ import Cortex from './cortex';
 // Creates the Cortex object from SDK
 const verbose = process.env.LOG_LEVEL || 1;
 const options = { verbose };
+
+// This global client is used in every Cortex API call
 const client = new Cortex(options);
+
+// This global session is how I'm passing data between connectToEmotiv and createRawEmotivObservable
+// I'm not a fan of doing this but I don't want to refactor the Redux store based on this API change that
+// Emotiv is introducing
+let session;
 
 // Gets a list of available Emotiv devices
 export const getEmotiv = async () => {
@@ -47,10 +54,12 @@ export const connectToEmotiv = async device => {
   }
   // Create Session
   try {
-    const session = await client.createSession({
+    const newSession = await client.createSession({
       status: 'active',
       headset: device.id
     });
+    session = newSession;
+
     return {
       name: session.headset.id,
       samplingRate: session.headset.settings.eegRate,
@@ -68,10 +77,18 @@ export const disconnectFromEmotiv = async () => {
 
 // Returns an observable that will handle both connecting to Client and providing a source of EEG data
 export const createRawEmotivObservable = async () => {
-  const subs = await client.subscribe({ streams: ['eeg', 'dev'] });
-  if (!subs[0].eeg) {
-    toast.error(`Subscription to Session data failed`);
+  if (!session) {
+    throw new Error('Emotiv must be connected to before subscribing to EEG');
   }
+  try {
+    await client.subscribe({
+      session: session.id,
+      streams: ['eeg', 'dev']
+    });
+  } catch (err) {
+    toast.error(`EEG connection failed. ${err.message}`);
+  }
+
   return fromEvent(client, 'eeg').pipe(map(createEEGSample));
 };
 
@@ -102,7 +119,6 @@ export const createEmotivSignalQualityObservable = rawObservable => {
 };
 
 export const injectEmotivMarker = (value, time) => {
-  console.log('injecting marker:', value, time);
   client.injectMarker({ label: 'event', value, time });
 };
 
@@ -120,7 +136,6 @@ const createEEGSample = eegEvent => {
   }
   if (eegEvent.eeg[eegEvent.eeg.length - 1] >= 1) {
     const marker = eegEvent.eeg[eegEvent.eeg.length - 1];
-    console.log('recording marker:', marker);
     return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
   }
   return { data: prunedArray, timestamp: eegEvent.time * 1000 };
