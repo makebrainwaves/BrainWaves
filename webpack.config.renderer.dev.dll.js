@@ -4,27 +4,27 @@
  * Builds the DLL for development electron renderer process
  */
 
-import webpack from "webpack";
-import path from "path";
-import merge from "webpack-merge";
-import baseConfig from "./webpack.config.base";
-import { dependencies } from "./package.json";
-import CheckNodeEnv from "./internals/scripts/CheckNodeEnv";
+import webpack from 'webpack';
+import path from 'path';
+import merge from 'webpack-merge';
+import baseConfig from './webpack.config.base';
+import { dependencies } from './package.json';
+import CheckNodeEnv from './internals/scripts/CheckNodeEnv';
 
-CheckNodeEnv("development");
+CheckNodeEnv('development');
 
-const dist = path.resolve(process.cwd(), "dll");
+const dist = path.resolve(process.cwd(), 'dll');
 
 export default merge.smart(baseConfig, {
   context: process.cwd(),
 
-  devtool: "eval",
+  devtool: 'eval',
 
   mode: 'development',
 
   target: 'electron-renderer',
 
-  externals: ["fsevents", "crypto-browserify",],
+  externals: ['fsevents', 'crypto-browserify'],
 
   /**
    * Use `module` from `webpack.config.renderer.dev.js`
@@ -38,10 +38,10 @@ export default merge.smart(baseConfig, {
   },
 
   output: {
-    library: "renderer",
+    library: 'renderer',
     path: dist,
-    filename: "[name].dev.dll.js",
-    libraryTarget: "var"
+    filename: '[name].dev.dll.js',
+    libraryTarget: 'var'
   },
 
   plugins: [
@@ -59,13 +59,13 @@ export default merge.smart(baseConfig, {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: "development"
+      NODE_ENV: 'development'
     }),
 
     new webpack.LoaderOptionsPlugin({
       debug: true,
       options: {
-        context: path.resolve(process.cwd(), "app"),
+        context: path.resolve(process.cwd(), 'app'),
         output: {
           path: path.resolve(process.cwd(), 'dll')
         }

@@ -17,10 +17,10 @@
  * exception of the login/auth flow, which we expose as the init() method.
  */
 
-const WebSocket = require("ws");
-const EventEmitter = require("events");
+const WebSocket = require('ws');
+const EventEmitter = require('events');
 
-const CORTEX_URL = "wss://emotivcortex.com:54321";
+const CORTEX_URL = 'wss://emotivcortex.com:54321';
 
 const safeParse = msg => {
   try {
@@ -31,7 +31,7 @@ const safeParse = msg => {
 };
 
 if (global.process) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
 class JSONRPCError extends Error {
@@ -54,9 +54,9 @@ class Cortex extends EventEmitter {
     this.msgId = 0;
     this.requests = {};
     this.streams = {};
-    this.ws.addEventListener("message", this._onmsg.bind(this));
-    this.ws.addEventListener("close", () => {
-      this._log("ws: Socket closed");
+    this.ws.addEventListener('message', this._onmsg.bind(this));
+    this.ws.addEventListener('close', () => {
+      this._log('ws: Socket closed');
     });
     this.verbose = options.verbose !== null ? options.verbose : 1;
     this.handleError = error => {
@@ -64,11 +64,11 @@ class Cortex extends EventEmitter {
     };
 
     this.ready = new Promise(
-      resolve => this.ws.addEventListener("open", resolve),
+      resolve => this.ws.addEventListener('open', resolve),
       this.handleError
     )
-      .then(() => this._log("ws: Socket opened"))
-      .then(() => this.call("inspectApi"))
+      .then(() => this._log('ws: Socket opened'))
+      .then(() => this.call('inspectApi'))
       .then(methods => {
         for (const m of methods) this.defineMethod(m.methodName, m.params);
         this._log(`rpc: Added ${methods.length} methods from inspectApi`);
@@ -76,65 +76,65 @@ class Cortex extends EventEmitter {
   }
   _onmsg(msg) {
     const data = safeParse(msg.data);
-    if (!data) return this._warn("unparseable message", msg);
+    if (!data) return this._warn('unparseable message', msg);
 
-    this._debug("ws: <-", msg.data);
+    this._debug('ws: <-', msg.data);
 
-    if ("id" in data) {
+    if ('id' in data) {
       const id = data.id;
       this._log(
         `[${id}] <-`,
-        data.result ? "success" : `error (${data.error.message})`
+        data.result ? 'success' : `error (${data.error.message})`
       );
       if (this.requests[id]) {
         this.requests[id](data.error, data.result);
       } else {
-        this._warn("rpc: Got response for unknown id", id);
+        this._warn('rpc: Got response for unknown id', id);
       }
-    } else if ("sid" in data) {
+    } else if ('sid' in data) {
       const dataKeys = Object.keys(data).filter(
-        k => k !== "sid" && k !== "time" && Array.isArray(data[k])
+        k => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
       );
       for (const k of dataKeys) {
-        this.emit(k, data) || this._warn("no listeners for stream event", k);
+        this.emit(k, data) || this._warn('no listeners for stream event', k);
       }
     } else {
-      this._log("rpc: Unrecognised data", data);
+      this._log('rpc: Unrecognised data', data);
     }
   }
   _warn(...msg) {
-    if (this.verbose > 0) console.warn("[Cortex WARN]", ...msg);
+    if (this.verbose > 0) console.warn('[Cortex WARN]', ...msg);
   }
   _log(...msg) {
-    if (this.verbose > 1) console.log("[Cortex LOG]", ...msg);
+    if (this.verbose > 1) console.log('[Cortex LOG]', ...msg);
   }
   _debug(...msg) {
-    if (this.verbose > 2) console.debug("[Cortex DEBUG]", ...msg);
+    if (this.verbose > 2) console.debug('[Cortex DEBUG]', ...msg);
   }
   init({ username, password, client_id, client_secret, license, debit } = {}) {
     const result = this.getUserLogin()
       .then(users => {
         if (users[0] && users[0] !== username) {
-          this._log("init: Logging out other user", users[0]);
+          this._log('init: Logging out other user', users[0]);
           return this.logout({ username: users[0] }).then(() => []);
         }
         if (username) {
-          this._log("init: Reusing existing login");
+          this._log('init: Reusing existing login');
         } else {
-          this._log("init: Logging in anonymously");
+          this._log('init: Logging in anonymously');
         }
         return users;
       })
       .then(users => {
         if (!users[0] && username && password) {
-          this._log("init: Logging in as", username);
+          this._log('init: Logging in as', username);
           return this.login({ username, password, client_id, client_secret });
         }
       })
       .then(() => this.authorize({ client_id, client_secret, license, debit }))
       .then(({ _auth }) => {
-        this._log("init: Got auth token");
-        this._debug("init: Auth token", _auth);
+        this._log('init: Got auth token');
+        this._debug('init: Auth token', _auth);
         this._auth = _auth;
       });
 
@@ -143,29 +143,29 @@ class Cortex extends EventEmitter {
   close() {
     return new Promise(resolve => {
       this.ws.close();
-      this.ws.once("close", resolve);
+      this.ws.once('close', resolve);
     });
   }
   call(method, params = {}) {
     const id = this.msgId++;
-    const msg = JSON.stringify({ jsonrpc: "2.0", method, params, id });
+    const msg = JSON.stringify({ jsonrpc: '2.0', method, params, id });
     this.ws.send(msg);
     this._log(`[${id}] -> ${method}`);
 
-    this._debug("ws: ->", msg);
+    this._debug('ws: ->', msg);
     return new Promise((resolve, reject) => {
       this.requests[id] = (err, data) => {
         delete this.requests[id];
-        this._debug("rpc: err", err, "data", data);
+        this._debug('rpc: err', err, 'data', data);
         if (err) return reject(new JSONRPCError(err));
         if (data) return resolve(data);
-        return reject(new Error("Invalid JSON-RPC response"));
+        return reject(new Error('Invalid JSON-RPC response'));
       };
     });
   }
   defineMethod(methodName, paramDefs = []) {
     if (this[methodName]) return;
-    const needsAuth = paramDefs.some(p => p.name === "_auth");
+    const needsAuth = paramDefs.some(p => p.name === '_auth');
     const requiredParams = paramDefs.filter(p => p.required).map(p => p.name);
 
     this[methodName] = (params = {}) => {
@@ -177,7 +177,7 @@ class Cortex extends EventEmitter {
         return this.handleError(
           new Error(
             `Missing required params for ${methodName}: ${missingParams.join(
-              ", "
+              ', '
             )}`
           )
         );

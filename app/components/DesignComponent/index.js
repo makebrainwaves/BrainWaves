@@ -1,12 +1,17 @@
 // @flow
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Header, Image, Divider } from 'semantic-ui-react';
+import {
+  Grid,
+  Button,
+  Segment,
+  Header,
+  Image,
+  Divider
+} from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
-import {
-  readWorkspaces
-} from '../../utils/filesystem/storage';
+import { readWorkspaces } from '../../utils/filesystem/storage';
 import {
   MainTimeline,
   Trial,
@@ -71,7 +76,7 @@ export default class Design extends Component<Props, State> {
   handleStepClick: (Object, Object) => void;
   handleStartExperiment: Object => void;
   handleCustomizeExperiment: Object => void;
-  handlePreview: (Object) => void;
+  handlePreview: Object => void;
   handleLoadCustomExperiment: string => void;
 
   constructor(props: Props) {
@@ -80,12 +85,14 @@ export default class Design extends Component<Props, State> {
       activeStep: DESIGN_STEPS.OVERVIEW,
       isPreviewing: false,
       isNewExperimentModalOpen: false,
-      recentWorkspaces: [],
+      recentWorkspaces: []
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
-    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
+    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(
+      this
+    );
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
     if (isNil(props.params)) {
@@ -105,7 +112,7 @@ export default class Design extends Component<Props, State> {
     this.props.history.push(SCREENS.COLLECT.route);
   }
 
-  handleCustomizeExperiment(){
+  handleCustomizeExperiment() {
     this.setState({
       isNewExperimentModalOpen: true
     });
@@ -122,7 +129,7 @@ export default class Design extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    console.log('paradigm', this.props.paradigm)
+    console.log('paradigm', this.props.paradigm);
     this.props.experimentActions.createNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
@@ -139,7 +146,7 @@ export default class Design extends Component<Props, State> {
     this.setState({ isPreviewing: false });
   }
 
-  renderConditionIcon(type){
+  renderConditionIcon(type) {
     switch (type) {
       case 'conditionCongruent':
         return conditionCongruent;
@@ -196,31 +203,29 @@ export default class Design extends Component<Props, State> {
 
   renderSectionContent() {
     switch (this.state.activeStep) {
-
       case DESIGN_STEPS.OVERVIEW:
       default:
         return (
-          <Grid stretched relaxed padded className={styles.contentGrid} style={{alignItems:'center'}}>
+          <Grid
+            stretched
+            relaxed
+            padded
+            className={styles.contentGrid}
+            style={{ alignItems: 'center' }}
+          >
             <Grid.Row stretched>
-              <Grid.Column
-                stretched
-                width={5}
-              >
+              <Grid.Column stretched width={5}>
                 <Segment basic>
                   <Image src={this.renderOverviewIcon(this.props.type)} />
                 </Segment>
               </Grid.Column>
 
               <Grid.Column stretched width={11}>
-
                 <Segment basic>
                   <Header as="h1">{this.props.overview_title}</Header>
                   <Divider />
-                  <p>
-                    {this.props.overview}
-                  </p>
+                  <p>{this.props.overview}</p>
                 </Segment>
-
               </Grid.Column>
             </Grid.Row>
           </Grid>
@@ -228,27 +233,23 @@ export default class Design extends Component<Props, State> {
 
       case DESIGN_STEPS.BACKGROUND:
         return (
-          <Grid relaxed padded className={styles.contentGrid} style={{alignItems:'center'}}>
+          <Grid
+            relaxed
+            padded
+            className={styles.contentGrid}
+            style={{ alignItems: 'center' }}
+          >
             <Grid.Row stretched>
-
-              <Grid.Column
-                stretched
-                width={4}
-              >
+              <Grid.Column stretched width={4}>
                 <Segment basic>
                   <Image src={this.renderOverviewIcon(this.props.type)} />
                 </Segment>
               </Grid.Column>
 
-              <Grid.Column
-                stretched
-                width={6}
-              >
+              <Grid.Column stretched width={6}>
                 <Segment basic>
-                  <p>
-                    {this.props.background_first_column}
-                  </p>
-                  <p style={{fontWeight:'bold'}}>
+                  <p>{this.props.background_first_column}</p>
+                  <p style={{ fontWeight: 'bold' }}>
                     {this.props.background_first_column_question}
                   </p>
                 </Segment>
@@ -256,36 +257,29 @@ export default class Design extends Component<Props, State> {
 
               <Grid.Column stretched width={6}>
                 <Segment basic>
-                  <p>
-                    {this.props.background_second_column}
-                  </p>
-                  <p style={{fontWeight:'bold'}}>
+                  <p>{this.props.background_second_column}</p>
+                  <p style={{ fontWeight: 'bold' }}>
                     {this.props.background_second_column_question}
                   </p>
                 </Segment>
               </Grid.Column>
-
             </Grid.Row>
-
-
-
           </Grid>
         );
 
       case DESIGN_STEPS.PROTOCOL:
         return (
-          <Grid relaxed padded className={styles.contentGrid} style={{alignItems:'center'}}>
+          <Grid
+            relaxed
+            padded
+            className={styles.contentGrid}
+            style={{ alignItems: 'center' }}
+          >
             <Grid.Row stretched>
-              <Grid.Column
-                stretched
-                width={7}
-                textAlign="left"
-              >
+              <Grid.Column stretched width={7} textAlign="left">
                 <Segment basic>
                   <Header as="h2">{this.props.protocol_title}</Header>
-                  <p>
-                    {this.props.protocol}
-                  </p>
+                  <p>{this.props.protocol}</p>
                 </Segment>
               </Grid.Column>
 
@@ -293,28 +287,36 @@ export default class Design extends Component<Props, State> {
                 <Grid>
                   <Grid.Row>
                     <Grid.Column width={3}>
-                      <Image src={this.renderConditionIcon(this.props.protocol_condition_first_img)} />
+                      <Image
+                        src={this.renderConditionIcon(
+                          this.props.protocol_condition_first_img
+                        )}
+                      />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
-                        <Header as="h3">{this.props.protocol_condition_first_title}</Header>
-                        <p>
-                          {this.props.protocol_condition_first}
-                        </p>
+                        <Header as="h3">
+                          {this.props.protocol_condition_first_title}
+                        </Header>
+                        <p>{this.props.protocol_condition_first}</p>
                       </Segment>
                     </Grid.Column>
                   </Grid.Row>
 
                   <Grid.Row>
                     <Grid.Column width={3}>
-                      <Image src={this.renderConditionIcon(this.props.protocol_condition_second_img)} />
+                      <Image
+                        src={this.renderConditionIcon(
+                          this.props.protocol_condition_second_img
+                        )}
+                      />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
-                        <Header as="h3">{this.props.protocol_condition_second_title}</Header>
-                        <p>
-                          {this.props.protocol_condition_second}
-                        </p>
+                        <Header as="h3">
+                          {this.props.protocol_condition_second_title}
+                        </Header>
+                        <p>{this.props.protocol_condition_second}</p>
                       </Segment>
                     </Grid.Column>
                   </Grid.Row>
@@ -324,32 +326,32 @@ export default class Design extends Component<Props, State> {
           </Grid>
         );
 
-        case DESIGN_STEPS.PREVIEW:
-          return (
-            <Grid relaxed padded className={styles.contentGrid}>
-              <Grid.Column
-                stretched
-                width={12}
-                textAlign="right"
-                verticalAlign="middle"
-                className={styles.jsPsychColumn}
-              >
-                <PreviewExperimentComponent
-                  {...loadTimeline(this.props.paradigm)}
-                  isPreviewing={this.state.isPreviewing}
-                  onEnd={this.endPreview}
-                  type={this.props.type}
-                  paradigm={this.props.paradigm}
-                />
-              </Grid.Column>
-              <Grid.Column width={4} verticalAlign="middle">
-                <PreviewButton
-                  isPreviewing={this.state.isPreviewing}
-                  onClick={(e) => this.handlePreview(e)}
-                />
-              </Grid.Column>
-            </Grid>
-          );
+      case DESIGN_STEPS.PREVIEW:
+        return (
+          <Grid relaxed padded className={styles.contentGrid}>
+            <Grid.Column
+              stretched
+              width={12}
+              textAlign="right"
+              verticalAlign="middle"
+              className={styles.jsPsychColumn}
+            >
+              <PreviewExperimentComponent
+                {...loadTimeline(this.props.paradigm)}
+                isPreviewing={this.state.isPreviewing}
+                onEnd={this.endPreview}
+                type={this.props.type}
+                paradigm={this.props.paradigm}
+              />
+            </Grid.Column>
+            <Grid.Column width={4} verticalAlign="middle">
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={e => this.handlePreview(e)}
+              />
+            </Grid.Column>
+          </Grid>
+        );
     }
   }
 

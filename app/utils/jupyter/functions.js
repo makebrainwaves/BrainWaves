@@ -1,29 +1,29 @@
-import { KERNEL_STATUS } from "../../constants/constants";
+import { KERNEL_STATUS } from '../../constants/constants';
 
 export const parseSingleQuoteJSON = (string: string) =>
   JSON.parse(string.replace(/'/g, '"'));
 
 export const parseKernelStatus = (msg: Object) => {
-  switch (msg["content"]["execution_state"]) {
-    case "busy":
+  switch (msg['content']['execution_state']) {
+    case 'busy':
       return KERNEL_STATUS.BUSY;
-    case "idle":
+    case 'idle':
       return KERNEL_STATUS.IDLE;
-    case "starting":
+    case 'starting':
     default:
       return KERNEL_STATUS.STARTING;
   }
 };
 
 export const debugParseMessage = (msg: Object) => {
-  let content = "";
+  let content = '';
   switch (msg.channel) {
-    case "iopub":
+    case 'iopub':
       if (msg.content.execution_state) {
         content = JSON.stringify(msg.content);
       }
       if (msg.content.code) {
-        content = msg.content.code.slice(0, 300).concat("...");
+        content = msg.content.code.slice(0, 300).concat('...');
       }
       if (msg.content.text) {
         content = msg.content.text;
@@ -32,7 +32,7 @@ export const debugParseMessage = (msg: Object) => {
         content = Object.keys(msg.content.data);
       }
       break;
-    case "shell":
+    case 'shell':
       content = JSON.stringify(msg.content);
       break;
 

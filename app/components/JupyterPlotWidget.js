@@ -1,13 +1,13 @@
 // @flow
-import React, { Component } from "react";
-import { Segment, Button } from "semantic-ui-react";
+import React, { Component } from 'react';
+import { Segment, Button } from 'semantic-ui-react';
 import {
   richestMimetype,
   standardDisplayOrder,
   standardTransforms
-} from "@nteract/transforms";
-import { isNil } from "lodash";
-import { storeJupyterImage } from "../utils/filesystem/storage";
+} from '@nteract/transforms';
+import { isNil } from 'lodash';
+import { storeJupyterImage } from '../utils/filesystem/storage';
 
 interface Props {
   title: string;
@@ -26,8 +26,8 @@ export default class JupyterPlotWidget extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      rawData: "",
-      mimeType: ""
+      rawData: '',
+      mimeType: ''
     };
     this.handleSave = this.handleSave.bind(this);
   }
@@ -50,7 +50,7 @@ export default class JupyterPlotWidget extends Component<Props, State> {
   }
 
   handleSave() {
-    const buf = Buffer.from(this.state.rawData, "base64");
+    const buf = Buffer.from(this.state.rawData, 'base64');
     storeJupyterImage(this.props.title, this.props.imageTitle, buf);
   }
 

@@ -78,7 +78,7 @@ export default class OverviewComponent extends Component<Props, State> {
               </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={(e) => this.handlePreview(e)}
+                onClick={e => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>

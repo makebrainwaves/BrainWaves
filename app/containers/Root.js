@@ -1,8 +1,8 @@
 // @flow
-import React, { Component } from "react";
-import { Provider } from "react-redux";
-import { ConnectedRouter } from "react-router-redux";
-import Routes from "../routes";
+import React, { Component } from 'react';
+import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'react-router-redux';
+import Routes from '../routes';
 
 interface Props {
   store: {};

@@ -65,12 +65,13 @@ export default class PreviewExperimentComponent extends Component<Props> {
     }
     return (
       <ExperimentWindow
-      settings={{
+        settings={{
           script: this.props.paradigm,
-          on_finish: (csv) => {
-            this.props.onEnd()
+          on_finish: csv => {
+            this.props.onEnd();
           }
-        }} />
+        }}
+      />
     );
   }
 }

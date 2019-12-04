@@ -24,9 +24,12 @@ import {
   getSubjectNamesFromFiles,
   readWorkspaceBehaviorData,
   readBehaviorData,
-  storeAggregatedBehaviorData,
+  storeAggregatedBehaviorData
 } from '../utils/filesystem/storage';
-import { aggregateDataForPlot, aggregateBehaviorDataToSave } from '../utils/behavior/compute';
+import {
+  aggregateDataForPlot,
+  aggregateBehaviorDataToSave
+} from '../utils/behavior/compute';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
@@ -39,7 +42,7 @@ const ANALYZE_STEPS = {
 };
 
 const ANALYZE_STEPS_BEHAVIOR = {
-  BEHAVIOR: 'BEHAVIOR',
+  BEHAVIOR: 'BEHAVIOR'
 };
 
 interface Props {
@@ -105,7 +108,7 @@ export default class Analyze extends Component<Props, State> {
       eegFilePaths: [{ key: '', text: '', value: '' }],
       behaviorFilePaths: [{ key: '', text: '', value: '' }],
       dependentVariables: [{ key: '', text: '', value: '' }],
-      dataToPlot:[],
+      dataToPlot: [],
       layout: {},
       selectedDependentVariable: '',
       removeOutliers: true,
@@ -123,15 +126,21 @@ export default class Analyze extends Component<Props, State> {
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
-    this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
-    this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
+    this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(
+      this
+    );
+    this.handleDependentVariableChange = this.handleDependentVariableChange.bind(
+      this
+    );
     this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
     this.handleDisplayModeChange = this.handleDisplayModeChange.bind(this);
     this.handleDataPoints = this.handleDataPoints.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleDropdownClick = this.handleDropdownClick.bind(this);
-    this.toggleDisplayInfoVisibility = this.toggleDisplayInfoVisibility.bind(this);
+    this.toggleDisplayInfoVisibility = this.toggleDisplayInfoVisibility.bind(
+      this
+    );
   }
 
   async componentDidMount() {
@@ -155,7 +164,7 @@ export default class Analyze extends Component<Props, State> {
         text: dv,
         value: dv
       })),
-      selectedDependentVariable: 'Response Time',
+      selectedDependentVariable: 'Response Time'
     });
   }
 
@@ -187,9 +196,9 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  async handleDropdownClick(){
+  async handleDropdownClick() {
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
-    if(behavioralData.length != this.state.behaviorFilePaths.length){
+    if (behavioralData.length != this.state.behaviorFilePaths.length) {
       this.setState({
         behaviorFilePaths: behavioralData.map(filepath => ({
           key: filepath.name,
@@ -200,7 +209,7 @@ export default class Analyze extends Component<Props, State> {
     }
   }
 
-  handleDependentVariableChange(event: Object, data: Object){
+  handleDependentVariableChange(event: Object, data: Object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedFilePaths),
       data.value,
@@ -215,7 +224,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleRemoveOutliers(event: Object, data: Object){
+  handleRemoveOutliers(event: Object, data: Object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedFilePaths),
       this.state.selectedDependentVariable,
@@ -231,7 +240,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDataPoints(event: Object, data: Object){
+  handleDataPoints(event: Object, data: Object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedFilePaths),
       this.state.selectedDependentVariable,
@@ -246,8 +255,11 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDisplayModeChange(displayMode){
-    if(this.state.selectedFilePaths && this.state.selectedFilePaths.length > 0){
+  handleDisplayModeChange(displayMode) {
+    if (
+      this.state.selectedFilePaths &&
+      this.state.selectedFilePaths.length > 0
+    ) {
       const { dataToPlot, layout } = aggregateDataForPlot(
         readBehaviorData(this.state.selectedFilePaths),
         this.state.selectedDependentVariable,
@@ -259,20 +271,23 @@ export default class Analyze extends Component<Props, State> {
         dataToPlot,
         layout,
         displayMode,
-        helpMode: displayMode,
+        helpMode: displayMode
       });
     }
   }
 
-  toggleDisplayInfoVisibility(){
+  toggleDisplayInfoVisibility() {
     this.setState({
       isSidebarVisible: !this.state.isSidebarVisible
     });
   }
 
-  saveSelectedDatasets(){
+  saveSelectedDatasets() {
     const data = readBehaviorData(this.state.selectedFilePaths);
-    const aggregatedData = aggregateBehaviorDataToSave(data, this.state.removeOutliers);
+    const aggregatedData = aggregateBehaviorDataToSave(
+      data,
+      this.state.removeOutliers
+    );
     storeAggregatedBehaviorData(aggregatedData, this.props.title);
   }
 
@@ -353,7 +368,6 @@ export default class Analyze extends Component<Props, State> {
         );
     }
   }
-
 
   renderHelp(header: string, content: string) {
     return (
@@ -465,15 +479,16 @@ export default class Analyze extends Component<Props, State> {
               <Segment basic textAlign="left" className={styles.infoSegment}>
                 <Header as="h1">Overview</Header>
                 <p>
-                  Load datasets from different subjects and view
-                  behavioral results
+                  Load datasets from different subjects and view behavioral
+                  results
                 </p>
 
                 <div>
                   <span className="ui header">Datasets</span>
-                  <Button className='export'
+                  <Button
+                    className="export"
                     onClick={this.saveSelectedDatasets}
-                    >
+                  >
                     <Icon name="download" />
                     Export
                   </Button>
@@ -503,16 +518,11 @@ export default class Analyze extends Component<Props, State> {
                   options={this.state.dependentVariables}
                   onChange={this.handleDependentVariableChange}
                 />
-
               </Segment>
             </Grid.Column>
-            <Grid.Column width={8} style={{overflow: 'auto', maxHeight: 650 }}>
-
-              <Segment basic textAlign="left" className={styles.plotSegment} >
-                <Plot
-                  data={this.state.dataToPlot}
-                  layout={this.state.layout}
-                />
+            <Grid.Column width={8} style={{ overflow: 'auto', maxHeight: 650 }}>
+              <Segment basic textAlign="left" className={styles.plotSegment}>
+                <Plot data={this.state.dataToPlot} layout={this.state.layout} />
                 <p></p>
                 <Checkbox
                   checked={this.state.removeOutliers}
@@ -522,26 +532,29 @@ export default class Analyze extends Component<Props, State> {
 
                 <p></p>
                 <Button.Group>
-                  <Button className='tertiary'
+                  <Button
+                    className="tertiary"
                     toggle
                     active={this.state.displayMode === 'datapoints'}
-                    onClick={()=> this.handleDisplayModeChange('datapoints')}
-                    >
+                    onClick={() => this.handleDisplayModeChange('datapoints')}
+                  >
                     Data Points
                   </Button>
-                  <Button className='tertiary'
+                  <Button
+                    className="tertiary"
                     toggle
                     active={this.state.displayMode === 'errorbars'}
-                    onClick={()=> this.handleDisplayModeChange('errorbars')}
-                    >
+                    onClick={() => this.handleDisplayModeChange('errorbars')}
+                  >
                     Bar Graph
                   </Button>
-                  <Button className='tertiary'
+                  <Button
+                    className="tertiary"
                     toggle
                     active={this.state.displayMode === 'whiskers'}
-                    onClick={()=> this.handleDisplayModeChange('whiskers')}
+                    onClick={() => this.handleDisplayModeChange('whiskers')}
                   >
-                  Box Plot
+                    Box Plot
                   </Button>
                 </Button.Group>
 
@@ -564,7 +577,6 @@ export default class Analyze extends Component<Props, State> {
                   </Segment>
                 </Sidebar>
               </Segment>
-
             </Grid.Column>
           </Grid>
         );
@@ -576,7 +588,11 @@ export default class Analyze extends Component<Props, State> {
       <div className={styles.mainContainer}>
         <SecondaryNavComponent
           title="Analyze"
-          steps={this.props.isEEGEnabled === true ? ANALYZE_STEPS : ANALYZE_STEPS_BEHAVIOR}
+          steps={
+            this.props.isEEGEnabled === true
+              ? ANALYZE_STEPS
+              : ANALYZE_STEPS_BEHAVIOR
+          }
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />

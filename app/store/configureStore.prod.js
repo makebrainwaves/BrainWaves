@@ -1,12 +1,12 @@
 // @flow
-import { createStore, applyMiddleware } from "redux";
-import thunk from "redux-thunk";
-import { createHashHistory } from "history";
-import { createEpicMiddleware } from "redux-observable";
-import rootEpic from "../epics";
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
+import { createHashHistory } from 'history';
+import { createEpicMiddleware } from 'redux-observable';
+import rootEpic from '../epics';
 
-import { routerMiddleware } from "react-router-redux";
-import rootReducer from "../reducers";
+import { routerMiddleware } from 'react-router-redux';
+import rootReducer from '../reducers';
 
 const history = createHashHistory();
 const epicMiddleware = createEpicMiddleware();

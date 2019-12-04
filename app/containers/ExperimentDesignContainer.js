@@ -1,8 +1,8 @@
 // @flow
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
-import Design from "../components/DesignComponent";
-import * as experimentActions from "../actions/experimentActions";
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import Design from '../components/DesignComponent';
+import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {

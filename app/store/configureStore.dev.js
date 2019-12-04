@@ -1,13 +1,13 @@
-import { createStore, applyMiddleware, compose } from "redux";
-import thunk from "redux-thunk";
-import { createEpicMiddleware } from "redux-observable";
-import { createHashHistory } from "history";
-import { routerMiddleware, routerActions } from "react-router-redux";
-import { createLogger } from "redux-logger";
-import rootReducer from "../reducers";
-import rootEpic from "../epics";
-import * as jupyterActions from "../actions/jupyterActions";
-import * as deviceActions from "../actions/deviceActions";
+import { createStore, applyMiddleware, compose } from 'redux';
+import thunk from 'redux-thunk';
+import { createEpicMiddleware } from 'redux-observable';
+import { createHashHistory } from 'history';
+import { routerMiddleware, routerActions } from 'react-router-redux';
+import { createLogger } from 'redux-logger';
+import rootReducer from '../reducers';
+import rootEpic from '../epics';
+import * as jupyterActions from '../actions/jupyterActions';
+import * as deviceActions from '../actions/deviceActions';
 
 const history = createHashHistory();
 
@@ -25,12 +25,12 @@ const configureStore = (initialState?: AppState) => {
 
   // Logging Middleware
   const logger = createLogger({
-    level: "info",
+    level: 'info',
     collapsed: true
   });
 
   // Skip redux logs in console during the tests
-  if (process.env.NODE_ENV !== "test") {
+  if (process.env.NODE_ENV !== 'test') {
     middleware.push(logger);
   }
 
@@ -63,8 +63,8 @@ const configureStore = (initialState?: AppState) => {
 
   if (module.hot) {
     module.hot.accept(
-      "../reducers",
-      () => store.replaceReducer(require("../reducers")) // eslint-disable-line global-require
+      '../reducers',
+      () => store.replaceReducer(require('../reducers')) // eslint-disable-line global-require
     );
   }
 
