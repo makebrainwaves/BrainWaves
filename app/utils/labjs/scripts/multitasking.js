@@ -1668,6 +1668,11 @@ const studyObject = {
                         },
                         messageHandlers: {
                           run: function anonymous() {
+                            let notFired = true;
+                            if(notFired){
+                              this.parameters.callbackForEEG(`Condition ${this.parameters.cond}, Block ${this.parameters.block}`);
+                              notFired = false;
+                            }
                             this.data.correct = 'empty';
                           }
                         },

@@ -132,8 +132,7 @@ export const readWorkspaceBehaviorData = async (title: string) => {
     const behaviorFiles = files
       .filter(
         filepath =>
-          filepath.slice(-12).includes('behavior.csv') ||
-          filepath.includes('aggregated')
+          filepath.slice(-12).includes('behavior.csv')
       )
       .map(filepath => ({
         name: path.basename(filepath),

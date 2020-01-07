@@ -282,7 +282,7 @@ const studyObject = {
                   messageHandlers: {},
                   viewport: [800, 600],
                   title: 'Fixation cross',
-                  timeout: '${parameters.fixationCrossDuration}'
+                  timeout: '${parameters.fixationCrossDuration}',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -371,7 +371,7 @@ const studyObject = {
                     }
                   },
                   viewport: [800, 600],
-                  title: 'Stimulus'
+                  title: 'Stimulus',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -798,6 +798,9 @@ const studyObject = {
                           }
                         }
                       };
+                    },
+                    'run': function anonymous() {
+                      this.parameters.callbackForEEG(this.parameters.condition);
                     }
                   },
                   viewport: [800, 600],

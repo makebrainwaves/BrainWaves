@@ -120,7 +120,6 @@ const studyObject = {
 
           //assign options values to parameters of this task
           this.options.templateParameters = practiceTrialParameters;
-          console.log(practiceTrialParameters);
           this.options.shuffle = true; // already shuffled before
         }
       },
@@ -446,7 +445,6 @@ const studyObject = {
 
           //assign options values to parameters of this task
           this.options.templateParameters = trialParameters;
-          console.log(trialParameters);
           this.options.shuffle = true; // already shuffled before
         }
       },
@@ -546,6 +544,12 @@ const studyObject = {
             },
             messageHandlers: {
               run: function anonymous() {
+                let notFired = true;
+                if(notFired){
+                  this.parameters.callbackForEEG(`Target ${this.parameters.target}, Size ${this.parameters.size}`);
+                  notFired = false;
+                }
+
                 const taskgrid = document.querySelector('#taskgrid');
                 const stimuli = this.parameters.stimuli;
 

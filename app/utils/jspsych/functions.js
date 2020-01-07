@@ -19,7 +19,6 @@ import {
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (paradigm: EXPERIMENTS) => {
-  console.log('paradigm', paradigm);
   let timeline;
   switch (paradigm) {
     case EXPERIMENTS.P300:
