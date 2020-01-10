@@ -119,7 +119,7 @@ export const createEmotivSignalQualityObservable = rawObservable => {
 };
 
 export const injectEmotivMarker = (value, time) => {
-  client.injectMarker({ label: 'event', value, time });
+  client.injectMarker({ label: 'event', value, time, session: session.id });
 };
 
 // ---------------------------------------------------------------------
