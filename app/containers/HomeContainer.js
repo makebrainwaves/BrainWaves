@@ -8,6 +8,7 @@ import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {
+    ...state.device,
     kernelStatus: state.jupyter.kernelStatus
   };
 }

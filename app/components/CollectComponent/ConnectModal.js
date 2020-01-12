@@ -1,17 +1,18 @@
-import React, { Component } from 'react';
-import { isNil, debounce } from 'lodash';
-import { Modal, Button, Segment, List, Grid, Divider } from 'semantic-ui-react';
+import React, { Component } from "react";
+import { isNil, debounce } from "lodash";
+import { Modal, Button, Segment, List, Grid, Divider } from "semantic-ui-react";
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
   SCREENS
-} from '../../constants/constants';
-import styles from '../styles/collect.css';
+} from "../../constants/constants";
+import styles from "../styles/collect.css";
 
 interface Props {
   history: Object;
   open: boolean;
+  onClose: () => void;
   connectedDevice: Object;
   signalQualityObservable: ?any;
   deviceType: DEVICES;
@@ -41,7 +42,7 @@ export default class ConnectModal extends Component<Props, State> {
     if (!isNil(device)) {
       return isNil(device.name) ? device.id : device.name;
     }
-    return '';
+    return "";
   }
 
   constructor(props: Props) {
@@ -88,9 +89,7 @@ export default class ConnectModal extends Component<Props, State> {
   }
 
   handleinstructionProgress(step: INSTRUCTION_PROGRESS) {
-    if (step === 0) {
-      this.props.history.push(SCREENS.DESIGN.route);
-    } else {
+    if (step !== 0) {
       this.setState({ instructionProgress: step });
     }
   }
@@ -105,8 +104,8 @@ export default class ConnectModal extends Component<Props, State> {
                 link
                 name={
                   this.state.selectedDevice === device
-                    ? 'check circle outline'
-                    : 'circle outline'
+                    ? "check circle outline"
+                    : "circle outline"
                 }
                 size="large"
                 verticalAlign="middle"
@@ -136,7 +135,7 @@ export default class ConnectModal extends Component<Props, State> {
       return (
         <React.Fragment>
           <Modal.Content className={styles.searchingText}>
-            Connecting to{' '}
+            Connecting to{" "}
             {ConnectModal.getDeviceName(this.state.selectedDevice)}
             ...
           </Modal.Content>
@@ -158,13 +157,15 @@ export default class ConnectModal extends Component<Props, State> {
           <Modal.Content>
             <Grid textAlign="center" columns="equal">
               <Grid.Column>
-                <Button
-                  fluid
-                  className={styles.secondaryButton}
-                  onClick={() => this.handleinstructionProgress(0)}
-                >
-                  Back
-                </Button>
+                {this.state.step !== 0 && (
+                  <Button
+                    fluid
+                    className={styles.secondaryButton}
+                    onClick={() => this.handleinstructionProgress(0)}
+                  >
+                    Back
+                  </Button>
+                )}
               </Grid.Column>
               <Grid.Column>
                 <Button
@@ -279,10 +280,22 @@ export default class ConnectModal extends Component<Props, State> {
       <Modal
         basic
         centered
+        closeOnDimmerClick
+        closeOnDocumentClick
         open={this.props.open}
         onOpen={this.handleSearch}
         className={styles.connectModal}
       >
+        <Button
+          circular
+          basic
+          bordered={false}
+          inverted
+          size="large"
+          icon="x"
+          className={styles.modalCloseButton}
+          onClick={this.props.onClose}
+        />
         {this.renderContent()}
       </Modal>
     );

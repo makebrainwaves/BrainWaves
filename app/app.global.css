@@ -171,7 +171,7 @@ button:active {
 }
 
 .ui.dimmer {
-  top: 60px !important;
+  /* top: 60px !important; */
   background-image: linear-gradient(#43968d, #007c70);
 }
 
