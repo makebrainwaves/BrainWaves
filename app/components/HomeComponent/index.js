@@ -16,21 +16,34 @@ import {
   readAndParseState,
   openWorkspaceDir
 } from '../../utils/filesystem/storage';
+import { Collect, Props as CollectProps, State as CollectState } from '../CollectComponent';
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import { loadTimeline } from '../../utils/jspsych/functions';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
+import ViewerComponent from '../ViewerComponent';
+import { PLOTTING_INTERVAL, CONNECTION_STATUS, DEVICE_AVAILABILITY } from '../../../../openexp-app/app/constants/constants';
+import ConnectModal from '../CollectComponent/ConnectModal';
 
 const HOME_STEPS = {
-  RECENT: 'RECENT',
-  NEW: 'EXPERIMENTS'
+  // TODO: maybe change the recent and new labels, but not necessary right now
+  RECENT: 'MY EXPERIMENTS',
+  NEW: 'EXPERIMENT BANK',
+  EXPLORE: 'EXPLORE EEG'
 };
 
 interface Props {
   kernelStatus: KERNEL_STATUS;
   history: Object;
   jupyterActions: Object;
+  connectedDevice: Object;
+  signalQualityObservable: ?any;
+  deviceType: DEVICES;
+  deviceAvailability: DEVICE_AVAILABILITY;
+  connectionStatus: CONNECTION_STATUS;
   deviceActions: Object;
+  availableDevices: Array<any>;
   experimentActions: Object;
 }
 
@@ -40,6 +53,7 @@ interface State {
   isNewExperimentModalOpen: boolean;
   isOverviewComponentOpen: boolean;
   overviewExperimentType: EXPERIMENTS;
+  isConnectModalOpen: boolean;
 }
 
 export default class Home extends Component<Props, State> {
@@ -50,6 +64,8 @@ export default class Home extends Component<Props, State> {
   handleLoadCustomExperiment: string => void;
   handleOpenOverview: EXPERIMENTS => void;
   handleCloseOverview: () => void;
+  handleConnectModalClose: () => void;
+  handleStartConnect: () => void;
 
   constructor(props: Props) {
     super(props);
@@ -58,7 +74,8 @@ export default class Home extends Component<Props, State> {
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
-      overviewExperimentType: EXPERIMENTS.NONE
+      overviewExperimentType: EXPERIMENTS.NONE,
+      isConnectModalOpen: false
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
@@ -67,6 +84,8 @@ export default class Home extends Component<Props, State> {
     );
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
+    this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
+    this.handleStartConnect = this.handleStartConnect.bind(this)
   }
 
   componentDidMount() {
@@ -74,6 +93,22 @@ export default class Home extends Component<Props, State> {
     if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
       this.props.jupyterActions.launchKernel();
     }
+  }
+
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
+    if (
+      this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
+      prevState.isConnectModalOpen
+    ) {
+      this.setState({ isConnectModalOpen: false });
+    }
+  };
+
+  handleStartConnect() {
+    this.setState({ isConnectModalOpen: true });
+    this.props.deviceActions.setDeviceAvailability(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
   }
 
   handleStepClick(step: string) {
@@ -136,6 +171,10 @@ export default class Home extends Component<Props, State> {
     this.setState({
       isOverviewComponentOpen: false
     });
+  }
+
+  handleConnectModalClose() {
+    this.setState({ isConnectModalOpen: false });
   }
 
   // TODO: Figure out how to make this not overflow when there's tons of workspaces. Lists?
@@ -307,6 +346,50 @@ export default class Home extends Component<Props, State> {
                 </Segment>
               </Grid.Column>
             </Grid.Row>
+          </Grid>
+        );
+      case HOME_STEPS.EXPLORE:
+        return (
+          <Grid stackable padded columns="equal" >
+            {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
+              <Grid.Row>
+                <Grid.Column stretched width={6}>
+                  <SignalQualityIndicatorComponent signalQualityObservable={this.props.signalQualityObservable} plottingInterval={PLOTTING_INTERVAL} />
+                </Grid.Column>
+                <Grid.Column width={10}>
+                  <ViewerComponent
+                    signalQualityObservable={this.props.signalQualityObservable}
+                    deviceType={this.props.deviceType}
+                    plottingInterval={PLOTTING_INTERVAL}
+                  />
+                  {/* {this.renderHelpButton()} */}
+                </Grid.Column>
+              </Grid.Row>
+            )}
+            {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
+              <Grid.Row>
+                <Button
+                  primary
+                  onClick={this.handleStartConnect}
+                >
+                  Connect EEG Device
+                </Button>
+
+                <ConnectModal
+                  history={this.props.history}
+                  open={this.state.isConnectModalOpen}
+                  onClose={this.handleConnectModalClose}
+                  connectedDevice={this.props.connectedDevice}
+                  signalQualityObservable={this.props.signalQualityObservable}
+                  deviceType={this.props.deviceType}
+                  deviceAvailability={this.props.deviceAvailability}
+                  connectionStatus={this.props.connectionStatus}
+                  deviceActions={this.props.deviceActions}
+                  availableDevices={this.props.availableDevices}
+                  style={{ marginTop: '100px' }}
+                />
+              </Grid.Row>
+            )}
           </Grid>
         );
     }

@@ -17,6 +17,13 @@
   font-weight: normal !important;
 }
 
+.modalCloseButton {
+  position: absolute;
+  top: -40px;
+  left: -40px;
+}
+
+
 .searchingText {
   text-align: center !important;
 }
