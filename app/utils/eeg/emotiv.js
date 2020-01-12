@@ -122,6 +122,14 @@ export const injectEmotivMarker = (value, time) => {
   client.injectMarker({ label: 'event', value, time, session: session.id });
 };
 
+export const createEmotivRecord = (subjectName, sessionNumber) => {
+  client.createRecord({ session: session.id, title: `${subjectName}_${sessionNumber}`})
+}
+
+export const stopEmotivRecord = () => {
+  client.stopRecord({ session: session.id })
+}
+
 // ---------------------------------------------------------------------
 // Helpers
 

@@ -1,5 +1,5 @@
-import { combineEpics } from 'redux-observable';
-import { from, of } from 'rxjs';
+import { combineEpics } from "redux-observable";
+import { from, of } from "rxjs";
 import {
   map,
   mapTo,
@@ -10,7 +10,7 @@ import {
   throttleTime,
   ignoreElements,
   tap
-} from 'rxjs/operators';
+} from "rxjs/operators";
 import {
   setType,
   setParadigm,
@@ -24,32 +24,34 @@ import {
   CREATE_NEW_WORKSPACE,
   SET_SUBJECT,
   SET_GROUP
-} from '../actions/experimentActions';
+} from "../actions/experimentActions";
 import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   CONNECTION_STATUS
-} from '../constants/constants';
-import { loadTimeline, getBehaviouralData } from '../utils/jspsych/functions';
+} from "../constants/constants";
+import { loadTimeline, getBehaviouralData } from "../utils/jspsych/functions";
 import {
   createEEGWriteStream,
   writeHeader,
   writeEEGData
-} from '../utils/filesystem/write';
+} from "../utils/filesystem/write";
 import {
   getWorkspaceDir,
   storeExperimentState,
   createWorkspaceDir,
   storeBehaviouralData,
   readWorkspaceBehaviorData
-} from '../utils/filesystem/storage';
+} from "../utils/filesystem/storage";
 
-export const SET_TIMELINE = 'SET_TIMELINE';
-export const SET_IS_RUNNING = 'SET_IS_RUNNING';
-export const UPDATE_SESSION = 'UPDATE_SESSION';
-export const SET_SESSION = 'SET_SESSION';
-export const EXPERIMENT_CLEANUP = 'EXPERIMENT_CLEANUP';
+import { createEmotivRecord, stopEmotivRecord } from "../utils/eeg/emotiv";
+
+export const SET_TIMELINE = "SET_TIMELINE";
+export const SET_IS_RUNNING = "SET_IS_RUNNING";
+export const UPDATE_SESSION = "UPDATE_SESSION";
+export const SET_SESSION = "SET_SESSION";
+export const EXPERIMENT_CLEANUP = "EXPERIMENT_CLEANUP";
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -80,7 +82,7 @@ const cleanup = () => ({
 
 const createNewWorkspaceEpic = action$ =>
   action$.ofType(CREATE_NEW_WORKSPACE).pipe(
-    pluck('payload'),
+    pluck("payload"),
     tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
     mergeMap(workspaceInfo =>
       of(
@@ -119,6 +121,14 @@ const startEpic = (action$, state$) =>
             ? EMOTIV_CHANNELS
             : MUSE_CHANNELS
         );
+
+        if (state$.value.device.deviceType === DEVICES.EMOTIV) {
+          createEmotivRecord(
+            state$.value.experiment.subject,
+            state$.value.experiment.session
+          );
+        }
+
         state$.value.device.rawObservable
           .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
           .subscribe(eegData => writeEEGData(writeStream, eegData));
@@ -131,15 +141,18 @@ const startEpic = (action$, state$) =>
 const experimentStopEpic = (action$, state$) =>
   action$.ofType(STOP).pipe(
     filter(() => state$.value.experiment.isRunning),
-    map(({ payload }) =>
+    map(({ payload }) => {
       storeBehaviouralData(
         payload.data,
         state$.value.experiment.title,
         state$.value.experiment.subject,
         state$.value.experiment.group,
         state$.value.experiment.session
-      )
-    ),
+      );
+      if (state$.device.deviceType === DEVICES.EMOTIV) {
+        stopEmotivRecord();
+      }
+    }),
     mergeMap(() => of(setIsRunning(false), updateSession()))
   );
 
@@ -167,9 +180,9 @@ const updateSessionEpic = (action$, state$) =>
   );
 
 const autoSaveEpic = action$ =>
-  action$.ofType('@@router/LOCATION_CHANGE').pipe(
-    pluck('payload', 'pathname'),
-    filter(pathname => pathname !== '/'),
+  action$.ofType("@@router/LOCATION_CHANGE").pipe(
+    pluck("payload", "pathname"),
+    filter(pathname => pathname !== "/"),
     map(saveWorkspace)
   );
 
@@ -183,9 +196,9 @@ const saveWorkspaceEpic = (action$, state$) =>
   );
 
 const navigationCleanupEpic = action$ =>
-  action$.ofType('@@router/LOCATION_CHANGE').pipe(
-    pluck('payload', 'pathname'),
-    filter(pathname => pathname === '/'),
+  action$.ofType("@@router/LOCATION_CHANGE").pipe(
+    pluck("payload", "pathname"),
+    filter(pathname => pathname === "/"),
     map(cleanup)
   );
 
