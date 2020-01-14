@@ -1,36 +1,44 @@
 // @flow
-import React, { Component } from 'react';
-import { isNil } from 'lodash';
-import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
-import { toast } from 'react-toastify';
-import styles from '../styles/common.css';
-import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
-import faceHouseIcon from '../../assets/common/FacesHouses.png';
-import stroopIcon from '../../assets/common/Stroop.png';
-import multitaskingIcon from '../../assets/common/Multitasking.png';
-import searchIcon from '../../assets/common/VisualSearch.png';
-import customIcon from '../../assets/common/Custom.png';
-import appLogo from '../../assets/common/app_logo.png';
+import React, { Component } from "react";
+import { isNil } from "lodash";
+import { Grid, Button, Header, Segment, Image } from "semantic-ui-react";
+import { toast } from "react-toastify";
+import styles from "../styles/common.css";
+import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from "../../constants/constants";
+import faceHouseIcon from "../../assets/common/FacesHouses.png";
+import stroopIcon from "../../assets/common/Stroop.png";
+import multitaskingIcon from "../../assets/common/Multitasking.png";
+import searchIcon from "../../assets/common/VisualSearch.png";
+import customIcon from "../../assets/common/Custom.png";
+import appLogo from "../../assets/common/app_logo.png";
 import {
   readWorkspaces,
   readAndParseState,
   openWorkspaceDir
-} from '../../utils/filesystem/storage';
-import { Collect, Props as CollectProps, State as CollectState } from '../CollectComponent';
-import InputModal from '../InputModal';
-import SecondaryNavComponent from '../SecondaryNavComponent';
-import OverviewComponent from './OverviewComponent';
-import { loadTimeline } from '../../utils/jspsych/functions';
-import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
-import ViewerComponent from '../ViewerComponent';
-import { PLOTTING_INTERVAL, CONNECTION_STATUS, DEVICE_AVAILABILITY } from '../../../../openexp-app/app/constants/constants';
-import ConnectModal from '../CollectComponent/ConnectModal';
+} from "../../utils/filesystem/storage";
+import {
+  Collect,
+  Props as CollectProps,
+  State as CollectState
+} from "../CollectComponent";
+import InputModal from "../InputModal";
+import SecondaryNavComponent from "../SecondaryNavComponent";
+import OverviewComponent from "./OverviewComponent";
+import { loadTimeline } from "../../utils/jspsych/functions";
+import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
+import ViewerComponent from "../ViewerComponent";
+import {
+  PLOTTING_INTERVAL,
+  CONNECTION_STATUS,
+  DEVICE_AVAILABILITY
+} from "../../constants/constants";
+import ConnectModal from "../CollectComponent/ConnectModal";
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now
-  RECENT: 'MY EXPERIMENTS',
-  NEW: 'EXPERIMENT BANK',
-  EXPLORE: 'EXPLORE EEG'
+  RECENT: "MY EXPERIMENTS",
+  NEW: "EXPERIMENT BANK",
+  EXPLORE: "EXPLORE EEG"
 };
 
 interface Props {
@@ -85,7 +93,8 @@ export default class Home extends Component<Props, State> {
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
-    this.handleStartConnect = this.handleStartConnect.bind(this)
+    this.handleStartConnect = this.handleStartConnect.bind(this);
+    this.handleStopConnect = this.handleStopConnect.bind(this);
   }
 
   componentDidMount() {
@@ -350,11 +359,17 @@ export default class Home extends Component<Props, State> {
         );
       case HOME_STEPS.EXPLORE:
         return (
-          <Grid stackable padded columns="equal" >
+          <Grid stackable padded columns="equal">
             {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
               <Grid.Row>
+                <Button primary onClick={this.handleStopConnect}>
+                    Disconnect EEG Device
+                  </Button>
                 <Grid.Column stretched width={6}>
-                  <SignalQualityIndicatorComponent signalQualityObservable={this.props.signalQualityObservable} plottingInterval={PLOTTING_INTERVAL} />
+                  <SignalQualityIndicatorComponent
+                    signalQualityObservable={this.props.signalQualityObservable}
+                    plottingInterval={PLOTTING_INTERVAL}
+                  />
                 </Grid.Column>
                 <Grid.Column width={10}>
                   <ViewerComponent
@@ -368,13 +383,6 @@ export default class Home extends Component<Props, State> {
             )}
             {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
               <Grid.Row>
-                <Button
-                  primary
-                  onClick={this.handleStartConnect}
-                >
-                  Connect EEG Device
-                </Button>
-
                 <ConnectModal
                   history={this.props.history}
                   open={this.state.isConnectModalOpen}
@@ -386,8 +394,14 @@ export default class Home extends Component<Props, State> {
                   connectionStatus={this.props.connectionStatus}
                   deviceActions={this.props.deviceActions}
                   availableDevices={this.props.availableDevices}
-                  style={{ marginTop: '100px' }}
+                  style={{ marginTop: "100px" }}
                 />
+                <Grid.Column>
+                  <Button primary onClick={this.handleStartConnect}>
+                    Connect EEG Device
+                  </Button>
+                </Grid.Column>
+                <Grid.Column>This is how you connect to the EEG.</Grid.Column>
               </Grid.Row>
             )}
           </Grid>
