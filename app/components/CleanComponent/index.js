@@ -72,6 +72,9 @@ export default class Clean extends Component<Props, State> {
 
   async componentDidMount() {
     const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
+    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
+      this.props.jupyterActions.launchKernel();
+    }
     this.setState({
       subjects: workspaceRawData
         .map(filepath => filepath.name.slice(0, filepath.name.length - 10))

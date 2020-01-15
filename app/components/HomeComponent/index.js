@@ -99,9 +99,6 @@ export default class Home extends Component<Props, State> {
 
   componentDidMount() {
     this.setState({ recentWorkspaces: readWorkspaces() });
-    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.jupyterActions.launchKernel();
-    }
   }
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
