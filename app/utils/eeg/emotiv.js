@@ -140,10 +140,10 @@ export const stopEmotivRecord = () => {
 const createEEGSample = eegEvent => {
   const prunedArray = new Array(EMOTIV_CHANNELS.length);
   for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {
-    prunedArray[i] = eegEvent.eeg[i + 3];
+    prunedArray[i] = eegEvent.eeg[i + 2];
   }
-  if (eegEvent.eeg[eegEvent.eeg.length - 1] >= 1) {
-    const marker = eegEvent.eeg[eegEvent.eeg.length - 1];
+  if (eegEvent.eeg[eegEvent.eeg.length - 1].length >= 1) {
+    const marker = (eegEvent.eeg[eegEvent.eeg.length - 1][0] && eegEvent.eeg[eegEvent.eeg.length - 1][0].value) || 0;
     return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
   }
   return { data: prunedArray, timestamp: eegEvent.time * 1000 };

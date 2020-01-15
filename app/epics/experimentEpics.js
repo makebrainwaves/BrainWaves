@@ -149,7 +149,7 @@ const experimentStopEpic = (action$, state$) =>
         state$.value.experiment.group,
         state$.value.experiment.session
       );
-      if (state$.device.deviceType === DEVICES.EMOTIV) {
+      if (state$.value && state$.value.device && state$.value.device.deviceType && state$.value.device.deviceType === DEVICES.EMOTIV) {
         stopEmotivRecord();
       }
     }),

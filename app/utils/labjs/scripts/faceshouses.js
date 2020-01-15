@@ -10,10 +10,6 @@ const studyObject = {
   plugins: [
     {
       type: 'lab.plugins.Metadata'
-    },
-    {
-      type: 'lab.plugins.Download',
-      filePrefix: 'the-face-house-task'
     }
   ],
   metadata: {
@@ -798,6 +794,9 @@ const studyObject = {
                           }
                         }
                       };
+                    },
+                    'run': function anonymous() {
+                      this.parameters.callbackForEEG(this.parameters.condition === 'Face' ? 1 : 2);
                     }
                   },
                   viewport: [800, 600],
