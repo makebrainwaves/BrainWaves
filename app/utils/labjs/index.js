@@ -36,6 +36,9 @@ class ExperimentWindow extends Component {
       this.study = undefined;
       props.settings.on_finish(csv);
     });
+    this.study.parameters.callbackForEEG = (e) => {
+      props.settings.eventCallback(e, new Date().getTime());
+    };
     this.study.options.events['keydown'] = async e => {
       if (e.code === 'Escape') {
         if (this.study) {
