@@ -53,6 +53,7 @@ export default class Run extends Component<Props, State> {
   handleSessionEntry: (Object, Object) => void;
   handleStartExperiment: () => void;
   handleTimeline: () => void;
+  insertLabJsCallback: () => void;
   handleCloseInputModal: () => void;
   handleCloseGroupInputModal: () => void;
   handleClean: () => void;
@@ -67,6 +68,7 @@ export default class Run extends Component<Props, State> {
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleTimeline = this.handleTimeline.bind(this);
+    this.insertLabJsCallback = this.insertLabJsCallback.bind(this);
     this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
     this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(
       this
@@ -128,6 +130,17 @@ export default class Run extends Component<Props, State> {
       this.props.params.showProgessBar
     );
     return timeline;
+  }
+
+  insertLabJsCallback() {
+    let injectionFunction = () => null;
+    if (this.props.isEEGEnabled) {
+      injectionFunction =
+        this.props.deviceType === 'MUSE'
+          ? injectMuseMarker
+          : injectEmotivMarker;
+    }
+    return injectionFunction;
   }
 
   handleImages() {
@@ -203,6 +216,7 @@ export default class Run extends Component<Props, State> {
       <ExperimentWindow
         settings={{
           script: this.props.paradigm,
+          eventCallback: this.insertLabJsCallback(),
           on_finish: csv => {
             this.props.experimentActions.stop({ data: csv });
           }
