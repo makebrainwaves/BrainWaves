@@ -289,7 +289,7 @@ export default class ConnectModal extends Component<Props, State> {
         <Button
           circular
           basic
-          bordered={false}
+          bordered="false"
           inverted
           size="large"
           icon="x"

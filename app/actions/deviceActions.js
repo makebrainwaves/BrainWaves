@@ -1,3 +1,4 @@
+import { EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
 // -------------------------------------------------------------------------
 // Action Types
 
@@ -14,6 +15,10 @@ export const SET_DEVICE_AVAILABILITY = 'SET_DEVICE_AVAILABILITY';
 export const connectToDevice = payload => ({
   payload,
   type: CONNECT_TO_DEVICE
+});
+export const disconnectFromDevice = payload => ({
+  payload,
+  type: EXPERIMENT_CLEANUP
 });
 export const setConnectionStatus = payload => ({
   payload,
