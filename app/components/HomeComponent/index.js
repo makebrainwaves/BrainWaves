@@ -117,6 +117,12 @@ export default class Home extends Component<Props, State> {
     );
   }
 
+  handleStopConnect() {
+    this.props.deviceActions.disconnectFromDevice(this.props.connectedDevice);
+    this.setState({ isConnectModalOpen: false });
+    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
+  }
+
   handleStepClick(step: string) {
     this.setState({ activeStep: step });
   }
@@ -356,12 +362,14 @@ export default class Home extends Component<Props, State> {
         );
       case HOME_STEPS.EXPLORE:
         return (
+          <Grid.Row>
+            <Button primary onClick={this.handleStopConnect}>
+              Disconnect EEG Device
+            </Button>
+          </Grid.Row>
           <Grid stackable padded columns="equal">
             {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
               <Grid.Row>
-                <Button primary onClick={this.handleStopConnect}>
-                    Disconnect EEG Device
-                  </Button>
                 <Grid.Column stretched width={6}>
                   <SignalQualityIndicatorComponent
                     signalQualityObservable={this.props.signalQualityObservable}
