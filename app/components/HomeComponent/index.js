@@ -362,14 +362,14 @@ export default class Home extends Component<Props, State> {
         );
       case HOME_STEPS.EXPLORE:
         return (
-          <Grid.Row>
-            <Button primary onClick={this.handleStopConnect}>
-              Disconnect EEG Device
-            </Button>
-          </Grid.Row>
           <Grid stackable padded columns="equal">
             {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
               <Grid.Row>
+                <Grid.Row>
+                  <Button primary onClick={this.handleStopConnect}>
+                    Disconnect EEG Device
+                  </Button>
+                </Grid.Row>
                 <Grid.Column stretched width={6}>
                   <SignalQualityIndicatorComponent
                     signalQualityObservable={this.props.signalQualityObservable}
