@@ -38,7 +38,7 @@ const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now
   RECENT: "MY EXPERIMENTS",
   NEW: "EXPERIMENT BANK",
-  EXPLORE: "EXPLORE EEG"
+  EXPLORE: "EXPLORE EEG DATA"
 };
 
 interface Props {
@@ -364,7 +364,7 @@ export default class Home extends Component<Props, State> {
         return (
           <Grid stackable padded columns="equal">
             {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
-              <Grid padded divided="vertically">
+              <Grid divided="vertically">
                 <Grid.Row columns={1}>
                   <Grid.Column>
                     <Button primary onClick={this.handleStopConnect}>
@@ -382,7 +382,7 @@ export default class Home extends Component<Props, State> {
                       plottingInterval={PLOTTING_INTERVAL}
                     />
                   </Grid.Column>
-                  <Grid.Column width={10}>
+                  <Grid.Column stretched width={10}>
                     <ViewerComponent
                       signalQualityObservable={
                         this.props.signalQualityObservable
@@ -415,7 +415,7 @@ export default class Home extends Component<Props, State> {
                     Connect EEG Device
                   </Button>
                 </Grid.Column>
-                <Grid.Column>This is how you connect to the EEG.</Grid.Column>
+                <Grid.Column>Please click the button on the left to connect to your EEG device.</Grid.Column>
               </Grid.Row>
             )}
           </Grid>
