@@ -364,27 +364,36 @@ export default class Home extends Component<Props, State> {
         return (
           <Grid stackable padded columns="equal">
             {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
-              <Grid.Row>
-                <Grid.Row>
-                  <Button primary onClick={this.handleStopConnect}>
-                    Disconnect EEG Device
-                  </Button>
+              <Grid padded divided="vertically">
+                <Grid.Row columns={1}>
+                  <Grid.Column>
+                    <Button primary onClick={this.handleStopConnect}>
+                      Disconnect EEG Device
+                    </Button>
+                  </Grid.Column>
                 </Grid.Row>
-                <Grid.Column stretched width={6}>
-                  <SignalQualityIndicatorComponent
-                    signalQualityObservable={this.props.signalQualityObservable}
-                    plottingInterval={PLOTTING_INTERVAL}
-                  />
-                </Grid.Column>
-                <Grid.Column width={10}>
-                  <ViewerComponent
-                    signalQualityObservable={this.props.signalQualityObservable}
-                    deviceType={this.props.deviceType}
-                    plottingInterval={PLOTTING_INTERVAL}
-                  />
-                  {/* {this.renderHelpButton()} */}
-                </Grid.Column>
-              </Grid.Row>
+                ,
+                <Grid.Row>
+                  <Grid.Column stretched width={6}>
+                    <SignalQualityIndicatorComponent
+                      signalQualityObservable={
+                        this.props.signalQualityObservable
+                      }
+                      plottingInterval={PLOTTING_INTERVAL}
+                    />
+                  </Grid.Column>
+                  <Grid.Column width={10}>
+                    <ViewerComponent
+                      signalQualityObservable={
+                        this.props.signalQualityObservable
+                      }
+                      deviceType={this.props.deviceType}
+                      plottingInterval={PLOTTING_INTERVAL}
+                    />
+                    {/* {this.renderHelpButton()} */}
+                  </Grid.Column>
+                </Grid.Row>
+              </Grid>
             )}
             {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
               <Grid.Row>
