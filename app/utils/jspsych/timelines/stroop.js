@@ -45,13 +45,13 @@ export const buildStroopTimeline = () => ({
     showProgressBar: false,
     stimulus1: {
       dir: facesDir,
-      title: 'Face',
+      title: 'Incongruent',
       type: EVENTS.STIMULUS_1,
       response: '1'
     },
     stimulus2: {
       dir: housesDir,
-      title: 'House',
+      title: 'Congruent',
       type: EVENTS.STIMULUS_2,
       response: '9'
     }

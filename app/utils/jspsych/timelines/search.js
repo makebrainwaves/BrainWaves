@@ -45,13 +45,13 @@ export const buildSearchTimeline = () => ({
     showProgressBar: false,
     stimulus1: {
       dir: facesDir,
-      title: 'Face',
+      title: 'No target',
       type: EVENTS.STIMULUS_1,
       response: '1'
     },
     stimulus2: {
       dir: housesDir,
-      title: 'House',
+      title: 'Target',
       type: EVENTS.STIMULUS_2,
       response: '9'
     }

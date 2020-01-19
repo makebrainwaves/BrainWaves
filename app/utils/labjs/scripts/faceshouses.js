@@ -796,7 +796,7 @@ const studyObject = {
                       };
                     },
                     'run': function anonymous() {
-                      this.parameters.callbackForEEG(this.parameters.condition === 'Face' ? 1 : 2);
+                      this.parameters.callbackForEEG(this.parameters.condition === 'Face' ? 2 : 1);
                     }
                   },
                   viewport: [800, 600],
