@@ -77,7 +77,7 @@ export default class Clean extends Component<Props, State> {
     }
     this.setState({
       subjects: workspaceRawData
-        .map(filepath => filepath.name.slice(0, filepath.name.length - 10))
+        .map(filepath => filepath.path.split('/')[filepath.path.split('/').length - 3])
         .reduce((acc, curr) => {
           if (acc.find(subject => subject.key === curr)) {
             return acc;
@@ -198,8 +198,8 @@ export default class Clean extends Component<Props, State> {
                     value={this.state.selectedFilePaths}
                     options={this.state.eegFilePaths.filter(
                       filepath =>
-                        filepath.key.slice(0, filepath.key.length - 10) ===
-                        this.state.selectedSubject
+                        this.state.selectedSubject ===
+                        filepath.value.split('/')[filepath.value.split('/').length - 3]
                     )}
                     onChange={this.handleRecordingChange}
                   />

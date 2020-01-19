@@ -546,6 +546,7 @@ const studyObject = {
             },
             messageHandlers: {
               run: function anonymous() {
+                this.parameters.callbackForEEG(this.parameters.target === 'yes' ? 1 : 2);
                 const taskgrid = document.querySelector('#taskgrid');
                 const stimuli = this.parameters.stimuli;
 

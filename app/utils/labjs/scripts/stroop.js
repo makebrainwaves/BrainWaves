@@ -642,7 +642,11 @@ const studyObject = {
                 'keydown(b)': 'blue',
                 'keydown(y)': '#ffe32a'
               },
-              messageHandlers: {},
+              messageHandlers: {
+                'run': function anonymous() {
+                  this.parameters.callbackForEEG(this.parameters.congruent === 'yes' ? 1 : 2);
+                }
+              },
               viewport: [800, 600],
               title: 'Stroop screen',
               correctResponse: '${ this.parameters.color }'
