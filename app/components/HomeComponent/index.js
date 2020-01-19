@@ -1,36 +1,57 @@
 // @flow
-import React, { Component } from 'react';
-import { isNil } from 'lodash';
-import { Grid, Button, Header, Segment, Image } from 'semantic-ui-react';
-import { toast } from 'react-toastify';
-import styles from '../styles/common.css';
-import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from '../../constants/constants';
-import faceHouseIcon from '../../assets/common/FacesHouses.png';
-import stroopIcon from '../../assets/common/Stroop.png';
-import multitaskingIcon from '../../assets/common/Multitasking.png';
-import searchIcon from '../../assets/common/VisualSearch.png';
-import customIcon from '../../assets/common/Custom.png';
-import appLogo from '../../assets/common/app_logo.png';
+import React, { Component } from "react";
+import { isNil } from "lodash";
+import { Grid, Button, Header, Segment, Image } from "semantic-ui-react";
+import { toast } from "react-toastify";
+import styles from "../styles/common.css";
+import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from "../../constants/constants";
+import faceHouseIcon from "../../assets/common/FacesHouses.png";
+import stroopIcon from "../../assets/common/Stroop.png";
+import multitaskingIcon from "../../assets/common/Multitasking.png";
+import searchIcon from "../../assets/common/VisualSearch.png";
+import customIcon from "../../assets/common/Custom.png";
+import appLogo from "../../assets/common/app_logo.png";
 import {
   readWorkspaces,
   readAndParseState,
   openWorkspaceDir
-} from '../../utils/filesystem/storage';
-import InputModal from '../InputModal';
-import SecondaryNavComponent from '../SecondaryNavComponent';
-import OverviewComponent from './OverviewComponent';
-import { loadTimeline } from '../../utils/jspsych/functions';
+} from "../../utils/filesystem/storage";
+import {
+  Collect,
+  Props as CollectProps,
+  State as CollectState
+} from "../CollectComponent";
+import InputModal from "../InputModal";
+import SecondaryNavComponent from "../SecondaryNavComponent";
+import OverviewComponent from "./OverviewComponent";
+import { loadTimeline } from "../../utils/jspsych/functions";
+import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
+import ViewerComponent from "../ViewerComponent";
+import {
+  PLOTTING_INTERVAL,
+  CONNECTION_STATUS,
+  DEVICE_AVAILABILITY
+} from "../../constants/constants";
+import ConnectModal from "../CollectComponent/ConnectModal";
 
 const HOME_STEPS = {
-  RECENT: 'RECENT',
-  NEW: 'EXPERIMENTS'
+  // TODO: maybe change the recent and new labels, but not necessary right now
+  RECENT: "MY EXPERIMENTS",
+  NEW: "EXPERIMENT BANK",
+  EXPLORE: "EXPLORE EEG DATA"
 };
 
 interface Props {
   kernelStatus: KERNEL_STATUS;
   history: Object;
   jupyterActions: Object;
+  connectedDevice: Object;
+  signalQualityObservable: ?any;
+  deviceType: DEVICES;
+  deviceAvailability: DEVICE_AVAILABILITY;
+  connectionStatus: CONNECTION_STATUS;
   deviceActions: Object;
+  availableDevices: Array<any>;
   experimentActions: Object;
 }
 
@@ -40,6 +61,7 @@ interface State {
   isNewExperimentModalOpen: boolean;
   isOverviewComponentOpen: boolean;
   overviewExperimentType: EXPERIMENTS;
+  isConnectModalOpen: boolean;
 }
 
 export default class Home extends Component<Props, State> {
@@ -50,6 +72,8 @@ export default class Home extends Component<Props, State> {
   handleLoadCustomExperiment: string => void;
   handleOpenOverview: EXPERIMENTS => void;
   handleCloseOverview: () => void;
+  handleConnectModalClose: () => void;
+  handleStartConnect: () => void;
 
   constructor(props: Props) {
     super(props);
@@ -58,7 +82,8 @@ export default class Home extends Component<Props, State> {
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
-      overviewExperimentType: EXPERIMENTS.NONE
+      overviewExperimentType: EXPERIMENTS.NONE,
+      isConnectModalOpen: false
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
@@ -67,10 +92,35 @@ export default class Home extends Component<Props, State> {
     );
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
+    this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
+    this.handleStartConnect = this.handleStartConnect.bind(this);
+    this.handleStopConnect = this.handleStopConnect.bind(this);
   }
 
   componentDidMount() {
     this.setState({ recentWorkspaces: readWorkspaces() });
+  }
+
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
+    if (
+      this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
+      prevState.isConnectModalOpen
+    ) {
+      this.setState({ isConnectModalOpen: false });
+    }
+  };
+
+  handleStartConnect() {
+    this.setState({ isConnectModalOpen: true });
+    this.props.deviceActions.setDeviceAvailability(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
+  }
+
+  handleStopConnect() {
+    this.props.deviceActions.disconnectFromDevice(this.props.connectedDevice);
+    this.setState({ isConnectModalOpen: false });
+    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
   }
 
   handleStepClick(step: string) {
@@ -133,6 +183,10 @@ export default class Home extends Component<Props, State> {
     this.setState({
       isOverviewComponentOpen: false
     });
+  }
+
+  handleConnectModalClose() {
+    this.setState({ isConnectModalOpen: false });
   }
 
   // TODO: Figure out how to make this not overflow when there's tons of workspaces. Lists?
@@ -304,6 +358,66 @@ export default class Home extends Component<Props, State> {
                 </Segment>
               </Grid.Column>
             </Grid.Row>
+          </Grid>
+        );
+      case HOME_STEPS.EXPLORE:
+        return (
+          <Grid stackable padded columns="equal">
+            {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
+              <Grid divided="vertically">
+                <Grid.Row columns={1}>
+                  <Grid.Column>
+                    <Button primary onClick={this.handleStopConnect}>
+                      Disconnect EEG Device
+                    </Button>
+                  </Grid.Column>
+                </Grid.Row>
+                ,
+                <Grid.Row>
+                  <Grid.Column stretched width={6}>
+                    <SignalQualityIndicatorComponent
+                      signalQualityObservable={
+                        this.props.signalQualityObservable
+                      }
+                      plottingInterval={PLOTTING_INTERVAL}
+                    />
+                  </Grid.Column>
+                  <Grid.Column stretched width={10}>
+                    <ViewerComponent
+                      signalQualityObservable={
+                        this.props.signalQualityObservable
+                      }
+                      deviceType={this.props.deviceType}
+                      plottingInterval={PLOTTING_INTERVAL}
+                    />
+                    {/* {this.renderHelpButton()} */}
+                  </Grid.Column>
+                </Grid.Row>
+              </Grid>
+            )}
+            {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
+              <Grid.Row>
+                <ConnectModal
+                  history={this.props.history}
+                  open={this.state.isConnectModalOpen}
+                  onClose={this.handleConnectModalClose}
+                  connectedDevice={this.props.connectedDevice}
+                  signalQualityObservable={this.props.signalQualityObservable}
+                  deviceType={this.props.deviceType}
+                  deviceAvailability={this.props.deviceAvailability}
+                  connectionStatus={this.props.connectionStatus}
+                  deviceActions={this.props.deviceActions}
+                  availableDevices={this.props.availableDevices}
+                  style={{ marginTop: "100px" }}
+                />
+                <Grid.Column>
+                  <Button primary onClick={this.handleStartConnect}>
+                    Connect EEG Device
+                  </Button>
+                </Grid.Column>
+                <Grid.Column>Please click the button on the left to connect to your EEG device.</Grid.Column>
+              </Grid.Row>
+            )}
           </Grid>
         );
     }
