@@ -1668,6 +1668,7 @@ const studyObject = {
                         },
                         messageHandlers: {
                           run: function anonymous() {
+                            this.parameters.callbackForEEG(this.parameters.cond === 'Switching' ? 1 : 2);
                             this.data.correct = 'empty';
                           }
                         },

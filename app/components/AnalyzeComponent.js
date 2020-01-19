@@ -36,9 +36,9 @@ import JupyterPlotWidget from './JupyterPlotWidget';
 import HelpSidebar from './CollectComponent/HelpSidebar';
 
 const ANALYZE_STEPS = {
-  BEHAVIOR: 'BEHAVIOR',
   OVERVIEW: 'OVERVIEW',
-  ERP: 'ERP'
+  ERP: 'ERP',
+  BEHAVIOR: 'BEHAVIOR'
 };
 
 const ANALYZE_STEPS_BEHAVIOR = {
@@ -70,6 +70,7 @@ interface State {
     value: string
   }>;
   selectedFilePaths: Array<?string>;
+  selectedBehaviorFilePaths: Array<?string>;
   selectedSubjects: Array<?string>;
   selectedDependentVariable: string;
   removeOutliers: boolean;
@@ -104,7 +105,9 @@ export default class Analyze extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: ANALYZE_STEPS.BEHAVIOR,
+      activeStep: this.props.isEEGEnabled === true
+        ? ANALYZE_STEPS.OVERVIEW
+        : ANALYZE_STEPS.BEHAVIOR,
       eegFilePaths: [{ key: '', text: '', value: '' }],
       behaviorFilePaths: [{ key: '', text: '', value: '' }],
       dependentVariables: [{ key: '', text: '', value: '' }],
@@ -118,6 +121,7 @@ export default class Analyze extends Component<Props, State> {
       displayMode: 'errorbars',
       helpMode: 'errorbars',
       selectedFilePaths: [],
+      selectedBehaviorFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
         props.deviceType === DEVICES.EMOTIV
@@ -189,7 +193,7 @@ export default class Analyze extends Component<Props, State> {
       this.state.displayMode
     );
     this.setState({
-      selectedFilePaths: data.value,
+      selectedBehaviorFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value),
       dataToPlot,
       layout
@@ -211,7 +215,7 @@ export default class Analyze extends Component<Props, State> {
 
   handleDependentVariableChange(event: Object, data: Object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
-      readBehaviorData(this.state.selectedFilePaths),
+      readBehaviorData(this.state.selectedBehaviorFilePaths),
       data.value,
       this.state.removeOutliers,
       this.state.showDataPoints,
@@ -226,7 +230,7 @@ export default class Analyze extends Component<Props, State> {
 
   handleRemoveOutliers(event: Object, data: Object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
-      readBehaviorData(this.state.selectedFilePaths),
+      readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
       !this.state.removeOutliers,
       this.state.showDataPoints,
@@ -242,7 +246,7 @@ export default class Analyze extends Component<Props, State> {
 
   handleDataPoints(event: Object, data: Object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
-      readBehaviorData(this.state.selectedFilePaths),
+      readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       !this.state.showDataPoints,
@@ -257,11 +261,11 @@ export default class Analyze extends Component<Props, State> {
 
   handleDisplayModeChange(displayMode) {
     if (
-      this.state.selectedFilePaths &&
-      this.state.selectedFilePaths.length > 0
+      this.state.selectedBehaviorFilePaths &&
+      this.state.selectedBehaviorFilePaths.length > 0
     ) {
       const { dataToPlot, layout } = aggregateDataForPlot(
-        readBehaviorData(this.state.selectedFilePaths),
+        readBehaviorData(this.state.selectedBehaviorFilePaths),
         this.state.selectedDependentVariable,
         this.state.removeOutliers,
         this.state.showDataPoints,
@@ -283,7 +287,7 @@ export default class Analyze extends Component<Props, State> {
   }
 
   saveSelectedDatasets() {
-    const data = readBehaviorData(this.state.selectedFilePaths);
+    const data = readBehaviorData(this.state.selectedBehaviorFilePaths);
     const aggregatedData = aggregateBehaviorDataToSave(
       data,
       this.state.removeOutliers
@@ -501,7 +505,7 @@ export default class Analyze extends Component<Props, State> {
                   selection
                   search
                   closeOnChange
-                  value={this.state.selectedFilePaths}
+                  value={this.state.selectedBehaviorFilePaths}
                   options={this.state.behaviorFilePaths}
                   onChange={this.handleBehaviorDatasetChange}
                   onClick={this.handleDropdownClick}

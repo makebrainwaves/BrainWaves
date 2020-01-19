@@ -41,13 +41,13 @@ export const buildMultiTimeline = () => ({
     showProgressBar: false,
     stimulus1: {
       dir: facesDir,
-      title: 'Face',
+      title: 'No switching',
       type: EVENTS.STIMULUS_1,
       response: '1'
     },
     stimulus2: {
       dir: housesDir,
-      title: 'House',
+      title: 'Switching',
       type: EVENTS.STIMULUS_2,
       response: '9'
     }
