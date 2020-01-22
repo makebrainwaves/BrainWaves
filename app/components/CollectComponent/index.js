@@ -136,6 +136,7 @@ export default class Collect extends Component<Props, State> {
           experimentActions={this.props.experimentActions}
           availableDevices={this.props.availableDevices}
           type={this.props.type}
+          paradigm={this.props.paradigm}
           isRunning={this.props.isRunning}
           params={this.props.params}
           mainTimeline={this.props.mainTimeline}

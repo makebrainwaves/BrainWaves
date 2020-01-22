@@ -1,16 +1,12 @@
 // @flow
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
-import { Experiment, jsPsych } from 'jspsych-react';
 import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
-// import Mousetrap from 'mousetrap';
 import styles from '../styles/common.css';
 import InputModal from '../InputModal';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
-import callbackHTMLDisplay from '../../utils/jspsych/plugins/callback-html-display';
-import callbackImageDisplay from '../../utils/jspsych/plugins/callback-image-display';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { ExperimentWindow } from '../../utils/labjs';
 
@@ -52,7 +48,6 @@ export default class Run extends Component<Props, State> {
   handleSubjectEntry: (Object, Object) => void;
   handleSessionEntry: (Object, Object) => void;
   handleStartExperiment: () => void;
-  handleTimeline: () => void;
   insertLabJsCallback: () => void;
   handleCloseInputModal: () => void;
   handleCloseGroupInputModal: () => void;
@@ -67,7 +62,6 @@ export default class Run extends Component<Props, State> {
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
-    this.handleTimeline = this.handleTimeline.bind(this);
     this.insertLabJsCallback = this.insertLabJsCallback.bind(this);
     this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
     this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(
@@ -79,11 +73,6 @@ export default class Run extends Component<Props, State> {
     if (this.props.mainTimeline.length <= 0) {
       this.props.experimentActions.loadDefaultTimeline();
     }
-    // Mousetrap.bind('esc', jsPsych.endCurrentTimeline);
-  }
-
-  componentWillUnmount() {
-    // Mousetrap.unbind('esc');
   }
 
   handleSubjectEntry(event: Object, data: Object) {
@@ -106,30 +95,6 @@ export default class Run extends Component<Props, State> {
   handleCloseGroupInputModal(name: string) {
     this.props.experimentActions.setGroup(name);
     this.setState({ isGroupInputModalOpen: false });
-  }
-
-  handleTimeline() {
-    let injectionFunction = () => null;
-    if (this.props.isEEGEnabled) {
-      injectionFunction =
-        this.props.deviceType === 'MUSE'
-          ? injectMuseMarker
-          : injectEmotivMarker;
-    }
-
-    const timeline = instantiateTimeline(
-      parseTimeline(
-        this.props.params,
-        this.props.mainTimeline,
-        this.props.trials,
-        this.props.timelines
-      ),
-      (value, time) => injectionFunction(value, time), // event callback
-      null, // start callback
-      null, // stop callback
-      this.props.params.showProgessBar
-    );
-    return timeline;
   }
 
   insertLabJsCallback() {
@@ -213,15 +178,18 @@ export default class Run extends Component<Props, State> {
       );
     }
     return (
-      <ExperimentWindow
-        settings={{
-          script: this.props.paradigm,
-          eventCallback: this.insertLabJsCallback(),
-          on_finish: csv => {
-            this.props.experimentActions.stop({ data: csv });
-          }
-        }}
-      />
+      <div className={styles.experimentWindow}>
+        <ExperimentWindow
+          settings={{
+            script: this.props.paradigm,
+            params: this.props.params,
+            eventCallback: this.insertLabJsCallback(),
+            on_finish: csv => {
+              this.props.experimentActions.stop({ data: csv });
+            }
+          }}
+        />
+      </div>
     );
   }
 

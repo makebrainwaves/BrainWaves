@@ -247,6 +247,7 @@ button:active {
   width: 32px;
   border: 2px solid #007c70;
   background-color: #007c70;
+  transform: none !important;
 }
 
 .rc-slider-mark-text {

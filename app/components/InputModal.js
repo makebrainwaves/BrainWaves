@@ -44,7 +44,7 @@ export default class InputModal extends Component<Props, State> {
   }
 
   handleClose() {
-    if (this.state.enteredText.length > 1) {
+    if (this.state.enteredText.length >= 1) {
       this.props.onClose(this.sanitizeTextInput(this.state.enteredText));
     } else {
       this.setState({ isError: true });

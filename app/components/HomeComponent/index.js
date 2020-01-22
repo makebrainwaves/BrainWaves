@@ -24,7 +24,7 @@ import {
 import InputModal from "../InputModal";
 import SecondaryNavComponent from "../SecondaryNavComponent";
 import OverviewComponent from "./OverviewComponent";
-import { loadTimeline } from "../../utils/jspsych/functions";
+import { loadProtocol } from "../../utils/labjs/functions";
 import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
 import ViewerComponent from "../ViewerComponent";
 import {
@@ -78,7 +78,7 @@ export default class Home extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: HOME_STEPS.NEW,
+      activeStep: HOME_STEPS.RECENT,
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
@@ -195,7 +195,7 @@ export default class Home extends Component<Props, State> {
       case HOME_STEPS.RECENT:
         return (
           <Grid stackable padded columns="equal">
-            {this.state.recentWorkspaces.map(dir => (
+            {this.state.recentWorkspaces.length > 0 ? this.state.recentWorkspaces.map(dir => (
               <Grid.Row key={dir}>
                 <Button
                   secondary
@@ -215,7 +215,22 @@ export default class Home extends Component<Props, State> {
                   onClick={() => openWorkspaceDir(dir)}
                 />
               </Grid.Row>
-            ))}
+            )) :
+            <Grid.Column>
+              <Segment className={styles.recentDirSegment} vertical basic>
+                <Header as="h3">You don't have any experiments</Header>
+              </Segment>
+              <p>
+                Head over to the "Templates" section to start an experiment.
+              </p>
+              <Button
+                secondary
+                onClick={() => this.handleStepClick('EXPERIMENT BANK')}
+              >
+                View Templates
+              </Button>
+            </Grid.Column>
+          }
           </Grid>
         );
       case HOME_STEPS.NEW:
@@ -427,7 +442,7 @@ export default class Home extends Component<Props, State> {
     if (this.state.isOverviewComponentOpen) {
       return (
         <OverviewComponent
-          {...loadTimeline(this.state.overviewExperimentType)}
+          {...loadProtocol(this.state.overviewExperimentType)}
           type={this.state.overviewExperimentType}
           onStartExperiment={this.handleNewExperiment}
           onCloseOverview={this.handleCloseOverview}

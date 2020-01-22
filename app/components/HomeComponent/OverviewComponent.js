@@ -6,7 +6,7 @@ import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
-import { loadTimeline } from '../../utils/jspsych/functions';
+import { loadProtocol } from '../../utils/jspsych/functions';
 
 const OVERVIEW_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -62,10 +62,10 @@ export default class OverviewComponent extends Component<Props, State> {
               width={12}
               textAlign="right"
               verticalAlign="middle"
-              className={styles.jsPsychColumn}
+              className={styles.previewWindow}
             >
               <PreviewExperimentComponent
-                {...loadTimeline(this.props.paradigm)}
+                {...loadProtocol(this.props.paradigm)}
                 isPreviewing={this.state.isPreviewing}
                 onEnd={this.endPreview}
                 type={this.props.type}

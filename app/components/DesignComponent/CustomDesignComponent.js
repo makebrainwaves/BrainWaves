@@ -7,7 +7,8 @@ import {
   Header,
   Form,
   Checkbox,
-  Image
+  Image,
+  Icon
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
@@ -26,7 +27,8 @@ import PreviewButton from '../PreviewButtonComponent';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
-import { loadTimeline } from '../../utils/jspsych/functions';
+import { loadProtocol } from '../../utils/labjs/functions';
+import { readImages } from '../../utils/filesystem/storage';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -83,7 +85,7 @@ export default class CustomDesign extends Component<Props, State> {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: false,
       description: props.description,
-      params: props.params
+      params: props.params,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -166,49 +168,58 @@ export default class CustomDesign extends Component<Props, State> {
             />
           </Grid>
         );
-      case CUSTOM_STEPS.PARAMETERS:
-        return (
-          <Grid
-            stretched
-            padded
-            relaxed="very"
-            columns="equal"
-            className={styles.contentGrid}
-          >
-            <Grid.Column stretched verticalAlign="middle">
-              <Segment basic>
-                <Header as="h1">EEG Enabled</Header>
-                <p>EEG data collection will be enabled for this experiment</p>
-              </Segment>
-              <Segment basic>
-                <Checkbox
-                  checked={this.props.isEEGEnabled}
-                  label="Enable EEG"
-                  onChange={this.handleEEGEnabled}
-                />
-              </Segment>
-            </Grid.Column>
-          </Grid>
-        );
+        case CUSTOM_STEPS.PARAMETERS:
+          return (
+            <Grid
+              stretched
+              padded
+              relaxed="very"
+              columns="equal"
+              className={styles.contentGrid}
+            >
+              <Grid.Column stretched verticalAlign="middle">
+                <Segment basic>
+                  <Header as="h1">Time Interval</Header>
+                  <p>
+                    Select the inter-trial interval duration. This is the amount
+                    of time between trials measured from the end of one trial to
+                    the start of the next one.
+                  </p>
+                </Segment>
+                <Segment basic>
+                  <ParamSlider
+                    label="ITI Duration (seconds)"
+                    value={this.state.params.iti}
+                    onChange={value =>
+                      this.setState({
+                        params: { ...this.state.params, iti: value }
+                      })
+                    }
+                  />
+                </Segment>
+              </Grid.Column>
+            </Grid>
+          );
       case CUSTOM_STEPS.PREVIEW:
         return (
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
-              width={12}
+              width={11}
               textAlign="right"
               verticalAlign="middle"
-              className={styles.jsPsychColumn}
+              className={styles.previewWindow}
             >
               <PreviewExperimentComponent
-                {...loadTimeline(this.props.paradigm)}
+                {...loadProtocol(this.props.paradigm)}
                 isPreviewing={this.state.isPreviewing}
                 onEnd={this.endPreview}
                 type={this.props.type}
                 paradigm={this.props.paradigm}
+                previewParams={this.props.params}
               />
             </Grid.Column>
-            <Grid.Column width={4} verticalAlign="middle">
+            <Grid.Column width={5} verticalAlign="middle">
               <Segment basic>
                 <Form>
                   <Form.TextArea
@@ -334,6 +345,13 @@ export default class CustomDesign extends Component<Props, State> {
           steps={CUSTOM_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
+          enableEEGToggle={
+            <Checkbox
+              defaultChecked={this.props.isEEGEnabled}
+              label="Enable EEG"
+              onChange={(event, data) => this.handleEEGEnabled(event, data)}
+            />
+          }
           button={
             <Button
               compact
@@ -347,66 +365,23 @@ export default class CustomDesign extends Component<Props, State> {
               Collect Data
             </Button>
           }
+          saveButton={
+            <Button
+              compact
+              size="small"
+              secondary
+              onClick={() => {
+                this.handleSaveParams();
+                this.props.experimentActions.saveWorkspace()
+              }}
+            >
+              <Icon name="save" />
+              Save
+            </Button>
+          }
         />
         {this.renderSectionContent()}
       </div>
     );
   }
 }
-
-// <Grid.Column stretched verticalAlign="middle">
-//   <Segment basic>
-//     <Header as="h1">Image Duration</Header>
-//     <p>
-//       Select the trial duration. This determines the amount of time
-//       each image will be displayed during the experiment.
-//     </p>
-//   </Segment>
-//   <Segment basic>
-//     <ParamSlider
-//       label="Image Duration (seconds)"
-//       value={this.state.params.trialDuration}
-//       onChange={value =>
-//         this.setState({
-//           params: { ...this.state.params, trialDuration: value }
-//         })
-//       }
-//     />
-//   </Segment>
-// </Grid.Column>
-// <Grid.Column stretched verticalAlign="middle">
-//   <Segment basic>
-//     <Header as="h1">Time Interval</Header>
-//     <p>
-//       Select the inter-trial interval duration. This is the amount
-//       of time between trials measured from the end of one trial to
-//       the start of the next one.
-//     </p>
-//   </Segment>
-//   <Segment basic>
-//     <ParamSlider
-//       label="ITI Duration (seconds)"
-//       value={this.state.params.iti}
-//       onChange={value =>
-//         this.setState({
-//           params: { ...this.state.params, iti: value }
-//         })
-//       }
-//     />
-//   </Segment>
-// </Grid.Column>
-
-// <Segment basic>
-//   <Header as="h1">Progress Bar</Header>
-//   <p>
-//     This will display a small progress bar at the top of the
-//     experiment window
-//   </p>
-// </Segment>
-// <Segment basic>
-//   <Checkbox
-//     checked={this.props.params.showProgessBar}
-//     label="Enable progress bar"
-//     onChange={this.handleProgressBar}
-//   />
-// </Segment>
