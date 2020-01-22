@@ -1,10 +1,8 @@
 // @flow
 import React, { Component } from 'react';
-import { Experiment } from 'jspsych-react';
 import { Segment } from 'semantic-ui-react';
-import callbackHTMLDisplay from '../utils/jspsych/plugins/callback-html-display';
-import callbackImageDisplay from '../utils/jspsych/plugins/callback-image-display';
 import { ExperimentWindow } from '../utils/labjs';
+import styles from './styles/collect.css';
 
 import {
   parseTimeline,
@@ -27,51 +25,31 @@ interface Props {
 
 export default class PreviewExperimentComponent extends Component<Props> {
   props: Props;
-  handleTimeline: () => void;
 
   constructor(props: Props) {
     super(props);
-    this.handleTimeline = this.handleTimeline.bind(this);
-  }
-
-  handleTimeline() {
-    const timeline = instantiateTimeline(
-      parseTimeline(
-        this.props.params,
-        this.props.mainTimeline,
-        this.props.trials,
-        this.props.timelines
-      ),
-      (value, time) => {}, // event callback
-      () => {}, // start callback
-      () => {}, // stop callback
-      this.props.params.showProgessBar
-    );
-    return timeline;
   }
 
   handleImages() {
     return getImages(this.props.params);
   }
 
-  // This function could be used in the future in order to load custom pre-coded jspsych experiments
-  // async handleCustomExperimentLoad() {
-  //   const timelinePath = await loadFromSystemDialog(FILE_TYPES.TIMELINE);
-  // }
-
   render() {
     if (!this.props.isPreviewing) {
       return <Segment basic />;
     }
     return (
-      <ExperimentWindow
-        settings={{
-          script: this.props.paradigm,
-          on_finish: csv => {
-            this.props.onEnd();
-          }
-        }}
-      />
+      <div className={styles.previewExpComponent}>
+        <ExperimentWindow
+          settings={{
+            script: this.props.paradigm,
+            params: this.props.previewParams || this.props.params,
+            on_finish: csv => {
+              this.props.onEnd();
+            }
+          }}
+        />
+      </div>
     );
   }
 }

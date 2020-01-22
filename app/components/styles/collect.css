@@ -23,7 +23,6 @@
   left: -40px;
 }
 
-
 .searchingText {
   text-align: center !important;
 }
@@ -42,8 +41,16 @@
   background: linear-gradient(#f9f9f9, #f0f0ff) !important;
 }
 
-.previewColumn {
+.previewEEGWindow {
   height: 100%;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.previewExpComponent {
+  height: 100%;
+  width: 100%;
+  align-items: center;
 }
 
 .primaryButton {

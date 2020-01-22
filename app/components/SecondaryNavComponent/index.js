@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Header } from 'semantic-ui-react';
+import { Grid, Header, Checkbox, Segment } from 'semantic-ui-react';
 import styles from '../styles/secondarynav.css';
 import SecondaryNavSegment from './SecondaryNavSegment';
 
@@ -38,9 +38,15 @@ export default class SecondaryNavComponent extends Component<Props> {
             onClick={() => this.props.onStepClick(stepTitle)}
           />
         ))}
+        {this.props.enableEEGToggle ? (
+          <Segment basic>
+            {this.props.enableEEGToggle}
+          </Segment>
+        ) : null}
         {this.props.button ? (
-          <Grid.Column width="5" floated="right" textAlign="right">
+          <Grid.Column width="3" floated="right" textAlign="right">
             {this.props.customizeButton}
+            {this.props.saveButton}
             {this.props.button}
           </Grid.Column>
         ) : null}

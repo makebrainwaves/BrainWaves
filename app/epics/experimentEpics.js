@@ -31,7 +31,7 @@ import {
   EMOTIV_CHANNELS,
   CONNECTION_STATUS
 } from "../constants/constants";
-import { loadTimeline, getBehaviouralData } from "../utils/jspsych/functions";
+import { loadProtocol, getBehaviouralData } from "../utils/labjs/functions";
 import {
   createEEGWriteStream,
   writeHeader,
@@ -97,7 +97,7 @@ const createNewWorkspaceEpic = action$ =>
 const loadDefaultTimelineEpic = (action$, state$) =>
   action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
     map(() => state$.value.experiment.paradigm),
-    map(loadTimeline),
+    map(loadProtocol),
     map(setTimeline)
   );
 

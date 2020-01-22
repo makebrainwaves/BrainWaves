@@ -16,19 +16,22 @@ class ExperimentWindow extends Component {
     const { props } = this;
     switch (props.settings.script) {
       case 'Multi-tasking':
+        multitasking.parameters = props.settings.params;
         this.study = lab.util.fromObject(clonedeep(multitasking), lab);
         break;
       case 'Visual search':
+        visualsearch.parameters = props.settings.params;
         this.study = lab.util.fromObject(clonedeep(visualsearch), lab);
         break;
       case 'Stroop Task':
+        stroop.parameters = props.settings.params;
         this.study = lab.util.fromObject(clonedeep(stroop), lab);
         break;
       case 'Faces and Houses':
+      default:
+        faceshouses.parameters = props.settings.params;
         this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
         break;
-      default:
-        this.study = lab.util.fromObject(clonedeep(stroop), lab);
     }
     this.study.run();
     this.study.on('end', () => {

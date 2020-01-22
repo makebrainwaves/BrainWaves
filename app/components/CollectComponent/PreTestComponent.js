@@ -18,6 +18,7 @@ import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS
 } from '../../constants/constants';
+import { loadProtocol } from '../../utils/labjs/functions';
 
 interface Props {
   experimentActions: Object;
@@ -30,6 +31,7 @@ interface Props {
   experimentActions: Object;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
+  paradigm: EXPERIMENTS;
   isRunning: boolean;
   params: ExperimentParameters;
   mainTimeline: MainTimeline;
@@ -59,6 +61,11 @@ export default class PreTestComponent extends Component<Props, State> {
     };
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
+    this.endPreview = this.endPreview.bind(this);
+  }
+
+  endPreview() {
+    this.setState({ isPreviewing: false });
   }
 
   componentDidMount() {
@@ -69,7 +76,8 @@ export default class PreTestComponent extends Component<Props, State> {
     Mousetrap.unbind('esc');
   }
 
-  handlePreview() {
+  handlePreview(e) {
+    e.target.blur();
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
@@ -81,11 +89,12 @@ export default class PreTestComponent extends Component<Props, State> {
     if (this.state.isPreviewing) {
       return (
         <PreviewExperimentComponent
-          params={this.props.params}
-          mainTimeline={this.props.mainTimeline}
-          trials={this.props.trials}
-          timelines={this.props.timelines}
+          {...loadProtocol(this.props.paradigm)}
           isPreviewing={this.state.isPreviewing}
+          onEnd={this.endPreview}
+          type={this.props.type}
+          paradigm={this.props.paradigm}
+          previewParams={this.props.params}
         />
       );
     }
@@ -160,7 +169,7 @@ export default class PreTestComponent extends Component<Props, State> {
               <Grid.Column floated="right">
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
-                  onClick={this.handlePreview}
+                  onClick={e => this.handlePreview(e)}
                 />
                 <Button
                   primary
@@ -174,7 +183,7 @@ export default class PreTestComponent extends Component<Props, State> {
               </Grid.Column>
             </Grid.Row>
             <Grid.Row>
-              <Grid.Column stretched width={6} className={styles.previewColumn}>
+              <Grid.Column width={6} className={styles.previewEEGWindow}>
                 {this.renderSignalQualityOrPreview()}
               </Grid.Column>
               <Grid.Column width={10}>
