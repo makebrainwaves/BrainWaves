@@ -549,7 +549,7 @@ for (let s of stimuli) {
                 "messageHandlers": {
                   "run": function anonymous(
 ) {
-  this.parameters.callbackForEEG(this.parameters.target === 'yes' ? 1 : 2);
+  this.parameters.callbackForEEG(parseInt(this.parameters.size) < 13 ? 2 : 1);
   const taskgrid = document.querySelector('#taskgrid')
   const stimuli = this.parameters.stimuli
 
