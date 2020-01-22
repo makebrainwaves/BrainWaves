@@ -6,7 +6,7 @@ import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
-import { loadProtocol } from '../../utils/jspsych/functions';
+import { loadProtocol } from '../../utils/labjs/functions';
 
 const OVERVIEW_STEPS = {
   OVERVIEW: 'OVERVIEW',
