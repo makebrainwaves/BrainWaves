@@ -77,9 +77,15 @@
   box-shadow: none !important;
 }
 
-.jsPsychColumn {
-  height: 100%;
+.previewWindow {
+  height: inherit;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+.experimentWindow {
+  height: 100%;
+  width: 100%;
 }
 
 .paramSlider {

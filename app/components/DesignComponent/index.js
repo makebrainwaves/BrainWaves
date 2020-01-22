@@ -6,7 +6,8 @@ import {
   Segment,
   Header,
   Image,
-  Divider
+  Divider,
+  Checkbox
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
@@ -39,7 +40,7 @@ import conditionNoOrangeT from '../../assets/search/conditionNoOrangeT.png';
 import conditionCongruent from '../../assets/stroop/match_g.png';
 import conditionIncongruent from '../../assets/stroop/mismatch6_r.png';
 
-import { loadTimeline } from '../../utils/jspsych/functions';
+import { loadProtocol } from '../../utils/labjs/functions';
 import { toast } from 'react-toastify';
 import InputModal from '../InputModal';
 
@@ -61,6 +62,7 @@ interface Props {
   timelines: {};
   experimentActions: Object;
   description: ExperimentDescription;
+  isEEGEnabled: boolean;
 }
 
 interface State {
@@ -85,7 +87,7 @@ export default class Design extends Component<Props, State> {
       activeStep: DESIGN_STEPS.OVERVIEW,
       isPreviewing: false,
       isNewExperimentModalOpen: false,
-      recentWorkspaces: []
+      recentWorkspaces: [],
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -95,6 +97,7 @@ export default class Design extends Component<Props, State> {
     );
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
+    this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
       props.experimentActions.loadDefaultTimeline();
     }
@@ -129,12 +132,12 @@ export default class Design extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    console.log('paradigm', this.props.paradigm);
     this.props.experimentActions.createNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
       paradigm: this.props.paradigm
     });
+    this.props.experimentActions.saveWorkspace();
   }
 
   handlePreview(e) {
@@ -144,6 +147,10 @@ export default class Design extends Component<Props, State> {
 
   endPreview() {
     this.setState({ isPreviewing: false });
+  }
+
+  handleEEGEnabled(event: Object, data: Object) {
+    this.props.experimentActions.setEEGEnabled(data.checked);
   }
 
   renderConditionIcon(type) {
@@ -334,10 +341,10 @@ export default class Design extends Component<Props, State> {
               width={12}
               textAlign="right"
               verticalAlign="middle"
-              className={styles.jsPsychColumn}
+              className={styles.previewWindow}
             >
               <PreviewExperimentComponent
-                {...loadTimeline(this.props.paradigm)}
+                {...loadProtocol(this.props.paradigm)}
                 isPreviewing={this.state.isPreviewing}
                 onEnd={this.endPreview}
                 type={this.props.type}
@@ -366,9 +373,16 @@ export default class Design extends Component<Props, State> {
           steps={DESIGN_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
+          enableEEGToggle={
+            <Checkbox
+              defaultChecked={this.props.isEEGEnabled}
+              label="Enable EEG"
+              onChange={(event, data) => this.handleEEGEnabled(event, data)}
+            />
+          }
           customizeButton={
             <Button secondary onClick={this.handleCustomizeExperiment}>
-              Customize
+              Edit
             </Button>
           }
           button={

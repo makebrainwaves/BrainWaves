@@ -51,13 +51,6 @@ export default class TopNavComponent extends Component<Props> {
         <Grid.Column width="3" className={styles.experimentTitleSegment}>
           <Segment basic as="p">
             {this.props.title ? this.props.title : 'Untitled'}
-            <Button
-              icon="folder open outline"
-              basic
-              circular
-              className={styles.closeButton}
-              onClick={() => openWorkspaceDir(this.props.title)}
-            />
           </Segment>
         </Grid.Column>
         <PrimaryNavSegment
