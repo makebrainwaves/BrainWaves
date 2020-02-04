@@ -120,13 +120,13 @@ class Cortex extends EventEmitter {
     const token = this.getUserLogin()
       .then(users => {
         if (users.length === 0) {
-          return Promise.Reject(new Error("No logged in user"));
+          return Promise.reject(new Error("No logged in user"));
         }
         return this.requestAccess({ clientId, clientSecret });
       })
       .then(({ accessGranted }) => {
         if (!accessGranted) {
-          return Promise.Reject(
+          return Promise.reject(
             new Error("Please approve this application in the EMOTIV app")
           );
         }
