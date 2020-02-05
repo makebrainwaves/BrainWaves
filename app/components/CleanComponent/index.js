@@ -18,6 +18,7 @@ import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
 import { Kernel } from '../../constants/interfaces';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
+import * as path from 'path';
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -77,7 +78,7 @@ export default class Clean extends Component<Props, State> {
     }
     this.setState({
       subjects: workspaceRawData
-        .map(filepath => filepath.path.split('/')[filepath.path.split('/').length - 3])
+        .map(filepath => filepath.path.split(path.sep)[filepath.path.split(path.sep).length - 3])
         .reduce((acc, curr) => {
           if (acc.find(subject => subject.key === curr)) {
             return acc;
@@ -199,7 +200,7 @@ export default class Clean extends Component<Props, State> {
                     options={this.state.eegFilePaths.filter(
                       filepath =>
                         this.state.selectedSubject ===
-                        filepath.value.split('/')[filepath.value.split('/').length - 3]
+                        filepath.value.split(path.sep)[filepath.value.split(path.sep).length - 3]
                     )}
                     onChange={this.handleRecordingChange}
                   />
