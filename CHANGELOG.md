@@ -1,406 +1,86 @@
-# 0.13.3 (2018.5.24)
-- Add git precommit hook, when git commit will use `prettier` to format git add code
-- Add format code function in `lint-fix` npm script which can use `prettier` to format project js code
-
-# 0.13.2 (2018.1.31)
-- Hot Module Reload (HMR) fixes
-- Bumped all dependencies to latest semver
-- Prevent error propagation of `CheckNativeDeps` script
-
-# 0.13.1 (2018.1.13)
-- Hot Module Reload (HMR) fixes
-- Bumped all dependencies to latest semver
-- Fixed electron-rebuild script
-- Fixed tests scripts to run on all platforms
-- Skip redux logs in console in test ENV
-
-# 0.13.0 (2018.1.6)
-
-#### Additions
-- Add native dependencies check on postinstall
-- Updated all dependencies to latest semver
-
-# 0.12.0 (2017.7.8)
-
-#### Misc
-- Removed `babel-polyfill`
-- Renamed and alphabetized npm scripts
-
-#### Breaking
-- Changed node dev `__dirname` and `__filename` to node built in fn's (https://github.com/chentsulin/electron-react-boilerplate/pull/1035)
-- Renamed `app/bundle.js` to `app/renderer.prod.js` for consistency
-- Renamed `dll/vendor.js` to `dll/renderer.dev.dll.js` for consistency
-
-#### Additions
-- Enable node_modules cache on CI
-
-# 0.11.2 (2017.5.1)
-
-Yay! Another patch release. This release mostly includes refactorings and router bug fixes. Huge thanks to @anthonyraymond!
-
-⚠️ Windows electron builds are failing because of [this issue](https://github.com/electron/electron/issues/9321). This is not an issue with the boilerplate ⚠️
-
-#### Breaking
-- **Renamed `./app/main.development.js` => `./app/main.{dev,prod}.js`:** [#963](https://github.com/chentsulin/electron-react-boilerplate/pull/963)
-
-#### Fixes
-- **Fixed reloading when not on `/` path:** [#958](https://github.com/chentsulin/electron-react-boilerplate/pull/958) [#949](https://github.com/chentsulin/electron-react-boilerplate/pull/949)
-
-#### Additions
-- **Added support for stylefmt:** [#960](https://github.com/chentsulin/electron-react-boilerplate/pull/960)
-
-# 0.11.1 (2017.4.23)
-
-You can now debug the production build with devtools like so:
-```
-DEBUG_PROD=true npm run package
-```
-
-🎉🎉🎉
-
-#### Additions
-- **Added support for debugging production build:** [#fab245a](https://github.com/chentsulin/electron-react-boilerplate/pull/941/commits/fab245a077d02a09630f74270806c0c534a4ff95)
-
-#### Bug Fixes
-- **Fixed bug related to importing native dependencies:** [#933](https://github.com/chentsulin/electron-react-boilerplate/pull/933)
-
-#### Improvements
-- **Updated all deps to latest semver**
-
-# 0.11.0 (2017.4.19)
-
-Here's the most notable changes since `v0.10.0`. Its been about a year since a release has been pushed. Expect a new release to be published every 3-4 weeks.
-
-#### Breaking Changes
-
-- **Dropped support for node < 6**
-- **Refactored webpack config files**
-- **Migrate to two-package.json project structure**
-- **Updated all devDeps to latest semver**
-- **Migrated to Jest:** [#768](https://github.com/chentsulin/electron-react-boilerplate/pull/768)
-- **Migrated to `react-router@4`**
-- **Migrated to `electron-builder@4`**
-- **Migrated to `webpack@2`**
-- **Migrated to `react-hot-loader@3`**
-- **Changed default live reload server PORT to `1212` from `3000`**
-
-#### Additions
-
-- **Added support for Yarn:** [#451](https://github.com/chentsulin/electron-react-boilerplate/pull/451)
-- **Added support for Flow:** [#425](https://github.com/chentsulin/electron-react-boilerplate/pull/425)
-- **Added support for stylelint:** [#911](https://github.com/chentsulin/electron-react-boilerplate/pull/911)
-- **Added support for electron-builder:** [#876](https://github.com/chentsulin/electron-react-boilerplate/pull/876)
-- **Added optional support for SASS:** [#880](https://github.com/chentsulin/electron-react-boilerplate/pull/880)
-- **Added support for eslint-plugin-flowtype:** [#911](https://github.com/chentsulin/electron-react-boilerplate/pull/911)
-- **Added support for appveyor:** [#280](https://github.com/chentsulin/electron-react-boilerplate/pull/280)
-- **Added support for webpack dlls:** [#860](https://github.com/chentsulin/electron-react-boilerplate/pull/860)
-- **Route based code splitting:** [#884](https://github.com/chentsulin/electron-react-boilerplate/pull/884)
-- **Added support for Webpack Bundle Analyzer:** [#922](https://github.com/chentsulin/electron-react-boilerplate/pull/922)
-
-#### Improvements
-
-- **Parallelize renderer and main build processes when running `npm run build`**
-- **Dynamically generate electron app menu**
-- **Improved vscode integration:** [#856](https://github.com/chentsulin/electron-react-boilerplate/pull/856)
-
-#### Bug Fixes
-
-- **Fixed hot module replacement race condition bug:** [#917](https://github.com/chentsulin/electron-react-boilerplate/pull/917) [#920](https://github.com/chentsulin/electron-react-boilerplate/pull/920)
-
-# 0.10.0 (2016.4.18)
-
-#### Improvements
-
-- **Use Babel in main process with Webpack build:** [#201](https://github.com/chentsulin/electron-react-boilerplate/pull/201)
-- **Change targets to built-in support by webpack:** [#197](https://github.com/chentsulin/electron-react-boilerplate/pull/197)
-- **use es2015 syntax for webpack configs:** [#195](https://github.com/chentsulin/electron-react-boilerplate/pull/195)
-- **Open application when webcontent is loaded:** [#192](https://github.com/chentsulin/electron-react-boilerplate/pull/192)
-- **Upgraded dependencies**
-
-#### Bug fixed
-
-- **Fix `npm list electron-prebuilt` in package.js:** [#188](https://github.com/chentsulin/electron-react-boilerplate/pull/188)
-
-
-# 0.9.0 (2016.3.23)
-
-#### Improvements
-
-- **Added [redux-logger](https://github.com/fcomb/redux-logger)**
-- **Upgraded [react-router-redux](https://github.com/reactjs/react-router-redux) to v4**
-- **Upgraded dependencies**
-- **Added `npm run dev` command:** [#162](https://github.com/chentsulin/electron-react-boilerplate/pull/162)
-- **electron to v0.37.2**
-
-#### Breaking Changes
-
-- **css module as default:** [#154](https://github.com/chentsulin/electron-react-boilerplate/pull/154).
-- **set default NODE_ENV to production:** [#140](https://github.com/chentsulin/electron-react-boilerplate/issues/140)
-
-
-# 0.8.0 (2016.2.17)
-
-#### Bug fixed
-
-- **Fix lint errors**
-- **Fix Webpack publicPath for production builds**: [#119](https://github.com/chentsulin/electron-react-boilerplate/issues/119).
-- **package script now chooses correct OS icon extension**
-
-#### Improvements
-
-- **babel 6**
-- **Upgrade Dependencies**
-- **Enable CSS source maps**
-- **Add json-loader**: [#128](https://github.com/chentsulin/electron-react-boilerplate/issues/128).
-- **react-router 2.0 and react-router-redux 3.0**
-
-
-# 0.7.1 (2015.12.27)
-
-#### Bug fixed
-
-- **Fixed npm script on windows 10:** [#103](https://github.com/chentsulin/electron-react-boilerplate/issues/103).
-- **history and react-router version bump**: [#109](https://github.com/chentsulin/electron-react-boilerplate/issues/109), [#110](https://github.com/chentsulin/electron-react-boilerplate/pull/110).
-
-#### Improvements
-
-- **electron 0.36**
-
-
-
-# 0.7.0 (2015.12.16)
-
-#### Bug fixed
-
-- **Fixed process.env.NODE_ENV variable in webpack:** [#74](https://github.com/chentsulin/electron-react-boilerplate/pull/74).
-- **add missing object-assign**: [#76](https://github.com/chentsulin/electron-react-boilerplate/pull/76).
-- **packaging in npm@3:** [#77](https://github.com/chentsulin/electron-react-boilerplate/pull/77).
-- **compatibility in windows:** [#100](https://github.com/chentsulin/electron-react-boilerplate/pull/100).
-- **disable chrome debugger in production env:** [#102](https://github.com/chentsulin/electron-react-boilerplate/pull/102).
-
-#### Improvements
-
-- **redux**
-- **css-modules**
-- **upgrade to react-router 1.x**
-- **unit tests**
-- **e2e tests**
-- **travis-ci**
-- **upgrade to electron 0.35.x**
-- **use es2015**
-- **check dev engine for node and npm**
-
-
-# 0.6.5 (2015.11.7)
-
-#### Improvements
-
-- **Bump style-loader to 0.13**
-- **Bump css-loader to 0.22**
-
-
-# 0.6.4 (2015.10.27)
-
-#### Improvements
-
-- **Bump electron-debug to 0.3**
-
-
-# 0.6.3 (2015.10.26)
-
-#### Improvements
-
-- **Initialize ExtractTextPlugin once:** [#64](https://github.com/chentsulin/electron-react-boilerplate/issues/64).
-
-
-# 0.6.2 (2015.10.18)
-
-#### Bug fixed
-
-- **Babel plugins production env not be set properly:** [#57](https://github.com/chentsulin/electron-react-boilerplate/issues/57).
-
-
-# 0.6.1 (2015.10.17)
-
-#### Improvements
-
-- **Bump electron to v0.34.0**
-
-
-# 0.6.0 (2015.10.16)
-
-#### Breaking Changes
-
-- **From react-hot-loader to react-transform**
-
-
-# 0.5.2 (2015.10.15)
-
-#### Improvements
-
-- **Run tests with babel-register:** [#29](https://github.com/chentsulin/electron-react-boilerplate/issues/29).
-
-
-# 0.5.1 (2015.10.12)
-
-#### Bug fixed
-
-- **Fix #51:** use `path.join(__dirname` instead of `./`.
-
-
-# 0.5.0 (2015.10.11)
-
-#### Improvements
-
-- **Simplify webpack config** see [#50](https://github.com/chentsulin/electron-react-boilerplate/pull/50).
-
-#### Breaking Changes
-
-- **webpack configs**
-- **port changed:** changed default port from 2992 to 3000.
-- **npm scripts:** remove `start-dev` and `dev-server`. rename `hot-dev-server` to `hot-server`.
-
-
-# 0.4.3 (2015.9.22)
-
-#### Bug fixed
-
-- **Fix #45 zeromq crash:** bump version of `electron-prebuilt`.
-
-
-# 0.4.2 (2015.9.15)
-
-#### Bug fixed
-
-- **run start-hot breaks chrome refresh(CTRL+R) (#42)**: bump `electron-debug` to `0.2.1`
-
-
-# 0.4.1 (2015.9.11)
-
-#### Improvements
-
-- **use electron-prebuilt version for packaging (#33)**
-
-
-# 0.4.0 (2015.9.5)
-
-#### Improvements
-
-- **update dependencies**
-
-
-# 0.3.0 (2015.8.31)
-
-#### Improvements
-
-- **eslint-config-airbnb**
-
-
-# 0.2.10 (2015.8.27)
-
-#### Features
-
-- **custom placeholder icon**
-
-#### Improvements
-
-- **electron-renderer as target:** via [webpack-target-electron-renderer](https://github.com/chentsulin/webpack-target-electron-renderer)
-
-
-# 0.2.9 (2015.8.18)
-
-#### Bug fixed
-
-- **Fix hot-reload**
-
-
-# 0.2.8 (2015.8.13)
-
-#### Improvements
-
-- **bump electron-debug**
-- **babelrc**
-- **organize webpack scripts**
-
-
-# 0.2.7 (2015.7.9)
-
-#### Bug fixed
-
-- **defaultProps:** fix typos.
-
-
-# 0.2.6 (2015.7.3)
-
-#### Features
-
-- **menu**
-
-#### Bug fixed
-
-- **package.js:** include webpack build.
-
-
-# 0.2.5 (2015.7.1)
-
-#### Features
-
-- **NPM Script:** support multi-platform
-- **package:** `--all` option
-
-
-# 0.2.4 (2015.6.9)
-
-#### Bug fixed
-
-- **Eslint:** typo, [#17](https://github.com/chentsulin/electron-react-boilerplate/issues/17) and improve `.eslintrc`
-
-
-# 0.2.3 (2015.6.3)
-
-#### Features
-
-- **Package Version:** use latest release electron version as default
-- **Ignore Large peerDependencies**
-
-#### Bug fixed
-
-- **Npm Script:** typo, [#6](https://github.com/chentsulin/electron-react-boilerplate/pull/6)
-- **Missing css:** [#7](https://github.com/chentsulin/electron-react-boilerplate/pull/7)
-
-
-# 0.2.2 (2015.6.2)
-
-#### Features
-
-- **electron-debug**
-
-#### Bug fixed
-
-- **Webpack:** add `.json` and `.node` to extensions for imitating node require.
-- **Webpack:** set `node_modules` to externals for native module support.
-
-
-# 0.2.1 (2015.5.30)
-
-#### Bug fixed
-
-- **Webpack:** #1, change build target to `atom`.
-
-
-# 0.2.0 (2015.5.30)
-
-#### Features
-
-- **Ignore:** `test`, `tools`, `release` folder and devDependencies in `package.json`.
-- **Support asar**
-- **Support icon**
-
-
-# 0.1.0 (2015.5.27)
-
-#### Features
-
-- **Webpack:** babel, react-hot, ...
-- **Flux:** actions, api, components, containers, stores..
-- **Package:** darwin (osx), linux and win32 (windows) platform.
+# 0.11.0 (Feb 4, 2020) - Fixes error logging
+- Fix error messaging for authentication with Emotiv in app.
+
+# 0.10.1 (Jan 23, 2020) - Minor fixes
+
+# 0.10.0 (Jan 22, 2020) - Add Explore EEG data tab; compat fixes
+- Enable EEG for all experiments
+- Explore EEG data tab
+- Delay the python kernel launch
+- fix emotiv compability
+
+# 0.9.1 (Nov 13, 2019)
+- Standardize labjs experiments
+- Update task descriptions
+
+# 0.9.0 (Nov 12, 2019) - Redesign on landing page; majority lab.js experiments
+- Redesign on landing page
+- Now using labjs for the majority of experiments
+- Option to enable/disable EEG
+
+# 0.8.2 (Jul 17, 2019) - Added Behavioral Results View
+- It is now possible to visualize the behavioral results from the experiment.
+- Within the app, we present the individual summary data as well as a toggle to plot the raw data.
+
+# 0.8.1 (Apr 9, 2019) - Updated RxJs and removed debug device from menu
+- Updated RxJs
+- Removed debug device from menu
+
+# 0.8.0 (Apr 1, 2019) - Better behavioural data and simplified Python environment
+- Better behavioural data and simplified Python environment
+- This release adds Event Type, Expected Key Press, and Correct columns to behavioural data. Hopefully, this makes it easier for students to work with the behavioral data collected from the app.
+- The Python environment has also been greatly simplified. We are now using just the dependencies that we actually use in the app instead of the entire recommended set of dependencies from MNE. This should hopefully reduce issues with installation.
+
+# 0.7.5 (Jan 18, 2019) - Hotfix: Updated Emotiv Credentials
+- This release includes new Emotiv credentials into the app that should address issues with being unable to create new sessions on Epoc EEG devices.
+
+# 0.7.4 (Jan 16, 2019) - Hotfix: Improved error handling in device connectivity
+- This version should be free of Emotiv connectivity issues, as well as provide better error messages about the connection process.
+- In the event of a connection failure, notifications will now indicate where along the process of authentication, requesting sessions, and subscribing to data things went wrong.
+- Special characters such as "." and "/" that will lead to corrupt directory names will now be automatically removed from text inputs.
+- Some typos were also fixed in the app text.
+
+# 0.7.3 (Jan 15, 2019) - Hotfix: device names not displayed; issues connecting to EEG devices
+- This update should address issues with device connectivity in the most recent version of the app.
+- Some changes introduced in 0.7.2 have been reverted.
+
+# 0.7.2 (Jan 13, 2019) - Custom stimuli titles; Small tweaks
+- Custom stimuli should now appear with the correct names in the Analyze and Clean screens
+- The Home screen should allow scrolling through workspaces when many of them are created
+
+# 0.7.1 (Dec 4, 2018) - More comprehensive error handling for Emotiv devices
+- Improved error handling of Emotiv devices in connectEpic
+- Removed debug tools window
+
+# 0.7.0 (Nov 23, 2018) - Win7 compatibility; Subject names in Images; Layout fixes
+- Works on Windows 7
+- Reduced scale of Y axis in ERP plots
+- Added experiment instructions at beginning of experiment
+- Tweaked layouts for smaller rez screens
+- Added subject name to image filenames
+
+# 0.6.1 (Nov 16, 2018) - Win7 bugfix; Remove menubar
+- This has an important bugfix for the code that tries to make the app run on Windows 7.
+- Removed the menubar because I thought it looked better (and we're not using it anyway)
+
+# 0.6.0 (Nov 16, 2018) - Offline experiments, illustrations, and Windows 7 support
+- This release includes the ability to create custom behaviour only experiments and should hopefully work on Windows 7 computers (by conditionally dropping Muse connectivity when run on a machine detected to be running Windows 7).
+- It also has some more illustrations!
+
+# 0.5.1 (Oct 28, 2018) - Small app tweak
+- Addressing comments here: [#27](https://github.com/makebrainwaves/BrainWaves/issues/27)
+
+# 0.5.0 (Oct 14, 2018) - Alpha 5 release (Beta?)
+- A complete EEG collection and analysis experience for both Emotiv and Muse, restricted to the N170 experiment and custom experiments based on the 2-stimulus protocol.
+
+# 0.4.0 (Oct 1, 2018) - Alpha 4 release
+- Contains the custom experiment design feature, as well as lots of UI tweaks
+
+# 0.3.0 (Sep 24, 2018) - Alpha 3 release
+- Includes workspace update and re-design of most of the app's UI
+
+# 0.2.0 (Sep 13, 2018) - Alpha 2 release for experiment testing
+- Includes some UI redesign as well as corrections to the core experiment collection code that should increase experiment reliability.
+
+# 0.1.0 (Aug 22, 2018) - Alpha release for teacher training
+- An early version of the app that should be suitable for running N170 experiments with Emotiv or Muse and getting a feel for what working with the final version will be like.
