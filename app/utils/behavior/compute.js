@@ -1,12 +1,10 @@
 import * as ss from 'simple-statistics';
+import * as path from 'path';
 
 export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
   const processedData = data.map(result => {
     if (
-      result.meta.datafile
-        .split('/')
-        .pop()
-        .includes('aggregated')
+      path.basename(result.meta.datafile).includes('aggregated')
     ) {
       return transformAggregated(result);
     } else {
@@ -69,10 +67,7 @@ export const aggregateDataForPlot = (
   if (data && data.length > 0) {
     const processedData = data.map(result => {
       if (
-        result.meta.datafile
-          .split('/')
-          .pop()
-          .includes('aggregated')
+        path.basename(result.meta.datafile).includes('aggregated')
       ) {
         return transformAggregated(result);
       }
@@ -120,10 +115,7 @@ const transformAggregated = result => {
   const transformed = conditions.map(condition =>
     result.data.map(e => ({
       reaction_time: parseFloat(e[`RT_${condition}`]),
-      subject: result.meta.datafile
-        .split('/')
-        .pop()
-        .split('.csv')[0],
+      subject: path.parse(result.meta.datafile).name,
       condition,
       group: e.group,
       session: e.session,
@@ -141,18 +133,9 @@ const filterData = (data, removeOutliers) => {
     .filter(row => row.trial_number)
     .map(row => ({
       condition: row.condition,
-      subject: data.meta.datafile
-        .split('/')
-        .pop()
-        .split('-')[0],
-      group: data.meta.datafile
-        .split('/')
-        .pop()
-        .split('-')[1],
-      session: data.meta.datafile
-        .split('/')
-        .pop()
-        .split('-')[2],
+      subject: path.parse(data.meta.datafile).name.split('-')[0],
+      group: path.parse(data.meta.datafile).name.split('-')[1],
+      session: path.parse(data.meta.datafile).name.split('-')[2],
       reaction_time: Math.round(parseFloat(row.reaction_time)),
       correct_response: row.correct_response,
       trial_number: row.trial_number,
