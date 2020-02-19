@@ -8,7 +8,7 @@ import {
   Form,
   Checkbox,
   Image,
-  Icon
+  Table
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
@@ -29,25 +29,22 @@ import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
 import { loadProtocol } from '../../utils/labjs/functions';
 import { readImages } from '../../utils/filesystem/storage';
+import StimuliRow from './StimuliRow';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
+  CONDITIONS: 'CONDITIONS',
+  TRIALS: 'TRIALS',
   PARAMETERS: 'PARAMETERS',
   PREVIEW: 'PREVIEW'
 };
-
-// const CUSTOM_STEPS = {
-//   OVERVIEW: 'OVERVIEW',
-//   STIMULI: 'STIMULI',
-//   PARAMETERS: 'PARAMETERS',
-//   PREVIEW: 'PREVIEW'
-// };
 
 const FIELDS = {
   QUESTION: 'Research Question',
   HYPOTHESIS: 'Hypothesis',
   METHODS: 'Methods',
-  INTRO: 'Experiment Instructions'
+  INTRO: 'Experiment Instructions',
+  HELP: 'Instructions for the task screen',
 };
 
 interface Props {
@@ -68,6 +65,7 @@ interface State {
   isPreviewing: boolean;
   description: ExperimentDescription;
   params: ExperimentParameters;
+  saved: boolean;
 }
 
 export default class CustomDesign extends Component<Props, State> {
@@ -86,6 +84,7 @@ export default class CustomDesign extends Component<Props, State> {
       isPreviewing: false,
       description: props.description,
       params: props.params,
+      saved: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -104,6 +103,7 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleStepClick(step: string) {
+    this.handleSaveParams();
     this.setState({ activeStep: step });
   }
 
@@ -127,59 +127,221 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleSaveParams() {
+    this.setState({
+      params: {
+        ...this.state.params,
+        dateModified: Date.now(),
+      }
+    });
     this.props.experimentActions.setParams(this.state.params);
     this.props.experimentActions.setDescription(this.state.description);
+    this.props.experimentActions.saveWorkspace();
+    this.setState({ saved: true });
   }
 
   renderSectionContent() {
+    const stimi = [
+      {name: 'stimulus1', number: 1},
+      {name: 'stimulus2', number: 2},
+      {name: 'stimulus3', number: 3},
+      {name: 'stimulus4', number: 4},
+      ]
     switch (this.state.activeStep) {
-      case CUSTOM_STEPS.STIMULI:
+      case CUSTOM_STEPS.CONDITIONS:
         return (
-          <Grid
-            stretched
-            padded
-            relaxed="very"
-            columns="equal"
-            className={styles.contentGrid}
-          >
-            <StimuliDesignColumn
-              num={1}
-              {...this.state.params.stimulus1}
-              onChange={(key, data) =>
-                this.setState({
-                  params: {
-                    ...this.state.params,
-                    stimulus1: { ...this.state.params.stimulus1, [key]: data }
-                  }
-                })
-              }
-            />
-            <StimuliDesignColumn
-              num={2}
-              {...this.state.params.stimulus2}
-              onChange={(key, data) =>
-                this.setState({
-                  params: {
-                    ...this.state.params,
-                    stimulus2: { ...this.state.params.stimulus2, [key]: data }
-                  }
-                })
-              }
-            />
+          <Grid>
+            <Segment basic>
+              <Header as="h1">Conditions</Header>
+              <p>
+                Select the folder with images for each condition and choose the correct response.
+              </p>
+            </Segment>
+
+            <Table basic="very">
+
+              <Table.Header>
+                <Table.Row className={styles.conditionHeaderRow}>
+                  <Table.HeaderCell className={styles.conditionHeaderRowName}>Condition</Table.HeaderCell>
+                  <Table.HeaderCell>Default Key Response</Table.HeaderCell>
+                  <Table.HeaderCell>Condition Folder</Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+
+              <Table.Body className={styles.experimentTable}>
+                {stimi.map(({name, number}) => (
+                  <StimuliDesignColumn
+                    key={number}
+                    num={number}
+                    {...this.state.params[name]}
+                    numberImages={this.state.params.stimuli.filter(trial => trial.type === number).length}
+                    onChange={async (key, data, changedName) => {
+                      await this.setState({
+                        params: {
+                          ...this.state.params,
+                          [changedName]: { ...this.state.params[changedName], [key]: data },
+                        }
+                      })
+                      let newStimuli = [];
+                      await stimi.map( stimul => {
+                        let dirStimuli = [];
+                        const dir = this.state.params[stimul.name].dir;
+                        if(dir && typeof(dir) !== 'undefined' && dir !== ''){
+                          dirStimuli = readImages(dir).map(i => ({
+                              'dir': dir,
+                              'filename': i,
+                              'name': i,
+                              'condition': this.state.params[stimul.name].title,
+                              'response': this.state.params[stimul.name].response,
+                              'phase': 'main',
+                              'type': stimul.number,
+                              }));
+                        }
+                        newStimuli = newStimuli.concat(...dirStimuli);
+                      })
+                      this.setState({
+                        params: {
+                          ...this.state.params,
+                          stimuli: [ ... newStimuli ],
+                          nbTrials: newStimuli.filter(t => t.phase === 'main').length,
+                          nbPracticeTrials: newStimuli.filter(t => t.phase === 'practice').length,
+                        },
+                        saved: false,
+                      })
+                      }
+                    }
+                  />
+                  ))
+                }
+              </Table.Body>
+            </Table>
           </Grid>
         );
+        case CUSTOM_STEPS.TRIALS:
+          return (
+            <Grid>
+              <Segment basic>
+                <Header as="h1">Trials</Header>
+                <p>
+                    Edit the name, condition and correct key response of each trial.
+                </p>
+              </Segment>
+
+              <Form style={{ alignSelf: 'flex-end' }}>
+                <Form.Group>
+                  <Form.Select
+                    fluid
+                    selection
+                    label="Order"
+                    value={this.state.params.randomize}
+                    onChange={(event, data) =>
+                          this.setState({
+                            params: {
+                              ...this.state.params,
+                              randomize: data.value
+                            },
+                            saved: false,
+                          })
+                        }
+                    placeholder="Response"
+                    options={[{key: 'random', text: 'Random', value: 'random'},
+                          {key: 'sequential', text: 'Sequential', value: 'sequential'}]}
+                  />
+                  <Form.Input
+                    label="Total number of experimental trials"
+                    type="number"
+                    value={this.state.params.nbTrials}
+                    onChange={(event, data) =>
+                            this.setState({
+                              params: {
+                                ...this.state.params,
+                                nbTrials: parseInt(data.value)
+                              },
+                              saved: false,
+                            })
+                          }
+                  />
+                  <Form.Input
+                    label="Total number of practice trials"
+                    type="number"
+                    value={this.state.params.nbPracticeTrials}
+                    onChange={(event, data) =>
+                            this.setState({
+                              params: {
+                                ...this.state.params,
+                                nbPracticeTrials: parseInt(data.value)
+                              },
+                              saved: false,
+                            })
+                          }
+                  />
+                </Form.Group>
+              </Form>
+
+              <Table basic="very">
+                <Table.Header>
+                  <Table.Row className={styles.trialsHeaderRow}>
+                    <Table.HeaderCell className={styles.conditionHeaderRowName}>Name</Table.HeaderCell>
+                    <Table.HeaderCell>Condition</Table.HeaderCell>
+                    <Table.HeaderCell>Correct Key Response</Table.HeaderCell>
+                    <Table.HeaderCell>Trial Type</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body className={styles.trialsTable}>
+
+                  {this.state.params.stimuli && this.state.params.stimuli.map((e,num) => (
+                    <StimuliRow
+                      key={num}
+                      num={num}
+                      conditions={[1,2,3,4].map(n => this.state.params[`stimulus${n}`].title)}
+                      {...e}
+                      onDelete={(num) => {
+                          const stimuli = this.state.params.stimuli;
+                          stimuli.splice(num, 1);
+                          const nbPracticeTrials = stimuli.filter(s => (s.phase === 'practice')).length;
+                          const nbTrials = stimuli.filter(s => (s.phase === 'main')).length;
+                          this.setState({
+                            params: {
+                              ...this.state.params,
+                              stimuli: [ ... stimuli ],
+                              nbPracticeTrials,
+                              nbTrials,
+                            },
+                            saved: false,
+                          })
+                        }}
+                      onChange={(num, key, data) => {
+                          const stimuli = this.state.params.stimuli;
+                          stimuli[num][key] = data;
+                          let nbPracticeTrials = this.state.params.nbPracticeTrials;
+                          let nbTrials = this.state.params.nbTrials;
+                          if(key === 'phase'){
+                            nbPracticeTrials = stimuli.filter(s => (s.phase === 'practice')).length;
+                            nbTrials = stimuli.filter(s => (s.phase === 'main')).length;
+                          }
+                          this.setState({
+                            params: {
+                              ...this.state.params,
+                              stimuli: [ ... stimuli ],
+                              nbPracticeTrials,
+                              nbTrials,
+                            },
+                            saved: false,
+                          })
+                        }}
+                    />
+                      ))}
+
+                </Table.Body>
+              </Table>
+
+            </Grid>
+          );
         case CUSTOM_STEPS.PARAMETERS:
           return (
-            <Grid
-              stretched
-              padded
-              relaxed="very"
-              columns="equal"
-              className={styles.contentGrid}
-            >
-              <Grid.Column stretched verticalAlign="middle">
+            <Grid>
+              <Grid.Column width={8}>
                 <Segment basic>
-                  <Header as="h1">Time Interval</Header>
+                  <Header as="h1">Inter-trial interval</Header>
                   <p>
                     Select the inter-trial interval duration. This is the amount
                     of time between trials measured from the end of one trial to
@@ -190,14 +352,72 @@ export default class CustomDesign extends Component<Props, State> {
                   <ParamSlider
                     label="ITI Duration (seconds)"
                     value={this.state.params.iti}
+                    marks={{
+                      1: '0.25',
+                      2: '0.5',
+                      3: '0.75',
+                      4: '1',
+                      5: '1.25',
+                      6: '1.5',
+                      7: '1.75',
+                      8: '2'
+                    }}
+                    ms_conversion='250'
                     onChange={value =>
                       this.setState({
-                        params: { ...this.state.params, iti: value }
+                        params: { ...this.state.params, iti: value },
+                        saved: false,
                       })
                     }
                   />
                 </Segment>
               </Grid.Column>
+
+              <Grid.Column width={8}>
+                <Segment basic>
+                  <Header as="h1">Image duration</Header>
+                  <p>
+                    Select the time of presentaiton or make it self-paced.
+                  </p>
+                </Segment>
+                <Segment basic>
+                  <Checkbox
+                    defaultChecked={this.state.params.selfPaced}
+                    label="Self-paced data collection"
+                    onChange={value =>
+                      this.setState({
+                        params: { ...this.state.params, selfPaced: !this.state.params.selfPaced },
+                        saved: false,
+                      })
+                    }
+                  />
+                </Segment>
+                <Segment basic>
+
+                  {!this.state.params.selfPaced && <ParamSlider
+                    label="Presentation time (seconds)"
+                    value={this.state.params.presentationTime}
+                    marks={{
+                      1: '0.25',
+                      2: '0.5',
+                      3: '0.75',
+                      4: '1',
+                      5: '1.25',
+                      6: '1.5',
+                      7: '1.75',
+                      8: '2'
+                    }}
+                    ms_conversion='250'
+                    onChange={value =>
+                      this.setState({
+                        params: { ...this.state.params, presentationTime: value },
+                        saved: false,
+                      })
+                    }
+                  />}
+                </Segment>
+              </Grid.Column>
+
             </Grid>
           );
       case CUSTOM_STEPS.PREVIEW:
@@ -230,12 +450,32 @@ export default class CustomDesign extends Component<Props, State> {
                     placeholder="You will view a series of images..."
                     onChange={(event, data) =>
                       this.setState({
-                        params: { ...this.state.params, intro: data.value }
+                        params: { ...this.state.params, intro: data.value },
+                        saved: false,
                       })
                     }
                   />
                 </Form>
               </Segment>
+
+              <Segment basic>
+                <Form>
+                  <Form.TextArea
+                    autoHeight
+                    style={{ minHeight: 50 }}
+                    label={FIELDS.HELP}
+                    value={this.state.params.taskHelp}
+                    placeholder="Press 1 for ..."
+                    onChange={(event, data) =>
+                      this.setState({
+                        params: { ...this.state.params, taskHelp: data.value },
+                        saved: false,
+                      })
+                    }
+                  />
+                </Form>
+              </Segment>
+
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
                 onClick={e => this.handlePreview(e)}
@@ -274,7 +514,8 @@ export default class CustomDesign extends Component<Props, State> {
                       description: {
                         ...this.state.description,
                         question: data.value
-                      }
+                      },
+                      saved: false,
                     })
                   }
                 />
@@ -300,7 +541,8 @@ export default class CustomDesign extends Component<Props, State> {
                       description: {
                         ...this.state.description,
                         hypothesis: data.value
-                      }
+                      },
+                      saved: false,
                     })
                   }
                 />
@@ -326,7 +568,8 @@ export default class CustomDesign extends Component<Props, State> {
                       description: {
                         ...this.state.description,
                         methods: data.value
-                      }
+                      },
+                      saved: false,
                     })
                   }
                 />
@@ -347,23 +590,11 @@ export default class CustomDesign extends Component<Props, State> {
           onStepClick={this.handleStepClick}
           enableEEGToggle={
             <Checkbox
+              toggle
               defaultChecked={this.props.isEEGEnabled}
-              label="Enable EEG"
               onChange={(event, data) => this.handleEEGEnabled(event, data)}
+              className={styles.EEGToggle}
             />
-          }
-          button={
-            <Button
-              compact
-              size="small"
-              primary
-              onClick={() => {
-                this.handleSaveParams();
-                this.handleStartExperiment();
-              }}
-            >
-              Collect Data
-            </Button>
           }
           saveButton={
             <Button
@@ -372,11 +603,9 @@ export default class CustomDesign extends Component<Props, State> {
               secondary
               onClick={() => {
                 this.handleSaveParams();
-                this.props.experimentActions.saveWorkspace()
               }}
             >
-              <Icon name="save" />
-              Save
+              {this.state.saved ? 'Save' : 'Save'}
             </Button>
           }
         />
@@ -385,3 +614,97 @@ export default class CustomDesign extends Component<Props, State> {
     );
   }
 }
+
+// saveButton={
+//   <Button
+//     compact
+//     size="small"
+//     secondary
+//     onClick={() => {
+//       this.handleSaveParams();
+//       // this.props.experimentActions.saveWorkspace()
+//     }}
+//   >
+//     {this.state.saved ? 'Saved' : 'Save'}
+//   </Button>
+// }
+
+//
+// button={
+//   <Button
+//     compact
+//     size="small"
+//     primary
+//     onClick={() => {
+//       this.handleSaveParams();
+//       this.handleStartExperiment();
+//     }}
+//   >
+//     Start
+//   </Button>
+// }
+//
+// <Button
+//   compact
+//   size="small"
+//   secondary
+//   onClick={() => {
+//     this.handleSaveParams();
+//   }}
+// >
+//   {this.state.saved ? 'Saved' : 'Save'}
+// </Button>
+// enableEEGToggle={
+//   <Checkbox
+//     defaultChecked={this.props.isEEGEnabled}
+//     label="Enable EEG"
+//     onChange={(event, data) => this.handleEEGEnabled(event, data)}
+//   />
+// }
+//
+// <Segment basic style={{ overflow: 'auto', maxHeight: 400 }}>
+//   <Form>
+//     {this.state.params.stimuli && this.state.params.stimuli.map((e,num) => (
+//       <StimuliRow
+//         key={num}
+//         num={num}
+//         conditions={[1,2,3,4].map(n => this.state.params[`stimulus${n}`].title)}
+//         {...e}
+//         onDelete={(num) => {
+//             const stimuli = this.state.params.stimuli;
+//             stimuli.splice(num, 1);
+//             const nbPracticeTrials = stimuli.filter(s => (s.phase === 'practice')).length;
+//             const nbTrials = stimuli.filter(s => (s.phase === 'main')).length;
+//             this.setState({
+//               params: {
+//                 ...this.state.params,
+//                 stimuli: [ ... stimuli ],
+//                 nbPracticeTrials,
+//                 nbTrials,
+//               },
+//               saved: false,
+//             })
+//           }}
+//         onChange={(num, key, data) => {
+//             const stimuli = this.state.params.stimuli;
+//             stimuli[num][key] = data;
+//             let nbPracticeTrials = this.state.params.nbPracticeTrials;
+//             let nbTrials = this.state.params.nbTrials;
+//             if(key === 'phase'){
+//               nbPracticeTrials = stimuli.filter(s => (s.phase === 'practice')).length;
+//               nbTrials = stimuli.filter(s => (s.phase === 'main')).length;
+//             }
+//             this.setState({
+//               params: {
+//                 ...this.state.params,
+//                 stimuli: [ ... stimuli ],
+//                 nbPracticeTrials,
+//                 nbTrials,
+//               },
+//               saved: false,
+//             })
+//           }}
+//       />
+//         ))}
+//   </Form>
+// </Segment>

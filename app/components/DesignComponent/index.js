@@ -44,6 +44,8 @@ import { loadProtocol } from '../../utils/labjs/functions';
 import { toast } from 'react-toastify';
 import InputModal from '../InputModal';
 
+import { shell } from 'electron';
+
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
   BACKGROUND: 'BACKGROUND',
@@ -246,14 +248,14 @@ export default class Design extends Component<Props, State> {
             className={styles.contentGrid}
             style={{ alignItems: 'center' }}
           >
-            <Grid.Row stretched>
+            <Grid.Row>
               <Grid.Column stretched width={4}>
                 <Segment basic>
                   <Image src={this.renderOverviewIcon(this.props.type)} />
                 </Segment>
               </Grid.Column>
 
-              <Grid.Column stretched width={6}>
+              <Grid.Column stretched width={5}>
                 <Segment basic>
                   <p>{this.props.background_first_column}</p>
                   <p style={{ fontWeight: 'bold' }}>
@@ -262,7 +264,7 @@ export default class Design extends Component<Props, State> {
                 </Segment>
               </Grid.Column>
 
-              <Grid.Column stretched width={6}>
+              <Grid.Column stretched width={5}>
                 <Segment basic>
                   <p>{this.props.background_second_column}</p>
                   <p style={{ fontWeight: 'bold' }}>
@@ -270,7 +272,21 @@ export default class Design extends Component<Props, State> {
                   </p>
                 </Segment>
               </Grid.Column>
+
+              <Grid.Column width={2}>
+                <Segment basic>
+                  <div className={styles.externalLinks}>
+                    {this.props.background_links.map(link => (
+                      <Button key={link.address} secondary onClick={()=>{shell.openExternal(link.address)}}>
+                        {link.name}
+                      </Button>
+                  ))}
+                  </div>
+                </Segment>
+              </Grid.Column>
+
             </Grid.Row>
+
           </Grid>
         );
 
@@ -373,23 +389,16 @@ export default class Design extends Component<Props, State> {
           steps={DESIGN_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
+          onEditClick={this.handleCustomizeExperiment}
           enableEEGToggle={
             <Checkbox
+              toggle
               defaultChecked={this.props.isEEGEnabled}
-              label="Enable EEG"
               onChange={(event, data) => this.handleEEGEnabled(event, data)}
+              className={styles.EEGToggle}
             />
           }
-          customizeButton={
-            <Button secondary onClick={this.handleCustomizeExperiment}>
-              Edit
-            </Button>
-          }
-          button={
-            <Button primary onClick={this.handleStartExperiment}>
-              Collect Data
-            </Button>
-          }
+          canEditExperiment={this.props.paradigm === 'Faces and Houses'}
         />
         {this.renderSectionContent()}
         <InputModal

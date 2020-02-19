@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Header, Checkbox, Segment } from 'semantic-ui-react';
+import { Grid, Header, Dropdown } from 'semantic-ui-react';
 import styles from '../styles/secondarynav.css';
 import SecondaryNavSegment from './SecondaryNavSegment';
 
@@ -18,7 +18,7 @@ export default class SecondaryNavComponent extends Component<Props> {
 
   renderTitle() {
     if (typeof this.props.title === 'string') {
-      return <Header as="h2">{this.props.title}</Header>;
+      return <Header className={styles.secondaryNavContainerExpName}>{this.props.title}</Header>;
     }
     return this.props.title;
   }
@@ -38,27 +38,40 @@ export default class SecondaryNavComponent extends Component<Props> {
             onClick={() => this.props.onStepClick(stepTitle)}
           />
         ))}
-        {this.props.enableEEGToggle ? (
-          <Segment basic>
-            {this.props.enableEEGToggle}
-          </Segment>
-        ) : null}
-        {this.props.button ? (
-          <Grid.Column width="3" floated="right" textAlign="right">
-            {this.props.customizeButton}
-            {this.props.saveButton}
-            {this.props.button}
-          </Grid.Column>
-        ) : null}
       </React.Fragment>
     );
   }
 
+
+
   render() {
+
     return (
       <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
         <Grid.Column width={3}>{this.renderTitle()}</Grid.Column>
         {this.renderSteps()}
+
+        {this.props.enableEEGToggle &&
+          <Grid.Column width={2} floated="right">
+            <div className={styles.settingsButtons}>
+              <Dropdown icon='setting' direction="left" fluid className={styles.dropdownSettings}>
+                <Dropdown.Menu className={styles.dropdownMenu}>
+                  <Dropdown.Item className={styles.dropdownItem}>
+                    <div>Enable EEG</div>
+                    {this.props.enableEEGToggle}
+                  </Dropdown.Item>
+                  {this.props.canEditExperiment &&
+                    <Dropdown.Item
+                      text='Edit Experiment'
+                      onClick={() => this.props.onEditClick()}
+                    />
+                  }
+                </Dropdown.Menu>
+              </Dropdown>
+              {this.props.saveButton}
+            </div>
+          </Grid.Column>
+        }
       </Grid>
     );
   }

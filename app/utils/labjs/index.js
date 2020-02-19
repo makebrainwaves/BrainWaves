@@ -30,6 +30,15 @@ class ExperimentWindow extends Component {
       case 'Faces and Houses':
       default:
         faceshouses.parameters = props.settings.params;
+        // inject files with their addresses from parameters values
+        faceshouses.files = props.settings.params.stimuli.map(image => {
+            return(
+              { [image.filename] : `${image.dir}/${image.filename}`}
+            )
+          }).reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0]
+            return obj;
+          }, {});
         this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
         break;
     }
