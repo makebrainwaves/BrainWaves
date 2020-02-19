@@ -91,3 +91,15 @@
   border: none !important;
   box-shadow: none !important;
 }
+
+.exitWorkspaceBtn{
+  font-family: Gothic A1 !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  font-size: 24px !important;
+  line-height: 30px !important;
+  color: #007C70 !important;
+  border: none !important;
+  margin-left: 20px;
+  margin-right: 40px;
+}

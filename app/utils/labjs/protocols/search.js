@@ -33,6 +33,9 @@ export const buildSearchTimeline = () => ({
   protocol_condition_second_img: `conditionNoOrangeT`,
   protocol_condition_second_title: `No orange T`,
   protocol_condition_second: `If the orange T is not on the screen, press the ‘n’ key instead.`,
+  overview_links: [],
+  background_links: [],
+  protocal_links: [],
   params: {
     trialDuration: 1000,
     nbTrials: 150,

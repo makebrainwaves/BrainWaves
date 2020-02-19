@@ -81,6 +81,8 @@
   height: inherit;
   align-items: center;
   margin-bottom: 20px;
+  border: solid 1px #007c70;
+  border-radius: 4px;
 }
 
 .experimentWindow {
@@ -125,6 +127,14 @@
   height: 80%;
 }
 
+.externalLinks {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-row-gap: 10px;
+
+
+}
+
 .experimentCard {
   border-radius: 5px;
 	background-color: #FFFFFF;
@@ -157,4 +167,165 @@
 	font-size: 16px;
 	letter-spacing: 0.57px;
 	line-height: 24px;
+}
+
+.noExperimentsImage {
+  margin-top: 50px;
+}
+
+.noExperimentsTitle {
+  font-family: Lato;
+  font-style: normal;
+  font-weight: normal !important;
+  font-size: 24px !important;
+  line-height: 29px;
+  letter-spacing: -0.2px;
+  color: #1A1A1A;
+}
+
+.noExperimentsText{
+  font-family: Lato;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: #1A1A1A;
+}
+
+.myExperimentsPage {
+  padding-top: 50px !important;
+}
+
+.experimentRow {
+  background-color: #FFFFFF !important;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  justify-content: left;
+}
+
+.experimentRowName {
+  font-family: Lato;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-size: 18px !important;
+  line-height: 24px !important;
+  letter-spacing: -0.2px;
+  color: #1A1A1A;
+  padding-left: 26px !important;
+  border: 0px !important;
+  padding-right: 10px !important;
+}
+
+.experimentHeaderName {
+  padding-left: 26px !important;
+}
+
+.experimentHeaderRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+}
+
+.experimentTable {
+  display: grid;
+  grid-row-gap: 10px;
+  align-items: center;
+  grid-template-columns: 1fr;
+}
+
+.experimentHeaderActionsName{
+  min-width: 495px !important;
+}
+
+.conditionsNameRow {
+  font-family: Lato;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-size: 18px !important;
+  line-height: 24px !important;
+  letter-spacing: -0.2px;
+  color: #1A1A1A;
+  padding-left: 26px !important;
+  border: 0px !important;
+  padding-right: 10px !important;
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  align-items: center;
+}
+
+.conditionHeaderRowName {
+  padding-left: 60px !important;
+}
+
+.conditionRow {
+  background-color: #FFFFFF !important;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: 300px 200px 1fr;
+  align-items: center;
+  justify-content: left;
+}
+
+.conditionHeaderRow {
+  display: grid;
+  grid-template-columns: 300px 200px 1fr;
+  padding-left: 20px !important;
+}
+
+.trialsHeaderRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 180px 350px;
+  padding-left: 20px !important;
+}
+
+.trialsRow {
+  background-color: #FFFFFF !important;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 180px 350px;
+  align-items: center;
+  justify-content: left;
+}
+
+.trialsTrialTypeRow {
+  font-family: Lato;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-size: 18px !important;
+  line-height: 24px !important;
+  letter-spacing: -0.2px;
+  color: #1A1A1A;
+  padding-left: 26px !important;
+  border: 0px !important;
+  padding-right: 10px !important;
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  align-items: center;
+  grid-column-gap: 30px;
+}
+
+.trialsTable {
+  display: grid;
+  grid-row-gap: 10px;
+  align-items: center;
+  align-content: baseline;
+  grid-template-columns: 1fr;
+  overflow-y: scroll;
+  min-height: 500px;
+  max-height: 500px;
+}
+
+.EEGToggle{
+  transform: scale(0.7);
+}
+
+.selectedFolderContainer{
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  grid-column-gap: 10px;
 }

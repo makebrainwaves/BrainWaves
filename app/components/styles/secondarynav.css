@@ -6,7 +6,7 @@
 
 .secondaryNavSegment {
   display: flex !important;
-  justify-content: center;
+  justify-content: center !important;
   border-style: solid;
   border-width: 0px;
   border-bottom-width: 4px;
@@ -14,6 +14,7 @@
   font-weight: bold;
   line-height: 17px;
   letter-spacing: 0.5px;
+  min-width: fit-content;
 }
 
 .inactiveSecondaryNavSegment {
@@ -33,4 +34,36 @@
 }
 
 .activeSecondaryNavSegment:hover {
+}
+
+.secondaryNavContainerExpName{
+  font-family: Lato;
+  font-style: normal;
+  font-weight: normal !important;
+  font-size: 24px !important;
+  line-height: 29px !important;
+  letter-spacing: -0.2px !important;
+  color: #1A1A1A !important;
+}
+
+.settingsButtons {
+  display: grid;
+  grid-template-columns: 2fr 4fr;
+  align-items: center;
+}
+
+.dropdownSettings{
+  font-size: 27px;
+  color: #666666;
+}
+
+.dropdownMenu {
+  margin-left: 30px !important;
+}
+
+.dropdownItem {
+  display: grid !important;
+  grid-template-columns: 3fr 1fr !important;
+  min-width: 240px !important;
+  align-items: center;
 }
