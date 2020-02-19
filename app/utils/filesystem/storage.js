@@ -132,8 +132,7 @@ export const readWorkspaceBehaviorData = async (title: string) => {
     const behaviorFiles = files
       .filter(
         filepath =>
-          filepath.slice(-12).includes('behavior.csv') ||
-          filepath.includes('aggregated')
+          filepath.slice(-12).includes('behavior.csv')
       )
       .map(filepath => ({
         name: path.basename(filepath),
@@ -231,3 +230,8 @@ const convertObjectToSCV = data => {
   const csv = Papa.unparse(data);
   return csv;
 };
+
+// Deletes a workspace folder
+export const deleteWorkspaceDir = (title: string) => {
+  shell.moveItemToTrash(path.join(workspaces, title));
+}

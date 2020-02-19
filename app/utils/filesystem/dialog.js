@@ -38,7 +38,11 @@ const selectStimulusFolder = event => {
       properties: ['openDirectory']
     },
     dir => {
-      event.sender.send('loadDialogReply', dir[0]);
+      if(dir){
+        event.sender.send('loadDialogReply', dir[0]);
+      } else {
+        event.sender.send('loadDialogReply', '');
+      }
     }
   );
 };

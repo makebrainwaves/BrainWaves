@@ -17,9 +17,9 @@ export const buildMultiTimeline = () => ({
     Some people pride themselves with being “good multitaskers.” But is this scientifically plausible?`,
   background_first_column_question: `Are some people better than others at performing multiple tasks at the same time?`,
   background_second_column: `Some research suggests that good multitaskers are actually not performing different tasks simultaneously,
-    but are instead rapidly switching back ‘n forth between different tasks (click here to read more about this research).
+    but are instead rapidly switching back ‘n forth between different tasks (click Link 1 to read more about this research).
     Other research suggests that our brains are able to distribute different tasks across hemispheres
-    (you can read more about it here).`,
+    (you can read more about it at Link 2).`,
   background_second_column_question: `Do you think some people could be better brain ‘distributors’ than others?`,
   protocol_title: `What participants are shown`,
   protocol: `Participants are shown either a square or diamonds with dots inside.
@@ -30,6 +30,12 @@ export const buildMultiTimeline = () => ({
   protocol_condition_second_img: `multiConditionDots`,
   protocol_condition_second_title: `Rule 2`,
   protocol_condition_second: `If the object is shown on the bottom, they need to respond to the number of dots inside (pressing ‘n’ for 3 dots and ‘b’ for 2 dots). `,
+  overview_links: [],
+  background_links: [
+    {name: 'Link 1', address: 'https://www.scientificamerican.com/podcast/episode/the-myth-of-multitasking-09-07-15/'},
+    {name: 'Link 2', address: 'https://www.scientificamerican.com/article/multitasking-two-tasks/'},
+  ],
+  protocal_links: [],
   params: {
     trialDuration: 1000,
     nbTrials: 150,
