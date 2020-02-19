@@ -59,8 +59,8 @@ export const SEARCH_TIMER = 3000;
 
 // NOTE: the actual marker id values of stimulus 1 and 2 are reversed
 export const EVENTS = {
-  STIMULUS_1: 2,
-  STIMULUS_2: 1,
+  STIMULUS_1: 1,
+  STIMULUS_2: 2,
   TARGET: 2,
   NONTARGET: 1
 };

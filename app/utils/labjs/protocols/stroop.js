@@ -21,7 +21,7 @@ export const buildStroopTimeline = () => ({
   background_second_column: `Researchers have used different kinds of Stroop tasks to ask how our brains deal with contradictory information.
     This may be more difficult under some conditions (for example, when we don’t get enough sleep) and for some people
     (for example, children with Attention-deficit/hyperactivity disorder (ADHD)).`,
-  background_second_column_question: `You can read more about the Stroop task here. `,
+  background_second_column_question: `You can read more about the Stroop task at Link 1. `,
   protocol_title: `What participants are shown`,
   protocol: `In the Stroop task, you will see different words written in different colors
     (e.g., the word “GREEN” may be written in a green-colored font, but it may also be written in a red font).
@@ -33,6 +33,9 @@ export const buildStroopTimeline = () => ({
   protocol_condition_second_img: `conditionIncongruent`,
   protocol_condition_second_title: `"Green" written in red`,
   protocol_condition_second: `The color is red, so the correct response is ‘r’.`,
+  overview_links: [],
+  background_links: [{name: 'Link 1', address: 'https://www.psychologytoday.com/us/blog/play-in-mind/201204/when-red-looks-blue-and-yes-means-no'}],
+  protocal_links: [],
   params: {
     trialDuration: 1000,
     nbTrials: 150,

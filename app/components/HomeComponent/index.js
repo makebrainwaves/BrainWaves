@@ -1,20 +1,24 @@
 // @flow
 import React, { Component } from "react";
 import { isNil } from "lodash";
-import { Grid, Button, Header, Segment, Image } from "semantic-ui-react";
+import { Grid, Button, Header, Segment, Image, Table } from "semantic-ui-react";
 import { toast } from "react-toastify";
+import * as moment from 'moment';
+
 import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS, KERNEL_STATUS } from "../../constants/constants";
+import { EXPERIMENTS, SCREENS, KERNEL_STATUS, PLOTTING_INTERVAL, CONNECTION_STATUS, DEVICE_AVAILABILITY } from "../../constants/constants";
 import faceHouseIcon from "../../assets/common/FacesHouses.png";
 import stroopIcon from "../../assets/common/Stroop.png";
 import multitaskingIcon from "../../assets/common/Multitasking.png";
 import searchIcon from "../../assets/common/VisualSearch.png";
 import customIcon from "../../assets/common/Custom.png";
 import appLogo from "../../assets/common/app_logo.png";
+import divingMan from "../../assets/common/divingMan.svg";
 import {
   readWorkspaces,
   readAndParseState,
-  openWorkspaceDir
+  openWorkspaceDir,
+  deleteWorkspaceDir
 } from "../../utils/filesystem/storage";
 import {
   Collect,
@@ -27,12 +31,12 @@ import OverviewComponent from "./OverviewComponent";
 import { loadProtocol } from "../../utils/labjs/functions";
 import SignalQualityIndicatorComponent from "../SignalQualityIndicatorComponent";
 import ViewerComponent from "../ViewerComponent";
-import {
-  PLOTTING_INTERVAL,
-  CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
-} from "../../constants/constants";
 import ConnectModal from "../CollectComponent/ConnectModal";
+
+import { remote } from 'electron';
+
+const { dialog } = remote;
+
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now
@@ -74,6 +78,7 @@ export default class Home extends Component<Props, State> {
   handleCloseOverview: () => void;
   handleConnectModalClose: () => void;
   handleStartConnect: () => void;
+  handleDeleteWorkspace: string => void;
 
   constructor(props: Props) {
     super(props);
@@ -95,6 +100,7 @@ export default class Home extends Component<Props, State> {
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleStartConnect = this.handleStartConnect.bind(this);
     this.handleStopConnect = this.handleStopConnect.bind(this);
+    this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
   }
 
   componentDidMount() {
@@ -189,47 +195,89 @@ export default class Home extends Component<Props, State> {
     this.setState({ isConnectModalOpen: false });
   }
 
+  handleDeleteWorkspace(dir){
+    const options  = {
+     buttons: ["No", "Yes"],
+     message: "Do you really want to delete the experiment?"
+    }
+    const response = dialog.showMessageBox(options)
+    if(response === 1){
+      deleteWorkspaceDir(dir);
+      this.setState({ recentWorkspaces: readWorkspaces() });
+    }
+  }
+
   // TODO: Figure out how to make this not overflow when there's tons of workspaces. Lists?
   renderSectionContent() {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
         return (
-          <Grid stackable padded columns="equal">
-            {this.state.recentWorkspaces.length > 0 ? this.state.recentWorkspaces.map(dir => (
-              <Grid.Row key={dir}>
+          <Grid stackable padded columns="equal" className={styles.myExperimentsPage}>
+            {this.state.recentWorkspaces.length > 0 ?
+
+              <Table basic="very">
+                <Table.Header>
+                  <Table.Row className={styles.experimentHeaderRow}>
+                    <Table.HeaderCell className={styles.experimentHeaderName}>Experiment name</Table.HeaderCell>
+                    <Table.HeaderCell>Date Modified</Table.HeaderCell>
+                    <Table.HeaderCell className={styles.experimentHeaderActionsName}>Actions</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body className={styles.experimentTable}>
+                  {this.state.recentWorkspaces.map(dir => {
+                    const {params: {dateModified}} = readAndParseState(dir);
+                    return (
+                      <Table.Row key={dir} className={styles.experimentRow}>
+                        <Table.Cell className={styles.experimentRowName}>
+                          {dir}
+                        </Table.Cell>
+                        <Table.Cell className={styles.experimentRowName}>
+                          {dateModified && moment.default(dateModified).fromNow()}
+                        </Table.Cell>
+                        <Table.Cell className={styles.experimentRowName}>
+                          <Button
+                            secondary
+                            onClick={() => this.handleDeleteWorkspace(dir)}
+                            className={styles.experimentBtn}
+                          >
+                          Delete
+                          </Button>
+                          <Button
+                            secondary
+                            onClick={() => openWorkspaceDir(dir)}
+                            className={styles.experimentBtn}
+                          >
+                              Go to Folder
+                          </Button>
+                          <Button
+                            primary
+                            onClick={() => this.handleLoadRecentWorkspace(dir)}
+                            className={styles.experimentBtn}
+                          >
+                            Open Experiment
+                          </Button>
+                        </Table.Cell>
+                      </Table.Row>
+                    )
+                    })}
+                </Table.Body>
+              </Table>
+              :
+              <Grid.Column textAlign="center">
+                <Image src={divingMan} centered className={styles.noExperimentsImage} />
+                <Header className={styles.noExperimentsTitle}>
+                You don&apos;t have any experiments yet
+                </Header>
+                <p className={styles.noExperimentsText}>
+                Head over to the &quot;Experiment Bank&quot; section to start an experiment.
+                </p>
                 <Button
-                  secondary
-                  onClick={() => this.handleLoadRecentWorkspace(dir)}
+                  primary
+                  onClick={() => this.handleStepClick('EXPERIMENT BANK')}
                 >
-                  Open Experiment
+                View Experiments
                 </Button>
-                <Segment className={styles.recentDirSegment} vertical basic>
-                  <Header as="h3">{dir}</Header>
-                </Segment>
-                <Button
-                  icon="folder open outline"
-                  basic
-                  circular
-                  size="huge"
-                  className={styles.closeButton}
-                  onClick={() => openWorkspaceDir(dir)}
-                />
-              </Grid.Row>
-            )) :
-            <Grid.Column>
-              <Segment className={styles.recentDirSegment} vertical basic>
-                <Header as="h3">You don't have any experiments</Header>
-              </Segment>
-              <p>
-                Head over to the "Templates" section to start an experiment.
-              </p>
-              <Button
-                secondary
-                onClick={() => this.handleStepClick('EXPERIMENT BANK')}
-              >
-                View Templates
-              </Button>
-            </Grid.Column>
+              </Grid.Column>
           }
           </Grid>
         );

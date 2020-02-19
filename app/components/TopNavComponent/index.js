@@ -44,12 +44,16 @@ export default class TopNavComponent extends Component<Props> {
     return (
       <Grid
         className={styles.navContainer}
-        columns="equal"
-        textAlign="center"
         verticalAlign="middle"
+        columns="equal"
       >
-        <Grid.Column width="3" className={styles.experimentTitleSegment}>
+        <Grid.Column className={styles.experimentTitleSegment}>
           <Segment basic as="p">
+            <NavLink to={SCREENS.HOME.route}>
+              <span className={styles.exitWorkspaceBtn}>
+                B
+              </span>
+            </NavLink>
             {this.props.title ? this.props.title : 'Untitled'}
           </Segment>
         </Grid.Column>
@@ -78,13 +82,9 @@ export default class TopNavComponent extends Component<Props> {
             style={this.getStyleForScreen(SCREENS.ANALYZE)}
           />
         )}
-        <Grid.Column width="3">
-          <NavLink to={SCREENS.HOME.route}>
-            <Button secondary size="medium">
-              Exit Workspace
-            </Button>
-          </NavLink>
-        </Grid.Column>
+
+
+
       </Grid>
     );
   }

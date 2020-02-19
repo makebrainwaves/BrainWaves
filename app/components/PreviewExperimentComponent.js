@@ -34,6 +34,10 @@ export default class PreviewExperimentComponent extends Component<Props> {
     return getImages(this.props.params);
   }
 
+  insertPreviewLabJsCallback(e) {
+    console.log('EEG marker', e);
+  }
+
   render() {
     if (!this.props.isPreviewing) {
       return <Segment basic />;
@@ -44,6 +48,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
           settings={{
             script: this.props.paradigm,
             params: this.props.previewParams || this.props.params,
+            eventCallback: this.insertPreviewLabJsCallback,
             on_finish: csv => {
               this.props.onEnd();
             }
