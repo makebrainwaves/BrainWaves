@@ -1,3 +1,6 @@
+# 0.11.1 (Feb 25, 2020) - Update Customize Screen
+- Update the UI for ease of experiment customization
+
 # 0.11.0 (Feb 4, 2020) - Fixes error logging
 - Fix error messaging for authentication with Emotiv in app.
 
