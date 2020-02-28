@@ -214,7 +214,6 @@
   font-size: 18px !important;
   line-height: 24px !important;
   letter-spacing: -0.2px;
-  color: #1A1A1A;
   padding-left: 26px !important;
   border: 0px !important;
   padding-right: 10px !important;
@@ -276,6 +275,13 @@
   padding-left: 20px !important;
 }
 
+.trialsHeader {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  width: 100%;
+  justify-items: end;
+}
+
 .trialsHeaderRow {
   display: grid;
   grid-template-columns: 1fr 1fr 180px 350px;
@@ -307,6 +313,30 @@
   grid-template-columns: 1fr 120px;
   align-items: center;
   grid-column-gap: 30px;
+}
+
+.trialsTrialTypeSegment {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  margin: 0 !important;
+  padding: 10px 12px 10px 12px !important;
+  border: 2px solid #CCCCCC !important;
+  border-radius: 4px !important;
+}
+
+.trialsTrialTypeRowSelector {
+  /* background-color: #EB1B66 !important; */
+  color: white !important;
+  /* background-color: `${this.props.phase === 'main' ? '#1AC4EF' : '#EB1B66'}; */
+  font-family: Lato !important;
+  font-style: normal !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  line-height: 24px !important;
+  letter-spacing: -0.2px !important;
+  border-radius: 27px;
+  padding: 0px 7px 0px 7px !important;
 }
 
 .trialsTable {

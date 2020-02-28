@@ -101,7 +101,7 @@ export default class StimuliDesignColumn extends Component<Props> {
           { this.props.dir ?
             <div className={styles.selectedFolderContainer}>
               <div>Folder {this.props.dir && this.props.dir.split(path.sep).slice(-1).join(' / ')}</div>
-              <div>( {this.state.numberImages || this.props.numberImages} items ) </div>
+              <div>( {this.state.numberImages || this.props.numberImages} images ) </div>
               <div><Icon name="delete" onClick={this.handleRemoveFolder} /></div>
             </div>
             :
