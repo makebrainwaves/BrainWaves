@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Grid, Button, Segment } from 'semantic-ui-react';
+import { Grid, Button, Segment, Image } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import styles from '../styles/topnavbar.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
 import { openWorkspaceDir } from '../../utils/filesystem/storage';
+import BrainwavesIcon from '../../assets/common/Brainwaves_Icon_big.png';
 
 interface Props {
   title: ?string;
@@ -47,16 +48,19 @@ export default class TopNavComponent extends Component<Props> {
         verticalAlign="middle"
         columns="equal"
       >
-        <Grid.Column className={styles.experimentTitleSegment}>
-          <Segment basic as="p">
-            <NavLink to={SCREENS.HOME.route}>
-              <span className={styles.exitWorkspaceBtn}>
-                B
-              </span>
+        <Grid.Column className={styles.experimentTitleGridColumn}>
+          <Segment basic className={styles.experimentTitleSegment}>
+            <NavLink to={SCREENS.HOME.route} >
+              <Image
+                centered
+                className={styles.exitWorkspaceBtn}
+                src={BrainwavesIcon}
+              />
             </NavLink>
             {this.props.title ? this.props.title : 'Untitled'}
           </Segment>
         </Grid.Column>
+
         <PrimaryNavSegment
           {...SCREENS.DESIGN}
           style={this.getStyleForScreen(SCREENS.DESIGN)}

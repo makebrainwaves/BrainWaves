@@ -219,12 +219,16 @@ export default class Home extends Component<Props, State> {
                 <Table.Header>
                   <Table.Row className={styles.experimentHeaderRow}>
                     <Table.HeaderCell className={styles.experimentHeaderName}>Experiment name</Table.HeaderCell>
-                    <Table.HeaderCell>Date Modified</Table.HeaderCell>
+                    <Table.HeaderCell>Date Last Opened</Table.HeaderCell>
                     <Table.HeaderCell className={styles.experimentHeaderActionsName}>Actions</Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body className={styles.experimentTable}>
-                  {this.state.recentWorkspaces.map(dir => {
+                  {this.state.recentWorkspaces.sort((a,b) => {
+                    const aTime = readAndParseState(a).params.dateModified || 0;
+                    const bTime = readAndParseState(b).params.dateModified || 0;
+                    return bTime - aTime;
+                    }).map(dir => {
                     const {params: {dateModified}} = readAndParseState(dir);
                     return (
                       <Table.Row key={dir} className={styles.experimentRow}>
@@ -240,14 +244,14 @@ export default class Home extends Component<Props, State> {
                             onClick={() => this.handleDeleteWorkspace(dir)}
                             className={styles.experimentBtn}
                           >
-                          Delete
+                            Delete
                           </Button>
                           <Button
                             secondary
                             onClick={() => openWorkspaceDir(dir)}
                             className={styles.experimentBtn}
                           >
-                              Go to Folder
+                            Go to Folder
                           </Button>
                           <Button
                             primary
@@ -266,16 +270,16 @@ export default class Home extends Component<Props, State> {
               <Grid.Column textAlign="center">
                 <Image src={divingMan} centered className={styles.noExperimentsImage} />
                 <Header className={styles.noExperimentsTitle}>
-                You don&apos;t have any experiments yet
+                  You don&apos;t have any experiments yet
                 </Header>
                 <p className={styles.noExperimentsText}>
-                Head over to the &quot;Experiment Bank&quot; section to start an experiment.
+                  Head over to the &quot;Experiment Bank&quot; section to start an experiment.
                 </p>
                 <Button
                   primary
                   onClick={() => this.handleStepClick('EXPERIMENT BANK')}
                 >
-                View Experiments
+                  View Experiments
                 </Button>
               </Grid.Column>
           }
