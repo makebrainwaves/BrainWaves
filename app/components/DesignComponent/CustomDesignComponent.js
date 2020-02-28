@@ -127,6 +127,12 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleSaveParams() {
+    this.setState({
+      params: {
+        ...this.state.params,
+        dateModified: Date.now(),
+      }
+    });
     this.props.experimentActions.setParams(this.state.params);
     this.props.experimentActions.setDescription(this.state.description);
     this.props.experimentActions.saveWorkspace();
