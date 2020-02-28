@@ -33,11 +33,14 @@ export const openWorkspaceDir = (title: string) =>
 // Storing
 
 // Writes 'experiment' store state to file as a JSON object
-export const storeExperimentState = (state: ExperimentStateType) =>
+export const storeExperimentState = (state: ExperimentStateType) => {
+  const timestampedState = state;
+  if(timestampedState && timestampedState.params) timestampedState.params.dateModified = Date.now(); // saves the timestamp
   fs.writeFileSync(
-    path.join(getWorkspaceDir(state.title), 'appState.json'),
-    JSON.stringify(state)
+    path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
+    JSON.stringify(timestampedState)
   );
+}
 
 export const storeBehaviouralData = (
   csv: string,
@@ -164,7 +167,7 @@ export const readAndParseState = (dir: string) => {
 // Reads a list of images that are in a directory
 export const readImages = (dir: string) =>
   fs.readdirSync(dir).filter(filename => {
-    const extension = filename.slice(-3);
+    const extension = filename.slice(-3).toLowerCase();
     return (
       extension === 'png' ||
       extension === 'jpg' ||

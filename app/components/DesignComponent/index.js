@@ -153,6 +153,7 @@ export default class Design extends Component<Props, State> {
 
   handleEEGEnabled(event: Object, data: Object) {
     this.props.experimentActions.setEEGEnabled(data.checked);
+    this.props.experimentActions.saveWorkspace();
   }
 
   renderConditionIcon(type) {

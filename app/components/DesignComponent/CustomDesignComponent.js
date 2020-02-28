@@ -196,6 +196,7 @@ export default class CustomDesign extends Component<Props, State> {
                               'type': stimul.number,
                               }));
                         }
+                        if(dirStimuli.length) dirStimuli[0].phase = 'practice';
                         newStimuli = newStimuli.concat(...dirStimuli);
                       })
                       this.setState({
@@ -219,21 +220,23 @@ export default class CustomDesign extends Component<Props, State> {
         case CUSTOM_STEPS.TRIALS:
           return (
             <Grid>
-              <Segment basic>
-                <Header as="h1">Trials</Header>
-                <p>
+              <div className={styles.trialsHeader}>
+                <div>
+                  <Header as="h1">Trials</Header>
+                  <p>
                     Edit the name, condition and correct key response of each trial.
-                </p>
-              </Segment>
+                  </p>
+                </div>
 
-              <Form style={{ alignSelf: 'flex-end' }}>
-                <Form.Group>
-                  <Form.Select
-                    fluid
-                    selection
-                    label="Order"
-                    value={this.state.params.randomize}
-                    onChange={(event, data) =>
+                <div>
+                  <Form style={{ alignSelf: 'flex-end' }}>
+                    <Form.Group style={{ display: 'grid', 'grid-template-columns': '1fr 1fr 1fr', 'grid-column-gap':'10px' }}>
+                      <Form.Select
+                        fluid
+                        selection
+                        label="Order"
+                        value={this.state.params.randomize}
+                        onChange={(event, data) =>
                           this.setState({
                             params: {
                               ...this.state.params,
@@ -242,15 +245,16 @@ export default class CustomDesign extends Component<Props, State> {
                             saved: false,
                           })
                         }
-                    placeholder="Response"
-                    options={[{key: 'random', text: 'Random', value: 'random'},
+                        placeholder="Response"
+                        options={[{key: 'random', text: 'Random', value: 'random'},
                           {key: 'sequential', text: 'Sequential', value: 'sequential'}]}
-                  />
-                  <Form.Input
-                    label="Total number of experimental trials"
-                    type="number"
-                    value={this.state.params.nbTrials}
-                    onChange={(event, data) =>
+                      />
+                      <Form.Input
+                        label="Total experimental trials"
+                        type="number"
+                        fluid
+                        value={this.state.params.nbTrials}
+                        onChange={(event, data) =>
                             this.setState({
                               params: {
                                 ...this.state.params,
@@ -259,12 +263,13 @@ export default class CustomDesign extends Component<Props, State> {
                               saved: false,
                             })
                           }
-                  />
-                  <Form.Input
-                    label="Total number of practice trials"
-                    type="number"
-                    value={this.state.params.nbPracticeTrials}
-                    onChange={(event, data) =>
+                      />
+                      <Form.Input
+                        label="Total practice trials"
+                        type="number"
+                        fluid
+                        value={this.state.params.nbPracticeTrials}
+                        onChange={(event, data) =>
                             this.setState({
                               params: {
                                 ...this.state.params,
@@ -273,9 +278,11 @@ export default class CustomDesign extends Component<Props, State> {
                               saved: false,
                             })
                           }
-                  />
-                </Form.Group>
-              </Form>
+                      />
+                    </Form.Group>
+                  </Form>
+                </div>
+              </div>
 
               <Table basic="very">
                 <Table.Header>
@@ -339,7 +346,7 @@ export default class CustomDesign extends Component<Props, State> {
         case CUSTOM_STEPS.PARAMETERS:
           return (
             <Grid>
-              <Grid.Column width={8}>
+              <Grid.Column width={8} basic style={{display: 'grid', 'align-content': 'space-between'}}>
                 <Segment basic>
                   <Header as="h1">Inter-trial interval</Header>
                   <p>
@@ -348,7 +355,7 @@ export default class CustomDesign extends Component<Props, State> {
                     the start of the next one.
                   </p>
                 </Segment>
-                <Segment basic>
+                <Segment basic style={{'margin-top': '100px'}}>
                   <ParamSlider
                     label="ITI Duration (seconds)"
                     value={this.state.params.iti}
@@ -373,11 +380,11 @@ export default class CustomDesign extends Component<Props, State> {
                 </Segment>
               </Grid.Column>
 
-              <Grid.Column width={8}>
+              <Grid.Column width={8} basic style={{display: 'grid', 'align-content': 'space-between'}}>
                 <Segment basic>
                   <Header as="h1">Image duration</Header>
                   <p>
-                    Select the time of presentaiton or make it self-paced.
+                    Select the time of presentation or make it self-paced - present the image until participants respond.
                   </p>
                 </Segment>
                 <Segment basic>
@@ -392,12 +399,12 @@ export default class CustomDesign extends Component<Props, State> {
                     }
                   />
                 </Segment>
-                <Segment basic>
 
-                  {!this.state.params.selfPaced && <ParamSlider
-                    label="Presentation time (seconds)"
-                    value={this.state.params.presentationTime}
-                    marks={{
+
+                {!this.state.params.selfPaced ? <Segment basic><ParamSlider
+                  label="Presentation time (seconds)"
+                  value={this.state.params.presentationTime}
+                  marks={{
                       1: '0.25',
                       2: '0.5',
                       3: '0.75',
@@ -407,15 +414,16 @@ export default class CustomDesign extends Component<Props, State> {
                       7: '1.75',
                       8: '2'
                     }}
-                    ms_conversion='250'
-                    onChange={value =>
+                  ms_conversion='250'
+                  onChange={value =>
                       this.setState({
                         params: { ...this.state.params, presentationTime: value },
                         saved: false,
                       })
                     }
-                  />}
-                </Segment>
+                />
+                </Segment> : <Segment basic style={{'margin-bottom': '85px'}} />}
+
               </Grid.Column>
 
             </Grid>

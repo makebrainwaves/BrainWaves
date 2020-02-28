@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Grid, Header, Dropdown } from 'semantic-ui-react';
 import styles from '../styles/secondarynav.css';
 import SecondaryNavSegment from './SecondaryNavSegment';
+import { NavLink } from 'react-router-dom';
+import { SCREENS } from '../../constants/constants';
 
 interface Props {
   title: string | React.ReactNode;
@@ -66,6 +68,13 @@ export default class SecondaryNavComponent extends Component<Props> {
                       onClick={() => this.props.onEditClick()}
                     />
                   }
+                  <Dropdown.Item>
+                    <NavLink to={SCREENS.HOME.route}>
+                      <p>
+                        Exit Workspace
+                      </p>
+                    </NavLink>
+                  </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
               {this.props.saveButton}
