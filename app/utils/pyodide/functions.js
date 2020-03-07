@@ -1,3 +1,6 @@
+// -------------------------------------------
+// Helper & utility functions
+
 export const parseSingleQuoteJSON = (string: string) =>
   JSON.parse(string.replace(/'/g, '"'));
 
@@ -27,3 +30,6 @@ export const debugParseMessage = (msg: Object) => {
   }
   return `${msg.channel} ${content}`;
 };
+
+export const formatFilePath = (filePath: string) =>
+  `"${filePath.replace(/\\/g, '/')}"`;
