@@ -88,7 +88,8 @@ const searchMuseEpic = (action$) =>
       promise.then(
         (devices) => devices,
         (error) => {
-          toast.error(`"Device Error: " ${error.toString()}`);
+          // This error will fire a bit too promiscuously until we fix windows web bluetooth
+          // toast.error(`"Device Error: " ${error.toString()}`);
           return [];
         }
       )
