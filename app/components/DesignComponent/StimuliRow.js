@@ -1,9 +1,19 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
-import React, { Component } from 'react';
-import { Grid, Segment, Header, Form, Label, Icon, Button, Table, Dropdown } from 'semantic-ui-react';
-import { toast } from 'react-toastify';
-import styles from '../styles/common.css';
+import React, { Component } from "react";
+import {
+  Grid,
+  Segment,
+  Header,
+  Form,
+  Label,
+  Icon,
+  Button,
+  Table,
+  Dropdown
+} from "semantic-ui-react";
+import { toast } from "react-toastify";
+import styles from "../styles/common.css";
 
 interface Props {
   num: number;
@@ -28,18 +38,12 @@ export default class StimuliRow extends Component<Props> {
     return (
       <Table.Row className={styles.trialsRow}>
         <Table.Cell className={styles.conditionsNameRow}>
-          <div style={{'alignSelf':'center'}}>
-            {this.props.num + 1}.
-          </div>
-          <div>
-            {this.props.name}
-          </div>
+          <div style={{ alignSelf: "center" }}>{this.props.num + 1}.</div>
+          <div>{this.props.name}</div>
         </Table.Cell>
 
         <Table.Cell className={styles.experimentRowName}>
-          <div>
-            {this.props.condition}
-          </div>
+          <div>{this.props.condition}</div>
         </Table.Cell>
 
         <Table.Cell className={styles.experimentRowName}>
@@ -48,7 +52,7 @@ export default class StimuliRow extends Component<Props> {
             selection
             value={this.props.response}
             onChange={(event, data) =>
-              this.props.onChange(this.props.num, 'response', data.value)
+              this.props.onChange(this.props.num, "response", data.value)
             }
             placeholder="Response"
             options={RESPONSE_OPTIONS}
@@ -56,17 +60,37 @@ export default class StimuliRow extends Component<Props> {
         </Table.Cell>
 
         <Table.Cell className={styles.trialsTrialTypeRow}>
-
           <Segment basic className={styles.trialsTrialTypeSegment}>
-            <div className={styles.trialsTrialTypeRowSelector} style={{"backgroundColor": this.props.phase === 'main' ? '#1AC4EF' : '#EB1B66'}}>
-              { this.props.phase === 'main' ? 'Experimental' : 'Practice' }
+            <div
+              className={styles.trialsTrialTypeRowSelector}
+              style={{
+                backgroundColor:
+                  this.props.phase === "main" ? "#1AC4EF" : "#EB1B66"
+              }}
+            >
+              {this.props.phase === "main" ? "Experimental" : "Practice"}
             </div>
-            <Dropdown fluid style={{display: 'grid', color:'#C4C4C4', 'justify-content': 'end'}}>
+            <Dropdown
+              fluid
+              style={{
+                display: "grid",
+                color: "#C4C4C4",
+                justifyContent: "end"
+              }}
+            >
               <Dropdown.Menu>
-                <Dropdown.Item onClick={() => this.props.onChange(this.props.num, 'phase', 'main')}>
+                <Dropdown.Item
+                  onClick={() =>
+                    this.props.onChange(this.props.num, "phase", "main")
+                  }
+                >
                   <div>Experimental</div>
                 </Dropdown.Item>
-                <Dropdown.Item onClick={() => this.props.onChange(this.props.num, 'phase', 'practice')}>
+                <Dropdown.Item
+                  onClick={() =>
+                    this.props.onChange(this.props.num, "phase", "practice")
+                  }
+                >
                   <div>Practice</div>
                 </Dropdown.Item>
               </Dropdown.Menu>
@@ -76,15 +100,13 @@ export default class StimuliRow extends Component<Props> {
           <Button
             secondary
             onClick={() => {
-              this.props.onDelete(this.props.num)
+              this.props.onDelete(this.props.num);
             }}
           >
             Delete
           </Button>
         </Table.Cell>
-
       </Table.Row>
-
     );
   }
 }

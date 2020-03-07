@@ -45,6 +45,7 @@ const DESIGN_STEPS = {
   PREVIEW: 'PREVIEW',
 };
 
+// TODO: Add all the labjs props (e.g. protocol_title) to this interface
 interface Props {
   history: Object;
   type: EXPERIMENTS;
