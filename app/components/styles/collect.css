@@ -86,6 +86,9 @@
   background-color: #007c70 !important;
   border-radius: 22px !important;
   border: 2px solid #007c70 !important;
+  display: flex;
+  justify-content: flex-end;
+  font-size: initial;
 }
 
 .greatSignal {
