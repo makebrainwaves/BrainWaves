@@ -217,8 +217,8 @@ export default class CustomDesign extends Component<Props, State> {
                   <Form.Group
                     style={{
                       display: 'grid',
-                      'grid-template-columns': '1fr 1fr 1fr',
-                      'grid-column-gap': '10px',
+                      gridTemplateColumns: '1fr 1fr 1fr',
+                      gridColumnGap: '10px',
                     }}
                   >
                     <Form.Select
@@ -238,7 +238,11 @@ export default class CustomDesign extends Component<Props, State> {
                       placeholder='Response'
                       options={[
                         { key: 'random', text: 'Random', value: 'random' },
-                        { key: 'sequential', text: 'Sequential', value: 'sequential' },
+                        {
+                          key: 'sequential',
+                          text: 'Sequential',
+                          value: 'sequential',
+                        },
                       ]}
                     />
                     <Form.Input
@@ -339,11 +343,7 @@ export default class CustomDesign extends Component<Props, State> {
       case CUSTOM_STEPS.PARAMETERS:
         return (
           <Grid>
-            <Grid.Column
-              width={8}
-              basic
-              style={{ display: 'grid', 'align-content': 'space-between' }}
-            >
+            <Grid.Column width={8} basic style={{ display: 'grid', alignContent: 'space-between' }}>
               <Segment basic>
                 <Header as='h1'>Inter-trial interval</Header>
                 <p>
@@ -351,7 +351,7 @@ export default class CustomDesign extends Component<Props, State> {
                   trials measured from the end of one trial to the start of the next one.
                 </p>
               </Segment>
-              <Segment basic style={{ 'margin-top': '100px' }}>
+              <Segment basic style={{ marginTop: '100px' }}>
                 <ParamSlider
                   label='ITI Duration (seconds)'
                   value={this.state.params.iti}
@@ -376,11 +376,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
             </Grid.Column>
 
-            <Grid.Column
-              width={8}
-              basic
-              style={{ display: 'grid', 'align-content': 'space-between' }}
-            >
+            <Grid.Column width={8} basic style={{ display: 'grid', alignContent: 'space-between' }}>
               <Segment basic>
                 <Header as='h1'>Image duration</Header>
                 <p>
@@ -394,7 +390,10 @@ export default class CustomDesign extends Component<Props, State> {
                   label='Self-paced data collection'
                   onChange={(value) =>
                     this.setState({
-                      params: { ...this.state.params, selfPaced: !this.state.params.selfPaced },
+                      params: {
+                        ...this.state.params,
+                        selfPaced: !this.state.params.selfPaced,
+                      },
                       saved: false,
                     })
                   }
@@ -419,14 +418,17 @@ export default class CustomDesign extends Component<Props, State> {
                     ms_conversion='250'
                     onChange={(value) =>
                       this.setState({
-                        params: { ...this.state.params, presentationTime: value },
+                        params: {
+                          ...this.state.params,
+                          presentationTime: value,
+                        },
                         saved: false,
                       })
                     }
                   />
                 </Segment>
               ) : (
-                <Segment basic style={{ 'margin-bottom': '85px' }} />
+                <Segment basic style={{ marginBottom: '85px' }} />
               )}
             </Grid.Column>
           </Grid>
@@ -502,7 +504,7 @@ export default class CustomDesign extends Component<Props, State> {
             <Grid.Column stretched verticalAlign='middle'>
               <Image
                 as={Segment}
-                basic
+                basic='true'
                 centered
                 src={researchQuestionImage}
                 className={styles.overviewImage}
