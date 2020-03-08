@@ -27,8 +27,8 @@ BrainWaves needs an Anaconda environment called "brainwaves" with the right
 dependencies to run its analysis.
 
 1. Download and install Anaconda for Python 3. We recommend using the
-   [Miniconda installer for Python 3.6 available from this page](https://conda.io/miniconda.html)
-https://github.com/makebrainwaves/BrainWaves
+   [Miniconda installer for Python 3.7 available from this page](https://conda.io/miniconda.html). When installing, select the option to "Add Anaconda to my PATH environment variable".
+
 2. Download the BrainWaves
    [environment file](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.1/environment.yml)
    or grab it by cloning this repository
@@ -39,7 +39,9 @@ following command on Windows_
 3. Open Anaconda prompt (or terminal on Linux and OSX) in the directory where
    the environment file is located and run `conda env create -f environment.yml`
 
-4. If the environment is created successfully, run the following command to create a new jupyter kernel that uses this environment:
+4. If the environment is created successfully, activate the new conda environment that is created with `conda activate brainwaves`
+
+5. Finally, run the following command to create a new jupyter kernel that uses this environment:
    `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
 
