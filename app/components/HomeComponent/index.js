@@ -10,7 +10,6 @@ import {
   EXPERIMENTS,
   SCREENS,
   KERNEL_STATUS,
-  PLOTTING_INTERVAL,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
 } from '../../constants/constants';
@@ -27,14 +26,12 @@ import {
   openWorkspaceDir,
   deleteWorkspaceDir,
 } from '../../utils/filesystem/storage';
-import { Collect, Props as CollectProps, State as CollectState } from '../CollectComponent';
+
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import { loadProtocol } from '../../utils/labjs/functions';
-import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
-import ViewerComponent from '../ViewerComponent';
-import ConnectModal from '../CollectComponent/ConnectModal';
+import EEGExplorationComponent from '../EEGExplorationComponent';
 
 import { remote } from 'electron';
 
@@ -67,7 +64,6 @@ interface State {
   isNewExperimentModalOpen: boolean;
   isOverviewComponentOpen: boolean;
   overviewExperimentType: EXPERIMENTS;
-  isConnectModalOpen: boolean;
 }
 
 export default class Home extends Component<Props, State> {
@@ -78,8 +74,6 @@ export default class Home extends Component<Props, State> {
   handleLoadCustomExperiment: (string) => void;
   handleOpenOverview: (EXPERIMENTS) => void;
   handleCloseOverview: () => void;
-  handleConnectModalClose: () => void;
-  handleStartConnect: () => void;
   handleDeleteWorkspace: (string) => void;
 
   constructor(props: Props) {
@@ -90,41 +84,17 @@ export default class Home extends Component<Props, State> {
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
       overviewExperimentType: EXPERIMENTS.NONE,
-      isConnectModalOpen: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
     this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
-    this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
-    this.handleStartConnect = this.handleStartConnect.bind(this);
-    this.handleStopConnect = this.handleStopConnect.bind(this);
     this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
   }
 
   componentDidMount() {
     this.setState({ recentWorkspaces: readWorkspaces() });
-  }
-
-  componentDidUpdate = (prevProps: Props, prevState: State) => {
-    if (
-      this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
-      prevState.isConnectModalOpen
-    ) {
-      this.setState({ isConnectModalOpen: false });
-    }
-  };
-
-  handleStartConnect() {
-    this.setState({ isConnectModalOpen: true });
-    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
-  }
-
-  handleStopConnect() {
-    this.props.deviceActions.disconnectFromDevice(this.props.connectedDevice);
-    this.setState({ isConnectModalOpen: false });
-    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
   }
 
   handleStepClick(step: string) {
@@ -187,10 +157,6 @@ export default class Home extends Component<Props, State> {
     this.setState({
       isOverviewComponentOpen: false,
     });
-  }
-
-  handleConnectModalClose() {
-    this.setState({ isConnectModalOpen: false });
   }
 
   handleDeleteWorkspace(dir) {
@@ -401,61 +367,16 @@ export default class Home extends Component<Props, State> {
         );
       case HOME_STEPS.EXPLORE:
         return (
-          <Grid stackable padded columns='equal'>
-            {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
-              <Grid divided='vertically'>
-                <Grid.Row columns={1}>
-                  <Grid.Column>
-                    <Button primary onClick={this.handleStopConnect}>
-                      Disconnect EEG Device
-                    </Button>
-                  </Grid.Column>
-                </Grid.Row>
-                ,
-                <Grid.Row>
-                  <Grid.Column stretched width={6}>
-                    <SignalQualityIndicatorComponent
-                      signalQualityObservable={this.props.signalQualityObservable}
-                      plottingInterval={PLOTTING_INTERVAL}
-                    />
-                  </Grid.Column>
-                  <Grid.Column stretched width={10}>
-                    <ViewerComponent
-                      signalQualityObservable={this.props.signalQualityObservable}
-                      deviceType={this.props.deviceType}
-                      plottingInterval={PLOTTING_INTERVAL}
-                    />
-                    {/* {this.renderHelpButton()} */}
-                  </Grid.Column>
-                </Grid.Row>
-              </Grid>
-            )}
-            {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
-              <Grid.Row>
-                <ConnectModal
-                  history={this.props.history}
-                  open={this.state.isConnectModalOpen}
-                  onClose={this.handleConnectModalClose}
-                  connectedDevice={this.props.connectedDevice}
-                  signalQualityObservable={this.props.signalQualityObservable}
-                  deviceType={this.props.deviceType}
-                  deviceAvailability={this.props.deviceAvailability}
-                  connectionStatus={this.props.connectionStatus}
-                  deviceActions={this.props.deviceActions}
-                  availableDevices={this.props.availableDevices}
-                  style={{ marginTop: '100px' }}
-                />
-                <Grid.Column>
-                  <Button primary onClick={this.handleStartConnect}>
-                    Connect EEG Device
-                  </Button>
-                </Grid.Column>
-                <Grid.Column>
-                  Please click the button on the left to connect to your EEG device.
-                </Grid.Column>
-              </Grid.Row>
-            )}
-          </Grid>
+          <EEGExplorationComponent
+            history={this.props.history}
+            connectedDevice={this.props.connectedDevice}
+            signalQualityObservable={this.props.signalQualityObservable}
+            deviceType={this.props.deviceType}
+            deviceAvailability={this.props.deviceAvailability}
+            connectionStatus={this.props.connectionStatus}
+            availableDevices={this.props.availableDevices}
+            deviceActions={this.props.deviceActions}
+          />
         );
     }
   }
