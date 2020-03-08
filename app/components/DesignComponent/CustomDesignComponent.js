@@ -343,7 +343,7 @@ export default class CustomDesign extends Component<Props, State> {
       case CUSTOM_STEPS.PARAMETERS:
         return (
           <Grid>
-            <Grid.Column width={8} basic style={{ display: 'grid', alignContent: 'space-between' }}>
+            <Grid.Column width={8} style={{ display: 'grid', alignContent: 'space-between' }}>
               <Segment basic>
                 <Header as='h1'>Inter-trial interval</Header>
                 <p>
@@ -376,7 +376,7 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
             </Grid.Column>
 
-            <Grid.Column width={8} basic style={{ display: 'grid', alignContent: 'space-between' }}>
+            <Grid.Column width={8} style={{ display: 'grid', alignContent: 'space-between' }}>
               <Segment basic>
                 <Header as='h1'>Image duration</Header>
                 <p>
@@ -504,7 +504,7 @@ export default class CustomDesign extends Component<Props, State> {
             <Grid.Column stretched verticalAlign='middle'>
               <Image
                 as={Segment}
-                basic='true'
+                basic
                 centered
                 src={researchQuestionImage}
                 className={styles.overviewImage}
