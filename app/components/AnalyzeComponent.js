@@ -14,7 +14,13 @@ import {
 import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
 import styles from './styles/common.css';
-import { DEVICES, MUSE_CHANNELS, EMOTIV_CHANNELS } from '../constants/constants';
+import {
+  DEVICES,
+  MUSE_CHANNELS,
+  EMOTIV_CHANNELS,
+  KERNEL_STATUS,
+  EXPERIMENTS,
+} from '../constants/constants';
 import {
   readWorkspaceCleanedEEGData,
   getSubjectNamesFromFiles,
@@ -40,7 +46,12 @@ const ANALYZE_STEPS_BEHAVIOR = {
 
 interface Props {
   title: string;
+  type: ?EXPERIMENTS;
   deviceType: DEVICES;
+  isEEGEnabled: boolean;
+  kernel: ?Kernel;
+  kernelStatus: KERNEL_STATUS;
+  mainChannel: ?any;
   epochsInfo: ?Array<{ [string]: number | string }>;
   channelInfo: ?Array<string>;
   psdPlot: ?{ [string]: string };
@@ -132,6 +143,9 @@ export default class Analyze extends Component<Props, State> {
 
   async componentDidMount() {
     const workspaceCleanData = await readWorkspaceCleanedEEGData(this.props.title);
+    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
+      this.props.jupyterActions.launchKernel();
+    }
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
       eegFilePaths: workspaceCleanData.map((filepath) => ({
