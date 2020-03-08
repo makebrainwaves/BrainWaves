@@ -71,7 +71,11 @@ export const connectToEmotiv = async (device) => {
 };
 
 export const disconnectFromEmotiv = async () => {
-  const sessionStatus = await client.updateSession({ status: 'close' });
+  console.log('disconnecting form emotiv');
+  const sessionStatus = await client.updateSession({
+    session: session.id,
+    status: 'close',
+  });
   return sessionStatus;
 };
 
@@ -123,7 +127,10 @@ export const injectEmotivMarker = (value, time) => {
 };
 
 export const createEmotivRecord = (subjectName, sessionNumber) => {
-  client.createRecord({ session: session.id, title: `${subjectName}_${sessionNumber}` });
+  client.createRecord({
+    session: session.id,
+    title: `${subjectName}_${sessionNumber}`,
+  });
 };
 
 export const stopEmotivRecord = () => {
