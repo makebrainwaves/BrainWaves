@@ -131,19 +131,17 @@
   display: grid;
   grid-template-columns: 1fr;
   grid-row-gap: 10px;
-
-
 }
 
 .experimentCard {
   border-radius: 5px;
-	background-color: #FFFFFF;
-	box-shadow: 0 0 8px 0 rgba(0,0,0,0.1);
+  background-color: #ffffff;
+  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.1);
   border: 4px solid transparent;
 }
 
 .experimentCard:hover {
-  border: 4px solid #007C70;
+  border: 4px solid #007c70;
   cursor: pointer;
 }
 
@@ -153,20 +151,20 @@
 
 /* Header, Faces/Houses, Stroop, Mult-tasking, Visual Search */
 .experimentCardHeader {
-	color: #1A1A1A;
-	font-family: Lato;
-	font-size: 24px;
-	letter-spacing: 0.86px;
-	line-height: 29px;
+  color: #1a1a1a;
+  font-family: Lato;
+  font-size: 24px;
+  letter-spacing: 0.86px;
+  line-height: 29px;
 }
 
 /* Description copy */
 .experimentCardDescription {
-	color: #4A4A4A;
-	font-family: Lato;
-	font-size: 16px;
-	letter-spacing: 0.57px;
-	line-height: 24px;
+  color: #4a4a4a;
+  font-family: Lato;
+  font-size: 16px;
+  letter-spacing: 0.57px;
+  line-height: 24px;
 }
 
 .noExperimentsImage {
@@ -180,17 +178,17 @@
   font-size: 24px !important;
   line-height: 29px;
   letter-spacing: -0.2px;
-  color: #1A1A1A;
+  color: #1a1a1a;
 }
 
-.noExperimentsText{
+.noExperimentsText {
   font-family: Lato;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
   line-height: 24px;
   letter-spacing: -0.2px;
-  color: #1A1A1A;
+  color: #1a1a1a;
 }
 
 .myExperimentsPage {
@@ -198,7 +196,7 @@
 }
 
 .experimentRow {
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   display: grid;
@@ -235,7 +233,7 @@
   grid-template-columns: 1fr;
 }
 
-.experimentHeaderActionsName{
+.experimentHeaderActionsName {
   min-width: 495px !important;
 }
 
@@ -246,7 +244,7 @@
   font-size: 18px !important;
   line-height: 24px !important;
   letter-spacing: -0.2px;
-  color: #1A1A1A;
+  color: #1a1a1a;
   padding-left: 26px !important;
   border: 0px !important;
   padding-right: 10px !important;
@@ -260,7 +258,7 @@
 }
 
 .conditionRow {
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   display: grid;
@@ -289,7 +287,7 @@
 }
 
 .trialsRow {
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   display: grid;
@@ -305,7 +303,7 @@
   font-size: 18px !important;
   line-height: 24px !important;
   letter-spacing: -0.2px;
-  color: #1A1A1A;
+  color: #1a1a1a;
   padding-left: 26px !important;
   border: 0px !important;
   padding-right: 10px !important;
@@ -321,7 +319,7 @@
   align-items: center;
   margin: 0 !important;
   padding: 10px 12px 10px 12px !important;
-  border: 2px solid #CCCCCC !important;
+  border: 2px solid #cccccc !important;
   border-radius: 4px !important;
 }
 
@@ -350,12 +348,17 @@
   max-height: 500px;
 }
 
-.EEGToggle{
+.EEGToggle {
   transform: scale(0.7);
 }
 
-.selectedFolderContainer{
+.selectedFolderContainer {
   display: grid;
   grid-template-columns: auto auto 1fr;
   grid-column-gap: 10px;
+}
+
+.disconnectButtonContainer {
+  display: flex;
+  justify-content: flex-end;
 }
