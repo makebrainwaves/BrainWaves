@@ -79,18 +79,6 @@
   background-color: #00635a !important;
 }
 
-.helpButton {
-  height: 44px !important;
-  width: 44px !important;
-  color: #fff !important;
-  background-color: #007c70 !important;
-  border-radius: 22px !important;
-  border: 2px solid #007c70 !important;
-  display: flex;
-  justify-content: flex-end;
-  font-size: initial;
-}
-
 .greatSignal {
   color: #66b0a9;
 }
@@ -104,26 +92,4 @@
 
 .noSignal {
   color: #bfbfbf;
-}
-
-.helpSidebar {
-  height: inherit;
-}
-
-.helpSidebar i {
-  color: #64c9e2;
-}
-
-.helpHeader {
-  margin-bottom: 18px !important;
-}
-
-.helpMenuItem {
-  font-size: 18px !important;
-  padding: 5px !important;
-}
-
-.helpContent {
-  font-size: 18px !important;
-  height: 80%;
 }
