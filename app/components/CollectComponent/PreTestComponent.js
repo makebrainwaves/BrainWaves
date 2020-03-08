@@ -5,7 +5,7 @@ import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
-import HelpSidebar from './HelpSidebar';
+import { HelpSidebar, HelpButton } from './HelpSidebar';
 import styles from '../styles/collect.css';
 import { PLOTTING_INTERVAL, CONNECTION_STATUS } from '../../constants/constants';
 import { loadProtocol } from '../../utils/labjs/functions';
@@ -54,16 +54,16 @@ export default class PreTestComponent extends Component<Props, State> {
     this.endPreview = this.endPreview.bind(this);
   }
 
-  endPreview() {
-    this.setState({ isPreviewing: false });
-  }
-
   componentDidMount() {
     Mousetrap.bind('esc', this.props.experimentActions.stop);
   }
 
   componentWillUnmount() {
     Mousetrap.unbind('esc');
+  }
+
+  endPreview() {
+    this.setState({ isPreviewing: false });
   }
 
   handlePreview(e) {
@@ -120,15 +120,7 @@ export default class PreTestComponent extends Component<Props, State> {
 
   renderHelpButton() {
     if (!this.state.isSidebarVisible) {
-      return (
-        <Button
-          circular
-          icon='question'
-          className={styles.helpButton}
-          floated='right'
-          onClick={this.handleSidebarToggle}
-        />
-      );
+      return <HelpButton onClick={this.handleSidebarToggle} />;
     }
   }
 

@@ -26,7 +26,7 @@ import { aggregateDataForPlot, aggregateBehaviorDataToSave } from '../utils/beha
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
-import HelpSidebar from './CollectComponent/HelpSidebar';
+import { HelpButton } from './CollectComponent/HelpSidebar';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -275,12 +275,12 @@ export default class Analyze extends Component<Props, State> {
     this.props.jupyterActions.loadERP(channelName);
   }
 
-  concatSubjectNames(subjects: Array<?string>) {
+  concatSubjectNames = (subjects: Array<?string>) => {
     if (subjects.length < 1) {
       return '';
     }
     return subjects.reduce((acc, curr) => `${acc}-${curr}`);
-  }
+  };
 
   renderEpochLabels() {
     if (!isNil(this.props.epochsInfo) && this.state.selectedFilePaths.length >= 1) {
@@ -371,12 +371,7 @@ export default class Analyze extends Component<Props, State> {
       case ANALYZE_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            columns='equal'
-            textAlign='center'
-            verticalAlign='middle'
-            className={styles.contentGrid}
-          >
+          <React.Fragment>
             <Grid.Column width={4}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>Overview</Header>
@@ -394,7 +389,6 @@ export default class Analyze extends Component<Props, State> {
                   options={this.state.eegFilePaths}
                   onChange={this.handleDatasetChange}
                 />
-                <Divider hidden />
                 {this.renderEpochLabels()}
               </Segment>
             </Grid.Column>
@@ -405,16 +399,11 @@ export default class Analyze extends Component<Props, State> {
                 plotMIMEBundle={this.props.topoPlot}
               />
             </Grid.Column>
-          </Grid>
+          </React.Fragment>
         );
       case ANALYZE_STEPS.ERP:
         return (
-          <Grid
-            columns='equal'
-            textAlign='center'
-            verticalAlign='middle'
-            className={styles.contentGrid}
-          >
+          <React.Fragment>
             <Grid.Column width={4} className={styles.analyzeColumn}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>ERP</Header>
@@ -439,16 +428,11 @@ export default class Analyze extends Component<Props, State> {
                 plotMIMEBundle={this.props.erpPlot}
               />
             </Grid.Column>
-          </Grid>
+          </React.Fragment>
         );
       case ANALYZE_STEPS.BEHAVIOR:
         return (
-          <Grid
-            columns='equal'
-            textAlign='center'
-            verticalAlign='middle'
-            className={styles.contentGrid}
-          >
+          <React.Fragment>
             <Grid.Column width={6}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>Overview</Header>
@@ -526,13 +510,7 @@ export default class Analyze extends Component<Props, State> {
                   </Button>
                 </Button.Group>
 
-                <Button
-                  circular
-                  icon='question'
-                  className={styles.helpButton}
-                  floated='right'
-                  onClick={this.toggleDisplayInfoVisibility}
-                />
+                <HelpButton onClick={this.toggleDisplayInfoVisibility} />
 
                 <Sidebar
                   width='wide'
@@ -546,7 +524,7 @@ export default class Analyze extends Component<Props, State> {
                 </Sidebar>
               </Segment>
             </Grid.Column>
-          </Grid>
+          </React.Fragment>
         );
     }
   }
@@ -560,7 +538,9 @@ export default class Analyze extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />
-        {this.renderSectionContent()}
+        <Grid columns='equal' textAlign='center' verticalAlign='top' className={styles.contentGrid}>
+          {this.renderSectionContent()}
+        </Grid>
       </div>
     );
   }
