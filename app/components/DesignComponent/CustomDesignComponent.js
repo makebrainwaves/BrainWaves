@@ -1,15 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import {
-  Grid,
-  Button,
-  Segment,
-  Header,
-  Form,
-  Checkbox,
-  Image,
-  Table
-} from 'semantic-ui-react';
+import { Grid, Button, Segment, Header, Form, Checkbox, Image, Table } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
@@ -17,7 +8,7 @@ import {
   MainTimeline,
   Trial,
   ExperimentParameters,
-  ExperimentDescription
+  ExperimentDescription,
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
@@ -36,7 +27,7 @@ const CUSTOM_STEPS = {
   CONDITIONS: 'CONDITIONS',
   TRIALS: 'TRIALS',
   PARAMETERS: 'PARAMETERS',
-  PREVIEW: 'PREVIEW'
+  PREVIEW: 'PREVIEW',
 };
 
 const FIELDS = {
@@ -71,8 +62,8 @@ interface State {
 export default class CustomDesign extends Component<Props, State> {
   props: Props;
   state: State;
-  handleStepClick: string => void;
-  handleStartExperiment: Object => void;
+  handleStepClick: (string) => void;
+  handleStartExperiment: (Object) => void;
   handlePreview: () => void;
   handleSaveParams: () => void;
   handleProgressBar: (Object, Object) => void;
@@ -109,7 +100,7 @@ export default class CustomDesign extends Component<Props, State> {
 
   handleProgressBar(event: Object, data: Object) {
     this.setState({
-      params: { ...this.state.params, showProgessBar: data.checked }
+      params: { ...this.state.params, showProgessBar: data.checked },
     });
   }
 
@@ -135,224 +126,286 @@ export default class CustomDesign extends Component<Props, State> {
 
   renderSectionContent() {
     const stimi = [
-      {name: 'stimulus1', number: 1},
-      {name: 'stimulus2', number: 2},
-      {name: 'stimulus3', number: 3},
-      {name: 'stimulus4', number: 4},
-      ]
+      { name: 'stimulus1', number: 1 },
+      { name: 'stimulus2', number: 2 },
+      { name: 'stimulus3', number: 3 },
+      { name: 'stimulus4', number: 4 },
+    ];
     switch (this.state.activeStep) {
       case CUSTOM_STEPS.CONDITIONS:
         return (
           <Grid>
             <Segment basic>
-              <Header as="h1">Conditions</Header>
+              <Header as='h1'>Conditions</Header>
               <p>
                 Select the folder with images for each condition and choose the correct response.
               </p>
             </Segment>
 
-            <Table basic="very">
-
+            <Table basic='very'>
               <Table.Header>
                 <Table.Row className={styles.conditionHeaderRow}>
-                  <Table.HeaderCell className={styles.conditionHeaderRowName}>Condition</Table.HeaderCell>
+                  <Table.HeaderCell className={styles.conditionHeaderRowName}>
+                    Condition
+                  </Table.HeaderCell>
                   <Table.HeaderCell>Default Key Response</Table.HeaderCell>
                   <Table.HeaderCell>Condition Folder</Table.HeaderCell>
                 </Table.Row>
               </Table.Header>
 
               <Table.Body className={styles.experimentTable}>
-                {stimi.map(({name, number}) => (
+                {stimi.map(({ name, number }) => (
                   <StimuliDesignColumn
                     key={number}
                     num={number}
                     {...this.state.params[name]}
-                    numberImages={this.state.params.stimuli.filter(trial => trial.type === number).length}
+                    numberImages={
+                      this.state.params.stimuli.filter((trial) => trial.type === number).length
+                    }
                     onChange={async (key, data, changedName) => {
                       await this.setState({
                         params: {
                           ...this.state.params,
                           [changedName]: { ...this.state.params[changedName], [key]: data },
-                        }
-                      })
+                        },
+                      });
                       let newStimuli = [];
-                      await stimi.map( stimul => {
+                      await stimi.map((stimul) => {
                         let dirStimuli = [];
                         const dir = this.state.params[stimul.name].dir;
-                        if(dir && typeof(dir) !== 'undefined' && dir !== ''){
-                          dirStimuli = readImages(dir).map(i => ({
-                              'dir': dir,
-                              'filename': i,
-                              'name': i,
-                              'condition': this.state.params[stimul.name].title,
-                              'response': this.state.params[stimul.name].response,
-                              'phase': 'main',
-                              'type': stimul.number,
-                              }));
+                        if (dir && typeof dir !== 'undefined' && dir !== '') {
+                          dirStimuli = readImages(dir).map((i) => ({
+                            dir: dir,
+                            filename: i,
+                            name: i,
+                            condition: this.state.params[stimul.name].title,
+                            response: this.state.params[stimul.name].response,
+                            phase: 'main',
+                            type: stimul.number,
+                          }));
                         }
-                        if(dirStimuli.length) dirStimuli[0].phase = 'practice';
+                        if (dirStimuli.length) dirStimuli[0].phase = 'practice';
                         newStimuli = newStimuli.concat(...dirStimuli);
-                      })
+                      });
                       this.setState({
                         params: {
                           ...this.state.params,
-                          stimuli: [ ... newStimuli ],
-                          nbTrials: newStimuli.filter(t => t.phase === 'main').length,
-                          nbPracticeTrials: newStimuli.filter(t => t.phase === 'practice').length,
+                          stimuli: [...newStimuli],
+                          nbTrials: newStimuli.filter((t) => t.phase === 'main').length,
+                          nbPracticeTrials: newStimuli.filter((t) => t.phase === 'practice').length,
                         },
                         saved: false,
-                      })
-                      }
-                    }
+                      });
+                    }}
                   />
-                  ))
-                }
+                ))}
               </Table.Body>
             </Table>
           </Grid>
         );
-        case CUSTOM_STEPS.TRIALS:
-          return (
-            <Grid>
-              <div className={styles.trialsHeader}>
-                <div>
-                  <Header as="h1">Trials</Header>
-                  <p>
-                    Edit the name, condition and correct key response of each trial.
-                  </p>
-                </div>
-
-                <div>
-                  <Form style={{ alignSelf: 'flex-end' }}>
-                    <Form.Group style={{ display: 'grid', 'grid-template-columns': '1fr 1fr 1fr', 'grid-column-gap':'10px' }}>
-                      <Form.Select
-                        fluid
-                        selection
-                        label="Order"
-                        value={this.state.params.randomize}
-                        onChange={(event, data) =>
-                          this.setState({
-                            params: {
-                              ...this.state.params,
-                              randomize: data.value
-                            },
-                            saved: false,
-                          })
-                        }
-                        placeholder="Response"
-                        options={[{key: 'random', text: 'Random', value: 'random'},
-                          {key: 'sequential', text: 'Sequential', value: 'sequential'}]}
-                      />
-                      <Form.Input
-                        label="Total experimental trials"
-                        type="number"
-                        fluid
-                        value={this.state.params.nbTrials}
-                        onChange={(event, data) =>
-                            this.setState({
-                              params: {
-                                ...this.state.params,
-                                nbTrials: parseInt(data.value)
-                              },
-                              saved: false,
-                            })
-                          }
-                      />
-                      <Form.Input
-                        label="Total practice trials"
-                        type="number"
-                        fluid
-                        value={this.state.params.nbPracticeTrials}
-                        onChange={(event, data) =>
-                            this.setState({
-                              params: {
-                                ...this.state.params,
-                                nbPracticeTrials: parseInt(data.value)
-                              },
-                              saved: false,
-                            })
-                          }
-                      />
-                    </Form.Group>
-                  </Form>
-                </div>
+      case CUSTOM_STEPS.TRIALS:
+        return (
+          <Grid>
+            <div className={styles.trialsHeader}>
+              <div>
+                <Header as='h1'>Trials</Header>
+                <p>Edit the name, condition and correct key response of each trial.</p>
               </div>
 
-              <Table basic="very">
-                <Table.Header>
-                  <Table.Row className={styles.trialsHeaderRow}>
-                    <Table.HeaderCell className={styles.conditionHeaderRowName}>Name</Table.HeaderCell>
-                    <Table.HeaderCell>Condition</Table.HeaderCell>
-                    <Table.HeaderCell>Correct Key Response</Table.HeaderCell>
-                    <Table.HeaderCell>Trial Type</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body className={styles.trialsTable}>
+              <div>
+                <Form style={{ alignSelf: 'flex-end' }}>
+                  <Form.Group
+                    style={{
+                      display: 'grid',
+                      'grid-template-columns': '1fr 1fr 1fr',
+                      'grid-column-gap': '10px',
+                    }}
+                  >
+                    <Form.Select
+                      fluid
+                      selection
+                      label='Order'
+                      value={this.state.params.randomize}
+                      onChange={(event, data) =>
+                        this.setState({
+                          params: {
+                            ...this.state.params,
+                            randomize: data.value,
+                          },
+                          saved: false,
+                        })
+                      }
+                      placeholder='Response'
+                      options={[
+                        { key: 'random', text: 'Random', value: 'random' },
+                        { key: 'sequential', text: 'Sequential', value: 'sequential' },
+                      ]}
+                    />
+                    <Form.Input
+                      label='Total experimental trials'
+                      type='number'
+                      fluid
+                      value={this.state.params.nbTrials}
+                      onChange={(event, data) =>
+                        this.setState({
+                          params: {
+                            ...this.state.params,
+                            nbTrials: parseInt(data.value),
+                          },
+                          saved: false,
+                        })
+                      }
+                    />
+                    <Form.Input
+                      label='Total practice trials'
+                      type='number'
+                      fluid
+                      value={this.state.params.nbPracticeTrials}
+                      onChange={(event, data) =>
+                        this.setState({
+                          params: {
+                            ...this.state.params,
+                            nbPracticeTrials: parseInt(data.value),
+                          },
+                          saved: false,
+                        })
+                      }
+                    />
+                  </Form.Group>
+                </Form>
+              </div>
+            </div>
 
-                  {this.state.params.stimuli && this.state.params.stimuli.map((e,num) => (
+            <Table basic='very'>
+              <Table.Header>
+                <Table.Row className={styles.trialsHeaderRow}>
+                  <Table.HeaderCell className={styles.conditionHeaderRowName}>
+                    Name
+                  </Table.HeaderCell>
+                  <Table.HeaderCell>Condition</Table.HeaderCell>
+                  <Table.HeaderCell>Correct Key Response</Table.HeaderCell>
+                  <Table.HeaderCell>Trial Type</Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body className={styles.trialsTable}>
+                {this.state.params.stimuli &&
+                  this.state.params.stimuli.map((e, num) => (
                     <StimuliRow
                       key={num}
                       num={num}
-                      conditions={[1,2,3,4].map(n => this.state.params[`stimulus${n}`].title)}
+                      conditions={[1, 2, 3, 4].map((n) => this.state.params[`stimulus${n}`].title)}
                       {...e}
                       onDelete={(num) => {
-                          const stimuli = this.state.params.stimuli;
-                          stimuli.splice(num, 1);
-                          const nbPracticeTrials = stimuli.filter(s => (s.phase === 'practice')).length;
-                          const nbTrials = stimuli.filter(s => (s.phase === 'main')).length;
-                          this.setState({
-                            params: {
-                              ...this.state.params,
-                              stimuli: [ ... stimuli ],
-                              nbPracticeTrials,
-                              nbTrials,
-                            },
-                            saved: false,
-                          })
-                        }}
+                        const stimuli = this.state.params.stimuli;
+                        stimuli.splice(num, 1);
+                        const nbPracticeTrials = stimuli.filter((s) => s.phase === 'practice')
+                          .length;
+                        const nbTrials = stimuli.filter((s) => s.phase === 'main').length;
+                        this.setState({
+                          params: {
+                            ...this.state.params,
+                            stimuli: [...stimuli],
+                            nbPracticeTrials,
+                            nbTrials,
+                          },
+                          saved: false,
+                        });
+                      }}
                       onChange={(num, key, data) => {
-                          const stimuli = this.state.params.stimuli;
-                          stimuli[num][key] = data;
-                          let nbPracticeTrials = this.state.params.nbPracticeTrials;
-                          let nbTrials = this.state.params.nbTrials;
-                          if(key === 'phase'){
-                            nbPracticeTrials = stimuli.filter(s => (s.phase === 'practice')).length;
-                            nbTrials = stimuli.filter(s => (s.phase === 'main')).length;
-                          }
-                          this.setState({
-                            params: {
-                              ...this.state.params,
-                              stimuli: [ ... stimuli ],
-                              nbPracticeTrials,
-                              nbTrials,
-                            },
-                            saved: false,
-                          })
-                        }}
+                        const stimuli = this.state.params.stimuli;
+                        stimuli[num][key] = data;
+                        let nbPracticeTrials = this.state.params.nbPracticeTrials;
+                        let nbTrials = this.state.params.nbTrials;
+                        if (key === 'phase') {
+                          nbPracticeTrials = stimuli.filter((s) => s.phase === 'practice').length;
+                          nbTrials = stimuli.filter((s) => s.phase === 'main').length;
+                        }
+                        this.setState({
+                          params: {
+                            ...this.state.params,
+                            stimuli: [...stimuli],
+                            nbPracticeTrials,
+                            nbTrials,
+                          },
+                          saved: false,
+                        });
+                      }}
                     />
-                      ))}
+                  ))}
+              </Table.Body>
+            </Table>
+          </Grid>
+        );
+      case CUSTOM_STEPS.PARAMETERS:
+        return (
+          <Grid>
+            <Grid.Column
+              width={8}
+              basic
+              style={{ display: 'grid', 'align-content': 'space-between' }}
+            >
+              <Segment basic>
+                <Header as='h1'>Inter-trial interval</Header>
+                <p>
+                  Select the inter-trial interval duration. This is the amount of time between
+                  trials measured from the end of one trial to the start of the next one.
+                </p>
+              </Segment>
+              <Segment basic style={{ 'margin-top': '100px' }}>
+                <ParamSlider
+                  label='ITI Duration (seconds)'
+                  value={this.state.params.iti}
+                  marks={{
+                    1: '0.25',
+                    2: '0.5',
+                    3: '0.75',
+                    4: '1',
+                    5: '1.25',
+                    6: '1.5',
+                    7: '1.75',
+                    8: '2',
+                  }}
+                  ms_conversion='250'
+                  onChange={(value) =>
+                    this.setState({
+                      params: { ...this.state.params, iti: value },
+                      saved: false,
+                    })
+                  }
+                />
+              </Segment>
+            </Grid.Column>
 
-                </Table.Body>
-              </Table>
+            <Grid.Column
+              width={8}
+              basic
+              style={{ display: 'grid', 'align-content': 'space-between' }}
+            >
+              <Segment basic>
+                <Header as='h1'>Image duration</Header>
+                <p>
+                  Select the time of presentation or make it self-paced - present the image until
+                  participants respond.
+                </p>
+              </Segment>
+              <Segment basic>
+                <Checkbox
+                  defaultChecked={this.state.params.selfPaced}
+                  label='Self-paced data collection'
+                  onChange={(value) =>
+                    this.setState({
+                      params: { ...this.state.params, selfPaced: !this.state.params.selfPaced },
+                      saved: false,
+                    })
+                  }
+                />
+              </Segment>
 
-            </Grid>
-          );
-        case CUSTOM_STEPS.PARAMETERS:
-          return (
-            <Grid>
-              <Grid.Column width={8} basic style={{display: 'grid', 'align-content': 'space-between'}}>
+              {!this.state.params.selfPaced ? (
                 <Segment basic>
-                  <Header as="h1">Inter-trial interval</Header>
-                  <p>
-                    Select the inter-trial interval duration. This is the amount
-                    of time between trials measured from the end of one trial to
-                    the start of the next one.
-                  </p>
-                </Segment>
-                <Segment basic style={{'margin-top': '100px'}}>
                   <ParamSlider
-                    label="ITI Duration (seconds)"
-                    value={this.state.params.iti}
+                    label='Presentation time (seconds)'
+                    value={this.state.params.presentationTime}
                     marks={{
                       1: '0.25',
                       2: '0.5',
@@ -361,75 +414,31 @@ export default class CustomDesign extends Component<Props, State> {
                       5: '1.25',
                       6: '1.5',
                       7: '1.75',
-                      8: '2'
+                      8: '2',
                     }}
                     ms_conversion='250'
-                    onChange={value =>
-                      this.setState({
-                        params: { ...this.state.params, iti: value },
-                        saved: false,
-                      })
-                    }
-                  />
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column width={8} basic style={{display: 'grid', 'align-content': 'space-between'}}>
-                <Segment basic>
-                  <Header as="h1">Image duration</Header>
-                  <p>
-                    Select the time of presentation or make it self-paced - present the image until participants respond.
-                  </p>
-                </Segment>
-                <Segment basic>
-                  <Checkbox
-                    defaultChecked={this.state.params.selfPaced}
-                    label="Self-paced data collection"
-                    onChange={value =>
-                      this.setState({
-                        params: { ...this.state.params, selfPaced: !this.state.params.selfPaced },
-                        saved: false,
-                      })
-                    }
-                  />
-                </Segment>
-
-
-                {!this.state.params.selfPaced ? <Segment basic><ParamSlider
-                  label="Presentation time (seconds)"
-                  value={this.state.params.presentationTime}
-                  marks={{
-                      1: '0.25',
-                      2: '0.5',
-                      3: '0.75',
-                      4: '1',
-                      5: '1.25',
-                      6: '1.5',
-                      7: '1.75',
-                      8: '2'
-                    }}
-                  ms_conversion='250'
-                  onChange={value =>
+                    onChange={(value) =>
                       this.setState({
                         params: { ...this.state.params, presentationTime: value },
                         saved: false,
                       })
                     }
-                />
-                </Segment> : <Segment basic style={{'margin-bottom': '85px'}} />}
-
-              </Grid.Column>
-
-            </Grid>
-          );
+                  />
+                </Segment>
+              ) : (
+                <Segment basic style={{ 'margin-bottom': '85px' }} />
+              )}
+            </Grid.Column>
+          </Grid>
+        );
       case CUSTOM_STEPS.PREVIEW:
         return (
           <Grid relaxed padded className={styles.contentGrid}>
             <Grid.Column
               stretched
               width={11}
-              textAlign="right"
-              verticalAlign="middle"
+              textAlign='right'
+              verticalAlign='middle'
               className={styles.previewWindow}
             >
               <PreviewExperimentComponent
@@ -441,7 +450,7 @@ export default class CustomDesign extends Component<Props, State> {
                 previewParams={this.props.params}
               />
             </Grid.Column>
-            <Grid.Column width={5} verticalAlign="middle">
+            <Grid.Column width={5} verticalAlign='middle'>
               <Segment basic>
                 <Form>
                   <Form.TextArea
@@ -449,7 +458,7 @@ export default class CustomDesign extends Component<Props, State> {
                     style={{ minHeight: 100 }}
                     label={FIELDS.INTRO}
                     value={this.state.params.intro}
-                    placeholder="You will view a series of images..."
+                    placeholder='You will view a series of images...'
                     onChange={(event, data) =>
                       this.setState({
                         params: { ...this.state.params, intro: data.value },
@@ -467,7 +476,7 @@ export default class CustomDesign extends Component<Props, State> {
                     style={{ minHeight: 50 }}
                     label={FIELDS.HELP}
                     value={this.state.params.taskHelp}
-                    placeholder="Press 1 for ..."
+                    placeholder='Press 1 for ...'
                     onChange={(event, data) =>
                       this.setState({
                         params: { ...this.state.params, taskHelp: data.value },
@@ -480,7 +489,7 @@ export default class CustomDesign extends Component<Props, State> {
 
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={e => this.handlePreview(e)}
+                onClick={(e) => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>
@@ -489,14 +498,8 @@ export default class CustomDesign extends Component<Props, State> {
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            stretched
-            relaxed
-            padded
-            columns="equal"
-            className={styles.contentGrid}
-          >
-            <Grid.Column stretched verticalAlign="middle">
+          <Grid stretched relaxed padded columns='equal' className={styles.contentGrid}>
+            <Grid.Column stretched verticalAlign='middle'>
               <Image
                 as={Segment}
                 basic
@@ -510,12 +513,12 @@ export default class CustomDesign extends Component<Props, State> {
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.QUESTION}
                   value={this.state.description.question}
-                  placeholder="Explain your research question here."
+                  placeholder='Explain your research question here.'
                   onChange={(event, data) =>
                     this.setState({
                       description: {
                         ...this.state.description,
-                        question: data.value
+                        question: data.value,
                       },
                       saved: false,
                     })
@@ -523,7 +526,7 @@ export default class CustomDesign extends Component<Props, State> {
                 />
               </Form>
             </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
+            <Grid.Column stretched verticalAlign='middle'>
               <Image
                 as={Segment}
                 basic
@@ -537,12 +540,12 @@ export default class CustomDesign extends Component<Props, State> {
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.HYPOTHESIS}
                   value={this.state.description.hypothesis}
-                  placeholder="Describe your hypothesis here."
+                  placeholder='Describe your hypothesis here.'
                   onChange={(event, data) =>
                     this.setState({
                       description: {
                         ...this.state.description,
-                        hypothesis: data.value
+                        hypothesis: data.value,
                       },
                       saved: false,
                     })
@@ -550,7 +553,7 @@ export default class CustomDesign extends Component<Props, State> {
                 />
               </Form>
             </Grid.Column>
-            <Grid.Column verticalAlign="middle">
+            <Grid.Column verticalAlign='middle'>
               <Image
                 as={Segment}
                 basic
@@ -564,12 +567,12 @@ export default class CustomDesign extends Component<Props, State> {
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.METHODS}
                   value={this.state.description.methods}
-                  placeholder="Explain how you will design your experiment to answer the question here."
+                  placeholder='Explain how you will design your experiment to answer the question here.'
                   onChange={(event, data) =>
                     this.setState({
                       description: {
                         ...this.state.description,
-                        methods: data.value
+                        methods: data.value,
                       },
                       saved: false,
                     })
@@ -586,7 +589,7 @@ export default class CustomDesign extends Component<Props, State> {
     return (
       <div className={styles.mainContainer}>
         <SecondaryNavComponent
-          title="Experiment Design"
+          title='Experiment Design'
           steps={CUSTOM_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
@@ -601,7 +604,7 @@ export default class CustomDesign extends Component<Props, State> {
           saveButton={
             <Button
               compact
-              size="small"
+              size='small'
               secondary
               onClick={() => {
                 this.handleSaveParams();

@@ -21,30 +21,30 @@ export const requestKernelInfo = () => ({ type: REQUEST_KERNEL_INFO });
 
 export const sendExecuteRequest = (payload: string) => ({
   payload,
-  type: SEND_EXECUTE_REQUEST
+  type: SEND_EXECUTE_REQUEST,
 });
 
 export const loadEpochs = (payload: Array<string>) => ({
   payload,
-  type: LOAD_EPOCHS
+  type: LOAD_EPOCHS,
 });
 
 export const loadCleanedEpochs = (payload: Array<string>) => ({
   payload,
-  type: LOAD_CLEANED_EPOCHS
+  type: LOAD_CLEANED_EPOCHS,
 });
 
 export const loadPSD = () => ({
-  type: LOAD_PSD
+  type: LOAD_PSD,
 });
 
 export const loadERP = (payload: ?string) => ({
   payload,
-  type: LOAD_ERP
+  type: LOAD_ERP,
 });
 
 export const loadTopo = () => ({
-  type: LOAD_TOPO
+  type: LOAD_TOPO,
 });
 
 export const cleanEpochs = () => ({ type: CLEAN_EPOCHS });

@@ -4,16 +4,8 @@ import { Segment } from 'semantic-ui-react';
 import { ExperimentWindow } from '../utils/labjs';
 import styles from './styles/collect.css';
 
-import {
-  parseTimeline,
-  instantiateTimeline,
-  getImages
-} from '../utils/jspsych/functions';
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters
-} from '../constants/interfaces';
+import { parseTimeline, instantiateTimeline, getImages } from '../utils/jspsych/functions';
+import { MainTimeline, Trial, ExperimentParameters } from '../constants/interfaces';
 
 interface Props {
   params: ExperimentParameters;
@@ -49,9 +41,9 @@ export default class PreviewExperimentComponent extends Component<Props> {
             script: this.props.paradigm,
             params: this.props.previewParams || this.props.params,
             eventCallback: this.insertPreviewLabJsCallback,
-            on_finish: csv => {
+            on_finish: (csv) => {
               this.props.onEnd();
-            }
+            },
           }}
         />
       </div>

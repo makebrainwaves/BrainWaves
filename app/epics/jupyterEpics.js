@@ -1,14 +1,6 @@
 import { combineEpics } from 'redux-observable';
 import { from, of } from 'rxjs';
-import {
-  map,
-  mergeMap,
-  tap,
-  pluck,
-  ignoreElements,
-  filter,
-  take
-} from 'rxjs/operators';
+import { map, mergeMap, tap, pluck, ignoreElements, filter, take } from 'rxjs/operators';
 import { find } from 'kernelspecs';
 import { launchSpec } from 'spawnteract';
 import { createMainChannel } from 'enchannel-zmq-backend';
@@ -28,7 +20,7 @@ import {
   CLEAN_EPOCHS,
   CLOSE_KERNEL,
   loadTopo,
-  loadERP
+  loadERP,
 } from '../actions/jupyterActions';
 import {
   imports,
@@ -43,19 +35,19 @@ import {
   plotPSD,
   plotERP,
   plotTopoMap,
-  saveEpochs
+  saveEpochs,
 } from '../utils/jupyter/cells';
 import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
   MUSE_CHANNELS,
-  JUPYTER_VARIABLE_NAMES
+  JUPYTER_VARIABLE_NAMES,
 } from '../constants/constants';
 import {
   parseSingleQuoteJSON,
   parseKernelStatus,
-  debugParseMessage
+  debugParseMessage,
 } from '../utils/jupyter/functions';
 
 export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
@@ -77,104 +69,102 @@ export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
 // -------------------------------------------------------------------------
 // Action Creators
 
-const getEpochsInfo = payload => ({ payload, type: GET_EPOCHS_INFO });
+const getEpochsInfo = (payload) => ({ payload, type: GET_EPOCHS_INFO });
 
 const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
-const setKernel = payload => ({
+const setKernel = (payload) => ({
   payload,
-  type: SET_KERNEL
+  type: SET_KERNEL,
 });
 
-const setKernelStatus = payload => ({
+const setKernelStatus = (payload) => ({
   payload,
-  type: SET_KERNEL_STATUS
+  type: SET_KERNEL_STATUS,
 });
 
-const setKernelInfo = payload => ({
+const setKernelInfo = (payload) => ({
   payload,
-  type: SET_KERNEL_INFO
+  type: SET_KERNEL_INFO,
 });
 
-const setMainChannel = payload => ({
+const setMainChannel = (payload) => ({
   payload,
-  type: SET_MAIN_CHANNEL
+  type: SET_MAIN_CHANNEL,
 });
 
-const setEpochInfo = payload => ({
+const setEpochInfo = (payload) => ({
   payload,
-  type: SET_EPOCH_INFO
+  type: SET_EPOCH_INFO,
 });
 
-const setChannelInfo = payload => ({
+const setChannelInfo = (payload) => ({
   payload,
-  type: SET_CHANNEL_INFO
+  type: SET_CHANNEL_INFO,
 });
 
-const setPSDPlot = payload => ({
+const setPSDPlot = (payload) => ({
   payload,
-  type: SET_PSD_PLOT
+  type: SET_PSD_PLOT,
 });
 
-const setTopoPlot = payload => ({
+const setTopoPlot = (payload) => ({
   payload,
-  type: SET_TOPO_PLOT
+  type: SET_TOPO_PLOT,
 });
 
-const setERPPlot = payload => ({
+const setERPPlot = (payload) => ({
   payload,
-  type: SET_ERP_PLOT
+  type: SET_ERP_PLOT,
 });
 
-const receiveExecuteReply = payload => ({
+const receiveExecuteReply = (payload) => ({
   payload,
-  type: RECEIVE_EXECUTE_REPLY
+  type: RECEIVE_EXECUTE_REPLY,
 });
 
-const receiveExecuteResult = payload => ({
+const receiveExecuteResult = (payload) => ({
   payload,
-  type: RECEIVE_EXECUTE_RESULT
+  type: RECEIVE_EXECUTE_RESULT,
 });
 
-const receiveDisplayData = payload => ({
+const receiveDisplayData = (payload) => ({
   payload,
-  type: RECEIVE_DISPLAY_DATA
+  type: RECEIVE_DISPLAY_DATA,
 });
 
-const receiveStream = payload => ({
+const receiveStream = (payload) => ({
   payload,
-  type: RECEIVE_STREAM
+  type: RECEIVE_STREAM,
 });
 
 // -------------------------------------------------------------------------
 // Epics
 
-const launchEpic = action$ =>
+const launchEpic = (action$) =>
   action$.ofType(LAUNCH_KERNEL).pipe(
     mergeMap(() => from(find('brainwaves'))),
-    tap(kernelInfo => {
+    tap((kernelInfo) => {
       if (isNil(kernelInfo)) {
-        toast.error(
-          "Could not find 'brainwaves' jupyter kernel. Have you installed Python?"
-        );
+        toast.error("Could not find 'brainwaves' jupyter kernel. Have you installed Python?");
       }
     }),
-    filter(kernelInfo => !isNil(kernelInfo)),
-    mergeMap(kernelInfo =>
+    filter((kernelInfo) => !isNil(kernelInfo)),
+    mergeMap((kernelInfo) =>
       from(
         launchSpec(kernelInfo.spec, {
           // No STDIN, opt in to STDOUT and STDERR as node streams
-          stdio: ['ignore', 'pipe', 'pipe']
+          stdio: ['ignore', 'pipe', 'pipe'],
         })
       )
     ),
-    tap(kernel => {
+    tap((kernel) => {
       // Route everything that we won't get in messages to our own stdout
-      kernel.spawn.stdout.on('data', data => {
+      kernel.spawn.stdout.on('data', (data) => {
         const text = data.toString();
         console.log('KERNEL STDOUT: ', text);
       });
-      kernel.spawn.stderr.on('data', data => {
+      kernel.spawn.stderr.on('data', (data) => {
         const text = data.toString();
         console.log('KERNEL STDERR: ', text);
         toast.error('Jupyter: ', text);
@@ -187,12 +177,12 @@ const launchEpic = action$ =>
     map(setKernel)
   );
 
-const setUpChannelEpic = action$ =>
+const setUpChannelEpic = (action$) =>
   action$.ofType(SET_KERNEL).pipe(
     pluck('payload'),
-    mergeMap(kernel => from(createMainChannel(kernel.config))),
-    tap(mainChannel => mainChannel.next(executeRequest(imports()))),
-    tap(mainChannel => mainChannel.next(executeRequest(utils()))),
+    mergeMap((kernel) => from(createMainChannel(kernel.config))),
+    tap((mainChannel) => mainChannel.next(executeRequest(imports()))),
+    tap((mainChannel) => mainChannel.next(executeRequest(utils()))),
     map(setMainChannel)
   );
 
@@ -200,7 +190,7 @@ const receiveChannelMessageEpic = (action$, state$) =>
   action$.ofType(SET_MAIN_CHANNEL).pipe(
     mergeMap(() =>
       state$.value.jupyter.mainChannel.pipe(
-        map(msg => {
+        map((msg) => {
           console.log(debugParseMessage(msg));
           switch (msg['header']['msg_type']) {
             case 'kernel_info_reply':
@@ -218,7 +208,7 @@ const receiveChannelMessageEpic = (action$, state$) =>
             default:
           }
         }),
-        filter(action => !isNil(action))
+        filter((action) => !isNil(action))
       )
     )
   );
@@ -233,11 +223,9 @@ const requestKernelInfoEpic = (action$, state$) =>
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck('payload'),
-    filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathsArray =>
-      state$.value.jupyter.mainChannel.next(
-        executeRequest(loadCSV(filePathsArray))
-      )
+    filter((filePathsArray) => filePathsArray.length >= 1),
+    map((filePathsArray) =>
+      state$.value.jupyter.mainChannel.next(executeRequest(loadCSV(filePathsArray)))
     ),
     awaitOkMessage(action$),
     execute(filterIIR(1, 30), state$),
@@ -246,13 +234,13 @@ const loadEpochsEpic = (action$, state$) =>
       epochEvents(
         {
           [state$.value.experiment.params.stimulus1.title]: EVENTS.STIMULUS_1,
-          [state$.value.experiment.params.stimulus2.title]: EVENTS.STIMULUS_2
+          [state$.value.experiment.params.stimulus2.title]: EVENTS.STIMULUS_2,
         },
         -0.1,
         0.8
       )
     ),
-    map(epochEventsCommand =>
+    map((epochEventsCommand) =>
       state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
@@ -262,19 +250,13 @@ const loadEpochsEpic = (action$, state$) =>
 const loadCleanedEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
     pluck('payload'),
-    filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathsArray =>
-      state$.value.jupyter.mainChannel.next(
-        executeRequest(loadCleanedEpochs(filePathsArray))
-      )
+    filter((filePathsArray) => filePathsArray.length >= 1),
+    map((filePathsArray) =>
+      state$.value.jupyter.mainChannel.next(executeRequest(loadCleanedEpochs(filePathsArray)))
     ),
     awaitOkMessage(action$),
     mergeMap(() =>
-      of(
-        getEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS),
-        getChannelInfo(),
-        loadTopo()
-      )
+      of(getEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS), getChannelInfo(), loadTopo())
     )
   );
 
@@ -285,9 +267,7 @@ const cleanEpochsEpic = (action$, state$) =>
       action$.ofType(RECEIVE_STREAM).pipe(
         pluck('payload'),
         filter(
-          msg =>
-            msg.channel === 'iopub' &&
-            msg.content.text.includes('Channels marked as bad')
+          (msg) => msg.channel === 'iopub' && msg.content.text.includes('Channels marked as bad')
         ),
         take(1)
       )
@@ -309,24 +289,22 @@ const cleanEpochsEpic = (action$, state$) =>
 const getEpochsInfoEpic = (action$, state$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
     pluck('payload'),
-    map(variableName =>
-      state$.value.jupyter.mainChannel.next(
-        executeRequest(requestEpochsInfo(variableName))
-      )
+    map((variableName) =>
+      state$.value.jupyter.mainChannel.next(executeRequest(requestEpochsInfo(variableName)))
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck('payload'),
-        filter(msg => msg.channel === 'iopub' && !isNil(msg.content.data)),
+        filter((msg) => msg.channel === 'iopub' && !isNil(msg.content.data)),
         pluck('content', 'data', 'text/plain'),
-        filter(msg => msg.includes('Drop Percentage')),
+        filter((msg) => msg.includes('Drop Percentage')),
         take(1)
       )
     ),
-    map(epochInfoString =>
-      parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
+    map((epochInfoString) =>
+      parseSingleQuoteJSON(epochInfoString).map((infoObj) => ({
         name: Object.keys(infoObj)[0],
-        value: infoObj[Object.keys(infoObj)[0]]
+        value: infoObj[Object.keys(infoObj)[0]],
       }))
     ),
     map(setEpochInfo)
@@ -338,16 +316,14 @@ const getChannelInfoEpic = (action$, state$) =>
     mergeMap(() =>
       action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
         pluck('payload'),
-        filter(msg => msg.channel === 'iopub' && !isNil(msg.content.data)),
+        filter((msg) => msg.channel === 'iopub' && !isNil(msg.content.data)),
         pluck('content', 'data', 'text/plain'),
         // Filter to prevent this from reading requestEpochsInfo returns
-        filter(msg => !msg.includes('Drop Percentage')),
+        filter((msg) => !msg.includes('Drop Percentage')),
         take(1)
       )
     ),
-    map(channelInfoString =>
-      setChannelInfo(parseSingleQuoteJSON(channelInfoString))
-    )
+    map((channelInfoString) => setChannelInfo(parseSingleQuoteJSON(channelInfoString)))
   );
 
 const loadPSDEpic = (action$, state$) =>
@@ -357,7 +333,7 @@ const loadPSDEpic = (action$, state$) =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck('payload'),
         // PSD graphs should have two axes
-        filter(msg => msg.content.data['text/plain'].includes('2 Axes')),
+        filter((msg) => msg.content.data['text/plain'].includes('2 Axes')),
         pluck('content', 'data'),
         take(1)
       )
@@ -369,19 +345,13 @@ const loadTopoEpic = (action$, state$) =>
   action$.ofType(LOAD_TOPO).pipe(
     execute(plotTopoMap(), state$),
     mergeMap(() =>
-      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
-        pluck('payload'),
-        pluck('content', 'data'),
-        take(1)
-      )
+      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(pluck('payload'), pluck('content', 'data'), take(1))
     ),
-    mergeMap(topoPlot =>
+    mergeMap((topoPlot) =>
       of(
         setTopoPlot(topoPlot),
         loadERP(
-          state$.value.device.deviceType === DEVICES.EMOTIV
-            ? EMOTIV_CHANNELS[0]
-            : MUSE_CHANNELS[0]
+          state$.value.device.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS[0] : MUSE_CHANNELS[0]
         )
       )
     )
@@ -390,27 +360,23 @@ const loadTopoEpic = (action$, state$) =>
 const loadERPEpic = (action$, state$) =>
   action$.ofType(LOAD_ERP).pipe(
     pluck('payload'),
-    map(channelName => {
+    map((channelName) => {
       if (MUSE_CHANNELS.includes(channelName)) {
         return MUSE_CHANNELS.indexOf(channelName);
       } else if (EMOTIV_CHANNELS.includes(channelName)) {
         return EMOTIV_CHANNELS.indexOf(channelName);
       }
-      console.warn(
-        'channel name supplied to loadERPEpic does not belong to either device'
-      );
+      console.warn('channel name supplied to loadERPEpic does not belong to either device');
       return EMOTIV_CHANNELS[0];
     }),
-    map(channelIndex =>
-      state$.value.jupyter.mainChannel.next(
-        executeRequest(plotERP(channelIndex))
-      )
+    map((channelIndex) =>
+      state$.value.jupyter.mainChannel.next(executeRequest(plotERP(channelIndex)))
     ),
     mergeMap(() =>
       action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
         pluck('payload'),
         // ERP graphs should have 1 axis according to MNE
-        filter(msg => msg.content.data['text/plain'].includes('1 Axes')),
+        filter((msg) => msg.content.data['text/plain'].includes('1 Axes')),
         pluck('content', 'data'),
         take(1)
       )

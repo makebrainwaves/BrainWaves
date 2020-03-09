@@ -15,12 +15,9 @@ export default () => (
       <Route path={SCREENS.ANALYZE.route} component={AnalyzeContainer} />
       <Route path={SCREENS.CLEAN.route} component={CleanContainer} />
       <Route path={SCREENS.COLLECT.route} component={CollectContainer} />
-      <Route
-        path={SCREENS.DESIGN.route}
-        component={ExperimentDesignContainer}
-      />
-      <Route path="/home" component={HomeContainer} />
-      <Route path="/" default component={HomeContainer} />
+      <Route path={SCREENS.DESIGN.route} component={ExperimentDesignContainer} />
+      <Route path='/home' component={HomeContainer} />
+      <Route path='/' default component={HomeContainer} />
     </Switch>
   </App>
 );

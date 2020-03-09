@@ -13,11 +13,7 @@ import { jsPsych } from 'jspsych-react';
 var plugin = (function() {
   var plugin = {};
 
-  jsPsych.pluginAPI.registerPreload(
-    'image-keyboard-response',
-    'stimulus',
-    'image'
-  );
+  jsPsych.pluginAPI.registerPreload('image-keyboard-response', 'stimulus', 'image');
 
   plugin.info = {
     name: 'image-keyboard-response',
@@ -27,49 +23,46 @@ var plugin = (function() {
         type: jsPsych.plugins.parameterType.IMAGE,
         pretty_name: 'stimulus',
         default: undefined,
-        description: 'The image to be displayed'
+        description: 'The image to be displayed',
       },
       choices: {
         type: jsPsych.plugins.parameterType.KEYCODE,
         array: true,
         pretty_name: 'Choices',
         default: jsPsych.ALL_KEYS,
-        description:
-          'The keys the subject is allowed to press to respond to the stimulus.'
+        description: 'The keys the subject is allowed to press to respond to the stimulus.',
       },
       prompt: {
         type: jsPsych.plugins.parameterType.STRING,
         pretty_name: 'Prompt',
         default: '',
-        description: 'Any content here will be displayed below the stimulus.'
+        description: 'Any content here will be displayed below the stimulus.',
       },
       stimulus_duration: {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Stimulus duration',
         default: -1,
-        description: 'How long to hide the stimulus.'
+        description: 'How long to hide the stimulus.',
       },
       trial_duration: {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Trial duration',
         default: -1,
-        description: 'How long to show trial before it ends.'
+        description: 'How long to show trial before it ends.',
       },
       response_ends_trial: {
         type: jsPsych.plugins.parameterType.BOOL,
         pretty_name: 'Response ends trial',
         default: true,
-        description: 'If true, trial will end when subject makes a response.'
-      }
-    }
+        description: 'If true, trial will end when subject makes a response.',
+      },
+    },
   };
 
   plugin.trial = function(display_element, trial) {
     document.getElementById('experiment').focus();
     var new_html =
-      '<img src="' +
-      trial.stimulus +
-      '" id="jspsych-image-keyboard-response-stimulus"></img>';
+      '<img src="' + trial.stimulus + '" id="jspsych-image-keyboard-response-stimulus"></img>';
 
     // add prompt
     new_html += trial.prompt;
@@ -87,7 +80,7 @@ var plugin = (function() {
     // store response
     var response = {
       rt: -1,
-      key: -1
+      key: -1,
     };
 
     // function to end trial when it is time
@@ -104,7 +97,7 @@ var plugin = (function() {
       var trial_data = {
         rt: response.rt,
         stimulus: trial.stimulus,
-        key_press: response.key
+        key_press: response.key,
       };
 
       // clear the display
@@ -118,9 +111,8 @@ var plugin = (function() {
     var after_response = function(info) {
       // after a valid response, the stimulus will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
-      display_element.querySelector(
-        '#jspsych-image-keyboard-response-stimulus'
-      ).className += ' responded';
+      display_element.querySelector('#jspsych-image-keyboard-response-stimulus').className +=
+        ' responded';
 
       // only record the first response
       if (response.key == -1) {
@@ -139,7 +131,7 @@ var plugin = (function() {
         valid_responses: trial.choices,
         rt_method: 'performance',
         persist: false,
-        allow_held_key: false
+        allow_held_key: false,
       });
     }
 

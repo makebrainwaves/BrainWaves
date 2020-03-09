@@ -11,12 +11,12 @@ import { loadProtocol } from '../../utils/labjs/functions';
 const OVERVIEW_STEPS = {
   OVERVIEW: 'OVERVIEW',
   BACKGROUND: 'BACKGROUND',
-  PROTOCOL: 'PROTOCOL'
+  PROTOCOL: 'PROTOCOL',
 };
 
 interface Props {
   type: EXPERIMENTS;
-  onStartExperiment: EXPERIMENTS => void;
+  onStartExperiment: (EXPERIMENTS) => void;
   onCloseOverview: () => void;
 }
 
@@ -32,7 +32,7 @@ export default class OverviewComponent extends Component<Props, State> {
     super(props);
     this.state = {
       activeStep: OVERVIEW_STEPS.OVERVIEW,
-      isPreviewing: false
+      isPreviewing: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
@@ -60,8 +60,8 @@ export default class OverviewComponent extends Component<Props, State> {
             <Grid.Column
               stretched
               width={12}
-              textAlign="right"
-              verticalAlign="middle"
+              textAlign='right'
+              verticalAlign='middle'
               className={styles.previewWindow}
             >
               <PreviewExperimentComponent
@@ -72,13 +72,13 @@ export default class OverviewComponent extends Component<Props, State> {
                 paradigm={this.props.paradigm}
               />
             </Grid.Column>
-            <Grid.Column stretched width={4} verticalAlign="middle">
-              <Segment as="p" basic>
+            <Grid.Column stretched width={4} verticalAlign='middle'>
+              <Segment as='p' basic>
                 {this.props.protocol}
               </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={e => this.handlePreview(e)}
+                onClick={(e) => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>
@@ -86,16 +86,11 @@ export default class OverviewComponent extends Component<Props, State> {
       case OVERVIEW_STEPS.BACKGROUND:
         return (
           <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <Header as="h1">{this.props.background_title}</Header>
+            <Grid.Column stretched width={6} textAlign='right' verticalAlign='middle'>
+              <Header as='h1'>{this.props.background_title}</Header>
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
+            <Grid.Column stretched width={6} verticalAlign='middle'>
+              <Segment as='p' basic>
                 {this.props.background}
               </Segment>
             </Grid.Column>
@@ -105,16 +100,11 @@ export default class OverviewComponent extends Component<Props, State> {
       default:
         return (
           <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <Header as="h1">{this.props.type}</Header>
+            <Grid.Column stretched width={6} textAlign='right' verticalAlign='middle'>
+              <Header as='h1'>{this.props.type}</Header>
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
+            <Grid.Column stretched width={6} verticalAlign='middle'>
+              <Segment as='p' basic>
                 {this.props.overview}
               </Segment>
             </Grid.Column>
@@ -129,9 +119,9 @@ export default class OverviewComponent extends Component<Props, State> {
         <Button
           basic
           circular
-          size="huge"
-          floated="right"
-          icon="x"
+          size='huge'
+          floated='right'
+          icon='x'
           className={styles.closeButton}
           onClick={this.props.onCloseOverview}
         />
@@ -141,17 +131,12 @@ export default class OverviewComponent extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           button={
-            <Button
-              primary
-              onClick={() => this.props.onStartExperiment(this.props.type)}
-            >
+            <Button primary onClick={() => this.props.onStartExperiment(this.props.type)}>
               Start Experiment{' '}
             </Button>
           }
         />
-        <div className={styles.homeContentContainer}>
-          {this.renderSectionContent()}
-        </div>
+        <div className={styles.homeContentContainer}>{this.renderSectionContent()}</div>
       </React.Fragment>
     );
   }

@@ -1,7 +1,6 @@
 import { KERNEL_STATUS } from '../../constants/constants';
 
-export const parseSingleQuoteJSON = (string: string) =>
-  JSON.parse(string.replace(/'/g, '"'));
+export const parseSingleQuoteJSON = (string: string) => JSON.parse(string.replace(/'/g, '"'));
 
 export const parseKernelStatus = (msg: Object) => {
   switch (msg['content']['execution_state']) {

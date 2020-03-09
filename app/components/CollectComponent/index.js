@@ -5,13 +5,9 @@ import {
   EXPERIMENTS,
   DEVICES,
   CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
+  DEVICE_AVAILABILITY,
 } from '../../constants/constants';
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters
-} from '../../constants/interfaces';
+import { MainTimeline, Trial, ExperimentParameters } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
 import RunComponent from './RunComponent';
@@ -55,7 +51,7 @@ export default class Collect extends Component<Props, State> {
     super(props);
     this.state = {
       isConnectModalOpen: false,
-      isRunComponentOpen: !props.isEEGEnabled
+      isRunComponentOpen: !props.isEEGEnabled,
     };
     this.handleStartConnect = this.handleStartConnect.bind(this);
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
@@ -67,10 +63,7 @@ export default class Collect extends Component<Props, State> {
   }
 
   componentDidMount() {
-    if (
-      this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED &&
-      this.props.isEEGEnabled
-    ) {
+    if (this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && this.props.isEEGEnabled) {
       this.handleStartConnect();
     }
   }
@@ -86,9 +79,7 @@ export default class Collect extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.deviceActions.setDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
   handleConnectModalClose() {
@@ -105,12 +96,7 @@ export default class Collect extends Component<Props, State> {
 
   render() {
     if (this.state.isRunComponentOpen) {
-      return (
-        <RunComponent
-          {...this.props}
-          closeRunComponent={this.handleRunComponentClose}
-        />
-      );
+      return <RunComponent {...this.props} closeRunComponent={this.handleRunComponentClose} />;
     }
     return (
       <React.Fragment>

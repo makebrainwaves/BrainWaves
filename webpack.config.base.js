@@ -21,7 +21,7 @@ function filterDepWithoutEntryPoints(dep: string): boolean {
       .toString();
     const pkg = JSON.parse(pgkString);
     const fields = ['main', 'module', 'jsnext:main', 'browser'];
-    return !fields.some(field => field in pkg);
+    return !fields.some((field) => field in pkg);
   } catch (e) {
     console.log(e);
     return true;
@@ -31,7 +31,7 @@ function filterDepWithoutEntryPoints(dep: string): boolean {
 export default {
   externals: [
     ...Object.keys(externals || {}),
-    ...Object.keys(possibleExternals || {}).filter(filterDepWithoutEntryPoints)
+    ...Object.keys(possibleExternals || {}).filter(filterDepWithoutEntryPoints),
   ],
 
   module: {
@@ -42,17 +42,17 @@ export default {
         use: {
           loader: 'babel-loader',
           options: {
-            cacheDirectory: true
-          }
-        }
-      }
-    ]
+            cacheDirectory: true,
+          },
+        },
+      },
+    ],
   },
 
   output: {
     path: path.join(__dirname, 'app'),
     // https://github.com/webpack/webpack/issues/1114
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'commonjs2',
   },
 
   /**
@@ -60,13 +60,13 @@ export default {
    */
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
-    modules: [path.join(__dirname, 'app'), 'node_modules']
+    modules: [path.join(__dirname, 'app'), 'node_modules'],
   },
 
   plugins: [
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production'
+      NODE_ENV: 'production',
     }),
-    new webpack.NamedModulesPlugin()
-  ]
+    new webpack.NamedModulesPlugin(),
+  ],
 };

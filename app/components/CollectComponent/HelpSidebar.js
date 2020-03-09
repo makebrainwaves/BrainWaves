@@ -11,7 +11,7 @@ const HELP_STEP = {
   LEARN_BRAIN: 5,
   LEARN_BLINK: 6,
   LEARN_THOUGHTS: 7,
-  LEARN_ALPHA: 8
+  LEARN_ALPHA: 8,
 };
 
 interface Props {
@@ -26,7 +26,7 @@ export default class HelpSidebar extends Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
-      helpStep: HELP_STEP.MENU
+      helpStep: HELP_STEP.MENU,
     };
     this.handleStartLearn = this.handleStartLearn.bind(this);
     this.handleStartSignal = this.handleStartSignal.bind(this);
@@ -61,18 +61,18 @@ export default class HelpSidebar extends Component<Props, State> {
     return (
       <React.Fragment>
         <Menu secondary vertical fluid>
-          <Header className={styles.helpHeader} as="h1">
+          <Header className={styles.helpHeader} as='h1'>
             What would you like to do?
           </Header>
           <Menu.Item onClick={this.handleStartSignal}>
             <Segment basic className={styles.helpMenuItem}>
-              <Icon name="star outline" size="large" />
+              <Icon name='star outline' size='large' />
               Improve the signal quality of your sensors
             </Segment>
           </Menu.Item>
           <Menu.Item onClick={this.handleStartLearn}>
             <Segment basic className={styles.helpMenuItem}>
-              <Icon name="exclamation triangle" size="large" />
+              <Icon name='exclamation triangle' size='large' />
               Learn about how the subjects movements create noise
             </Segment>
           </Menu.Item>
@@ -85,12 +85,12 @@ export default class HelpSidebar extends Component<Props, State> {
     return (
       <React.Fragment>
         <Segment basic className={styles.helpContent}>
-          <Header className={styles.helpHeader} as="h1">
+          <Header className={styles.helpHeader} as='h1'>
             {header}
           </Header>
           {content}
         </Segment>
-        <Grid columns="equal">
+        <Grid columns='equal'>
           <Grid.Column>
             <Button fluid secondary onClick={this.handleBack}>
               Back
@@ -159,9 +159,9 @@ export default class HelpSidebar extends Component<Props, State> {
       <Segment basic padded vertical className={styles.helpSidebar}>
         <Button
           circular
-          size="large"
-          floated="right"
-          icon="x"
+          size='large'
+          floated='right'
+          icon='x'
           className={styles.closeButton}
           onClick={this.props.handleClose}
         />

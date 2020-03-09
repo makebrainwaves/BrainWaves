@@ -26,7 +26,7 @@ const configureStore = (initialState?: AppState) => {
   // Logging Middleware
   const logger = createLogger({
     level: 'info',
-    collapsed: true
+    collapsed: true,
   });
 
   // Skip redux logs in console during the tests
@@ -42,14 +42,14 @@ const configureStore = (initialState?: AppState) => {
   const actionCreators = {
     ...deviceActions,
     ...jupyterActions,
-    ...routerActions
+    ...routerActions,
   };
   // If Redux DevTools Extension is installed use it, otherwise use Redux compose
   /* eslint-disable no-underscore-dangle */
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
         // Options: http://zalmoxisus.github.io/redux-devtools-extension/API/Arguments.html
-        actionCreators
+        actionCreators,
       })
     : compose;
   /* eslint-enable no-underscore-dangle */

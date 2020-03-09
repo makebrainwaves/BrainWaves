@@ -9,8 +9,7 @@ const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const buildCustomLine = () => ({
-  overview:
-    'Here is the placeholder for the overview of the Visual Search task',
+  overview: 'Here is the placeholder for the overview of the Visual Search task',
   background: 'Here is the background of the Visual Search task',
   background_title: `Title`,
   protocol: 'Here is the protocol of the Visual Search task',
@@ -28,29 +27,29 @@ export const buildCustomLine = () => ({
       dir: facesDir,
       title: 'Face',
       type: EVENTS.STIMULUS_1,
-      response: '1'
+      response: '1',
     },
     stimulus2: {
       dir: housesDir,
       title: 'House',
       type: EVENTS.STIMULUS_2,
-      response: '9'
-    }
+      response: '9',
+    },
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000
+      post_trial_gap: 1000,
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500
-    }
+      post_trial_gap: 500,
+    },
   },
   timelines: {
     faceHouseTimeline: {
@@ -60,13 +59,13 @@ export const buildCustomLine = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false
+          response_ends_trial: false,
         },
         {
           id: 'trial',
-          response_ends_trial: false
-        }
-      ]
-    }
-  }
+          response_ends_trial: false,
+        },
+      ],
+    },
+  },
 });

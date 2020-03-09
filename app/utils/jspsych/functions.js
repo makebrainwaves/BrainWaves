@@ -11,11 +11,7 @@ import { buildMultiTimeline } from './timelines/multi';
 import { buildSearchTimeline } from './timelines/search';
 import { buildCustomLine } from './timelines/custom';
 
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters
-} from '../../constants/interfaces';
+import { MainTimeline, Trial, ExperimentParameters } from '../../constants/interfaces';
 
 // loads a normalized timeline for the default experiments with specific callback fns
 export const loadTimeline = (paradigm: EXPERIMENTS) => {
@@ -71,7 +67,7 @@ export const parseTimeline = (
         timeline: [
           {
             ...timeline.timeline[0],
-            trial_duration: () => params.iti + Math.random() * params.jitter
+            trial_duration: () => params.iti + Math.random() * params.jitter,
           },
           {
             ...timeline.timeline[1],
@@ -80,29 +76,29 @@ export const parseTimeline = (
             trial_duration: params.trialDuration,
             choices: [params.stimulus1.response, params.stimulus2.response],
             event_title: jsPsych.timelineVariable('eventTitleVar'),
-            correct_response: jsPsych.timelineVariable('responseVar')
-          }
+            correct_response: jsPsych.timelineVariable('responseVar'),
+          },
         ],
         sample: {
           type: params.sampleType,
-          size: params.nbTrials
+          size: params.nbTrials,
         },
         timeline_variables: readdirSync(params.stimulus1.dir)
-          .map(filename => ({
+          .map((filename) => ({
             stimulusVar: path.join(params.stimulus1.dir, filename),
             eventTypeVar: params.stimulus1.type,
             eventTitleVar: params.stimulus1.title,
-            responseVar: params.stimulus1.response
+            responseVar: params.stimulus1.response,
           }))
           .concat(
-            readdirSync(params.stimulus2.dir).map(filename => ({
+            readdirSync(params.stimulus2.dir).map((filename) => ({
               stimulusVar: path.join(params.stimulus2.dir, filename),
               eventTypeVar: params.stimulus2.type,
               eventTitleVar: params.stimulus2.title,
-              responseVar: params.stimulus2.response
+              responseVar: params.stimulus2.response,
             }))
-          )
-      }
+          ),
+      },
     }))
   );
 
@@ -119,7 +115,7 @@ export const parseTimeline = (
   // Combine trials and timelines into one object
   const jsPsychObject = { ...parsedTrials, ...parsedTimelines };
   // Map through the mainTimeline, returning the appropriate trial or timeline based on id
-  return mainTimeline.map(id => jsPsychObject[id]);
+  return mainTimeline.map((id) => jsPsychObject[id]);
 };
 
 // Fills in on_load functions in jsPsych timeline array with callback functions
@@ -141,21 +137,16 @@ export const instantiateTimeline = (
       return { ...jspsychObject, on_load: stopCallback };
     }
     if (!isNil(jspsychObject.timeline)) {
-      const timelineWithCallback = jspsychObject.timeline.map(trial => {
+      const timelineWithCallback = jspsychObject.timeline.map((trial) => {
         if (trial.id === 'trial') {
           return {
             ...trial,
             on_start: () => {
               const eventType = jsPsych.timelineVariable('eventTypeVar')() || 0;
-              eventCallback(
-                jsPsych.timelineVariable('eventTypeVar')(),
-                new Date().getTime()
-              );
+              eventCallback(jsPsych.timelineVariable('eventTypeVar')(), new Date().getTime());
             },
             on_finish: (data: any) => {
-              data.key_press = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(
-                data.key_press
-              );
+              data.key_press = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(data.key_press);
               data.expected_key_press = trial.correct_response();
               data.event_title = trial.event_title();
               if (data.key_press === data.expected_key_press) {
@@ -165,12 +156,10 @@ export const instantiateTimeline = (
               }
               if (showProgessBar) {
                 jsPsych.setProgressBar(
-                  jsPsych.progress().current_trial_global /
-                    2 /
-                    jspsychObject.sample.size
+                  jsPsych.progress().current_trial_global / 2 / jspsychObject.sample.size
                 );
               }
-            }
+            },
           };
         }
         return trial;
@@ -189,7 +178,7 @@ export const getBehaviouralData = () => {
     rawData[index] = {
       ...rawData[index],
       reaction_time: rawData[index].rt, // rename rt to reaction_time
-      trial_index: rawData[index].trial_index / 2 // Remove fixations from trial index
+      trial_index: rawData[index].trial_index / 2, // Remove fixations from trial index
     };
   }
   rawData.shift(); // Remove first 'welcome' trial
@@ -197,7 +186,7 @@ export const getBehaviouralData = () => {
 
   return jsPsych.data
     .get()
-    .filterCustom(trial => !trial.stimulus.includes('fixation')) // Remove inter trial data
+    .filterCustom((trial) => !trial.stimulus.includes('fixation')) // Remove inter trial data
     .ignore('rt')
     .ignore('internal_node_id')
     .ignore('trial_type')
@@ -207,9 +196,7 @@ export const getBehaviouralData = () => {
 // Returns an array of images that are used in a timeline for use in preloading
 export const getImages = (params: ExperimentParameters) =>
   readdirSync(params.stimulus1.dir)
-    .map(filename => path.join(params.stimulus1.dir, filename))
+    .map((filename) => path.join(params.stimulus1.dir, filename))
     .concat(
-      readdirSync(params.stimulus2.dir).map(filename =>
-        path.join(params.stimulus2.dir, filename)
-      )
+      readdirSync(params.stimulus2.dir).map((filename) => path.join(params.stimulus2.dir, filename))
     );

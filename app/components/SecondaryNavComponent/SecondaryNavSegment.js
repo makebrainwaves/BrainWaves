@@ -14,10 +14,10 @@ export default class SecondaryNavSegment extends Component<Props> {
   render() {
     return (
       <Grid.Column
-        as="a"
+        as='a'
         onClick={this.props.onClick}
-        textAlign="center"
-        verticalAlign="bottom"
+        textAlign='center'
+        verticalAlign='bottom'
         className={[this.props.style, styles.secondaryNavSegment].join(' ')}
       >
         {this.props.title}

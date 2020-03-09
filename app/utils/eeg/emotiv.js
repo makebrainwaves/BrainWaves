@@ -30,7 +30,7 @@ export const getEmotiv = async () => {
   return devices;
 };
 
-export const connectToEmotiv = async device => {
+export const connectToEmotiv = async (device) => {
   await client.ready;
 
   // Authenticate
@@ -39,7 +39,7 @@ export const connectToEmotiv = async device => {
       clientId: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
       license: LICENSE_ID,
-      debit: 1
+      debit: 1,
     });
   } catch (err) {
     toast.error(`Authentication failed. ${err.message}`);
@@ -56,14 +56,14 @@ export const connectToEmotiv = async device => {
   try {
     const newSession = await client.createSession({
       status: 'active',
-      headset: device.id
+      headset: device.id,
     });
     session = newSession;
 
     return {
       name: session.headset.id,
       samplingRate: session.headset.settings.eegRate,
-      channels: EMOTIV_CHANNELS
+      channels: EMOTIV_CHANNELS,
     };
   } catch (err) {
     toast.error(`Session creation failed. ${err.message} `);
@@ -83,7 +83,7 @@ export const createRawEmotivObservable = async () => {
   try {
     await client.subscribe({
       session: session.id,
-      streams: ['eeg', 'dev']
+      streams: ['eeg', 'dev'],
     });
   } catch (err) {
     toast.error(`EEG connection failed. ${err.message}`);
@@ -93,7 +93,7 @@ export const createRawEmotivObservable = async () => {
 };
 
 // Creates an observable that will epoch, filter, and add signal quality to EEG stream
-export const createEmotivSignalQualityObservable = rawObservable => {
+export const createEmotivSignalQualityObservable = (rawObservable) => {
   const signalQualityObservable = fromEvent(client, 'dev');
   const samplingRate = 128;
   const channels = EMOTIV_CHANNELS;
@@ -101,16 +101,16 @@ export const createEmotivSignalQualityObservable = rawObservable => {
   return rawObservable.pipe(
     addInfo({
       samplingRate,
-      channels
+      channels,
     }),
     epoch({
       duration: intervalSamples,
-      interval: intervalSamples
+      interval: intervalSamples,
     }),
     bandpassFilter({
       nbChannels: channels.length,
       lowCutoff: 1,
-      highCutoff: 50
+      highCutoff: 50,
     }),
     withLatestFrom(signalQualityObservable, integrateSignalQuality),
     parseEmotivSignalQuality(),
@@ -123,12 +123,12 @@ export const injectEmotivMarker = (value, time) => {
 };
 
 export const createEmotivRecord = (subjectName, sessionNumber) => {
-  client.createRecord({ session: session.id, title: `${subjectName}_${sessionNumber}`})
-}
+  client.createRecord({ session: session.id, title: `${subjectName}_${sessionNumber}` });
+};
 
 export const stopEmotivRecord = () => {
-  client.stopRecord({ session: session.id })
-}
+  client.stopRecord({ session: session.id });
+};
 
 // ---------------------------------------------------------------------
 // Helpers
@@ -137,13 +137,16 @@ export const stopEmotivRecord = () => {
 // 14 EEG channels in data
 // timestamp in ms
 // Event marker in marker if present
-const createEEGSample = eegEvent => {
+const createEEGSample = (eegEvent) => {
   const prunedArray = new Array(EMOTIV_CHANNELS.length);
   for (let i = 0; i < EMOTIV_CHANNELS.length; i++) {
     prunedArray[i] = eegEvent.eeg[i + 2];
   }
   if (eegEvent.eeg[eegEvent.eeg.length - 1].length >= 1) {
-    const marker = (eegEvent.eeg[eegEvent.eeg.length - 1][0] && eegEvent.eeg[eegEvent.eeg.length - 1][0].value) || 0;
+    const marker =
+      (eegEvent.eeg[eegEvent.eeg.length - 1][0] &&
+        eegEvent.eeg[eegEvent.eeg.length - 1][0].value) ||
+      0;
     return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
   }
   return { data: prunedArray, timestamp: eegEvent.time * 1000 };
@@ -153,7 +156,7 @@ const integrateSignalQuality = (newEpoch, devSample) => ({
   ...newEpoch,
   signalQuality: Object.assign(
     ...devSample.dev[2].map((signalQuality, index) => ({
-      [EMOTIV_CHANNELS[index]]: signalQuality
+      [EMOTIV_CHANNELS[index]]: signalQuality,
     }))
-  )
+  ),
 });

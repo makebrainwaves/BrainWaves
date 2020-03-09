@@ -6,9 +6,7 @@
     // Compute path to legacy library
     // (this could use document.currentScript, but sadly the
     // browsers that need this workaround don't support that)
-    var scriptTag = document.querySelector(
-      'script[data-labjs-script="library"]'
-    );
+    var scriptTag = document.querySelector('script[data-labjs-script="library"]');
 
     var scriptPath =
       scriptTag.src

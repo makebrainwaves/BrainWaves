@@ -6,8 +6,8 @@ import styles from './styles/common.css';
 
 interface Props {
   open: boolean;
-  onClose: string => void;
-  onExit: string => void;
+  onClose: (string) => void;
+  onExit: (string) => void;
   header: string;
 }
 
@@ -22,13 +22,13 @@ export default class InputModal extends Component<Props, State> {
   handleTextEntry: (Object, Object) => void;
   handleClose: () => void;
   handleExit: () => void;
-  handleEnterSubmit: Object => void;
+  handleEnterSubmit: (Object) => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
       enteredText: '',
-      isError: false
+      isError: false,
     };
     this.handleTextEntry = debounce(this.handleTextEntry, 100).bind(this);
     this.handleClose = this.handleClose.bind(this);
@@ -64,7 +64,7 @@ export default class InputModal extends Component<Props, State> {
   render() {
     return (
       <Modal
-        dimmer="inverted"
+        dimmer='inverted'
         centered
         className={styles.inputModal}
         open={this.props.open}
@@ -81,7 +81,7 @@ export default class InputModal extends Component<Props, State> {
           />
         </Modal.Content>
         <Modal.Actions>
-          <Button color="blue" content="OK" onClick={this.handleClose} />
+          <Button color='blue' content='OK' onClick={this.handleClose} />
         </Modal.Actions>
       </Modal>
     );

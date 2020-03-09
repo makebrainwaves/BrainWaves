@@ -8,18 +8,15 @@ import * as experimentActions from '../actions/experimentActions';
 function mapStateToProps(state) {
   return {
     ...state.device,
-    ...state.experiment
+    ...state.experiment,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     deviceActions: bindActionCreators(deviceActions, dispatch),
-    experimentActions: bindActionCreators(experimentActions, dispatch)
+    experimentActions: bindActionCreators(experimentActions, dispatch),
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Collect);
+export default connect(mapStateToProps, mapDispatchToProps)(Collect);
