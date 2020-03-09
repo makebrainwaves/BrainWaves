@@ -1,0 +1,57 @@
+module.exports = {
+  parser: 'babel-eslint',
+  parserOptions: {
+    sourceType: 'module',
+    allowImportExportEverywhere: true,
+  },
+  extends: ['airbnb', 'prettier'],
+  env: {
+    browser: true,
+    node: true,
+  },
+  rules: {
+    'arrow-parens': ['off'],
+    'compat/compat': 'error',
+    'consistent-return': 'off',
+    'comma-dangle': 'off',
+    'generator-star-spacing': 'off',
+    'flowtype/object-type-delimiter': 'off',
+    'flowtype/no-weak-types': 'warn',
+    'import/no-unresolved': 'error',
+    'import/no-extraneous-dependencies': 'off',
+    'jsx-a11y/anchor-is-valid': 'off',
+    'no-console': 'off',
+    'no-use-before-define': 'off',
+    'no-multi-assign': 'off',
+    'no-plusplus': 'off',
+    'no-param-reassign': 'warn',
+    'promise/param-names': 'error',
+    'promise/always-return': 'error',
+    'promise/catch-or-return': 'error',
+    'promise/no-native': 'off',
+    'prefer-destructuring': 'off',
+    'react/no-will-update-set-state': 'warn',
+    'react/no-did-mount-set-state': 'warn',
+    'react/no-did-update-set-state': 'warn',
+    'react/sort-comp': [
+      'error',
+      {
+        order: ['type-annotations', 'static-methods', 'lifecycle', 'everything-else', 'render'],
+      },
+    ],
+    'react/jsx-no-bind': 'off',
+    'react/jsx-filename-extension': ['error', { extensions: ['.js', '.jsx'] }],
+    'react/prefer-stateless-function': 'off',
+    'linebreak-style': 'off',
+    'jsx-a11y/click-events-have-key-events': 'off',
+  },
+  plugins: ['flowtype', 'import', 'promise', 'compat', 'react'],
+  settings: {
+    'import/resolver': {
+      node: {},
+      webpack: {
+        config: require.resolve('./webpack.config.eslint.js'),
+      },
+    },
+  },
+};

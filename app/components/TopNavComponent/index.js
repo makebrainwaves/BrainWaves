@@ -23,10 +23,10 @@ export default class TopNavComponent extends Component<Props> {
       return styles.activeNavColumn;
     }
     const routeOrder = Object.values(SCREENS).find(
-      screen => screen.route === navSegmentScreen.route
+      (screen) => screen.route === navSegmentScreen.route
     ).order;
     const currentOrder = Object.values(SCREENS).find(
-      screen => screen.route === this.props.location.pathname
+      (screen) => screen.route === this.props.location.pathname
     ).order;
     if (currentOrder > routeOrder) {
       return styles.visitedNavColumn;
@@ -43,52 +43,29 @@ export default class TopNavComponent extends Component<Props> {
       return null;
     }
     return (
-      <Grid
-        className={styles.navContainer}
-        verticalAlign="middle"
-        columns="equal"
-      >
+      <Grid className={styles.navContainer} verticalAlign='middle' columns='equal'>
         <Grid.Column className={styles.experimentTitleGridColumn}>
           <Segment basic className={styles.experimentTitleSegment}>
-            <NavLink to={SCREENS.HOME.route} >
-              <Image
-                centered
-                className={styles.exitWorkspaceBtn}
-                src={BrainwavesIcon}
-              />
+            <NavLink to={SCREENS.HOME.route}>
+              <Image centered className={styles.exitWorkspaceBtn} src={BrainwavesIcon} />
             </NavLink>
             {this.props.title ? this.props.title : 'Untitled'}
           </Segment>
         </Grid.Column>
 
-        <PrimaryNavSegment
-          {...SCREENS.DESIGN}
-          style={this.getStyleForScreen(SCREENS.DESIGN)}
-        />
-        <PrimaryNavSegment
-          {...SCREENS.COLLECT}
-          style={this.getStyleForScreen(SCREENS.COLLECT)}
-        />
+        <PrimaryNavSegment {...SCREENS.DESIGN} style={this.getStyleForScreen(SCREENS.DESIGN)} />
+        <PrimaryNavSegment {...SCREENS.COLLECT} style={this.getStyleForScreen(SCREENS.COLLECT)} />
         {this.props.isEEGEnabled ? (
-          <PrimaryNavSegment
-            {...SCREENS.CLEAN}
-            style={this.getStyleForScreen(SCREENS.CLEAN)}
-          />
+          <PrimaryNavSegment {...SCREENS.CLEAN} style={this.getStyleForScreen(SCREENS.CLEAN)} />
         ) : null}
         {this.props.isEEGEnabled ? (
-          <PrimaryNavSegment
-            {...SCREENS.ANALYZE}
-            style={this.getStyleForScreen(SCREENS.ANALYZE)}
-          />
+          <PrimaryNavSegment {...SCREENS.ANALYZE} style={this.getStyleForScreen(SCREENS.ANALYZE)} />
         ) : (
           <PrimaryNavSegment
             {...SCREENS.ANALYZEBEHAVIOR}
             style={this.getStyleForScreen(SCREENS.ANALYZE)}
           />
         )}
-
-
-
       </Grid>
     );
   }

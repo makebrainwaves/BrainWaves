@@ -1,12 +1,5 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Segment,
-  Button,
-  List,
-  Header,
-  Sidebar
-} from 'semantic-ui-react';
+import { Grid, Segment, Button, List, Header, Sidebar } from 'semantic-ui-react';
 import Mousetrap from 'mousetrap';
 import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
@@ -14,10 +7,7 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import HelpSidebar from './HelpSidebar';
 import styles from '../styles/collect.css';
-import {
-  PLOTTING_INTERVAL,
-  CONNECTION_STATUS
-} from '../../constants/constants';
+import { PLOTTING_INTERVAL, CONNECTION_STATUS } from '../../constants/constants';
 import { loadProtocol } from '../../utils/labjs/functions';
 
 interface Props {
@@ -57,7 +47,7 @@ export default class PreTestComponent extends Component<Props, State> {
     super(props);
     this.state = {
       isPreviewing: false,
-      isSidebarVisible: true
+      isSidebarVisible: true,
     };
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
@@ -107,19 +97,19 @@ export default class PreTestComponent extends Component<Props, State> {
         <Segment basic>
           <List>
             <List.Item>
-              <List.Icon name="circle" className={styles.greatSignal} />
+              <List.Icon name='circle' className={styles.greatSignal} />
               <List.Content>Strong Signal</List.Content>
             </List.Item>
             <List.Item>
-              <List.Icon name="circle" className={styles.okSignal} />
+              <List.Icon name='circle' className={styles.okSignal} />
               <List.Content>Mediocre signal</List.Content>
             </List.Item>
             <List.Item>
-              <List.Icon name="circle" className={styles.badSignal} />
+              <List.Icon name='circle' className={styles.badSignal} />
               <List.Content>Weak Signal</List.Content>
             </List.Item>
             <List.Item>
-              <List.Icon name="circle" className={styles.noSignal} />
+              <List.Icon name='circle' className={styles.noSignal} />
               <List.Content>No Signal</List.Content>
             </List.Item>
           </List>
@@ -133,9 +123,9 @@ export default class PreTestComponent extends Component<Props, State> {
       return (
         <Button
           circular
-          icon="question"
+          icon='question'
           className={styles.helpButton}
-          floated="right"
+          floated='right'
           onClick={this.handleSidebarToggle}
         />
       );
@@ -145,37 +135,30 @@ export default class PreTestComponent extends Component<Props, State> {
   render() {
     return (
       <Sidebar.Pushable as={Segment} className={styles.preTestPushable} basic>
-        <Sidebar
-          width="wide"
-          direction="right"
-          as={Segment}
-          visible={this.state.isSidebarVisible}
-        >
+        <Sidebar width='wide' direction='right' as={Segment} visible={this.state.isSidebarVisible}>
           <HelpSidebar handleClose={this.handleSidebarToggle} />
         </Sidebar>
         <Sidebar.Pusher>
           <Grid
             className={styles.preTestContainer}
-            columns="equal"
-            textAlign="center"
-            verticalAlign="middle"
+            columns='equal'
+            textAlign='center'
+            verticalAlign='middle'
           >
-            <Grid.Row columns="equal">
+            <Grid.Row columns='equal'>
               <Grid.Column>
-                <Header as="h1" floated="left">
+                <Header as='h1' floated='left'>
                   Collect
                 </Header>
               </Grid.Column>
-              <Grid.Column floated="right">
+              <Grid.Column floated='right'>
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
-                  onClick={e => this.handlePreview(e)}
+                  onClick={(e) => this.handlePreview(e)}
                 />
                 <Button
                   primary
-                  disabled={
-                    this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED
-                  }
+                  disabled={this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
                   onClick={this.props.openRunComponent}
                 >
                   Run & Record Experiment

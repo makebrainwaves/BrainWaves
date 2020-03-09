@@ -7,7 +7,7 @@ import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
 import * as path from 'path';
-import styles from "../styles/common.css";
+import styles from '../styles/common.css';
 
 interface Props {
   num: number;
@@ -20,7 +20,7 @@ interface Props {
 const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
   key: i.toString(),
   text: i.toString(),
-  value: i.toString()
+  value: i.toString(),
 }));
 
 export default class StimuliDesignColumn extends Component<Props> {
@@ -29,8 +29,8 @@ export default class StimuliDesignColumn extends Component<Props> {
     this.handleSelectFolder = this.handleSelectFolder.bind(this);
     this.handleRemoveFolder = this.handleRemoveFolder.bind(this);
     this.state = {
-      numberImages: undefined
-    }
+      numberImages: undefined,
+    };
   }
 
   shouldComponentUpdate(nextProps) {
@@ -46,40 +46,37 @@ export default class StimuliDesignColumn extends Component<Props> {
 
   async handleSelectFolder() {
     const dir = await loadFromSystemDialog(FILE_TYPES.STIMULUS_DIR);
-    if(dir){
+    if (dir) {
       const images = readImages(dir);
       if (images.length < 1) {
         toast.error('No images in folder!');
       }
       this.setState({
-        numberImages: images.length
+        numberImages: images.length,
       });
       this.props.onChange('dir', dir, `stimulus${this.props.num}`);
     }
   }
 
-  handleRemoveFolder(){
+  handleRemoveFolder() {
     this.setState({
-      numberImages: 0
+      numberImages: 0,
     });
     this.props.onChange('dir', '', `stimulus${this.props.num}`);
   }
 
   render() {
     return (
-      <Table.Row
-        className={styles.conditionRow}
-      >
-
+      <Table.Row className={styles.conditionRow}>
         <Table.Cell className={styles.conditionsNameRow}>
-          { this.props.num }
+          {this.props.num}
           <Form>
             <Form.Input
               value={this.props.title}
               onChange={(event, data) =>
-              this.props.onChange('title', data.value, `stimulus${this.props.num}`)
-            }
-              placeholder="Enter condition name"
+                this.props.onChange('title', data.value, `stimulus${this.props.num}`)
+              }
+              placeholder='Enter condition name'
             />
           </Form>
         </Table.Cell>
@@ -92,31 +89,34 @@ export default class StimuliDesignColumn extends Component<Props> {
             onChange={(event, data) =>
               this.props.onChange('response', data.value, `stimulus${this.props.num}`)
             }
-            placeholder="Select"
+            placeholder='Select'
             options={RESPONSE_OPTIONS}
           />
         </Table.Cell>
 
         <Table.Cell className={styles.experimentRowName}>
-          { this.props.dir ?
+          {this.props.dir ? (
             <div className={styles.selectedFolderContainer}>
-              <div>Folder {this.props.dir && this.props.dir.split(path.sep).slice(-1).join(' / ')}</div>
+              <div>
+                Folder{' '}
+                {this.props.dir &&
+                  this.props.dir
+                    .split(path.sep)
+                    .slice(-1)
+                    .join(' / ')}
+              </div>
               <div>( {this.state.numberImages || this.props.numberImages} images ) </div>
-              <div><Icon name="delete" onClick={this.handleRemoveFolder} /></div>
+              <div>
+                <Icon name='delete' onClick={this.handleRemoveFolder} />
+              </div>
             </div>
-            :
-            <Button
-              secondary
-              onClick={this.handleSelectFolder}
-            >
+          ) : (
+            <Button secondary onClick={this.handleSelectFolder}>
               Select folder
             </Button>
-          }
-
+          )}
         </Table.Cell>
-
       </Table.Row>
-
     );
   }
 }

@@ -34,7 +34,13 @@ export const buildStroopTimeline = () => ({
   protocol_condition_second_title: `"Green" written in red`,
   protocol_condition_second: `The color is red, so the correct response is ‘r’.`,
   overview_links: [],
-  background_links: [{name: 'Link 1', address: 'https://www.psychologytoday.com/us/blog/play-in-mind/201204/when-red-looks-blue-and-yes-means-no'}],
+  background_links: [
+    {
+      name: 'Link 1',
+      address:
+        'https://www.psychologytoday.com/us/blog/play-in-mind/201204/when-red-looks-blue-and-yes-means-no',
+    },
+  ],
   protocal_links: [],
   params: {
     trialDuration: 1000,
@@ -49,29 +55,29 @@ export const buildStroopTimeline = () => ({
       dir: facesDir,
       title: 'Incongruent',
       type: EVENTS.STIMULUS_1,
-      response: '1'
+      response: '1',
     },
     stimulus2: {
       dir: housesDir,
       title: 'Congruent',
       type: EVENTS.STIMULUS_2,
-      response: '9'
-    }
+      response: '9',
+    },
   },
   mainTimeline: ['intro', 'stroopTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000
+      post_trial_gap: 1000,
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500
-    }
+      post_trial_gap: 500,
+    },
   },
   timelines: {
     faceHouseTimeline: {
@@ -81,13 +87,13 @@ export const buildStroopTimeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false
+          response_ends_trial: false,
         },
         {
           id: 'trial',
-          response_ends_trial: false
-        }
-      ]
-    }
-  }
+          response_ends_trial: false,
+        },
+      ],
+    },
+  },
 });

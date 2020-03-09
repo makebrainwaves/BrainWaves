@@ -1,11 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import { Segment, Button } from 'semantic-ui-react';
-import {
-  richestMimetype,
-  standardDisplayOrder,
-  standardTransforms
-} from '@nteract/transforms';
+import { richestMimetype, standardDisplayOrder, standardTransforms } from '@nteract/transforms';
 import { isNil } from 'lodash';
 import { storeJupyterImage } from '../utils/filesystem/storage';
 
@@ -27,7 +23,7 @@ export default class JupyterPlotWidget extends Component<Props, State> {
     super(props);
     this.state = {
       rawData: '',
-      mimeType: ''
+      mimeType: '',
     };
     this.handleSave = this.handleSave.bind(this);
   }
@@ -38,11 +34,7 @@ export default class JupyterPlotWidget extends Component<Props, State> {
       !isNil(this.props.plotMIMEBundle)
     ) {
       const bundle: { [string]: string } = this.props.plotMIMEBundle;
-      const mimeType = richestMimetype(
-        bundle,
-        standardDisplayOrder,
-        standardTransforms
-      );
+      const mimeType = richestMimetype(bundle, standardDisplayOrder, standardTransforms);
       if (mimeType) {
         this.setState({ rawData: bundle[mimeType], mimeType });
       }
@@ -64,7 +56,7 @@ export default class JupyterPlotWidget extends Component<Props, State> {
   renderSaveButton() {
     if (this.state.rawData) {
       return (
-        <Button primary size="tiny" onClick={this.handleSave}>
+        <Button primary size='tiny' onClick={this.handleSave}>
           Save Image
         </Button>
       );

@@ -10,16 +10,8 @@ import { injectMuseMarker } from '../../utils/eeg/muse';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { ExperimentWindow } from '../../utils/labjs';
 
-import {
-  parseTimeline,
-  instantiateTimeline,
-  getImages
-} from '../../utils/jspsych/functions';
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters
-} from '../../constants/interfaces';
+import { parseTimeline, instantiateTimeline, getImages } from '../../utils/jspsych/functions';
+import { MainTimeline, Trial, ExperimentParameters } from '../../constants/interfaces';
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -57,16 +49,14 @@ export default class Run extends Component<Props, State> {
     super(props);
     this.state = {
       isInputModalOpen: props.subject.length === 0,
-      isGroupInputModalOpen: false
+      isGroupInputModalOpen: false,
     };
     this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
     this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.insertLabJsCallback = this.insertLabJsCallback.bind(this);
     this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
-    this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(
-      this
-    );
+    this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(this);
   }
 
   componentDidMount() {
@@ -100,10 +90,7 @@ export default class Run extends Component<Props, State> {
   insertLabJsCallback() {
     let injectionFunction = () => null;
     if (this.props.isEEGEnabled) {
-      injectionFunction =
-        this.props.deviceType === 'MUSE'
-          ? injectMuseMarker
-          : injectEmotivMarker;
+      injectionFunction = this.props.deviceType === 'MUSE' ? injectMuseMarker : injectEmotivMarker;
     }
     return injectionFunction;
   }
@@ -116,7 +103,7 @@ export default class Run extends Component<Props, State> {
     if (this.props.session > 1 && this.props.isEEGEnabled) {
       return (
         <Grid.Column>
-          <Link to="/clean">
+          <Link to='/clean'>
             <Button fluid secondary>
               Clean Data
             </Button>
@@ -130,20 +117,15 @@ export default class Run extends Component<Props, State> {
     if (!this.props.isRunning) {
       return (
         <div className={styles.mainContainer}>
-          <Segment
-            basic
-            textAlign="left"
-            className={styles.descriptionContainer}
-            vertical
-          >
-            <Header as="h1">{this.props.type}</Header>
+          <Segment basic textAlign='left' className={styles.descriptionContainer} vertical>
+            <Header as='h1'>{this.props.type}</Header>
             <Segment basic className={styles.infoSegment}>
               Subject Name: <b>{this.props.subject}</b>
               <Button
                 basic
                 circular
-                size="huge"
-                icon="edit"
+                size='huge'
+                icon='edit'
                 className={styles.closeButton}
                 onClick={() => this.setState({ isInputModalOpen: true })}
               />
@@ -154,8 +136,8 @@ export default class Run extends Component<Props, State> {
               <Button
                 basic
                 circular
-                size="huge"
-                icon="edit"
+                size='huge'
+                icon='edit'
                 className={styles.closeButton}
                 onClick={() => this.setState({ isGroupInputModalOpen: true })}
               />
@@ -165,7 +147,7 @@ export default class Run extends Component<Props, State> {
               Session Number: <b>{this.props.session}</b>
             </Segment>
             <Divider hidden section />
-            <Grid textAlign="center" columns="equal">
+            <Grid textAlign='center' columns='equal'>
               <Grid.Column>
                 <Button fluid primary onClick={this.handleStartExperiment}>
                   Run Experiment
@@ -184,9 +166,9 @@ export default class Run extends Component<Props, State> {
             script: this.props.paradigm,
             params: this.props.params,
             eventCallback: this.insertLabJsCallback(),
-            on_finish: csv => {
+            on_finish: (csv) => {
               this.props.experimentActions.stop({ data: csv });
-            }
+            },
           }}
         />
       </div>
@@ -195,26 +177,21 @@ export default class Run extends Component<Props, State> {
 
   render() {
     return (
-      <div className={styles.mainContainer} data-tid="container">
-        <Grid
-          columns={1}
-          divided
-          relaxed
-          className={styles.experimentContainer}
-        >
+      <div className={styles.mainContainer} data-tid='container'>
+        <Grid columns={1} divided relaxed className={styles.experimentContainer}>
           <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
         </Grid>
         <InputModal
           open={this.state.isInputModalOpen}
           onClose={this.handleCloseInputModal}
           onExit={() => this.setState({ isInputModalOpen: false })}
-          header="Enter Subject Name"
+          header='Enter Subject Name'
         />
         <InputModal
           open={this.state.isGroupInputModalOpen}
           onClose={this.handleCloseGroupInputModal}
           onExit={() => this.setState({ isGroupInputModalOpen: false })}
-          header="Enter Group Name"
+          header='Enter Group Name'
         />
       </div>
     );

@@ -22,13 +22,13 @@ export default merge.smart(baseConfig, {
 
   entry: {
     main: [path.join(__dirname, './app/index')],
-    viewer: [path.join(__dirname, './app/viewer')]
+    viewer: [path.join(__dirname, './app/viewer')],
   },
 
   output: {
     path: path.join(__dirname, 'app/dist'),
     publicPath: './dist/',
-    filename: '[name].entry.js'
+    filename: '[name].entry.js',
   },
 
   module: {
@@ -41,11 +41,11 @@ export default merge.smart(baseConfig, {
           use: {
             loader: 'css-loader',
             options: {
-              minimize: true
-            }
+              minimize: true,
+            },
           },
-          fallback: 'style-loader'
-        })
+          fallback: 'style-loader',
+        }),
       },
       // Pipe other styles through css modules and append to style.css
       {
@@ -57,10 +57,10 @@ export default merge.smart(baseConfig, {
               modules: true,
               minimize: true,
               importLoaders: 1,
-              localIdentName: '[name]__[local]__[hash:base64:5]'
-            }
-          }
-        })
+              localIdentName: '[name]__[local]__[hash:base64:5]',
+            },
+          },
+        }),
       },
       // Add SASS support  - compile all .global.scss files and pipe it to style.css
       {
@@ -70,15 +70,15 @@ export default merge.smart(baseConfig, {
             {
               loader: 'css-loader',
               options: {
-                minimize: true
-              }
+                minimize: true,
+              },
             },
             {
-              loader: 'sass-loader'
-            }
+              loader: 'sass-loader',
+            },
           ],
-          fallback: 'style-loader'
-        })
+          fallback: 'style-loader',
+        }),
       },
       // Add SASS support  - compile all other .scss files and pipe it to style.css
       {
@@ -91,14 +91,14 @@ export default merge.smart(baseConfig, {
                 modules: true,
                 minimize: true,
                 importLoaders: 1,
-                localIdentName: '[name]__[local]__[hash:base64:5]'
-              }
+                localIdentName: '[name]__[local]__[hash:base64:5]',
+              },
             },
             {
-              loader: 'sass-loader'
-            }
-          ]
-        })
+              loader: 'sass-loader',
+            },
+          ],
+        }),
       },
       // WOFF Font
       {
@@ -107,9 +107,9 @@ export default merge.smart(baseConfig, {
           loader: 'url-loader',
           options: {
             limit: 10000,
-            mimetype: 'application/font-woff'
-          }
-        }
+            mimetype: 'application/font-woff',
+          },
+        },
       },
       // WOFF2 Font
       {
@@ -118,9 +118,9 @@ export default merge.smart(baseConfig, {
           loader: 'url-loader',
           options: {
             limit: 10000,
-            mimetype: 'application/font-woff'
-          }
-        }
+            mimetype: 'application/font-woff',
+          },
+        },
       },
       // TTF Font
       {
@@ -129,14 +129,14 @@ export default merge.smart(baseConfig, {
           loader: 'url-loader',
           options: {
             limit: 10000,
-            mimetype: 'application/octet-stream'
-          }
-        }
+            mimetype: 'application/octet-stream',
+          },
+        },
       },
       // EOT Font
       {
         test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: 'file-loader'
+        use: 'file-loader',
       },
       // SVG Font
       {
@@ -145,16 +145,16 @@ export default merge.smart(baseConfig, {
           loader: 'url-loader',
           options: {
             limit: 10000,
-            mimetype: 'image/svg+xml'
-          }
-        }
+            mimetype: 'image/svg+xml',
+          },
+        },
       },
       // Common Image Formats
       {
         test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
-        use: 'url-loader'
-      }
-    ]
+        use: 'url-loader',
+      },
+    ],
   },
 
   plugins: [
@@ -169,25 +169,24 @@ export default merge.smart(baseConfig, {
      */
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
-      DEBUG_PROD: true
+      DEBUG_PROD: true,
     }),
 
     new UglifyJSPlugin({
       parallel: true,
-      sourceMap: true
+      sourceMap: true,
     }),
 
     new ExtractTextPlugin('style.css'),
 
     new BundleAnalyzerPlugin({
-      analyzerMode:
-        process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
-      openAnalyzer: process.env.OPEN_ANALYZER === 'true'
-    })
+      analyzerMode: process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
+      openAnalyzer: process.env.OPEN_ANALYZER === 'true',
+    }),
   ],
 
   node: {
     __dirname: false,
-    __filename: false
-  }
+    __filename: false,
+  },
 });

@@ -32,7 +32,12 @@ export const buildN170Timeline = () => ({
   protocol_condition_second_title: `Houses`,
   protocol_condition_second: `If you see a house, press “9”.`,
   overview_links: [],
-  background_links: [{name: 'Link 1', address: 'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'}],
+  background_links: [
+    {
+      name: 'Link 1',
+      address: 'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
+    },
+  ],
   protocal_links: [],
   params: {
     randomize: 'random',
@@ -53,133 +58,133 @@ export const buildN170Timeline = () => ({
       dir: facesDir,
       title: 'Face',
       type: EVENTS.STIMULUS_1,
-      response: '1'
+      response: '1',
     },
     stimulus2: {
       dir: housesDir,
       title: 'House',
       type: EVENTS.STIMULUS_2,
-      response: '9'
+      response: '9',
     },
     stimulus3: {
       dir: '',
       title: '',
       type: 3,
-      response: ''
+      response: '',
     },
     stimulus4: {
       dir: '',
       title: '',
       type: 4,
-      response: ''
+      response: '',
     },
-    stimuli: [
+    stimuli: [
       {
-        condition: "Face",
+        condition: 'Face',
         dir: facesDir,
-        filename: "Annie_3.jpg",
-        name: "Annie_3",
-        response: "1",
+        filename: 'Annie_3.jpg',
+        name: 'Annie_3',
+        response: '1',
         phase: 'practice',
         type: EVENTS.STIMULUS_1,
       },
       {
-        condition: "Face",
+        condition: 'Face',
         dir: facesDir,
-        filename: "Blake_3.jpg",
-        name: "Blake_3",
-        response: "1",
+        filename: 'Blake_3.jpg',
+        name: 'Blake_3',
+        response: '1',
         phase: 'main',
         type: EVENTS.STIMULUS_1,
       },
       {
-        condition: "Face",
+        condition: 'Face',
         dir: facesDir,
-        filename: "Don_3.jpg",
-        name: "Don_3",
-        response: "1",
+        filename: 'Don_3.jpg',
+        name: 'Don_3',
+        response: '1',
         phase: 'main',
         type: EVENTS.STIMULUS_1,
       },
       {
-        condition: "Face",
+        condition: 'Face',
         dir: facesDir,
-        filename: "Estelle_3.jpg",
-        name: "Estelle_3",
-        response: "1",
+        filename: 'Estelle_3.jpg',
+        name: 'Estelle_3',
+        response: '1',
         phase: 'main',
         type: EVENTS.STIMULUS_1,
       },
       {
-        condition: "Face",
+        condition: 'Face',
         dir: facesDir,
-        filename: "Frank_3.jpg",
-        name: "Frank_3",
-        response: "1",
+        filename: 'Frank_3.jpg',
+        name: 'Frank_3',
+        response: '1',
         phase: 'main',
         type: EVENTS.STIMULUS_1,
       },
       {
-        condition: "House",
+        condition: 'House',
         dir: housesDir,
-        filename: "house1.3.jpg",
-        name: "house1.3",
-        response: "9",
+        filename: 'house1.3.jpg',
+        name: 'house1.3',
+        response: '9',
         phase: 'practice',
         type: EVENTS.STIMULUS_2,
       },
       {
-        condition: "House",
+        condition: 'House',
         dir: housesDir,
-        filename: "house2.2.jpg",
-        name: "house2.2",
-        response: "9",
+        filename: 'house2.2.jpg',
+        name: 'house2.2',
+        response: '9',
         phase: 'main',
         type: EVENTS.STIMULUS_2,
       },
       {
-        condition: "House",
+        condition: 'House',
         dir: housesDir,
-        filename: "house3.1.jpg",
-        name: "house3.1",
-        response: "9",
+        filename: 'house3.1.jpg',
+        name: 'house3.1',
+        response: '9',
         phase: 'main',
         type: EVENTS.STIMULUS_2,
       },
       {
-        condition: "House",
+        condition: 'House',
         dir: housesDir,
-        filename: "house4.3.jpg",
-        name: "house4.3",
-        response: "9",
+        filename: 'house4.3.jpg',
+        name: 'house4.3',
+        response: '9',
         phase: 'main',
         type: EVENTS.STIMULUS_2,
       },
       {
-        condition: "House",
+        condition: 'House',
         dir: housesDir,
-        filename: "house5.2.jpg",
-        name: "house5.3",
-        response: "9",
+        filename: 'house5.2.jpg',
+        name: 'house5.3',
+        response: '9',
         phase: 'main',
         type: EVENTS.STIMULUS_2,
       },
-    ]
+    ],
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000
+      post_trial_gap: 1000,
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500
-    }
+      post_trial_gap: 500,
+    },
   },
   timelines: {
     faceHouseTimeline: {
@@ -189,13 +194,13 @@ export const buildN170Timeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false
+          response_ends_trial: false,
         },
         {
           id: 'trial',
-          response_ends_trial: false
-        }
-      ]
-    }
-  }
+          response_ends_trial: false,
+        },
+      ],
+    },
+  },
 });

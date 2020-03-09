@@ -10,7 +10,7 @@ const params = {
   jitter: 200,
   n_trials: 170, // Around two minutes at a rate of ~700 ms per trial
   prob: 0.15,
-  plugin_name: 'callback-image-display'
+  plugin_name: 'callback-image-display',
 };
 
 //  Default directories containing stimuli
@@ -23,19 +23,17 @@ const nontargetsDir = path.join(rootFolder, './app/assets/cat_dog/dogs/');
 // Oddball sampling function
 // Assumes first half of the trials are oddball stimuli
 // TODO: Make this autogenerate from reading dir
-const oddballSamplingFn = trials => {
+const oddballSamplingFn = (trials) => {
   const trialOrder = new Array(params.n_trials).fill(0).map(() => {
     if (Math.random() > params.prob) {
-      return Math.floor(
-        Math.random() * (trials.length - trials.length / 2) + trials.length / 2
-      );
+      return Math.floor(Math.random() * (trials.length - trials.length / 2) + trials.length / 2);
     }
     return Math.floor(Math.random() * (trials.length / 2));
   });
   return trialOrder;
 };
 
-export const buildOddballTimeline = callback => ({
+export const buildOddballTimeline = (callback) => ({
   mainTimeline: ['welcome', 'oddballTimeline', 'end'], // array of trial and timeline ids
   trials: {
     welcome: {
@@ -43,15 +41,15 @@ export const buildOddballTimeline = callback => ({
       id: 'welcome',
       stimulus: 'Welcome to the experiment. Press any key to begin.',
       post_trial_gap: 1000,
-      on_load: () => callback('start')
+      on_load: () => callback('start'),
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating',
       post_trial_gap: 500,
-      on_load: callback('stop')
-    }
+      on_load: callback('stop'),
+    },
   },
   timelines: {
     oddballTimeline: {
@@ -62,7 +60,7 @@ export const buildOddballTimeline = callback => ({
           type: 'callback-image-display',
           stimulus: './assets/cat_dog/fixation.jpg',
           trial_duration: () => params.iti + Math.random() * params.jitter,
-          post_trial_gap: 0
+          post_trial_gap: 0,
         },
         {
           id: 'trial',
@@ -71,24 +69,24 @@ export const buildOddballTimeline = callback => ({
           type: params.plugin_name,
           choices: ['f', 'j'],
           trial_duration: params.trial_duration,
-          post_trial_gap: 0
-        }
+          post_trial_gap: 0,
+        },
       ],
       sample: {
         type: 'custom',
-        fn: oddballSamplingFn
+        fn: oddballSamplingFn,
       },
       timeline_variables: readdirSync(targetsDir)
-        .map(filename => ({
+        .map((filename) => ({
           stimulusVar: targetsDir + filename,
-          callbackVar: () => callback('target')
+          callbackVar: () => callback('target'),
         }))
         .concat(
-          readdirSync(nontargetsDir).map(filename => ({
+          readdirSync(nontargetsDir).map((filename) => ({
             stimulusVar: nontargetsDir + filename,
-            callbackVar: () => callback('nontarget')
+            callbackVar: () => callback('nontarget'),
           }))
-        )
-    }
-  }
+        ),
+    },
+  },
 });

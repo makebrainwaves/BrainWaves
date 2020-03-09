@@ -21,48 +21,44 @@ var plugin = (function() {
         type: jsPsych.plugins.parameterType.HTML_STRING,
         pretty_name: 'stimulus',
         default: undefined,
-        description: 'The HTML string to be displayed'
+        description: 'The HTML string to be displayed',
       },
       choices: {
         type: jsPsych.plugins.parameterType.KEYCODE,
         array: true,
         pretty_name: 'Choices',
         default: jsPsych.ALL_KEYS,
-        description:
-          'The keys the subject is allowed to press to respond to the stimulus.'
+        description: 'The keys the subject is allowed to press to respond to the stimulus.',
       },
       prompt: {
         type: jsPsych.plugins.parameterType.STRING,
         pretty_name: 'Prompt',
         default: '',
-        description: 'Any content here will be displayed below the stimulus.'
+        description: 'Any content here will be displayed below the stimulus.',
       },
       stimulus_duration: {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Stimulus duration',
         default: -1,
-        description: 'How long to hide the stimulus.'
+        description: 'How long to hide the stimulus.',
       },
       trial_duration: {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Trial duration',
         default: -1,
-        description: 'How long to show trial before it ends.'
+        description: 'How long to show trial before it ends.',
       },
       response_ends_trial: {
         type: jsPsych.plugins.parameterType.BOOL,
         pretty_name: 'Response ends trial',
         default: true,
-        description: 'If true, trial will end when subject makes a response.'
-      }
-    }
+        description: 'If true, trial will end when subject makes a response.',
+      },
+    },
   };
 
   plugin.trial = function(display_element, trial) {
-    var new_html =
-      '<div id="jspsych-html-keyboard-response-stimulus">' +
-      trial.stimulus +
-      '</div>';
+    var new_html = '<div id="jspsych-html-keyboard-response-stimulus">' + trial.stimulus + '</div>';
 
     // add option for on_start parameter in the experiment
     if (typeof trial.on_start === 'function') {
@@ -80,7 +76,7 @@ var plugin = (function() {
     // store response
     var response = {
       rt: -1,
-      key: -1
+      key: -1,
     };
 
     // function to end trial when it is time
@@ -97,7 +93,7 @@ var plugin = (function() {
       var trial_data = {
         rt: response.rt,
         stimulus: trial.stimulus,
-        key_press: response.key
+        key_press: response.key,
       };
 
       // clear the display
@@ -111,9 +107,8 @@ var plugin = (function() {
     var after_response = function(info) {
       // after a valid response, the stimulus will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
-      display_element.querySelector(
-        '#jspsych-html-keyboard-response-stimulus'
-      ).className += ' responded';
+      display_element.querySelector('#jspsych-html-keyboard-response-stimulus').className +=
+        ' responded';
 
       // only record the first response
       if (response.key == -1) {
@@ -132,16 +127,15 @@ var plugin = (function() {
         valid_responses: trial.choices,
         rt_method: 'performance',
         persist: false,
-        allow_held_key: false
+        allow_held_key: false,
       });
     }
 
     // hide stimulus if stimulus_duration is set
     if (trial.stimulus_duration > 0) {
       jsPsych.pluginAPI.setTimeout(function() {
-        display_element.querySelector(
-          '#jspsych-html-keyboard-response-stimulus'
-        ).style.visibility = 'hidden';
+        display_element.querySelector('#jspsych-html-keyboard-response-stimulus').style.visibility =
+          'hidden';
       }, trial.stimulus_duration);
     }
 

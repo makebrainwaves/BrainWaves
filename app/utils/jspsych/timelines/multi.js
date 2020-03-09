@@ -43,29 +43,29 @@ export const buildMultiTimeline = () => ({
       dir: facesDir,
       title: 'No switching',
       type: EVENTS.STIMULUS_1,
-      response: '1'
+      response: '1',
     },
     stimulus2: {
       dir: housesDir,
       title: 'Switching',
       type: EVENTS.STIMULUS_2,
-      response: '9'
-    }
+      response: '9',
+    },
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000
+      post_trial_gap: 1000,
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500
-    }
+      post_trial_gap: 500,
+    },
   },
   timelines: {
     faceHouseTimeline: {
@@ -75,13 +75,13 @@ export const buildMultiTimeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false
+          response_ends_trial: false,
         },
         {
           id: 'trial',
-          response_ends_trial: false
-        }
-      ]
-    }
-  }
+          response_ends_trial: false,
+        },
+      ],
+    },
+  },
 });

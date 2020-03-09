@@ -9,7 +9,7 @@ import * as experimentActions from '../actions/experimentActions';
 function mapStateToProps(state) {
   return {
     ...state.device,
-    kernelStatus: state.jupyter.kernelStatus
+    kernelStatus: state.jupyter.kernelStatus,
   };
 }
 
@@ -17,11 +17,8 @@ function mapDispatchToProps(dispatch) {
   return {
     deviceActions: bindActionCreators(deviceActions, dispatch),
     jupyterActions: bindActionCreators(jupyterActions, dispatch),
-    experimentActions: bindActionCreators(experimentActions, dispatch)
+    experimentActions: bindActionCreators(experimentActions, dispatch),
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Home);

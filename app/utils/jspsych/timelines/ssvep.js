@@ -7,12 +7,12 @@ const params = {
   iti: 500,
   jitter: 200,
   n_trials: 34, // Around two minutes at a rate of ~3600 ms per trial
-  plugin_name: 'animation'
+  plugin_name: 'animation',
 };
 
 const rootFolder = __dirname;
 
-export const buildSSVEPTimeline = callback => ({
+export const buildSSVEPTimeline = (callback) => ({
   mainTimeline: ['welcome', 'ssvepTimeline', 'end'], // array of trial and timeline ids
   trials: {
     welcome: {
@@ -20,15 +20,15 @@ export const buildSSVEPTimeline = callback => ({
       id: 'welcome',
       stimulus: 'Welcome to the experiment. Press any key to begin.',
       post_trial_gap: 1000,
-      on_load: () => callback('start')
+      on_load: () => callback('start'),
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating',
       post_trial_gap: 500,
-      on_load: callback('stop')
-    }
+      on_load: callback('stop'),
+    },
   },
   timelines: {
     ssvepTimeline: {
@@ -38,37 +38,37 @@ export const buildSSVEPTimeline = callback => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: path.join(rootFolder, 'assets/face_house/fixation.jpg'),
-          trial_duration: () => params.iti + Math.random() * params.jitter
+          trial_duration: () => params.iti + Math.random() * params.jitter,
         },
         {
           id: 'trial',
           stimuli: [
             path.join(rootFolder, '/assets/ssvep/Checkerboard_pattern.svg'),
-            path.join(rootFolder, '/assets/ssvep/Checkerboard_pattern_neg.svg')
+            path.join(rootFolder, '/assets/ssvep/Checkerboard_pattern_neg.svg'),
           ],
           on_load: jsPsych.timelineVariable('callbackVar'),
           type: params.plugin_name,
           frame_time: jsPsych.timelineVariable('stim_periodVar'),
-          sequence_reps: jsPsych.timelineVariable('repsVar')
-        }
+          sequence_reps: jsPsych.timelineVariable('repsVar'),
+        },
       ],
       sample: {
         type: 'with-replacement',
-        size: params.n_trials
+        size: params.n_trials,
       },
       timeline_variables: [
         // reps uses a weird equation I had to derive to get stimulus duration to match up to our parameter
         {
           stim_periodVar: 1000 / 30,
           repsVar: Math.floor(params.stim_duration / (1000 / 30) - 1) / 2,
-          callbackVar: () => callback('30')
+          callbackVar: () => callback('30'),
         },
         {
           stim_periodVar: 1000 / 20,
           repsVar: Math.floor(params.stim_duration / (1000 / 20) - 1) / 2,
-          callbackVar: () => callback('20')
-        }
-      ]
-    }
-  }
+          callbackVar: () => callback('20'),
+        },
+      ],
+    },
+  },
 });

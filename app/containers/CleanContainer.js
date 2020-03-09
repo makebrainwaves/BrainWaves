@@ -13,18 +13,15 @@ function mapStateToProps(state) {
     group: state.experiment.group,
     session: state.experiment.session,
     deviceType: state.device.deviceType,
-    ...state.jupyter
+    ...state.jupyter,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     experimentActions: bindActionCreators(experimentActions, dispatch),
-    jupyterActions: bindActionCreators(jupyterActions, dispatch)
+    jupyterActions: bindActionCreators(jupyterActions, dispatch),
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(CleanComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(CleanComponent);

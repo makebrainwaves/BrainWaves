@@ -10,17 +10,14 @@ function mapStateToProps(state) {
     location: state.router.location,
     isRunning: state.experiment.isRunning,
     type: state.experiment.type,
-    isEEGEnabled: state.experiment.isEEGEnabled
+    isEEGEnabled: state.experiment.isEEGEnabled,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    experimentActions: bindActionCreators(experimentActions, dispatch)
+    experimentActions: bindActionCreators(experimentActions, dispatch),
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TopNavComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(TopNavComponent);

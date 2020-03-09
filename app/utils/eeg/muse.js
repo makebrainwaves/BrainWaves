@@ -1,20 +1,11 @@
 import 'hazardous';
 import { withLatestFrom, share, startWith, filter } from 'rxjs/operators';
-import {
-  addInfo,
-  epoch,
-  bandpassFilter,
-  addSignalQuality
-} from '@neurosity/pipes';
+import { addInfo, epoch, bandpassFilter, addSignalQuality } from '@neurosity/pipes';
 import { release } from 'os';
 import { MUSE_SERVICE, MuseClient, zipSamples } from 'muse-js';
 import { from } from 'rxjs';
 import { parseMuseSignalQuality } from './pipes';
-import {
-  MUSE_SAMPLING_RATE,
-  MUSE_CHANNELS,
-  PLOTTING_INTERVAL
-} from '../../constants/constants';
+import { MUSE_SAMPLING_RATE, MUSE_CHANNELS, PLOTTING_INTERVAL } from '../../constants/constants';
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
@@ -36,18 +27,18 @@ export const getMuse = async () => {
       return null;
     }
     device = await bluetooth.requestDevice({
-      filters: [{ services: [MUSE_SERVICE] }]
+      filters: [{ services: [MUSE_SERVICE] }],
     });
   } else {
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [MUSE_SERVICE] }]
+      filters: [{ services: [MUSE_SERVICE] }],
     });
   }
   return [device];
 };
 
 // Attempts to connect to a muse device. If successful, returns a device info object
-export const connectToMuse = async device => {
+export const connectToMuse = async (device) => {
   if (process.platform === 'win32') {
     const gatt = await device.gatt.connect();
     await client.connect(gatt);
@@ -57,7 +48,7 @@ export const connectToMuse = async device => {
   return {
     name: client.deviceName,
     samplingRate: MUSE_SAMPLING_RATE,
-    channels: MUSE_CHANNELS
+    channels: MUSE_CHANNELS,
   };
 };
 
@@ -69,32 +60,29 @@ export const createRawMuseObservable = async () => {
   const eegStream = await client.eegReadings;
   const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
   return from(zipSamples(eegStream)).pipe(
-    filter(sample => !sample.data.includes(NaN)),
+    filter((sample) => !sample.data.includes(NaN)),
     withLatestFrom(markers, synchronizeTimestamp),
     share()
   );
 };
 
 // Creates an observable that will epoch, filter, and add signal quality to EEG stream
-export const createMuseSignalQualityObservable = (
-  rawObservable,
-  deviceInfo
-) => {
+export const createMuseSignalQualityObservable = (rawObservable, deviceInfo) => {
   const { samplingRate, channels: channelNames } = deviceInfo;
   const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
   return rawObservable.pipe(
     addInfo({
       samplingRate,
-      channelNames
+      channelNames,
     }),
     epoch({
       duration: intervalSamples,
-      interval: intervalSamples
+      interval: intervalSamples,
     }),
     bandpassFilter({
       nbChannels: channelNames.length,
       lowCutoff: 1,
-      highCutoff: 50
+      highCutoff: 50,
     }),
     addSignalQuality(),
     parseMuseSignalQuality()

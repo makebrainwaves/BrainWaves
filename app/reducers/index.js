@@ -9,7 +9,7 @@ const rootReducer = combineReducers({
   jupyter,
   device,
   experiment,
-  router
+  router,
 });
 
 export default rootReducer;
