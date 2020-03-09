@@ -378,6 +378,15 @@ const studyObject = {
                   files: {},
                   parameters: {},
                   responses: {},
+                  messageHandlers: {
+                    end: function anonymous() {
+                      this.data.correct_response = false;
+                    },
+                  },
+                  viewport: [800, 600],
+                  files: {},
+                  parameters: {},
+                  responses: {},
                   messageHandlers: {},
                   viewport: [800, 600],
                   title: 'Feedback',
