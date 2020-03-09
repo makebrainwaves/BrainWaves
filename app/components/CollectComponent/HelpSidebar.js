@@ -1,7 +1,7 @@
 /* eslint-disable react/no-multi-comp */
-import React, { Component } from "react";
-import { Segment, Header, Menu, Icon, Button, Grid } from "semantic-ui-react";
-import styles from "../styles/common.css";
+import React, { Component } from 'react';
+import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
+import styles from '../styles/common.css';
 
 const HELP_STEP = {
   MENU: 0,
@@ -113,43 +113,43 @@ export class HelpSidebar extends Component<Props, State> {
     switch (this.state.helpStep) {
       case HELP_STEP.SIGNAL_EXPLANATION:
         return this.renderHelp(
-          "Improve the signal quality",
-          "In order to collect quality data, you want to make sure that all electrodes have  a strong connection"
+          'Improve the signal quality',
+          'In order to collect quality data, you want to make sure that all electrodes have  a strong connection'
         );
       case HELP_STEP.SIGNAL_SALINE:
         return this.renderHelp(
-          "Tip #1: Saturate the sensors in saline",
-          "Make sure the sensors are thoroughly soaked with saline solution. They should be wet to the touch"
+          'Tip #1: Saturate the sensors in saline',
+          'Make sure the sensors are thoroughly soaked with saline solution. They should be wet to the touch'
         );
       case HELP_STEP.SIGNAL_CONTACT:
         return this.renderHelp(
-          "Tip #2: Ensure the sensors are making firm contact",
-          "Re-seat the headset to make sure that all sensors contact the head with some tension. Take extra care to make sure the reference electrodes (the ones right behind the ears) make proper contact.  You may need to sweep hair out of the way to accomplish this"
+          'Tip #2: Ensure the sensors are making firm contact',
+          'Re-seat the headset to make sure that all sensors contact the head with some tension. Take extra care to make sure the reference electrodes (the ones right behind the ears) make proper contact.  You may need to sweep hair out of the way to accomplish this'
         );
       case HELP_STEP.SIGNAL_MOVEMENT:
         return this.renderHelp(
-          "Tip #3: Stay still",
-          "To reduce noise during your experiment, ensure your subject is relaxed and has both feet on the floor. Sometimes, focusing on relaxing the jaw and the tongue can improve the EEG signal"
+          'Tip #3: Stay still',
+          'To reduce noise during your experiment, ensure your subject is relaxed and has both feet on the floor. Sometimes, focusing on relaxing the jaw and the tongue can improve the EEG signal'
         );
       case HELP_STEP.LEARN_BRAIN:
         return this.renderHelp(
-          "Your brain produces electricity",
-          "Using the device that you are wearing, we can detect the electrical activity of your brain."
+          'Your brain produces electricity',
+          'Using the device that you are wearing, we can detect the electrical activity of your brain.'
         );
       case HELP_STEP.LEARN_BLINK:
         return this.renderHelp(
-          "Try blinking your eyes",
-          "Does the signal change? Eye movements create noise in the EEG signal"
+          'Try blinking your eyes',
+          'Does the signal change? Eye movements create noise in the EEG signal'
         );
       case HELP_STEP.LEARN_THOUGHTS:
         return this.renderHelp(
-          "Try thinking of a cat",
+          'Try thinking of a cat',
           "Does the signal change? Although EEG can measure overall brain activity, it's not capable of reading minds"
         );
       case HELP_STEP.LEARN_ALPHA:
         return this.renderHelp(
-          "Try closing your eyes for 10 seconds",
-          "You may notice a change in your signal due to an increase in alpha waves"
+          'Try closing your eyes for 10 seconds',
+          'You may notice a change in your signal due to an increase in alpha waves'
         );
       case HELP_STEP.MENU:
       default:
@@ -179,9 +179,9 @@ export class HelpButton extends Component<{ onClick: () => void }, {}> {
     return (
       <Button
         circular
-        icon="question"
+        icon='question'
         className={styles.helpButton}
-        floated="right"
+        floated='right'
         onClick={this.props.onClick}
       />
     );

@@ -1,23 +1,12 @@
 // @flow
-import React, { Component } from "react";
-import {
-  Grid,
-  Button,
-  Header,
-  Segment,
-  Image,
-  Divider
-} from "semantic-ui-react";
-import {
-  PLOTTING_INTERVAL,
-  CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
-} from "../constants/constants";
-import eegImage from "../assets/common/EEG.png";
-import SignalQualityIndicatorComponent from "./SignalQualityIndicatorComponent";
-import ViewerComponent from "./ViewerComponent";
-import ConnectModal from "./CollectComponent/ConnectModal";
-import styles from "./styles/common.css";
+import React, { Component } from 'react';
+import { Grid, Button, Header, Segment, Image, Divider } from 'semantic-ui-react';
+import { PLOTTING_INTERVAL, CONNECTION_STATUS, DEVICE_AVAILABILITY } from '../constants/constants';
+import eegImage from '../assets/common/EEG.png';
+import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
+import ViewerComponent from './ViewerComponent';
+import ConnectModal from './CollectComponent/ConnectModal';
+import styles from './styles/common.css';
 
 interface Props {
   history: Object;
@@ -43,7 +32,7 @@ export default class Home extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      isConnectModalOpen: false
+      isConnectModalOpen: false,
     };
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleStartConnect = this.handleStartConnect.bind(this);
@@ -61,9 +50,7 @@ export default class Home extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.deviceActions.setDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
   handleStopConnect() {
@@ -83,7 +70,7 @@ export default class Home extends Component<Props, State> {
         relaxed
         padded
         className={styles.contentGrid}
-        style={{ alignItems: "center" }}
+        style={{ alignItems: 'center' }}
       >
         {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
           <Grid.Row>
@@ -117,11 +104,9 @@ export default class Home extends Component<Props, State> {
 
             <Grid.Column stretched width={11}>
               <Segment basic>
-                <Header as="h1">Explore Raw EEG</Header>
+                <Header as='h1'>Explore Raw EEG</Header>
                 <Divider />
-                <p>
-                  Connect directly to an EEG device and view raw streaming data
-                </p>
+                <p>Connect directly to an EEG device and view raw streaming data</p>
                 <Button primary onClick={this.handleStartConnect}>
                   Connect
                 </Button>
@@ -138,7 +123,7 @@ export default class Home extends Component<Props, State> {
               connectionStatus={this.props.connectionStatus}
               deviceActions={this.props.deviceActions}
               availableDevices={this.props.availableDevices}
-              style={{ marginTop: "100px" }}
+              style={{ marginTop: '100px' }}
             />
           </Grid.Row>
         )}
