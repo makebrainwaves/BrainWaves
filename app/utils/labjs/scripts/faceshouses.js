@@ -107,9 +107,9 @@ const studyObject = {
                 }
                 const numberConditionsTrials = Math.ceil(numberTrials / conditions.length);
                 let balancedParameters = [];
-                for (let i = 0; i < numberConditionsTrials; i++) {
-                  for (const c of conditions) {
-                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i]);
+                for (let i = 0; i < numberConditionsTrials; i++){
+                  for (const c of conditions) {
+                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i % conditionsParameters[c].length])
                   }
                 }
                 initParameters = [...balancedParameters.slice(0, numberTrials)];
@@ -315,54 +315,64 @@ const studyObject = {
                   type: 'lab.canvas.Screen',
                   content: [
                     {
-                      type: 'i-text',
-                      version: '2.7.0',
-                      originX: 'center',
-                      originY: 'center',
-                      left: 0,
-                      top: 0,
-                      width: 895.3,
-                      height: 36.16,
-                      fill: "${ state.correct_response ? 'green' : 'red' }",
-                      stroke: null,
-                      strokeWidth: 1,
-                      strokeDashArray: null,
-                      strokeLineCap: 'butt',
-                      strokeDashOffset: 0,
-                      strokeLineJoin: 'round',
-                      strokeMiterLimit: 4,
-                      scaleX: 1,
-                      scaleY: 1,
-                      angle: 0,
-                      flipX: false,
-                      flipY: false,
-                      opacity: 1,
-                      shadow: null,
-                      visible: true,
-                      clipTo: null,
-                      backgroundColor: '',
-                      fillRule: 'nonzero',
-                      paintFirst: 'fill',
-                      globalCompositeOperation: 'source-over',
-                      transformMatrix: null,
-                      skewX: 0,
-                      skewY: 0,
-                      text:
-                        "${ state.correct_response ? 'Well done!' : 'Please respond accurately' }",
-                      fontSize: '52',
-                      fontWeight: 'bold',
-                      fontFamily: 'sans-serif',
-                      fontStyle: 'normal',
-                      lineHeight: 1.16,
-                      underline: false,
-                      overline: false,
-                      linethrough: false,
-                      textAlign: 'center',
-                      textBackgroundColor: '',
-                      charSpacing: 0,
-                      id: '736',
-                      styles: {},
-                    },
+                      "type": "i-text",
+                      "version": "2.7.0",
+                      "originX": "center",
+                      "originY": "center",
+                      "left": 0,
+                      "top": 0,
+                      "width": 895.3,
+                      "height": 36.16,
+                      "fill": "${ state.correct_response ? 'green' : 'red' }",
+                      "stroke": null,
+                      "strokeWidth": 1,
+                      "strokeDashArray": null,
+                      "strokeLineCap": "butt",
+                      "strokeDashOffset": 0,
+                      "strokeLineJoin": "round",
+                      "strokeMiterLimit": 4,
+                      "scaleX": 1,
+                      "scaleY": 1,
+                      "angle": 0,
+                      "flipX": false,
+                      "flipY": false,
+                      "opacity": 1,
+                      "shadow": null,
+                      "visible": true,
+                      "clipTo": null,
+                      "backgroundColor": "",
+                      "fillRule": "nonzero",
+                      "paintFirst": "fill",
+                      "globalCompositeOperation": "source-over",
+                      "transformMatrix": null,
+                      "skewX": 0,
+                      "skewY": 0,
+                      "text": "${ state.correct_response ? 'Well done!' : 'Please respond accurately' }",
+                      "fontSize": "52",
+                      "fontWeight": "bold",
+                      "fontFamily": "sans-serif",
+                      "fontStyle": "normal",
+                      "lineHeight": 1.16,
+                      "underline": false,
+                      "overline": false,
+                      "linethrough": false,
+                      "textAlign": "center",
+                      "textBackgroundColor": "",
+                      "charSpacing": 0,
+                      "id": "736",
+                      "styles": {}
+                    }
+                  ],
+                  "files": {},
+                  "parameters": {},
+                  "responses": {},
+                  "messageHandlers": {
+                    "end": function anonymous() {
+                      this.data.correct_response = false;
+                    }},
+                  "viewport": [
+                    800,
+                    600
                   ],
                   files: {},
                   parameters: {},
@@ -459,9 +469,9 @@ const studyObject = {
                 }
                 const numberConditionsTrials = Math.ceil(numberTrials / conditions.length);
                 let balancedParameters = [];
-                for (let i = 0; i < numberConditionsTrials; i++) {
-                  for (const c of conditions) {
-                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i]);
+                for (let i = 0; i < numberConditionsTrials; i++){
+                  for (const c of conditions) {
+                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i % conditionsParameters[c].length])
                   }
                 }
                 initialParameters = [...balancedParameters.slice(0, numberTrials)];
