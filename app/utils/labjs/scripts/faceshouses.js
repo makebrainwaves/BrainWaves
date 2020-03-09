@@ -106,7 +106,7 @@ const studyObject = {
                 let balancedParameters = [];
                 for (let i = 0; i < numberConditionsTrials; i++){
                   for (const c of conditions) {
-                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i])
+                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i % conditionsParameters[c].length])
                   }
                 }
                 initParameters = [...balancedParameters.slice(0, numberTrials)];
@@ -364,7 +364,10 @@ this.options.events = {
                   "files": {},
                   "parameters": {},
                   "responses": {},
-                  "messageHandlers": {},
+                  "messageHandlers": {
+                    "end": function anonymous() {
+                      this.data.correct_response = false;
+                    }},
                   "viewport": [
                     800,
                     600
@@ -459,7 +462,7 @@ this.options.events = {
                 let balancedParameters = [];
                 for (let i = 0; i < numberConditionsTrials; i++){
                   for (const c of conditions) {
-                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i])
+                    balancedParameters = balancedParameters.concat(conditionsParameters[c][i % conditionsParameters[c].length])
                   }
                 }
                 initialParameters = [...balancedParameters.slice(0, numberTrials)];
