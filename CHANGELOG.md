@@ -1,3 +1,12 @@
+# 0.12.0 (Mar 9, 2020) - Project Cleanup and UI fixes
+- Randomization bug fixed
+- New EEG Data Explorer component
+- Fixed the Explore EEG Data screen
+- QA and linting over the whole project
+
+# 0.11.2 (Feb 29, 2020) - Additional Updates to Customize Screen
+- Clean up Customization
+
 # 0.11.1 (Feb 25, 2020) - Update Customize Screen
 - Update the UI for ease of experiment customization
 
