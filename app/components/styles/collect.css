@@ -47,10 +47,15 @@
   margin-bottom: 20px;
 }
 
+.previewPlaceholder {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+}
+
 .previewExpComponent {
   height: 100%;
   width: 100%;
-  align-items: center;
 }
 
 .primaryButton {

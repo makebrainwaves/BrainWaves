@@ -132,6 +132,7 @@ export default class Collect extends Component<Props, State> {
           group={this.props.group}
           session={this.props.session}
           openRunComponent={this.handleRunComponentOpen}
+          title={this.props.title}
         />
       </React.Fragment>
     );

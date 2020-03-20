@@ -30,13 +30,11 @@ class ExperimentWindow extends Component {
       case 'Faces and Houses':
       default:
         faceshouses.parameters = props.settings.params;
-        // inject files with their addresses from parameters values
-        faceshouses.files = props.settings.params.stimuli
-          .map((image) => {
-            return { [image.filename]: `${image.dir}/${image.filename}` };
-          })
-          .reduce((obj, item) => {
-            obj[Object.keys(item)[0]] = Object.values(item)[0];
+        faceshouses.parameters.title = props.settings.title;
+        faceshouses.files = props.settings.params.stimuli.map(image => (
+              { [`${image.dir}/${image.filename}`] : `${image.dir}/${image.filename}`}
+            )).reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0]
             return obj;
           }, {});
         this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
@@ -51,7 +49,7 @@ class ExperimentWindow extends Component {
     this.study.parameters.callbackForEEG = (e) => {
       props.settings.eventCallback(e, new Date().getTime());
     };
-    this.study.options.events['keydown'] = async (e) => {
+    this.study.options.events['keydown'] = async e => {
       if (e.code === 'Escape') {
         if (this.study) {
           await this.study.internals.controller.audioContext.close();
@@ -74,8 +72,8 @@ class ExperimentWindow extends Component {
 
   render() {
     return (
-      <div className='container fullscreen' data-labjs-section='main'>
-        <main className='content-vertical-center content-horizontal-center'>
+      <div className="container fullscreen" data-labjs-section="main">
+        <main className="content-vertical-center content-horizontal-center">
           <div>
             <h2>Loading Experiment</h2>
             <p>The experiment is loading and should start in a few seconds</p>

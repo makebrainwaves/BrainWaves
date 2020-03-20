@@ -9,7 +9,7 @@ interface Props {
   title: string | React.ReactNode;
   steps: { [string]: string };
   activeStep: string;
-  onStepClick: (string) => void;
+  onStepClick: string => void;
   button?: React.ReactNode;
 }
 
@@ -28,7 +28,7 @@ export default class SecondaryNavComponent extends Component<Props> {
   renderSteps() {
     return (
       <React.Fragment>
-        {Object.values(this.props.steps).map((stepTitle) => (
+        {Object.values(this.props.steps).map(stepTitle => (
           <SecondaryNavSegment
             key={stepTitle}
             title={stepTitle}
@@ -44,30 +44,35 @@ export default class SecondaryNavComponent extends Component<Props> {
     );
   }
 
+
+
   render() {
+
     return (
-      <Grid verticalAlign='middle' className={styles.secondaryNavContainer}>
+      <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
         <Grid.Column width={3}>{this.renderTitle()}</Grid.Column>
         {this.renderSteps()}
 
-        {this.props.enableEEGToggle && (
-          <Grid.Column width={2} floated='right'>
+        {this.props.enableEEGToggle &&
+          <Grid.Column width={2} floated="right">
             <div className={styles.settingsButtons}>
-              <Dropdown icon='setting' direction='left' fluid className={styles.dropdownSettings}>
+              <Dropdown icon='setting' direction="left" fluid className={styles.dropdownSettings}>
                 <Dropdown.Menu className={styles.dropdownMenu}>
                   <Dropdown.Item className={styles.dropdownItem}>
                     <div>Enable EEG</div>
                     {this.props.enableEEGToggle}
                   </Dropdown.Item>
-                  {this.props.canEditExperiment && (
+                  {this.props.canEditExperiment &&
                     <Dropdown.Item
                       text='Edit Experiment'
                       onClick={() => this.props.onEditClick()}
                     />
-                  )}
+                  }
                   <Dropdown.Item>
                     <NavLink to={SCREENS.HOME.route}>
-                      <p>Exit Workspace</p>
+                      <p>
+                        Exit Experiment
+                      </p>
                     </NavLink>
                   </Dropdown.Item>
                 </Dropdown.Menu>
@@ -75,7 +80,7 @@ export default class SecondaryNavComponent extends Component<Props> {
               {this.props.saveButton}
             </div>
           </Grid.Column>
-        )}
+        }
       </Grid>
     );
   }
