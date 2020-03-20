@@ -68,7 +68,10 @@ export default class PreTestComponent extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState({ isPreviewing: !this.state.isPreviewing });
+    this.setState({
+      isSidebarVisible: false,
+      isPreviewing: !this.state.isPreviewing
+    });
   }
 
   handleSidebarToggle() {
@@ -85,6 +88,7 @@ export default class PreTestComponent extends Component<Props, State> {
           type={this.props.type}
           paradigm={this.props.paradigm}
           previewParams={this.props.params}
+          title={this.props.title}
         />
       );
     }
@@ -158,10 +162,10 @@ export default class PreTestComponent extends Component<Props, State> {
               </Grid.Column>
             </Grid.Row>
             <Grid.Row>
-              <Grid.Column width={6} className={styles.previewEEGWindow}>
+              <Grid.Column width={8} className={styles.previewEEGWindow}>
                 {this.renderSignalQualityOrPreview()}
               </Grid.Column>
-              <Grid.Column width={10}>
+              <Grid.Column width={8}>
                 <ViewerComponent
                   signalQualityObservable={this.props.signalQualityObservable}
                   deviceType={this.props.deviceType}

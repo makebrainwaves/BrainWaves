@@ -160,14 +160,14 @@ export class HelpSidebar extends Component<Props, State> {
   render() {
     return (
       <Segment basic padded vertical className={styles.helpSidebar}>
-        <Button
-          circular
-          size='large'
-          floated='right'
-          icon='x'
-          className={styles.closeButton}
-          onClick={this.props.handleClose}
-        />
+        <Segment basic className={styles.closeButton}>
+          <Button
+            circular
+            size="big"
+            icon="x"
+            onClick={this.props.handleClose}
+          />
+        </Segment>
         {this.renderHelpContent()}
       </Segment>
     );

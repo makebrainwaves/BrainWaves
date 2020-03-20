@@ -33,7 +33,7 @@ const studyObject = {
           messageHandlers: {},
           title: 'Instruction',
           content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe face-house task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n     ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
+            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003E${this.parameters.title || "The face-house task"}\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n     ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
         },
         {
           type: 'lab.canvas.Frame',
@@ -92,7 +92,7 @@ const studyObject = {
 
                 const trialConstructor = (file) => ({
                   condition: file.condition,
-                  image: file.filename,
+                  image: `${file.dir}/${file.filename}`,
                   correctResponse: file.response,
                   phase: 'practice',
                   name: file.name,
@@ -370,7 +370,7 @@ const studyObject = {
                   parameters: {},
                   responses: {},
                   messageHandlers: {
-                    end: function anonymous() {
+                    run: function anonymous() {
                       this.data.correct_response = false;
                     },
                   },
@@ -465,7 +465,7 @@ const studyObject = {
 
                 const trialConstructor = (file) => ({
                   condition: file.condition,
-                  image: file.filename,
+                  image: `${file.dir}/${file.filename}`,
                   correctResponse: file.response,
                   phase: 'task',
                   name: file.name,

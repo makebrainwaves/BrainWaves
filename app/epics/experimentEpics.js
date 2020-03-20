@@ -31,6 +31,7 @@ import { createEEGWriteStream, writeHeader, writeEEGData } from '../utils/filesy
 import {
   getWorkspaceDir,
   storeExperimentState,
+  restoreExperimentState,
   createWorkspaceDir,
   storeBehaviouralData,
   readWorkspaceBehaviorData,
@@ -178,10 +179,11 @@ const saveWorkspaceEpic = (action$, state$) =>
     ignoreElements()
   );
 
-const navigationCleanupEpic = (action$) =>
+const navigationCleanupEpic = (action$, state$) =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
     filter((pathname) => pathname === '/'),
+    tap(() => restoreExperimentState(state$.value.experiment)),
     map(cleanup)
   );
 

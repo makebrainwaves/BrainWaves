@@ -67,14 +67,7 @@ export default class StimuliRow extends Component<Props> {
             >
               {this.props.phase === 'main' ? 'Experimental' : 'Practice'}
             </div>
-            <Dropdown
-              fluid
-              style={{
-                display: 'grid',
-                color: '#C4C4C4',
-                justifyContent: 'end',
-              }}
-            >
+            <Dropdown fluid style={{ display: 'grid', color: '#C4C4C4', justifyContent: 'end' }}>
               <Dropdown.Menu>
                 <Dropdown.Item onClick={() => this.props.onChange(this.props.num, 'phase', 'main')}>
                   <div>Experimental</div>
