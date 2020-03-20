@@ -113,3 +113,11 @@
   min-width: 35px;
   margin-left: 10px !important;
 }
+
+.homeTopNavButton{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  grid-column-gap: 5px;
+  margin-right: 20px;
+}

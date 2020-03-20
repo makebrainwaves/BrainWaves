@@ -47,7 +47,10 @@ export default class TopNavComponent extends Component<Props> {
         <Grid.Column className={styles.experimentTitleGridColumn}>
           <Segment basic className={styles.experimentTitleSegment}>
             <NavLink to={SCREENS.HOME.route}>
-              <Image centered className={styles.exitWorkspaceBtn} src={BrainwavesIcon} />
+              <div className={styles.homeTopNavButton}>
+                <Image centered className={styles.exitWorkspaceBtn} src={BrainwavesIcon} />
+                Home
+              </div>
             </NavLink>
             {this.props.title ? this.props.title : 'Untitled'}
           </Segment>

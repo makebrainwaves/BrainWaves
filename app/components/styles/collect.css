@@ -23,6 +23,11 @@
   left: -40px;
 }
 
+.closeButton {
+  display: grid;
+  justify-content: end;
+}
+
 .searchingText {
   text-align: center !important;
 }
@@ -47,10 +52,15 @@
   margin-bottom: 20px;
 }
 
+.previewPlaceholder {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+}
+
 .previewExpComponent {
   height: 100%;
   width: 100%;
-  align-items: center;
 }
 
 .primaryButton {
