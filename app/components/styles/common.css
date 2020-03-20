@@ -23,7 +23,7 @@
 }
 
 .contentGrid {
-  height: 95%;
+  height: 90%;
 }
 
 .overviewImage {
@@ -346,8 +346,7 @@
   align-content: baseline;
   grid-template-columns: 1fr;
   overflow-y: scroll;
-  min-height: 500px;
-  max-height: 500px;
+  max-height: 50vh;
 }
 
 .EEGToggle{
@@ -357,5 +356,11 @@
 .selectedFolderContainer{
   display: grid;
   grid-template-columns: auto auto 1fr;
+  grid-column-gap: 10px;
+}
+
+.trialsTopInfoBar{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-column-gap: 10px;
 }

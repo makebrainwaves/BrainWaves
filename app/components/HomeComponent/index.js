@@ -431,7 +431,7 @@ export default class Home extends Component<Props, State> {
         return (
           <Grid stackable padded columns="equal">
             {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
-              <Grid divided="vertically">
+              <Grid columns={16} divided="vertically">
                 <Grid.Row columns={1}>
                   <Grid.Column>
                     <Button primary onClick={this.handleStopConnect}>
@@ -441,7 +441,7 @@ export default class Home extends Component<Props, State> {
                 </Grid.Row>
                 ,
                 <Grid.Row>
-                  <Grid.Column stretched width={6}>
+                  <Grid.Column stretched width={4}>
                     <SignalQualityIndicatorComponent
                       signalQualityObservable={
                         this.props.signalQualityObservable
@@ -449,7 +449,7 @@ export default class Home extends Component<Props, State> {
                       plottingInterval={PLOTTING_INTERVAL}
                     />
                   </Grid.Column>
-                  <Grid.Column stretched width={10}>
+                  <Grid.Column stretched width={12}>
                     <ViewerComponent
                       signalQualityObservable={
                         this.props.signalQualityObservable

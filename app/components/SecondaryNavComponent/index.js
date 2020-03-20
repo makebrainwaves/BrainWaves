@@ -71,7 +71,7 @@ export default class SecondaryNavComponent extends Component<Props> {
                   <Dropdown.Item>
                     <NavLink to={SCREENS.HOME.route}>
                       <p>
-                        Exit Workspace
+                        Exit Experiment
                       </p>
                     </NavLink>
                   </Dropdown.Item>

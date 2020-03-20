@@ -42,6 +42,21 @@ export const storeExperimentState = (state: ExperimentStateType) => {
   );
 }
 
+export const restoreExperimentState = (state: ExperimentStateType) => {
+  if(state.type !== 'NONE'){
+    const timestampedState = {
+      ...state,
+      subject: '',
+      group: '',
+      session: 1
+    };
+    fs.writeFileSync(
+      path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
+      JSON.stringify(timestampedState)
+    );
+  }
+}
+
 export const storeBehaviouralData = (
   csv: string,
   title: string,

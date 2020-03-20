@@ -7,6 +7,7 @@ import { buildN170Timeline } from './protocols/faceshouses';
 import { buildStroopTimeline } from './protocols/stroop';
 import { buildMultiTimeline } from './protocols/multi';
 import { buildSearchTimeline } from './protocols/search';
+import { buildCustomTimeline } from './protocols/custom';
 
 import {
   MainTimeline,
@@ -32,8 +33,12 @@ export const loadProtocol = (paradigm: EXPERIMENTS) => {
       break;
 
     case EXPERIMENTS.N170:
-    default:
       protocol = buildN170Timeline();
+      break;
+
+    case EXPERIMENTS.CUSTOM:
+    default:
+      protocol = buildCustomTimeline();
       break;
 
   }

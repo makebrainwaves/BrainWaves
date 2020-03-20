@@ -137,7 +137,8 @@ export default class Design extends Component<Props, State> {
     this.props.experimentActions.createNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
-      paradigm: this.props.paradigm
+      paradigm: 'Custom'
+      // paradigm: this.props.paradigm
     });
     this.props.experimentActions.saveWorkspace();
   }

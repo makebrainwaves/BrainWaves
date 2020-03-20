@@ -136,7 +136,7 @@ export default class Run extends Component<Props, State> {
             className={styles.descriptionContainer}
             vertical
           >
-            <Header as="h1">{this.props.type}</Header>
+            <Header as="h1">{this.props.title}</Header>
             <Segment basic className={styles.infoSegment}>
               Subject Name: <b>{this.props.subject}</b>
               <Button
@@ -171,7 +171,6 @@ export default class Run extends Component<Props, State> {
                   Run Experiment
                 </Button>
               </Grid.Column>
-              {this.renderCleanButton()}
             </Grid>
           </Segment>
         </div>
@@ -181,6 +180,7 @@ export default class Run extends Component<Props, State> {
       <div className={styles.experimentWindow}>
         <ExperimentWindow
           settings={{
+            title: this.props.title,
             script: this.props.paradigm,
             params: this.props.params,
             eventCallback: this.insertLabJsCallback(),

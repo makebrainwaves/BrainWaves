@@ -61,6 +61,8 @@ export const SEARCH_TIMER = 3000;
 export const EVENTS = {
   STIMULUS_1: 1,
   STIMULUS_2: 2,
+  STIMULUS_3: 3,
+  STIMULUS_4: 4,
   TARGET: 2,
   NONTARGET: 1
 };
