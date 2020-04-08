@@ -298,6 +298,14 @@ export default class Analyze extends Component<Props, State> {
 
   renderEpochLabels() {
     if (!isNil(this.props.epochsInfo) && this.state.selectedFilePaths.length >= 1) {
+      const numberConditions = (this.props.epochsInfo.filter( infoObj => (infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'))).length;
+      let colors;
+      if(numberConditions === 4){
+        colors = ['red', 'yellow', 'green', 'blue'];
+      } else {
+        colors = ['red', 'green', 'teal', 'orange'];
+      }
+      console.log('numberConditions', numberConditions);
       return (
         <div>
           {this.props.epochsInfo
@@ -305,7 +313,7 @@ export default class Analyze extends Component<Props, State> {
             .map((infoObj, index) => (
               <React.Fragment key={infoObj.name}>
                 <Header as="h4">{infoObj.name}</Header>
-                <Icon name="circle" color={['red', 'orange', 'green', 'blue'][index]} />
+                <Icon name="circle" color={colors[index]} />
                 {infoObj.value}
               </React.Fragment>
             ))}
@@ -447,7 +455,7 @@ export default class Analyze extends Component<Props, State> {
       case ANALYZE_STEPS.BEHAVIOR:
         return (
           <React.Fragment>
-            <Grid.Column width={6}>
+            <Grid.Column width={4}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>Overview</Header>
                 <p>Load datasets from different subjects and view behavioral results</p>
@@ -486,7 +494,7 @@ export default class Analyze extends Component<Props, State> {
                 />
               </Segment>
             </Grid.Column>
-            <Grid.Column width={8} style={{ overflow: 'auto', maxHeight: 650 }}>
+            <Grid.Column width={12} style={{ overflow: 'auto', maxHeight: 650, display: 'grid', justifyContent: 'center' }}>
               <Segment basic textAlign='left' className={styles.plotSegment}>
                 <Plot data={this.state.dataToPlot} layout={this.state.layout} />
                 <p />

@@ -1,4 +1,5 @@
 import * as path from 'path';
+
 const rootFolder = __dirname;
 const assetsDirectory = path.join(rootFolder, 'assets', 'labjs', 'multitasking');
 
@@ -65,11 +66,11 @@ const studyObject = {
                 }
 
                 if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-                  let instructions = document.querySelectorAll('div.instruction');
+                  const instructions = document.querySelectorAll('div.instruction');
                   let notFound = true;
                   instructions.forEach((i) => {
                     if (i.style.display === 'block' && notFound) {
-                      let cur_id = parseInt(i.id.split('screen_')[1]);
+                      const cur_id = parseInt(i.id.split('screen_')[1]);
                       let next_id;
                       if (e.code === 'ArrowLeft') {
                         next_id = cur_id - 1;
@@ -79,7 +80,7 @@ const studyObject = {
                       }
                       if (next_id > 0 && next_id <= 10) {
                         i.style.display = 'none';
-                        next_id = 'screen_' + next_id;
+                        next_id = `screen_${  next_id}`;
                         document.querySelector(`#${next_id}`).style.display = 'block';
                         notFound = false;
                       }
@@ -1185,7 +1186,7 @@ const studyObject = {
                   messageHandlers: {
                     'before:prepare': function anonymous() {
                       function shuffle(a) {
-                        var j, x, i;
+                        let j, x, i;
                         for (i = a.length - 1; i > 0; i--) {
                           j = Math.floor(Math.random() * (i + 1));
                           x = a[i];
@@ -1204,16 +1205,16 @@ const studyObject = {
                       function trialConstructor(block, dots, form, cor_response) {
                         return {
                           type: block,
-                          dots: dots,
-                          form: form,
-                          cor_response: cor_response,
+                          dots,
+                          form,
+                          cor_response,
                         };
                       }
 
                       const numberBlocks = Math.ceil(this.parameters.num_trials / 4);
 
                       for (let i = 1; i <= numberBlocks; i++) {
-                        for (let block of blocks) {
+                        for (const block of blocks) {
                           if (block === 'shape') {
                             tasksParameters = tasksParameters.concat(
                               trialConstructor(block, 2, 'diamond', 'b')
@@ -1940,7 +1941,7 @@ const studyObject = {
                               this.data.response_given =
                                 this.state.correct === 'empty' ? 'no' : 'yes';
                             } else {
-                              this.data.response_given = 'practice';
+                              this.data.phase = 'practice';
                             }
                           },
                         },
