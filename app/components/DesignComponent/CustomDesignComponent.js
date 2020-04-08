@@ -516,7 +516,7 @@ export default class CustomDesign extends Component<Props, State> {
                       })
                     }
                 />
-                </Segment> : <Segment basic style={{'margin-bottom': '85px'}} />}
+                </Segment> : <Segment basic style={{'marginBottom': '85px'}} />}
 
               </Grid.Column>
 

@@ -235,11 +235,14 @@ const loadEpochsEpic = (action$, state$) =>
         {
           [state$.value.experiment.params.stimulus1.title]: EVENTS.STIMULUS_1,
           [state$.value.experiment.params.stimulus2.title]: EVENTS.STIMULUS_2,
+          [state$.value.experiment.params.stimulus3.title]: EVENTS.STIMULUS_3,
+          [state$.value.experiment.params.stimulus4.title]: EVENTS.STIMULUS_4,
         },
         -0.1,
         0.8
       )
     ),
+    tap((e)=> {console.log('e', e)}),
     map((epochEventsCommand) =>
       state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),

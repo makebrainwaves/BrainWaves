@@ -5,27 +5,25 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
   const processedData = data.map((result) => {
     if (path.basename(result.meta.datafile).includes('aggregated')) {
       return transformAggregated(result);
-    } else {
-      return filterData(result, removeOutliers);
     }
+      return filterData(result, removeOutliers);
+
   });
   const aggregatedData = processedData.map((e) => {
     const conditionsArray = e.map((row) => row.condition);
     const unsortedConditions = [...new Set(conditionsArray)].sort();
-    const conditions = unsortedConditions.sort(function(a, b) {
-      return parseInt(a) - parseInt(b);
-    });
+    const conditions = unsortedConditions.sort((a, b) => parseInt(a) - parseInt(b));
     let rtMean = {},
       accuracyPercent = {};
-    for (let condition of conditions) {
-      let rt = e
+    for (const condition of conditions) {
+      const rt = e
         .filter((row) => row.response_given === 'yes')
         .filter((row) => row.correct_response === 'true')
         .filter((row) => row.condition === condition)
         .map((row) => row.reaction_time)
         .map((value) => parseFloat(value));
       rtMean[condition] = Math.round(ss.mean(rt));
-      let accuracy = e.filter(
+      const accuracy = e.filter(
         (row) =>
           row.condition === condition &&
           row.correct_response === 'true' &&
@@ -40,9 +38,9 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
       group: e.map((r) => r.group)[0],
       session: e.map((r) => r.session)[0],
     };
-    for (let condition of conditions) {
-      row['RT_' + condition] = rtMean[condition];
-      row['Accuracy_' + condition] = accuracyPercent[condition];
+    for (const condition of conditions) {
+      row[`RT_${  condition}`] = rtMean[condition];
+      row[`Accuracy_${  condition}`] = accuracyPercent[condition];
     }
     return row;
   });
@@ -65,9 +63,7 @@ export const aggregateDataForPlot = (
     });
     const colors = ['#28619E', '#3DBBDB'];
     const unsortedConditions = [...new Set(processedData[0].map((row) => row.condition))].sort();
-    const conditions = unsortedConditions.sort(function(a, b) {
-      return parseInt(a) - parseInt(b);
-    });
+    const conditions = unsortedConditions.sort((a, b) => parseInt(a) - parseInt(b));
     switch (dependentVariable) {
       case 'RT':
       default:
@@ -97,9 +93,7 @@ const transformAggregated = (result) => {
     .filter((field) => field.startsWith('RT_'))
     .map((c) => c.split('RT_')[1])
     .sort();
-  const conditions = unsortedConditions.sort(function(a, b) {
-    return parseInt(a) - parseInt(b);
-  });
+  const conditions = unsortedConditions.sort((a, b) => parseInt(a) - parseInt(b));
   const transformed = conditions.map((condition) =>
     result.data.map((e) => ({
       reaction_time: parseFloat(e[`RT_${condition}`]),
@@ -118,7 +112,7 @@ const transformAggregated = (result) => {
 
 const filterData = (data, removeOutliers) => {
   let filteredData = data.data
-    .filter((row) => row.trial_number)
+    .filter((row) => row.trial_number && row.phase !== 'practice')
     .map((row) => ({
       condition: row.condition,
       subject: path.parse(data.meta.datafile).name.split('-')[0],
@@ -259,12 +253,12 @@ const computeAccuracy = (
           .map((d) => {
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.accuracy);
-            } else {
+            }
               const c = d.filter(
                 (e) => e.response_given === 'yes' && e.correct_response === 'true'
               );
               return Math.round((c.length / d.length) * 100);
-            }
+
           })
           .reduce((acc, item) => acc.concat(item), []);
 
@@ -272,9 +266,9 @@ const computeAccuracy = (
           .map((d) => {
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.subject);
-            } else {
-              return d.map((r) => r.subject)[0];
             }
+              return d.map((r) => r.subject)[0];
+
           })
           .reduce((acc, item) => acc.concat(item), []);
         const subjects = Array.from(new Set(xRaw));
@@ -300,7 +294,7 @@ const computeAccuracy = (
                 accuracy: l.accuracy,
                 subject: l.subject,
               }));
-            } else {
+            }
               const c = d.filter(
                 (e) => e.response_given === 'yes' && e.correct_response === 'true'
               );
@@ -308,7 +302,7 @@ const computeAccuracy = (
                 accuracy: Math.round((c.length / d.length) * 100),
                 subject: d.map((r) => r.subject)[0],
               };
-            }
+
           })
           .reduce((acc, item) => acc.concat(item), []);
         const subjects = Array.from(new Set(transformedData.map((e) => e.subject)));
@@ -318,12 +312,12 @@ const computeAccuracy = (
         const stErrorFunction = (array) =>
           ss.sampleStandardDeviation(array) / Math.sqrt(array.length);
         const stErrors = subjects.map((subject) => {
-          let array = transformedData.filter((e) => e.subject === subject).map((d) => d.accuracy);
+          const array = transformedData.filter((e) => e.subject === subject).map((d) => d.accuracy);
           if (array.length > 1) {
             return stErrorFunction(array);
-          } else {
-            return 0;
           }
+            return 0;
+
         });
         obj[condition] = { x: subjects, y, stErrors };
         return obj;
@@ -339,21 +333,21 @@ const computeAccuracy = (
           .map((d) => {
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.accuracy);
-            } else {
+            }
               const c = d.filter(
                 (e) => e.response_given === 'yes' && e.correct_response === 'true'
               );
               return Math.round((c.length / d.length) * 100);
-            }
+
           })
           .reduce((acc, item) => acc.concat(item), []);
         const xRaw = correctDataForCondition
           .map((d) => {
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.subject);
-            } else {
-              return d.map((r) => r.subject)[0];
             }
+              return d.map((r) => r.subject)[0];
+
           })
           .reduce((acc, item) => acc.concat(item), []);
         obj[condition] = { x: xRaw, y };
@@ -368,7 +362,7 @@ const computeAccuracy = (
 // Rendering functions
 const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
   let dataForCondition;
-  let symbols = ['circle', 'cross', 'diamond', 'square'];
+  const symbols = ['circle', 'cross', 'diamond', 'square'];
   const dataToPlot = conditions.map((condition, i) => {
     dataForCondition = data[condition];
     return {
@@ -440,7 +434,7 @@ const makeBarGraph = (data, conditions, colors, dependentVariable) => {
 };
 
 const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
-  let symbols = ['circle', 'cross', 'diamond', 'square'];
+  const symbols = ['circle', 'cross', 'diamond', 'square'];
   const dataToPlot = conditions.map((condition, i) => {
     const dataForCondition = data[condition];
     return {
