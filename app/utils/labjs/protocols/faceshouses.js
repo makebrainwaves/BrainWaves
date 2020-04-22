@@ -24,13 +24,13 @@ export const buildN170Timeline = () => ({
   background_second_column_question: `Fun fact: Brad Pitt claims he has face blindness, but he has not been tested.
     Do you know anyone who has face blindness?`,
   protocol_title: `What participants are shown`,
-  protocol: `In the Faces/Houses experiment, you will see pictures of different faces and houses.`,
+  protocol: `In the Faces/Houses experiment, participants will see pictures of different faces and houses.`,
   protocol_condition_first_img: `conditionFace`,
   protocol_condition_first_title: `Faces`,
-  protocol_condition_first: `When you see a face, press the key “1”.`,
+  protocol_condition_first: `When participants see a face, they should press the key “1”.`,
   protocol_condition_second_img: `conditionHouse`,
   protocol_condition_second_title: `Houses`,
-  protocol_condition_second: `If you see a house, press “9”.`,
+  protocol_condition_second: `If participants see a house, they should press “9”.`,
   overview_links: [],
   background_links: [
     {

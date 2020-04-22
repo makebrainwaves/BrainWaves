@@ -309,7 +309,7 @@ export default class CustomDesign extends Component<Props, State> {
                 <div>
                   <Header as="h1">Trials</Header>
                   <p>
-                    Edit the name, condition and correct key response of each trial.
+                    Edit the correct key response and type of each trial.
                   </p>
                 </div>
 

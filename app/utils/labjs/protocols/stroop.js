@@ -23,10 +23,10 @@ export const buildStroopTimeline = () => ({
     (for example, children with Attention-deficit/hyperactivity disorder (ADHD)).`,
   background_second_column_question: `You can read more about the Stroop task at Link 1. `,
   protocol_title: `What participants are shown`,
-  protocol: `In the Stroop task, you will see different words written in different colors
+  protocol: `In the Stroop task, participants will see different words written in different colors
     (e.g., the word “GREEN” may be written in a green-colored font, but it may also be written in a red font).
-    You will respond only to the color of the font, ignoring the meaning of the word.
-    If the font is red, press the key ‘r’; if yellow, press ‘y’; if blue, press ‘b’; and if green, press ‘g’.`,
+    Participants need to respond only to the color of the font, ignoring the meaning of the word.
+    If the font is red, they should press the key ‘r’; if yellow, press ‘y’; if blue, press ‘b’; and if green, press ‘g’.`,
   protocol_condition_first_img: `conditionCongruent`,
   protocol_condition_first_title: `"Green" written in green`,
   protocol_condition_first: `The color is green, so the correct response is ‘g’.`,
