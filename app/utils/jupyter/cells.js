@@ -47,16 +47,17 @@ export const epochEvents = (
   tmax: number,
   reject?: Array<string> | string = 'None'
 ) => {
+  const IDs = Object.keys(eventIDs).filter(k => k !== "").reduce((res,key) => (res[key] = eventIDs[key], res), {} )
   const command = [
-    `event_id = ${JSON.stringify(eventIDs)}`,
+    `event_id = ${JSON.stringify(IDs)}`,
     `tmin=${tmin}`,
     `tmax=${tmax}`,
     `baseline= (tmin, tmax)`,
     `picks = None`,
     `reject = ${reject}`,
     'events = find_events(raw)',
-    `raw_epochs = Epochs(raw, events=events, event_id=event_id, 
-                      tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True, 
+    `raw_epochs = Epochs(raw, events=events, event_id=event_id,
+                      tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True,
                       verbose=False, picks=picks)`,
     `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`,
   ].join('\n');
@@ -79,7 +80,7 @@ export const plotTopoMap = () =>
 export const plotERP = (channelIndex: number) =>
   [
     `%matplotlib inline`,
-    `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, 
+    `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions,
     ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
   ].join('\n');
 
