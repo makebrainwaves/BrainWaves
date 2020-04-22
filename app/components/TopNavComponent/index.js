@@ -47,20 +47,30 @@ export default class TopNavComponent extends Component<Props> {
       <Grid
         className={styles.navContainer}
         verticalAlign="middle"
-        columns="equal"
+        columns="16"
       >
-        <Grid.Column className={styles.experimentTitleGridColumn}>
-          <Segment basic className={styles.experimentTitleSegment}>
+        <Grid.Column width={1} className={styles.experimentTitleGridColumn}>
+          <Segment basic>
             <NavLink to={SCREENS.HOME.route} >
-              <div className={styles.homeTopNavButton}>
-                <Image
-                  centered
-                  className={styles.exitWorkspaceBtn}
-                  src={BrainwavesIcon}
-                />
-                Home
-              </div>
+              <Image
+                centered
+                className={styles.exitWorkspaceBtn}
+                src={BrainwavesIcon}
+              />
             </NavLink>
+          </Segment>
+        </Grid.Column>
+
+        <Grid.Column width={1} className={styles.experimentTitleGridColumn}>
+          <Segment basic>
+            <NavLink to={SCREENS.HOME.route} >
+              Home
+            </NavLink>
+          </Segment>
+        </Grid.Column>
+
+        <Grid.Column width={2} className={styles.experimentTitleGridColumn}>
+          <Segment basic>
             <Dropdown
               text={this.props.title ? this.props.title : 'Untitled'}
               direction="right"
@@ -83,7 +93,6 @@ export default class TopNavComponent extends Component<Props> {
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
-
           </Segment>
         </Grid.Column>
 
@@ -112,8 +121,6 @@ export default class TopNavComponent extends Component<Props> {
             style={this.getStyleForScreen(SCREENS.ANALYZE)}
           />
         )}
-
-
 
       </Grid>
     );

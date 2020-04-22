@@ -50,15 +50,27 @@ export default class SecondaryNavComponent extends Component<Props> {
 
     return (
       <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
-        <Grid.Column width={3}>{this.renderTitle()}</Grid.Column>
+
+        <Grid.Column width={3} verticalAlign='bottom'>
+          {this.renderTitle()}
+        </Grid.Column>
+
         {this.renderSteps()}
 
         {this.props.enableEEGToggle &&
           <Grid.Column width={2} floated="right">
             <div className={styles.settingsButtons}>
-              <Dropdown icon='setting' direction="left" fluid className={styles.dropdownSettings}>
+              <Dropdown
+                icon='setting'
+                direction="left"
+                fluid
+                className={styles.dropdownSettings}
+              >
                 <Dropdown.Menu className={styles.dropdownMenu}>
-                  <Dropdown.Item className={styles.dropdownItem}>
+                  <Dropdown.Item
+                    className={styles.dropdownItem}
+                    onClick={e => e.stopPropagation()}
+                  >
                     <div>Enable EEG</div>
                     {this.props.enableEEGToggle}
                   </Dropdown.Item>

@@ -13,7 +13,7 @@ interface Props {
 export default class PrimaryNavSegment extends Component<Props> {
   render() {
     return (
-      <Grid.Column className={[this.props.style, styles.navColumn].join(' ')}>
+      <Grid.Column width={2} className={[this.props.style, styles.navColumn].join(' ')}>
         <NavLink to={this.props.route}>
           <div className={styles.numberBubble}>{this.props.order}</div>
           {this.props.title}

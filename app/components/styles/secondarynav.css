@@ -49,12 +49,14 @@
 .settingsButtons {
   display: grid;
   grid-template-columns: 2fr 4fr;
-  align-items: center;
 }
 
 .dropdownSettings{
   font-size: 27px;
   color: #666666;
+  display: grid !important;
+  align-items: center;
+  padding-right: 20px;
 }
 
 .dropdownMenu {

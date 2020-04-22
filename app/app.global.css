@@ -144,7 +144,7 @@ button:active {
 .ui.primary.button {
   font-size: 18px;
   font-weight: normal !important;
-  color: #e0fff5;
+  color: #fff;
   border: 2px solid #007c70;
   background-color: #007c70;
   border-radius: 4px;
