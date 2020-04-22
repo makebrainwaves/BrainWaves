@@ -212,7 +212,6 @@ export default class Design extends Component<Props, State> {
               <Grid.Column stretched width={11}>
                 <Segment basic>
                   <Header as='h1'>{this.props.overview_title}</Header>
-                  <Divider />
                   <p>{this.props.overview}</p>
                 </Segment>
               </Grid.Column>
@@ -283,7 +282,7 @@ export default class Design extends Component<Props, State> {
               <Grid.Column width={9}>
                 <Grid>
                   <Grid.Row>
-                    <Grid.Column width={3}>
+                    <Grid.Column width={5}>
                       <Image
                         src={this.renderConditionIcon(this.props.protocol_condition_first_img)}
                       />
@@ -297,7 +296,7 @@ export default class Design extends Component<Props, State> {
                   </Grid.Row>
 
                   <Grid.Row>
-                    <Grid.Column width={3}>
+                    <Grid.Column width={5}>
                       <Image
                         src={this.renderConditionIcon(this.props.protocol_condition_second_img)}
                       />

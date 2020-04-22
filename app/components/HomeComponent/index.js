@@ -211,21 +211,18 @@ export default class Home extends Component<Props, State> {
                             <Button
                               secondary
                               onClick={() => this.handleDeleteWorkspace(dir)}
-                              className={styles.experimentBtn}
                             >
                               Delete
                             </Button>
                             <Button
                               secondary
                               onClick={() => openWorkspaceDir(dir)}
-                              className={styles.experimentBtn}
                             >
                               Go to Folder
                             </Button>
                             <Button
                               primary
                               onClick={() => this.handleLoadRecentWorkspace(dir)}
-                              className={styles.experimentBtn}
                             >
                               Open Experiment
                             </Button>

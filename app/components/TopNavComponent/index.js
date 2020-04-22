@@ -44,38 +44,41 @@ export default class TopNavComponent extends Component<Props> {
       return null;
     }
     return (
-      <Grid className={styles.navContainer} verticalAlign='middle' columns='equal'>
-        <Grid.Column className={styles.experimentTitleGridColumn}>
-          <Segment basic className={styles.experimentTitleSegment}>
+      <Grid className={styles.navContainer} verticalAlign='middle' columns='16'>
+        <Grid.Column width={1} className={styles.experimentTitleGridColumn}>
+          <Segment basic>
             <NavLink to={SCREENS.HOME.route}>
-              <div className={styles.homeTopNavButton}>
-                <Image centered className={styles.exitWorkspaceBtn} src={BrainwavesIcon} />
-                Home
-              </div>
+              <Image centered className={styles.exitWorkspaceBtn} src={BrainwavesIcon} />
             </NavLink>
+          </Segment>
+        </Grid.Column>
+
+        <Grid.Column width={1} className={styles.experimentTitleGridColumn}>
+          <Segment basic>
+            <NavLink to={SCREENS.HOME.route}>Home</NavLink>
+          </Segment>
+        </Grid.Column>
+
+        <Grid.Column width={2} className={styles.experimentTitleGridColumn}>
+          <Segment basic>
             <Dropdown
               text={this.props.title ? this.props.title : 'Untitled'}
-              direction="right"
+              direction='right'
               simple
             >
               <Dropdown.Menu>
                 <Dropdown.Item>
                   <NavLink to={SCREENS.BANK.route}>
-                    <p>
-                      Experiment Bank
-                    </p>
+                    <p>Experiment Bank</p>
                   </NavLink>
                 </Dropdown.Item>
                 <Dropdown.Item>
                   <NavLink to={SCREENS.HOME.route}>
-                    <p>
-                      My Experiments
-                    </p>
+                    <p>My Experiments</p>
                   </NavLink>
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
-
           </Segment>
         </Grid.Column>
 

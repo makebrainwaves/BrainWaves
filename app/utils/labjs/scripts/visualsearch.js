@@ -32,8 +32,7 @@ const studyObject = {
           },
           messageHandlers: {},
           title: 'Instruction',
-          content:
-            '\u003Cstyle\u003E\n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cheader\u003E\n  \u003Ch1\u003EVisual search task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \n  \u003Cp\u003E\n    ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n   \u003Cp\u003E\n     Again, all you need to do is to find an \u003Cb\u003Eorange T\u003C\u002Fb\u003E. If you see the \u003Cb\u003Eorange T\u003C\u002Fb\u003E, press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E. Ignore the upside-down orange T, as well as blue Ts! IF THERE IS NO ORANGE T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E.\n      It is very important to respond \u003Cb\u003EAS FAST AS YOU CAN\u003C\u002Fb\u003E.\n    \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Find \n  \u003C\u002Fp\u003E\n  \u003Cbr\u003E\n  \u003Cdiv class="letter" style="color:orange"\u003E\n    T\n  \u003C\u002Fdiv\u003E\n  \u003Cbr\u003E\u003Cbr\u003E\n  \u003Cp\u003E\n    But do not respond to any of these distractors:\n  \u003C\u002Fp\u003E\n  \u003Cbr\u003E\n  \n  \u003Cdiv style="display:grid; grid-template-columns: 100px 50px; justify-content: center"\u003E\n    \u003Cdiv class="letter" style="color:lightblue"\u003E\n      T\n    \u003C\u002Fdiv\u003E\n    \u003Cdiv class="letter" style="color:orange; transform: rotate(-180deg)"\u003E\n      T\n    \u003C\u002Fdiv\u003E\n  \u003C\u002Fdiv\u003E\n  \n  \u003Cbr\u003E\u003Cbr\u003E\n\n  \u003Cp\u003E\n    Press the space bar on your keyboard to start doing the practice trials.\n    If you want to skip the practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E',
+          "content": "\u003Cstyle\u003E\n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cheader\u003E\n  \u003Ch1\u003EVisual search task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \n  \u003Cp\u003E\n    ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n   \u003Cp\u003E\n     Again, all you need to do is to find an \u003Cb\u003Eorange T\u003C\u002Fb\u003E. If you see the \u003Cb\u003Eorange T\u003C\u002Fb\u003E, press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E. Ignore the upside-down orange T, as well as blue Ts! IF THERE IS NO ORANGE T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E.\n      It is very important to respond \u003Cb\u003EAS FAST AS YOU CAN\u003C\u002Fb\u003E.\n    \u003C\u002Fp\u003E\n\n    \u003Cdiv style=\"display:grid; grid-template-columns:1fr 1fr;\"\u003E\n      \u003Cdiv\u003E\n      \u003Cp\u003E\n        Find \n      \u003C\u002Fp\u003E\n      \u003Cbr\u003E\n      \u003Cdiv class=\"letter\" style=\"color:orange; height: 100px;\"\u003E\n        T\n      \u003C\u002Fdiv\u003E\n    \u003C\u002Fdiv\u003E\n    \u003Cdiv\u003E\n      \u003Cp\u003E\n        But do not respond to any of these distractors:\n      \u003C\u002Fp\u003E\n      \u003Cbr\u003E\n      \u003Cdiv style=\"display:grid; grid-template-columns: 100px 50px; justify-content: center; \"\u003E\n        \u003Cdiv class=\"letter\" style=\"color:lightblue;\"\u003E\n          T\n        \u003C\u002Fdiv\u003E\n        \u003Cdiv class=\"letter\" style=\"color:orange; transform: rotate(-180deg);\"\u003E\n          T\n        \u003C\u002Fdiv\u003E\n      \u003C\u002Fdiv\u003E\n      \u003C\u002Fdiv\u003E\n  \u003C\u002Fdiv\u003E\n\n  \u003Cp\u003E\n    Press the space bar on your keyboard to start doing the practice trials.\n    If you want to skip the practice trials and go directly to the task, press the \"q\" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E"
         },
         {
           type: 'lab.flow.Loop',
@@ -49,7 +48,7 @@ const studyObject = {
               let practiceTrialParameters = [];
 
               function shuffle(a) {
-                var j, x, i;
+                let j, x, i;
                 for (i = a.length - 1; i > 0; i--) {
                   j = Math.floor(Math.random() * (i + 1));
                   x = a[i];
@@ -59,14 +58,12 @@ const studyObject = {
                 return a;
               }
 
-              const randomBetween = (min, max) => {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-              };
+              const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
               const makeStimuliArray = (arrLen, stLen, isTarget) => {
-                let arr = Array(arrLen).fill(0);
-                let shuffled = shuffle([...Array(arrLen).keys()]).slice(0, stLen);
-                for (let p of shuffled) {
+                const arr = Array(arrLen).fill(0);
+                const shuffled = shuffle([...Array(arrLen).keys()]).slice(0, stLen);
+                for (const p of shuffled) {
                   if (randomBetween(0, 1) === 0) {
                     arr[p] = 1;
                   } else {
@@ -118,7 +115,7 @@ const studyObject = {
                 );
               }
 
-              //assign options values to parameters of this task
+              // assign options values to parameters of this task
               this.options.templateParameters = practiceTrialParameters;
               this.options.shuffle = true; // already shuffled before
             },
@@ -224,10 +221,10 @@ const studyObject = {
                     const taskgrid = document.querySelector('#taskgrid');
                     const stimuli = this.parameters.stimuli;
 
-                    for (let s of stimuli) {
-                      let d = document.createElement('div');
+                    for (const s of stimuli) {
+                      const d = document.createElement('div');
                       d.classList.add('box');
-                      let el = document.createElement('span');
+                      const el = document.createElement('span');
                       el.classList.add('letter');
 
                       if (s > 0) {
@@ -265,10 +262,10 @@ const studyObject = {
                     const taskgrid = document.querySelector('#taskgrid');
                     const stimuli = this.parameters.stimuli;
 
-                    for (let s of stimuli) {
-                      let d = document.createElement('div');
+                    for (const s of stimuli) {
+                      const d = document.createElement('div');
                       d.classList.add('box');
-                      let el = document.createElement('span');
+                      const el = document.createElement('span');
                       el.classList.add('letter');
 
                       if (s > 0) {
@@ -292,31 +289,29 @@ const studyObject = {
                     }
 
                     if (this.state.response === 'noresponse') {
-                      document.querySelector('#feedback').innerHTML = 'Please respond!';
+                      document.querySelector('#feedback').innerHTML = 'Please respond.';
                       return;
                     }
 
                     if (this.state.correct) {
                       document.querySelector('#feedback').innerHTML = 'Well done!';
                       document.querySelector('#feedback').style.color = 'green';
-                    } else {
-                      if (this.parameters.target === 'yes') {
+                    } else if (this.parameters.target === 'yes') {
                         document.querySelector('#feedback').innerHTML = 'Error! There was one!';
                         document.querySelector('#target').style.border = 'solid';
                       } else {
                         document.querySelector('#feedback').innerHTML = 'Error! There was none!';
                       }
-                    }
                   },
                   'before:prepare': function anonymous() {
                     this.data.trial_number =
                       1 +
                       parseInt(this.options.id.split('_')[this.options.id.split('_').length - 2]);
 
-                    this.data.condition = this.parameters.size + ' letters';
+                    this.data.condition = `${this.parameters.size  } letters`;
 
                     this.data.reaction_time = this.state.duration;
-                    //this.data.target = this.parameters.target;
+                    // this.data.target = this.parameters.target;
 
                     if (this.state.response === this.parameters.target) {
                       this.data.correct_response = true;
@@ -366,7 +361,7 @@ const studyObject = {
               let trialParameters = [];
 
               function shuffle(a) {
-                var j, x, i;
+                let j, x, i;
                 for (i = a.length - 1; i > 0; i--) {
                   j = Math.floor(Math.random() * (i + 1));
                   x = a[i];
@@ -376,14 +371,12 @@ const studyObject = {
                 return a;
               }
 
-              const randomBetween = (min, max) => {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-              };
+              const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
               const makeStimuliArray = (arrLen, stLen, isTarget) => {
-                let arr = Array(arrLen).fill(0);
-                let shuffled = shuffle([...Array(arrLen).keys()]).slice(0, stLen);
-                for (let p of shuffled) {
+                const arr = Array(arrLen).fill(0);
+                const shuffled = shuffle([...Array(arrLen).keys()]).slice(0, stLen);
+                for (const p of shuffled) {
                   if (randomBetween(0, 1) === 0) {
                     arr[p] = 1;
                   } else {
@@ -419,7 +412,7 @@ const studyObject = {
                 trialParameters = trialParameters.concat(trialConstructor(i, 20, 'no'));
               }
 
-              //assign options values to parameters of this task
+              // assign options values to parameters of this task
               this.options.templateParameters = trialParameters;
               this.options.shuffle = true; // already shuffled before
             },
@@ -524,10 +517,10 @@ const studyObject = {
                     const taskgrid = document.querySelector('#taskgrid');
                     const stimuli = this.parameters.stimuli;
 
-                    for (let s of stimuli) {
-                      let d = document.createElement('div');
+                    for (const s of stimuli) {
+                      const d = document.createElement('div');
                       d.classList.add('box');
-                      let el = document.createElement('span');
+                      const el = document.createElement('span');
                       el.classList.add('letter');
 
                       if (s > 0) {
@@ -565,10 +558,10 @@ const studyObject = {
                     const taskgrid = document.querySelector('#taskgrid');
                     const stimuli = this.parameters.stimuli;
 
-                    for (let s of stimuli) {
-                      let d = document.createElement('div');
+                    for (const s of stimuli) {
+                      const d = document.createElement('div');
                       d.classList.add('box');
-                      let el = document.createElement('span');
+                      const el = document.createElement('span');
                       el.classList.add('letter');
 
                       if (s > 0) {
@@ -599,24 +592,22 @@ const studyObject = {
                     if (this.state.correct) {
                       document.querySelector('#feedback').innerHTML = 'Well done!';
                       document.querySelector('#feedback').style.color = 'green';
-                    } else {
-                      if (this.parameters.target === 'yes') {
+                    } else if (this.parameters.target === 'yes') {
                         document.querySelector('#feedback').innerHTML = 'Error! There was one!';
                         document.querySelector('#target').style.border = 'solid';
                       } else {
                         document.querySelector('#feedback').innerHTML = 'Error! There was none!';
                       }
-                    }
                   },
                   'before:prepare': function anonymous() {
                     this.data.trial_number =
                       1 +
                       parseInt(this.options.id.split('_')[this.options.id.split('_').length - 2]);
 
-                    this.data.condition = this.parameters.size + ' letters';
+                    this.data.condition = `${this.parameters.size  } letters`;
 
                     this.data.reaction_time = this.state.duration;
-                    //this.data.target = this.parameters.target;
+                    // this.data.target = this.parameters.target;
 
                     if (this.state.response === this.parameters.target) {
                       this.data.correct_response = true;
