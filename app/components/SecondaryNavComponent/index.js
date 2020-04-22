@@ -59,12 +59,6 @@ export default class SecondaryNavComponent extends Component<Props> {
                     <div>Enable EEG</div>
                     {this.props.enableEEGToggle}
                   </Dropdown.Item>
-                  {this.props.canEditExperiment && (
-                    <Dropdown.Item
-                      text='Edit Experiment'
-                      onClick={() => this.props.onEditClick()}
-                    />
-                  )}
                   <Dropdown.Item>
                     <NavLink to={SCREENS.HOME.route}>
                       <p>Exit Experiment</p>

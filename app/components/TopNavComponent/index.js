@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Image } from 'semantic-ui-react';
+import { Grid, Button, Segment, Image, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import styles from '../styles/topnavbar.css';
@@ -37,6 +37,7 @@ export default class TopNavComponent extends Component<Props> {
   render() {
     if (
       this.props.location.pathname === SCREENS.HOME.route ||
+      this.props.location.pathname === SCREENS.BANK.route ||
       this.props.location.pathname === '/' ||
       this.props.isRunning
     ) {
@@ -52,7 +53,29 @@ export default class TopNavComponent extends Component<Props> {
                 Home
               </div>
             </NavLink>
-            {this.props.title ? this.props.title : 'Untitled'}
+            <Dropdown
+              text={this.props.title ? this.props.title : 'Untitled'}
+              direction="right"
+              simple
+            >
+              <Dropdown.Menu>
+                <Dropdown.Item>
+                  <NavLink to={SCREENS.BANK.route}>
+                    <p>
+                      Experiment Bank
+                    </p>
+                  </NavLink>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                  <NavLink to={SCREENS.HOME.route}>
+                    <p>
+                      My Experiments
+                    </p>
+                  </NavLink>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
           </Segment>
         </Grid.Column>
 

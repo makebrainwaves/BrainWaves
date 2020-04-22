@@ -238,3 +238,10 @@ const convertObjectToSCV = (data) => {
 export const deleteWorkspaceDir = (title: string) => {
   shell.moveItemToTrash(path.join(workspaces, title));
 };
+
+// Check whether the file with the given name already exists in the filesystem
+export const checkFileExists = (title, subject, filename) => {
+  const file = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior', filename);
+  const fileExists = fs.existsSync(file);
+  return fileExists;
+}

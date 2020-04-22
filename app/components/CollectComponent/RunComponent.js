@@ -4,14 +4,19 @@ import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
 import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import styles from '../styles/common.css';
-import InputModal from '../InputModal';
+import InputCollect from '../InputCollect';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { ExperimentWindow } from '../../utils/labjs';
+import { checkFileExists } from '../../utils/filesystem/storage';
 
 import { parseTimeline, instantiateTimeline, getImages } from '../../utils/jspsych/functions';
 import { MainTimeline, Trial, ExperimentParameters } from '../../constants/interfaces';
+
+import { remote } from 'electron';
+
+const { dialog } = remote;
 
 interface Props {
   type: ?EXPERIMENTS;
@@ -30,33 +35,25 @@ interface Props {
 }
 
 interface State {
-  isInputModalOpen: boolean;
-  isGroupInputModalOpen: boolean;
+  isInputCollectOpen: boolean;
 }
 
 export default class Run extends Component<Props, State> {
   props: Props;
   state: State;
-  handleSubjectEntry: (Object, Object) => void;
-  handleSessionEntry: (Object, Object) => void;
   handleStartExperiment: () => void;
   insertLabJsCallback: () => void;
-  handleCloseInputModal: () => void;
-  handleCloseGroupInputModal: () => void;
+  handleCloseInputCollect: (string, string, number) => void;
   handleClean: () => void;
 
   constructor(props: Props) {
     super(props);
     this.state = {
-      isInputModalOpen: props.subject.length === 0,
-      isGroupInputModalOpen: false,
+      isInputCollectOpen: props.subject.length === 0,
     };
-    this.handleSubjectEntry = debounce(this.handleSubjectEntry, 500).bind(this);
-    this.handleSessionEntry = debounce(this.handleSessionEntry, 500).bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.insertLabJsCallback = this.insertLabJsCallback.bind(this);
-    this.handleCloseInputModal = this.handleCloseInputModal.bind(this);
-    this.handleCloseGroupInputModal = this.handleCloseGroupInputModal.bind(this);
+    this.handleCloseInputCollect = this.handleCloseInputCollect.bind(this);
   }
 
   componentDidMount() {
@@ -65,26 +62,31 @@ export default class Run extends Component<Props, State> {
     }
   }
 
-  handleSubjectEntry(event: Object, data: Object) {
-    this.props.experimentActions.setSubject(data.value);
-  }
-
-  handleSessionEntry(event: Object, data: Object) {
-    this.props.experimentActions.setSession(parseFloat(data.value));
-  }
-
   handleStartExperiment() {
-    this.props.experimentActions.start();
+    const filename = `${this.props.subject}-${this.props.group}-${this.props.session}-behavior.csv`;
+    const { subject, title } = this.props;
+    const fileExists = checkFileExists(title, subject, filename);
+    if (fileExists) {
+      const options = {
+        buttons: ['No', 'Yes'],
+        message:
+          'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?',
+      };
+      const response = dialog.showMessageBox(options);
+      if (response === 1) {
+        this.props.experimentActions.start();
+      }
+    } else {
+      this.props.experimentActions.start();
+    }
   }
 
-  handleCloseInputModal(name: string) {
-    this.props.experimentActions.setSubject(name);
-    this.setState({ isInputModalOpen: false });
-  }
-
-  handleCloseGroupInputModal(name: string) {
-    this.props.experimentActions.setGroup(name);
-    this.setState({ isGroupInputModalOpen: false });
+  handleCloseInputCollect(subject: string, group: string, session: number) {
+    this.props.experimentActions.setSubject(subject);
+    this.props.experimentActions.setGroup(group);
+    // error here
+    this.props.experimentActions.setSession(parseFloat(session));
+    this.setState({ isInputCollectOpen: false });
   }
 
   insertLabJsCallback() {
@@ -117,44 +119,37 @@ export default class Run extends Component<Props, State> {
     if (!this.props.isRunning) {
       return (
         <div className={styles.mainContainer}>
-          <Segment
-            basic
-            textAlign="left"
-            className={styles.descriptionContainer}
-            vertical
-          >
-            <Header as="h1">{this.props.title}</Header>
+          <Segment basic textAlign='left' className={styles.descriptionContainer} vertical>
+            <Header as='h1'>{this.props.title}</Header>
+            <Button
+              basic
+              circular
+              size='huge'
+              icon='edit'
+              className={styles.closeButton}
+              onClick={() => this.setState({ isInputCollectOpen: true })}
+            />
             <Segment basic className={styles.infoSegment}>
-              Subject Name: <b>{this.props.subject}</b>
-              <Button
-                basic
-                circular
-                size='huge'
-                icon='edit'
-                className={styles.closeButton}
-                onClick={() => this.setState({ isInputModalOpen: true })}
-              />
+              Subject ID: <b>{this.props.subject}</b>
             </Segment>
 
             <Segment basic className={styles.infoSegment}>
               Group Name: <b>{this.props.group}</b>
-              <Button
-                basic
-                circular
-                size='huge'
-                icon='edit'
-                className={styles.closeButton}
-                onClick={() => this.setState({ isGroupInputModalOpen: true })}
-              />
             </Segment>
 
             <Segment basic className={styles.infoSegment}>
               Session Number: <b>{this.props.session}</b>
             </Segment>
+
             <Divider hidden section />
             <Grid textAlign='center' columns='equal'>
               <Grid.Column>
-                <Button fluid primary onClick={this.handleStartExperiment}>
+                <Button
+                  fluid
+                  primary
+                  onClick={this.handleStartExperiment}
+                  disabled={!this.props.subject}
+                >
                   Run Experiment
                 </Button>
               </Grid.Column>
@@ -186,17 +181,16 @@ export default class Run extends Component<Props, State> {
         <Grid columns={1} divided relaxed className={styles.experimentContainer}>
           <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
         </Grid>
-        <InputModal
-          open={this.state.isInputModalOpen}
-          onClose={this.handleCloseInputModal}
-          onExit={() => this.setState({ isInputModalOpen: false })}
-          header='Enter Subject Name'
-        />
-        <InputModal
-          open={this.state.isGroupInputModalOpen}
-          onClose={this.handleCloseGroupInputModal}
-          onExit={() => this.setState({ isGroupInputModalOpen: false })}
-          header='Enter Group Name'
+        <InputCollect
+          open={this.state.isInputCollectOpen}
+          onClose={this.handleCloseInputCollect}
+          onExit={() => this.setState({ isInputCollectOpen: false })}
+          header='Enter Data'
+          data={{
+            subject: this.props.subject,
+            group: this.props.group,
+            session: this.props.session,
+          }}
         />
       </div>
     );

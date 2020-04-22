@@ -111,6 +111,7 @@ const transformAggregated = (result) => {
 };
 
 const filterData = (data, removeOutliers) => {
+
   let filteredData = data.data
     .filter((row) => row.trial_number && row.phase !== 'practice')
     .map((row) => ({
@@ -124,22 +125,27 @@ const filterData = (data, removeOutliers) => {
       response_given: row.response_given,
     }));
   if (removeOutliers) {
-    const mean = ss.mean(
-      filteredData
-        .filter((r) => r.response_given === 'yes' && r.correct_response === 'true')
-        .map((r) => r.reaction_time)
-    );
-    const standardDeviation = ss.sampleStandardDeviation(
-      filteredData
-        .filter((r) => r.response_given === 'yes' && r.correct_response === 'true')
-        .map((r) => r.reaction_time)
-    );
-    const upperBoarder = mean + 2 * standardDeviation;
-    const lowerBoarder = mean - 2 * standardDeviation;
-    filteredData = filteredData.filter(
-      (r) =>
-        (r.reaction_time > lowerBoarder && r.reaction_time < upperBoarder) || isNaN(r.reaction_time)
-    );
+    try {
+      const mean = ss.mean(
+        filteredData
+          .filter((r) => r.response_given === 'yes' && r.correct_response === 'true')
+          .map((r) => r.reaction_time)
+      );
+      const standardDeviation = ss.sampleStandardDeviation(
+        filteredData
+          .filter((r) => r.response_given === 'yes' && r.correct_response === 'true')
+          .map((r) => r.reaction_time)
+      );
+      const upperBoarder = mean + 2 * standardDeviation;
+      const lowerBoarder = mean - 2 * standardDeviation;
+      filteredData = filteredData.filter(
+        (r) =>
+          (r.reaction_time > lowerBoarder && r.reaction_time < upperBoarder) || isNaN(r.reaction_time)
+      );
+    } catch (err) {
+      alert('Calculation of the mean and the standard deviation requires at least two completed trials in each condition.');
+      return filteredData;
+    }
   }
   return filteredData;
 };
