@@ -35,6 +35,7 @@ export const buildCustomTimeline = () => ({
   background_links: [{name: 'Link 1', address: 'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'}],
   protocal_links: [],
   params: {
+    imageHeight: '500px',
     randomize: 'random',
     includePractice: true,
     trialDuration: 1000,

@@ -79,7 +79,7 @@ export default class Home extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      activeStep: HOME_STEPS.RECENT,
+      activeStep: this.props.activeStep || HOME_STEPS.RECENT,
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
@@ -363,6 +363,38 @@ export default class Home extends Component<Props, State> {
                 </Segment>
               </Grid.Column>
             </Grid.Row>
+
+
+            <Grid.Row>
+              <Grid.Column>
+                <Segment>
+                  <Grid
+                    columns='two'
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+                  >
+                    <Grid.Row>
+                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                        <Image src={customIcon} />
+                      </Grid.Column>
+                      <Grid.Column width={12} className={styles.descriptionContainer}>
+                        <Header as='h1' className={styles.experimentCardHeader}>
+                          Custom experiment
+                        </Header>
+                        <div className={styles.experimentCardDescription}>
+                          <p>
+                            Design your own EEG experiment!
+                          </p>
+                        </div>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+              </Grid.Column>
+
+              <Grid.Column />
+            </Grid.Row>
+
           </Grid>
         );
       case HOME_STEPS.EXPLORE:

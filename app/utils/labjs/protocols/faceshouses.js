@@ -40,6 +40,7 @@ export const buildN170Timeline = () => ({
   ],
   protocal_links: [],
   params: {
+    imageHeight: '500px',
     randomize: 'random',
     includePractice: true,
     trialDuration: 1000,

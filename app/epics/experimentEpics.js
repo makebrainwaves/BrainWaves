@@ -154,14 +154,14 @@ const experimentStopEpic = (action$, state$) =>
         stopEmotivRecord();
       }
     }),
-    mergeMap(() => of(setIsRunning(false), updateSession()))
+    mergeMap(() => of(setIsRunning(false)))
   );
 
-const setSubjectEpic = action$ =>
-  action$.ofType(SET_SUBJECT).pipe(map(updateSession));
-
-const setGroupEpic = action$ =>
-  action$.ofType(SET_GROUP).pipe(map(updateSession));
+// const setSubjectEpic = action$ =>
+//   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
+//
+// const setGroupEpic = action$ =>
+//   action$.ofType(SET_GROUP).pipe(map(updateSession));
 
 const updateSessionEpic = (action$, state$) =>
   action$.ofType(UPDATE_SESSION).pipe(
@@ -183,7 +183,7 @@ const updateSessionEpic = (action$, state$) =>
 const autoSaveEpic = action$ =>
   action$.ofType("@@router/LOCATION_CHANGE").pipe(
     pluck("payload", "pathname"),
-    filter(pathname => pathname !== "/"),
+    filter(pathname => pathname !== "/" && pathname !== "/home"),
     map(saveWorkspace)
   );
 
@@ -199,7 +199,7 @@ const saveWorkspaceEpic = (action$, state$) =>
 const navigationCleanupEpic = (action$, state$) =>
   action$.ofType("@@router/LOCATION_CHANGE").pipe(
     pluck("payload", "pathname"),
-    filter(pathname => pathname === "/"),
+    filter(pathname => pathname === "/" || pathname === "/home"),
     tap(() => restoreExperimentState(state$.value.experiment)),
     map(cleanup)
   );
@@ -209,8 +209,8 @@ export default combineEpics(
   createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
-  setSubjectEpic,
-  setGroupEpic,
+  // setSubjectEpic,
+  // setGroupEpic,
   updateSessionEpic,
   autoSaveEpic,
   saveWorkspaceEpic,

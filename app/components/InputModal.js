@@ -78,7 +78,6 @@ export default class InputModal extends Component<Props, State> {
             error={this.state.isError}
             onChange={this.handleTextEntry}
             onKeyDown={this.handleEnterSubmit}
-            autoFocus
           />
         </Modal.Content>
         <Modal.Actions>
