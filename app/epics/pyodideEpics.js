@@ -13,7 +13,7 @@ import {
   LOAD_TOPO,
   CLEAN_EPOCHS,
   loadTopo,
-  loadERP
+  loadERP,
 } from '../actions/pyodideActions';
 import {
   loadPackages,
@@ -28,7 +28,7 @@ import {
   plotPSD,
   plotERP,
   plotTopoMap,
-  saveEpochs
+  saveEpochs,
 } from '../utils/pyodide';
 import {
   EMOTIV_CHANNELS,
@@ -36,7 +36,7 @@ import {
   DEVICES,
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES,
-  PYODIDE_STATUS
+  PYODIDE_STATUS,
 } from '../constants/constants';
 
 export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
@@ -60,7 +60,7 @@ const getEpochsInfo = (payload) => ({ payload, type: GET_EPOCHS_INFO });
 
 const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
 
-const setEpochInfo = payload => ({
+const setEpochInfo = (payload) => ({
   payload,
   type: SET_EPOCH_INFO,
 });
@@ -85,15 +85,15 @@ const setERPPlot = (payload) => ({
   type: SET_ERP_PLOT,
 });
 
-const setPyodideStatus = payload => ({
+const setPyodideStatus = (payload) => ({
   payload,
-  type: SET_PYODIDE_STATUS
+  type: SET_PYODIDE_STATUS,
 });
 
 // -------------------------------------------------------------------------
 // Epics
 
-const launchEpic = action$ =>
+const launchEpic = (action$) =>
   action$.ofType(LAUNCH).pipe(
     tap(() => console.log('launching')),
     mergeMap(loadPackages),
@@ -104,11 +104,11 @@ const launchEpic = action$ =>
 const loadEpochsEpic = (action$, state$) =>
   action$.ofType(LOAD_EPOCHS).pipe(
     pluck('payload'),
-    filter(filePathsArray => filePathsArray.length >= 1),
-    tap(files => console.log('files:', files)),
-    map(filePathsArray => readFiles(filePathsArray)),
-    tap(csvArray => console.log('csvs:', csvArray)),
-    mergeMap(csvArray => loadCSV(csvArray)),
+    filter((filePathsArray) => filePathsArray.length >= 1),
+    tap((files) => console.log('files:', files)),
+    map((filePathsArray) => readFiles(filePathsArray)),
+    tap((csvArray) => console.log('csvs:', csvArray)),
+    mergeMap((csvArray) => loadCSV(csvArray)),
     mergeMap(() => filterIIR(1, 30)),
     mergeMap(() =>
       epochEvents(
@@ -123,17 +123,13 @@ const loadEpochsEpic = (action$, state$) =>
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
-const loadCleanedEpochsEpic = action$ =>
+const loadCleanedEpochsEpic = (action$) =>
   action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
     pluck('payload'),
-    filter(filePathsArray => filePathsArray.length >= 1),
-    map(filePathsArray => loadCleanedEpochs(filePathsArray)),
+    filter((filePathsArray) => filePathsArray.length >= 1),
+    map((filePathsArray) => loadCleanedEpochs(filePathsArray)),
     mergeMap(() =>
-      of(
-        getEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
-        getChannelInfo(),
-        loadTopo()
-      )
+      of(getEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS), getChannelInfo(), loadTopo())
     )
   );
 
@@ -141,21 +137,18 @@ const cleanEpochsEpic = (action$, state$) =>
   action$.ofType(CLEAN_EPOCHS).pipe(
     map(cleanEpochsPlot),
     map(() =>
-      saveEpochs(
-        getWorkspaceDir(state$.value.experiment.title),
-        state$.value.experiment.subject
-      )
+      saveEpochs(getWorkspaceDir(state$.value.experiment.title), state$.value.experiment.subject)
     ),
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
-const getEpochsInfoEpic = action$ =>
+const getEpochsInfoEpic = (action$) =>
   action$.ofType(GET_EPOCHS_INFO).pipe(
     pluck('payload'),
-    tap(payload => console.log('payload: ', payload)),
+    tap((payload) => console.log('payload: ', payload)),
     mergeMap(requestEpochsInfo),
-    map(epochInfoArray =>
-      epochInfoArray.map(infoObj => ({
+    map((epochInfoArray) =>
+      epochInfoArray.map((infoObj) => ({
         name: Object.keys(infoObj)[0],
         value: infoObj[Object.keys(infoObj)[0]],
       }))
@@ -163,24 +156,18 @@ const getEpochsInfoEpic = action$ =>
     map(setEpochInfo)
   );
 
-const getChannelInfoEpic = action$ =>
+const getChannelInfoEpic = (action$) =>
   action$.ofType(GET_CHANNEL_INFO).pipe(
     map(requestChannelInfo),
-    map(channelInfoString =>
-      setChannelInfo(parseSingleQuoteJSON(channelInfoString))
-    )
+    map((channelInfoString) => setChannelInfo(parseSingleQuoteJSON(channelInfoString)))
   );
 
-const loadPSDEpic = action$ =>
-  action$.ofType(LOAD_PSD).pipe(
-    map(plotPSD),
-    map(setPSDPlot)
-  );
+const loadPSDEpic = (action$) => action$.ofType(LOAD_PSD).pipe(map(plotPSD), map(setPSDPlot));
 
 const loadTopoEpic = (action$, state$) =>
   action$.ofType(LOAD_TOPO).pipe(
     map(plotTopoMap),
-    mergeMap(topoPlot =>
+    mergeMap((topoPlot) =>
       of(
         setTopoPlot(topoPlot),
         loadERP(
@@ -190,34 +177,19 @@ const loadTopoEpic = (action$, state$) =>
     )
   );
 
-const loadERPEpic = action$ =>
+const loadERPEpic = (action$) =>
   action$.ofType(LOAD_ERP).pipe(
-<<<<<<< HEAD
-<<<<<<< HEAD
     pluck('payload'),
     map((channelName) => {
-=======
-    pluck("payload"),
-=======
-    pluck('payload'),
->>>>>>> Tidyed up pyodide files and removed some jupyter dependencies
-    map(channelName => {
->>>>>>> Added loading of pyodide within app epics
       if (MUSE_CHANNELS.includes(channelName)) {
         return MUSE_CHANNELS.indexOf(channelName);
       } else if (EMOTIV_CHANNELS.includes(channelName)) {
         return EMOTIV_CHANNELS.indexOf(channelName);
       }
-<<<<<<< HEAD
       console.warn('channel name supplied to loadERPEpic does not belong to either device');
-=======
-      console.warn(
-        'channel name supplied to loadERPEpic does not belong to either device'
-      );
->>>>>>> Added loading of pyodide within app epics
       return EMOTIV_CHANNELS[0];
     }),
-    map(channelIndex => plotERP(channelIndex)),
+    map((channelIndex) => plotERP(channelIndex)),
     map(setERPPlot)
   );
 
