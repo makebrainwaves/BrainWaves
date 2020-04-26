@@ -32,10 +32,13 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import { loadProtocol } from '../../utils/labjs/functions';
 import EEGExplorationComponent from '../EEGExplorationComponent';
+import { languagePluginLoader } from '../../utils/pyodide/pyodide';
 
 import { remote } from 'electron';
-
 const { dialog } = remote;
+
+// this initiates pyodide
+languagePluginLoader;
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now

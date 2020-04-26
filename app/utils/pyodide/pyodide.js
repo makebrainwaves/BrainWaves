@@ -6,7 +6,8 @@ var languagePluginLoader = new Promise((resolve, reject) => {
   // This is filled in by the Makefile to be either a local file or the
   // deployed location. TODO: This should be done in a less hacky
   // way.
-  var baseURL = self.languagePluginUrl || 'https://iodide.io/pyodide-demo/';
+  var baseURL = 'http://localhost:1212/src/';
+  // var baseURL = self.languagePluginUrl || 'https://iodide.io/pyodide-demo/';
   baseURL = baseURL.substr(0, baseURL.lastIndexOf('/')) + '/';
 
   ////////////////////////////////////////////////////////////
@@ -47,7 +48,7 @@ var languagePluginLoader = new Promise((resolve, reject) => {
       let dirs;
       try {
         dirs = FS.readdir(rootpath);
-      } catch {
+      } catch (err) {
         return;
       }
       for (let entry of dirs) {
@@ -87,7 +88,7 @@ var languagePluginLoader = new Promise((resolve, reject) => {
       try {
         self.importScripts(url);
         onload();
-      } catch {
+      } catch (err) {
         onerror();
       }
     }
@@ -102,50 +103,50 @@ var languagePluginLoader = new Promise((resolve, reject) => {
     while (queue.length) {
       let package_uri = queue.pop();
 
-      const package = _uri_to_package_name(package_uri);
+      const packageName = _uri_to_package_name(package_uri);
 
-      if (package == null) {
+      if (packageName == null) {
         console.error(`Invalid package name or URI '${package_uri}'`);
         return;
-      } else if (package == package_uri) {
+      } else if (packageName == package_uri) {
         package_uri = 'default channel';
       }
 
-      if (package in loadedPackages) {
-        if (package_uri != loadedPackages[package]) {
+      if (packageName in loadedPackages) {
+        if (package_uri != loadedPackages[packageName]) {
           console.error(`URI mismatch, attempting to load package ` +
-                        `${package} from ${package_uri} while it is already ` +
-                        `loaded from ${loadedPackages[package]}!`);
+                        `${packageName} from ${package_uri} while it is already ` +
+                        `loaded from ${loadedPackages[packageName]}!`);
           return;
         }
-      } else if (package in toLoad) {
-        if (package_uri != toLoad[package]) {
+      } else if (packageName in toLoad) {
+        if (package_uri != toLoad[packageName]) {
           console.error(`URI mismatch, attempting to load package ` +
-                        `${package} from ${package_uri} while it is already ` +
-                        `being loaded from ${toLoad[package]}!`);
+                        `${packageName} from ${package_uri} while it is already ` +
+                        `being loaded from ${toLoad[packageName]}!`);
           return;
         }
       } else {
-        console.log(`Loading ${package} from ${package_uri}`);
+        console.log(`Loading ${packageName} from ${package_uri}`);
 
-        toLoad[package] = package_uri;
-        if (packages.hasOwnProperty(package)) {
-          packages[package].forEach((subpackage) => {
+        toLoad[packageName] = package_uri;
+        if (packages.hasOwnProperty(packageName)) {
+          packages[packageName].forEach((subpackage) => {
             if (!(subpackage in loadedPackages) && !(subpackage in toLoad)) {
               queue.push(subpackage);
             }
           });
         } else {
-          console.error(`Unknown package '${package}'`);
+          console.error(`Unknown package '${packageName}'`);
         }
       }
     }
 
     self.pyodide._module.locateFile = (path) => {
       // handle packages loaded from custom URLs
-      let package = path.replace(/\.data$/, "");
-      if (package in toLoad) {
-        let package_uri = toLoad[package];
+      let packageName = path.replace(/\.data$/, "");
+      if (packageName in toLoad) {
+        let package_uri = toLoad[packageName];
         if (package_uri != 'default channel') {
           return package_uri.replace(/\.js$/, ".data");
         };
@@ -172,8 +173,8 @@ var languagePluginLoader = new Promise((resolve, reject) => {
       self.pyodide._module.monitorRunDependencies = () => {
         packageCounter--;
         if (packageCounter === 0) {
-          for (let package in toLoad) {
-            self.pyodide.loadedPackages[package] = toLoad[package];
+          for (let packageName in toLoad) {
+            self.pyodide.loadedPackages[packageName] = toLoad[packageName];
           }
           delete self.pyodide._module.monitorRunDependencies;
           self.removeEventListener('error', windowErrorHandler);
@@ -196,11 +197,11 @@ var languagePluginLoader = new Promise((resolve, reject) => {
       };
       self.addEventListener('error', windowErrorHandler);
 
-      for (let package in toLoad) {
+      for (let packageName in toLoad) {
         let scriptSrc;
-        let package_uri = toLoad[package];
+        let package_uri = toLoad[packageName];
         if (package_uri == 'default channel') {
-          scriptSrc = `${baseURL}${package}.js`;
+          scriptSrc = `${baseURL}${packageName}.js`;
         } else {
           scriptSrc = `${package_uri}`;
         }
@@ -209,7 +210,7 @@ var languagePluginLoader = new Promise((resolve, reject) => {
           // (so packageCounter will still hit 0 and finish loading), and remove
           // the package from toLoad so we don't mark it as loaded.
           console.error(`Couldn't load package from URL ${scriptSrc}`)
-          let index = toLoad.indexOf(package);
+          let index = toLoad.indexOf(packageName);
           if (index !== -1) {
             toLoad.splice(index, 1);
           }
@@ -357,48 +358,5 @@ var languagePluginLoader = new Promise((resolve, reject) => {
       self.pyodide.loadPackage = loadPackage;
     }, () => {});
   }, () => {});
-
-  ////////////////////////////////////////////////////////////
-  // Iodide-specific functionality, that doesn't make sense
-  // if not using with Iodide.
-  if (self.iodide !== undefined) {
-    // Load the custom CSS for Pyodide
-    let link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = `${baseURL}renderedhtml.css`;
-    document.getElementsByTagName('head')[0].appendChild(link);
-
-    // Add a custom output handler for Python objects
-    self.iodide.addOutputRenderer({
-      shouldRender : (val) => {
-        return (typeof val === 'function' &&
-                pyodide._module.PyProxy.isPyProxy(val));
-      },
-
-      render : (val) => {
-        let div = document.createElement('div');
-        div.className = 'rendered_html';
-        var element;
-        if (val._repr_html_ !== undefined) {
-          let result = val._repr_html_();
-          if (typeof result === 'string') {
-            div.appendChild(new DOMParser()
-                                .parseFromString(result, 'text/html')
-                                .body.firstChild);
-            element = div;
-          } else {
-            element = result;
-          }
-        } else {
-          let pre = document.createElement('pre');
-          pre.textContent = val.toString();
-          div.appendChild(pre);
-          element = div;
-        }
-        return element.outerHTML;
-      }
-    });
-  }
 });
-languagePluginLoader
+// languagePluginLoader
