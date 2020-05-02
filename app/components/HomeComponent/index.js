@@ -134,6 +134,7 @@ export default class Home extends Component<Props, State> {
     this.props.experimentActions.createNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
+      paradigm: EXPERIMENTS.CUSTOM,
     });
     this.props.history.push(SCREENS.DESIGN.route);
   }
@@ -380,7 +381,7 @@ export default class Home extends Component<Props, State> {
                         </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Design your own EEG experiment!
+                            Design your own experiment!
                           </p>
                         </div>
                       </Grid.Column>

@@ -4,13 +4,7 @@ const studyObject = {
   type: 'lab.flow.Sequence',
   parameters: {},
   plugins: [],
-  metadata: {
-    title: 'The face-house task',
-    description:
-      "Faces contain a lot of information that is relevant to our survival. It's important to be able to quickly recognize people you can trust and read emotions in both strangers and people you know. ",
-    repository: '',
-    contributors: 'Yury Shevchenko \u003Cyury.shevchenko@uni-konstanz.de\u003E',
-  },
+  metadata: {},
   files: {},
   responses: {},
   content: [
@@ -48,7 +42,7 @@ const studyObject = {
           messageHandlers: {
             'before:prepare': function anonymous() {
               let initParameters = [...this.parameters.stimuli] || [];
-              initParameters = initParameters.filter((t) => t.phase === 'practice') || [];
+              // initParameters = initParameters.filter(t => t.phase === 'practice') || [];
               let numberTrials = this.parameters.nbPracticeTrials;
               if (initParameters.length === 0) {
                 numberTrials = 0;
@@ -201,8 +195,9 @@ const studyObject = {
                   },
                 },
                 title: 'Stimulus',
+                timeout: "${parameters.selfPaced ? '3600000' : parameters.presentationTime}",
                 content:
-                  '\u003Cmain class="content-horizontal-center content-vertical-center"\u003E\n  \u003Cdiv\u003E\n    \u003Cimg src=${ this.files[this.parameters.image] } height=${ this.parameters.imageHeight } \u002F\u003E\n  \u003C\u002Fdiv\u003E\n\u003C\u002Fmain\u003E',
+                  '\u003Cmain class="content-horizontal-center content-vertical-center"\u003E\n  \u003Cdiv\u003E\n    \u003Cimg src=${ this.files[this.parameters.image] } height=${ this.parameters.imageHeight } \u002F\u003E\n  \u003C\u002Fdiv\u003E\n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    ${this.parameters.taskHelp} \n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
               },
               {
                 type: 'lab.canvas.Screen',
@@ -227,6 +222,15 @@ const studyObject = {
                     textAlign: 'center',
                   },
                 ],
+                files: {},
+                parameters: {},
+                responses: {},
+                messageHandlers: {
+                  end: function anonymous() {
+                    this.data.correct_response = false;
+                  },
+                },
+                viewport: [800, 600],
                 files: {},
                 parameters: {},
                 responses: {},
@@ -418,8 +422,10 @@ const studyObject = {
                   },
                 },
                 title: 'Stimulus',
+                timeout: "${parameters.selfPaced ? '3600000' : parameters.presentationTime}",
+                timeout: "${parameters.selfPaced ? '3600000' : parameters.presentationTime}",
                 content:
-                  '\u003Cmain class="content-horizontal-center content-vertical-center"\u003E\n  \u003Cdiv\u003E\n    \u003Cimg src=${ this.files[this.parameters.image] } height=${ this.parameters.imageHeight } \u002F\u003E\n  \u003C\u002Fdiv\u003E\n\u003C\u002Fmain\u003E',
+                  '\u003Cmain class="content-horizontal-center content-vertical-center"\u003E\n  \u003Cdiv\u003E\n    \u003Cimg src=${ this.files[this.parameters.image] } height=${ this.parameters.imageHeight } \u002F\u003E\n  \u003C\u002Fdiv\u003E\n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    ${this.parameters.taskHelp} \n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
               },
               {
                 type: 'lab.canvas.Screen',
