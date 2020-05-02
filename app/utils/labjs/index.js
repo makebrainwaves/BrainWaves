@@ -6,6 +6,7 @@ import visualsearch from './scripts/visualsearch';
 import stroop from './scripts/stroop';
 import multitasking from './scripts/multitasking';
 import faceshouses from './scripts/faceshouses';
+import custom from './scripts/custom';
 
 class ExperimentWindow extends Component {
   constructor(props) {
@@ -28,7 +29,6 @@ class ExperimentWindow extends Component {
         this.study = lab.util.fromObject(clonedeep(stroop), lab);
         break;
       case 'Faces and Houses':
-      default:
         faceshouses.parameters = props.settings.params;
         faceshouses.parameters.title = props.settings.title;
         faceshouses.files = props.settings.params.stimuli
@@ -40,6 +40,18 @@ class ExperimentWindow extends Component {
             return obj;
           }, {});
         this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
+        break;
+      case 'Custom':
+      default:
+        custom.parameters = props.settings.params;
+        custom.parameters.title = props.settings.title;
+        custom.files = props.settings.params.stimuli.map(image => (
+              { [`${image.dir}/${image.filename}`] : `${image.dir}/${image.filename}`}
+            )).reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0]
+            return obj;
+          }, {});
+        this.study = lab.util.fromObject(clonedeep(custom), lab);
         break;
     }
     this.study.run();

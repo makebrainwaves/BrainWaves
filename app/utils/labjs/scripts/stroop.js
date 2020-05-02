@@ -4,14 +4,7 @@ const studyObject = {
   title: 'root',
   type: 'lab.flow.Sequence',
   plugins: [],
-  metadata: {
-    title: 'Stroop task',
-    description: 'An implementation of the classic paradigm introduced by Stroop (1935).',
-    repository:
-      'https:\u002F\u002Fgithub.com\u002FFelixHenninger\u002Flab.js\u002Ftree\u002Fmaster\u002Ftasks',
-    contributors:
-      'Felix Henninger \u003Cmailbox@felixhenninger.com\u003E (http:\u002F\u002Ffelixhenninger.com)',
-  },
+  metadata: {},
   parameters: {},
   files: {},
   responses: {},

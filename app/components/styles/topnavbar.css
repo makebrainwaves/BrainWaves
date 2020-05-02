@@ -93,6 +93,12 @@
   width: inherit;
 }
 
+.homeButton {
+  display: grid;
+  justify-content: center;
+  margin-left: 20px !important;
+}
+
 .exitWorkspaceBtn{
   font-family: Gothic A1 !important;
   font-style: normal !important;
@@ -101,6 +107,6 @@
   line-height: 30px !important;
   color: #007C70 !important;
   border: none !important;
-  height: 35px;
-  min-width: 35px;
+  height: 30px;
+  min-width: 30px;
 }

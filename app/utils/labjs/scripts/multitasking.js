@@ -9,12 +9,7 @@ const studyObject = {
   type: 'lab.flow.Sequence',
   parameters: {},
   plugins: [],
-  metadata: {
-    title: 'Multitasking',
-    description: '',
-    repository: '',
-    contributors: '',
-  },
+  metadata: {},
   files: {},
   responses: {},
   content: [

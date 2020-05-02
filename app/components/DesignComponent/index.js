@@ -25,8 +25,8 @@ import customOverview from '../../assets/common/Custom.png';
 // conditions images
 import multiConditionShape from '../../assets/multi/multiConditionShape.png';
 import multiConditionDots from '../../assets/multi/multiConditionDots.png';
-import conditionFace from '../../assets/face_house/faces/Annie_3.jpg';
-import conditionHouse from '../../assets/face_house/houses/house1.3.jpg';
+import conditionFace from '../../assets/face_house/faces/Face1.jpg';
+import conditionHouse from '../../assets/face_house/houses/House1.jpg';
 import conditionOrangeT from '../../assets/search/conditionOrangeT.png';
 import conditionNoOrangeT from '../../assets/search/conditionNoOrangeT.png';
 import conditionCongruent from '../../assets/stroop/match_g.png';

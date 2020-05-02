@@ -305,7 +305,6 @@ export default class Analyze extends Component<Props, State> {
       } else {
         colors = ['red', 'green', 'teal', 'orange'];
       }
-      console.log('numberConditions', numberConditions);
       return (
         <div>
           {this.props.epochsInfo

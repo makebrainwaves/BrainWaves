@@ -237,6 +237,7 @@ export default class CustomDesign extends Component<Props, State> {
                 Select the folder with images for each condition and choose the correct response.
                 You can upload image files with the following extensions: ".png", ".jpg", ".jpeg".
                 Make sure when you preview your experiment that the resolution is high enough.
+                You can resize or compress your images in an image editing program or on one of the websites online. 
               </p>
             </Segment>
 

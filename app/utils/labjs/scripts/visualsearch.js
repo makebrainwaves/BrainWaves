@@ -4,13 +4,7 @@ const studyObject = {
   type: 'lab.flow.Sequence',
   parameters: {},
   plugins: [],
-  metadata: {
-    title: 'Visual search',
-    description:
-      'The visual search task is made according to specifications described here\nhttps:\u002F\u002Fwww.psytoolkit.org\u002Fexperiment-library\u002Fsearch.html',
-    repository: '',
-    contributors: 'Yury Shevchenko \u003Cyury.shevchenko@uni-konstanz.de\u003E',
-  },
+  metadata: {},
   files: {},
   responses: {},
   content: [

@@ -16,6 +16,8 @@ interface State {
   group: string;
   session: number;
   isError: boolean;
+  isSubjectError: boolean;
+  isSessionError: boolean;
 }
 
 export default class InputCollect extends Component<Props, State> {
@@ -33,6 +35,8 @@ export default class InputCollect extends Component<Props, State> {
       group: this.props.data && this.props.data.group,
       session: this.props.data && this.props.data.session,
       isError: false,
+      isSubjectError: false,
+      isSessionError: false,
     };
     this.handleTextEntry = this.handleTextEntry.bind(this);
     this.handleClose = this.handleClose.bind(this);
@@ -50,14 +54,19 @@ export default class InputCollect extends Component<Props, State> {
   }
 
   handleClose() {
-    if (this.state.subject.length >= 1) {
+    if (this.state.subject.length >= 1 && this.state.session) {
       this.props.onClose(
         this.sanitizeTextInput(this.state.subject),
         this.sanitizeTextInput(this.state.group),
         this.state.session
         );
     } else {
-      this.setState({ isError: true });
+      if(this.state.subject.length < 1) {
+        this.setState({ isSubjectError: true });
+      }
+      if(!this.state.session) {
+        this.setState({ isSessionError: true });
+      }
     }
   }
 
@@ -85,7 +94,7 @@ export default class InputCollect extends Component<Props, State> {
           <Input
             focus
             fluid
-            error={this.state.isError}
+            error={this.state.isSubjectError}
             onChange={(object, data) => this.handleTextEntry(object, data, 'subject')}
             onKeyDown={this.handleEnterSubmit}
             value={this.state.subject}
@@ -93,11 +102,10 @@ export default class InputCollect extends Component<Props, State> {
           />
         </Modal.Content>
         <Modal.Content>
-          Enter group name
+          Enter group name (optional)
           <Input
             focus
             fluid
-            error={this.state.isError}
             onChange={(object, data) => this.handleTextEntry(object, data, 'group')}
             onKeyDown={this.handleEnterSubmit}
             value={this.state.group}
@@ -108,10 +116,11 @@ export default class InputCollect extends Component<Props, State> {
           <Input
             focus
             fluid
-            error={this.state.isError}
+            error={this.state.isSessionError}
             onChange={(object, data) => this.handleTextEntry(object, data, 'session')}
             onKeyDown={this.handleEnterSubmit}
             value={this.state.session}
+            type="number"
           />
         </Modal.Content>
         <Modal.Actions>
