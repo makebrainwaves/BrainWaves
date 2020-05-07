@@ -45,7 +45,6 @@ const DESIGN_STEPS = {
   PREVIEW: 'PREVIEW',
 };
 
-// TODO: Add all the labjs props (e.g. protocol_title) to this interface
 interface Props {
   history: Object;
   type: EXPERIMENTS;
@@ -148,47 +147,60 @@ export default class Design extends Component<Props, State> {
     this.props.experimentActions.saveWorkspace();
   }
 
-  renderConditionIcon = (type) => {
+  renderConditionIcon(type) {
     switch (type) {
       case 'conditionCongruent':
         return conditionCongruent;
+        break;
       case 'conditionIncongruent':
         return conditionIncongruent;
+        break;
       case 'conditionOrangeT':
         return conditionOrangeT;
+        break;
       case 'conditionNoOrangeT':
         return conditionNoOrangeT;
+        break;
       case 'conditionFace':
         return conditionFace;
+        break;
       case 'conditionHouse':
         return conditionHouse;
+        break;
       case 'multiConditionShape':
         return multiConditionShape;
+        break;
       case 'multiConditionDots':
       default:
         return multiConditionDots;
+        break;
     }
-  };
+  }
 
-  renderOverviewIcon = (type) => {
+  renderOverviewIcon(type) {
     switch (type) {
       case EXPERIMENTS.N170:
         return facesHousesOverview;
+        break;
 
       case EXPERIMENTS.STROOP:
         return stroopOverview;
+        break;
 
       case EXPERIMENTS.MULTI:
         return multitaskingOverview;
+        break;
 
       case EXPERIMENTS.SEARCH:
         return searchOverview;
+        break;
 
       case EXPERIMENTS.CUSTOM:
       default:
         return customOverview;
+        break;
     }
-  };
+  }
 
   renderSectionContent() {
     switch (this.state.activeStep) {

@@ -230,7 +230,6 @@ const loadEpochsEpic = (action$, state$) =>
     awaitOkMessage(action$),
     execute(filterIIR(1, 30), state$),
     awaitOkMessage(action$),
-    tap(() => console.log('state', state$.value.experiment.params)),
     map(() =>
       epochEvents(
         {
