@@ -28,7 +28,7 @@ const CUSTOM_STEPS = {
   TRIALS: 'TRIALS',
   PARAMETERS: 'PARAMETERS',
   INSTRUCTIONS: 'INSTRUCTIONS',
-  PREVIEW: 'PREVIEW'
+  PREVIEW: 'PREVIEW',
 };
 
 const FIELDS = {
@@ -133,18 +133,11 @@ export default class CustomDesign extends Component<Props, State> {
       { name: 'stimulus4', number: 4 },
     ];
     switch (this.state.activeStep) {
-
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            stretched
-            relaxed
-            padded
-            columns="equal"
-            className={styles.contentGrid}
-          >
-            <Grid.Column stretched verticalAlign="middle">
+          <Grid stretched relaxed padded columns='equal' className={styles.contentGrid}>
+            <Grid.Column stretched verticalAlign='middle'>
               <Image
                 as={Segment}
                 basic
@@ -158,12 +151,12 @@ export default class CustomDesign extends Component<Props, State> {
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.QUESTION}
                   value={this.state.description.question}
-                  placeholder="Explain your research question here."
+                  placeholder='Explain your research question here.'
                   onChange={(event, data) =>
                     this.setState({
                       description: {
                         ...this.state.description,
-                        question: data.value
+                        question: data.value,
                       },
                       saved: false,
                     })
@@ -171,7 +164,7 @@ export default class CustomDesign extends Component<Props, State> {
                 />
               </Form>
             </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
+            <Grid.Column stretched verticalAlign='middle'>
               <Image
                 as={Segment}
                 basic
@@ -185,12 +178,12 @@ export default class CustomDesign extends Component<Props, State> {
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.HYPOTHESIS}
                   value={this.state.description.hypothesis}
-                  placeholder="Describe your hypothesis here."
+                  placeholder='Describe your hypothesis here.'
                   onChange={(event, data) =>
                     this.setState({
                       description: {
                         ...this.state.description,
-                        hypothesis: data.value
+                        hypothesis: data.value,
                       },
                       saved: false,
                     })
@@ -198,7 +191,7 @@ export default class CustomDesign extends Component<Props, State> {
                 />
               </Form>
             </Grid.Column>
-            <Grid.Column verticalAlign="middle">
+            <Grid.Column verticalAlign='middle'>
               <Image
                 as={Segment}
                 basic
@@ -212,12 +205,12 @@ export default class CustomDesign extends Component<Props, State> {
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.METHODS}
                   value={this.state.description.methods}
-                  placeholder="Explain how you will design your experiment to answer the question here."
+                  placeholder='Explain how you will design your experiment to answer the question here.'
                   onChange={(event, data) =>
                     this.setState({
                       description: {
                         ...this.state.description,
-                        methods: data.value
+                        methods: data.value,
                       },
                       saved: false,
                     })
@@ -236,8 +229,9 @@ export default class CustomDesign extends Component<Props, State> {
               <p>
                 Select the folder with images for each condition and choose the correct response.
                 You can upload image files with the following extensions: ".png", ".jpg", ".jpeg".
-                Make sure when you preview your experiment that the resolution is high enough.
-                You can resize or compress your images in an image editing program or on one of the websites online.
+                Make sure when you preview your experiment that the resolution is high enough. You
+                can resize or compress your images in an image editing program or on one of the
+                websites online.
               </p>
             </Segment>
 
@@ -303,82 +297,18 @@ export default class CustomDesign extends Component<Props, State> {
           </Grid>
         );
 
-        case CUSTOM_STEPS.TRIALS:
-          return (
-            <Grid>
-              <div className={styles.trialsHeader}>
-                <div>
-                  <Header as="h1">Trials</Header>
-                  <p>
-                    Edit the correct key response and type of each trial.
-                  </p>
-                </div>
-
-                <div>
-                  <Form style={{ alignSelf: 'flex-end' }}>
-                    <Form.Group className={styles.trialsTopInfoBar}>
-                      <Form.Select
-                        fluid
-                        selection
-                        label="Order"
-                        value={this.state.params.randomize}
-                        onChange={(event, data) =>
-                          this.setState({
-                            params: {
-                              ...this.state.params,
-                              randomize: data.value
-                            },
-                            saved: false,
-                          })
-                        }
-                        placeholder="Response"
-                        options={[{key: 'random', text: 'Random', value: 'random'},
-                          {key: 'sequential', text: 'Sequential', value: 'sequential'}]}
-                      />
-                      <Form.Input
-                        label="Total experimental trials"
-                        type="number"
-                        fluid
-                        value={this.state.params.nbTrials}
-                        onChange={(event, data) =>
-                            this.setState({
-                              params: {
-                                ...this.state.params,
-                                nbTrials: parseInt(data.value)
-                              },
-                              saved: false,
-                            })
-                          }
-                      />
-                      <Form.Input
-                        label="Total practice trials"
-                        type="number"
-                        fluid
-                        value={this.state.params.nbPracticeTrials}
-                        onChange={(event, data) =>
-                            this.setState({
-                              params: {
-                                ...this.state.params,
-                                nbPracticeTrials: parseInt(data.value)
-                              },
-                              saved: false,
-                            })
-                          }
-                      />
-                    </Form.Group>
-                  </Form>
-                </div>
+      case CUSTOM_STEPS.TRIALS:
+        return (
+          <Grid>
+            <div className={styles.trialsHeader}>
+              <div>
+                <Header as='h1'>Trials</Header>
+                <p>Edit the correct key response and type of each trial.</p>
               </div>
 
               <div>
                 <Form style={{ alignSelf: 'flex-end' }}>
-                  <Form.Group
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr 1fr',
-                      gridColumnGap: '10px',
-                    }}
-                  >
+                  <Form.Group className={styles.trialsTopInfoBar}>
                     <Form.Select
                       fluid
                       selection
@@ -396,11 +326,7 @@ export default class CustomDesign extends Component<Props, State> {
                       placeholder='Response'
                       options={[
                         { key: 'random', text: 'Random', value: 'random' },
-                        {
-                          key: 'sequential',
-                          text: 'Sequential',
-                          value: 'sequential',
-                        },
+                        { key: 'sequential', text: 'Sequential', value: 'sequential' },
                       ]}
                     />
                     <Form.Input
@@ -436,7 +362,7 @@ export default class CustomDesign extends Component<Props, State> {
                   </Form.Group>
                 </Form>
               </div>
-            </Grid>
+            </div>
 
             <Table basic='very'>
               <Table.Header>
@@ -498,6 +424,7 @@ export default class CustomDesign extends Component<Props, State> {
             </Table>
           </Grid>
         );
+
       case CUSTOM_STEPS.PARAMETERS:
         return (
           <Grid>
@@ -548,32 +475,15 @@ export default class CustomDesign extends Component<Props, State> {
                   label='Self-paced data collection'
                   onChange={(value) =>
                     this.setState({
-                      params: {
-                        ...this.state.params,
-                        selfPaced: !this.state.params.selfPaced,
-                      },
+                      params: { ...this.state.params, selfPaced: !this.state.params.selfPaced },
                       saved: false,
                     })
                   }
                 />
               </Segment>
 
-            </Grid>
-          );
-
-        case CUSTOM_STEPS.PARAMETERS:
-          return (
-            <Grid>
-              <Grid.Column width={8} style={{display: 'grid', 'alignContent': 'space-between'}}>
+              {!this.state.params.selfPaced ? (
                 <Segment basic>
-                  <Header as="h1">Inter-trial interval</Header>
-                  <p>
-                    Select the inter-trial interval duration. This is the amount
-                    of time between trials measured from the end of one trial to
-                    the start of the next one.
-                  </p>
-                </Segment>
-                <Segment basic style={{'marginTop': '100px'}}>
                   <ParamSlider
                     label='Presentation time (seconds)'
                     value={this.state.params.presentationTime}
@@ -590,72 +500,30 @@ export default class CustomDesign extends Component<Props, State> {
                     ms_conversion='250'
                     onChange={(value) =>
                       this.setState({
-                        params: { ...this.state.params, iti: value },
-                        saved: false,
-                      })
-                    }
-                  />
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column width={8} style={{display: 'grid', 'alignContent': 'space-between'}}>
-                <Segment basic>
-                  <Header as="h1">Image duration</Header>
-                  <p>
-                    Select the time of presentation or make it self-paced - present the image until participants respond.
-                  </p>
-                </Segment>
-                <Segment basic>
-                  <Checkbox
-                    defaultChecked={this.state.params.selfPaced}
-                    label="Self-paced data collection"
-                    onChange={value =>
-                      this.setState({
-                        params: { ...this.state.params, selfPaced: !this.state.params.selfPaced },
-                        saved: false,
-                      })
-                    }
-                  />
-                </Segment>
-
-
-                {!this.state.params.selfPaced ? <Segment basic><ParamSlider
-                  label="Presentation time (seconds)"
-                  value={this.state.params.presentationTime}
-                  marks={{
-                      1: '0.25',
-                      2: '0.5',
-                      3: '0.75',
-                      4: '1',
-                      5: '1.25',
-                      6: '1.5',
-                      7: '1.75',
-                      8: '2'
-                    }}
-                  ms_conversion='250'
-                  onChange={value =>
-                      this.setState({
                         params: { ...this.state.params, presentationTime: value },
                         saved: false,
                       })
                     }
-                />
-                </Segment> : <Segment basic style={{'marginBottom': '85px'}} />}
-
-              </Grid.Column>
-
-            </Grid>
-          );
+                  />
+                </Segment>
+              ) : (
+                <Segment basic style={{ marginBottom: '85px' }} />
+              )}
+            </Grid.Column>
+          </Grid>
+        );
 
       case CUSTOM_STEPS.INSTRUCTIONS:
         return (
           <Grid stretched>
-            <Grid.Column width={8} stretched style={{display: 'grid', 'alignContent': 'space-between'}}>
+            <Grid.Column
+              width={8}
+              stretched
+              style={{ display: 'grid', alignContent: 'space-between' }}
+            >
               <Segment basic>
-                <Header as="h1">Experiment Instructions</Header>
-                <p>
-                  Edit the instruction that will be displayed on the first screen.
-                </p>
+                <Header as='h1'>Experiment Instructions</Header>
+                <p>Edit the instruction that will be displayed on the first screen.</p>
                 <Form>
                   <Form.TextArea
                     autoHeight
@@ -672,23 +540,25 @@ export default class CustomDesign extends Component<Props, State> {
               </Segment>
             </Grid.Column>
 
-            <Grid.Column width={8} stretched style={{display: 'grid', 'alignContent': 'space-between'}}>
+            <Grid.Column
+              width={8}
+              stretched
+              style={{ display: 'grid', alignContent: 'space-between' }}
+            >
               <Segment basic>
-                <Header as="h1">Instructions for the task screen</Header>
-                <p>
-                  Edit the instruction that will be displayed in the footer during the task.
-                </p>
+                <Header as='h1'>Instructions for the task screen</Header>
+                <p>Edit the instruction that will be displayed in the footer during the task.</p>
                 <Form>
                   <Form.TextArea
                     autoHeight
                     value={this.state.params.taskHelp}
-                    placeholder="e.g., Press 1 for a face and 9 for a house"
+                    placeholder='e.g., Press 1 for a face and 9 for a house'
                     onChange={(event, data) =>
-                        this.setState({
-                          params: { ...this.state.params, taskHelp: data.value },
-                          saved: false,
-                        })
-                      }
+                      this.setState({
+                        params: { ...this.state.params, taskHelp: data.value },
+                        saved: false,
+                      })
+                    }
                   />
                 </Form>
               </Segment>
@@ -702,8 +572,8 @@ export default class CustomDesign extends Component<Props, State> {
             <Grid.Column
               stretched
               width={14}
-              textAlign="right"
-              verticalAlign="middle"
+              textAlign='right'
+              verticalAlign='middle'
               className={styles.previewWindow}
             >
               <PreviewExperimentComponent
@@ -717,11 +587,11 @@ export default class CustomDesign extends Component<Props, State> {
               />
             </Grid.Column>
 
-            <Grid.Column width={2} verticalAlign="top">
+            <Grid.Column width={2} verticalAlign='top'>
               <Segment basic>
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
-                  onClick={e => this.handlePreview(e)}
+                  onClick={(e) => this.handlePreview(e)}
                 />
               </Segment>
             </Grid.Column>
