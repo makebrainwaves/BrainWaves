@@ -163,7 +163,7 @@ export class HelpSidebar extends Component<Props, State> {
         <Segment basic className={styles.closeButton}>
           <Button
             circular
-            size="big"
+            size="large"
             icon="x"
             onClick={this.props.handleClose}
           />

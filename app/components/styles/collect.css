@@ -23,11 +23,6 @@
   left: -40px;
 }
 
-.closeButton {
-  display: grid;
-  justify-content: end;
-}
-
 .searchingText {
   text-align: center !important;
 }

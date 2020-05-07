@@ -45,10 +45,12 @@ class ExperimentWindow extends Component {
       default:
         custom.parameters = props.settings.params;
         custom.parameters.title = props.settings.title;
-        custom.files = props.settings.params.stimuli.map(image => (
-              { [`${image.dir}/${image.filename}`] : `${image.dir}/${image.filename}`}
-            )).reduce((obj, item) => {
-            obj[Object.keys(item)[0]] = Object.values(item)[0]
+        custom.files = props.settings.params.stimuli
+          .map((image) => ({
+            [`${image.dir}/${image.filename}`]: `${image.dir}/${image.filename}`,
+          }))
+          .reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0];
             return obj;
           }, {});
         this.study = lab.util.fromObject(clonedeep(custom), lab);

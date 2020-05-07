@@ -61,9 +61,7 @@ export default class StimuliRow extends Component<Props> {
           <Segment basic className={styles.trialsTrialTypeSegment}>
             <div
               className={styles.trialsTrialTypeRowSelector}
-              style={{
-                backgroundColor: this.props.phase === 'main' ? '#1AC4EF' : '#EB1B66',
-              }}
+              style={{ backgroundColor: this.props.phase === 'main' ? '#1AC4EF' : '#EB1B66' }}
             >
               {this.props.phase === 'main' ? 'Experimental' : 'Practice'}
             </div>
