@@ -1,5 +1,6 @@
 import { combineEpics } from 'redux-observable';
-import { of } from 'rxjs';
+import { of, fromEvent } from 'rxjs';
+import { toast } from 'react-toastify';
 import { map, mergeMap, tap, pluck, filter } from 'rxjs/operators';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
 import { parseSingleQuoteJSON } from '../utils/pyodide/functions';
@@ -16,8 +17,7 @@ import {
   loadERP,
 } from '../actions/pyodideActions';
 import {
-  loadPackages,
-  utils,
+  loadPyodide,
   loadCSV,
   loadCleanedEpochs,
   filterIIR,
@@ -39,19 +39,22 @@ import {
   PYODIDE_STATUS,
 } from '../constants/constants';
 
-export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
 export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
-export const SET_MAIN_CHANNEL = 'SET_MAIN_CHANNEL';
-export const SET_EPOCH_INFO = 'SET_EPOCH_INFO';
-export const SET_CHANNEL_INFO = 'SET_CHANNEL_INFO';
-export const SET_PSD_PLOT = 'SET_PSD_PLOT';
-export const SET_ERP_PLOT = 'SET_ERP_PLOT';
-export const SET_TOPO_PLOT = 'SET_TOPO_PLOT';
-export const SET_PYODIDE_STATUS = 'SET_PYODIDE_STATUS';
+export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
+export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
+export const RECEIVE_ERROR = 'RECEIVE_ERROR';
 export const RECEIVE_EXECUTE_REPLY = 'RECEIVE_EXECUTE_REPLY';
 export const RECEIVE_EXECUTE_RESULT = 'RECEIVE_EXECUTE_RESULT';
+export const RECEIVE_MESSAGE = 'RECEIVE_MESSAGE';
 export const RECEIVE_STREAM = 'RECEIVE_STREAM';
-export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
+export const SET_CHANNEL_INFO = 'SET_CHANNEL_INFO';
+export const SET_EPOCH_INFO = 'SET_EPOCH_INFO';
+export const SET_ERP_PLOT = 'SET_ERP_PLOT';
+export const SET_MAIN_CHANNEL = 'SET_MAIN_CHANNEL';
+export const SET_PSD_PLOT = 'SET_PSD_PLOT';
+export const SET_PYODIDE_STATUS = 'SET_PYODIDE_STATUS';
+export const SET_PYODIDE_WORKER = 'SET_PYODIDE_WORKER';
+export const SET_TOPO_PLOT = 'SET_TOPO_PLOT';
 
 // -------------------------------------------------------------------------
 // Action Creators
@@ -90,15 +93,52 @@ const setPyodideStatus = (payload) => ({
   type: SET_PYODIDE_STATUS,
 });
 
+const setPyodideWorker = (payload: Worker) => ({
+  payload,
+  type: SET_PYODIDE_WORKER,
+});
+
+const receivePyodideError = (payload) => ({
+  payload,
+  type: RECEIVE_ERROR,
+});
+
+const receivePyodideMessage = (payload) => ({
+  payload,
+  type: RECEIVE_MESSAGE,
+});
+
 // -------------------------------------------------------------------------
 // Epics
 
 const launchEpic = (action$) =>
   action$.ofType(LAUNCH).pipe(
     tap(() => console.log('launching')),
-    mergeMap(loadPackages),
-    mergeMap(utils),
-    map(() => setPyodideStatus(PYODIDE_STATUS.LOADED))
+    map(loadPyodide),
+    map(setPyodideWorker)
+  );
+
+const pyodideError = (action$) =>
+  action$.ofType(SET_PYODIDE_WORKER).pipe(
+    pluck('payload'),
+    tap((e) =>
+      toast.error(`Error in pyodideWorker at ${e.filename}, Line: ${e.lineno}, ${e.message}`)
+    ),
+    map(receivePyodideError)
+  );
+
+const pyodideMessage = (action$) =>
+  action$.ofType(SET_PYODIDE_WORKER).pipe(
+    pluck('payload'),
+    tap((e) => {
+      const { results, error } = e.data;
+      if (results && !error) {
+        toast(`Pyodide: `, results);
+      } else if (error) {
+        toast.error('Pyodide: ', error);
+      }
+    }),
+    map(receivePyodideMessage)
   );
 
 const loadEpochsEpic = (action$, state$) =>
@@ -196,6 +236,8 @@ const loadERPEpic = (action$) =>
   );
 
 export default combineEpics(
+  pyodideError,
+  pyodideMessage,
   launchEpic,
   loadEpochsEpic,
   loadCleanedEpochsEpic,
