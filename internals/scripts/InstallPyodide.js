@@ -1,9 +1,3 @@
-// mkdir app/utils/pyodide/src
-// && cd app/utils/pyodide/src
-// curl -LJO https://github.com/iodide-project/pyodide/releases/download/0.12.0/pyodide-build-0.12.0.tar.bz2
-// tar xjf pyodide-build-0.12.0.tar.bz2
-// rm pyodide-build-0.12.0.tar.bz2",
-
 import chalk from 'chalk';
 import fs from 'fs';
 import https from 'https';
@@ -17,7 +11,7 @@ const TAR_NAME = `pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
 const TAR_URL = `https://github.com/iodide-project/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
 const PYODIDE_DIR = 'app/utils/pyodide/src/';
 
-const writeAndUnzipFile = response => {
+const writeAndUnzipFile = (response) => {
   const filePath = `${PYODIDE_DIR}${TAR_NAME}`;
   const writeStream = fs.createWriteStream(filePath);
   response.pipe(writeStream);
@@ -38,12 +32,8 @@ const writeAndUnzipFile = response => {
   });
 };
 
-const downloadFile = response => {
-  if (
-    response.statusCode > 300 &&
-    response.statusCode < 400 &&
-    response.headers.location
-  ) {
+const downloadFile = (response) => {
+  if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
     if (url.parse(response.headers.location).hostname) {
       https.get(response.headers.location, writeAndUnzipFile);
     } else {
@@ -59,14 +49,10 @@ const downloadFile = response => {
 
 (() => {
   if (fs.existsSync(`${PYODIDE_DIR}${TAR_NAME}`)) {
-    console.log(
-      `${chalk.green.bold(`Pyodide is already present: ${PYODIDE_VERSION}...`)}`
-    );
+    console.log(`${chalk.green.bold(`Pyodide is already present: ${PYODIDE_VERSION}...`)}`);
     return;
   }
-  console.log(
-    `${chalk.green.bold(`Downloading pyodide ${PYODIDE_VERSION}...`)}`
-  );
+  console.log(`${chalk.green.bold(`Downloading pyodide ${PYODIDE_VERSION}...`)}`);
   mkdirp.sync(`app/utils/pyodide/src`);
   https.get(TAR_URL, downloadFile);
 })();
