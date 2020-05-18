@@ -1,7 +1,7 @@
 {
   "name": "BrainWaves",
   "productName": "BrainWaves",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "EEG Experiment Desktop Application",
   "scripts": {
     "build": "concurrently \"npm run build-main\" \"npm run build-renderer\"",
@@ -64,19 +64,9 @@
       "main.prod.js.map",
       "package.json"
     ],
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
+    "mac": {
+      "icon": "resources/icon.icns",
+      "target": "pkg"
     },
     "win": {
       "target": [
@@ -175,7 +165,7 @@
     "css-loader": "^0.28.11",
     "detect-port": "^1.2.3",
     "electron": "^2.0.2",
-    "electron-builder": "^20.15.1",
+    "electron-builder": "^20.44.4",
     "electron-devtools-installer": "^2.2.4",
     "electron-rebuild": "^1.7.3",
     "enzyme": "^3.3.0",
