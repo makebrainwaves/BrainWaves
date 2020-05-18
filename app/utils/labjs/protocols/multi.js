@@ -49,7 +49,6 @@ export const buildMultiTimeline = () => ({
     iti: 1000,
     jitter: 200,
     sampleType: 'with-replacement',
-    pluginName: 'callback-image-display',
     intro: `In this task you will learn about multitasking difficulties using a task mixing and switching paradigm. You will go through several instruction and training blocks and then several blocks of real data collection will follow. Press the space bar to continue with the instructions.`,
     showProgressBar: false,
     stimulus1: {

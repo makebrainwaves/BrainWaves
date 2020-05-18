@@ -48,7 +48,6 @@ export const buildStroopTimeline = () => ({
     iti: 500,
     jitter: 200,
     sampleType: 'with-replacement',
-    pluginName: 'callback-image-display',
     intro: `In this experiment, your task will be to identify the color of the word shown on the screen. The word itself is immaterial - you can safely ignore it.`,
     showProgressBar: false,
     stimulus1: {

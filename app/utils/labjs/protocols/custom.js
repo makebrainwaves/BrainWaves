@@ -46,7 +46,6 @@ export const buildCustomTimeline = () => ({
     selfPaced: true,
     jitter: 200,
     sampleType: 'with-replacement',
-    pluginName: 'callback-image-display',
     intro: '',
     taskHelp: '',
     showProgressBar: false,

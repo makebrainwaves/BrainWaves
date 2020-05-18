@@ -9,9 +9,7 @@ import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { ExperimentWindow } from '../../utils/labjs';
-import { checkFileExists } from '../../utils/filesystem/storage';
-
-import { parseTimeline, instantiateTimeline, getImages } from '../../utils/jspsych/functions';
+import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import { MainTimeline, Trial, ExperimentParameters } from '../../constants/interfaces';
 
 import { remote } from 'electron';

@@ -4,7 +4,7 @@ import { Segment } from 'semantic-ui-react';
 import { ExperimentWindow } from '../utils/labjs';
 import styles from './styles/collect.css';
 
-import { parseTimeline, instantiateTimeline, getImages } from '../utils/jspsych/functions';
+import { getImages } from '../utils/filesystem/storage';
 import { MainTimeline, Trial, ExperimentParameters } from '../constants/interfaces';
 
 interface Props {

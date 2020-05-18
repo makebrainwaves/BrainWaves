@@ -176,6 +176,15 @@ export const readImages = (dir: string) =>
     );
   });
 
+// Returns an array of images that are used in a timeline for use in preloading
+export const getImages = (params: ExperimentParameters) =>
+  readdirSync(params.stimulus1.dir)
+    .map((filename) => path.join(params.stimulus1.dir, filename))
+    .concat(
+      readdirSync(params.stimulus2.dir).map((filename) => path.join(params.stimulus2.dir, filename))
+    );
+
+
 // -----------------------------------------------------------------------------------------------
 // Util
 
