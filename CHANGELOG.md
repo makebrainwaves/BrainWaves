@@ -1,3 +1,10 @@
+# 0.13.0 (May 18, 2020) - Improved usability and tasks
+- Removed remnants of old experiment backend
+- Moved to using lab.js with npm
+- Cleaned up UI throughout app
+- New stimuli for Faces and Houses study
+- Clearer customization workflow
+
 # 0.12.0 (Mar 9, 2020) - Project Cleanup and UI fixes
 - Randomization bug fixed
 - New EEG Data Explorer component
