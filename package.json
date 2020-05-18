@@ -236,6 +236,7 @@
     "history": "^4.7.2",
     "jspsych-react": "^0.3.0",
     "kernelspecs": "^2.0.0",
+    "lab.js": "^20.0.1",
     "lodash": "^4.17.15",
     "lodash.clonedeep": "^4.5.0",
     "mkdirp": "^0.5.1",
