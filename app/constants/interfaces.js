@@ -7,9 +7,7 @@ import { EVENTS } from './constants';
 // TODO: Write interfaces for device objects (Observables, Classes, etc)
 
 // ------------------------------------------------------------------
-// jsPsych
-
-// TODO: Write interface for jsPsych plugins
+// lab.js Experiment
 
 export type ExperimentParameters = {
   trialDuration: number,
@@ -17,7 +15,6 @@ export type ExperimentParameters = {
   iti: number,
   jitter: number,
   sampleType: string,
-  pluginName: string,
   intro: string,
   // Setting this to any prevents ridiculous flow runtime errors
   showProgessBar: any,

@@ -68,7 +68,6 @@ export const buildN170Timeline = () => ({
     selfPaced: true,
     jitter: 200,
     sampleType: 'with-replacement',
-    pluginName: 'callback-image-display',
     intro: `You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press the the space bar on your keyboard to start doing the practice trials. If you want to skip the practice trials and go directly to the task, press the "q" button on your keyboard.`,
     taskHelp: `Press 1 for a face and 9 for a house`,
     showProgressBar: false,
