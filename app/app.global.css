@@ -7,7 +7,7 @@
 @import '~jspsych-react/css/jspsych.css';
 @import '~rc-slider/assets/index.css';
 @import '~react-toastify/dist/ReactToastify.css';
-@import './utils/labjs/lib/lab.css';
+@import './utils/labjs/lab.css';
 
 body {
   position: relative;
