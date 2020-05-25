@@ -10,39 +10,24 @@
     "@babel/preset-react",
     ["@babel/preset-flow"]
   ],
-  "plugins": ["@babel/plugin-proposal-optional-catch-binding"],
+  "plugins": [
+    "@babel/plugin-proposal-optional-catch-binding",
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    ["@babel/plugin-proposal-class-properties", { "loose": true }]
+  ],
   "env": {
     "production": {
-      "plugins": [
-        "babel-plugin-dev-expression",
-        ["@babel/plugin-proposal-decorators", { "legacy": true }],
-        [
-          "babel-plugin-flow-runtime",
-          {
-            "assert": true,
-            "annotate": true
-          }
-        ],
-        [
-          "@babel/plugin-transform-flow-strip-types",
-          {
-            "allowDeclareFields": true
-          }
-        ],
-        ["@babel/plugin-proposal-class-properties", { "loose": true }]
-      ]
+      "plugins": ["babel-plugin-dev-expression"]
     },
     "development": {
       "plugins": [
-        ["@babel/plugin-proposal-decorators", { "legacy": true }],
         [
           "babel-plugin-flow-runtime",
           {
             "assert": true,
             "annotate": true
           }
-        ],
-        ["@babel/plugin-proposal-class-properties", { "loose": true }]
+        ]
       ]
     }
   }
