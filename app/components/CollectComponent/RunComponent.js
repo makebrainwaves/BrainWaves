@@ -1,7 +1,6 @@
 // @flow
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
-import { debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import styles from '../styles/common.css';
 import InputCollect from '../InputCollect';
@@ -37,12 +36,12 @@ interface State {
 }
 
 export default class Run extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleStartExperiment: () => void;
-  insertLabJsCallback: () => void;
-  handleCloseInputCollect: (string, string, number) => void;
-  handleClean: () => void;
+  // props: Props;
+  // state: State;
+  // handleStartExperiment: () => void;
+  // insertLabJsCallback: () => void;
+  // handleCloseInputCollect: (string, string, number) => void;
+  // handleClean: () => void;
 
   constructor(props: Props) {
     super(props);

@@ -20,8 +20,8 @@ interface State {
   recentWorkspaces: Array<string>;
 }
 
-export default class TopNavComponent extends Component<Props> {
-  props: Props;
+export default class TopNavComponent extends Component<Props, State> {
+  // props: Props;
 
   state = {
     recentWorkspaces: [],
@@ -31,6 +31,7 @@ export default class TopNavComponent extends Component<Props> {
     if (navSegmentScreen.route === this.props.location.pathname) {
       return styles.activeNavColumn;
     }
+
     const routeOrder = Object.values(SCREENS).find(
       (screen) => screen.route === navSegmentScreen.route
     ).order;

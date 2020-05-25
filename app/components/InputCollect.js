@@ -21,12 +21,12 @@ interface State {
 }
 
 export default class InputCollect extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleTextEntry: (Object, Object, string) => void;
-  handleClose: () => void;
-  handleExit: () => void;
-  handleEnterSubmit: (Object) => void;
+  // props: Props;
+  // state: State;
+  // handleTextEntry: (Object, Object, string) => void;
+  // handleClose: () => void;
+  // handleExit: () => void;
+  // handleEnterSubmit: (Object) => void;
 
   constructor(props: Props) {
     super(props);

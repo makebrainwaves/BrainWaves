@@ -99,7 +99,7 @@ export default class Collect extends Component<Props, State> {
       return <RunComponent {...this.props} closeRunComponent={this.handleRunComponentClose} />;
     }
     return (
-      <React.Fragment>
+      <>
         <ConnectModal
           history={this.props.history}
           open={this.state.isConnectModalOpen}
@@ -134,7 +134,7 @@ export default class Collect extends Component<Props, State> {
           openRunComponent={this.handleRunComponentOpen}
           title={this.props.title}
         />
-      </React.Fragment>
+      </>
     );
   }
 }

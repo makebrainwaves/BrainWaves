@@ -16,9 +16,9 @@ interface State {
   mimeType: string;
 }
 
-export default class JupyterPlotWidget extends Component<Props, State> {
-  props: Props;
-  state: State;
+export default class PyodidePlotWidget extends Component<Props, State> {
+  // props: Props;
+  // state: State;
   constructor(props: Props) {
     super(props);
     this.state = {

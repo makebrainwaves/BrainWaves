@@ -59,7 +59,7 @@ export default class CleanSidebar extends Component<Props, State> {
 
   renderMenu() {
     return (
-      <React.Fragment>
+      <>
         <Menu secondary vertical fluid>
           <Header className={styles.helpHeader} as='h1'>
             What would you like to do?
@@ -77,13 +77,13 @@ export default class CleanSidebar extends Component<Props, State> {
             </Segment>
           </Menu.Item>
         </Menu>
-      </React.Fragment>
+      </>
     );
   }
 
   renderHelp(header: string, content: string) {
     return (
-      <React.Fragment>
+      <>
         <Segment basic className={styles.helpContent}>
           <Header className={styles.helpHeader} as='h1'>
             {header}
@@ -102,7 +102,7 @@ export default class CleanSidebar extends Component<Props, State> {
             </Button>
           </Grid.Column>
         </Grid>
-      </React.Fragment>
+      </>
     );
   }
 

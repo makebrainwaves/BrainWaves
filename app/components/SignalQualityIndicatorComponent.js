@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Segment } from 'semantic-ui-react';
 import * as d3 from 'd3';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 }
 
 class SignalQualityIndicatorComponent extends Component<Props> {
-  signalQualitySubscription: Subscription;
+  // signalQualitySubscription: Subscription;
 
   constructor(props: Props) {
     super(props);

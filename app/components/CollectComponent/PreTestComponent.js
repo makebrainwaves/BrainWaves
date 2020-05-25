@@ -39,9 +39,9 @@ interface State {
 }
 
 export default class PreTestComponent extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handlePreview: () => void;
+  // props: Props;
+  // state: State;
+  // handlePreview: () => void;
 
   constructor(props: Props) {
     super(props);
@@ -68,14 +68,18 @@ export default class PreTestComponent extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState({
+    this.setState((prevState) => ({
+      ...prevState,
       isSidebarVisible: false,
-      isPreviewing: !this.state.isPreviewing
-    });
+      isPreviewing: !prevState.isPreviewing,
+    }));
   }
 
   handleSidebarToggle() {
-    this.setState({ isSidebarVisible: !this.state.isSidebarVisible });
+    this.setState((prevState) => ({
+      ...prevState,
+      isSidebarVisible: !prevState.isSidebarVisible,
+    }));
   }
 
   renderSignalQualityOrPreview() {
