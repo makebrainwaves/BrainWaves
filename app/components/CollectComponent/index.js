@@ -40,12 +40,12 @@ interface State {
 }
 
 export default class Collect extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleStartConnect: () => void;
-  handleConnectModalClose: () => void;
-  handleRunComponentOpen: () => void;
-  handleRunComponentClose: () => void;
+  // props: Props;
+  // state: State;
+  // handleStartConnect: () => void;
+  // handleConnectModalClose: () => void;
+  // handleRunComponentOpen: () => void;
+  // handleRunComponentClose: () => void;
 
   constructor(props: Props) {
     super(props);

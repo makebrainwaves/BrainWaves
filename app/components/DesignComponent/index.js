@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Header, Image, Divider, Checkbox } from 'semantic-ui-react';
+import { Grid, Button, Segment, Header, Image, Checkbox } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
@@ -67,13 +67,13 @@ interface State {
 }
 
 export default class Design extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleStepClick: (Object, Object) => void;
-  handleStartExperiment: (Object) => void;
-  handleCustomizeExperiment: (Object) => void;
-  handlePreview: (Object) => void;
-  handleLoadCustomExperiment: (string) => void;
+  // props: Props;
+  // state: State;
+  // handleStepClick: (Object, Object) => void;
+  // handleStartExperiment: (Object) => void;
+  // handleCustomizeExperiment: (Object) => void;
+  // handlePreview: (Object) => void;
+  // handleLoadCustomExperiment: (string) => void;
 
   constructor(props: Props) {
     super(props);

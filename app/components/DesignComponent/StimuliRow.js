@@ -1,18 +1,7 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
 import React, { Component } from 'react';
-import {
-  Grid,
-  Segment,
-  Header,
-  Form,
-  Label,
-  Icon,
-  Button,
-  Table,
-  Dropdown,
-} from 'semantic-ui-react';
-import { toast } from 'react-toastify';
+import { Segment, Form, Button, Table, Dropdown } from 'semantic-ui-react';
 import styles from '../styles/common.css';
 
 interface Props {
@@ -30,10 +19,6 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
 }));
 
 export default class StimuliRow extends Component<Props> {
-  constructor(props: Props) {
-    super(props);
-  }
-
   render() {
     return (
       <Table.Row className={styles.trialsRow}>

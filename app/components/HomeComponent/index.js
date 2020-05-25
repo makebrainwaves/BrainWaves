@@ -1,5 +1,5 @@
-// @flow
 import React, { Component } from 'react';
+import { dialog } from 'electron';
 import { isNil } from 'lodash';
 import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
@@ -67,14 +67,14 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleNewExperiment: (EXPERIMENTS) => void;
-  handleStepClick: (string) => void;
-  handleLoadCustomExperiment: (string) => void;
-  handleOpenOverview: (EXPERIMENTS) => void;
-  handleCloseOverview: () => void;
-  handleDeleteWorkspace: (string) => void;
+  // props: Props;
+  // state: State;
+  // handleNewExperiment: (EXPERIMENTS) => void;
+  // handleStepClick: (string) => void;
+  // handleLoadCustomExperiment: (string) => void;
+  // handleOpenOverview: (EXPERIMENTS) => void;
+  // handleCloseOverview: () => void;
+  // handleDeleteWorkspace: (string) => void;
 
   constructor(props: Props) {
     super(props);
