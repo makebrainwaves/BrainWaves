@@ -1,0 +1,49 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": { "node": 8 },
+        "useBuiltIns": false
+      }
+    ],
+    "@babel/preset-react",
+    ["@babel/preset-flow"]
+  ],
+  "plugins": ["@babel/plugin-proposal-optional-catch-binding"],
+  "env": {
+    "production": {
+      "plugins": [
+        "babel-plugin-dev-expression",
+        ["@babel/plugin-proposal-decorators", { "legacy": true }],
+        [
+          "babel-plugin-flow-runtime",
+          {
+            "assert": true,
+            "annotate": true
+          }
+        ],
+        [
+          "@babel/plugin-transform-flow-strip-types",
+          {
+            "allowDeclareFields": true
+          }
+        ],
+        ["@babel/plugin-proposal-class-properties", { "loose": true }]
+      ]
+    },
+    "development": {
+      "plugins": [
+        ["@babel/plugin-proposal-decorators", { "legacy": true }],
+        [
+          "babel-plugin-flow-runtime",
+          {
+            "assert": true,
+            "annotate": true
+          }
+        ],
+        ["@babel/plugin-proposal-class-properties", { "loose": true }]
+      ]
+    }
+  }
+}
