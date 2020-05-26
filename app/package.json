@@ -10,7 +10,7 @@
     "url": "https://github.com/makebrainwaves"
   },
   "scripts": {
-    "electron-rebuild": "node -r babel-register ../internals/scripts/ElectronRebuild.js",
+    "electron-rebuild": "node -r @babel/register ../internals/scripts/ElectronRebuild.js",
     "postinstall": "patch-package && npm run electron-rebuild"
   },
   "license": "MIT",
