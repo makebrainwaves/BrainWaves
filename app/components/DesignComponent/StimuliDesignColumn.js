@@ -1,7 +1,7 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
 import React, { Component } from 'react';
-import { Form, Button, Table, Dropdown, Segment, Icon } from 'semantic-ui-react';
+import { Form, Button, Table, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';

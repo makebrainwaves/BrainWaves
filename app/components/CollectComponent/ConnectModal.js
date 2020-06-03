@@ -34,9 +34,9 @@ const INSTRUCTION_PROGRESS = {
 };
 
 export default class ConnectModal extends Component<Props, State> {
-  handleConnect: () => void;
-  handleSearch: () => void;
-  handleStartTutorial: () => void;
+  // handleConnect: () => void;
+  // handleSearch: () => void;
+  // handleStartTutorial: () => void;
 
   static getDeviceName(device: any) {
     if (!isNil(device)) {
@@ -120,26 +120,26 @@ export default class ConnectModal extends Component<Props, State> {
   renderContent() {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
-        <React.Fragment>
+        <>
           <Modal.Content className={styles.searchingText}>
             Searching for available headset(s)...
           </Modal.Content>
-        </React.Fragment>
+        </>
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
-        <React.Fragment>
+        <>
           <Modal.Content className={styles.searchingText}>
             Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}
             ...
           </Modal.Content>
-        </React.Fragment>
+        </>
       );
     }
     if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
       return (
-        <React.Fragment>
+        <>
           <Modal.Header className={styles.connectHeader}>Turn your headset on</Modal.Header>
           <Modal.Content>
             Make sure your headset is on and fully charged.
@@ -173,12 +173,12 @@ export default class ConnectModal extends Component<Props, State> {
               </Grid.Column>
             </Grid>
           </Modal.Content>
-        </React.Fragment>
+        </>
       );
     }
     if (this.state.instructionProgress === INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY) {
       return (
-        <React.Fragment>
+        <>
           <Modal.Header className={styles.connectHeader}>Insert the USB Receiver</Modal.Header>
           <Modal.Content>
             Insert the USB receiver into a USB port on your computer. Ensure that the LED on the
@@ -203,12 +203,12 @@ export default class ConnectModal extends Component<Props, State> {
               </Grid.Column>
             </Grid>
           </Modal.Content>
-        </React.Fragment>
+        </>
       );
     }
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE) {
       return (
-        <React.Fragment>
+        <>
           <Modal.Header className={styles.connectHeader}>Headset(s) found</Modal.Header>
           <Modal.Content>Please select which headset you would like to connect.</Modal.Content>
           <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
@@ -241,7 +241,7 @@ export default class ConnectModal extends Component<Props, State> {
               Don&#39;t see your device?
             </a>
           </Modal.Content>
-        </React.Fragment>
+        </>
       );
     }
   }

@@ -8,7 +8,7 @@ type Props = {
 };
 
 export default class App extends React.Component<Props> {
-  props: Props;
+  // props: Props;
 
   render() {
     return (

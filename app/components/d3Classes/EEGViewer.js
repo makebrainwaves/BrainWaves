@@ -63,12 +63,12 @@ class EEGViewer {
   }
 
   zoomIn() {
-    this.zoom = this.zoom / this.zoomScalar;
+    this.zoom /= this.zoomScalar;
     this.redraw();
   }
 
   zoomOut() {
-    this.zoom = this.zoom * this.zoomScalar;
+    this.zoom *= this.zoomScalar;
     this.redraw();
   }
 

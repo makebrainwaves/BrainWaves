@@ -24,10 +24,10 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleConnectModalClose: () => void;
-  handleStartConnect: () => void;
+  // props: Props;
+  // state: State;
+  // handleConnectModalClose: () => void;
+  // handleStartConnect: () => void;
 
   constructor(props: Props) {
     super(props);

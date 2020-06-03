@@ -1,4 +1,3 @@
-// @flow
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
@@ -67,14 +66,14 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleNewExperiment: (EXPERIMENTS) => void;
-  handleStepClick: (string) => void;
-  handleLoadCustomExperiment: (string) => void;
-  handleOpenOverview: (EXPERIMENTS) => void;
-  handleCloseOverview: () => void;
-  handleDeleteWorkspace: (string) => void;
+  // props: Props;
+  // state: State;
+  // handleNewExperiment: (EXPERIMENTS) => void;
+  // handleStepClick: (string) => void;
+  // handleLoadCustomExperiment: (string) => void;
+  // handleOpenOverview: (EXPERIMENTS) => void;
+  // handleCloseOverview: () => void;
+  // handleDeleteWorkspace: (string) => void;
 
   constructor(props: Props) {
     super(props);
@@ -209,22 +208,13 @@ export default class Home extends Component<Props, State> {
                             {dateModified && moment.default(dateModified).fromNow()}
                           </Table.Cell>
                           <Table.Cell className={styles.experimentRowName}>
-                            <Button
-                              secondary
-                              onClick={() => this.handleDeleteWorkspace(dir)}
-                            >
+                            <Button secondary onClick={() => this.handleDeleteWorkspace(dir)}>
                               Delete
                             </Button>
-                            <Button
-                              secondary
-                              onClick={() => openWorkspaceDir(dir)}
-                            >
+                            <Button secondary onClick={() => openWorkspaceDir(dir)}>
                               Go to Folder
                             </Button>
-                            <Button
-                              primary
-                              onClick={() => this.handleLoadRecentWorkspace(dir)}
-                            >
+                            <Button primary onClick={() => this.handleLoadRecentWorkspace(dir)}>
                               Open Experiment
                             </Button>
                           </Table.Cell>
@@ -362,7 +352,6 @@ export default class Home extends Component<Props, State> {
               </Grid.Column>
             </Grid.Row>
 
-
             <Grid.Row>
               <Grid.Column>
                 <Segment>
@@ -380,9 +369,7 @@ export default class Home extends Component<Props, State> {
                           Custom experiment
                         </Header>
                         <div className={styles.experimentCardDescription}>
-                          <p>
-                            Design your own experiment!
-                          </p>
+                          <p>Design your own experiment!</p>
                         </div>
                       </Grid.Column>
                     </Grid.Row>
@@ -392,7 +379,6 @@ export default class Home extends Component<Props, State> {
 
               <Grid.Column />
             </Grid.Row>
-
           </Grid>
         );
       case HOME_STEPS.EXPLORE:
@@ -423,7 +409,7 @@ export default class Home extends Component<Props, State> {
       );
     }
     return (
-      <React.Fragment>
+      <>
         <SecondaryNavComponent
           title={<Image src={appLogo} />}
           steps={HOME_STEPS}
@@ -431,7 +417,7 @@ export default class Home extends Component<Props, State> {
           onStepClick={this.handleStepClick}
         />
         <div className={styles.homeContentContainer}>{this.renderSectionContent()}</div>
-      </React.Fragment>
+      </>
     );
   }
 

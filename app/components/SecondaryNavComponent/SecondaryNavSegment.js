@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default class SecondaryNavSegment extends Component<Props> {
-  props: Props;
+  // props: Props;
 
   render() {
     return (

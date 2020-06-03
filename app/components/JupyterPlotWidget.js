@@ -17,8 +17,8 @@ interface State {
 }
 
 export default class JupyterPlotWidget extends Component<Props, State> {
-  props: Props;
-  state: State;
+  // props: Props;
+  // state: State;
   constructor(props: Props) {
     super(props);
     this.state = {

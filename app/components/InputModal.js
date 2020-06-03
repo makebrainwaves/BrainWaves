@@ -17,12 +17,12 @@ interface State {
 }
 
 export default class InputModal extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleTextEntry: (Object, Object) => void;
-  handleClose: () => void;
-  handleExit: () => void;
-  handleEnterSubmit: (Object) => void;
+  // props: Props;
+  // state: State;
+  // handleTextEntry: (Object, Object) => void;
+  // handleClose: () => void;
+  // handleExit: () => void;
+  // handleEnterSubmit: (Object) => void;
 
   constructor(props: Props) {
     super(props);

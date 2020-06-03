@@ -61,13 +61,13 @@ interface State {
 }
 
 export default class CustomDesign extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleStepClick: (string) => void;
-  handleStartExperiment: (Object) => void;
-  handlePreview: () => void;
-  handleSaveParams: () => void;
-  handleProgressBar: (Object, Object) => void;
+  // props: Props;
+  // state: State;
+  // handleStepClick: (string) => void;
+  // handleStartExperiment: (Object) => void;
+  // handlePreview: () => void;
+  // handleSaveParams: () => void;
+  // handleProgressBar: (Object, Object) => void;
 
   constructor(props: Props) {
     super(props);

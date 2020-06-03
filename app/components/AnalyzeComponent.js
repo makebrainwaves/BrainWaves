@@ -92,19 +92,19 @@ interface State {
 // TODO: Add a channel callback from reading epochs so this screen can be aware of which channels are
 // available in dataset
 export default class Analyze extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleChannelSelect: (string) => void;
-  handleStepClick: (Object, Object) => void;
-  handleDatasetChange: (Object, Object) => void;
-  handleBehaviorDatasetChange: (Object, Object) => void;
-  handleDependentVariableChange: (Object, Object) => void;
-  handleRemoveOutliers: (Object, Object) => void;
-  handleDisplayModeChange: (string) => void;
-  handleDataPoints: (Object, Object) => void;
-  saveSelectedDatasets: () => void;
-  handleStepClick: (Object, Object) => void;
-  toggleDisplayInfoVisibility: () => void;
+  // props: Props;
+  // state: State;
+  // handleChannelSelect: (string) => void;
+  // handleStepClick: (Object, Object) => void;
+  // handleDatasetChange: (Object, Object) => void;
+  // handleBehaviorDatasetChange: (Object, Object) => void;
+  // handleDependentVariableChange: (Object, Object) => void;
+  // handleRemoveOutliers: (Object, Object) => void;
+  // handleDisplayModeChange: (string) => void;
+  // handleDataPoints: (Object, Object) => void;
+  // saveSelectedDatasets: () => void;
+  // handleStepClick: (Object, Object) => void;
+  // toggleDisplayInfoVisibility: () => void;
 
   constructor(props: Props) {
     super(props);
@@ -298,9 +298,11 @@ export default class Analyze extends Component<Props, State> {
 
   renderEpochLabels() {
     if (!isNil(this.props.epochsInfo) && this.state.selectedFilePaths.length >= 1) {
-      const numberConditions = (this.props.epochsInfo.filter( infoObj => (infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'))).length;
+      const numberConditions = this.props.epochsInfo.filter(
+        (infoObj) => infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
+      ).length;
       let colors;
-      if(numberConditions === 4){
+      if (numberConditions === 4) {
         colors = ['red', 'yellow', 'green', 'blue'];
       } else {
         colors = ['red', 'green', 'teal', 'orange'];
@@ -308,13 +310,15 @@ export default class Analyze extends Component<Props, State> {
       return (
         <div>
           {this.props.epochsInfo
-            .filter( infoObj => (infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'))
+            .filter(
+              (infoObj) => infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
+            )
             .map((infoObj, index) => (
-              <React.Fragment key={infoObj.name}>
-                <Header as="h4">{infoObj.name}</Header>
-                <Icon name="circle" color={colors[index]} />
+              <>
+                <Header as='h4'>{infoObj.name}</Header>
+                <Icon name='circle' color={colors[index]} />
                 {infoObj.value}
-              </React.Fragment>
+              </>
             ))}
         </div>
       );
@@ -368,7 +372,7 @@ export default class Analyze extends Component<Props, State> {
 
   renderHelp(header: string, content: string) {
     return (
-      <React.Fragment>
+      <>
         <Segment basic className={styles.helpContent}>
           <Button
             circular
@@ -383,7 +387,7 @@ export default class Analyze extends Component<Props, State> {
           </Header>
           {content}
         </Segment>
-      </React.Fragment>
+      </>
     );
   }
 
@@ -392,7 +396,7 @@ export default class Analyze extends Component<Props, State> {
       case ANALYZE_STEPS.OVERVIEW:
       default:
         return (
-          <React.Fragment>
+          <>
             <Grid.Column width={4}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>Overview</Header>
@@ -420,11 +424,11 @@ export default class Analyze extends Component<Props, State> {
                 plotMIMEBundle={this.props.topoPlot}
               />
             </Grid.Column>
-          </React.Fragment>
+          </>
         );
       case ANALYZE_STEPS.ERP:
         return (
-          <React.Fragment>
+          <>
             <Grid.Column width={4} className={styles.analyzeColumn}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>ERP</Header>
@@ -449,11 +453,11 @@ export default class Analyze extends Component<Props, State> {
                 plotMIMEBundle={this.props.erpPlot}
               />
             </Grid.Column>
-          </React.Fragment>
+          </>
         );
       case ANALYZE_STEPS.BEHAVIOR:
         return (
-          <React.Fragment>
+          <>
             <Grid.Column width={4}>
               <Segment basic textAlign='left' className={styles.infoSegment}>
                 <Header as='h1'>Overview</Header>
@@ -481,7 +485,7 @@ export default class Analyze extends Component<Props, State> {
                 />
                 <p />
                 <Divider hidden />
-                <span className="ui header">Dependent Variable</span>
+                <span className='ui header'>Dependent Variable</span>
                 <p />
                 <Dropdown
                   fluid
@@ -493,13 +497,21 @@ export default class Analyze extends Component<Props, State> {
                 />
               </Segment>
             </Grid.Column>
-            <Grid.Column width={12} style={{ overflow: 'auto', maxHeight: 650, display: 'grid', justifyContent: 'center' }}>
+            <Grid.Column
+              width={12}
+              style={{
+                overflow: 'auto',
+                maxHeight: 650,
+                display: 'grid',
+                justifyContent: 'center',
+              }}
+            >
               <Segment basic textAlign='left' className={styles.plotSegment}>
                 <Plot data={this.state.dataToPlot} layout={this.state.layout} />
                 <p />
                 <Checkbox
                   checked={this.state.removeOutliers}
-                  label="Remove Response Time Outliers"
+                  label='Remove Response Time Outliers'
                   onChange={this.handleRemoveOutliers}
                 />
 
@@ -545,7 +557,7 @@ export default class Analyze extends Component<Props, State> {
                 </Sidebar>
               </Segment>
             </Grid.Column>
-          </React.Fragment>
+          </>
         );
     }
   }

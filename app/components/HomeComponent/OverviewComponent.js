@@ -26,8 +26,6 @@ interface State {
 }
 
 export default class OverviewComponent extends Component<Props, State> {
-  props: Props;
-  state: State;
   constructor(props) {
     super(props);
     this.state = {
@@ -45,7 +43,7 @@ export default class OverviewComponent extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState({ isPreviewing: !this.state.isPreviewing });
+    this.setState((prevState) => ({ ...prevState, isPreviewing: !prevState.isPreviewing }));
   }
 
   endPreview() {
@@ -115,7 +113,7 @@ export default class OverviewComponent extends Component<Props, State> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <Button
           basic
           circular
@@ -132,12 +130,12 @@ export default class OverviewComponent extends Component<Props, State> {
           onStepClick={this.handleStepClick}
           button={
             <Button primary onClick={() => this.props.onStartExperiment(this.props.type)}>
-              Start Experiment{' '}
+              Start Experiment
             </Button>
           }
         />
         <div className={styles.homeContentContainer}>{this.renderSectionContent()}</div>
-      </React.Fragment>
+      </>
     );
   }
 }

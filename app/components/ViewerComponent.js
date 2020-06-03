@@ -19,10 +19,10 @@ interface State {
 }
 
 class ViewerComponent extends Component<Props, State> {
-  props: Props;
-  state: State;
-  graphView: ?HTMLElement;
-  signalQualitySubscription: Subscription;
+  // props: Props;
+  // state: State;
+  // graphView: ?HTMLElement;
+  // signalQualitySubscription: Subscription;
 
   constructor(props: Props) {
     super(props);

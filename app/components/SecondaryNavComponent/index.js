@@ -27,7 +27,7 @@ export default class SecondaryNavComponent extends Component<Props> {
 
   renderSteps() {
     return (
-      <React.Fragment>
+      <>
         {Object.values(this.props.steps).map((stepTitle) => (
           <SecondaryNavSegment
             key={stepTitle}
@@ -40,7 +40,7 @@ export default class SecondaryNavComponent extends Component<Props> {
             onClick={() => this.props.onStepClick(stepTitle)}
           />
         ))}
-      </React.Fragment>
+      </>
     );
   }
 

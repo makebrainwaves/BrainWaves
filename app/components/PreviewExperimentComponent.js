@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default class PreviewExperimentComponent extends Component<Props> {
-  props: Props;
+  // props: Props;
 
   constructor(props: Props) {
     super(props);

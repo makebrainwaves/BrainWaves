@@ -25,7 +25,8 @@ interface State {
 
 // TODO: Refactor this into a more reusable Sidebar component that can be used in Collect, Clean, and Analyze screen
 export class HelpSidebar extends Component<Props, State> {
-  props: Props;
+  // props: Props;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -52,17 +53,17 @@ export class HelpSidebar extends Component<Props, State> {
     ) {
       this.setState({ helpStep: HELP_STEP.MENU });
     } else {
-      this.setState({ helpStep: this.state.helpStep + 1 });
+      this.setState((prevState) => ({ ...prevState, helpStep: prevState.helpStep + 1 }));
     }
   }
 
   handleBack() {
-    this.setState({ helpStep: this.state.helpStep - 1 });
+    this.setState((prevState) => ({ ...prevState, helpStep: prevState.helpStep - 1 }));
   }
 
   renderMenu() {
     return (
-      <React.Fragment>
+      <>
         <Menu secondary vertical fluid>
           <Header className={styles.helpHeader} as='h1'>
             What would you like to do?
@@ -80,13 +81,13 @@ export class HelpSidebar extends Component<Props, State> {
             </Segment>
           </Menu.Item>
         </Menu>
-      </React.Fragment>
+      </>
     );
   }
 
   renderHelp(header: string, content: string) {
     return (
-      <React.Fragment>
+      <>
         <Segment basic className={styles.helpContent}>
           <Header className={styles.helpHeader} as='h1'>
             {header}
@@ -105,7 +106,7 @@ export class HelpSidebar extends Component<Props, State> {
             </Button>
           </Grid.Column>
         </Grid>
-      </React.Fragment>
+      </>
     );
   }
 
@@ -161,12 +162,7 @@ export class HelpSidebar extends Component<Props, State> {
     return (
       <Segment basic padded vertical className={styles.helpSidebar}>
         <Segment basic className={styles.closeButton}>
-          <Button
-            circular
-            size="large"
-            icon="x"
-            onClick={this.props.handleClose}
-          />
+          <Button circular size='large' icon='x' onClick={this.props.handleClose} />
         </Segment>
         {this.renderHelpContent()}
       </Segment>

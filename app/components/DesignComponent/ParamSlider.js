@@ -22,8 +22,8 @@ export default class ParamSlider extends PureComponent<Props> {
               marks={this.props.marks}
               min={Math.min(...Object.keys(marks))}
               max={Math.max(...Object.keys(marks))}
-              value={this.props.value / parseInt(ms_conversion)}
-              onChange={(value) => this.props.onChange(value * parseInt(ms_conversion))}
+              value={this.props.value / parseInt(ms_conversion, 10)}
+              onChange={(value) => this.props.onChange(value * parseInt(ms_conversion, 10))}
               defaultValue={1}
             />
           ) : (
