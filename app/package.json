@@ -4,28 +4,30 @@
   "version": "0.13.0",
   "description": "EEG Desktop Application",
   "main": "./main.prod.js",
+  "type": "module",
   "author": {
     "name": "Dano Morrison",
     "email": "dano@neurotechx.com",
     "url": "https://github.com/makebrainwaves"
   },
   "scripts": {
-    "electron-rebuild": "node -r @babel/register ../internals/scripts/ElectronRebuild.js",
+    "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
     "postinstall": "patch-package && npm run electron-rebuild"
   },
   "license": "MIT",
   "dependencies": {
     "@neurosity/pipes": "^3.2.3",
-    "@babel/runtime": "7.9.6",
-    "bleat": "^0.1.8",
-    "enchannel-zmq-backend": "^6.0.11",
+    "@babel/runtime": "7.10.2",
+    "bleat": "^0.1.9",
+    "enchannel-zmq-backend": "^9.1.22",
     "kernelspecs": "^2.0.0",
-    "noble-winrt": "^0.1.0",
-    "node-pre-gyp": "^0.10.0",
-    "spawnteract": "^4.0.0"
+    "noble-winrt": "^0.1.1",
+    "node-pre-gyp": "^0.15.0",
+    "spawnteract": "^5.0.1"
   },
   "devDependencies": {
-    "@babel/runtime-corejs2": "^7.9.6",
-    "patch-package": "^5.1.1"
+    "@babel/register": "^7.10.1",
+    "@babel/runtime-corejs2": "^7.10.2",
+    "patch-package": "^6.2.2"
   }
 }
