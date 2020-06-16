@@ -153,7 +153,7 @@
     "@babel/preset-env": "7.10.2",
     "@babel/preset-flow": "7.10.1",
     "@babel/preset-react": "7.10.1",
-    "@babel/register": "7.10.1",
+    "@babel/register": "^7.10.1",
     "@nteract/core": "^14.0.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "^26.0.1",
