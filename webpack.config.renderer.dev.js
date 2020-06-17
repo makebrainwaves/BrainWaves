@@ -1,5 +1,3 @@
-/* eslint global-require: 0, import/no-dynamic-require: 0 */
-
 /**
  * Build config for development electron renderer process that uses
  * Hot-Module-Replacement
@@ -13,15 +11,19 @@ import webpack from 'webpack';
 import chalk from 'chalk';
 import merge from 'webpack-merge';
 import { spawn, execSync } from 'child_process';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import { TypedCssModulesPlugin } from 'typed-css-modules-webpack-plugin';
 import baseConfig from './webpack.config.base';
-import CheckNodeEnv from './internals/scripts/CheckNodeEnv';
+import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
 
-CheckNodeEnv('development');
+// When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
+// at the dev webpack config is not accidentally run in a production environment
+if (process.env.NODE_ENV === 'production') {
+  CheckNodeEnv('development');
+}
 
 const port = process.env.PORT || 1212;
 const publicPath = `http://localhost:${port}/dist`;
-const dll = path.resolve(process.cwd(), 'dll');
+const dll = path.join(__dirname, '..', 'dll');
 const manifest = path.resolve(dll, 'renderer.json');
 const requiredByDLLConfig = module.parent.filename.includes('webpack.config.renderer.dev.dll');
 
@@ -31,10 +33,10 @@ const requiredByDLLConfig = module.parent.filename.includes('webpack.config.rend
 if (!requiredByDLLConfig && !(fs.existsSync(dll) && fs.existsSync(manifest))) {
   console.log(
     chalk.black.bgYellow.bold(
-      'The DLL files are missing. Sit back while we build them for you with "npm run build-dll"'
+      'The DLL files are missing. Sit back while we build them for you with "yarn build-dll"'
     )
   );
-  execSync('npm run build-dll');
+  execSync('yarn build-dll');
 }
 
 export default merge.smart(baseConfig, {
@@ -44,42 +46,20 @@ export default merge.smart(baseConfig, {
 
   target: 'electron-renderer',
 
-  entry: {
-    main: [
-      'react-hot-loader/patch',
-      `webpack-dev-server/client?http://localhost:${port}/`,
-      'webpack/hot/only-dev-server',
-      path.join(__dirname, 'app/index.js'),
-    ],
-    viewer: [path.join(__dirname, 'app/viewer.js')],
-  },
+  entry: [
+    ...(process.env.PLAIN_HMR ? [] : ['react-hot-loader/patch']),
+    `webpack-dev-server/client?http://localhost:${port}/`,
+    'webpack/hot/only-dev-server',
+    require.resolve('../app/index.tsx'),
+  ],
 
   output: {
     publicPath: `http://localhost:${port}/dist/`,
-    filename: '[name].entry.js',
+    filename: 'renderer.dev.js',
   },
-
-  resolve: { symlinks: false },
 
   module: {
     rules: [
-      {
-        test: /\.jsx?$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            cacheDirectory: true,
-            plugins: [
-              // Here, we include babel plugins that are only required for the
-              // renderer process. The 'transform-*' plugins must be included
-              // before react-hot-loader/babel
-              '@babel/plugin-proposal-class-properties',
-              'react-hot-loader/babel',
-            ],
-          },
-        },
-      },
       {
         test: /\.global\.css$/,
         use: [
@@ -208,18 +188,26 @@ export default merge.smart(baseConfig, {
       },
     ],
   },
-
+  resolve: {
+    alias: {
+      'react-dom': '@hot-loader/react-dom',
+    },
+  },
   plugins: [
     requiredByDLLConfig
       ? null
       : new webpack.DllReferencePlugin({
-          context: process.cwd(),
+          context: path.join(__dirname, '..', 'dll'),
           manifest: require(manifest),
           sourceType: 'var',
         }),
 
     new webpack.HotModuleReplacementPlugin({
       multiStep: true,
+    }),
+
+    new TypedCssModulesPlugin({
+      globPattern: 'app/**/*.{css,scss,sass}',
     }),
 
     new webpack.NoEmitOnErrorsPlugin(),
@@ -242,10 +230,6 @@ export default merge.smart(baseConfig, {
 
     new webpack.LoaderOptionsPlugin({
       debug: true,
-    }),
-
-    new ExtractTextPlugin({
-      filename: '[name].css',
     }),
   ],
 

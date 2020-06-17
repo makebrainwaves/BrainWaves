@@ -1,5 +1,3 @@
-/* eslint global-require: 0, import/no-dynamic-require: 0 */
-
 /**
  * Builds the DLL for development electron renderer process
  */
@@ -8,15 +6,15 @@ import webpack from 'webpack';
 import path from 'path';
 import merge from 'webpack-merge';
 import baseConfig from './webpack.config.base';
-import { dependencies } from './package.json';
-import CheckNodeEnv from './internals/scripts/CheckNodeEnv';
+import { dependencies } from '../package.json';
+import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
 
 CheckNodeEnv('development');
 
-const dist = path.resolve(process.cwd(), 'dll');
+const dist = path.join(__dirname, '..', 'dll');
 
 export default merge.smart(baseConfig, {
-  context: process.cwd(),
+  context: path.join(__dirname, '..'),
 
   devtool: 'eval',
 
@@ -29,10 +27,10 @@ export default merge.smart(baseConfig, {
   /**
    * Use `module` from `webpack.config.renderer.dev.js`
    */
-  module: require('./webpack.config.renderer.dev').module,
+  module: require('./webpack.config.renderer.dev.babel').default.module,
 
   entry: {
-    renderer: Object.keys(dependencies || {}).filter((dependency) => dependency !== 'font-awesome'),
+    renderer: Object.keys(dependencies || {}),
   },
 
   output: {
@@ -47,6 +45,7 @@ export default merge.smart(baseConfig, {
       path: path.join(dist, '[name].json'),
       name: '[name]',
     }),
+
     /**
      * Create global constants which can be configured at compile time.
      *
@@ -63,9 +62,9 @@ export default merge.smart(baseConfig, {
     new webpack.LoaderOptionsPlugin({
       debug: true,
       options: {
-        context: path.resolve(process.cwd(), 'app'),
+        context: path.join(__dirname, '..', 'app'),
         output: {
-          path: path.resolve(process.cwd(), 'dll'),
+          path: path.join(__dirname, '..', 'dll'),
         },
       },
     }),
