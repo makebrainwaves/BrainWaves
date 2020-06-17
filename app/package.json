@@ -4,7 +4,6 @@
   "version": "0.13.0",
   "description": "EEG Desktop Application",
   "main": "./main.prod.js",
-  "type": "module",
   "author": {
     "name": "Dano Morrison",
     "email": "dano@neurotechx.com",
