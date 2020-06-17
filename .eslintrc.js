@@ -77,7 +77,7 @@ module.exports = {
     'import/resolver': {
       node: {},
       webpack: {
-        config: require.resolve('./webpack.config.eslint.js'),
+        config: require.resolve('./configs/webpack.config.eslint.js'),
       },
     },
   },

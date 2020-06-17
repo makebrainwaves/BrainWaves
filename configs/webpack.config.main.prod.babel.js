@@ -8,8 +8,8 @@ import merge from 'webpack-merge';
 import TerserPlugin from 'terser-webpack-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import baseConfig from './webpack.config.base';
-import CheckNodeEnv from './internals/scripts/CheckNodeEnv';
-import DeleteSourceMaps from './internals/scripts/DeleteSourceMaps';
+import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
+import DeleteSourceMaps from '../internals/scripts/DeleteSourceMaps';
 
 CheckNodeEnv('production');
 DeleteSourceMaps();
@@ -21,11 +21,11 @@ export default merge.smart(baseConfig, {
 
   target: 'electron-main',
 
-  entry: './app/main.dev.ts',
+  entry: './app/main.dev.js',
 
   output: {
     path: path.join(__dirname, '..'),
-    filename: './app/main.prod.js',
+    filename: './app/main.prod.js'
   },
 
   optimization: {
@@ -35,15 +35,16 @@ export default merge.smart(baseConfig, {
           new TerserPlugin({
             parallel: true,
             sourceMap: true,
-            cache: true,
-          }),
-        ],
+            cache: true
+          })
+        ]
   },
 
   plugins: [
     new BundleAnalyzerPlugin({
-      analyzerMode: process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
-      openAnalyzer: process.env.OPEN_ANALYZER === 'true',
+      analyzerMode:
+        process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
+      openAnalyzer: process.env.OPEN_ANALYZER === 'true'
     }),
 
     /**
@@ -59,8 +60,8 @@ export default merge.smart(baseConfig, {
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
-      E2E_BUILD: false,
-    }),
+      E2E_BUILD: false
+    })
   ],
 
   /**
@@ -70,6 +71,6 @@ export default merge.smart(baseConfig, {
    */
   node: {
     __dirname: false,
-    __filename: false,
-  },
+    __filename: false
+  }
 });
