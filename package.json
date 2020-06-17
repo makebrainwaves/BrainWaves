@@ -233,6 +233,7 @@
   "dependencies": {
     "@babel/runtime": "7.10.2",
     "@babel/runtime-corejs2": "^7.10.2",
+    "@hot-loader/react-dom": "^16.13.0",
     "@nteract/messaging": "^7.0.7",
     "@nteract/transforms": "^4.4.7",
     "ajv": "^6.12.2",
