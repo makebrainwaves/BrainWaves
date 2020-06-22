@@ -1,17 +1,17 @@
-// @flow
-import React, { Component } from 'react';
-import { Grid, Button, Header, Segment, Image, Divider } from 'semantic-ui-react';
-import { PLOTTING_INTERVAL, CONNECTION_STATUS, DEVICE_AVAILABILITY } from '../constants/constants';
-import eegImage from '../assets/common/EEG.png';
-import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
-import ViewerComponent from './ViewerComponent';
-import ConnectModal from './CollectComponent/ConnectModal';
-import styles from './styles/common.css';
+
+import React, { Component } from "react";
+import { Grid, Button, Header, Segment, Image, Divider } from "semantic-ui-react";
+import { PLOTTING_INTERVAL, CONNECTION_STATUS, DEVICE_AVAILABILITY } from "../constants/constants";
+import eegImage from "../assets/common/EEG.png";
+import SignalQualityIndicatorComponent from "./SignalQualityIndicatorComponent";
+import ViewerComponent from "./ViewerComponent";
+import ConnectModal from "./CollectComponent/ConnectModal";
+import styles from "./styles/common.css";
 
 interface Props {
   history: Object;
   connectedDevice: Object;
-  signalQualityObservable: ?any;
+  signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
@@ -24,15 +24,13 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-  // props: Props;
-  // state: State;
+
   // handleConnectModalClose: () => void;
   // handleStartConnect: () => void;
-
   constructor(props: Props) {
     super(props);
     this.state = {
-      isConnectModalOpen: false,
+      isConnectModalOpen: false
     };
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleStartConnect = this.handleStartConnect.bind(this);
@@ -40,10 +38,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
-    if (
-      this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
-      prevState.isConnectModalOpen
-    ) {
+    if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && prevState.isConnectModalOpen) {
       this.setState({ isConnectModalOpen: false });
     }
   };
@@ -64,21 +59,10 @@ export default class Home extends Component<Props, State> {
   }
 
   render() {
-    return (
-      <Grid
-        stretched
-        relaxed
-        padded
-        className={styles.contentGrid}
-        style={{ alignItems: 'center' }}
-      >
-        {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
-          <Grid.Row>
+    return <Grid stretched relaxed padded className={styles.contentGrid} style={{ alignItems: 'center' }}>
+        {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && <Grid.Row>
             <Grid.Column stretched width={6}>
-              <SignalQualityIndicatorComponent
-                signalQualityObservable={this.props.signalQualityObservable}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
+              <SignalQualityIndicatorComponent signalQualityObservable={this.props.signalQualityObservable} plottingInterval={PLOTTING_INTERVAL} />
             </Grid.Column>
             <Grid.Column stretched width={10}>
               <div className={styles.disconnectButtonContainer}>
@@ -86,16 +70,10 @@ export default class Home extends Component<Props, State> {
                   Disconnect EEG Device
                 </Button>
               </div>
-              <ViewerComponent
-                signalQualityObservable={this.props.signalQualityObservable}
-                deviceType={this.props.deviceType}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
+              <ViewerComponent signalQualityObservable={this.props.signalQualityObservable} deviceType={this.props.deviceType} plottingInterval={PLOTTING_INTERVAL} />
             </Grid.Column>
-          </Grid.Row>
-        )}
-        {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
-          <Grid.Row stretched>
+          </Grid.Row>}
+        {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && <Grid.Row stretched>
             <Grid.Column stretched width={5}>
               <Segment basic>
                 <Image src={eegImage} />
@@ -112,22 +90,8 @@ export default class Home extends Component<Props, State> {
                 </Button>
               </Segment>
             </Grid.Column>
-            <ConnectModal
-              history={this.props.history}
-              open={this.state.isConnectModalOpen}
-              onClose={this.handleConnectModalClose}
-              connectedDevice={this.props.connectedDevice}
-              signalQualityObservable={this.props.signalQualityObservable}
-              deviceType={this.props.deviceType}
-              deviceAvailability={this.props.deviceAvailability}
-              connectionStatus={this.props.connectionStatus}
-              deviceActions={this.props.deviceActions}
-              availableDevices={this.props.availableDevices}
-              style={{ marginTop: '100px' }}
-            />
-          </Grid.Row>
-        )}
-      </Grid>
-    );
+            <ConnectModal history={this.props.history} open={this.state.isConnectModalOpen} onClose={this.handleConnectModalClose} connectedDevice={this.props.connectedDevice} signalQualityObservable={this.props.signalQualityObservable} deviceType={this.props.deviceType} deviceAvailability={this.props.deviceAvailability} connectionStatus={this.props.connectionStatus} deviceActions={this.props.deviceActions} availableDevices={this.props.availableDevices} style={{ marginTop: '100px' }} />
+          </Grid.Row>}
+      </Grid>;
   }
 }

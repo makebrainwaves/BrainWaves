@@ -1,19 +1,22 @@
-import React, { Component } from 'react';
-import { Grid, Header, Dropdown } from 'semantic-ui-react';
-import styles from '../styles/secondarynav.css';
-import SecondaryNavSegment from './SecondaryNavSegment';
-import { NavLink } from 'react-router-dom';
-import { SCREENS } from '../../constants/constants';
+import React, { Component } from "react";
+import { Grid, Header, Dropdown } from "semantic-ui-react";
+import styles from "../styles/secondarynav.css";
+import SecondaryNavSegment from "./SecondaryNavSegment";
+import { NavLink } from "react-router-dom";
+import { SCREENS } from "../../constants/constants";
 
 interface Props {
   title: string | React.ReactNode;
-  steps: { [string]: string };
+  steps: {
+    [key: string]: string;
+  };
   activeStep: string;
-  onStepClick: (string) => void;
+  onStepClick: (arg0: string) => void;
   button?: React.ReactNode;
 }
 
 export default class SecondaryNavComponent extends Component<Props> {
+
   shouldComponentUpdate(nextProps) {
     return nextProps.activeStep !== this.props.activeStep;
   }
@@ -26,42 +29,24 @@ export default class SecondaryNavComponent extends Component<Props> {
   }
 
   renderSteps() {
-    return (
-      <>
-        {Object.values(this.props.steps).map((stepTitle) => (
-          <SecondaryNavSegment
-            key={stepTitle}
-            title={stepTitle}
-            style={
-              this.props.activeStep === stepTitle
-                ? styles.activeSecondaryNavSegment
-                : styles.inactiveSecondaryNavSegment
-            }
-            onClick={() => this.props.onStepClick(stepTitle)}
-          />
-        ))}
-      </>
-    );
+    return <>
+        {Object.values(this.props.steps).map(stepTitle => <SecondaryNavSegment key={stepTitle} title={stepTitle} style={this.props.activeStep === stepTitle ? styles.activeSecondaryNavSegment : styles.inactiveSecondaryNavSegment} onClick={() => this.props.onStepClick(stepTitle)} />)}
+      </>;
   }
 
   render() {
-    return (
-      <Grid verticalAlign='middle' className={styles.secondaryNavContainer}>
+    return <Grid verticalAlign='middle' className={styles.secondaryNavContainer}>
         <Grid.Column width={3} verticalAlign='bottom'>
           {this.renderTitle()}
         </Grid.Column>
 
         {this.renderSteps()}
 
-        {this.props.enableEEGToggle && (
-          <Grid.Column width={2} floated='right'>
+        {this.props.enableEEGToggle && <Grid.Column width={2} floated='right'>
             <div className={styles.settingsButtons}>
               <Dropdown icon='setting' direction='left' fluid className={styles.dropdownSettings}>
                 <Dropdown.Menu className={styles.dropdownMenu}>
-                  <Dropdown.Item
-                    className={styles.dropdownItem}
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <Dropdown.Item className={styles.dropdownItem} onClick={e => e.stopPropagation()}>
                     <div>Enable EEG</div>
                     {this.props.enableEEGToggle}
                   </Dropdown.Item>
@@ -74,9 +59,7 @@ export default class SecondaryNavComponent extends Component<Props> {
               </Dropdown>
               {this.props.saveButton}
             </div>
-          </Grid.Column>
-        )}
-      </Grid>
-    );
+          </Grid.Column>}
+      </Grid>;
   }
 }

@@ -1,14 +1,16 @@
-// @flow
-import React, { Component } from 'react';
-import { Segment, Button } from 'semantic-ui-react';
-import { richestMimetype, standardDisplayOrder, standardTransforms } from '@nteract/transforms';
-import { isNil } from 'lodash';
-import { storeJupyterImage } from '../utils/filesystem/storage';
+
+import React, { Component } from "react";
+import { Segment, Button } from "semantic-ui-react";
+import { richestMimetype, standardDisplayOrder, standardTransforms } from "@nteract/transforms";
+import { isNil } from "lodash";
+import { storeJupyterImage } from "../utils/filesystem/storage";
 
 interface Props {
   title: string;
   imageTitle: string;
-  plotMIMEBundle: ?{ [string]: string };
+  plotMIMEBundle: {
+    [key: string]: string;
+  } | null | undefined;
 }
 
 interface State {
@@ -17,23 +19,22 @@ interface State {
 }
 
 export default class JupyterPlotWidget extends Component<Props, State> {
-  // props: Props;
+
   // state: State;
   constructor(props: Props) {
     super(props);
     this.state = {
       rawData: '',
-      mimeType: '',
+      mimeType: ''
     };
     this.handleSave = this.handleSave.bind(this);
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (
-      this.props.plotMIMEBundle !== prevProps.plotMIMEBundle &&
-      !isNil(this.props.plotMIMEBundle)
-    ) {
-      const bundle: { [string]: string } = this.props.plotMIMEBundle;
+    if (this.props.plotMIMEBundle !== prevProps.plotMIMEBundle && !isNil(this.props.plotMIMEBundle)) {
+      const bundle: {
+        [key: string]: string;
+      } = this.props.plotMIMEBundle;
       const mimeType = richestMimetype(bundle, standardDisplayOrder, standardTransforms);
       if (mimeType) {
         this.setState({ rawData: bundle[mimeType], mimeType });
@@ -55,20 +56,16 @@ export default class JupyterPlotWidget extends Component<Props, State> {
 
   renderSaveButton() {
     if (this.state.rawData) {
-      return (
-        <Button primary size='tiny' onClick={this.handleSave}>
+      return <Button primary size='tiny' onClick={this.handleSave}>
           Save Image
-        </Button>
-      );
+        </Button>;
     }
   }
 
   render() {
-    return (
-      <Segment basic>
+    return <Segment basic>
         {this.renderResults()}
         {this.renderSaveButton()}
-      </Segment>
-    );
+      </Segment>;
   }
 }
