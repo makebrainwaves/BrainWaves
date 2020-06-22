@@ -1,84 +1,16 @@
 module.exports = {
-  parser: 'babel-eslint',
-  parserOptions: {
-    sourceType: 'module',
-    allowImportExportEverywhere: true,
-  },
-  extends: ['airbnb', 'prettier'],
-  env: {
-    browser: true,
-    node: true,
-  },
+  extends: 'erb/typescript',
   rules: {
-    'arrow-parens': ['off'],
-    'compat/compat': 'error',
-    'consistent-return': 'off',
-    'comma-dangle': 'off',
-    'generator-star-spacing': 'off',
-    'flowtype/object-type-delimiter': 'off',
-    'flowtype/no-weak-types': 'warn',
-    'import/no-unresolved': 'error',
-    'import/no-extraneous-dependencies': 'off',
-    'jsx-a11y/anchor-is-valid': 'off',
-    'no-console': 'off',
-    'no-use-before-define': 'off',
-    'no-multi-assign': 'off',
-    'no-plusplus': 'off',
-    'no-param-reassign': 'warn',
-    'promise/param-names': 'error',
-    'promise/always-return': 'error',
-    'promise/catch-or-return': 'error',
-    'promise/no-native': 'off',
-    'prefer-destructuring': 'off',
-    'react/no-will-update-set-state': 'warn',
-    'react/no-did-mount-set-state': 'warn',
-    'react/no-did-update-set-state': 'warn',
-    'react/sort-comp': [
-      'error',
-      {
-        order: ['type-annotations', 'static-methods', 'lifecycle', 'everything-else', 'render'],
-      },
-    ],
-    'react/jsx-no-bind': 'off',
-    'react/jsx-filename-extension': ['error', { extensions: ['.js', '.jsx'] }],
-    'react/prefer-stateless-function': 'off',
-    'linebreak-style': 'off',
-    'jsx-a11y/click-events-have-key-events': 'off',
-    'flowtype/boolean-style': ['error', 'boolean'],
-    'flowtype/define-flow-type': 'warn',
-    'flowtype/delimiter-dangle': 'off',
-    'flowtype/generic-spacing': ['error', 'never'],
-    'flowtype/no-primitive-constructor-types': 'error',
-    'flowtype/no-weak-types': 'warn',
-    'flowtype/object-type-delimiter': ['off'],
-    'flowtype/require-parameter-type': 'off',
-    'flowtype/require-return-type': 'off',
-    'flowtype/require-valid-file-annotation': 'off',
-    'flowtype/semi': ['error', 'always'],
-    'flowtype/space-after-type-colon': ['error', 'always'],
-    'flowtype/space-before-generic-bracket': ['error', 'never'],
-    'flowtype/space-before-type-colon': ['error', 'never'],
-    'flowtype/union-intersection-spacing': ['error', 'always'],
-    'flowtype/use-flow-type': 'error',
-    'flowtype/valid-syntax': 'error',
-    'react/no-will-update-set-state': 'warn',
-    'react/destructuring-assignment': 'off',
-    'react/jsx-props-no-spreading': 'warn',
-    'react/jsx-wrap-multilines': 'off',
-    'react/jsx-one-expression-per-line': 'off',
-    'import/order': 'off',
-    'max-classes-per-file': 'off',
-    'dot-notation': 'off',
-    'linebreak-style': 0,
-    'import/prefer-default-export': 0,
+    // A temporary hack related to IDE not resolving correct package.json
+    'import/no-extraneous-dependencies': 'off'
   },
-  plugins: ['flowtype', 'import', 'promise', 'compat', 'react'],
   settings: {
     'import/resolver': {
+      // See https://github.com/benmosher/eslint-plugin-import/issues/1396#issuecomment-575727774 for line below
       node: {},
       webpack: {
-        config: require.resolve('./webpack.config.eslint.js'),
-      },
-    },
-  },
+        config: require.resolve('./configs/webpack.config.eslint.js')
+      }
+    }
+  }
 };

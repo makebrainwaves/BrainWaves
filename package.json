@@ -36,7 +36,9 @@
     "test-watch": "yarn test --watch"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["cross-env NODE_ENV=development eslint --cache"],
+    "*.{js,jsx,ts,tsx}": [
+      "cross-env NODE_ENV=development eslint --cache"
+    ],
     "{*.json,.{babelrc,eslintrc,prettierrc,stylelintrc}}": [
       "prettier --ignore-path .eslintignore --parser json --write"
     ],
@@ -74,10 +76,17 @@
       ]
     },
     "win": {
-      "target": ["nsis", "msi"]
+      "target": [
+        "nsis",
+        "msi"
+      ]
     },
     "linux": {
-      "target": ["deb", "rpm", "AppImage"],
+      "target": [
+        "deb",
+        "rpm",
+        "AppImage"
+      ],
       "category": "Education"
     },
     "directories": {
@@ -134,9 +143,20 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
     },
-    "moduleFileExtensions": ["js", "jsx", "ts", "tsx", "json"],
-    "moduleDirectories": ["node_modules", "app/node_modules"],
-    "setupFiles": ["./internals/scripts/CheckBuildsExist.js"]
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "tsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "app/node_modules"
+    ],
+    "setupFiles": [
+      "./internals/scripts/CheckBuildsExist.js"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.10.2",
@@ -200,7 +220,7 @@
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
     "enzyme-to-json": "^3.4.4",
-    "eslint": "^7.2.0",
+    "eslint": "7.2.0",
     "eslint-config-airbnb-typescript": "^6.3.1",
     "eslint-config-erb": "^0.3.0",
     "eslint-config-prettier": "^6.11.0",
@@ -251,8 +271,8 @@
     "yarn": "^1.21.1"
   },
   "dependencies": {
-    "@babel/runtime-corejs2": "^7.10.2",
     "@babel/runtime": "7.10.2",
+    "@babel/runtime-corejs2": "^7.10.2",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@hot-loader/react-dom": "^16.13.0",
     "@nteract/messaging": "^7.0.7",
@@ -270,8 +290,8 @@
     "history": "^5.0.0",
     "kernelspecs": "^2.0.0",
     "lab.js": "^20.0.1",
-    "lodash.clonedeep": "^4.5.0",
     "lodash": "^4.17.15",
+    "lodash.clonedeep": "^4.5.0",
     "mkdirp": "^1.0.4",
     "moment": "^2.26.0",
     "mousetrap": "^1.6.5",
@@ -279,20 +299,20 @@
     "papaparse": "^5.2.0",
     "plotly.js": "^1.54.2",
     "rc-slider": "^9.3.1",
+    "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.19",
     "react-plotly.js": "^2.4.0",
     "react-redux": "^7.2.0",
+    "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-router-redux": "^5.0.0-alpha.9",
-    "react-router": "^5.2.0",
     "react-toastify": "^6.0.5",
-    "react": "^16.13.1",
     "recursive-readdir": "^2.2.2",
-    "redux-observable": "^1.2.0",
     "redux": "^4.0.5",
-    "rxjs-compat": "^6.5.5",
+    "redux-observable": "^1.2.0",
     "rxjs": "^6.5.5",
+    "rxjs-compat": "^6.5.5",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.2",
     "simple-statistics": "^7.1.0",
@@ -306,11 +326,18 @@
     "npm": ">=4.x",
     "yarn": ">=0.21.3"
   },
-  "browserslist": ["extends browserslist-config-erb"],
+  "browserslist": [
+    "extends browserslist-config-erb"
+  ],
   "prettier": {
     "overrides": [
       {
-        "files": [".prettierrc", ".babelrc", ".eslintrc", ".stylelintrc"],
+        "files": [
+          ".prettierrc",
+          ".babelrc",
+          ".eslintrc",
+          ".stylelintrc"
+        ],
         "options": {
           "parser": "json"
         }
@@ -319,10 +346,15 @@
     "singleQuote": true
   },
   "stylelint": {
-    "extends": ["stylelint-config-standard", "stylelint-config-prettier"]
+    "extends": [
+      "stylelint-config-standard",
+      "stylelint-config-prettier"
+    ]
   },
   "renovate": {
-    "extends": ["bliss"]
+    "extends": [
+      "bliss"
+    ]
   },
   "husky": {
     "hooks": {
