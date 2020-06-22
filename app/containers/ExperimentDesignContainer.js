@@ -6,13 +6,13 @@ import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {
-    ...state.experiment,
+    ...state.experiment
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    experimentActions: bindActionCreators(experimentActions, dispatch),
+    experimentActions: bindActionCreators(experimentActions, dispatch)
   };
 }
 

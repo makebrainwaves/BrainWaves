@@ -23,7 +23,7 @@ const EventEmitter = require('events');
 
 const CORTEX_URL = 'wss://localhost:6868';
 
-const safeParse = (msg) => {
+const safeParse = msg => {
   try {
     return JSON.parse(msg);
   } catch (_) {
@@ -60,18 +60,18 @@ class Cortex extends EventEmitter {
       this._log('ws: Socket closed');
     });
     this.verbose = options.verbose !== null ? options.verbose : 1;
-    this.handleError = (error) => {
+    this.handleError = error => {
       throw new JSONRPCError(error);
     };
 
     this.ready = new Promise(
-      (resolve) => this.ws.addEventListener('open', resolve),
+      resolve => this.ws.addEventListener('open', resolve),
       this.handleError
     )
       .then(() => this._log('ws: Socket opened'))
       .then(() => this.call('inspectApi'))
-      .then((methods) => {
-        methods.forEach((m) => {
+      .then(methods => {
+        methods.forEach(m => {
           this.defineMethod(m.methodName, m.params);
         });
         this._log(`rpc: Added ${methods.length} methods from inspectApi`);
@@ -86,7 +86,10 @@ class Cortex extends EventEmitter {
 
     if ('id' in data) {
       const id = data.id;
-      this._log(`[${id}] <-`, data.result ? 'success' : `error (${data.error.message})`);
+      this._log(
+        `[${id}] <-`,
+        data.result ? 'success' : `error (${data.error.message})`
+      );
       if (this.requests[id]) {
         this.requests[id](data.error, data.result);
       } else {
@@ -94,9 +97,12 @@ class Cortex extends EventEmitter {
       }
     } else if ('sid' in data) {
       const dataKeys = Object.keys(data).filter(
-        (k) => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
+        k => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
       );
-      dataKeys.forEach((k) => this.emit(k, data) || this._warn('no listeners for stream event', k));
+      dataKeys.forEach(
+        k =>
+          this.emit(k, data) || this._warn('no listeners for stream event', k)
+      );
     } else {
       this._log('rpc: Unrecognised data', data);
     }
@@ -112,7 +118,7 @@ class Cortex extends EventEmitter {
   }
   init({ clientId, clientSecret, license, debit } = {}) {
     const token = this.getUserLogin()
-      .then((users) => {
+      .then(users => {
         if (users.length === 0) {
           return Promise.reject(new Error('No logged in user'));
         }
@@ -120,13 +126,15 @@ class Cortex extends EventEmitter {
       })
       .then(({ accessGranted }) => {
         if (!accessGranted) {
-          return Promise.reject(new Error('Please approve this application in the EMOTIV app'));
+          return Promise.reject(
+            new Error('Please approve this application in the EMOTIV app')
+          );
         }
         return this.authorize({
           clientId,
           clientSecret,
           license,
-          debit,
+          debit
         }).then(({ cortexToken }) => {
           this._log('init: Got auth token');
           this._debug('init: Auth token', cortexToken);
@@ -138,7 +146,7 @@ class Cortex extends EventEmitter {
     return token;
   }
   close() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.ws.close();
       this.ws.once('close', resolve);
     });
@@ -162,17 +170,21 @@ class Cortex extends EventEmitter {
   }
   defineMethod(methodName, paramDefs = []) {
     if (this[methodName]) return;
-    const needsAuth = paramDefs.some((p) => p.name === 'cortexToken');
-    const requiredParams = paramDefs.filter((p) => p.required).map((p) => p.name);
+    const needsAuth = paramDefs.some(p => p.name === 'cortexToken');
+    const requiredParams = paramDefs.filter(p => p.required).map(p => p.name);
 
     this[methodName] = (params = {}) => {
       if (needsAuth && this.cortexToken && !params.cortexToken) {
         params = Object.assign({}, params, { cortexToken: this.cortexToken });
       }
-      const missingParams = requiredParams.filter((p) => params[p] == null);
+      const missingParams = requiredParams.filter(p => params[p] == null);
       if (missingParams.length > 0) {
         return this.handleError(
-          new Error(`Missing required params for ${methodName}: ${missingParams.join(', ')}`)
+          new Error(
+            `Missing required params for ${methodName}: ${missingParams.join(
+              ', '
+            )}`
+          )
         );
       }
       return this.call(methodName, params);

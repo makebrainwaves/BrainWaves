@@ -36,14 +36,14 @@
 .activeSecondaryNavSegment:hover {
 }
 
-.secondaryNavContainerExpName{
+.secondaryNavContainerExpName {
   font-family: Lato;
   font-style: normal;
   font-weight: normal !important;
   font-size: 24px !important;
   line-height: 29px !important;
   letter-spacing: -0.2px !important;
-  color: #1A1A1A !important;
+  color: #1a1a1a !important;
 }
 
 .settingsButtons {
@@ -51,7 +51,7 @@
   grid-template-columns: 2fr 4fr;
 }
 
-.dropdownSettings{
+.dropdownSettings {
   font-size: 27px;
   color: #666666;
   display: grid !important;

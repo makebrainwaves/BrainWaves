@@ -4,7 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import TopNav from './TopNavBarContainer';
 
 type Props = {
-  children: React.Node,
+  children: React.Node
 };
 
 export default class App extends React.Component<Props> {

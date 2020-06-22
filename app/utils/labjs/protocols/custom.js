@@ -32,7 +32,13 @@ export const buildCustomTimeline = () => ({
   protocol_condition_second_title: `Houses`,
   protocol_condition_second: `If you see a house, press “9”.`,
   overview_links: [],
-  background_links: [{name: 'Link 1', address: 'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'}],
+  background_links: [
+    {
+      name: 'Link 1',
+      address:
+        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'
+    }
+  ],
   protocal_links: [],
   params: {
     imageHeight: '500px',
@@ -73,7 +79,7 @@ export const buildCustomTimeline = () => ({
       type: 4,
       response: ''
     },
-    stimuli: [],
+    stimuli: []
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {

@@ -11,17 +11,15 @@ import { SCREENS } from './constants/constants';
 
 const renderMergedProps = (component, ...rest) => {
   const finalProps = Object.assign({}, ...rest);
-  return (
-    React.createElement(component, finalProps)
-  );
-}
+  return React.createElement(component, finalProps);
+};
 
 const PropsRoute = ({ component, ...rest }) => (
   <Route
     {...rest}
     render={routeProps => renderMergedProps(component, routeProps, rest)}
   />
-  )
+);
 
 export default () => (
   <App>
@@ -29,9 +27,20 @@ export default () => (
       <Route path={SCREENS.ANALYZE.route} component={AnalyzeContainer} />
       <Route path={SCREENS.CLEAN.route} component={CleanContainer} />
       <Route path={SCREENS.COLLECT.route} component={CollectContainer} />
-      <Route path={SCREENS.DESIGN.route} component={ExperimentDesignContainer} />
-      <PropsRoute path='/home' component={HomeContainer} activeStep="EXPERIMENT BANK" />
-      <PropsRoute path='/' component={HomeContainer} activeStep="MY EXPERIMENTS" />
+      <Route
+        path={SCREENS.DESIGN.route}
+        component={ExperimentDesignContainer}
+      />
+      <PropsRoute
+        path="/home"
+        component={HomeContainer}
+        activeStep="EXPERIMENT BANK"
+      />
+      <PropsRoute
+        path="/"
+        component={HomeContainer}
+        activeStep="MY EXPERIMENTS"
+      />
     </Switch>
   </App>
 );

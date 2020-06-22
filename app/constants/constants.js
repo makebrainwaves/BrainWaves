@@ -6,7 +6,7 @@ export const EXPERIMENTS = {
   STROOP: 'Stroop Task',
   MULTI: 'Multi-tasking',
   SEARCH: 'Visual search',
-  CUSTOM: 'Custom',
+  CUSTOM: 'Custom'
 };
 
 export const SCREENS = {
@@ -17,14 +17,14 @@ export const SCREENS = {
   RUN: { route: '/run', title: 'RUN', order: 5 },
   CLEAN: { route: '/clean', title: 'CLEAN', order: 3 },
   ANALYZE: { route: '/analyze', title: 'ANALYZE', order: 4 },
-  ANALYZEBEHAVIOR: { route: '/analyze', title: 'ANALYZE', order: 3 },
+  ANALYZEBEHAVIOR: { route: '/analyze', title: 'ANALYZE', order: 3 }
 };
 
 export const DEVICES = {
   NONE: 'NONE',
   MUSE: 'MUSE',
   EMOTIV: 'EMOTIV',
-  GANGLION: 'GANGLION', // One day ;)
+  GANGLION: 'GANGLION' // One day ;)
 };
 
 export const CONNECTION_STATUS = {
@@ -34,26 +34,26 @@ export const CONNECTION_STATUS = {
   NO_DEVICES: 'NO_DEVICES',
   NOT_YET_CONNECTED: 'NOT_YET_CONNECTED',
   SEARCHING: 'SEARCHING',
-  BLUETOOTH_DISABLED: 'BLUETOOTH_DISABLED',
+  BLUETOOTH_DISABLED: 'BLUETOOTH_DISABLED'
 };
 
 export const KERNEL_STATUS = {
   OFFLINE: 'Offline',
   BUSY: 'Busy',
   IDLE: 'Idle',
-  STARTING: 'Starting',
+  STARTING: 'Starting'
 };
 
 export const DEVICE_AVAILABILITY = {
   NONE: 'NONE',
   SEARCHING: 'SEARCHING',
-  AVAILABLE: 'AVAILABLE',
+  AVAILABLE: 'AVAILABLE'
 };
 
 // Names of variables in the jupyter kernel
 export const JUPYTER_VARIABLE_NAMES = {
   RAW_EPOCHS: 'raw_epochs',
-  CLEAN_EPOCHS: 'clean_epochs',
+  CLEAN_EPOCHS: 'clean_epochs'
 };
 
 export const SEARCH_TIMER = 3000;
@@ -65,7 +65,7 @@ export const EVENTS = {
   STIMULUS_3: 3,
   STIMULUS_4: 4,
   TARGET: 2,
-  NONTARGET: 1,
+  NONTARGET: 1
 };
 
 export const CHANNELS = {
@@ -89,7 +89,7 @@ export const CHANNELS = {
   AF7: { index: 1, color: '#7EA0C5' },
   AF8: { index: 2, color: '#8BD6E9' },
   TP10: { index: 3, color: '#66B0A9' },
-  AUX: { index: 4, color: '#E7789E' },
+  AUX: { index: 4, color: '#E7789E' }
 };
 
 export const EMOTIV_CHANNELS = [
@@ -106,7 +106,7 @@ export const EMOTIV_CHANNELS = [
   'FC6',
   'F4',
   'F8',
-  'AF4',
+  'AF4'
 ];
 
 export const MUSE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10', 'AUX'];
@@ -119,23 +119,23 @@ export const PLOTTING_INTERVAL = 250; // ms
 export const VIEWER_DEFAULTS = {
   domain: 5000, // ms
   zoom: 1,
-  autoScale: false,
+  autoScale: false
 };
 
 export const SIGNAL_QUALITY = {
   BAD: '#ed5a5a',
   OK: '#FFCD39',
   GREAT: '#66B0A9',
-  DISCONNECTED: '#BFBFBF',
+  DISCONNECTED: '#BFBFBF'
 };
 
 export const SIGNAL_QUALITY_THRESHOLDS = {
   BAD: 15,
   OK: 10,
-  GREAT: 1.5, // Below 1.5 usually indicates not connected to anything
+  GREAT: 1.5 // Below 1.5 usually indicates not connected to anything
 };
 
 export const FILE_TYPES = {
   STIMULUS_DIR: 'STIMULUS_DIR',
-  TIMELINE: 'TIMELINE',
+  TIMELINE: 'TIMELINE'
 };

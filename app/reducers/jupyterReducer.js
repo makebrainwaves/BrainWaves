@@ -9,7 +9,7 @@ import {
   SET_PSD_PLOT,
   SET_TOPO_PLOT,
   SET_ERP_PLOT,
-  RECEIVE_EXECUTE_RETURN,
+  RECEIVE_EXECUTE_RETURN
 } from '../epics/jupyterEpics';
 import { ActionType, Kernel } from '../constants/interfaces';
 import { KERNEL_STATUS } from '../constants/constants';
@@ -34,27 +34,30 @@ const initialState = {
   channelInfo: [],
   psdPlot: null,
   topoPlot: null,
-  erpPlot: null,
+  erpPlot: null
 };
 
-export default function jupyter(state: JupyterStateType = initialState, action: ActionType) {
+export default function jupyter(
+  state: JupyterStateType = initialState,
+  action: ActionType
+) {
   switch (action.type) {
     case SET_KERNEL:
       return {
         ...state,
-        kernel: action.payload,
+        kernel: action.payload
       };
 
     case SET_KERNEL_STATUS:
       return {
         ...state,
-        kernelStatus: action.payload,
+        kernelStatus: action.payload
       };
 
     case SET_MAIN_CHANNEL:
       return {
         ...state,
-        mainChannel: action.payload,
+        mainChannel: action.payload
       };
 
     case SET_KERNEL_INFO:
@@ -63,31 +66,31 @@ export default function jupyter(state: JupyterStateType = initialState, action: 
     case SET_EPOCH_INFO:
       return {
         ...state,
-        epochsInfo: action.payload,
+        epochsInfo: action.payload
       };
 
     case SET_CHANNEL_INFO:
       return {
         ...state,
-        channelInfo: action.payload,
+        channelInfo: action.payload
       };
 
     case SET_PSD_PLOT:
       return {
         ...state,
-        psdPlot: action.payload,
+        psdPlot: action.payload
       };
 
     case SET_TOPO_PLOT:
       return {
         ...state,
-        topoPlot: action.payload,
+        topoPlot: action.payload
       };
 
     case SET_ERP_PLOT:
       return {
         ...state,
-        erpPlot: action.payload,
+        erpPlot: action.payload
       };
 
     case EXPERIMENT_CLEANUP:
@@ -95,7 +98,7 @@ export default function jupyter(state: JupyterStateType = initialState, action: 
         ...state,
         epochsInfo: null,
         psdPlot: null,
-        erpPlot: null,
+        erpPlot: null
       };
 
     case RECEIVE_EXECUTE_RETURN:

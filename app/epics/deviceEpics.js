@@ -7,27 +7,27 @@ import {
   CONNECT_TO_DEVICE,
   SET_DEVICE_AVAILABILITY,
   setDeviceAvailability,
-  setConnectionStatus,
+  setConnectionStatus
 } from '../actions/deviceActions';
 import {
   getEmotiv,
   connectToEmotiv,
   createRawEmotivObservable,
   createEmotivSignalQualityObservable,
-  disconnectFromEmotiv,
+  disconnectFromEmotiv
 } from '../utils/eeg/emotiv';
 import {
   getMuse,
   connectToMuse,
   createRawMuseObservable,
   createMuseSignalQualityObservable,
-  disconnectFromMuse,
+  disconnectFromMuse
 } from '../utils/eeg/muse';
 import {
   CONNECTION_STATUS,
   DEVICES,
   DEVICE_AVAILABILITY,
-  SEARCH_TIMER,
+  SEARCH_TIMER
 } from '../constants/constants';
 import { EXPERIMENT_CLEANUP } from './experimentEpics';
 
@@ -43,34 +43,34 @@ export const DEVICE_CLEANUP = 'DEVICE_CLEANUP';
 // -------------------------------------------------------------------------
 // Action Creators
 
-const deviceFound = (payload) => ({
+const deviceFound = payload => ({
   payload,
-  type: DEVICE_FOUND,
+  type: DEVICE_FOUND
 });
 
-const setDeviceType = (payload) => ({
+const setDeviceType = payload => ({
   payload,
-  type: SET_DEVICE_TYPE,
+  type: SET_DEVICE_TYPE
 });
 
-const setRawObservable = (payload) => ({
+const setRawObservable = payload => ({
   payload,
-  type: SET_RAW_OBSERVABLE,
+  type: SET_RAW_OBSERVABLE
 });
 
-const setSignalQualityObservable = (payload) => ({
+const setSignalQualityObservable = payload => ({
   payload,
-  type: SET_SIGNAL_OBSERVABLE,
+  type: SET_SIGNAL_OBSERVABLE
 });
 
-const setAvailableDevices = (payload) => ({
+const setAvailableDevices = payload => ({
   payload,
-  type: SET_AVAILABLE_DEVICES,
+  type: SET_AVAILABLE_DEVICES
 });
 
-const setDeviceInfo = (payload) => ({
+const setDeviceInfo = payload => ({
   payload,
-  type: SET_DEVICE_INFO,
+  type: SET_DEVICE_INFO
 });
 
 const cleanup = () => ({ type: DEVICE_CLEANUP });
@@ -79,36 +79,36 @@ const cleanup = () => ({ type: DEVICE_CLEANUP });
 // Epics
 
 // NOTE: Uses a Promise "then" inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
-const searchMuseEpic = (action$) =>
+const searchMuseEpic = action$ =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck('payload'),
-    filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     map(getMuse),
-    mergeMap((promise) =>
+    mergeMap(promise =>
       promise.then(
-        (devices) => devices,
-        (error) => {
+        devices => devices,
+        error => {
           // This error will fire a bit too promiscuously until we fix windows web bluetooth
           // toast.error(`"Device Error: " ${error.toString()}`);
           return [];
         }
       )
     ),
-    filter((devices) => devices), // filter out nulls if running on win7
-    filter((devices) => devices.length >= 1),
+    filter(devices => devices), // filter out nulls if running on win7
+    filter(devices => devices.length >= 1),
     map(deviceFound)
   );
 
-const searchEmotivEpic = (action$) =>
+const searchEmotivEpic = action$ =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck('payload'),
-    filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     filter(() => process.platform === 'darwin' || process.platform === 'win32'),
     map(getEmotiv),
-    mergeMap((promise) =>
+    mergeMap(promise =>
       promise.then(
-        (devices) => devices,
-        (error) => {
+        devices => devices,
+        error => {
           if (error.message.includes('client.queryHeadsets')) {
             toast.error(
               'Could not connect to Cortex Service. Please connect to the internet and install Cortex to use Emotiv EEG',
@@ -122,44 +122,54 @@ const searchEmotivEpic = (action$) =>
         }
       )
     ),
-    filter((devices) => devices.length >= 1),
+    filter(devices => devices.length >= 1),
     map(deviceFound)
   );
 
 const deviceFoundEpic = (action$, state$) =>
   action$.ofType(DEVICE_FOUND).pipe(
     pluck('payload'),
-    map((foundDevices) =>
+    map(foundDevices =>
       foundDevices.reduce((acc, curr) => {
-        if (acc.find((device) => device.id === curr.id)) {
+        if (acc.find(device => device.id === curr.id)) {
           return acc;
         }
         return acc.concat(curr);
       }, state$.value.device.availableDevices)
     ),
-    mergeMap((devices) =>
-      of(setAvailableDevices(devices), setDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE))
+    mergeMap(devices =>
+      of(
+        setAvailableDevices(devices),
+        setDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE)
+      )
     )
   );
 
 const searchTimerEpic = (action$, state$) =>
   action$.ofType(SET_DEVICE_AVAILABILITY).pipe(
     pluck('payload'),
-    filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
+    filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     mergeMap(() => timer(SEARCH_TIMER)),
-    filter(() => state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING),
+    filter(
+      () =>
+        state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+    ),
     map(() => setDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
-const connectEpic = (action$) =>
+const connectEpic = action$ =>
   action$.ofType(CONNECT_TO_DEVICE).pipe(
     pluck('payload'),
-    map((device) => (isNil(device.name) ? connectToEmotiv(device) : connectToMuse(device))),
-    mergeMap((promise) => promise.then((deviceInfo) => deviceInfo)),
-    mergeMap((deviceInfo) => {
+    map(device =>
+      isNil(device.name) ? connectToEmotiv(device) : connectToMuse(device)
+    ),
+    mergeMap(promise => promise.then(deviceInfo => deviceInfo)),
+    mergeMap(deviceInfo => {
       if (!isNil(deviceInfo) && !isNil(deviceInfo.samplingRate)) {
         return of(
-          setDeviceType(deviceInfo.name.includes('Muse') ? DEVICES.MUSE : DEVICES.EMOTIV),
+          setDeviceType(
+            deviceInfo.name.includes('Muse') ? DEVICES.MUSE : DEVICES.EMOTIV
+          ),
           setDeviceInfo(deviceInfo),
           setConnectionStatus(CONNECTION_STATUS.CONNECTED)
         );
@@ -168,7 +178,7 @@ const connectEpic = (action$) =>
     })
   );
 
-const isConnectingEpic = (action$) =>
+const isConnectingEpic = action$ =>
   action$
     .ofType(CONNECT_TO_DEVICE)
     .pipe(map(() => setConnectionStatus(CONNECTION_STATUS.CONNECTING)));
@@ -187,21 +197,28 @@ const setRawObservableEpic = (action$, state$) =>
 const setSignalQualityObservableEpic = (action$, state$) =>
   action$.ofType(SET_RAW_OBSERVABLE).pipe(
     pluck('payload'),
-    map((rawObservable) => {
+    map(rawObservable => {
       if (state$.value.device.deviceType === DEVICES.EMOTIV) {
         return createEmotivSignalQualityObservable(
           rawObservable,
           state$.value.device.connectedDevice
         );
       }
-      return createMuseSignalQualityObservable(rawObservable, state$.value.device.connectedDevice);
+      return createMuseSignalQualityObservable(
+        rawObservable,
+        state$.value.device.connectedDevice
+      );
     }),
     map(setSignalQualityObservable)
   );
 
 const deviceCleanupEpic = (action$, state$) =>
   action$.ofType(EXPERIMENT_CLEANUP).pipe(
-    filter(() => state$.value.device.connectionStatus !== CONNECTION_STATUS.NOT_YET_CONNECTED),
+    filter(
+      () =>
+        state$.value.device.connectionStatus !==
+        CONNECTION_STATUS.NOT_YET_CONNECTED
+    ),
     map(() => {
       if (state$.value.device.deviceType === DEVICES.EMOTIV) {
         disconnectFromEmotiv();
@@ -224,9 +241,9 @@ const rootEpic = (action$, state$) =>
     setSignalQualityObservableEpic,
     deviceCleanupEpic
   )(action$, state$).pipe(
-    catchError((error) =>
+    catchError(error =>
       of(error).pipe(
-        tap((err) => toast.error(`"Device Error: " ${err.toString()}`)),
+        tap(err => toast.error(`"Device Error: " ${err.toString()}`)),
         map(cleanup)
       )
     )

@@ -30,7 +30,10 @@ export const createEEGWriteStream = (
 
 // Writes the header for a simple CSV EEG file format.
 // timestamp followed by channels, followed by markers
-export const writeHeader = (writeStream: fs.WriteStream, channels: Array<string>) => {
+export const writeHeader = (
+  writeStream: fs.WriteStream,
+  channels: Array<string>
+) => {
   try {
     const headerLabels = `Timestamp,${channels.join(',')},Marker\n`;
     writeStream.write(headerLabels);
@@ -57,6 +60,6 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
 // Helper functions
 
 // Creates a directory path if it doesn't exist
-export const mkdirPathSync = (dirPath) => {
+export const mkdirPathSync = dirPath => {
   mkdirp.sync(dirPath);
 };

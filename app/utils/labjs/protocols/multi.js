@@ -35,12 +35,13 @@ export const buildMultiTimeline = () => ({
     {
       name: 'Link 1',
       address:
-        'https://www.scientificamerican.com/podcast/episode/the-myth-of-multitasking-09-07-15/',
+        'https://www.scientificamerican.com/podcast/episode/the-myth-of-multitasking-09-07-15/'
     },
     {
       name: 'Link 2',
-      address: 'https://www.scientificamerican.com/article/multitasking-two-tasks/',
-    },
+      address:
+        'https://www.scientificamerican.com/article/multitasking-two-tasks/'
+    }
   ],
   protocal_links: [],
   params: {
@@ -55,29 +56,29 @@ export const buildMultiTimeline = () => ({
       dir: facesDir,
       title: 'No switching',
       type: EVENTS.STIMULUS_1,
-      response: '1',
+      response: '1'
     },
     stimulus2: {
       dir: housesDir,
       title: 'Switching',
       type: EVENTS.STIMULUS_2,
-      response: '9',
-    },
+      response: '9'
+    }
   },
   mainTimeline: ['intro', 'multiTaskingTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000,
+      post_trial_gap: 1000
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500,
-    },
+      post_trial_gap: 500
+    }
   },
   timelines: {
     faceHouseTimeline: {
@@ -87,13 +88,13 @@ export const buildMultiTimeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false,
+          response_ends_trial: false
         },
         {
           id: 'trial',
-          response_ends_trial: false,
-        },
-      ],
-    },
-  },
+          response_ends_trial: false
+        }
+      ]
+    }
+  }
 });

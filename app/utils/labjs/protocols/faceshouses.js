@@ -8,20 +8,76 @@ const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
 const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
-const stimuli = ['Face1', 'Face2', 'Face3', 'Face4', 'Face5', 'Face6', 'Face7', 'Face8', 'Face9', 'Face10',
-'Face11', 'Face12', 'Face13', 'Face14', 'Face15', 'Face16', 'Face17', 'Face18', 'Face19', 'Face20',
-'Face21', 'Face22', 'Face23', 'Face24', 'Face25', 'Face26', 'Face27', 'Face28', 'Face29', 'Face30',
-'House1', 'House2', 'House3', 'House4', 'House5', 'House6', 'House7', 'House8', 'House9', 'House10',
-'House11', 'House12', 'House13', 'House14', 'House15', 'House16', 'House17', 'House18', 'House19', 'House20',
-'House21', 'House22', 'House23', 'House24', 'House25', 'House26', 'House27', 'House28', 'House29', 'House30'].map(s => ({
+const stimuli = [
+  'Face1',
+  'Face2',
+  'Face3',
+  'Face4',
+  'Face5',
+  'Face6',
+  'Face7',
+  'Face8',
+  'Face9',
+  'Face10',
+  'Face11',
+  'Face12',
+  'Face13',
+  'Face14',
+  'Face15',
+  'Face16',
+  'Face17',
+  'Face18',
+  'Face19',
+  'Face20',
+  'Face21',
+  'Face22',
+  'Face23',
+  'Face24',
+  'Face25',
+  'Face26',
+  'Face27',
+  'Face28',
+  'Face29',
+  'Face30',
+  'House1',
+  'House2',
+  'House3',
+  'House4',
+  'House5',
+  'House6',
+  'House7',
+  'House8',
+  'House9',
+  'House10',
+  'House11',
+  'House12',
+  'House13',
+  'House14',
+  'House15',
+  'House16',
+  'House17',
+  'House18',
+  'House19',
+  'House20',
+  'House21',
+  'House22',
+  'House23',
+  'House24',
+  'House25',
+  'House26',
+  'House27',
+  'House28',
+  'House29',
+  'House30'
+].map(s => ({
   condition: s.startsWith('Face') ? 'Face' : 'House',
   dir: s.startsWith('Face') ? facesDir : housesDir,
   filename: `${s}.jpg`,
   name: s,
   response: s.startsWith('Face') ? '1' : '9',
   phase: 'main',
-  type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2,
-}))
+  type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2
+}));
 
 // phase: ['Face1', 'House1'].includes(s) ? 'practice' : 'main',
 
@@ -52,8 +108,9 @@ export const buildN170Timeline = () => ({
   background_links: [
     {
       name: 'Link 1',
-      address: 'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
-    },
+      address:
+        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'
+    }
   ],
   protocal_links: [],
   params: {
@@ -75,42 +132,42 @@ export const buildN170Timeline = () => ({
       dir: facesDir,
       title: 'Face',
       type: EVENTS.STIMULUS_1,
-      response: '1',
+      response: '1'
     },
     stimulus2: {
       dir: housesDir,
       title: 'House',
       type: EVENTS.STIMULUS_2,
-      response: '9',
+      response: '9'
     },
     stimulus3: {
       dir: '',
       title: '',
       type: 3,
-      response: '',
+      response: ''
     },
     stimulus4: {
       dir: '',
       title: '',
       type: 4,
-      response: '',
+      response: ''
     },
-    stimuli,
+    stimuli
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000,
+      post_trial_gap: 1000
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500,
-    },
+      post_trial_gap: 500
+    }
   },
   timelines: {
     faceHouseTimeline: {
@@ -120,13 +177,13 @@ export const buildN170Timeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false,
+          response_ends_trial: false
         },
         {
           id: 'trial',
-          response_ends_trial: false,
-        },
-      ],
-    },
-  },
+          response_ends_trial: false
+        }
+      ]
+    }
+  }
 });

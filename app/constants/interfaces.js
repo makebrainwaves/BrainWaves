@@ -19,13 +19,13 @@ export type ExperimentParameters = {
   // Setting this to any prevents ridiculous flow runtime errors
   showProgessBar: any,
   stimulus1: { dir: string, type: EVENTS, title: string, response: string },
-  stimulus2: { dir: string, type: EVENTS, title: string, response: string },
+  stimulus2: { dir: string, type: EVENTS, title: string, response: string }
 };
 
 export type ExperimentDescription = {
   question: string,
   hypothesis: string,
-  methods: string,
+  methods: string
 };
 
 // Array of timeline and trial ids that will be presented in experiment
@@ -38,7 +38,7 @@ export interface Trial {
   stimulus?: string | StimulusVariable;
   trial_duration?: number | (() => number);
   post_trial_gap?: number;
-  on_load?: (string) => void | StimulusVariable;
+  on_load?: string => void | StimulusVariable;
   choices?: Array<string>;
 }
 
@@ -47,7 +47,7 @@ export type Timeline = {
   id: string,
   timeline: Array<Trial>,
   sample?: SampleParameter,
-  timeline_variables?: Array<Object>,
+  timeline_variables?: Array<Object>
 };
 
 export interface SampleParameter {

@@ -32,10 +32,15 @@ class ExperimentWindow extends Component {
       case 'Faces and Houses':
         faceshouses.parameters = props.settings.params;
         faceshouses.parameters.title = props.settings.title;
-        faceshouses.files = props.settings.params.stimuli.map(image => (
-              { [path.join(image.dir, image.filename)] : path.join(image.dir, image.filename) }
-            )).reduce((obj, item) => {
-            obj[Object.keys(item)[0]] = Object.values(item)[0]
+        faceshouses.files = props.settings.params.stimuli
+          .map(image => ({
+            [path.join(image.dir, image.filename)]: path.join(
+              image.dir,
+              image.filename
+            )
+          }))
+          .reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0];
             return obj;
           }, {});
         this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
@@ -44,10 +49,15 @@ class ExperimentWindow extends Component {
       default:
         custom.parameters = props.settings.params;
         custom.parameters.title = props.settings.title;
-        custom.files = props.settings.params.stimuli.map(image => (
-                { [path.join(image.dir, image.filename)] : path.join(image.dir, image.filename) }
-            )).reduce((obj, item) => {
-            obj[Object.keys(item)[0]] = Object.values(item)[0]
+        custom.files = props.settings.params.stimuli
+          .map(image => ({
+            [path.join(image.dir, image.filename)]: path.join(
+              image.dir,
+              image.filename
+            )
+          }))
+          .reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0];
             return obj;
           }, {});
         this.study = lab.util.fromObject(clonedeep(custom), lab);
@@ -59,10 +69,10 @@ class ExperimentWindow extends Component {
       this.study = undefined;
       props.settings.on_finish(csv);
     });
-    this.study.parameters.callbackForEEG = (e) => {
+    this.study.parameters.callbackForEEG = e => {
       props.settings.eventCallback(e, new Date().getTime());
     };
-    this.study.options.events['keydown'] = async (e) => {
+    this.study.options.events['keydown'] = async e => {
       if (e.code === 'Escape') {
         if (this.study) {
           await this.study.internals.controller.audioContext.close();
@@ -85,8 +95,8 @@ class ExperimentWindow extends Component {
 
   render() {
     return (
-      <div className='container fullscreen' data-labjs-section='main'>
-        <main className='content-vertical-center content-horizontal-center'>
+      <div className="container fullscreen" data-labjs-section="main">
+        <main className="content-vertical-center content-horizontal-center">
           <div>
             <h2>Loading Experiment</h2>
             <p>The experiment is loading and should start in a few seconds</p>

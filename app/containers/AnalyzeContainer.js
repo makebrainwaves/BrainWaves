@@ -11,14 +11,14 @@ function mapStateToProps(state) {
     type: state.experiment.type,
     deviceType: state.device.deviceType,
     isEEGEnabled: state.experiment.isEEGEnabled,
-    ...state.jupyter,
+    ...state.jupyter
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     experimentActions: bindActionCreators(experimentActions, dispatch),
-    jupyterActions: bindActionCreators(jupyterActions, dispatch),
+    jupyterActions: bindActionCreators(jupyterActions, dispatch)
   };
 }
 

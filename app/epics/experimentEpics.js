@@ -9,7 +9,7 @@ import {
   takeUntil,
   throttleTime,
   ignoreElements,
-  tap,
+  tap
 } from 'rxjs/operators';
 import {
   setType,
@@ -23,18 +23,27 @@ import {
   SAVE_WORKSPACE,
   CREATE_NEW_WORKSPACE,
   SET_SUBJECT,
-  SET_GROUP,
+  SET_GROUP
 } from '../actions/experimentActions';
-import { DEVICES, MUSE_CHANNELS, EMOTIV_CHANNELS, CONNECTION_STATUS } from '../constants/constants';
+import {
+  DEVICES,
+  MUSE_CHANNELS,
+  EMOTIV_CHANNELS,
+  CONNECTION_STATUS
+} from '../constants/constants';
 import { loadProtocol, getBehaviouralData } from '../utils/labjs/functions';
-import { createEEGWriteStream, writeHeader, writeEEGData } from '../utils/filesystem/write';
+import {
+  createEEGWriteStream,
+  writeHeader,
+  writeEEGData
+} from '../utils/filesystem/write';
 import {
   getWorkspaceDir,
   storeExperimentState,
   restoreExperimentState,
   createWorkspaceDir,
   storeBehaviouralData,
-  readWorkspaceBehaviorData,
+  readWorkspaceBehaviorData
 } from '../utils/filesystem/storage';
 
 import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
@@ -48,35 +57,35 @@ export const EXPERIMENT_CLEANUP = 'EXPERIMENT_CLEANUP';
 // -------------------------------------------------------------------------
 // Action Creators
 
-const setTimeline = (payload) => ({
+const setTimeline = payload => ({
   payload,
-  type: SET_TIMELINE,
+  type: SET_TIMELINE
 });
 
-const setIsRunning = (payload) => ({
+const setIsRunning = payload => ({
   payload,
-  type: SET_IS_RUNNING,
+  type: SET_IS_RUNNING
 });
 
 const updateSession = () => ({ type: UPDATE_SESSION });
 
-const setSession = (payload) => ({
+const setSession = payload => ({
   payload,
-  type: SET_SESSION,
+  type: SET_SESSION
 });
 
 const cleanup = () => ({
-  type: EXPERIMENT_CLEANUP,
+  type: EXPERIMENT_CLEANUP
 });
 
 // -------------------------------------------------------------------------
 // Epics
 
-const createNewWorkspaceEpic = (action$) =>
+const createNewWorkspaceEpic = action$ =>
   action$.ofType(CREATE_NEW_WORKSPACE).pipe(
     pluck('payload'),
-    tap((workspaceInfo) => createWorkspaceDir(workspaceInfo.title)),
-    mergeMap((workspaceInfo) =>
+    tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
+    mergeMap(workspaceInfo =>
       of(
         setType(workspaceInfo.type),
         setParadigm(workspaceInfo.paradigm),
@@ -97,7 +106,9 @@ const startEpic = (action$, state$) =>
   action$.ofType(START).pipe(
     filter(() => !state$.value.experiment.isRunning),
     map(() => {
-      if (state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED) {
+      if (
+        state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
+      ) {
         const writeStream = createEEGWriteStream(
           state$.value.experiment.title,
           state$.value.experiment.subject,
@@ -107,16 +118,21 @@ const startEpic = (action$, state$) =>
 
         writeHeader(
           writeStream,
-          state$.value.device.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS : MUSE_CHANNELS
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS
+            : MUSE_CHANNELS
         );
 
         if (state$.value.device.deviceType === DEVICES.EMOTIV) {
-          createEmotivRecord(state$.value.experiment.subject, state$.value.experiment.session);
+          createEmotivRecord(
+            state$.value.experiment.subject,
+            state$.value.experiment.session
+          );
         }
 
         state$.value.device.rawObservable
           .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
-          .subscribe((eegData) => writeEEGData(writeStream, eegData));
+          .subscribe(eegData => writeEEGData(writeStream, eegData));
       }
     }),
     mapTo(true),
@@ -152,10 +168,12 @@ const experimentStopEpic = (action$, state$) =>
 
 const updateSessionEpic = (action$, state$) =>
   action$.ofType(UPDATE_SESSION).pipe(
-    mergeMap(() => from(readWorkspaceBehaviorData(state$.value.experiment.title))),
-    map((behaviorFiles) => {
+    mergeMap(() =>
+      from(readWorkspaceBehaviorData(state$.value.experiment.title))
+    ),
+    map(behaviorFiles => {
       if (behaviorFiles.length > 0) {
-        const subjectFiles = behaviorFiles.filter((filepath) =>
+        const subjectFiles = behaviorFiles.filter(filepath =>
           filepath.name.startsWith(state$.value.experiment.subject)
         );
         return subjectFiles.length + 1;
@@ -165,10 +183,10 @@ const updateSessionEpic = (action$, state$) =>
     map(setSession)
   );
 
-const autoSaveEpic = (action$) =>
+const autoSaveEpic = action$ =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
-    filter((pathname) => pathname !== '/' && pathname !== '/home'),
+    filter(pathname => pathname !== '/' && pathname !== '/home'),
     map(saveWorkspace)
   );
 
@@ -184,7 +202,7 @@ const saveWorkspaceEpic = (action$, state$) =>
 const navigationCleanupEpic = (action$, state$) =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
-    filter((pathname) => pathname === '/' || pathname === '/home'),
+    filter(pathname => pathname === '/' || pathname === '/home'),
     tap(() => restoreExperimentState(state$.value.experiment)),
     map(cleanup)
   );

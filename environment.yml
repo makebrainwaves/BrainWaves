@@ -1,16 +1,16 @@
 name: brainwaves
 channels:
-- defaults
+  - defaults
 dependencies:
-- python>=3.6
-- pip
-- numpy
-- scipy
-- matplotlib
-- pyqt>=5.9
-- pandas
-- seaborn
-- jupyter
-- pip:
-  - mne
-  - pyzmq>=18.0.1
+  - python>=3.6
+  - pip
+  - numpy
+  - scipy
+  - matplotlib
+  - pyqt>=5.9
+  - pandas
+  - seaborn
+  - jupyter
+  - pip:
+      - mne
+      - pyzmq>=18.0.1

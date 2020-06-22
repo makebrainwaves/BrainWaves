@@ -22,11 +22,12 @@ const studyObject = {
           parameters: {},
           responses: {
             'keypress(Space)': 'next',
-            'keypress(q)': 'skipPractice',
+            'keypress(q)': 'skipPractice'
           },
           messageHandlers: {},
           title: 'Instruction',
-          "content": "\u003Cstyle\u003E\n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cheader\u003E\n  \u003Ch1\u003EVisual search task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \n  \u003Cp\u003E\n    ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n   \u003Cp\u003E\n     Again, all you need to do is to find an \u003Cb\u003Eorange T\u003C\u002Fb\u003E. If you see the \u003Cb\u003Eorange T\u003C\u002Fb\u003E, press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E. Ignore the upside-down orange T, as well as blue Ts! IF THERE IS NO ORANGE T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E.\n      It is very important to respond \u003Cb\u003EAS FAST AS YOU CAN\u003C\u002Fb\u003E.\n    \u003C\u002Fp\u003E\n\n    \u003Cdiv style=\"display:grid; grid-template-columns:1fr 1fr;\"\u003E\n      \u003Cdiv\u003E\n      \u003Cp\u003E\n        Find \n      \u003C\u002Fp\u003E\n      \u003Cbr\u003E\n      \u003Cdiv class=\"letter\" style=\"color:orange; height: 100px;\"\u003E\n        T\n      \u003C\u002Fdiv\u003E\n    \u003C\u002Fdiv\u003E\n    \u003Cdiv\u003E\n      \u003Cp\u003E\n        But do not respond to any of these distractors:\n      \u003C\u002Fp\u003E\n      \u003Cbr\u003E\n      \u003Cdiv style=\"display:grid; grid-template-columns: 100px 50px; justify-content: center; \"\u003E\n        \u003Cdiv class=\"letter\" style=\"color:lightblue;\"\u003E\n          T\n        \u003C\u002Fdiv\u003E\n        \u003Cdiv class=\"letter\" style=\"color:orange; transform: rotate(-180deg);\"\u003E\n          T\n        \u003C\u002Fdiv\u003E\n      \u003C\u002Fdiv\u003E\n      \u003C\u002Fdiv\u003E\n  \u003C\u002Fdiv\u003E\n\n  \u003Cp\u003E\n    Press the space bar on your keyboard to start doing the practice trials.\n    If you want to skip the practice trials and go directly to the task, press the \"q\" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E"
+          content:
+            '\u003Cstyle\u003E\n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cheader\u003E\n  \u003Ch1\u003EVisual search task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \n  \u003Cp\u003E\n    ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n   \u003Cp\u003E\n     Again, all you need to do is to find an \u003Cb\u003Eorange T\u003C\u002Fb\u003E. If you see the \u003Cb\u003Eorange T\u003C\u002Fb\u003E, press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E. Ignore the upside-down orange T, as well as blue Ts! IF THERE IS NO ORANGE T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E.\n      It is very important to respond \u003Cb\u003EAS FAST AS YOU CAN\u003C\u002Fb\u003E.\n    \u003C\u002Fp\u003E\n\n    \u003Cdiv style="display:grid; grid-template-columns:1fr 1fr;"\u003E\n      \u003Cdiv\u003E\n      \u003Cp\u003E\n        Find \n      \u003C\u002Fp\u003E\n      \u003Cbr\u003E\n      \u003Cdiv class="letter" style="color:orange; height: 100px;"\u003E\n        T\n      \u003C\u002Fdiv\u003E\n    \u003C\u002Fdiv\u003E\n    \u003Cdiv\u003E\n      \u003Cp\u003E\n        But do not respond to any of these distractors:\n      \u003C\u002Fp\u003E\n      \u003Cbr\u003E\n      \u003Cdiv style="display:grid; grid-template-columns: 100px 50px; justify-content: center; "\u003E\n        \u003Cdiv class="letter" style="color:lightblue;"\u003E\n          T\n        \u003C\u002Fdiv\u003E\n        \u003Cdiv class="letter" style="color:orange; transform: rotate(-180deg);"\u003E\n          T\n        \u003C\u002Fdiv\u003E\n      \u003C\u002Fdiv\u003E\n      \u003C\u002Fdiv\u003E\n  \u003C\u002Fdiv\u003E\n\n  \u003Cp\u003E\n    Press the space bar on your keyboard to start doing the practice trials.\n    If you want to skip the practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E'
         },
         {
           type: 'lab.flow.Loop',
@@ -34,7 +35,7 @@ const studyObject = {
           parameters: {},
           templateParameters: [],
           sample: {
-            mode: 'draw-shuffle',
+            mode: 'draw-shuffle'
           },
           responses: {},
           messageHandlers: {
@@ -52,11 +53,15 @@ const studyObject = {
                 return a;
               }
 
-              const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+              const randomBetween = (min, max) =>
+                Math.floor(Math.random() * (max - min + 1)) + min;
 
               const makeStimuliArray = (arrLen, stLen, isTarget) => {
                 const arr = Array(arrLen).fill(0);
-                const shuffled = shuffle([...Array(arrLen).keys()]).slice(0, stLen);
+                const shuffled = shuffle([...Array(arrLen).keys()]).slice(
+                  0,
+                  stLen
+                );
                 for (const p of shuffled) {
                   if (randomBetween(0, 1) === 0) {
                     arr[p] = 1;
@@ -77,7 +82,7 @@ const studyObject = {
                   stimuli: makeStimuliArray(arrLength, stimLength, isTarget),
                   target: isTarget,
                   size: stimLength,
-                  phase: 'practice',
+                  phase: 'practice'
                 };
               }
 
@@ -112,7 +117,7 @@ const studyObject = {
               // assign options values to parameters of this task
               this.options.templateParameters = practiceTrialParameters;
               this.options.shuffle = true; // already shuffled before
-            },
+            }
           },
           title: 'Practice task',
           tardy: true,
@@ -185,8 +190,8 @@ const studyObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '15',
-                      styles: {},
-                    },
+                      styles: {}
+                    }
                   ],
                   files: {},
                   parameters: {},
@@ -195,12 +200,12 @@ const studyObject = {
                     run: function anonymous() {
                       this.data.response = 'noresponse';
                       this.data.correct = false;
-                    },
+                    }
                   },
                   viewport: [800, 600],
                   title: 'Fixation cross',
-                  timeout: '${this.parameters.iti}',
-                },
+                  timeout: '${this.parameters.iti}'
+                }
               },
               {
                 type: 'lab.html.Screen',
@@ -208,7 +213,7 @@ const studyObject = {
                 parameters: {},
                 responses: {
                   'keypress(b)': 'yes',
-                  'keypress(n)': 'no',
+                  'keypress(n)': 'no'
                 },
                 messageHandlers: {
                   run: function anonymous() {
@@ -239,12 +244,12 @@ const studyObject = {
                       d.appendChild(el);
                       taskgrid.appendChild(d);
                     }
-                  },
+                  }
                 },
                 title: 'Stimuli',
                 content:
                   '\u003Cstyle\u003E\n  #taskgrid{\n    display: grid;\n    grid-template-columns: repeat(5, 100px);\n    grid-template-rows: repeat(5, 100px);\n    grid-row-gap: 10px;\n    grid-column-gap: 10px;\n  }\n  .box{\n    display: grid;\n    align-items: center;\n  } \n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cmain class="content-vertical-center content-horizontal-center"\u003E\n\n  \u003Cdiv id="taskgrid"\u003E\n\n\n  \u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    Press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E if you see the orange T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E if there is no orange T.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
-                correctResponse: '${this.parameters.target}',
+                correctResponse: '${this.parameters.target}'
               },
               {
                 type: 'lab.html.Screen',
@@ -283,26 +288,34 @@ const studyObject = {
                     }
 
                     if (this.state.response === 'noresponse') {
-                      document.querySelector('#feedback').innerHTML = 'Please respond.';
+                      document.querySelector('#feedback').innerHTML =
+                        'Please respond.';
                       return;
                     }
 
                     if (this.state.correct) {
-                      document.querySelector('#feedback').innerHTML = 'Well done!';
+                      document.querySelector('#feedback').innerHTML =
+                        'Well done!';
                       document.querySelector('#feedback').style.color = 'green';
                     } else if (this.parameters.target === 'yes') {
-                        document.querySelector('#feedback').innerHTML = 'Error! There was one!';
-                        document.querySelector('#target').style.border = 'solid';
-                      } else {
-                        document.querySelector('#feedback').innerHTML = 'Error! There was none!';
-                      }
+                      document.querySelector('#feedback').innerHTML =
+                        'Error! There was one!';
+                      document.querySelector('#target').style.border = 'solid';
+                    } else {
+                      document.querySelector('#feedback').innerHTML =
+                        'Error! There was none!';
+                    }
                   },
                   'before:prepare': function anonymous() {
                     this.data.trial_number =
                       1 +
-                      parseInt(this.options.id.split('_')[this.options.id.split('_').length - 2]);
+                      parseInt(
+                        this.options.id.split('_')[
+                          this.options.id.split('_').length - 2
+                        ]
+                      );
 
-                    this.data.condition = `${this.parameters.size  } letters`;
+                    this.data.condition = `${this.parameters.size} letters`;
 
                     this.data.reaction_time = this.state.duration;
                     // this.data.target = this.parameters.target;
@@ -314,32 +327,33 @@ const studyObject = {
                     }
 
                     this.data.response_given =
-                      this.parameters.phase === 'practice' || this.state.response === 'noresponse'
+                      this.parameters.phase === 'practice' ||
+                      this.state.response === 'noresponse'
                         ? 'no'
                         : 'yes';
-                  },
+                  }
                 },
                 title: 'Feedback',
                 content:
                   '\u003Cstyle\u003E\n  #taskgrid{\n    display: grid;\n    grid-template-columns: repeat(5, 100px);\n    grid-template-rows: repeat(5, 100px);\n    grid-row-gap: 10px;\n    grid-column-gap: 10px;\n  }\n  .box{\n    display: grid;\n    align-items: center;\n  } \n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n  .feedback{\n    position: absolute;\n    top: 50px;\n    font-size: 2rem;\n    font-weight: bold;\n    color: #da5b1c;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cmain class="content-vertical-center content-horizontal-center"\u003E\n\n  \u003Cdiv id="taskgrid"\u003E\n\n\n  \u003C\u002Fdiv\u003E\n\n  \u003Cdiv id="feedback" class="feedback"\u003E\n    Feedback\n  \u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    Press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E if you see the orange T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E if there is no orange T.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E\n\n',
                 timeout: '2000',
                 tardy: true,
-                skip: "${ parameters.phase === 'main' }",
-              },
-            ],
-          },
+                skip: "${ parameters.phase === 'main' }"
+              }
+            ]
+          }
         },
         {
           type: 'lab.html.Screen',
           files: {},
           parameters: {},
           responses: {
-            'keypress(Space)': 'continue',
+            'keypress(Space)': 'continue'
           },
           messageHandlers: {},
           title: 'Main task instruction',
           content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EReady for the real data collection?\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n    Press the the space bar to start the main task.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fmain\u003E\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E\n',
+            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EReady for the real data collection?\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n    Press the the space bar to start the main task.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fmain\u003E\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E\n'
         },
         {
           type: 'lab.flow.Loop',
@@ -347,7 +361,7 @@ const studyObject = {
           parameters: {},
           templateParameters: [],
           sample: {
-            mode: 'draw-shuffle',
+            mode: 'draw-shuffle'
           },
           responses: {},
           messageHandlers: {
@@ -365,11 +379,15 @@ const studyObject = {
                 return a;
               }
 
-              const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+              const randomBetween = (min, max) =>
+                Math.floor(Math.random() * (max - min + 1)) + min;
 
               const makeStimuliArray = (arrLen, stLen, isTarget) => {
                 const arr = Array(arrLen).fill(0);
-                const shuffled = shuffle([...Array(arrLen).keys()]).slice(0, stLen);
+                const shuffled = shuffle([...Array(arrLen).keys()]).slice(
+                  0,
+                  stLen
+                );
                 for (const p of shuffled) {
                   if (randomBetween(0, 1) === 0) {
                     arr[p] = 1;
@@ -390,26 +408,42 @@ const studyObject = {
                   stimuli: makeStimuliArray(arrLength, stimLength, isTarget),
                   target: isTarget,
                   size: stimLength,
-                  phase: 'main',
+                  phase: 'main'
                 };
               }
 
               const numberTrials = 10;
               for (let i = 1; i <= numberTrials; i++) {
-                trialParameters = trialParameters.concat(trialConstructor(i, 5, 'yes'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 5, 'no'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 10, 'yes'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 10, 'no'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 15, 'yes'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 15, 'no'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 20, 'yes'));
-                trialParameters = trialParameters.concat(trialConstructor(i, 20, 'no'));
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 5, 'yes')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 5, 'no')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 10, 'yes')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 10, 'no')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 15, 'yes')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 15, 'no')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 20, 'yes')
+                );
+                trialParameters = trialParameters.concat(
+                  trialConstructor(i, 20, 'no')
+                );
               }
 
               // assign options values to parameters of this task
               this.options.templateParameters = trialParameters;
               this.options.shuffle = true; // already shuffled before
-            },
+            }
           },
           title: 'Main task',
           shuffleGroups: [],
@@ -480,8 +514,8 @@ const studyObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '15',
-                      styles: {},
-                    },
+                      styles: {}
+                    }
                   ],
                   files: {},
                   parameters: {},
@@ -490,12 +524,12 @@ const studyObject = {
                     run: function anonymous() {
                       this.data.response = 'noresponse';
                       this.data.correct = false;
-                    },
+                    }
                   },
                   viewport: [800, 600],
                   title: 'Fixation cross',
-                  timeout: '${this.parameters.iti}',
-                },
+                  timeout: '${this.parameters.iti}'
+                }
               },
               {
                 type: 'lab.html.Screen',
@@ -503,11 +537,13 @@ const studyObject = {
                 parameters: {},
                 responses: {
                   'keypress(b)': 'yes',
-                  'keypress(n)': 'no',
+                  'keypress(n)': 'no'
                 },
                 messageHandlers: {
                   run: function anonymous() {
-                    this.parameters.callbackForEEG(parseInt(this.parameters.size) < 13 ? 2 : 1);
+                    this.parameters.callbackForEEG(
+                      parseInt(this.parameters.size) < 13 ? 2 : 1
+                    );
                     const taskgrid = document.querySelector('#taskgrid');
                     const stimuli = this.parameters.stimuli;
 
@@ -535,12 +571,12 @@ const studyObject = {
                       d.appendChild(el);
                       taskgrid.appendChild(d);
                     }
-                  },
+                  }
                 },
                 title: 'Stimuli',
                 content:
                   '\u003Cstyle\u003E\n  #taskgrid{\n    display: grid;\n    grid-template-columns: repeat(5, 100px);\n    grid-template-rows: repeat(5, 100px);\n    grid-row-gap: 10px;\n    grid-column-gap: 10px;\n  }\n  .box{\n    display: grid;\n    align-items: center;\n  } \n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cmain class="content-vertical-center content-horizontal-center"\u003E\n\n  \u003Cdiv id="taskgrid"\u003E\n\n\n  \u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    Press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E if you see the orange T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E if there is no orange T.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
-                correctResponse: '${this.parameters.target}',
+                correctResponse: '${this.parameters.target}'
               },
               {
                 type: 'lab.html.Screen',
@@ -579,26 +615,34 @@ const studyObject = {
                     }
 
                     if (this.state.response === 'noresponse') {
-                      document.querySelector('#feedback').innerHTML = 'Please respond!';
+                      document.querySelector('#feedback').innerHTML =
+                        'Please respond!';
                       return;
                     }
 
                     if (this.state.correct) {
-                      document.querySelector('#feedback').innerHTML = 'Well done!';
+                      document.querySelector('#feedback').innerHTML =
+                        'Well done!';
                       document.querySelector('#feedback').style.color = 'green';
                     } else if (this.parameters.target === 'yes') {
-                        document.querySelector('#feedback').innerHTML = 'Error! There was one!';
-                        document.querySelector('#target').style.border = 'solid';
-                      } else {
-                        document.querySelector('#feedback').innerHTML = 'Error! There was none!';
-                      }
+                      document.querySelector('#feedback').innerHTML =
+                        'Error! There was one!';
+                      document.querySelector('#target').style.border = 'solid';
+                    } else {
+                      document.querySelector('#feedback').innerHTML =
+                        'Error! There was none!';
+                    }
                   },
                   'before:prepare': function anonymous() {
                     this.data.trial_number =
                       1 +
-                      parseInt(this.options.id.split('_')[this.options.id.split('_').length - 2]);
+                      parseInt(
+                        this.options.id.split('_')[
+                          this.options.id.split('_').length - 2
+                        ]
+                      );
 
-                    this.data.condition = `${this.parameters.size  } letters`;
+                    this.data.condition = `${this.parameters.size} letters`;
 
                     this.data.reaction_time = this.state.duration;
                     // this.data.target = this.parameters.target;
@@ -610,36 +654,37 @@ const studyObject = {
                     }
 
                     this.data.response_given =
-                      this.parameters.phase === 'practice' || this.state.response === 'noresponse'
+                      this.parameters.phase === 'practice' ||
+                      this.state.response === 'noresponse'
                         ? 'no'
                         : 'yes';
-                  },
+                  }
                 },
                 title: 'Feedback',
                 content:
                   '\u003Cstyle\u003E\n  #taskgrid{\n    display: grid;\n    grid-template-columns: repeat(5, 100px);\n    grid-template-rows: repeat(5, 100px);\n    grid-row-gap: 10px;\n    grid-column-gap: 10px;\n  }\n  .box{\n    display: grid;\n    align-items: center;\n  } \n  .letter{\n    font-size: 90px;\n    font-weight: bold;\n  }\n  .feedback{\n    position: absolute;\n    top: 50px;\n    font-size: 2rem;\n    font-weight: bold;\n    color: #da5b1c;\n  }\n\u003C\u002Fstyle\u003E\n\n\u003Cmain class="content-vertical-center content-horizontal-center"\u003E\n\n  \u003Cdiv id="taskgrid"\u003E\n\n\n  \u003C\u002Fdiv\u003E\n\n  \u003Cdiv id="feedback" class="feedback"\u003E\n    Feedback\n  \u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    Press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E if you see the orange T, press \u003Ckbd\u003En\u003C\u002Fkbd\u003E if there is no orange T.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E\n\n',
                 timeout: '2000',
                 tardy: true,
-                skip: "${ parameters.phase === 'main' }",
-              },
-            ],
-          },
+                skip: "${ parameters.phase === 'main' }"
+              }
+            ]
+          }
         },
         {
           type: 'lab.html.Screen',
           files: {},
           parameters: {},
           responses: {
-            'keypress(Space)': 'end',
+            'keypress(Space)': 'end'
           },
           messageHandlers: {},
           title: 'End',
           content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',
-        },
-      ],
-    },
-  ],
+            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n'
+        }
+      ]
+    }
+  ]
 };
 // export
 export default studyObject;
