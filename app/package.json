@@ -12,7 +12,7 @@
   },
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
-    "postinstall": "patch-package && npm run electron-rebuild"
+    "postinstall": "patch-package && yarn electron-rebuild"
   },
   "license": "MIT",
   "dependencies": {
