@@ -13,7 +13,7 @@ const renderMergedProps = (component, ...rest) => {
   return React.createElement(component, finalProps);
 };
 
-// Wraps the normal Route class with a function that will inject a particular prop
+// Wraps the normal Route class with the ability to inject a particular prop
 // Allows us to manipulate props directly thruogh route transitions
 const PropsRoute = ({ component, ...rest }) => (
   <Route
@@ -22,26 +22,28 @@ const PropsRoute = ({ component, ...rest }) => (
   />
 );
 
-export default () => (
-  <App>
-    <Switch>
-      <Route path={SCREENS.ANALYZE.route} component={AnalyzeContainer} />
-      <Route path={SCREENS.CLEAN.route} component={CleanContainer} />
-      <Route path={SCREENS.COLLECT.route} component={CollectContainer} />
-      <Route
-        path={SCREENS.DESIGN.route}
-        component={ExperimentDesignContainer}
-      />
-      <PropsRoute
-        path="/home"
-        component={HomeContainer}
-        activeStep="EXPERIMENT BANK"
-      />
-      <PropsRoute
-        path="/"
-        component={HomeContainer}
-        activeStep="MY EXPERIMENTS"
-      />
-    </Switch>
-  </App>
-);
+export default function Routes() {
+  return (
+    <App>
+      <Switch>
+        <Route path={SCREENS.ANALYZE.route} component={AnalyzeContainer} />
+        <Route path={SCREENS.CLEAN.route} component={CleanContainer} />
+        <Route path={SCREENS.COLLECT.route} component={CollectContainer} />
+        <Route
+          path={SCREENS.DESIGN.route}
+          component={ExperimentDesignContainer}
+        />
+        <PropsRoute
+          path="/home"
+          component={HomeContainer}
+          activeStep="EXPERIMENT BANK"
+        />
+        <PropsRoute
+          path="/"
+          component={HomeContainer}
+          activeStep="MY EXPERIMENTS"
+        />
+      </Switch>
+    </App>
+  );
+}
