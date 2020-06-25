@@ -1,4 +1,4 @@
-import { EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
+import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
 // -------------------------------------------------------------------------
 // Action Types
 

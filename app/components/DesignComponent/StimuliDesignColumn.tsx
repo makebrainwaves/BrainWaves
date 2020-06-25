@@ -1,13 +1,13 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
-import React, { Component } from "react";
-import { Form, Button, Table, Icon } from "semantic-ui-react";
-import { toast } from "react-toastify";
-import { readImages } from "../../utils/filesystem/storage";
-import { loadFromSystemDialog } from "../../utils/filesystem/select";
-import { FILE_TYPES } from "../../constants/constants";
-import * as path from "path";
-import styles from "../styles/common.css";
+import React, { Component } from 'react';
+import { Form, Button, Table, Icon } from 'semantic-ui-react';
+import { toast } from 'react-toastify';
+import { readImages } from '../../utils/filesystem/storage';
+import { loadFromSystemDialog } from '../../utils/filesystem/select';
+import { FILE_TYPES } from '../../constants/constants';
+import * as path from 'path';
+import styles from '../styles/common.css';
 
 interface Props {
   num: number;
@@ -24,7 +24,6 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
 }));
 
 export default class StimuliDesignColumn extends Component<Props> {
-
   constructor(props: Props) {
     super(props);
     this.handleSelectFolder = this.handleSelectFolder.bind(this);
@@ -35,7 +34,11 @@ export default class StimuliDesignColumn extends Component<Props> {
   }
 
   shouldComponentUpdate(nextProps) {
-    if (nextProps.title !== this.props.title || nextProps.response !== this.props.response || nextProps.dir !== this.props.dir) {
+    if (
+      nextProps.title !== this.props.title ||
+      nextProps.response !== this.props.response ||
+      nextProps.dir !== this.props.dir
+    ) {
       return true;
     }
     return false;
@@ -63,32 +66,67 @@ export default class StimuliDesignColumn extends Component<Props> {
   }
 
   render() {
-    return <Table.Row className={styles.conditionRow}>
+    return (
+      <Table.Row className={styles.conditionRow}>
         <Table.Cell className={styles.conditionsNameRow}>
           {this.props.num}
           <Form>
-            <Form.Input value={this.props.title} onChange={(event, data) => this.props.onChange('title', data.value, `stimulus${this.props.num}`)} placeholder='Enter condition name' />
+            <Form.Input
+              value={this.props.title}
+              onChange={(event, data) =>
+                this.props.onChange(
+                  'title',
+                  data.value,
+                  `stimulus${this.props.num}`
+                )
+              }
+              placeholder="Enter condition name"
+            />
           </Form>
         </Table.Cell>
 
         <Table.Cell className={styles.experimentRowName}>
-          <Form.Select fluid selection value={this.props.response} onChange={(event, data) => this.props.onChange('response', data.value, `stimulus${this.props.num}`)} placeholder='Select' options={RESPONSE_OPTIONS} />
+          <Form.Select
+            fluid
+            selection
+            value={this.props.response}
+            onChange={(event, data) =>
+              this.props.onChange(
+                'response',
+                data.value,
+                `stimulus${this.props.num}`
+              )
+            }
+            placeholder="Select"
+            options={RESPONSE_OPTIONS}
+          />
         </Table.Cell>
 
         <Table.Cell className={styles.experimentRowName}>
-          {this.props.dir ? <div className={styles.selectedFolderContainer}>
+          {this.props.dir ? (
+            <div className={styles.selectedFolderContainer}>
               <div>
                 Folder{' '}
-                {this.props.dir && this.props.dir.split(path.sep).slice(-1).join(' / ')}
+                {this.props.dir &&
+                  this.props.dir
+                    .split(path.sep)
+                    .slice(-1)
+                    .join(' / ')}
               </div>
-              <div>( {this.state.numberImages || this.props.numberImages} images ) </div>
               <div>
-                <Icon name='delete' onClick={this.handleRemoveFolder} />
+                ( {this.state.numberImages || this.props.numberImages} images ){' '}
               </div>
-            </div> : <Button secondary onClick={this.handleSelectFolder}>
+              <div>
+                <Icon name="delete" onClick={this.handleRemoveFolder} />
+              </div>
+            </div>
+          ) : (
+            <Button secondary onClick={this.handleSelectFolder}>
               Select folder
-            </Button>}
+            </Button>
+          )}
         </Table.Cell>
-      </Table.Row>;
+      </Table.Row>
+    );
   }
 }

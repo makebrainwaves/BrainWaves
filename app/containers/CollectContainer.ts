@@ -1,9 +1,8 @@
-
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
-import Collect from "../components/CollectComponent";
-import * as deviceActions from "../actions/deviceActions";
-import * as experimentActions from "../actions/experimentActions";
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import Collect from '../components/CollectComponent';
+import * as deviceActions from '../actions/deviceActions';
+import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {

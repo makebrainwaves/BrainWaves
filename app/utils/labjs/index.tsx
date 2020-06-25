@@ -1,24 +1,21 @@
-import React, { Component } from "react";
-import clonedeep from "lodash.clonedeep";
-import * as lab from "lab.js/dist/lab.dev";
+import React, { Component } from 'react';
+import clonedeep from 'lodash.clonedeep';
+import * as lab from 'lab.js/dist/lab.dev';
 
-import path from "path";
-import visualsearch from "./scripts/visualsearch";
-import stroop from "./scripts/stroop";
-import multitasking from "./scripts/multitasking";
-import faceshouses from "./scripts/faceshouses";
-import custom from "./scripts/custom";
+import path from 'path';
+import visualsearch from './scripts/visualsearch';
+import stroop from './scripts/stroop';
+import multitasking from './scripts/multitasking';
+import faceshouses from './scripts/faceshouses';
+import custom from './scripts/custom';
 
 class ExperimentWindow extends Component {
-
   constructor(props) {
     super(props);
   }
 
   componentDidMount() {
-    const {
-      props
-    } = this;
+    const { props } = this;
     switch (props.settings.script) {
       case 'Multi-tasking':
         multitasking.parameters = props.settings.params;
@@ -35,26 +32,36 @@ class ExperimentWindow extends Component {
       case 'Faces and Houses':
         faceshouses.parameters = props.settings.params;
         faceshouses.parameters.title = props.settings.title;
-        faceshouses.files = props.settings.params.stimuli.map(image => ({
-          [path.join(image.dir, image.filename)]: path.join(image.dir, image.filename)
-        })).reduce((obj, item) => {
-          obj[Object.keys(item)[0]] = Object.values(item)[0];
-          return obj;
-        }, {});
+        faceshouses.files = props.settings.params.stimuli
+          .map(image => ({
+            [path.join(image.dir, image.filename)]: path.join(
+              image.dir,
+              image.filename
+            )
+          }))
+          .reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0];
+            return obj;
+          }, {});
         this.study = lab.util.fromObject(clonedeep(faceshouses), lab);
         break;
-      case 'Custom':default:
+      case 'Custom':
+      default:
         custom.parameters = props.settings.params;
         custom.parameters.title = props.settings.title;
-        custom.files = props.settings.params.stimuli.map(image => ({
-          [path.join(image.dir, image.filename)]: path.join(image.dir, image.filename)
-        })).reduce((obj, item) => {
-          obj[Object.keys(item)[0]] = Object.values(item)[0];
-          return obj;
-        }, {});
+        custom.files = props.settings.params.stimuli
+          .map(image => ({
+            [path.join(image.dir, image.filename)]: path.join(
+              image.dir,
+              image.filename
+            )
+          }))
+          .reduce((obj, item) => {
+            obj[Object.keys(item)[0]] = Object.values(item)[0];
+            return obj;
+          }, {});
         this.study = lab.util.fromObject(clonedeep(custom), lab);
         break;
-
     }
     this.study.run();
     this.study.on('end', () => {
@@ -87,14 +94,16 @@ class ExperimentWindow extends Component {
   }
 
   render() {
-    return <div className="container fullscreen" data-labjs-section="main">
+    return (
+      <div className="container fullscreen" data-labjs-section="main">
         <main className="content-vertical-center content-horizontal-center">
           <div>
             <h2>Loading Experiment</h2>
             <p>The experiment is loading and should start in a few seconds</p>
           </div>
         </main>
-      </div>;
+      </div>
+    );
   }
 }
 

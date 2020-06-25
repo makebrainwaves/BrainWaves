@@ -1,10 +1,9 @@
-
-import React, { Component } from "react";
-import { isNil } from "lodash";
-import { Segment } from "semantic-ui-react";
-import * as d3 from "d3";
-import { Observable } from "rxjs";
-import SignalQualityIndicatorSVG from "./svgs/SignalQualityIndicatorSVG";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Segment } from 'semantic-ui-react';
+import * as d3 from 'd3';
+import { Observable } from 'rxjs';
+import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
 
 interface Props {
   signalQualityObservable: Observable | null | undefined;
@@ -26,7 +25,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.signalQualityObservable !== prevProps.signalQualityObservable) {
+    if (
+      this.props.signalQualityObservable !== prevProps.signalQualityObservable
+    ) {
       this.subscribeToObservable(this.props.signalQualityObservable);
     }
   }
@@ -42,17 +43,28 @@ class SignalQualityIndicatorComponent extends Component<Props> {
       this.signalQualitySubscription.unsubscribe();
     }
 
-    this.signalQualitySubscription = observable.subscribe(epoch => {
-      Object.keys(epoch.signalQuality).forEach(key => {
-        d3.select(`#${key}`).attr('visibility', 'show').attr('stroke', '#000').transition().duration(this.props.plottingInterval).ease(d3.easeLinear).attr('fill', epoch.signalQuality[key]);
-      });
-    }, error => new Error(`Error in signalQualitySubscription ${error}`));
+    this.signalQualitySubscription = observable.subscribe(
+      epoch => {
+        Object.keys(epoch.signalQuality).forEach(key => {
+          d3.select(`#${key}`)
+            .attr('visibility', 'show')
+            .attr('stroke', '#000')
+            .transition()
+            .duration(this.props.plottingInterval)
+            .ease(d3.easeLinear)
+            .attr('fill', epoch.signalQuality[key]);
+        });
+      },
+      error => new Error(`Error in signalQualitySubscription ${error}`)
+    );
   }
 
   render() {
-    return <Segment basic size='massive'>
+    return (
+      <Segment basic size="massive">
         <SignalQualityIndicatorSVG />
-      </Segment>;
+      </Segment>
+    );
   }
 }
 

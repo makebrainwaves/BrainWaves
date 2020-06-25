@@ -1,31 +1,40 @@
-import React, { Component } from "react";
-import { isNil } from "lodash";
-import { Grid, Button, Header, Segment, Image, Table } from "semantic-ui-react";
-import { toast } from "react-toastify";
-import * as moment from "moment";
+import React, { Component } from 'react';
+import { isNil } from 'lodash';
+import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
+import { toast } from 'react-toastify';
+import * as moment from 'moment';
 
-import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS, KERNEL_STATUS, CONNECTION_STATUS, DEVICE_AVAILABILITY } from "../../constants/constants";
-import faceHouseIcon from "../../assets/common/FacesHouses.png";
-import stroopIcon from "../../assets/common/Stroop.png";
-import multitaskingIcon from "../../assets/common/Multitasking.png";
-import searchIcon from "../../assets/common/VisualSearch.png";
-import customIcon from "../../assets/common/Custom.png";
-import appLogo from "../../assets/common/app_logo.png";
-import divingMan from "../../assets/common/divingMan.svg";
-import { readWorkspaces, readAndParseState, openWorkspaceDir, deleteWorkspaceDir } from "../../utils/filesystem/storage";
+import styles from '../styles/common.css';
+import {
+  EXPERIMENTS,
+  SCREENS,
+  KERNEL_STATUS,
+  CONNECTION_STATUS,
+  DEVICE_AVAILABILITY
+} from '../../constants/constants';
+import faceHouseIcon from '../../assets/common/FacesHouses.png';
+import stroopIcon from '../../assets/common/Stroop.png';
+import multitaskingIcon from '../../assets/common/Multitasking.png';
+import searchIcon from '../../assets/common/VisualSearch.png';
+import customIcon from '../../assets/common/Custom.png';
+import appLogo from '../../assets/common/app_logo.png';
+import divingMan from '../../assets/common/divingMan.svg';
+import {
+  readWorkspaces,
+  readAndParseState,
+  openWorkspaceDir,
+  deleteWorkspaceDir
+} from '../../utils/filesystem/storage';
 
-import InputModal from "../InputModal";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import OverviewComponent from "./OverviewComponent";
-import { loadProtocol } from "../../utils/labjs/functions";
-import EEGExplorationComponent from "../EEGExplorationComponent";
+import InputModal from '../InputModal';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import OverviewComponent from './OverviewComponent';
+import { loadProtocol } from '../../utils/labjs/functions';
+import EEGExplorationComponent from '../EEGExplorationComponent';
 
-import { remote } from "electron";
+import { remote } from 'electron';
 
-const {
-  dialog
-} = remote;
+const { dialog } = remote;
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now
@@ -57,7 +66,6 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-
   // handleLoadCustomExperiment: (string) => void;
   // handleOpenOverview: (EXPERIMENTS) => void;
   // handleCloseOverview: () => void;
@@ -73,7 +81,9 @@ export default class Home extends Component<Props, State> {
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
-    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
+    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(
+      this
+    );
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
     this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
@@ -162,80 +172,131 @@ export default class Home extends Component<Props, State> {
   renderSectionContent() {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
-        return <Grid stackable padded columns='equal' className={styles.myExperimentsPage}>
-            {this.state.recentWorkspaces.length > 0 ? <Table basic='very'>
+        return (
+          <Grid
+            stackable
+            padded
+            columns="equal"
+            className={styles.myExperimentsPage}
+          >
+            {this.state.recentWorkspaces.length > 0 ? (
+              <Table basic="very">
                 <Table.Header>
                   <Table.Row className={styles.experimentHeaderRow}>
                     <Table.HeaderCell className={styles.experimentHeaderName}>
                       Experiment name
                     </Table.HeaderCell>
                     <Table.HeaderCell>Date Last Opened</Table.HeaderCell>
-                    <Table.HeaderCell className={styles.experimentHeaderActionsName}>
+                    <Table.HeaderCell
+                      className={styles.experimentHeaderActionsName}
+                    >
                       Actions
                     </Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body className={styles.experimentTable}>
-                  {this.state.recentWorkspaces.sort((a, b) => {
-                const aTime = readAndParseState(a).params.dateModified || 0;
-                const bTime = readAndParseState(b).params.dateModified || 0;
-                return bTime - aTime;
-              }).map(dir => {
-                const {
-                  params: {
-                    dateModified
-                  }
-                } = readAndParseState(dir);
-                return <Table.Row key={dir} className={styles.experimentRow}>
-                          <Table.Cell className={styles.experimentRowName}>{dir}</Table.Cell>
+                  {this.state.recentWorkspaces
+                    .sort((a, b) => {
+                      const aTime =
+                        readAndParseState(a).params.dateModified || 0;
+                      const bTime =
+                        readAndParseState(b).params.dateModified || 0;
+                      return bTime - aTime;
+                    })
+                    .map(dir => {
+                      const {
+                        params: { dateModified }
+                      } = readAndParseState(dir);
+                      return (
+                        <Table.Row key={dir} className={styles.experimentRow}>
                           <Table.Cell className={styles.experimentRowName}>
-                            {dateModified && moment.default(dateModified).fromNow()}
+                            {dir}
                           </Table.Cell>
                           <Table.Cell className={styles.experimentRowName}>
-                            <Button secondary onClick={() => this.handleDeleteWorkspace(dir)}>
+                            {dateModified &&
+                              moment.default(dateModified).fromNow()}
+                          </Table.Cell>
+                          <Table.Cell className={styles.experimentRowName}>
+                            <Button
+                              secondary
+                              onClick={() => this.handleDeleteWorkspace(dir)}
+                            >
                               Delete
                             </Button>
-                            <Button secondary onClick={() => openWorkspaceDir(dir)}>
+                            <Button
+                              secondary
+                              onClick={() => openWorkspaceDir(dir)}
+                            >
                               Go to Folder
                             </Button>
-                            <Button primary onClick={() => this.handleLoadRecentWorkspace(dir)}>
+                            <Button
+                              primary
+                              onClick={() =>
+                                this.handleLoadRecentWorkspace(dir)
+                              }
+                            >
                               Open Experiment
                             </Button>
                           </Table.Cell>
-                        </Table.Row>;
-              })}
+                        </Table.Row>
+                      );
+                    })}
                 </Table.Body>
-              </Table> : <Grid.Column textAlign='center'>
-                <Image src={divingMan} centered className={styles.noExperimentsImage} />
+              </Table>
+            ) : (
+              <Grid.Column textAlign="center">
+                <Image
+                  src={divingMan}
+                  centered
+                  className={styles.noExperimentsImage}
+                />
                 <Header className={styles.noExperimentsTitle}>
                   You don&apos;t have any experiments yet
                 </Header>
                 <p className={styles.noExperimentsText}>
-                  Head over to the &quot;Experiment Bank&quot; section to start an experiment.
+                  Head over to the &quot;Experiment Bank&quot; section to start
+                  an experiment.
                 </p>
-                <Button primary onClick={() => this.handleStepClick('EXPERIMENT BANK')}>
+                <Button
+                  primary
+                  onClick={() => this.handleStepClick('EXPERIMENT BANK')}
+                >
                   View Experiments
                 </Button>
-              </Grid.Column>}
-          </Grid>;
-      case HOME_STEPS.NEW:default:
-        return <Grid columns='two' relaxed padded>
+              </Grid.Column>
+            )}
+          </Grid>
+        );
+      case HOME_STEPS.NEW:
+      default:
+        return (
+          <Grid columns="two" relaxed padded>
             <Grid.Row>
               <Grid.Column>
                 <Segment>
-                  <Grid columns='two' className={styles.experimentCard} onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+                  >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={faceHouseIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as='h1' className={styles.experimentCardHeader}>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
                           Faces/Houses
                         </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Explore how people react to different kinds of images, like faces vs.
-                            houses.
+                            Explore how people react to different kinds of
+                            images, like faces vs. houses.
                           </p>
                         </div>
                       </Grid.Column>
@@ -246,19 +307,30 @@ export default class Home extends Component<Props, State> {
 
               <Grid.Column>
                 <Segment>
-                  <Grid columns='two' className={styles.experimentCard} onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
+                  >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={stroopIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as='h1' className={styles.experimentCardHeader}>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
                           Stroop
                         </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Investigate why it is hard to deal with contradictory information (like
-                            the word "RED" printed in blue).
+                            Investigate why it is hard to deal with
+                            contradictory information (like the word "RED"
+                            printed in blue).
                           </p>
                         </div>
                       </Grid.Column>
@@ -271,19 +343,29 @@ export default class Home extends Component<Props, State> {
             <Grid.Row>
               <Grid.Column>
                 <Segment>
-                  <Grid columns='two' className={styles.experimentCard} onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
+                  >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={multitaskingIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as='h1' className={styles.experimentCardHeader}>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
                           Multi-tasking
                         </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Explore why it is challenging to carry out multiple tasks at the same
-                            time.
+                            Explore why it is challenging to carry out multiple
+                            tasks at the same time.
                           </p>
                         </div>
                       </Grid.Column>
@@ -294,17 +376,30 @@ export default class Home extends Component<Props, State> {
 
               <Grid.Column>
                 <Segment>
-                  <Grid columns='two' className={styles.experimentCard} onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
+                  >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={searchIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as='h1' className={styles.experimentCardHeader}>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
                           Visual Search
                         </Header>
                         <div className={styles.experimentCardDescription}>
-                          <p>Examine why it is difficult to find your keys in a messy room.</p>
+                          <p>
+                            Examine why it is difficult to find your keys in a
+                            messy room.
+                          </p>
                         </div>
                       </Grid.Column>
                     </Grid.Row>
@@ -316,13 +411,23 @@ export default class Home extends Component<Props, State> {
             <Grid.Row>
               <Grid.Column>
                 <Segment>
-                  <Grid columns='two' className={styles.experimentCard} onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}>
+                  <Grid
+                    columns="two"
+                    className={styles.experimentCard}
+                    onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+                  >
                     <Grid.Row>
-                      <Grid.Column width={4} className={styles.experimentCardImage}>
+                      <Grid.Column
+                        width={4}
+                        className={styles.experimentCardImage}
+                      >
                         <Image src={customIcon} />
                       </Grid.Column>
-                      <Grid.Column width={12} className={styles.descriptionContainer}>
-                        <Header as='h1' className={styles.experimentCardHeader}>
+                      <Grid.Column
+                        width={12}
+                        className={styles.descriptionContainer}
+                      >
+                        <Header as="h1" className={styles.experimentCardHeader}>
                           Custom experiment
                         </Header>
                         <div className={styles.experimentCardDescription}>
@@ -336,27 +441,61 @@ export default class Home extends Component<Props, State> {
 
               <Grid.Column />
             </Grid.Row>
-          </Grid>;
+          </Grid>
+        );
       case HOME_STEPS.EXPLORE:
-        return <EEGExplorationComponent history={this.props.history} connectedDevice={this.props.connectedDevice} signalQualityObservable={this.props.signalQualityObservable} deviceType={this.props.deviceType} deviceAvailability={this.props.deviceAvailability} connectionStatus={this.props.connectionStatus} availableDevices={this.props.availableDevices} deviceActions={this.props.deviceActions} />;
-
+        return (
+          <EEGExplorationComponent
+            history={this.props.history}
+            connectedDevice={this.props.connectedDevice}
+            signalQualityObservable={this.props.signalQualityObservable}
+            deviceType={this.props.deviceType}
+            deviceAvailability={this.props.deviceAvailability}
+            connectionStatus={this.props.connectionStatus}
+            availableDevices={this.props.availableDevices}
+            deviceActions={this.props.deviceActions}
+          />
+        );
     }
   }
 
   renderOverviewOrHome() {
     if (this.state.isOverviewComponentOpen) {
-      return <OverviewComponent {...loadProtocol(this.state.overviewExperimentType)} type={this.state.overviewExperimentType} onStartExperiment={this.handleNewExperiment} onCloseOverview={this.handleCloseOverview} />;
+      return (
+        <OverviewComponent
+          {...loadProtocol(this.state.overviewExperimentType)}
+          type={this.state.overviewExperimentType}
+          onStartExperiment={this.handleNewExperiment}
+          onCloseOverview={this.handleCloseOverview}
+        />
+      );
     }
-    return <>
-        <SecondaryNavComponent title={<Image src={appLogo} />} steps={HOME_STEPS} activeStep={this.state.activeStep} onStepClick={this.handleStepClick} />
-        <div className={styles.homeContentContainer}>{this.renderSectionContent()}</div>
-      </>;
+    return (
+      <>
+        <SecondaryNavComponent
+          title={<Image src={appLogo} />}
+          steps={HOME_STEPS}
+          activeStep={this.state.activeStep}
+          onStepClick={this.handleStepClick}
+        />
+        <div className={styles.homeContentContainer}>
+          {this.renderSectionContent()}
+        </div>
+      </>
+    );
   }
 
   render() {
-    return <div className={styles.mainContainer} data-tid='container'>
+    return (
+      <div className={styles.mainContainer} data-tid="container">
         {this.renderOverviewOrHome()}
-        <InputModal open={this.state.isNewExperimentModalOpen} onClose={this.handleLoadCustomExperiment} onExit={() => this.setState({ isNewExperimentModalOpen: false })} header='Enter a title for this experiment' />
-      </div>;
+        <InputModal
+          open={this.state.isNewExperimentModalOpen}
+          onClose={this.handleLoadCustomExperiment}
+          onExit={() => this.setState({ isNewExperimentModalOpen: false })}
+          header="Enter a title for this experiment"
+        />
+      </div>
+    );
   }
 }

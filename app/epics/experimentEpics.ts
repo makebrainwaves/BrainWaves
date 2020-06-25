@@ -1,13 +1,52 @@
-import { combineEpics } from "redux-observable";
-import { from, of } from "rxjs";
-import { map, mapTo, mergeMap, pluck, filter, takeUntil, throttleTime, ignoreElements, tap } from "rxjs/operators";
-import { setType, setParadigm, setTitle, saveWorkspace, loadDefaultTimeline, LOAD_DEFAULT_TIMELINE, START, STOP, SAVE_WORKSPACE, CREATE_NEW_WORKSPACE, SET_SUBJECT, SET_GROUP } from "../actions/experimentActions";
-import { DEVICES, MUSE_CHANNELS, EMOTIV_CHANNELS, CONNECTION_STATUS } from "../constants/constants";
-import { loadProtocol, getBehaviouralData } from "../utils/labjs/functions";
-import { createEEGWriteStream, writeHeader, writeEEGData } from "../utils/filesystem/write";
-import { getWorkspaceDir, storeExperimentState, restoreExperimentState, createWorkspaceDir, storeBehaviouralData, readWorkspaceBehaviorData } from "../utils/filesystem/storage";
+import { combineEpics } from 'redux-observable';
+import { from, of } from 'rxjs';
+import {
+  map,
+  mapTo,
+  mergeMap,
+  pluck,
+  filter,
+  takeUntil,
+  throttleTime,
+  ignoreElements,
+  tap
+} from 'rxjs/operators';
+import {
+  setType,
+  setParadigm,
+  setTitle,
+  saveWorkspace,
+  loadDefaultTimeline,
+  LOAD_DEFAULT_TIMELINE,
+  START,
+  STOP,
+  SAVE_WORKSPACE,
+  CREATE_NEW_WORKSPACE,
+  SET_SUBJECT,
+  SET_GROUP
+} from '../actions/experimentActions';
+import {
+  DEVICES,
+  MUSE_CHANNELS,
+  EMOTIV_CHANNELS,
+  CONNECTION_STATUS
+} from '../constants/constants';
+import { loadProtocol, getBehaviouralData } from '../utils/labjs/functions';
+import {
+  createEEGWriteStream,
+  writeHeader,
+  writeEEGData
+} from '../utils/filesystem/write';
+import {
+  getWorkspaceDir,
+  storeExperimentState,
+  restoreExperimentState,
+  createWorkspaceDir,
+  storeBehaviouralData,
+  readWorkspaceBehaviorData
+} from '../utils/filesystem/storage';
 
-import { createEmotivRecord, stopEmotivRecord } from "../utils/eeg/emotiv";
+import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
 
 export const SET_TIMELINE = 'SET_TIMELINE';
 export const SET_IS_RUNNING = 'SET_IS_RUNNING';
@@ -42,32 +81,84 @@ const cleanup = () => ({
 // -------------------------------------------------------------------------
 // Epics
 
-const createNewWorkspaceEpic = action$ => action$.ofType(CREATE_NEW_WORKSPACE).pipe(pluck('payload'), tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)), mergeMap(workspaceInfo => of(setType(workspaceInfo.type), setParadigm(workspaceInfo.paradigm), setTitle(workspaceInfo.title), loadDefaultTimeline())));
+const createNewWorkspaceEpic = action$ =>
+  action$.ofType(CREATE_NEW_WORKSPACE).pipe(
+    pluck('payload'),
+    tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
+    mergeMap(workspaceInfo =>
+      of(
+        setType(workspaceInfo.type),
+        setParadigm(workspaceInfo.paradigm),
+        setTitle(workspaceInfo.title),
+        loadDefaultTimeline()
+      )
+    )
+  );
 
-const loadDefaultTimelineEpic = (action$, state$) => action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(map(() => state$.value.experiment.paradigm), map(loadProtocol), map(setTimeline));
+const loadDefaultTimelineEpic = (action$, state$) =>
+  action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
+    map(() => state$.value.experiment.paradigm),
+    map(loadProtocol),
+    map(setTimeline)
+  );
 
-const startEpic = (action$, state$) => action$.ofType(START).pipe(filter(() => !state$.value.experiment.isRunning), map(() => {
-  if (state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED) {
-    const writeStream = createEEGWriteStream(state$.value.experiment.title, state$.value.experiment.subject, state$.value.experiment.group, state$.value.experiment.session);
+const startEpic = (action$, state$) =>
+  action$.ofType(START).pipe(
+    filter(() => !state$.value.experiment.isRunning),
+    map(() => {
+      if (
+        state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
+      ) {
+        const writeStream = createEEGWriteStream(
+          state$.value.experiment.title,
+          state$.value.experiment.subject,
+          state$.value.experiment.group,
+          state$.value.experiment.session
+        );
 
-    writeHeader(writeStream, state$.value.device.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS : MUSE_CHANNELS);
+        writeHeader(
+          writeStream,
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS
+            : MUSE_CHANNELS
+        );
 
-    if (state$.value.device.deviceType === DEVICES.EMOTIV) {
-      createEmotivRecord(state$.value.experiment.subject, state$.value.experiment.session);
-    }
+        if (state$.value.device.deviceType === DEVICES.EMOTIV) {
+          createEmotivRecord(
+            state$.value.experiment.subject,
+            state$.value.experiment.session
+          );
+        }
 
-    state$.value.device.rawObservable.pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP))).subscribe(eegData => writeEEGData(writeStream, eegData));
-  }
-}), mapTo(true), map(setIsRunning));
+        state$.value.device.rawObservable
+          .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
+          .subscribe(eegData => writeEEGData(writeStream, eegData));
+      }
+    }),
+    mapTo(true),
+    map(setIsRunning)
+  );
 
-const experimentStopEpic = (action$, state$) => action$.ofType(STOP).pipe(filter(() => state$.value.experiment.isRunning), map(({
-  payload
-}) => {
-  storeBehaviouralData(payload.data, state$.value.experiment.title, state$.value.experiment.subject, state$.value.experiment.group, state$.value.experiment.session);
-  if (state$.value.experiment.isEEGEnabled && state$.value.device.deviceType === DEVICES.EMOTIV) {
-    stopEmotivRecord();
-  }
-}), mergeMap(() => of(setIsRunning(false))));
+const experimentStopEpic = (action$, state$) =>
+  action$.ofType(STOP).pipe(
+    filter(() => state$.value.experiment.isRunning),
+    map(({ payload }) => {
+      storeBehaviouralData(
+        payload.data,
+        state$.value.experiment.title,
+        state$.value.experiment.subject,
+        state$.value.experiment.group,
+        state$.value.experiment.session
+      );
+      if (
+        state$.value.experiment.isEEGEnabled &&
+        state$.value.device.deviceType === DEVICES.EMOTIV
+      ) {
+        stopEmotivRecord();
+      }
+    }),
+    mergeMap(() => of(setIsRunning(false)))
+  );
 
 // const setSubjectEpic = action$ =>
 //   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
@@ -75,20 +166,55 @@ const experimentStopEpic = (action$, state$) => action$.ofType(STOP).pipe(filter
 // const setGroupEpic = action$ =>
 //   action$.ofType(SET_GROUP).pipe(map(updateSession));
 
-const updateSessionEpic = (action$, state$) => action$.ofType(UPDATE_SESSION).pipe(mergeMap(() => from(readWorkspaceBehaviorData(state$.value.experiment.title))), map(behaviorFiles => {
-  if (behaviorFiles.length > 0) {
-    const subjectFiles = behaviorFiles.filter(filepath => filepath.name.startsWith(state$.value.experiment.subject));
-    return subjectFiles.length + 1;
-  }
-  return 1;
-}), map(setSession));
+const updateSessionEpic = (action$, state$) =>
+  action$.ofType(UPDATE_SESSION).pipe(
+    mergeMap(() =>
+      from(readWorkspaceBehaviorData(state$.value.experiment.title))
+    ),
+    map(behaviorFiles => {
+      if (behaviorFiles.length > 0) {
+        const subjectFiles = behaviorFiles.filter(filepath =>
+          filepath.name.startsWith(state$.value.experiment.subject)
+        );
+        return subjectFiles.length + 1;
+      }
+      return 1;
+    }),
+    map(setSession)
+  );
 
-const autoSaveEpic = action$ => action$.ofType('@@router/LOCATION_CHANGE').pipe(pluck('payload', 'pathname'), filter(pathname => pathname !== '/' && pathname !== '/home'), map(saveWorkspace));
+const autoSaveEpic = action$ =>
+  action$.ofType('@@router/LOCATION_CHANGE').pipe(
+    pluck('payload', 'pathname'),
+    filter(pathname => pathname !== '/' && pathname !== '/home'),
+    map(saveWorkspace)
+  );
 
-const saveWorkspaceEpic = (action$, state$) => action$.ofType(SAVE_WORKSPACE).pipe(throttleTime(1000), filter(() => state$.value.experiment.title.length > 1), map(() => getWorkspaceDir(state$.value.experiment.title)), tap(() => storeExperimentState(state$.value.experiment)), ignoreElements());
+const saveWorkspaceEpic = (action$, state$) =>
+  action$.ofType(SAVE_WORKSPACE).pipe(
+    throttleTime(1000),
+    filter(() => state$.value.experiment.title.length > 1),
+    map(() => getWorkspaceDir(state$.value.experiment.title)),
+    tap(() => storeExperimentState(state$.value.experiment)),
+    ignoreElements()
+  );
 
-const navigationCleanupEpic = (action$, state$) => action$.ofType('@@router/LOCATION_CHANGE').pipe(pluck('payload', 'pathname'), filter(pathname => pathname === '/' || pathname === '/home'), tap(() => restoreExperimentState(state$.value.experiment)), map(cleanup));
+const navigationCleanupEpic = (action$, state$) =>
+  action$.ofType('@@router/LOCATION_CHANGE').pipe(
+    pluck('payload', 'pathname'),
+    filter(pathname => pathname === '/' || pathname === '/home'),
+    tap(() => restoreExperimentState(state$.value.experiment)),
+    map(cleanup)
+  );
 
-export default combineEpics(loadDefaultTimelineEpic, createNewWorkspaceEpic, startEpic, experimentStopEpic, // setSubjectEpic,
-// setGroupEpic,
-updateSessionEpic, autoSaveEpic, saveWorkspaceEpic, navigationCleanupEpic);
+export default combineEpics(
+  loadDefaultTimelineEpic,
+  createNewWorkspaceEpic,
+  startEpic,
+  experimentStopEpic, // setSubjectEpic,
+  // setGroupEpic,
+  updateSessionEpic,
+  autoSaveEpic,
+  saveWorkspaceEpic,
+  navigationCleanupEpic
+);

@@ -1,5 +1,5 @@
-import * as path from "path";
-import { EVENTS } from "../../../constants/constants";
+import * as path from 'path';
+import { EVENTS } from '../../../constants/constants';
 
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
@@ -31,13 +31,18 @@ export const buildMultiTimeline = () => ({
   protocol_condition_second_title: `Rule 2`,
   protocol_condition_second: `If the object is shown on the bottom, they need to respond to the number of dots inside (pressing ‘n’ for 3 dots and ‘b’ for 2 dots). `,
   overview_links: [],
-  background_links: [{
-    name: 'Link 1',
-    address: 'https://www.scientificamerican.com/podcast/episode/the-myth-of-multitasking-09-07-15/'
-  }, {
-    name: 'Link 2',
-    address: 'https://www.scientificamerican.com/article/multitasking-two-tasks/'
-  }],
+  background_links: [
+    {
+      name: 'Link 1',
+      address:
+        'https://www.scientificamerican.com/podcast/episode/the-myth-of-multitasking-09-07-15/'
+    },
+    {
+      name: 'Link 2',
+      address:
+        'https://www.scientificamerican.com/article/multitasking-two-tasks/'
+    }
+  ],
   protocal_links: [],
   params: {
     trialDuration: 1000,
@@ -78,15 +83,18 @@ export const buildMultiTimeline = () => ({
   timelines: {
     faceHouseTimeline: {
       id: 'multiTaskingTimeline',
-      timeline: [{
-        id: 'interTrial',
-        type: 'callback-image-display',
-        stimulus: fixation,
-        response_ends_trial: false
-      }, {
-        id: 'trial',
-        response_ends_trial: false
-      }]
+      timeline: [
+        {
+          id: 'interTrial',
+          type: 'callback-image-display',
+          stimulus: fixation,
+          response_ends_trial: false
+        },
+        {
+          id: 'trial',
+          response_ends_trial: false
+        }
+      ]
     }
   }
 });

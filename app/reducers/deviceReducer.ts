@@ -1,9 +1,20 @@
-
-import { Observable } from "rxjs";
-import { SET_DEVICE_INFO, SET_DEVICE_TYPE, SET_AVAILABLE_DEVICES, SET_CONNECTION_STATUS, SET_RAW_OBSERVABLE, SET_SIGNAL_OBSERVABLE, DEVICE_CLEANUP } from "../epics/deviceEpics";
-import { DEVICES, CONNECTION_STATUS, DEVICE_AVAILABILITY } from "../constants/constants";
-import { ActionType, DeviceInfo } from "../constants/interfaces";
-import { SET_DEVICE_AVAILABILITY } from "../actions/deviceActions";
+import { Observable } from 'rxjs';
+import {
+  SET_DEVICE_INFO,
+  SET_DEVICE_TYPE,
+  SET_AVAILABLE_DEVICES,
+  SET_CONNECTION_STATUS,
+  SET_RAW_OBSERVABLE,
+  SET_SIGNAL_OBSERVABLE,
+  DEVICE_CLEANUP
+} from '../epics/deviceEpics';
+import {
+  DEVICES,
+  CONNECTION_STATUS,
+  DEVICE_AVAILABILITY
+} from '../constants/constants';
+import { ActionType, DeviceInfo } from '../constants/interfaces';
+import { SET_DEVICE_AVAILABILITY } from '../actions/deviceActions';
 
 interface DeviceStateType {
   readonly availableDevices: Array<any>;
@@ -25,7 +36,10 @@ const initialState = {
   deviceType: DEVICES.EMOTIV
 };
 
-export default function device(state: DeviceStateType = initialState, action: ActionType) {
+export default function device(
+  state: DeviceStateType = initialState,
+  action: ActionType
+) {
   switch (action.type) {
     case SET_DEVICE_TYPE:
       return {
@@ -74,6 +88,5 @@ export default function device(state: DeviceStateType = initialState, action: Ac
 
     default:
       return state;
-
   }
 }

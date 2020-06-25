@@ -1,5 +1,5 @@
-import * as path from "path";
-import { EVENTS } from "../../../constants/constants";
+import * as path from 'path';
+import { EVENTS } from '../../../constants/constants';
 
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
@@ -8,7 +8,68 @@ const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
 const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
-const stimuli = ['Face1', 'Face2', 'Face3', 'Face4', 'Face5', 'Face6', 'Face7', 'Face8', 'Face9', 'Face10', 'Face11', 'Face12', 'Face13', 'Face14', 'Face15', 'Face16', 'Face17', 'Face18', 'Face19', 'Face20', 'Face21', 'Face22', 'Face23', 'Face24', 'Face25', 'Face26', 'Face27', 'Face28', 'Face29', 'Face30', 'House1', 'House2', 'House3', 'House4', 'House5', 'House6', 'House7', 'House8', 'House9', 'House10', 'House11', 'House12', 'House13', 'House14', 'House15', 'House16', 'House17', 'House18', 'House19', 'House20', 'House21', 'House22', 'House23', 'House24', 'House25', 'House26', 'House27', 'House28', 'House29', 'House30'].map(s => ({
+const stimuli = [
+  'Face1',
+  'Face2',
+  'Face3',
+  'Face4',
+  'Face5',
+  'Face6',
+  'Face7',
+  'Face8',
+  'Face9',
+  'Face10',
+  'Face11',
+  'Face12',
+  'Face13',
+  'Face14',
+  'Face15',
+  'Face16',
+  'Face17',
+  'Face18',
+  'Face19',
+  'Face20',
+  'Face21',
+  'Face22',
+  'Face23',
+  'Face24',
+  'Face25',
+  'Face26',
+  'Face27',
+  'Face28',
+  'Face29',
+  'Face30',
+  'House1',
+  'House2',
+  'House3',
+  'House4',
+  'House5',
+  'House6',
+  'House7',
+  'House8',
+  'House9',
+  'House10',
+  'House11',
+  'House12',
+  'House13',
+  'House14',
+  'House15',
+  'House16',
+  'House17',
+  'House18',
+  'House19',
+  'House20',
+  'House21',
+  'House22',
+  'House23',
+  'House24',
+  'House25',
+  'House26',
+  'House27',
+  'House28',
+  'House29',
+  'House30'
+].map(s => ({
   condition: s.startsWith('Face') ? 'Face' : 'House',
   dir: s.startsWith('Face') ? facesDir : housesDir,
   filename: `${s}.jpg`,
@@ -44,10 +105,13 @@ export const buildN170Timeline = () => ({
   protocol_condition_second_title: `Houses`,
   protocol_condition_second: `If participants see a house, they should press “9”.`,
   overview_links: [],
-  background_links: [{
-    name: 'Link 1',
-    address: 'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'
-  }],
+  background_links: [
+    {
+      name: 'Link 1',
+      address:
+        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'
+    }
+  ],
   protocal_links: [],
   params: {
     imageHeight: '500px',
@@ -108,15 +172,18 @@ export const buildN170Timeline = () => ({
   timelines: {
     faceHouseTimeline: {
       id: 'faceHouseTimeline',
-      timeline: [{
-        id: 'interTrial',
-        type: 'callback-image-display',
-        stimulus: fixation,
-        response_ends_trial: false
-      }, {
-        id: 'trial',
-        response_ends_trial: false
-      }]
+      timeline: [
+        {
+          id: 'interTrial',
+          type: 'callback-image-display',
+          stimulus: fixation,
+          response_ends_trial: false
+        },
+        {
+          id: 'trial',
+          response_ends_trial: false
+        }
+      ]
     }
   }
 });

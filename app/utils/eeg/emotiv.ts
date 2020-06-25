@@ -3,14 +3,14 @@
  * an RxJS Observable of raw EEG data
  *
  */
-import { fromEvent } from "rxjs";
-import { map, withLatestFrom, share } from "rxjs/operators";
-import { addInfo, epoch, bandpassFilter } from "@neurosity/pipes";
-import { toast } from "react-toastify";
-import { parseEmotivSignalQuality } from "./pipes";
-import { CLIENT_ID, CLIENT_SECRET, LICENSE_ID } from "../../../keys";
-import { EMOTIV_CHANNELS, PLOTTING_INTERVAL } from "../../constants/constants";
-import Cortex from "./cortex";
+import { fromEvent } from 'rxjs';
+import { map, withLatestFrom, share } from 'rxjs/operators';
+import { addInfo, epoch, bandpassFilter } from '@neurosity/pipes';
+import { toast } from 'react-toastify';
+import { parseEmotivSignalQuality } from './pipes';
+import { CLIENT_ID, CLIENT_SECRET, LICENSE_ID } from '../../../keys';
+import { EMOTIV_CHANNELS, PLOTTING_INTERVAL } from '../../constants/constants';
+import Cortex from './cortex';
 
 // Creates the Cortex object from SDK
 const verbose = process.env.LOG_LEVEL || 1;
@@ -101,18 +101,25 @@ export const createEmotivSignalQualityObservable = rawObservable => {
   const signalQualityObservable = fromEvent(client, 'dev');
   const samplingRate = 128;
   const channels = EMOTIV_CHANNELS;
-  const intervalSamples = PLOTTING_INTERVAL * samplingRate / 1000;
-  return rawObservable.pipe(addInfo({
-    samplingRate,
-    channels
-  }), epoch({
-    duration: intervalSamples,
-    interval: intervalSamples
-  }), bandpassFilter({
-    nbChannels: channels.length,
-    lowCutoff: 1,
-    highCutoff: 50
-  }), withLatestFrom(signalQualityObservable, integrateSignalQuality), parseEmotivSignalQuality(), share());
+  const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
+  return rawObservable.pipe(
+    addInfo({
+      samplingRate,
+      channels
+    }),
+    epoch({
+      duration: intervalSamples,
+      interval: intervalSamples
+    }),
+    bandpassFilter({
+      nbChannels: channels.length,
+      lowCutoff: 1,
+      highCutoff: 50
+    }),
+    withLatestFrom(signalQualityObservable, integrateSignalQuality),
+    parseEmotivSignalQuality(),
+    share()
+  );
 };
 
 export const injectEmotivMarker = (value, time) => {
@@ -143,7 +150,10 @@ const createEEGSample = eegEvent => {
     prunedArray[i] = eegEvent.eeg[i + 2];
   }
   if (eegEvent.eeg[eegEvent.eeg.length - 1].length >= 1) {
-    const marker = (eegEvent.eeg[eegEvent.eeg.length - 1][0] && eegEvent.eeg[eegEvent.eeg.length - 1][0].value) || 0;
+    const marker =
+      (eegEvent.eeg[eegEvent.eeg.length - 1][0] &&
+        eegEvent.eeg[eegEvent.eeg.length - 1][0].value) ||
+      0;
     return { data: prunedArray, timestamp: eegEvent.time * 1000, marker };
   }
   return { data: prunedArray, timestamp: eegEvent.time * 1000 };
@@ -151,7 +161,9 @@ const createEEGSample = eegEvent => {
 
 const integrateSignalQuality = (newEpoch, devSample) => ({
   ...newEpoch,
-  signalQuality: Object.assign(...devSample.dev[2].map((signalQuality, index) => ({
-    [EMOTIV_CHANNELS[index]]: signalQuality
-  })))
+  signalQuality: Object.assign(
+    ...devSample.dev[2].map((signalQuality, index) => ({
+      [EMOTIV_CHANNELS[index]]: signalQuality
+    }))
+  )
 });

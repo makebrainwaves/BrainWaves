@@ -1,9 +1,8 @@
-
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
-import CleanComponent from "../components/CleanComponent";
-import * as experimentActions from "../actions/experimentActions";
-import * as jupyterActions from "../actions/jupyterActions";
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import CleanComponent from '../components/CleanComponent';
+import * as experimentActions from '../actions/experimentActions';
+import * as jupyterActions from '../actions/jupyterActions';
 
 function mapStateToProps(state) {
   return {

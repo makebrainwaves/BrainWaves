@@ -1,12 +1,12 @@
-import React, { Component } from "react";
-import { Grid, Header, Button, Segment } from "semantic-ui-react";
-import { isNil } from "lodash";
-import styles from "../styles/common.css";
-import { EXPERIMENTS } from "../../constants/constants";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import PreviewButton from "../PreviewButtonComponent";
-import { loadProtocol } from "../../utils/labjs/functions";
+import React, { Component } from 'react';
+import { Grid, Header, Button, Segment } from 'semantic-ui-react';
+import { isNil } from 'lodash';
+import styles from '../styles/common.css';
+import { EXPERIMENTS } from '../../constants/constants';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import PreviewButton from '../PreviewButtonComponent';
+import { loadProtocol } from '../../utils/labjs/functions';
 
 const OVERVIEW_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -26,7 +26,6 @@ interface State {
 }
 
 export default class OverviewComponent extends Component<Props, State> {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -44,7 +43,10 @@ export default class OverviewComponent extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState(prevState => ({ ...prevState, isPreviewing: !prevState.isPreviewing }));
+    this.setState(prevState => ({
+      ...prevState,
+      isPreviewing: !prevState.isPreviewing
+    }));
   }
 
   endPreview() {
@@ -54,50 +56,104 @@ export default class OverviewComponent extends Component<Props, State> {
   renderSectionContent() {
     switch (this.state.activeStep) {
       case OVERVIEW_STEPS.PROTOCOL:
-        return <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column stretched width={12} textAlign='right' verticalAlign='middle' className={styles.previewWindow}>
-              <PreviewExperimentComponent {...loadProtocol(this.props.paradigm)} isPreviewing={this.state.isPreviewing} onEnd={this.endPreview} type={this.props.type} paradigm={this.props.paradigm} />
+        return (
+          <Grid relaxed padded className={styles.contentGrid}>
+            <Grid.Column
+              stretched
+              width={12}
+              textAlign="right"
+              verticalAlign="middle"
+              className={styles.previewWindow}
+            >
+              <PreviewExperimentComponent
+                {...loadProtocol(this.props.paradigm)}
+                isPreviewing={this.state.isPreviewing}
+                onEnd={this.endPreview}
+                type={this.props.type}
+                paradigm={this.props.paradigm}
+              />
             </Grid.Column>
-            <Grid.Column stretched width={4} verticalAlign='middle'>
-              <Segment as='p' basic>
+            <Grid.Column stretched width={4} verticalAlign="middle">
+              <Segment as="p" basic>
                 {this.props.protocol}
               </Segment>
-              <PreviewButton isPreviewing={this.state.isPreviewing} onClick={e => this.handlePreview(e)} />
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={e => this.handlePreview(e)}
+              />
             </Grid.Column>
-          </Grid>;
+          </Grid>
+        );
       case OVERVIEW_STEPS.BACKGROUND:
-        return <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column stretched width={6} textAlign='right' verticalAlign='middle'>
-              <Header as='h1'>{this.props.background_title}</Header>
+        return (
+          <Grid stretched relaxed padded className={styles.contentGrid}>
+            <Grid.Column
+              stretched
+              width={6}
+              textAlign="right"
+              verticalAlign="middle"
+            >
+              <Header as="h1">{this.props.background_title}</Header>
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign='middle'>
-              <Segment as='p' basic>
+            <Grid.Column stretched width={6} verticalAlign="middle">
+              <Segment as="p" basic>
                 {this.props.background}
               </Segment>
             </Grid.Column>
-          </Grid>;
-      case OVERVIEW_STEPS.OVERVIEW:default:
-        return <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column stretched width={6} textAlign='right' verticalAlign='middle'>
-              <Header as='h1'>{this.props.type}</Header>
+          </Grid>
+        );
+      case OVERVIEW_STEPS.OVERVIEW:
+      default:
+        return (
+          <Grid stretched relaxed padded className={styles.contentGrid}>
+            <Grid.Column
+              stretched
+              width={6}
+              textAlign="right"
+              verticalAlign="middle"
+            >
+              <Header as="h1">{this.props.type}</Header>
             </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign='middle'>
-              <Segment as='p' basic>
+            <Grid.Column stretched width={6} verticalAlign="middle">
+              <Segment as="p" basic>
                 {this.props.overview}
               </Segment>
             </Grid.Column>
-          </Grid>;
-
+          </Grid>
+        );
     }
   }
 
   render() {
-    return <>
-        <Button basic circular size='huge' floated='right' icon='x' className={styles.closeButton} onClick={this.props.onCloseOverview} />
-        <SecondaryNavComponent title={this.props.type} steps={OVERVIEW_STEPS} activeStep={this.state.activeStep} onStepClick={this.handleStepClick} button={<Button primary onClick={() => this.props.onStartExperiment(this.props.type)}>
+    return (
+      <>
+        <Button
+          basic
+          circular
+          size="huge"
+          floated="right"
+          icon="x"
+          className={styles.closeButton}
+          onClick={this.props.onCloseOverview}
+        />
+        <SecondaryNavComponent
+          title={this.props.type}
+          steps={OVERVIEW_STEPS}
+          activeStep={this.state.activeStep}
+          onStepClick={this.handleStepClick}
+          button={
+            <Button
+              primary
+              onClick={() => this.props.onStartExperiment(this.props.type)}
+            >
               Start Experiment
-            </Button>} />
-        <div className={styles.homeContentContainer}>{this.renderSectionContent()}</div>
-      </>;
+            </Button>
+          }
+        />
+        <div className={styles.homeContentContainer}>
+          {this.renderSectionContent()}
+        </div>
+      </>
+    );
   }
 }

@@ -1,18 +1,21 @@
-
-
 /**
  *  Functions for writing EEG data to disk
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import mkdirp from "mkdirp";
-import { has } from "lodash";
-import { getWorkspaceDir } from "./storage";
-import { EEGData } from "../../constants/interfaces";
+import * as fs from 'fs';
+import * as path from 'path';
+import mkdirp from 'mkdirp';
+import { has } from 'lodash';
+import { getWorkspaceDir } from './storage';
+import { EEGData } from '../../constants/interfaces';
 
 // Creates an appropriate filename and returns a writestream that will write to that file
-export const createEEGWriteStream = (title: string, subject: string, group: string, session: number) => {
+export const createEEGWriteStream = (
+  title: string,
+  subject: string,
+  group: string,
+  session: number
+) => {
   try {
     const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
     const filename = `${subject}-${group}-${session}-raw.csv`;
@@ -25,7 +28,10 @@ export const createEEGWriteStream = (title: string, subject: string, group: stri
 
 // Writes the header for a simple CSV EEG file format.
 // timestamp followed by channels, followed by markers
-export const writeHeader = (writeStream: fs.WriteStream, channels: Array<string>) => {
+export const writeHeader = (
+  writeStream: fs.WriteStream,
+  channels: Array<string>
+) => {
   try {
     const headerLabels = `Timestamp,${channels.join(',')},Marker\n`;
     writeStream.write(headerLabels);

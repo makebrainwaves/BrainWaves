@@ -1,11 +1,20 @@
-import "hazardous";
-import { withLatestFrom, share, startWith, filter } from "rxjs/operators";
-import { addInfo, epoch, bandpassFilter, addSignalQuality } from "@neurosity/pipes";
-import { release } from "os";
-import { MUSE_SERVICE, MuseClient, zipSamples } from "muse-js";
-import { from } from "rxjs";
-import { parseMuseSignalQuality } from "./pipes";
-import { MUSE_SAMPLING_RATE, MUSE_CHANNELS, PLOTTING_INTERVAL } from "../../constants/constants";
+import 'hazardous';
+import { withLatestFrom, share, startWith, filter } from 'rxjs/operators';
+import {
+  addInfo,
+  epoch,
+  bandpassFilter,
+  addSignalQuality
+} from '@neurosity/pipes';
+import { release } from 'os';
+import { MUSE_SERVICE, MuseClient, zipSamples } from 'muse-js';
+import { from } from 'rxjs';
+import { parseMuseSignalQuality } from './pipes';
+import {
+  MUSE_SAMPLING_RATE,
+  MUSE_CHANNELS,
+  PLOTTING_INTERVAL
+} from '../../constants/constants';
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
@@ -59,27 +68,37 @@ export const createRawMuseObservable = async () => {
   await client.start();
   const eegStream = await client.eegReadings;
   const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
-  return from(zipSamples(eegStream)).pipe(filter(sample => !sample.data.includes(NaN)), withLatestFrom(markers, synchronizeTimestamp), share());
+  return from(zipSamples(eegStream)).pipe(
+    filter(sample => !sample.data.includes(NaN)),
+    withLatestFrom(markers, synchronizeTimestamp),
+    share()
+  );
 };
 
 // Creates an observable that will epoch, filter, and add signal quality to EEG stream
-export const createMuseSignalQualityObservable = (rawObservable, deviceInfo) => {
-  const {
-    samplingRate,
-    channels: channelNames
-  } = deviceInfo;
-  const intervalSamples = PLOTTING_INTERVAL * samplingRate / 1000;
-  return rawObservable.pipe(addInfo({
-    samplingRate,
-    channelNames
-  }), epoch({
-    duration: intervalSamples,
-    interval: intervalSamples
-  }), bandpassFilter({
-    nbChannels: channelNames.length,
-    lowCutoff: 1,
-    highCutoff: 50
-  }), addSignalQuality(), parseMuseSignalQuality());
+export const createMuseSignalQualityObservable = (
+  rawObservable,
+  deviceInfo
+) => {
+  const { samplingRate, channels: channelNames } = deviceInfo;
+  const intervalSamples = (PLOTTING_INTERVAL * samplingRate) / 1000;
+  return rawObservable.pipe(
+    addInfo({
+      samplingRate,
+      channelNames
+    }),
+    epoch({
+      duration: intervalSamples,
+      interval: intervalSamples
+    }),
+    bandpassFilter({
+      nbChannels: channelNames.length,
+      lowCutoff: 1,
+      highCutoff: 50
+    }),
+    addSignalQuality(),
+    parseMuseSignalQuality()
+  );
 };
 
 // Injects an event marker that will be included in muse-js's data stream through
@@ -91,7 +110,10 @@ export const injectMuseMarker = (value, time) => {
 // Helpers
 
 const synchronizeTimestamp = (eegSample, marker) => {
-  if (eegSample['timestamp'] - marker['timestamp'] < 0 && eegSample['timestamp'] - marker['timestamp'] >= INTER_SAMPLE_INTERVAL) {
+  if (
+    eegSample['timestamp'] - marker['timestamp'] < 0 &&
+    eegSample['timestamp'] - marker['timestamp'] >= INTER_SAMPLE_INTERVAL
+  ) {
     return { ...eegSample, marker: marker['value'] };
   }
   return eegSample;

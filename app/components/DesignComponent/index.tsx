@@ -1,37 +1,48 @@
+import React, { Component } from 'react';
+import {
+  Grid,
+  Button,
+  Segment,
+  Header,
+  Image,
+  Checkbox
+} from 'semantic-ui-react';
+import { isNil } from 'lodash';
+import styles from '../styles/common.css';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
+import { readWorkspaces } from '../../utils/filesystem/storage';
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters,
+  ExperimentDescription
+} from '../../constants/interfaces';
+import SecondaryNavComponent from '../SecondaryNavComponent';
+import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import CustomDesign from './CustomDesignComponent';
+import PreviewButton from '../PreviewButtonComponent';
 
-import React, { Component } from "react";
-import { Grid, Button, Segment, Header, Image, Checkbox } from "semantic-ui-react";
-import { isNil } from "lodash";
-import styles from "../styles/common.css";
-import { EXPERIMENTS, SCREENS } from "../../constants/constants";
-import { readWorkspaces } from "../../utils/filesystem/storage";
-import { MainTimeline, Trial, ExperimentParameters, ExperimentDescription } from "../../constants/interfaces";
-import SecondaryNavComponent from "../SecondaryNavComponent";
-import PreviewExperimentComponent from "../PreviewExperimentComponent";
-import CustomDesign from "./CustomDesignComponent";
-import PreviewButton from "../PreviewButtonComponent";
-
-import facesHousesOverview from "../../assets/common/FacesHouses.png";
-import stroopOverview from "../../assets/common/Stroop.png";
-import multitaskingOverview from "../../assets/common/Multitasking.png";
-import searchOverview from "../../assets/common/VisualSearch.png";
-import customOverview from "../../assets/common/Custom.png";
+import facesHousesOverview from '../../assets/common/FacesHouses.png';
+import stroopOverview from '../../assets/common/Stroop.png';
+import multitaskingOverview from '../../assets/common/Multitasking.png';
+import searchOverview from '../../assets/common/VisualSearch.png';
+import customOverview from '../../assets/common/Custom.png';
 
 // conditions images
-import multiConditionShape from "../../assets/multi/multiConditionShape.png";
-import multiConditionDots from "../../assets/multi/multiConditionDots.png";
-import conditionFace from "../../assets/face_house/faces/Face1.jpg";
-import conditionHouse from "../../assets/face_house/houses/House1.jpg";
-import conditionOrangeT from "../../assets/search/conditionOrangeT.png";
-import conditionNoOrangeT from "../../assets/search/conditionNoOrangeT.png";
-import conditionCongruent from "../../assets/stroop/match_g.png";
-import conditionIncongruent from "../../assets/stroop/mismatch6_r.png";
+import multiConditionShape from '../../assets/multi/multiConditionShape.png';
+import multiConditionDots from '../../assets/multi/multiConditionDots.png';
+import conditionFace from '../../assets/face_house/faces/Face1.jpg';
+import conditionHouse from '../../assets/face_house/houses/House1.jpg';
+import conditionOrangeT from '../../assets/search/conditionOrangeT.png';
+import conditionNoOrangeT from '../../assets/search/conditionNoOrangeT.png';
+import conditionCongruent from '../../assets/stroop/match_g.png';
+import conditionIncongruent from '../../assets/stroop/mismatch6_r.png';
 
-import { loadProtocol } from "../../utils/labjs/functions";
-import { toast } from "react-toastify";
-import InputModal from "../InputModal";
+import { loadProtocol } from '../../utils/labjs/functions';
+import { toast } from 'react-toastify';
+import InputModal from '../InputModal';
 
-import { shell } from "electron";
+import { shell } from 'electron';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -80,7 +91,9 @@ export default class Design extends Component<Props, State> {
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
-    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
+    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(
+      this
+    );
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
@@ -164,10 +177,10 @@ export default class Design extends Component<Props, State> {
       case 'multiConditionShape':
         return multiConditionShape;
         break;
-      case 'multiConditionDots':default:
+      case 'multiConditionDots':
+      default:
         return multiConditionDots;
         break;
-
     }
   }
 
@@ -189,17 +202,25 @@ export default class Design extends Component<Props, State> {
         return searchOverview;
         break;
 
-      case EXPERIMENTS.CUSTOM:default:
+      case EXPERIMENTS.CUSTOM:
+      default:
         return customOverview;
         break;
-
     }
   }
 
   renderSectionContent() {
     switch (this.state.activeStep) {
-      case DESIGN_STEPS.OVERVIEW:default:
-        return <Grid stretched relaxed padded className={styles.contentGrid} style={{ alignItems: 'center' }}>
+      case DESIGN_STEPS.OVERVIEW:
+      default:
+        return (
+          <Grid
+            stretched
+            relaxed
+            padded
+            className={styles.contentGrid}
+            style={{ alignItems: 'center' }}
+          >
             <Grid.Row stretched>
               <Grid.Column stretched width={5}>
                 <Segment basic>
@@ -209,15 +230,22 @@ export default class Design extends Component<Props, State> {
 
               <Grid.Column stretched width={11}>
                 <Segment basic>
-                  <Header as='h1'>{this.props.overview_title}</Header>
+                  <Header as="h1">{this.props.overview_title}</Header>
                   <p>{this.props.overview}</p>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
-          </Grid>;
+          </Grid>
+        );
 
       case DESIGN_STEPS.BACKGROUND:
-        return <Grid relaxed padded className={styles.contentGrid} style={{ alignItems: 'center' }}>
+        return (
+          <Grid
+            relaxed
+            padded
+            className={styles.contentGrid}
+            style={{ alignItems: 'center' }}
+          >
             <Grid.Row>
               <Grid.Column stretched width={4}>
                 <Segment basic>
@@ -246,23 +274,36 @@ export default class Design extends Component<Props, State> {
               <Grid.Column width={2}>
                 <Segment basic>
                   <div className={styles.externalLinks}>
-                    {this.props.background_links.map(link => <Button key={link.address} secondary onClick={() => {
-                    shell.openExternal(link.address);
-                  }}>
+                    {this.props.background_links.map(link => (
+                      <Button
+                        key={link.address}
+                        secondary
+                        onClick={() => {
+                          shell.openExternal(link.address);
+                        }}
+                      >
                         {link.name}
-                      </Button>)}
+                      </Button>
+                    ))}
                   </div>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
-          </Grid>;
+          </Grid>
+        );
 
       case DESIGN_STEPS.PROTOCOL:
-        return <Grid relaxed padded className={styles.contentGrid} style={{ alignItems: 'center' }}>
+        return (
+          <Grid
+            relaxed
+            padded
+            className={styles.contentGrid}
+            style={{ alignItems: 'center' }}
+          >
             <Grid.Row stretched>
-              <Grid.Column stretched width={7} textAlign='left'>
+              <Grid.Column stretched width={7} textAlign="left">
                 <Segment basic>
-                  <Header as='h2'>{this.props.protocol_title}</Header>
+                  <Header as="h2">{this.props.protocol_title}</Header>
                   <p>{this.props.protocol}</p>
                 </Segment>
               </Grid.Column>
@@ -271,11 +312,17 @@ export default class Design extends Component<Props, State> {
                 <Grid>
                   <Grid.Row>
                     <Grid.Column width={5}>
-                      <Image src={this.renderConditionIcon(this.props.protocol_condition_first_img)} />
+                      <Image
+                        src={this.renderConditionIcon(
+                          this.props.protocol_condition_first_img
+                        )}
+                      />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
-                        <Header as='h3'>{this.props.protocol_condition_first_title}</Header>
+                        <Header as="h3">
+                          {this.props.protocol_condition_first_title}
+                        </Header>
                         <p>{this.props.protocol_condition_first}</p>
                       </Segment>
                     </Grid.Column>
@@ -283,11 +330,17 @@ export default class Design extends Component<Props, State> {
 
                   <Grid.Row>
                     <Grid.Column width={5}>
-                      <Image src={this.renderConditionIcon(this.props.protocol_condition_second_img)} />
+                      <Image
+                        src={this.renderConditionIcon(
+                          this.props.protocol_condition_second_img
+                        )}
+                      />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
-                        <Header as='h3'>{this.props.protocol_condition_second_title}</Header>
+                        <Header as="h3">
+                          {this.props.protocol_condition_second_title}
+                        </Header>
                         <p>{this.props.protocol_condition_second}</p>
                       </Segment>
                     </Grid.Column>
@@ -295,18 +348,35 @@ export default class Design extends Component<Props, State> {
                 </Grid>
               </Grid.Column>
             </Grid.Row>
-          </Grid>;
+          </Grid>
+        );
 
       case DESIGN_STEPS.PREVIEW:
-        return <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column stretched width={12} textAlign='right' verticalAlign='middle' className={styles.previewWindow}>
-              <PreviewExperimentComponent {...loadProtocol(this.props.paradigm)} isPreviewing={this.state.isPreviewing} onEnd={this.endPreview} type={this.props.type} paradigm={this.props.paradigm} />
+        return (
+          <Grid relaxed padded className={styles.contentGrid}>
+            <Grid.Column
+              stretched
+              width={12}
+              textAlign="right"
+              verticalAlign="middle"
+              className={styles.previewWindow}
+            >
+              <PreviewExperimentComponent
+                {...loadProtocol(this.props.paradigm)}
+                isPreviewing={this.state.isPreviewing}
+                onEnd={this.endPreview}
+                type={this.props.type}
+                paradigm={this.props.paradigm}
+              />
             </Grid.Column>
-            <Grid.Column width={4} verticalAlign='middle'>
-              <PreviewButton isPreviewing={this.state.isPreviewing} onClick={e => this.handlePreview(e)} />
+            <Grid.Column width={4} verticalAlign="middle">
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={e => this.handlePreview(e)}
+              />
             </Grid.Column>
-          </Grid>;
-
+          </Grid>
+        );
     }
   }
 
@@ -314,10 +384,32 @@ export default class Design extends Component<Props, State> {
     if (this.props.type === EXPERIMENTS.CUSTOM) {
       return <CustomDesign {...this.props} />;
     }
-    return <div className={styles.mainContainer}>
-        <SecondaryNavComponent title='Experiment Design' steps={DESIGN_STEPS} activeStep={this.state.activeStep} onStepClick={this.handleStepClick} onEditClick={this.handleCustomizeExperiment} enableEEGToggle={<Checkbox toggle defaultChecked={this.props.isEEGEnabled} onChange={(event, data) => this.handleEEGEnabled(event, data)} className={styles.EEGToggle} />} canEditExperiment={this.props.paradigm === 'Faces and Houses'} />
+    return (
+      <div className={styles.mainContainer}>
+        <SecondaryNavComponent
+          title="Experiment Design"
+          steps={DESIGN_STEPS}
+          activeStep={this.state.activeStep}
+          onStepClick={this.handleStepClick}
+          onEditClick={this.handleCustomizeExperiment}
+          enableEEGToggle={
+            <Checkbox
+              toggle
+              defaultChecked={this.props.isEEGEnabled}
+              onChange={(event, data) => this.handleEEGEnabled(event, data)}
+              className={styles.EEGToggle}
+            />
+          }
+          canEditExperiment={this.props.paradigm === 'Faces and Houses'}
+        />
         {this.renderSectionContent()}
-        <InputModal open={this.state.isNewExperimentModalOpen} onClose={this.handleLoadCustomExperiment} onExit={() => this.setState({ isNewExperimentModalOpen: false })} header='Enter a title for this experiment' />
-      </div>;
+        <InputModal
+          open={this.state.isNewExperimentModalOpen}
+          onClose={this.handleLoadCustomExperiment}
+          onExit={() => this.setState({ isNewExperimentModalOpen: false })}
+          header="Enter a title for this experiment"
+        />
+      </div>
+    );
   }
 }

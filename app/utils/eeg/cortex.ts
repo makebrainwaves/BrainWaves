@@ -36,7 +36,6 @@ if (global.process) {
 }
 
 class JSONRPCError extends Error {
-
   constructor(err) {
     super(err.message);
     this.name = this.constructor.name;
@@ -49,7 +48,6 @@ class JSONRPCError extends Error {
 }
 
 class Cortex extends EventEmitter {
-
   constructor(options = {}) {
     super();
     this.options = options;
@@ -66,13 +64,19 @@ class Cortex extends EventEmitter {
       throw new JSONRPCError(error);
     };
 
-    this.ready = new Promise(resolve => this.ws.addEventListener('open', resolve), this.handleError).then(() => this._log('ws: Socket opened')).then(() => this.call('inspectApi')).then(methods => {
-      methods.forEach(m => {
-        this.defineMethod(m.methodName, m.params);
+    this.ready = new Promise(
+      resolve => this.ws.addEventListener('open', resolve),
+      this.handleError
+    )
+      .then(() => this._log('ws: Socket opened'))
+      .then(() => this.call('inspectApi'))
+      .then(methods => {
+        methods.forEach(m => {
+          this.defineMethod(m.methodName, m.params);
+        });
+        this._log(`rpc: Added ${methods.length} methods from inspectApi`);
+        return methods;
       });
-      this._log(`rpc: Added ${methods.length} methods from inspectApi`);
-      return methods;
-    });
   }
   _onmsg(msg) {
     const data = safeParse(msg.data);
@@ -82,15 +86,23 @@ class Cortex extends EventEmitter {
 
     if ('id' in data) {
       const id = data.id;
-      this._log(`[${id}] <-`, data.result ? 'success' : `error (${data.error.message})`);
+      this._log(
+        `[${id}] <-`,
+        data.result ? 'success' : `error (${data.error.message})`
+      );
       if (this.requests[id]) {
         this.requests[id](data.error, data.result);
       } else {
         this._warn('rpc: Got response for unknown id', id);
       }
     } else if ('sid' in data) {
-      const dataKeys = Object.keys(data).filter(k => k !== 'sid' && k !== 'time' && Array.isArray(data[k]));
-      dataKeys.forEach(k => this.emit(k, data) || this._warn('no listeners for stream event', k));
+      const dataKeys = Object.keys(data).filter(
+        k => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
+      );
+      dataKeys.forEach(
+        k =>
+          this.emit(k, data) || this._warn('no listeners for stream event', k)
+      );
     } else {
       this._log('rpc: Unrecognised data', data);
     }
@@ -104,37 +116,32 @@ class Cortex extends EventEmitter {
   _debug(...msg) {
     if (this.verbose > 2) console.debug('[Cortex DEBUG]', ...msg);
   }
-  init({
-    clientId,
-    clientSecret,
-    license,
-    debit
-  } = {}) {
-    const token = this.getUserLogin().then(users => {
-      if (users.length === 0) {
-        return Promise.reject(new Error('No logged in user'));
-      }
-      return this.requestAccess({ clientId, clientSecret });
-    }).then(({
-      accessGranted
-    }) => {
-      if (!accessGranted) {
-        return Promise.reject(new Error('Please approve this application in the EMOTIV app'));
-      }
-      return this.authorize({
-        clientId,
-        clientSecret,
-        license,
-        debit
-      }).then(({
-        cortexToken
-      }) => {
-        this._log('init: Got auth token');
-        this._debug('init: Auth token', cortexToken);
-        this.cortexToken = cortexToken;
-        return cortexToken;
+  init({ clientId, clientSecret, license, debit } = {}) {
+    const token = this.getUserLogin()
+      .then(users => {
+        if (users.length === 0) {
+          return Promise.reject(new Error('No logged in user'));
+        }
+        return this.requestAccess({ clientId, clientSecret });
+      })
+      .then(({ accessGranted }) => {
+        if (!accessGranted) {
+          return Promise.reject(
+            new Error('Please approve this application in the EMOTIV app')
+          );
+        }
+        return this.authorize({
+          clientId,
+          clientSecret,
+          license,
+          debit
+        }).then(({ cortexToken }) => {
+          this._log('init: Got auth token');
+          this._debug('init: Auth token', cortexToken);
+          this.cortexToken = cortexToken;
+          return cortexToken;
+        });
       });
-    });
 
     return token;
   }
@@ -172,7 +179,13 @@ class Cortex extends EventEmitter {
       }
       const missingParams = requiredParams.filter(p => params[p] == null);
       if (missingParams.length > 0) {
-        return this.handleError(new Error(`Missing required params for ${methodName}: ${missingParams.join(', ')}`));
+        return this.handleError(
+          new Error(
+            `Missing required params for ${methodName}: ${missingParams.join(
+              ', '
+            )}`
+          )
+        );
       }
       return this.call(methodName, params);
     };

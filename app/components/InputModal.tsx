@@ -1,8 +1,7 @@
-
-import React, { Component } from "react";
-import { Input, Modal, Button } from "semantic-ui-react";
-import { debounce } from "lodash";
-import styles from "./styles/common.css";
+import React, { Component } from 'react';
+import { Input, Modal, Button } from 'semantic-ui-react';
+import { debounce } from 'lodash';
+import styles from './styles/common.css';
 
 interface Props {
   open: boolean;
@@ -17,7 +16,6 @@ interface State {
 }
 
 export default class InputModal extends Component<Props, State> {
-
   // handleClose: () => void;
   // handleExit: () => void;
   // handleEnterSubmit: (Object) => void;
@@ -59,14 +57,29 @@ export default class InputModal extends Component<Props, State> {
   }
 
   render() {
-    return <Modal dimmer='inverted' centered className={styles.inputModal} open={this.props.open} onClose={this.handleExit}>
+    return (
+      <Modal
+        dimmer="inverted"
+        centered
+        className={styles.inputModal}
+        open={this.props.open}
+        onClose={this.handleExit}
+      >
         <Modal.Content>{this.props.header}</Modal.Content>
         <Modal.Content>
-          <Input focus fluid error={this.state.isError} onChange={this.handleTextEntry} onKeyDown={this.handleEnterSubmit} autoFocus />
+          <Input
+            focus
+            fluid
+            error={this.state.isError}
+            onChange={this.handleTextEntry}
+            onKeyDown={this.handleEnterSubmit}
+            autoFocus
+          />
         </Modal.Content>
         <Modal.Actions>
-          <Button color='blue' content='OK' onClick={this.handleClose} />
+          <Button color="blue" content="OK" onClick={this.handleClose} />
         </Modal.Actions>
-      </Modal>;
+      </Modal>
+    );
   }
 }

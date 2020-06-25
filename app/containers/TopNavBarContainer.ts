@@ -1,8 +1,7 @@
-
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import TopNavComponent from "../components/TopNavComponent";
-import * as experimentActions from "../actions/experimentActions";
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import TopNavComponent from '../components/TopNavComponent';
+import * as experimentActions from '../actions/experimentActions';
 
 function mapStateToProps(state) {
   return {

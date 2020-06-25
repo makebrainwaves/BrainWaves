@@ -1,5 +1,5 @@
-import * as path from "path";
-import { EVENTS } from "../../../constants/constants";
+import * as path from 'path';
+import { EVENTS } from '../../../constants/constants';
 
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
@@ -34,10 +34,13 @@ export const buildStroopTimeline = () => ({
   protocol_condition_second_title: `"Green" written in red`,
   protocol_condition_second: `The color is red, so the correct response is ‘r’.`,
   overview_links: [],
-  background_links: [{
-    name: 'Link 1',
-    address: 'https://www.psychologytoday.com/us/blog/play-in-mind/201204/when-red-looks-blue-and-yes-means-no'
-  }],
+  background_links: [
+    {
+      name: 'Link 1',
+      address:
+        'https://www.psychologytoday.com/us/blog/play-in-mind/201204/when-red-looks-blue-and-yes-means-no'
+    }
+  ],
   protocal_links: [],
   params: {
     trialDuration: 1000,
@@ -78,15 +81,18 @@ export const buildStroopTimeline = () => ({
   timelines: {
     faceHouseTimeline: {
       id: 'stroopTimeline',
-      timeline: [{
-        id: 'interTrial',
-        type: 'callback-image-display',
-        stimulus: fixation,
-        response_ends_trial: false
-      }, {
-        id: 'trial',
-        response_ends_trial: false
-      }]
+      timeline: [
+        {
+          id: 'interTrial',
+          type: 'callback-image-display',
+          stimulus: fixation,
+          response_ends_trial: false
+        },
+        {
+          id: 'trial',
+          response_ends_trial: false
+        }
+      ]
     }
   }
 });

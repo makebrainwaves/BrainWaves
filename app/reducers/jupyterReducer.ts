@@ -1,26 +1,48 @@
-
-import { SET_KERNEL, SET_KERNEL_STATUS, SET_MAIN_CHANNEL, SET_KERNEL_INFO, SET_EPOCH_INFO, SET_CHANNEL_INFO, SET_PSD_PLOT, SET_TOPO_PLOT, SET_ERP_PLOT, RECEIVE_EXECUTE_RETURN } from "../epics/jupyterEpics";
-import { ActionType, Kernel } from "../constants/interfaces";
-import { KERNEL_STATUS } from "../constants/constants";
-import { EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
+import {
+  SET_KERNEL,
+  SET_KERNEL_STATUS,
+  SET_MAIN_CHANNEL,
+  SET_KERNEL_INFO,
+  SET_EPOCH_INFO,
+  SET_CHANNEL_INFO,
+  SET_PSD_PLOT,
+  SET_TOPO_PLOT,
+  SET_ERP_PLOT,
+  RECEIVE_EXECUTE_RETURN
+} from '../epics/jupyterEpics';
+import { ActionType, Kernel } from '../constants/interfaces';
+import { KERNEL_STATUS } from '../constants/constants';
+import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
 
 export interface JupyterStateType {
   readonly kernel: Kernel | null | undefined;
   readonly kernelStatus: KERNEL_STATUS;
   readonly mainChannel: any | null | undefined;
-  readonly epochsInfo: Array<{
-    [key: string]: number | string;
-  }> | null | undefined;
+  readonly epochsInfo:
+    | Array<{
+        [key: string]: number | string;
+      }>
+    | null
+    | undefined;
   readonly channelInfo: Array<string> | null | undefined;
-  readonly psdPlot: {
-    [key: string]: string;
-  } | null | undefined;
-  readonly topoPlot: {
-    [key: string]: string;
-  } | null | undefined;
-  readonly erpPlot: {
-    [key: string]: string;
-  } | null | undefined;
+  readonly psdPlot:
+    | {
+        [key: string]: string;
+      }
+    | null
+    | undefined;
+  readonly topoPlot:
+    | {
+        [key: string]: string;
+      }
+    | null
+    | undefined;
+  readonly erpPlot:
+    | {
+        [key: string]: string;
+      }
+    | null
+    | undefined;
 }
 
 const initialState = {
@@ -34,7 +56,10 @@ const initialState = {
   erpPlot: null
 };
 
-export default function jupyter(state: JupyterStateType = initialState, action: ActionType) {
+export default function jupyter(
+  state: JupyterStateType = initialState,
+  action: ActionType
+) {
   switch (action.type) {
     case SET_KERNEL:
       return {
@@ -100,6 +125,5 @@ export default function jupyter(state: JupyterStateType = initialState, action: 
 
     default:
       return state;
-
   }
 }

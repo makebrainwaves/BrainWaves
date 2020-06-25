@@ -1,5 +1,5 @@
-import * as path from "path";
-import { EVENTS } from "../../../constants/constants";
+import * as path from 'path';
+import { EVENTS } from '../../../constants/constants';
 
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
@@ -75,15 +75,18 @@ export const buildSearchTimeline = () => ({
   timelines: {
     faceHouseTimeline: {
       id: 'visualSearchTimeline',
-      timeline: [{
-        id: 'interTrial',
-        type: 'callback-image-display',
-        stimulus: fixation,
-        response_ends_trial: false
-      }, {
-        id: 'trial',
-        response_ends_trial: false
-      }]
+      timeline: [
+        {
+          id: 'interTrial',
+          type: 'callback-image-display',
+          stimulus: fixation,
+          response_ends_trial: false
+        },
+        {
+          id: 'trial',
+          response_ends_trial: false
+        }
+      ]
     }
   }
 });

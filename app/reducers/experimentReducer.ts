@@ -1,8 +1,28 @@
-
-import { SET_TIMELINE, SET_IS_RUNNING, SET_SESSION, EXPERIMENT_CLEANUP } from "../epics/experimentEpics";
-import { SET_TYPE, SET_PARADIGM, SET_SUBJECT, SET_GROUP, SET_TITLE, SET_EXPERIMENT_STATE, SET_PARAMS, SET_DESCRIPTION, SET_EEG_ENABLED } from "../actions/experimentActions";
-import { EXPERIMENTS } from "../constants/constants";
-import { MainTimeline, Trial, ActionType, ExperimentDescription, ExperimentParameters } from "../constants/interfaces";
+import {
+  SET_TIMELINE,
+  SET_IS_RUNNING,
+  SET_SESSION,
+  EXPERIMENT_CLEANUP
+} from '../epics/experimentEpics';
+import {
+  SET_TYPE,
+  SET_PARADIGM,
+  SET_SUBJECT,
+  SET_GROUP,
+  SET_TITLE,
+  SET_EXPERIMENT_STATE,
+  SET_PARAMS,
+  SET_DESCRIPTION,
+  SET_EEG_ENABLED
+} from '../actions/experimentActions';
+import { EXPERIMENTS } from '../constants/constants';
+import {
+  MainTimeline,
+  Trial,
+  ActionType,
+  ExperimentDescription,
+  ExperimentParameters
+} from '../constants/interfaces';
 
 export interface ExperimentStateType {
   readonly type: EXPERIMENTS | null | undefined;
@@ -38,7 +58,10 @@ const initialState = {
   description: { question: '', hypothesis: '', methods: '' }
 };
 
-export default function experiment(state: ExperimentStateType = initialState, action: ActionType) {
+export default function experiment(
+  state: ExperimentStateType = initialState,
+  action: ActionType
+) {
   switch (action.type) {
     case SET_TYPE:
       return {
@@ -116,6 +139,5 @@ export default function experiment(state: ExperimentStateType = initialState, ac
 
     default:
       return state;
-
   }
 }

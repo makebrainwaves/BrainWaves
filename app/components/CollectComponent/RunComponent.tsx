@@ -1,21 +1,22 @@
+import React, { Component } from 'react';
+import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
+import { Link } from 'react-router-dom';
+import styles from '../styles/common.css';
+import InputCollect from '../InputCollect';
+import { injectEmotivMarker } from '../../utils/eeg/emotiv';
+import { injectMuseMarker } from '../../utils/eeg/muse';
+import { EXPERIMENTS, DEVICES } from '../../constants/constants';
+import { ExperimentWindow } from '../../utils/labjs';
+import { checkFileExists, getImages } from '../../utils/filesystem/storage';
+import {
+  MainTimeline,
+  Trial,
+  ExperimentParameters
+} from '../../constants/interfaces';
 
-import React, { Component } from "react";
-import { Grid, Button, Segment, Header, Divider } from "semantic-ui-react";
-import { Link } from "react-router-dom";
-import styles from "../styles/common.css";
-import InputCollect from "../InputCollect";
-import { injectEmotivMarker } from "../../utils/eeg/emotiv";
-import { injectMuseMarker } from "../../utils/eeg/muse";
-import { EXPERIMENTS, DEVICES } from "../../constants/constants";
-import { ExperimentWindow } from "../../utils/labjs";
-import { checkFileExists, getImages } from "../../utils/filesystem/storage";
-import { MainTimeline, Trial, ExperimentParameters } from "../../constants/interfaces";
+import { remote } from 'electron';
 
-import { remote } from "electron";
-
-const {
-  dialog
-} = remote;
+const { dialog } = remote;
 
 interface Props {
   type: EXPERIMENTS | null | undefined;
@@ -40,7 +41,6 @@ interface State {
 }
 
 export default class Run extends Component<Props, State> {
-
   // insertLabJsCallback: () => void;
   // handleCloseInputCollect: (string, string, number) => void;
   // handleClean: () => void;
@@ -62,15 +62,13 @@ export default class Run extends Component<Props, State> {
 
   handleStartExperiment() {
     const filename = `${this.props.subject}-${this.props.group}-${this.props.session}-behavior.csv`;
-    const {
-      subject,
-      title
-    } = this.props;
+    const { subject, title } = this.props;
     const fileExists = checkFileExists(title, subject, filename);
     if (fileExists) {
       const options = {
         buttons: ['No', 'Yes'],
-        message: 'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?'
+        message:
+          'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?'
       };
       const response = dialog.showMessageBox(options);
       if (response === 1) {
@@ -92,7 +90,10 @@ export default class Run extends Component<Props, State> {
   insertLabJsCallback() {
     let injectionFunction = () => null;
     if (this.props.isEEGEnabled) {
-      injectionFunction = this.props.deviceType === 'MUSE' ? injectMuseMarker : injectEmotivMarker;
+      injectionFunction =
+        this.props.deviceType === 'MUSE'
+          ? injectMuseMarker
+          : injectEmotivMarker;
     }
     return injectionFunction;
   }
@@ -103,22 +104,37 @@ export default class Run extends Component<Props, State> {
 
   renderCleanButton() {
     if (this.props.session > 1 && this.props.isEEGEnabled) {
-      return <Grid.Column>
-          <Link to='/clean'>
+      return (
+        <Grid.Column>
+          <Link to="/clean">
             <Button fluid secondary>
               Clean Data
             </Button>
           </Link>
-        </Grid.Column>;
+        </Grid.Column>
+      );
     }
   }
 
   renderExperiment() {
     if (!this.props.isRunning) {
-      return <div className={styles.mainContainer}>
-          <Segment basic textAlign='left' className={styles.descriptionContainer} vertical>
-            <Header as='h1'>{this.props.title}</Header>
-            <Button basic circular size='huge' icon='edit' className={styles.closeButton} onClick={() => this.setState({ isInputCollectOpen: true })} />
+      return (
+        <div className={styles.mainContainer}>
+          <Segment
+            basic
+            textAlign="left"
+            className={styles.descriptionContainer}
+            vertical
+          >
+            <Header as="h1">{this.props.title}</Header>
+            <Button
+              basic
+              circular
+              size="huge"
+              icon="edit"
+              className={styles.closeButton}
+              onClick={() => this.setState({ isInputCollectOpen: true })}
+            />
             <Segment basic className={styles.infoSegment}>
               Subject ID: <b>{this.props.subject}</b>
             </Segment>
@@ -132,39 +148,62 @@ export default class Run extends Component<Props, State> {
             </Segment>
 
             <Divider hidden section />
-            <Grid textAlign='center' columns='equal'>
+            <Grid textAlign="center" columns="equal">
               <Grid.Column>
-                <Button fluid primary onClick={this.handleStartExperiment} disabled={!this.props.subject}>
+                <Button
+                  fluid
+                  primary
+                  onClick={this.handleStartExperiment}
+                  disabled={!this.props.subject}
+                >
                   Run Experiment
                 </Button>
               </Grid.Column>
             </Grid>
           </Segment>
-        </div>;
+        </div>
+      );
     }
-    return <div className={styles.experimentWindow}>
-        <ExperimentWindow settings={{
-        title: this.props.title,
-        script: this.props.paradigm,
-        params: this.props.params,
-        eventCallback: this.insertLabJsCallback(),
-        on_finish: csv => {
-          this.props.experimentActions.stop({ data: csv });
-        }
-      }} />
-      </div>;
+    return (
+      <div className={styles.experimentWindow}>
+        <ExperimentWindow
+          settings={{
+            title: this.props.title,
+            script: this.props.paradigm,
+            params: this.props.params,
+            eventCallback: this.insertLabJsCallback(),
+            on_finish: csv => {
+              this.props.experimentActions.stop({ data: csv });
+            }
+          }}
+        />
+      </div>
+    );
   }
 
   render() {
-    return <div className={styles.mainContainer} data-tid='container'>
-        <Grid columns={1} divided relaxed className={styles.experimentContainer}>
+    return (
+      <div className={styles.mainContainer} data-tid="container">
+        <Grid
+          columns={1}
+          divided
+          relaxed
+          className={styles.experimentContainer}
+        >
           <Grid.Row centered>{this.renderExperiment()}</Grid.Row>
         </Grid>
-        <InputCollect open={this.state.isInputCollectOpen} onClose={this.handleCloseInputCollect} onExit={() => this.setState({ isInputCollectOpen: false })} header='Enter Data' data={{
-        subject: this.props.subject,
-        group: this.props.group,
-        session: this.props.session
-      }} />
-      </div>;
+        <InputCollect
+          open={this.state.isInputCollectOpen}
+          onClose={this.handleCloseInputCollect}
+          onExit={() => this.setState({ isInputCollectOpen: false })}
+          header="Enter Data"
+          data={{
+            subject: this.props.subject,
+            group: this.props.group,
+            session: this.props.session
+          }}
+        />
+      </div>
+    );
   }
 }
