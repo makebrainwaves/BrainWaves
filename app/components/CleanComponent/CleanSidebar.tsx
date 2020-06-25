@@ -2,17 +2,17 @@ import React, { Component } from 'react';
 import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
 import styles from '../styles/collect.css';
 
-const HELP_STEP = {
-  MENU: 0,
-  SIGNAL_EXPLANATION: 1,
-  SIGNAL_SALINE: 2,
-  SIGNAL_CONTACT: 3,
-  SIGNAL_MOVEMENT: 4,
-  LEARN_BRAIN: 5,
-  LEARN_BLINK: 6,
-  LEARN_THOUGHTS: 7,
-  LEARN_ALPHA: 8
-};
+enum HELP_STEP {
+  MENU = 0,
+  SIGNAL_EXPLANATION = 1,
+  SIGNAL_SALINE = 2,
+  SIGNAL_CONTACT = 3,
+  SIGNAL_MOVEMENT = 4,
+  LEARN_BRAIN = 5,
+  LEARN_BLINK = 6,
+  LEARN_THOUGHT = 7,
+  LEARN_ALPHA = 8
+}
 
 interface Props {
   handleClose: () => void;
@@ -22,7 +22,6 @@ interface State {
   helpStep: HELP_STEP;
 }
 export default class CleanSidebar extends Component<Props, State> {
-  props: Props;
   constructor(props) {
     super(props);
     this.state = {

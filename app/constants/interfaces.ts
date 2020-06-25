@@ -2,7 +2,8 @@
  * This file contains all the custom types that we use for Flow type checking
  */
 
-import { EVENTS } from "./constants";
+import { ChildProcess } from 'child_process';
+import { EVENTS } from './constants';
 
 // TODO: Write interfaces for device objects (Observables, Classes, etc)
 
@@ -18,8 +19,18 @@ export type ExperimentParameters = {
   intro: string;
   // Setting this to any prevents ridiculous flow runtime errors
   showProgessBar: any;
-  stimulus1: {dir: string;type: EVENTS;title: string;response: string;};
-  stimulus2: {dir: string;type: EVENTS;title: string;response: string;};
+  stimulus1: {
+    dir: string;
+    type: typeof EVENTS;
+    title: string;
+    response: string;
+  };
+  stimulus2: {
+    dir: string;
+    type: typeof EVENTS;
+    title: string;
+    response: string;
+  };
 };
 
 export type ExperimentDescription = {
@@ -36,7 +47,7 @@ export interface Trial {
   id: string;
   type: string;
   stimulus?: string | StimulusVariable;
-  trial_duration?: number | () => number;
+  trial_duration?: (() => number) | number;
   post_trial_gap?: number;
   on_load?: (arg0: string) => void | StimulusVariable;
   choices?: Array<string>;
@@ -47,7 +58,7 @@ export type Timeline = {
   id: string;
   timeline: Array<Trial>;
   sample?: SampleParameter;
-  timeline_variables?: Array<Object>;
+  timeline_variables?: Array<object>;
 };
 
 export interface SampleParameter {
@@ -62,9 +73,9 @@ export type StimulusVariable = () => any;
 // Jupyter
 
 export interface Kernel {
-  config: Object;
+  config: object;
   connectionFile: string;
-  kernelSpec: Object;
+  kernelSpec: object;
   spawn: ChildProcess;
 }
 
