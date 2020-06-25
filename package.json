@@ -311,6 +311,7 @@
     "recursive-readdir": "^2.2.2",
     "redux": "^4.0.5",
     "redux-observable": "^1.2.0",
+    "redux-thunk": "^2.3.0",
     "rxjs": "^6.5.5",
     "rxjs-compat": "^6.5.5",
     "semantic-ui-css": "^2.4.1",
