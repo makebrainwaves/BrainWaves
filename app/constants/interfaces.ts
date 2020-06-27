@@ -82,6 +82,11 @@ export interface Kernel {
 // --------------------------------------------------------------------
 // Device
 
+// TODO: type this based on what comes out of muse and emotiv
+export interface Device {
+  [key: string]: any;
+}
+
 export interface EEGData {
   data: Array<number>;
   timestamp: number;

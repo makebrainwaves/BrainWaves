@@ -1,33 +1,26 @@
 import { Observable } from 'rxjs';
-import {
-  SET_DEVICE_INFO,
-  SET_DEVICE_TYPE,
-  SET_AVAILABLE_DEVICES,
-  SET_CONNECTION_STATUS,
-  SET_RAW_OBSERVABLE,
-  SET_SIGNAL_OBSERVABLE,
-  DEVICE_CLEANUP
-} from '../epics/deviceEpics';
+import { createReducer } from '@reduxjs/toolkit';
 import {
   DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY
 } from '../constants/constants';
-import { ActionType, DeviceInfo } from '../constants/interfaces';
-import { SET_DEVICE_AVAILABILITY } from '../actions/deviceActions';
+import { ActionType, DeviceInfo, Device } from '../constants/interfaces';
+import { DeviceActions } from '../actions';
 
 interface DeviceStateType {
-  readonly availableDevices: Array<any>;
+  readonly availableDevices: Array<Device>;
   readonly connectedDevice: DeviceInfo | null | undefined;
   readonly connectionStatus: CONNECTION_STATUS;
   readonly deviceAvailability: DEVICE_AVAILABILITY;
-  readonly rawObservable: Observable | null | undefined;
-  readonly signalQualityObservable: Observable | null | undefined;
+  // TODO: type EEG data
+  readonly rawObservable: Observable<any> | null | undefined;
+  readonly signalQualityObservable: Observable<any> | null | undefined;
   readonly deviceType: DEVICES;
 }
 
 const initialState = {
-  availableDevices: [],
+  availableDevices: [''],
   connectedDevice: { name: 'disconnected', samplingRate: 0 },
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
@@ -36,57 +29,54 @@ const initialState = {
   deviceType: DEVICES.EMOTIV
 };
 
-export default function device(
-  state: DeviceStateType = initialState,
-  action: ActionType
-) {
-  switch (action.type) {
-    case SET_DEVICE_TYPE:
+export default createReducer(initialState, builder =>
+  builder
+    .addCase(DeviceActions.ConnectToDevice, (state, action) => {
       return {
         ...state,
         deviceType: action.payload
       };
-
-    case SET_DEVICE_INFO:
+    })
+    .addCase(DeviceActions.SetDeviceInfo, (state, action) => {
       return {
         ...state,
         connectedDevice: action.payload
       };
+    })
 
-    case SET_AVAILABLE_DEVICES:
+    .addCase(DeviceActions.SetAvailableDevices, (state, action) => {
       return {
         ...state,
         availableDevices: action.payload
       };
-
-    case SET_CONNECTION_STATUS:
+    })
+    .addCase(DeviceActions.SetConnectionStatus, (state, action) => {
       return {
         ...state,
         connectionStatus: action.payload
       };
-
-    case SET_DEVICE_AVAILABILITY:
+    })
+    .addCase(DeviceActions.SetDeviceAvailability, (state, action) => {
       return {
         ...state,
         deviceAvailability: action.payload
       };
+    })
 
-    case SET_RAW_OBSERVABLE:
+    .addCase(DeviceActions.SetRawObservable, (state, action) => {
       return {
         ...state,
         rawObservable: action.payload
       };
+    })
 
-    case SET_SIGNAL_OBSERVABLE:
+    .addCase(DeviceActions.SetSignalQualityObservable, (state, action) => {
       return {
         ...state,
         signalQualityObservable: action.payload
       };
-
-    case DEVICE_CLEANUP:
+    })
+    .addCase(DeviceActions.Cleanup, (state, action) => {
       return initialState;
-
-    default:
-      return state;
-  }
-}
+    })
+);

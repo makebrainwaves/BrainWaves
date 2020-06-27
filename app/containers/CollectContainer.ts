@@ -1,8 +1,7 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Collect from '../components/CollectComponent';
-import * as deviceActions from '../actions/deviceActions';
-import * as experimentActions from '../actions/experimentActions';
+import { DeviceActions, ExperimentActions } from '../actions';
 
 function mapStateToProps(state) {
   return {
@@ -13,8 +12,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    deviceActions: bindActionCreators(deviceActions, dispatch),
-    experimentActions: bindActionCreators(experimentActions, dispatch)
+    deviceActions: bindActionCreators(DeviceActions, dispatch),
+    experimentActions: bindActionCreators(ExperimentActions, dispatch)
   };
 }
 
