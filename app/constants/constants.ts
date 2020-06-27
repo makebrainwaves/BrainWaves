@@ -1,13 +1,13 @@
-export const EXPERIMENTS = {
-  NONE: 'NONE',
-  P300: 'Visual Oddball',
-  N170: 'Faces and Houses',
-  SSVEP: 'Steady-state Visual Evoked Potential',
-  STROOP: 'Stroop Task',
-  MULTI: 'Multi-tasking',
-  SEARCH: 'Visual search',
-  CUSTOM: 'Custom'
-};
+export enum EXPERIMENTS {
+  NONE = 'NONE',
+  P300 = 'Visual Oddball',
+  N170 = 'Faces and Houses',
+  SSVEP = 'Steady-state Visual Evoked Potential',
+  STROOP = 'Stroop Task',
+  MULTI = 'Multi-tasking',
+  SEARCH = 'Visual search',
+  CUSTOM = 'Custom'
+}
 
 export const SCREENS = {
   HOME: { route: '/', title: 'HOME', order: 0 },
@@ -18,55 +18,55 @@ export const SCREENS = {
   CLEAN: { route: '/clean', title: 'CLEAN', order: 3 },
   ANALYZE: { route: '/analyze', title: 'ANALYZE', order: 4 },
   ANALYZEBEHAVIOR: { route: '/analyze', title: 'ANALYZE', order: 3 }
-};
+} as const;
 
-export const DEVICES = {
-  NONE: 'NONE',
-  MUSE: 'MUSE',
-  EMOTIV: 'EMOTIV',
-  GANGLION: 'GANGLION' // One day ;)
-};
+export enum DEVICES {
+  NONE = 'NONE',
+  MUSE = 'MUSE',
+  EMOTIV = 'EMOTIV',
+  GANGLION = 'GANGLION' // One day ;)
+}
 
-export const CONNECTION_STATUS = {
-  CONNECTED: 'CONNECTED',
-  CONNECTING: 'CONNECTING',
-  DISCONNECTED: 'DISCONNECTED',
-  NO_DEVICES: 'NO_DEVICES',
-  NOT_YET_CONNECTED: 'NOT_YET_CONNECTED',
-  SEARCHING: 'SEARCHING',
-  BLUETOOTH_DISABLED: 'BLUETOOTH_DISABLED'
-};
+export enum CONNECTION_STATUS {
+  CONNECTED = 'CONNECTED',
+  CONNECTING = 'CONNECTING',
+  DISCONNECTED = 'DISCONNECTED',
+  NO_DEVICES = 'NO_DEVICES',
+  NOT_YET_CONNECTED = 'NOT_YET_CONNECTED',
+  SEARCHING = 'SEARCHING',
+  BLUETOOTH_DISABLED = 'BLUETOOTH_DISABLED'
+}
 
-export const KERNEL_STATUS = {
-  OFFLINE: 'Offline',
-  BUSY: 'Busy',
-  IDLE: 'Idle',
-  STARTING: 'Starting'
-};
+export enum KERNEL_STATUS {
+  OFFLINE = 'Offline',
+  BUSY = 'Busy',
+  IDLE = 'Idle',
+  STARTING = 'Starting'
+}
 
-export const DEVICE_AVAILABILITY = {
-  NONE: 'NONE',
-  SEARCHING: 'SEARCHING',
-  AVAILABLE: 'AVAILABLE'
-};
+export enum DEVICE_AVAILABILITY {
+  NONE = 'NONE',
+  SEARCHING = 'SEARCHING',
+  AVAILABLE = 'AVAILABLE'
+}
 
 // Names of variables in the jupyter kernel
-export const JUPYTER_VARIABLE_NAMES = {
-  RAW_EPOCHS: 'raw_epochs',
-  CLEAN_EPOCHS: 'clean_epochs'
-};
+export enum JUPYTER_VARIABLE_NAMES {
+  RAW_EPOCHS = 'raw_epochs',
+  CLEAN_EPOCHS = 'clean_epochs'
+}
 
 export const SEARCH_TIMER = 3000;
 
 // NOTE: the actual marker id values of stimulus 1 and 2 are reversed
-export const EVENTS = {
-  STIMULUS_1: 1,
-  STIMULUS_2: 2,
-  STIMULUS_3: 3,
-  STIMULUS_4: 4,
-  TARGET: 2,
-  NONTARGET: 1
-};
+export enum EVENTS {
+  STIMULUS_1 = 1,
+  STIMULUS_2 = 2,
+  STIMULUS_3 = 3,
+  STIMULUS_4 = 4,
+  TARGET = 2,
+  NONTARGET = 1
+}
 
 export const CHANNELS = {
   // Epoc channels
@@ -90,7 +90,7 @@ export const CHANNELS = {
   AF8: { index: 2, color: '#8BD6E9' },
   TP10: { index: 3, color: '#66B0A9' },
   AUX: { index: 4, color: '#E7789E' }
-};
+} as const;
 
 export const EMOTIV_CHANNELS = [
   'AF3',
@@ -120,22 +120,22 @@ export const VIEWER_DEFAULTS = {
   domain: 5000, // ms
   zoom: 1,
   autoScale: false
-};
+} as const;
 
-export const SIGNAL_QUALITY = {
-  BAD: '#ed5a5a',
-  OK: '#FFCD39',
-  GREAT: '#66B0A9',
-  DISCONNECTED: '#BFBFBF'
-};
+export enum SIGNAL_QUALITY {
+  BAD = '#ed5a5a',
+  OK = '#FFCD39',
+  GREAT = '#66B0A9',
+  DISCONNECTED = '#BFBFBF'
+}
 
-export const SIGNAL_QUALITY_THRESHOLDS = {
-  BAD: 15,
-  OK: 10,
-  GREAT: 1.5 // Below 1.5 usually indicates not connected to anything
-};
+export enum SIGNAL_QUALITY_THRESHOLDS {
+  BAD = 15,
+  OK = 10,
+  GREAT = 1.5 // Below 1.5 usually indicates not connected to anything
+}
 
-export const FILE_TYPES = {
-  STIMULUS_DIR: 'STIMULUS_DIR',
-  TIMELINE: 'TIMELINE'
-};
+export enum FILE_TYPES {
+  STIMULUS_DIR = 'STIMULUS_DIR',
+  TIMELINE = 'TIMELINE'
+}
