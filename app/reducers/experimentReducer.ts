@@ -33,7 +33,7 @@ export interface ExperimentStateType {
     [key: string]: Trial;
   };
   readonly timelines: {};
-  readonly plugins: Object;
+  readonly plugins: object;
   readonly subject: string;
   readonly group: string;
   readonly session: number;

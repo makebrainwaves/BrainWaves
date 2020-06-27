@@ -21,14 +21,14 @@ import {
 import { loadProtocol } from '../../utils/labjs/functions';
 
 interface Props {
-  experimentActions: Object;
-  connectedDevice: Object;
+  experimentActions: object;
+  connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: Object;
-  experimentActions: Object;
+  deviceActions: object;
+  experimentActions: object;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
   paradigm: EXPERIMENTS;

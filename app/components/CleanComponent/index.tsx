@@ -32,8 +32,8 @@ interface Props {
       }>
     | null
     | undefined;
-  jupyterActions: Object;
-  experimentActions: Object;
+  jupyterActions: object;
+  experimentActions: object;
   subject: string;
   session: number;
 }
@@ -56,9 +56,9 @@ interface State {
 export default class Clean extends Component<Props, State> {
   props: Props;
   state: State;
-  handleRecordingChange: (arg0: Object, arg1: Object) => void;
+  handleRecordingChange: (arg0: object, arg1: object) => void;
   handleLoadData: () => void;
-  handleSubjectChange: (arg0: Object, arg1: Object) => void;
+  handleSubjectChange: (arg0: object, arg1: object) => void;
   icons: string[];
 
   constructor(props: Props) {
@@ -110,11 +110,11 @@ export default class Clean extends Component<Props, State> {
     });
   }
 
-  handleRecordingChange(event: Object, data: Object) {
+  handleRecordingChange(event: object, data: object) {
     this.setState({ selectedFilePaths: data.value });
   }
 
-  handleSubjectChange(event: Object, data: Object) {
+  handleSubjectChange(event: object, data: object) {
     this.setState({ selectedSubject: data.value, selectedFilePaths: [] });
   }
 

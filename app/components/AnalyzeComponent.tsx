@@ -79,7 +79,7 @@ interface Props {
       }
     | null
     | undefined;
-  jupyterActions: Object;
+  jupyterActions: object;
 }
 
 interface State {
@@ -212,7 +212,7 @@ export default class Analyze extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  handleDatasetChange(event: Object, data: Object) {
+  handleDatasetChange(event: object, data: object) {
     this.setState({
       selectedFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value)
@@ -220,7 +220,7 @@ export default class Analyze extends Component<Props, State> {
     this.props.jupyterActions.loadCleanedEpochs(data.value);
   }
 
-  handleBehaviorDatasetChange(event: Object, data: Object) {
+  handleBehaviorDatasetChange(event: object, data: object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(data.value),
       this.state.selectedDependentVariable,
@@ -249,7 +249,7 @@ export default class Analyze extends Component<Props, State> {
     }
   }
 
-  handleDependentVariableChange(event: Object, data: Object) {
+  handleDependentVariableChange(event: object, data: object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       data.value,
@@ -264,7 +264,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleRemoveOutliers(event: Object, data: Object) {
+  handleRemoveOutliers(event: object, data: object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
@@ -280,7 +280,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDataPoints(event: Object, data: Object) {
+  handleDataPoints(event: object, data: object) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,

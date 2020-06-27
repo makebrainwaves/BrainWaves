@@ -3,7 +3,7 @@ import { KERNEL_STATUS } from '../../constants/constants';
 export const parseSingleQuoteJSON = (string: string) =>
   JSON.parse(string.replace(/'/g, '"'));
 
-export const parseKernelStatus = (msg: Object) => {
+export const parseKernelStatus = (msg: object) => {
   switch (msg['content']['execution_state']) {
     case 'busy':
       return KERNEL_STATUS.BUSY;
@@ -15,7 +15,7 @@ export const parseKernelStatus = (msg: Object) => {
   }
 };
 
-export const debugParseMessage = (msg: Object) => {
+export const debugParseMessage = (msg: object) => {
   let content = '';
   switch (msg.channel) {
     case 'iopub':

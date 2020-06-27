@@ -69,7 +69,7 @@ export default class InputCollect extends Component<Props, State> {
     this.props.onExit();
   }
 
-  handleEnterSubmit(event: Object) {
+  handleEnterSubmit(event: object) {
     if (event.key === 'Enter') {
       this.handleClose();
     }

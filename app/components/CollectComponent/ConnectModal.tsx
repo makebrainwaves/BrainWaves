@@ -10,15 +10,15 @@ import {
 import styles from '../styles/collect.css';
 
 interface Props {
-  history: Object;
+  history: object;
   open: boolean;
   onClose: () => void;
-  connectedDevice: Object;
+  connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: Object;
+  deviceActions: object;
   availableDevices: Array<any>;
 }
 
