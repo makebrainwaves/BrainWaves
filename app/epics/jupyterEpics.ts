@@ -330,7 +330,7 @@ const getEpochsInfoEpic = (action$, state$) =>
     ),
     map(epochInfoString =>
       parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
-        name: Object.keys(infoObj)[0],
+        name: object.keys(infoObj)[0],
         value: infoObj[Object.keys(infoObj)[0]]
       }))
     ),

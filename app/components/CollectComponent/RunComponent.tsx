@@ -33,7 +33,7 @@ interface Props {
   session: number;
   deviceType: DEVICES;
   isEEGEnabled: boolean;
-  experimentActions: Object;
+  experimentActions: object;
 }
 
 interface State {

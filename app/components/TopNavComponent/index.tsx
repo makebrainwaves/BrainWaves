@@ -15,7 +15,7 @@ interface Props {
   title: string | null | undefined;
   location: { pathname: string; search: string; hash: string };
   isRunning: boolean;
-  experimentActions: Object;
+  experimentActions: object;
   type: EXPERIMENTS;
 }
 

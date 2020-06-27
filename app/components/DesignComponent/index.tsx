@@ -52,7 +52,7 @@ const DESIGN_STEPS = {
 };
 
 interface Props {
-  history: Object;
+  history: object;
   type: EXPERIMENTS;
   paradigm: EXPERIMENTS;
   title: string;
@@ -62,7 +62,7 @@ interface Props {
     [key: string]: Trial;
   };
   timelines: {};
-  experimentActions: Object;
+  experimentActions: object;
   description: ExperimentDescription;
   isEEGEnabled: boolean;
 }
@@ -149,7 +149,7 @@ export default class Design extends Component<Props, State> {
     this.setState({ isPreviewing: false });
   }
 
-  handleEEGEnabled(event: Object, data: Object) {
+  handleEEGEnabled(event: object, data: object) {
     this.props.experimentActions.setEEGEnabled(data.checked);
     this.props.experimentActions.saveWorkspace();
   }

@@ -161,7 +161,7 @@ const createEEGSample = eegEvent => {
 
 const integrateSignalQuality = (newEpoch, devSample) => ({
   ...newEpoch,
-  signalQuality: Object.assign(
+  signalQuality: object.assign(
     ...devSample.dev[2].map((signalQuality, index) => ({
       [EMOTIV_CHANNELS[index]]: signalQuality
     }))

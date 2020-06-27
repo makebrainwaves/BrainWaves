@@ -16,14 +16,14 @@ import ConnectModal from './ConnectModal';
 import RunComponent from './RunComponent';
 
 interface Props {
-  history: Object;
-  experimentActions: Object;
-  connectedDevice: Object;
+  history: object;
+  experimentActions: object;
+  connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: Object;
+  deviceActions: object;
   availableDevices: Array<any>;
   type: EXPERIMENTS | null | undefined;
   isRunning: boolean;

@@ -45,16 +45,16 @@ const HOME_STEPS = {
 
 interface Props {
   kernelStatus: KERNEL_STATUS;
-  history: Object;
-  jupyterActions: Object;
-  connectedDevice: Object;
+  history: object;
+  jupyterActions: object;
+  connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: Object;
+  deviceActions: object;
   availableDevices: Array<any>;
-  experimentActions: Object;
+  experimentActions: object;
 }
 
 interface State {
