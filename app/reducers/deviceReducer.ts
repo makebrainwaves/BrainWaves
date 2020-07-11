@@ -5,7 +5,7 @@ import {
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY
 } from '../constants/constants';
-import { ActionType, DeviceInfo, Device } from '../constants/interfaces';
+import { DeviceInfo, Device } from '../constants/interfaces';
 import { DeviceActions } from '../actions';
 
 interface DeviceStateType {
@@ -19,8 +19,8 @@ interface DeviceStateType {
   readonly deviceType: DEVICES;
 }
 
-const initialState = {
-  availableDevices: [''],
+const initialState: DeviceStateType = {
+  availableDevices: [{}],
   connectedDevice: { name: 'disconnected', samplingRate: 0 },
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
