@@ -1,5 +1,5 @@
-import { combineEpics } from 'redux-observable';
-import { from, of } from 'rxjs';
+import { combineEpics, Epic } from 'redux-observable';
+import { from, of, ObservableInput } from 'rxjs';
 import {
   map,
   mergeMap,
@@ -11,25 +11,15 @@ import {
 } from 'rxjs/operators';
 import { find } from 'kernelspecs';
 import { launchSpec } from 'spawnteract';
+import { isActionOf } from 'typesafe-actions';
 import { createMainChannel } from 'enchannel-zmq-backend';
 import { isNil } from 'lodash';
 import { kernelInfoRequest, executeRequest } from '@nteract/messaging';
 import { toast } from 'react-toastify';
+import { JupyterActions, JupyterActionType } from '../actions';
 import { execute, awaitOkMessage } from '../utils/jupyter/pipes';
+import { RootState } from '../reducers';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
-import {
-  LAUNCH_KERNEL,
-  REQUEST_KERNEL_INFO,
-  LOAD_EPOCHS,
-  LOAD_CLEANED_EPOCHS,
-  LOAD_PSD,
-  LOAD_ERP,
-  LOAD_TOPO,
-  CLEAN_EPOCHS,
-  CLOSE_KERNEL,
-  loadTopo,
-  loadERP
-} from '../actions/jupyterActions';
 import {
   imports,
   utils,
@@ -58,99 +48,16 @@ import {
   debugParseMessage
 } from '../utils/jupyter/functions';
 
-export const GET_EPOCHS_INFO = 'GET_EPOCHS_INFO';
-export const GET_CHANNEL_INFO = 'GET_CHANNEL_INFO';
-export const SET_KERNEL = 'SET_KERNEL';
-export const SET_KERNEL_STATUS = 'SET_KERNEL_STATUS';
-export const SET_KERNEL_INFO = 'SET_KERNEL_INFO';
-export const SET_MAIN_CHANNEL = 'SET_MAIN_CHANNEL';
-export const SET_EPOCH_INFO = 'SET_EPOCH_INFO';
-export const SET_CHANNEL_INFO = 'SET_CHANNEL_INFO';
-export const SET_PSD_PLOT = 'SET_PSD_PLOT';
-export const SET_ERP_PLOT = 'SET_ERP_PLOT';
-export const SET_TOPO_PLOT = 'SET_TOPO_PLOT';
-export const RECEIVE_EXECUTE_REPLY = 'RECEIVE_EXECUTE_REPLY';
-export const RECEIVE_EXECUTE_RESULT = 'RECEIVE_EXECUTE_RESULT';
-export const RECEIVE_STREAM = 'RECEIVE_STREAM';
-export const RECEIVE_DISPLAY_DATA = 'RECEIVE_DISPLAY_DATA';
-
-// -------------------------------------------------------------------------
-// Action Creators
-
-const getEpochsInfo = payload => ({ payload, type: GET_EPOCHS_INFO });
-
-const getChannelInfo = () => ({ type: GET_CHANNEL_INFO });
-
-const setKernel = payload => ({
-  payload,
-  type: SET_KERNEL
-});
-
-const setKernelStatus = payload => ({
-  payload,
-  type: SET_KERNEL_STATUS
-});
-
-const setKernelInfo = payload => ({
-  payload,
-  type: SET_KERNEL_INFO
-});
-
-const setMainChannel = payload => ({
-  payload,
-  type: SET_MAIN_CHANNEL
-});
-
-const setEpochInfo = payload => ({
-  payload,
-  type: SET_EPOCH_INFO
-});
-
-const setChannelInfo = payload => ({
-  payload,
-  type: SET_CHANNEL_INFO
-});
-
-const setPSDPlot = payload => ({
-  payload,
-  type: SET_PSD_PLOT
-});
-
-const setTopoPlot = payload => ({
-  payload,
-  type: SET_TOPO_PLOT
-});
-
-const setERPPlot = payload => ({
-  payload,
-  type: SET_ERP_PLOT
-});
-
-const receiveExecuteReply = payload => ({
-  payload,
-  type: RECEIVE_EXECUTE_REPLY
-});
-
-const receiveExecuteResult = payload => ({
-  payload,
-  type: RECEIVE_EXECUTE_RESULT
-});
-
-const receiveDisplayData = payload => ({
-  payload,
-  type: RECEIVE_DISPLAY_DATA
-});
-
-const receiveStream = payload => ({
-  payload,
-  type: RECEIVE_STREAM
-});
-
 // -------------------------------------------------------------------------
 // Epics
 
-const launchEpic = action$ =>
-  action$.ofType(LAUNCH_KERNEL).pipe(
+const launchEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.LaunchKernel)),
     mergeMap(() => from(find('brainwaves'))),
     tap(kernelInfo => {
       if (isNil(kernelInfo)) {
@@ -160,7 +67,7 @@ const launchEpic = action$ =>
       }
     }),
     filter(kernelInfo => !isNil(kernelInfo)),
-    mergeMap(kernelInfo =>
+    mergeMap<any, ObservableInput<any>>(kernelInfo =>
       from(
         launchSpec(kernelInfo.spec, {
           // No STDIN, opt in to STDOUT and STDERR as node streams
@@ -184,38 +91,48 @@ const launchEpic = action$ =>
         console.log('Kernel closed');
       });
     }),
-    map(setKernel)
+    map(JupyterActions.SetKernel)
   );
 
-const setUpChannelEpic = action$ =>
-  action$.ofType(SET_KERNEL).pipe(
+const setUpChannelEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.SetKernel)),
     pluck('payload'),
     mergeMap(kernel => from(createMainChannel(kernel.config))),
     tap(mainChannel => mainChannel.next(executeRequest(imports()))),
     tap(mainChannel => mainChannel.next(executeRequest(utils()))),
-    map(setMainChannel)
+    map(JupyterActions.SetMainChannel)
   );
 
-const receiveChannelMessageEpic = (action$, state$) =>
-  action$.ofType(SET_MAIN_CHANNEL).pipe(
-    mergeMap(() =>
+const receiveChannelMessageEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.SetMainChannel)),
+    mergeMap<{}, ObservableInput<JupyterActionType>>(() =>
       state$.value.jupyter.mainChannel.pipe(
-        map(msg => {
+        map<object, JupyterActionType>(msg => {
           console.log(debugParseMessage(msg));
           switch (msg['header']['msg_type']) {
             case 'kernel_info_reply':
-              return setKernelInfo(msg);
+              return JupyterActions.SetKernelInfo(msg);
             case 'status':
-              return setKernelStatus(parseKernelStatus(msg));
+              return JupyterActions.SetKernelStatus(parseKernelStatus(msg));
             case 'stream':
-              return receiveStream(msg);
+              return JupyterActions.ReceiveStream(msg);
             case 'execute_reply':
-              return receiveExecuteReply(msg);
+              return JupyterActions.ReceiveExecuteReply(msg);
             case 'execute_result':
-              return receiveExecuteResult(msg);
+              return JupyterActions.ReceiveExecuteResult(msg);
             case 'display_data':
-              return receiveDisplayData(msg);
             default:
+              return JupyterActions.ReceiveDisplayData(msg);
           }
         }),
         filter(action => !isNil(action))
@@ -223,15 +140,25 @@ const receiveChannelMessageEpic = (action$, state$) =>
     )
   );
 
-const requestKernelInfoEpic = (action$, state$) =>
-  action$.ofType(REQUEST_KERNEL_INFO).pipe(
+const requestKernelInfoEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.RequestKernelInfo)),
     filter(() => state$.value.jupyter.mainChannel),
     map(() => state$.value.jupyter.mainChannel.next(kernelInfoRequest())),
     ignoreElements()
   );
 
-const loadEpochsEpic = (action$, state$) =>
-  action$.ofType(LOAD_EPOCHS).pipe(
+const loadEpochsEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+  action$,
+  state$
+) =>
+  // @ts-ignore
+  action$.pipe(
+    filter(isActionOf(JupyterActions.LoadEpochs)),
     pluck('payload'),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray =>
@@ -245,10 +172,10 @@ const loadEpochsEpic = (action$, state$) =>
     map(() =>
       epochEvents(
         {
-          [state$.value.experiment.params.stimulus1.title]: EVENTS.STIMULUS_1,
-          [state$.value.experiment.params.stimulus2.title]: EVENTS.STIMULUS_2,
-          [state$.value.experiment.params.stimulus3.title]: EVENTS.STIMULUS_3,
-          [state$.value.experiment.params.stimulus4.title]: EVENTS.STIMULUS_4
+          [state$.value.experiment.params!.stimulus1!.title]: EVENTS.STIMULUS_1,
+          [state$.value.experiment.params!.stimulus2!.title]: EVENTS.STIMULUS_2,
+          [state$.value.experiment.params!.stimulus3!.title]: EVENTS.STIMULUS_3,
+          [state$.value.experiment.params!.stimulus4!.title]: EVENTS.STIMULUS_4
         },
         -0.1,
         0.8
@@ -261,11 +188,16 @@ const loadEpochsEpic = (action$, state$) =>
       state$.value.jupyter.mainChannel.next(executeRequest(epochEventsCommand))
     ),
     awaitOkMessage(action$),
-    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
+    map(() => JupyterActions.GetEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
-const loadCleanedEpochsEpic = (action$, state$) =>
-  action$.ofType(LOAD_CLEANED_EPOCHS).pipe(
+const loadCleanedEpochsEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.LoadCleanedEpochs)),
     pluck('payload'),
     filter(filePathsArray => filePathsArray.length >= 1),
     map(filePathsArray =>
@@ -276,18 +208,22 @@ const loadCleanedEpochsEpic = (action$, state$) =>
     awaitOkMessage(action$),
     mergeMap(() =>
       of(
-        getEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS),
-        getChannelInfo(),
-        loadTopo()
+        JupyterActions.GetEpochsInfo(JUPYTER_VARIABLE_NAMES.CLEAN_EPOCHS),
+        JupyterActions.GetChannelInfo(),
+        JupyterActions.LoadTopo()
       )
     )
   );
 
-const cleanEpochsEpic = (action$, state$) =>
-  action$.ofType(CLEAN_EPOCHS).pipe(
+const cleanEpochsEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.CleanEpochs)),
     execute(cleanEpochsPlot(), state$),
     mergeMap(() =>
-      action$.ofType(RECEIVE_STREAM).pipe(
+      action$.ofType(JupyterActions.ReceiveStream.type).pipe(
         pluck('payload'),
         filter(
           msg =>
@@ -301,18 +237,23 @@ const cleanEpochsEpic = (action$, state$) =>
       state$.value.jupyter.mainChannel.next(
         executeRequest(
           saveEpochs(
-            getWorkspaceDir(state$.value.experiment.title),
+            getWorkspaceDir(state$.value.experiment.title!),
             state$.value.experiment.subject
           )
         )
       )
     ),
     awaitOkMessage(action$),
-    map(() => getEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
+    map(() => JupyterActions.GetEpochsInfo(JUPYTER_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
-const getEpochsInfoEpic = (action$, state$) =>
-  action$.ofType(GET_EPOCHS_INFO).pipe(
+const getEpochsInfoEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.GetEpochsInfo)),
     pluck('payload'),
     map(variableName =>
       state$.value.jupyter.mainChannel.next(
@@ -320,7 +261,7 @@ const getEpochsInfoEpic = (action$, state$) =>
       )
     ),
     mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
+      action$.ofType(JupyterActions.ReceiveExecuteReply.type).pipe(
         pluck('payload'),
         filter(msg => msg.channel === 'iopub' && !isNil(msg.content.data)),
         pluck('content', 'data', 'text/plain'),
@@ -330,18 +271,23 @@ const getEpochsInfoEpic = (action$, state$) =>
     ),
     map(epochInfoString =>
       parseSingleQuoteJSON(epochInfoString).map(infoObj => ({
-        name: object.keys(infoObj)[0],
+        name: Object.keys(infoObj)[0],
         value: infoObj[Object.keys(infoObj)[0]]
       }))
     ),
-    map(setEpochInfo)
+    map(JupyterActions.SetEpochInfo)
   );
 
-const getChannelInfoEpic = (action$, state$) =>
-  action$.ofType(GET_CHANNEL_INFO).pipe(
+const getChannelInfoEpic: Epic<
+  JupyterActionType,
+  JupyterActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.GetChannelInfo)),
     execute(requestChannelInfo(), state$),
     mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_RESULT).pipe(
+      action$.ofType(JupyterActions.ReceiveExecuteResult.type).pipe(
         pluck('payload'),
         filter(msg => msg.channel === 'iopub' && !isNil(msg.content.data)),
         pluck('content', 'data', 'text/plain'), // Filter to prevent this from reading requestEpochsInfo returns
@@ -350,36 +296,44 @@ const getChannelInfoEpic = (action$, state$) =>
       )
     ),
     map(channelInfoString =>
-      setChannelInfo(parseSingleQuoteJSON(channelInfoString))
+      JupyterActions.SetChannelInfo(parseSingleQuoteJSON(channelInfoString))
     )
   );
 
-const loadPSDEpic = (action$, state$) =>
-  action$.ofType(LOAD_PSD).pipe(
+const loadPSDEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.LoadPSD)),
     execute(plotPSD(), state$),
     mergeMap(() =>
-      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
+      action$.ofType(JupyterActions.ReceiveDisplayData.type).pipe(
         pluck('payload'), // PSD graphs should have two axes
         filter(msg => msg.content.data['text/plain'].includes('2 Axes')),
         pluck('content', 'data'),
         take(1)
       )
     ),
-    map(setPSDPlot)
+    map(JupyterActions.SetPSDPlot)
   );
 
-const loadTopoEpic = (action$, state$) =>
-  action$.ofType(LOAD_TOPO).pipe(
+const loadTopoEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.LoadTopo)),
     execute(plotTopoMap(), state$),
     mergeMap(() =>
       action$
-        .ofType(RECEIVE_DISPLAY_DATA)
+        .ofType(JupyterActions.ReceiveDisplayData.type)
         .pipe(pluck('payload'), pluck('content', 'data'), take(1))
     ),
     mergeMap(topoPlot =>
       of(
-        setTopoPlot(topoPlot),
-        loadERP(
+        JupyterActions.SetTopoPlot(topoPlot),
+        JupyterActions.LoadERP(
           state$.value.device.deviceType === DEVICES.EMOTIV
             ? EMOTIV_CHANNELS[0]
             : MUSE_CHANNELS[0]
@@ -388,13 +342,18 @@ const loadTopoEpic = (action$, state$) =>
     )
   );
 
-const loadERPEpic = (action$, state$) =>
-  action$.ofType(LOAD_ERP).pipe(
+const loadERPEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.LoadERP)),
     pluck('payload'),
     map(channelName => {
       if (MUSE_CHANNELS.includes(channelName)) {
         return MUSE_CHANNELS.indexOf(channelName);
-      } else if (EMOTIV_CHANNELS.includes(channelName)) {
+      }
+      if (EMOTIV_CHANNELS.includes(channelName)) {
         return EMOTIV_CHANNELS.indexOf(channelName);
       }
       console.warn(
@@ -408,20 +367,24 @@ const loadERPEpic = (action$, state$) =>
       )
     ),
     mergeMap(() =>
-      action$.ofType(RECEIVE_DISPLAY_DATA).pipe(
+      action$.ofType(JupyterActions.ReceiveDisplayData.type).pipe(
         pluck('payload'), // ERP graphs should have 1 axis according to MNE
         filter(msg => msg.content.data['text/plain'].includes('1 Axes')),
         pluck('content', 'data'),
         take(1)
       )
     ),
-    map(setERPPlot)
+    map(JupyterActions.SetERPPlot)
   );
 
-const closeKernelEpic = (action$, state$) =>
-  action$.ofType(CLOSE_KERNEL).pipe(
+const closeKernelEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(JupyterActions.CloseKernel)),
     map(() => {
-      state$.value.jupyter.kernel.spawn.kill();
+      state$.value.jupyter.kernel?.spawn.kill();
       state$.value.jupyter.mainChannel.complete();
     }),
     ignoreElements()

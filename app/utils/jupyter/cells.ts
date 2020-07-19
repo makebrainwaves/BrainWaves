@@ -85,7 +85,7 @@ export const cleanEpochsPlot = () =>
 export const plotTopoMap = () =>
   [`%matplotlib inline`, `plot_topo(clean_epochs, conditions)`].join('\n');
 
-export const plotERP = (channelIndex: number) =>
+export const plotERP = (channelIndex: number | string) =>
   [
     `%matplotlib inline`,
     `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions,

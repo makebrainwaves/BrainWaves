@@ -31,6 +31,18 @@ export type ExperimentParameters = {
     title: string;
     response: string;
   };
+  stimulus3?: {
+    dir: string;
+    type: typeof EVENTS;
+    title: string;
+    response: string;
+  };
+  stimulus4?: {
+    dir: string;
+    type: typeof EVENTS;
+    title: string;
+    response: string;
+  };
 };
 
 export type ExperimentDescription = {

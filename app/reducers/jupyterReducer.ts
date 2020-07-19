@@ -1,28 +1,16 @@
-import {
-  SET_KERNEL,
-  SET_KERNEL_STATUS,
-  SET_MAIN_CHANNEL,
-  SET_KERNEL_INFO,
-  SET_EPOCH_INFO,
-  SET_CHANNEL_INFO,
-  SET_PSD_PLOT,
-  SET_TOPO_PLOT,
-  SET_ERP_PLOT
-} from '../epics/jupyterEpics';
-import { ActionType, Kernel } from '../constants/interfaces';
+import { createReducer } from '@reduxjs/toolkit';
+import { Kernel } from '../constants/interfaces';
 import { KERNEL_STATUS } from '../constants/constants';
+import { JupyterActions, ExperimentActions } from '../actions';
 
 export interface JupyterStateType {
   readonly kernel: Kernel | null | undefined;
   readonly kernelStatus: KERNEL_STATUS;
   readonly mainChannel: any | null | undefined;
-  readonly epochsInfo:
-    | Array<{
-        [key: string]: number | string;
-      }>
-    | null
-    | undefined;
-  readonly channelInfo: Array<string> | null | undefined;
+  readonly epochsInfo: Array<{
+    [key: string]: number | string;
+  }>;
+  readonly channelInfo: string[];
   readonly psdPlot:
     | {
         [key: string]: string;
@@ -47,81 +35,69 @@ const initialState = {
   kernel: null,
   kernelStatus: KERNEL_STATUS.OFFLINE,
   mainChannel: null,
-  epochsInfo: null,
+  epochsInfo: [],
   channelInfo: [],
   psdPlot: null,
   topoPlot: null,
   erpPlot: null
 };
 
-export default function jupyter(
-  state: JupyterStateType = initialState,
-  action: ActionType
-) {
-  switch (action.type) {
-    case SET_KERNEL:
+export default createReducer(initialState, builder =>
+  builder
+    .addCase(JupyterActions.SetKernel, (state, action) => {
       return {
         ...state,
         kernel: action.payload
       };
-
-    case SET_KERNEL_STATUS:
+    })
+    .addCase(JupyterActions.SetKernelStatus, (state, action) => {
       return {
         ...state,
         kernelStatus: action.payload
       };
-
-    case SET_MAIN_CHANNEL:
+    })
+    .addCase(JupyterActions.SetMainChannel, (state, action) => {
       return {
         ...state,
         mainChannel: action.payload
       };
-
-    case SET_KERNEL_INFO:
-      return state;
-
-    case SET_EPOCH_INFO:
+    })
+    .addCase(JupyterActions.SetEpochInfo, (state, action) => {
       return {
         ...state,
         epochsInfo: action.payload
       };
-
-    case SET_CHANNEL_INFO:
+    })
+    .addCase(JupyterActions.SetChannelInfo, (state, action) => {
       return {
         ...state,
         channelInfo: action.payload
       };
-
-    case SET_PSD_PLOT:
+    })
+    .addCase(JupyterActions.SetPSDPlot, (state, action) => {
       return {
         ...state,
         psdPlot: action.payload
       };
-
-    case SET_TOPO_PLOT:
+    })
+    .addCase(JupyterActions.SetTopoPlot, (state, action) => {
       return {
         ...state,
         topoPlot: action.payload
       };
-
-    case SET_ERP_PLOT:
+    })
+    .addCase(JupyterActions.SetERPPlot, (state, action) => {
       return {
         ...state,
         erpPlot: action.payload
       };
-
-    case EXPERIMENT_CLEANUP:
+    })
+    .addCase(ExperimentActions.ExperimentCleanup, (state, action) => {
       return {
         ...state,
-        epochsInfo: null,
+        epochsInfo: [],
         psdPlot: null,
         erpPlot: null
       };
-
-    case RECEIVE_EXECUTE_RETURN:
-      return state;
-
-    default:
-      return state;
-  }
-}
+    })
+);

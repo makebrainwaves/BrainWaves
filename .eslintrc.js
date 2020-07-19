@@ -5,7 +5,9 @@ module.exports = {
     'import/no-extraneous-dependencies': 'off',
     'import/prefer-default-export': 'off',
     'react/destructuring-assignment': 'warn',
-    'react/no-access-state-in-setstate': 'warn'
+    'react/no-access-state-in-setstate': 'warn',
+    'dot-notation': 'off',
+    '@typescript-eslint/ban-ts-ignore': 'warn'
   },
   settings: {
     'import/resolver': {

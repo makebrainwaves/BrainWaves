@@ -37,7 +37,6 @@ import {
   readWorkspaceBehaviorData
 } from '../utils/filesystem/storage';
 import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
-import { ExperimentStateType } from '../reducers/experimentReducer';
 import { RootState } from '../reducers';
 
 // -------------------------------------------------------------------------
@@ -51,19 +50,8 @@ const createNewWorkspaceEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
     pluck('payload'),
-    tap<{
-      title: string;
-      type: string;
-      paradigm: string;
-    }>(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
-    mergeMap<
-      {
-        title: string;
-        type: string;
-        paradigm: string;
-      },
-      ObservableInput<any>
-    >(workspaceInfo =>
+    tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
+    mergeMap(workspaceInfo =>
       of(
         ExperimentActions.SetType(workspaceInfo.type),
         ExperimentActions.SetParadigm(workspaceInfo.paradigm),
