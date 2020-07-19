@@ -277,6 +277,7 @@
     "@hot-loader/react-dom": "^16.13.0",
     "@nteract/messaging": "^7.0.7",
     "@nteract/transforms": "^4.4.7",
+    "@reduxjs/toolkit": "1.4.0",
     "ajv": "^6.12.2",
     "connected-react-router": "^6.8.0",
     "core-js": "^3.6.5",
@@ -320,6 +321,7 @@
     "simplify-js": "^1.2.4",
     "source-map-support": "^0.5.19",
     "spawnteract": "^5.0.1",
+    "typesafe-actions": "^5.1.0",
     "ws": "^7.3.0"
   },
   "devEngines": {
