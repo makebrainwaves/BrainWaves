@@ -1,4 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
+import { ActionType } from 'typesafe-actions';
 import { DEVICE_AVAILABILITY } from '../constants/constants';
 import { DeviceInfo } from '../constants/interfaces';
 
@@ -34,3 +35,7 @@ export const DeviceActions = {
   ),
   Cleanup: createAction<any, 'CLEANUP'>('CLEANUP')
 } as const;
+
+export type DeviceActionType = ActionType<
+  typeof DeviceActions[keyof typeof DeviceActions]
+>;

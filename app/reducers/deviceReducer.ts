@@ -8,7 +8,7 @@ import {
 import { DeviceInfo, Device } from '../constants/interfaces';
 import { DeviceActions } from '../actions';
 
-interface DeviceStateType {
+export interface DeviceStateType {
   readonly availableDevices: Array<Device>;
   readonly connectedDevice: DeviceInfo | null | undefined;
   readonly connectionStatus: CONNECTION_STATUS;

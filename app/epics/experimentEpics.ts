@@ -1,5 +1,6 @@
-import { combineEpics } from 'redux-observable';
-import { from, of } from 'rxjs';
+import { isActionOf } from 'typesafe-actions';
+import { combineEpics, Epic } from 'redux-observable';
+import { from, of, ObservableInput } from 'rxjs';
 import {
   map,
   mapTo,
@@ -12,18 +13,8 @@ import {
   tap
 } from 'rxjs/operators';
 import {
-  setType,
-  setParadigm,
-  setTitle,
-  saveWorkspace,
-  loadDefaultTimeline,
-  LOAD_DEFAULT_TIMELINE,
-  START,
-  STOP,
-  SAVE_WORKSPACE,
-  CREATE_NEW_WORKSPACE,
-  SET_SUBJECT,
-  SET_GROUP
+  ExperimentActions,
+  ExperimentActionType
 } from '../actions/experimentActions';
 import {
   DEVICES,
@@ -31,7 +22,7 @@ import {
   EMOTIV_CHANNELS,
   CONNECTION_STATUS
 } from '../constants/constants';
-import { loadProtocol, getBehaviouralData } from '../utils/labjs/functions';
+import { loadProtocol } from '../utils/labjs/functions';
 import {
   createEEGWriteStream,
   writeHeader,
@@ -45,65 +36,54 @@ import {
   storeBehaviouralData,
   readWorkspaceBehaviorData
 } from '../utils/filesystem/storage';
-
 import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
-
-export const SET_TIMELINE = 'SET_TIMELINE';
-export const SET_IS_RUNNING = 'SET_IS_RUNNING';
-export const UPDATE_SESSION = 'UPDATE_SESSION';
-export const SET_SESSION = 'SET_SESSION';
-export const EXPERIMENT_CLEANUP = 'EXPERIMENT_CLEANUP';
-
-// -------------------------------------------------------------------------
-// Action Creators
-
-const setTimeline = payload => ({
-  payload,
-  type: SET_TIMELINE
-});
-
-const setIsRunning = payload => ({
-  payload,
-  type: SET_IS_RUNNING
-});
-
-const updateSession = () => ({ type: UPDATE_SESSION });
-
-const setSession = payload => ({
-  payload,
-  type: SET_SESSION
-});
-
-const cleanup = () => ({
-  type: EXPERIMENT_CLEANUP
-});
+import { ExperimentStateType } from '../reducers/experimentReducer';
+import { RootState } from '../reducers';
 
 // -------------------------------------------------------------------------
 // Epics
 
-const createNewWorkspaceEpic = action$ =>
-  action$.ofType(CREATE_NEW_WORKSPACE).pipe(
+const createNewWorkspaceEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
     pluck('payload'),
-    tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
-    mergeMap(workspaceInfo =>
+    tap<{
+      title: string;
+      type: string;
+      paradigm: string;
+    }>(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
+    mergeMap<
+      {
+        title: string;
+        type: string;
+        paradigm: string;
+      },
+      ObservableInput<any>
+    >(workspaceInfo =>
       of(
-        setType(workspaceInfo.type),
-        setParadigm(workspaceInfo.paradigm),
-        setTitle(workspaceInfo.title),
-        loadDefaultTimeline()
+        ExperimentActions.SetType(workspaceInfo.type),
+        ExperimentActions.SetParadigm(workspaceInfo.paradigm),
+        ExperimentActions.SetTitle(workspaceInfo.title),
+        ExperimentActions.LoadDefaultTimeline()
       )
     )
   );
 
 const loadDefaultTimelineEpic = (action$, state$) =>
-  action$.ofType(LOAD_DEFAULT_TIMELINE).pipe(
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.LoadDefaultTimeline)),
     map(() => state$.value.experiment.paradigm),
     map(loadProtocol),
-    map(setTimeline)
+    map(ExperimentActions.SetTimeline)
   );
 
 const startEpic = (action$, state$) =>
-  action$.ofType(START).pipe(
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.Start)),
     filter(() => !state$.value.experiment.isRunning),
     map(() => {
       if (
@@ -116,6 +96,9 @@ const startEpic = (action$, state$) =>
           state$.value.experiment.session
         );
 
+        if (!writeStream) {
+          return;
+        }
         writeHeader(
           writeStream,
           state$.value.device.deviceType === DEVICES.EMOTIV
@@ -131,18 +114,33 @@ const startEpic = (action$, state$) =>
         }
 
         state$.value.device.rawObservable
-          .pipe(takeUntil(action$.ofType(STOP, EXPERIMENT_CLEANUP)))
+          .pipe(
+            takeUntil(
+              action$.ofType(
+                ExperimentActions.Stop.type,
+                ExperimentActions.ExperimentCleanup.type
+              )
+            )
+          )
           .subscribe(eegData => writeEEGData(writeStream, eegData));
       }
     }),
     mapTo(true),
-    map(setIsRunning)
+    map(ExperimentActions.SetIsRunning)
   );
 
-const experimentStopEpic = (action$, state$) =>
-  action$.ofType(STOP).pipe(
+const experimentStopEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.Stop)),
     filter(() => state$.value.experiment.isRunning),
     map(({ payload }) => {
+      if (!state$.value.experiment.title) {
+        return;
+      }
       storeBehaviouralData(
         payload.data,
         state$.value.experiment.title,
@@ -157,19 +155,24 @@ const experimentStopEpic = (action$, state$) =>
         stopEmotivRecord();
       }
     }),
-    mergeMap(() => of(setIsRunning(false)))
+    mergeMap(() => of(ExperimentActions.SetIsRunning(false)))
   );
 
 // const setSubjectEpic = action$ =>
-//   action$.ofType(SET_SUBJECT).pipe(map(updateSession));
+//   action$.pipe(filter(isActionOf(SET_SUBJECT).pipe(map(updateSession));
 //
 // const setGroupEpic = action$ =>
-//   action$.ofType(SET_GROUP).pipe(map(updateSession));
+//   action$.pipe(filter(isActionOf(SET_GROUP).pipe(map(updateSession));
 
-const updateSessionEpic = (action$, state$) =>
-  action$.ofType(UPDATE_SESSION).pipe(
+const updateSessionEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.UpdateSession)),
     mergeMap(() =>
-      from(readWorkspaceBehaviorData(state$.value.experiment.title))
+      from(readWorkspaceBehaviorData(state$.value.experiment.title!))
     ),
     map(behaviorFiles => {
       if (behaviorFiles.length > 0) {
@@ -180,31 +183,43 @@ const updateSessionEpic = (action$, state$) =>
       }
       return 1;
     }),
-    map(setSession)
+    map(ExperimentActions.SetSession)
   );
 
-const autoSaveEpic = action$ =>
+const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = action$ =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
     filter(pathname => pathname !== '/' && pathname !== '/home'),
-    map(saveWorkspace)
+    map(ExperimentActions.SaveWorkspace)
   );
 
-const saveWorkspaceEpic = (action$, state$) =>
-  action$.ofType(SAVE_WORKSPACE).pipe(
+const saveWorkspaceEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.SaveWorkspace)),
     throttleTime(1000),
-    filter(() => state$.value.experiment.title.length > 1),
-    map(() => getWorkspaceDir(state$.value.experiment.title)),
+    filter(() =>
+      state$.value.experiment.title
+        ? state$.value.experiment.title.length > 1
+        : false
+    ),
+    map(() => getWorkspaceDir(state$.value.experiment.title!)),
     tap(() => storeExperimentState(state$.value.experiment)),
     ignoreElements()
   );
 
-const navigationCleanupEpic = (action$, state$) =>
+const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
+  action$,
+  state$
+) =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
     filter(pathname => pathname === '/' || pathname === '/home'),
     tap(() => restoreExperimentState(state$.value.experiment)),
-    map(cleanup)
+    map(ExperimentActions.ExperimentCleanup)
   );
 
 export default combineEpics(

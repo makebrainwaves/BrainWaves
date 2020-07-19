@@ -1,8 +1,15 @@
 import { combineReducers } from 'redux';
 import { routerReducer as router } from 'react-router-redux';
-import jupyter from './jupyterReducer';
-import device from './deviceReducer';
-import experiment from './experimentReducer';
+import jupyter, { JupyterStateType } from './jupyterReducer';
+import device, { DeviceStateType } from './deviceReducer';
+import experiment, { ExperimentStateType } from './experimentReducer';
+
+export interface RootState {
+  jupyter: JupyterStateType;
+  device: DeviceStateType;
+  experiment: ExperimentStateType;
+  router: unknown;
+}
 
 const rootReducer = combineReducers({
   jupyter,

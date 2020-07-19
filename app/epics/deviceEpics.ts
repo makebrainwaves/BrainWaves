@@ -1,9 +1,10 @@
-import { combineEpics } from 'redux-observable';
+import { combineEpics, Epic } from 'redux-observable';
 import { of, from, timer, ObservableInput } from 'rxjs';
 import { map, pluck, mergeMap, tap, filter, catchError } from 'rxjs/operators';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
-import { DeviceActions } from '../actions';
+import { isActionOf } from 'typesafe-actions';
+import { DeviceActions, DeviceActionType, ExperimentActions } from '../actions';
 import {
   getEmotiv,
   connectToEmotiv,
@@ -25,17 +26,24 @@ import {
   SEARCH_TIMER
 } from '../constants/constants';
 import { Device, DeviceInfo } from '../constants/interfaces';
+import { DeviceStateType } from '../reducers/deviceReducer';
+import { RootState } from '../reducers';
 
 // -------------------------------------------------------------------------
 // Epics
 
 // NOTE: Uses a Promise "then" inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
-const searchMuseEpic = action$ =>
-  action$.ofType(DeviceActions.SetDeviceAvailability.type).pipe(
+const searchMuseEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     map(getMuse),
-    mergeMap<Promise<{}[] | null>, ObservableInput<any>>(promise =>
+    mergeMap(promise =>
       promise.then(
         devices => devices,
         error => {
@@ -45,18 +53,22 @@ const searchMuseEpic = action$ =>
         }
       )
     ),
-    filter<Device[]>(devices => isNil(devices)), // filter out nulls if running on win7
-    filter<Device[]>(devices => devices.length >= 1),
+    filter(devices => !isNil(devices) && devices.length >= 1),
     map(DeviceActions.DeviceFound)
   );
 
-const searchEmotivEpic = action$ =>
-  action$.ofType(DeviceActions.SetDeviceAvailability.type).pipe(
+const searchEmotivEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     filter(() => process.platform === 'darwin' || process.platform === 'win32'),
     map(getEmotiv),
-    mergeMap<Promise<any>, ObservableInput<any>>(promise =>
+    mergeMap(promise =>
       promise.then(
         devices => devices,
         error => {
@@ -73,14 +85,18 @@ const searchEmotivEpic = action$ =>
         }
       )
     ),
-    filter<any[]>(devices => devices.length >= 1),
+    filter(devices => devices.length >= 1),
     map(DeviceActions.DeviceFound)
   );
 
-const deviceFoundEpic = (action$, state$) =>
-  action$.ofType(DeviceActions.DeviceFound.type).pipe(
+const deviceFoundEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.DeviceFound)),
     pluck('payload'),
-    map<Device[], Device[]>(foundDevices =>
+    map(foundDevices =>
       foundDevices.reduce((acc, curr) => {
         if (acc.find(device => device.id === curr.id)) {
           return acc;
@@ -88,7 +104,7 @@ const deviceFoundEpic = (action$, state$) =>
         return acc.concat(curr);
       }, state$.value.device.availableDevices)
     ),
-    mergeMap<Device[], ObservableInput<any>>(devices =>
+    mergeMap(devices =>
       of(
         DeviceActions.SetAvailableDevices(devices),
         DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE)
@@ -96,8 +112,12 @@ const deviceFoundEpic = (action$, state$) =>
     )
   );
 
-const searchTimerEpic = (action$, state$) =>
-  action$.ofType(DeviceActions.SetDeviceAvailability.type).pipe(
+const searchTimerEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter(status => status === DEVICE_AVAILABILITY.SEARCHING),
     mergeMap(() => timer(SEARCH_TIMER)),
@@ -108,8 +128,13 @@ const searchTimerEpic = (action$, state$) =>
     map(() => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
-const connectEpic = action$ =>
-  action$.ofType(DeviceActions.ConnectToDevice.type).pipe(
+const connectEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
     map<Device, Promise<any>>(device =>
       isNil(device.name) ? connectToEmotiv(device) : connectToMuse(device)
@@ -133,15 +158,23 @@ const connectEpic = action$ =>
     })
   );
 
-const isConnectingEpic = action$ =>
-  action$
-    .ofType(DeviceActions.ConnectToDevice.type)
-    .pipe(
-      map(() => DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTING))
-    );
+const isConnectingEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = action$ =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.ConnectToDevice)),
+    map(() => DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTING))
+  );
 
-const setRawObservableEpic = (action$, state$) =>
-  action$.ofType(DeviceActions.SetDeviceInfo.type).pipe(
+const setRawObservableEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetDeviceInfo)),
     mergeMap(() => {
       if (state$.value.device.deviceType === DEVICES.EMOTIV) {
         return from(createRawEmotivObservable());
@@ -151,8 +184,13 @@ const setRawObservableEpic = (action$, state$) =>
     map(DeviceActions.SetRawObservable)
   );
 
-const setSignalQualityObservableEpic = (action$, state$) =>
-  action$.ofType(DeviceActions.SetRawObservable.type).pipe(
+const setSignalQualityObservableEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetRawObservable)),
     pluck('payload'),
     map(rawObservable => {
       if (state$.value.device.deviceType === DEVICES.EMOTIV) {
@@ -166,8 +204,12 @@ const setSignalQualityObservableEpic = (action$, state$) =>
     map(DeviceActions.SetSignalQualityObservable)
   );
 
-const deviceCleanupEpic = (action$, state$) =>
-  action$.ofType(ExperimentActions.ExperimentCleanup.type).pipe(
+const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.ExperimentCleanup)),
     filter(
       () =>
         state$.value.device.connectionStatus !==
@@ -194,7 +236,7 @@ const rootEpic = (action$, state$) =>
     setRawObservableEpic,
     setSignalQualityObservableEpic,
     deviceCleanupEpic
-  )(action$, state$).pipe(
+  )(action$, state$, null).pipe(
     catchError(error =>
       of(error).pipe(
         tap(err => toast.error(`"Device Error: " ${err.toString()}`)),

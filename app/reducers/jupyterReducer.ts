@@ -7,12 +7,10 @@ import {
   SET_CHANNEL_INFO,
   SET_PSD_PLOT,
   SET_TOPO_PLOT,
-  SET_ERP_PLOT,
-  RECEIVE_EXECUTE_RETURN
+  SET_ERP_PLOT
 } from '../epics/jupyterEpics';
 import { ActionType, Kernel } from '../constants/interfaces';
 import { KERNEL_STATUS } from '../constants/constants';
-import { EXPERIMENT_CLEANUP } from '../epics/experimentEpics';
 
 export interface JupyterStateType {
   readonly kernel: Kernel | null | undefined;
