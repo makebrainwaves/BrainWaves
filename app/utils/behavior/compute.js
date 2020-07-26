@@ -1,3 +1,4 @@
+/* eslint-disable */
 import * as ss from 'simple-statistics';
 import * as path from 'path';
 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
-import styles from '../styles/collect.css';
+import styles from '../styles/common.css';
 
 enum HELP_STEP {
   MENU = 0,
@@ -137,7 +137,7 @@ export default class CleanSidebar extends Component<Props, State> {
           'Try blinking your eyes',
           'Does the signal change? Eye movements create noise in the EEG signal'
         );
-      case HELP_STEP.LEARN_THOUGHTS:
+      case HELP_STEP.LEARN_THOUGHT:
         return this.renderHelp(
           'Try thinking of a cat',
           "Does the signal change? Although EEG can measure overall brain activity, it's not capable of reading minds"

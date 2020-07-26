@@ -19,6 +19,7 @@ export type ExperimentParameters = {
   intro: string;
   // Setting this to any prevents ridiculous flow runtime errors
   showProgessBar: any;
+  stimuli: any[];
   stimulus1: {
     dir: string;
     type: typeof EVENTS;
@@ -50,6 +51,18 @@ export type ExperimentDescription = {
   hypothesis: string;
   methods: string;
 };
+
+export interface ExperimentSettings {
+  title: string;
+  script: any;
+  params: ExperimentParameters;
+  eventCallback: (e: Event, time: number) => null;
+  on_finish: (csv: any) => void;
+}
+
+// ---------------------------------------------------
+// jsPsych
+// TODO: figure out if this is still being used
 
 // Array of timeline and trial ids that will be presented in experiment
 export type MainTimeline = Array<string>;

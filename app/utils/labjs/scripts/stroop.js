@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 // Define study
 const studyObject = {
   messageHandlers: {},

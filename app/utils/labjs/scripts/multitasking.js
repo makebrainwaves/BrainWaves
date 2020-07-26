@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import * as path from 'path';
 
 const rootFolder = __dirname;

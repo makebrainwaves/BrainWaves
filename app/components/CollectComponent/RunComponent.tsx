@@ -1,3 +1,4 @@
+import { remote } from 'electron';
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
@@ -13,8 +14,6 @@ import {
   Trial,
   ExperimentParameters
 } from '../../constants/interfaces';
-
-import { remote } from 'electron';
 
 const { dialog } = remote;
 

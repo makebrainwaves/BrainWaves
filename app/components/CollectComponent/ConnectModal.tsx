@@ -24,14 +24,14 @@ interface Props {
 
 interface State {
   selectedDevice: any | null | undefined;
-  instructionProgress: number;
+  instructionProgress: INSTRUCTION_PROGRESS;
 }
 
-const INSTRUCTION_PROGRESS = {
-  SEARCHING: 0,
-  TURN_ON: 1,
-  COMPUTER_CONNECTABILITY: 2
-};
+enum INSTRUCTION_PROGRESS {
+  SEARCHING,
+  TURN_ON,
+  COMPUTER_CONNECTABILITY
+}
 
 export default class ConnectModal extends Component<Props, State> {
   // handleSearch: () => void;
@@ -48,7 +48,7 @@ export default class ConnectModal extends Component<Props, State> {
     super(props);
     this.state = {
       selectedDevice: null,
-      instructionProgress: INSTRUCTION_PROGRESS.SEARCHING
+      instructionProgress: INSTRUCTION_PROGRESS.Searching
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
@@ -61,7 +61,7 @@ export default class ConnectModal extends Component<Props, State> {
     this.handleinstructionProgress = this.handleinstructionProgress.bind(this);
   }
 
-  componentWillUpdate(nextProps: Props) {
+  UNSAFE_componentWillUpdate(nextProps: Props) {
     if (
       nextProps.deviceAvailability === DEVICE_AVAILABILITY.NONE &&
       this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
@@ -272,6 +272,7 @@ export default class ConnectModal extends Component<Props, State> {
         </>
       );
     }
+    return <></>;
   }
 
   render() {

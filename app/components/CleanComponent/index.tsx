@@ -8,30 +8,32 @@ import {
   Dropdown,
   Sidebar,
   SidebarPusher,
-  Divider
+  Divider,
+  DropdownProps,
+  DropdownItemProps
 } from 'semantic-ui-react';
+import * as path from 'path';
 import { Link } from 'react-router-dom';
-import { isNil } from 'lodash';
-import styles from './../styles/collect.css';
+import { isNil, isArray, isString } from 'lodash';
+import styles from '../styles/collect.css';
+import commonStyles from '../styles/common.css';
 import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
 import { Kernel } from '../../constants/interfaces';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
-import * as path from 'path';
+import { isStr } from 'react-toastify/dist/utils';
+import { SemanticICONS } from 'semantic-ui-react/dist/commonjs/generic';
 
 interface Props {
-  type: EXPERIMENTS | null | undefined;
+  type?: EXPERIMENTS;
   title: string;
   deviceType: DEVICES;
-  mainChannel: any | null | undefined;
-  kernel: Kernel | null | undefined;
+  mainChannel?: any;
+  kernel?: Kernel;
   kernelStatus: KERNEL_STATUS;
-  epochsInfo:
-    | Array<{
-        [key: string]: number | string;
-      }>
-    | null
-    | undefined;
+  epochsInfo: Array<{
+    [key: string]: number | string;
+  }>;
   jupyterActions: object;
   experimentActions: object;
   subject: string;
@@ -39,27 +41,15 @@ interface Props {
 }
 
 interface State {
-  subjects: Array<string | null | undefined>;
-  eegFilePaths: Array<
-    | {
-        key: string;
-        text: string;
-        value: { name: string; dir: string };
-      }
-    | null
-    | undefined
-  >;
+  subjects: Array<DropdownItemProps>;
+  eegFilePaths: Array<DropdownItemProps>;
   selectedSubject: string;
-  selectedFilePaths: Array<string | null | undefined>;
+  selectedFilePaths: Array<string>;
+  isSidebarVisible: boolean;
 }
 
 export default class Clean extends Component<Props, State> {
-  props: Props;
-  state: State;
-  handleRecordingChange: (arg0: object, arg1: object) => void;
-  handleLoadData: () => void;
-  handleSubjectChange: (arg0: object, arg1: object) => void;
-  icons: string[];
+  icons: SemanticICONS[];
 
   constructor(props: Props) {
     super(props);
@@ -67,7 +57,8 @@ export default class Clean extends Component<Props, State> {
       subjects: [],
       eegFilePaths: [{ key: '', text: '', value: '' }],
       selectedFilePaths: [],
-      selectedSubject: props.subject
+      selectedSubject: props.subject,
+      isSidebarVisible: false
     };
     this.handleRecordingChange = this.handleRecordingChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
@@ -110,12 +101,17 @@ export default class Clean extends Component<Props, State> {
     });
   }
 
-  handleRecordingChange(event: object, data: object) {
-    this.setState({ selectedFilePaths: data.value });
+  handleRecordingChange(event: object, data: DropdownProps) {
+    if (isArray(data.value)) {
+      const filePaths = data.value.filter<string>(isString);
+      this.setState({ selectedFilePaths: filePaths });
+    }
   }
 
-  handleSubjectChange(event: object, data: object) {
-    this.setState({ selectedSubject: data.value, selectedFilePaths: [] });
+  handleSubjectChange(event: object, data: DropdownProps) {
+    if (!isNil(data) && isString(data.value)) {
+      this.setState({ selectedSubject: data.value, selectedFilePaths: [] });
+    }
   }
 
   handleLoadData() {
@@ -148,17 +144,21 @@ export default class Clean extends Component<Props, State> {
   }
 
   renderAnalyzeButton() {
-    if (
-      !isNil(this.props.epochsInfo) &&
-      this.props.epochsInfo.find(infoObj => infoObj.name === 'Drop Percentage')
-        .value >= 2
-    ) {
-      return (
-        <Link to="/analyze">
-          <Button primary>Analyze Dataset</Button>
-        </Link>
-      );
+    const { epochsInfo } = this.props;
+    if (!isNil(epochsInfo)) {
+      const drop = epochsInfo.find(
+        infoObj => infoObj.name === 'Drop Percentage'
+      )?.value;
+
+      if (drop && drop >= 2) {
+        return (
+          <Link to="/analyze">
+            <Button primary>Analyze Dataset</Button>
+          </Link>
+        );
+      }
     }
+    return <></>;
   }
 
   render() {
@@ -188,7 +188,11 @@ export default class Clean extends Component<Props, State> {
             </Grid.Row>
             <Grid.Row>
               <Grid.Column width={6}>
-                <Segment basic textAlign="left" className={styles.infoSegment}>
+                <Segment
+                  basic
+                  textAlign="left"
+                  className={commonStyles.infoSegment}
+                >
                   <Header as="h1">Select & Clean</Header>
                   <p>
                     Ready to clean some data? Select a subject and one or more
@@ -210,13 +214,17 @@ export default class Clean extends Component<Props, State> {
                     selection
                     closeOnChange
                     value={this.state.selectedFilePaths}
-                    options={this.state.eegFilePaths.filter(
-                      filepath =>
-                        this.state.selectedSubject ===
-                        filepath.value.split(path.sep)[
-                          filepath.value.split(path.sep).length - 3
-                        ]
-                    )}
+                    options={this.state.eegFilePaths.filter(filepath => {
+                      if (isString(filepath.value)) {
+                        const subjectFromFilepath = filepath.value.split(
+                          path.sep
+                        )[filepath.value.split(path.sep).length - 3];
+                        return (
+                          this.state.selectedSubject === subjectFromFilepath
+                        );
+                      }
+                      return false;
+                    })}
                     onChange={this.handleRecordingChange}
                   />
                   <Divider hidden section />

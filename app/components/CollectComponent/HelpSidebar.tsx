@@ -3,17 +3,17 @@ import React, { Component } from 'react';
 import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
 import styles from '../styles/common.css';
 
-const HELP_STEP = {
-  MENU: 0,
-  SIGNAL_EXPLANATION: 1,
-  SIGNAL_SALINE: 2,
-  SIGNAL_CONTACT: 3,
-  SIGNAL_MOVEMENT: 4,
-  LEARN_BRAIN: 5,
-  LEARN_BLINK: 6,
-  LEARN_THOUGHTS: 7,
-  LEARN_ALPHA: 8
-};
+enum HELP_STEP {
+  MENU,
+  SIGNAL_EXPLANATION,
+  SIGNAL_SALINE,
+  SIGNAL_CONTACT,
+  SIGNAL_MOVEMENT,
+  LEARN_BRAIN,
+  LEARN_BLINK,
+  LEARN_THOUGHTS,
+  LEARN_ALPHA
+}
 
 interface Props {
   handleClose: () => void;
@@ -181,16 +181,14 @@ export class HelpSidebar extends Component<Props, State> {
   }
 }
 
-export class HelpButton extends Component<{ onClick: () => void }, {}> {
-  render() {
-    return (
-      <Button
-        circular
-        icon="question"
-        className={styles.helpButton}
-        floated="right"
-        onClick={this.props.onClick}
-      />
-    );
-  }
-}
+export const HelpButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  return (
+    <Button
+      circular
+      icon="question"
+      className={styles.helpButton}
+      floated="right"
+      onClick={onClick}
+    />
+  );
+};

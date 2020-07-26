@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
+import path from 'path';
 import clonedeep from 'lodash.clonedeep';
 import * as lab from 'lab.js/dist/lab.dev';
-
-import path from 'path';
+import { ExperimentSettings } from '../../constants/interfaces';
 import visualsearch from './scripts/visualsearch';
 import stroop from './scripts/stroop';
 import multitasking from './scripts/multitasking';
 import faceshouses from './scripts/faceshouses';
 import custom from './scripts/custom';
+import 'lab.js/dist/lab.css';
 
-class ExperimentWindow extends Component {
-  constructor(props) {
-    super(props);
-  }
+class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
+  // TO BE TYPED Lab.js Study
+  study: any = {};
 
   componentDidMount() {
     const { props } = this;
@@ -40,6 +40,7 @@ class ExperimentWindow extends Component {
             )
           }))
           .reduce((obj, item) => {
+            // return { ...obj, item }; ??
             obj[Object.keys(item)[0]] = Object.values(item)[0];
             return obj;
           }, {});
@@ -57,6 +58,7 @@ class ExperimentWindow extends Component {
             )
           }))
           .reduce((obj, item) => {
+            // return { ...obj, item }; ??
             obj[Object.keys(item)[0]] = Object.values(item)[0];
             return obj;
           }, {});
