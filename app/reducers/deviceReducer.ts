@@ -3,9 +3,15 @@ import { createReducer } from '@reduxjs/toolkit';
 import {
   DEVICES,
   CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
+  DEVICE_AVAILABILITY,
+  SIGNAL_QUALITY
 } from '../constants/constants';
-import { DeviceInfo, Device } from '../constants/interfaces';
+import {
+  DeviceInfo,
+  Device,
+  EEGData,
+  SignalQualityData
+} from '../constants/interfaces';
 import { DeviceActions } from '../actions';
 
 export interface DeviceStateType {
@@ -14,8 +20,8 @@ export interface DeviceStateType {
   readonly connectionStatus: CONNECTION_STATUS;
   readonly deviceAvailability: DEVICE_AVAILABILITY;
   // TODO: type EEG data
-  readonly rawObservable: Observable<any> | null | undefined;
-  readonly signalQualityObservable: Observable<any> | null | undefined;
+  readonly rawObservable: Observable<EEGData> | null;
+  readonly signalQualityObservable: Observable<SignalQualityData> | null;
   readonly deviceType: DEVICES;
 }
 

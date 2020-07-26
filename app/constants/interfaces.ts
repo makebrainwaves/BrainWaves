@@ -3,7 +3,7 @@
  */
 
 import { ChildProcess } from 'child_process';
-import { EVENTS } from './constants';
+import { EVENTS, SIGNAL_QUALITY } from './constants';
 
 // TODO: Write interfaces for device objects (Observables, Classes, etc)
 
@@ -116,6 +116,12 @@ export interface EEGData {
   data: Array<number>;
   timestamp: number;
   marker?: string | number;
+}
+
+export interface SignalQualityData {
+  epoch: number[][];
+  signalQuality: SIGNAL_QUALITY;
+  timestamp?: number;
 }
 
 export interface DeviceInfo {

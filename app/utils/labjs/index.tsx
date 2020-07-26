@@ -8,7 +8,6 @@ import stroop from './scripts/stroop';
 import multitasking from './scripts/multitasking';
 import faceshouses from './scripts/faceshouses';
 import custom from './scripts/custom';
-import 'lab.js/dist/lab.css';
 
 class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
   // TO BE TYPED Lab.js Study

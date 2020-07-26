@@ -47,7 +47,7 @@ class JSONRPCError extends Error {
   }
 }
 
-class Cortex extends EventEmitter {
+export default class Cortex extends EventEmitter {
   constructor(options = {}) {
     super();
     this.options = options;
@@ -193,5 +193,3 @@ class Cortex extends EventEmitter {
 }
 
 Cortex.JSONRPCError = JSONRPCError;
-
-module.exports = Cortex;

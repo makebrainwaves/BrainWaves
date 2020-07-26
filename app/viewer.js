@@ -2,7 +2,6 @@
 const ipcChannel = require('electron').ipcRenderer;
 const EEGGraph = require('./components/d3Classes/EEGViewer');
 
-// TODO: should this by js?
 let graph = {};
 ipcChannel.on('initGraph', (event, message) => {
   graph = new EEGGraph(document.getElementById('graph'), message);
