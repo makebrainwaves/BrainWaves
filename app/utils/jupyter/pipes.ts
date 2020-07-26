@@ -1,7 +1,7 @@
 import { pipe } from 'rxjs';
 import { map, pluck, filter, take, mergeMap } from 'rxjs/operators';
 import { executeRequest } from '@nteract/messaging';
-import { RECEIVE_EXECUTE_REPLY } from '../../epics/jupyterEpics';
+import { JupyterActions } from '../../actions';
 
 // Refactor this so command can be calculated either up stream or inside pipe
 export const execute = (command, state$) =>
@@ -12,9 +12,11 @@ export const execute = (command, state$) =>
 export const awaitOkMessage = action$ =>
   pipe(
     mergeMap(() =>
-      action$.ofType(RECEIVE_EXECUTE_REPLY).pipe(
+      action$.ofType(JupyterActions.ReceiveExecuteReply.type).pipe(
         pluck('payload'),
-        filter(msg => msg.channel === 'shell' && msg.content.status === 'ok'),
+        filter<any>(
+          msg => msg.channel === 'shell' && msg.content.status === 'ok'
+        ),
         take(1)
       )
     )
