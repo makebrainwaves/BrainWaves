@@ -15,14 +15,14 @@ import {
 import * as path from 'path';
 import { Link } from 'react-router-dom';
 import { isNil, isArray, isString } from 'lodash';
+import { isStr } from 'react-toastify/dist/utils';
+import { SemanticICONS } from 'semantic-ui-react/dist/commonjs/generic';
 import styles from '../styles/collect.css';
 import commonStyles from '../styles/common.css';
 import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
 import { Kernel } from '../../constants/interfaces';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
-import { isStr } from 'react-toastify/dist/utils';
-import { SemanticICONS } from 'semantic-ui-react/dist/commonjs/generic';
 
 interface Props {
   type?: EXPERIMENTS;

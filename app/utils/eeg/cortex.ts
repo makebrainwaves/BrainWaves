@@ -85,7 +85,7 @@ export default class Cortex extends EventEmitter {
     this._debug('ws: <-', msg.data);
 
     if ('id' in data) {
-      const id = data.id;
+      const { id } = data;
       this._log(
         `[${id}] <-`,
         data.result ? 'success' : `error (${data.error.message})`
@@ -175,7 +175,7 @@ export default class Cortex extends EventEmitter {
 
     this[methodName] = (params = {}) => {
       if (needsAuth && this.cortexToken && !params.cortexToken) {
-        params = Object.assign({}, params, { cortexToken: this.cortexToken });
+        params = { ...params, cortexToken: this.cortexToken };
       }
       const missingParams = requiredParams.filter(p => params[p] == null);
       if (missingParams.length > 0) {

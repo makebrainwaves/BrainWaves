@@ -3,6 +3,9 @@ module.exports = {
   rules: {
     // A temporary hack related to IDE not resolving correct package.json
     '@typescript-eslint/ban-ts-ignore': 'warn',
+    '@typescript-eslint/no-use-before-define': 'off',
+    'promise/no-return-wrap': 'warn',
+    'react/jsx-props-no-spreading': 'off',
     'consistent-return': 'warn',
     'dot-notation': 'off',
     'import/no-extraneous-dependencies': 'off',
@@ -11,7 +14,8 @@ module.exports = {
     'jsx-a11y/click-events-have-key-events': 'warn',
     'lines-between-class-members': 'off',
     'max-classes-per-file': 'off',
-    'no-plusplus': 'off'
+    'no-plusplus': 'off',
+    'no-param-reassign': 'off',
     'no-restricted-syntax': 'off',
     'prefer-destructuring': 'warn',
     'react/destructuring-assignment': 'off',
@@ -19,7 +23,7 @@ module.exports = {
     'react/no-access-state-in-setstate': 'warn',
     'react/no-will-update-set-state': 'warn',
     'react/prop-types': 'off',
-    'react/static-property-placement': 'off',
+    'react/static-property-placement': 'off'
   },
   settings: {
     'import/resolver': {

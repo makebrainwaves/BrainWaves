@@ -8,6 +8,8 @@ import {
   Checkbox
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
+import { toast } from 'react-toastify';
+import { shell } from 'electron';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import { readWorkspaces } from '../../utils/filesystem/storage';
@@ -39,10 +41,7 @@ import conditionCongruent from '../../assets/stroop/match_g.png';
 import conditionIncongruent from '../../assets/stroop/mismatch6_r.png';
 
 import { loadProtocol } from '../../utils/labjs/functions';
-import { toast } from 'react-toastify';
 import InputModal from '../InputModal';
-
-import { shell } from 'electron';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',

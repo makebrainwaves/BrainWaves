@@ -1,3 +1,5 @@
+/* eslint-disable */
+// File we be replaced by pyodide update
 import * as path from 'path';
 import { readFileSync } from 'fs';
 
@@ -49,7 +51,7 @@ export const epochEvents = (
   },
   tmin: number,
   tmax: number,
-  reject?: Array<string> | string = 'None'
+  reject: Array<string> | string = 'None'
 ) => {
   const IDs = Object.keys(eventIDs)
     .filter(k => k !== '')

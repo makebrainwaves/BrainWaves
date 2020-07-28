@@ -4,6 +4,7 @@ import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import * as moment from 'moment';
 
+import { remote } from 'electron';
 import styles from '../styles/common.css';
 import {
   EXPERIMENTS,
@@ -31,8 +32,6 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import { loadProtocol } from '../../utils/labjs/functions';
 import EEGExplorationComponent from '../EEGExplorationComponent';
-
-import { remote } from 'electron';
 
 const { dialog } = remote;
 

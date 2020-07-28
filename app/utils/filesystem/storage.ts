@@ -7,8 +7,9 @@ import * as path from 'path';
 import recursive from 'recursive-readdir';
 import { shell, remote } from 'electron';
 import Papa from 'papaparse';
+import mkdirp from 'mkdirp';
 import { ExperimentStateType } from '../../reducers/experimentReducer';
-import { mkdirPathSync } from './write';
+import { ExperimentParameters } from '../../constants/interfaces';
 
 const workspaces = path.join(os.homedir(), 'BrainWaves_Workspaces');
 const { dialog } = remote;
@@ -16,12 +17,12 @@ const { dialog } = remote;
 // -----------------------------------------------------------------------------------------------
 // Creating and Getting
 
+// Gets the absolute path for a workspace from a given title
+export const getWorkspaceDir = (title: string) => path.join(workspaces, title);
+
 // Creates a new directory for a given workspace with the passed title if it doesn't already exist
 export const createWorkspaceDir = (title: string) =>
   mkdirPathSync(getWorkspaceDir(title));
-
-// Gets the absolute path for a workspace from a given title
-export const getWorkspaceDir = (title: string) => path.join(workspaces, title);
 
 // Opens a workspace folder in explorer (or other native OS filesystem browser)
 export const openWorkspaceDir = (title: string) =>
@@ -33,8 +34,12 @@ export const openWorkspaceDir = (title: string) =>
 // Writes 'experiment' store state to file as a JSON object
 export const storeExperimentState = (state: ExperimentStateType) => {
   const timestampedState = state;
-  if (timestampedState && timestampedState.params)
+  if (!timestampedState.title) {
+    return;
+  }
+  if (timestampedState && timestampedState.params) {
     timestampedState.params.dateModified = Date.now(); // saves the timestamp
+  }
   fs.writeFileSync(
     path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
     JSON.stringify(timestampedState)
@@ -43,12 +48,15 @@ export const storeExperimentState = (state: ExperimentStateType) => {
 
 export const restoreExperimentState = (state: ExperimentStateType) => {
   if (state.type !== 'NONE') {
-    const timestampedState = {
+    const timestampedState: ExperimentStateType = {
       ...state,
       subject: '',
       group: '',
       session: 1
     };
+    if (!timestampedState.title) {
+      return;
+    }
     fs.writeFileSync(
       path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
       JSON.stringify(timestampedState)
@@ -165,7 +173,9 @@ export const readWorkspaceBehaviorData = async (title: string) => {
 export const readAndParseState = (dir: string) => {
   try {
     return JSON.parse(
-      fs.readFileSync(path.join(workspaces, dir, 'appState.json'))
+      fs.readFileSync(path.join(workspaces, dir, 'appState.json'), {
+        encoding: 'string'
+      })
     );
   } catch (e) {
     if (e.code === 'ENOENT') {
@@ -189,26 +199,30 @@ export const readImages = (dir: string) =>
 
 // Returns an array of images that are used in a timeline for use in preloading
 export const getImages = (params: ExperimentParameters) =>
-  readdirSync(params.stimulus1.dir)
+  fs
+    .readdirSync(params.stimulus1.dir)
     .map(filename => path.join(params.stimulus1.dir, filename))
     .concat(
-      readdirSync(params.stimulus2.dir).map(filename =>
-        path.join(params.stimulus2.dir, filename)
-      )
+      fs
+        .readdirSync(params.stimulus2.dir)
+        .map(filename => path.join(params.stimulus2.dir, filename))
     );
 
 // -----------------------------------------------------------------------------------------------
 // Util
 
-export const getSubjectNamesFromFiles = (
-  filePaths: Array<string | null | undefined>
-) =>
+// Creates a directory path if it doesn't exist
+export const mkdirPathSync = dirPath => {
+  mkdirp.sync(dirPath);
+};
+
+export const getSubjectNamesFromFiles = (filePaths: Array<string>) =>
   filePaths
     .map(filePath => path.basename(filePath))
     .map(fileName => fileName.substring(0, fileName.indexOf('-')));
 
 // Read CSV files with behavioral data and return an object
-export const readBehaviorData = (files: Array<string | null | undefined>) => {
+export const readBehaviorData = (files: Array<string>) => {
   try {
     return files.map(file => {
       const csv = fs.readFileSync(file, 'utf-8');
@@ -228,19 +242,10 @@ export const storeAggregatedBehaviorData = (data, title) => {
 };
 
 const saveFileOnDisk = (data, title) => {
-  dialog.showSaveDialog(
-    {
-      title: 'Select a folder to save the data',
-      defaultPath: path.join(getWorkspaceDir(title), 'Data', `aggregated.csv`)
-    },
-    filename => {
-      if (filename && typeof filename !== 'undefined') {
-        fs.writeFile(filename, data, err => {
-          if (err) console.error(err);
-        });
-      }
-    }
-  );
+  dialog.showSaveDialog({
+    title: 'Select a folder to save the data',
+    defaultPath: path.join(getWorkspaceDir(title), 'Data', `aggregated.csv`)
+  });
 };
 
 // convert a csv file to an object with Papaparse

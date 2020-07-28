@@ -19,9 +19,13 @@ import {
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
 let bluetooth = {};
-let client = {};
-if (process.platform !== 'win32' || release().split('.')[0] >= 10) {
+let client: MuseClient;
+if (
+  process.platform !== 'win32' ||
+  parseInt(release().split('.')[0], 10) >= 10
+) {
   // Just returns the client object from Muse JS
+  // eslint-disable-next-line global-require
   bluetooth = require('bleat').webbluetooth;
   client = new MuseClient();
   client.enableAux = true;
@@ -31,10 +35,11 @@ if (process.platform !== 'win32' || release().split('.')[0] >= 10) {
 export const getMuse = async () => {
   let device = {};
   if (process.platform === 'win32') {
-    if (release().split('.')[0] < 10) {
+    if (parseInt(release().split('.')[0], 10) >= 10) {
       console.log('win 7 ');
       return null;
     }
+    // @ts-ignore
     device = await bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE] }]
     });

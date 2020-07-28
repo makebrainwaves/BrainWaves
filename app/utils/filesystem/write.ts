@@ -4,9 +4,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import mkdirp from 'mkdirp';
 import { has } from 'lodash';
-import { getWorkspaceDir } from './storage';
+import { getWorkspaceDir, mkdirPathSync } from './storage';
 import { EEGData } from '../../constants/interfaces';
 
 // Creates an appropriate filename and returns a writestream that will write to that file
@@ -52,12 +51,4 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
   } else {
     writeStream.write(`0\n`);
   }
-};
-
-// ------------------------------------------------------------------------
-// Helper functions
-
-// Creates a directory path if it doesn't exist
-export const mkdirPathSync = dirPath => {
-  mkdirp.sync(dirPath);
 };

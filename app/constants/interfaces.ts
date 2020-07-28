@@ -11,6 +11,7 @@ import { EVENTS, SIGNAL_QUALITY } from './constants';
 // lab.js Experiment
 
 export type ExperimentParameters = {
+  dateModified?: number;
   trialDuration: number;
   nbTrials: number;
   iti: number;

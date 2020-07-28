@@ -6,15 +6,16 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default class App extends React.Component<Props> {
-  // props: Props;
+export interface IAppProps {
+}
 
-  render() {
+
+export default function App(props: Props) {
     return (
       <div>
         <TopNav />
-        {this.props.children}
-        <ToastContainer autoclose={false} />
+        {props.children}
+        <ToastContainer  />
       </div>
     );
   }

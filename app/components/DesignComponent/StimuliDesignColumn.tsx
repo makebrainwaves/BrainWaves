@@ -3,10 +3,10 @@
 import React, { Component } from 'react';
 import { Form, Button, Table, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
+import * as path from 'path';
 import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
-import * as path from 'path';
 import styles from '../styles/common.css';
 
 interface Props {

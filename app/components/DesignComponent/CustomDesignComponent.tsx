@@ -284,10 +284,10 @@ export default class CustomDesign extends Component<Props, State> {
                       let newStimuli = [];
                       await stimi.map(stimul => {
                         let dirStimuli = [];
-                        const dir = this.state.params[stimul.name].dir;
+                        const { dir } = this.state.params[stimul.name];
                         if (dir && typeof dir !== 'undefined' && dir !== '') {
                           dirStimuli = readImages(dir).map(i => ({
-                            dir: dir,
+                            dir,
                             filename: i,
                             name: i,
                             condition: this.state.params[stimul.name].title,
@@ -412,7 +412,7 @@ export default class CustomDesign extends Component<Props, State> {
                       )}
                       {...e}
                       onDelete={num => {
-                        const stimuli = this.state.params.stimuli;
+                        const { stimuli } = this.state.params;
                         stimuli.splice(num, 1);
                         const nbPracticeTrials = stimuli.filter(
                           s => s.phase === 'practice'
@@ -430,11 +430,10 @@ export default class CustomDesign extends Component<Props, State> {
                         });
                       }}
                       onChange={(num, key, data) => {
-                        const stimuli = this.state.params.stimuli;
+                        const { stimuli } = this.state.params;
                         stimuli[num][key] = data;
-                        let nbPracticeTrials = this.state.params
-                          .nbPracticeTrials;
-                        let nbTrials = this.state.params.nbTrials;
+                        let { nbPracticeTrials } = this.state.params;
+                        let { nbTrials } = this.state.params;
                         if (key === 'phase') {
                           nbPracticeTrials = stimuli.filter(
                             s => s.phase === 'practice'

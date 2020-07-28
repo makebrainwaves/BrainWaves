@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Grid, Button, Segment, Image, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
+import { isNil } from 'lodash';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import styles from '../styles/topnavbar.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
@@ -9,7 +10,6 @@ import {
   readWorkspaces
 } from '../../utils/filesystem/storage';
 import BrainwavesIcon from '../../assets/common/Brainwaves_Icon_big.png';
-import { isNil } from 'lodash';
 
 interface Props {
   title: string | null | undefined;
