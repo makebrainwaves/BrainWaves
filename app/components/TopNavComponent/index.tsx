@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Button, Segment, Image, Dropdown } from 'semantic-ui-react';
+import { Grid, Segment, Image, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import { isNil } from 'lodash';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
@@ -24,28 +24,26 @@ interface State {
 }
 
 export default class TopNavComponent extends Component<Props, State> {
-  // props: Props;
-
-  state = {
-    recentWorkspaces: []
-  };
-
-  getStyleForScreen(navSegmentScreen: SCREENS) {
+  getStyleForScreen(navSegmentScreen: typeof SCREENS[keyof typeof SCREENS]) {
     if (navSegmentScreen.route === this.props.location.pathname) {
       return styles.activeNavColumn;
     }
 
     const routeOrder = Object.values(SCREENS).find(
       screen => screen.route === navSegmentScreen.route
-    ).order;
+    )?.order;
     const currentOrder = Object.values(SCREENS).find(
       screen => screen.route === this.props.location.pathname
-    ).order;
-    if (currentOrder > routeOrder) {
+    )?.order;
+    if (routeOrder && currentOrder && currentOrder > routeOrder) {
       return styles.visitedNavColumn;
     }
     return styles.initialNavColumn;
   }
+
+  updateWorkspaces = () => {
+    this.setState({ recentWorkspaces: readWorkspaces() });
+  };
 
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
@@ -53,10 +51,6 @@ export default class TopNavComponent extends Component<Props, State> {
       this.props.experimentActions.setState(recentWorkspaceState);
     }
   }
-
-  updateWorkspaces = () => {
-    this.setState({ recentWorkspaces: readWorkspaces() });
-  };
 
   render() {
     if (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Switch, Route } from 'react-router';
-import App from './containers/App';
+import { App } from './containers/App';
 import HomeContainer from './containers/HomeContainer';
 import ExperimentDesignContainer from './containers/ExperimentDesignContainer';
 import CollectContainer from './containers/CollectContainer';

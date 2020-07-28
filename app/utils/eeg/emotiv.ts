@@ -93,13 +93,13 @@ export const createRawEmotivObservable = async () => {
     toast.error(`EEG connection failed. ${err.message}`);
   }
 
-  //@ts-ignore
+  // @ts-ignore
   return fromEvent(client, 'eeg').pipe(map(createEEGSample));
 };
 
 // Creates an observable that will epoch, filter, and add signal quality to EEG stream
 export const createEmotivSignalQualityObservable = rawObservable => {
-  //@ts-ignore
+  // @ts-ignore
   const signalQualityObservable = fromEvent(client, 'dev');
   const samplingRate = 128;
   const channels = EMOTIV_CHANNELS;

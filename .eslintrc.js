@@ -8,6 +8,7 @@ module.exports = {
     'react/jsx-props-no-spreading': 'off',
     'consistent-return': 'warn',
     'dot-notation': 'off',
+    'react/no-did-update-set-state': 'warn',
     'import/no-extraneous-dependencies': 'off',
     'import/prefer-default-export': 'off',
     'jsx-a11y/anchor-is-valid': 'warn',
