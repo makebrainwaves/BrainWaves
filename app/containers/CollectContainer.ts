@@ -12,8 +12,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    deviceActions: bindActionCreators(DeviceActions, dispatch),
-    experimentActions: bindActionCreators(ExperimentActions, dispatch)
+    DeviceActions: bindActionCreators(DeviceActions, dispatch),
+    ExperimentActions: bindActionCreators(ExperimentActions, dispatch)
   };
 }
 

@@ -25,7 +25,7 @@ interface Props {
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: object;
+  DeviceActions: typeof  DeviceActions;
   availableDevices: Array<any>;
 }
 
@@ -57,15 +57,15 @@ export default class Home extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.deviceActions.setDeviceAvailability(
+    this.props.DeviceActions.setDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
   }
 
   handleStopConnect() {
-    this.props.deviceActions.disconnectFromDevice(this.props.connectedDevice);
+    this.props.DeviceActions.disconnectFromDevice(this.props.connectedDevice);
     this.setState({ isConnectModalOpen: false });
-    this.props.deviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
+    this.props.DeviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
   }
 
   handleConnectModalClose() {
@@ -132,7 +132,7 @@ export default class Home extends Component<Props, State> {
               deviceType={this.props.deviceType}
               deviceAvailability={this.props.deviceAvailability}
               connectionStatus={this.props.connectionStatus}
-              deviceActions={this.props.deviceActions}
+              DeviceActions={this.props.DeviceActions}
               availableDevices={this.props.availableDevices}
               style={{ marginTop: '100px' }}
             />

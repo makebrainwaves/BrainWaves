@@ -15,7 +15,7 @@ interface Props {
   title: string | null | undefined;
   location: { pathname: string; search: string; hash: string };
   isRunning: boolean;
-  experimentActions: object;
+  ExperimentActions: typeof  ExperimentActions;
   type: EXPERIMENTS;
 }
 
@@ -48,7 +48,7 @@ export default class TopNavComponent extends Component<Props, State> {
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
     if (!isNil(recentWorkspaceState)) {
-      this.props.experimentActions.setState(recentWorkspaceState);
+      this.props.ExperimentActions.setState(recentWorkspaceState);
     }
   }
 

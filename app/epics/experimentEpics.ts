@@ -15,7 +15,7 @@ import {
 import {
   ExperimentActions,
   ExperimentActionType
-} from '../actions/experimentActions';
+} from '../actions/ExperimentActions';
 import {
   DEVICES,
   MUSE_CHANNELS,

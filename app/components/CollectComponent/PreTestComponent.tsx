@@ -21,14 +21,14 @@ import {
 import { loadProtocol } from '../../utils/labjs/functions';
 
 interface Props {
-  experimentActions: object;
+  ExperimentActions: typeof  ExperimentActions;
   connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: object;
-  experimentActions: object;
+  DeviceActions: typeof  DeviceActions;
+  ExperimentActions: typeof  ExperimentActions;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
   paradigm: EXPERIMENTS;
@@ -66,7 +66,7 @@ export default class PreTestComponent extends Component<Props, State> {
   }
 
   componentDidMount() {
-    Mousetrap.bind('esc', this.props.experimentActions.stop);
+    Mousetrap.bind('esc', this.props.ExperimentActions.stop);
   }
 
   componentWillUnmount() {

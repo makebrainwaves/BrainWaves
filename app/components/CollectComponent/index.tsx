@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import {
@@ -9,37 +10,38 @@ import {
 import {
   MainTimeline,
   Trial,
-  ExperimentParameters
+  ExperimentParameters,
+  SignalQualityData
 } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
 import RunComponent from './RunComponent';
+import { ExperimentActions, DeviceActions } from '../../actions';
 
-interface Props {
+export interface Props {
   history: object;
-  experimentActions: object;
+  ExperimentActions: typeof ExperimentActions;
   connectedDevice: object;
-  signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: object;
+  DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
-  type: EXPERIMENTS | null | undefined;
+  type: EXPERIMENTS;
+  signalQualityObservable: Observable<SignalQualityData>;
   isRunning: boolean;
-  params: ExperimentParameters | null | undefined;
-  mainTimeline: MainTimeline | null | undefined;
-  trials:
-    | {
-        [key: string]: Trial;
-      }
-    | null
-    | undefined;
-  timelines: {} | null | undefined;
+  params: ExperimentParameters;
+  paradigm: EXPERIMENTS;
+  mainTimeline: MainTimeline;
+  trials: {
+    [key: string]: Trial;
+  };
+  timelines: {};
   subject: string;
   group: string;
   session: number;
   isEEGEnabled: boolean;
+  title: string;
 }
 
 interface State {
@@ -62,7 +64,7 @@ export default class Collect extends Component<Props, State> {
     this.handleRunComponentOpen = this.handleRunComponentOpen.bind(this);
     this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
     if (isNil(props.params)) {
-      props.experimentActions.loadDefaultTimeline();
+      props.ExperimentActions.LoadDefaultTimeline();
     }
   }
 
@@ -86,7 +88,7 @@ export default class Collect extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.deviceActions.setDeviceAvailability(
+    this.props.DeviceActions.SetDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
   }
@@ -105,12 +107,7 @@ export default class Collect extends Component<Props, State> {
 
   render() {
     if (this.state.isRunComponentOpen) {
-      return (
-        <RunComponent
-          {...this.props}
-          closeRunComponent={this.handleRunComponentClose}
-        />
-      );
+      return <RunComponent {...this.props} />;
     }
     return (
       <>
@@ -123,7 +120,7 @@ export default class Collect extends Component<Props, State> {
           deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
-          deviceActions={this.props.deviceActions}
+          DeviceActions={this.props.DeviceActions}
           availableDevices={this.props.availableDevices}
         />
         <PreTestComponent
@@ -132,8 +129,8 @@ export default class Collect extends Component<Props, State> {
           deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
-          deviceActions={this.props.deviceActions}
-          experimentActions={this.props.experimentActions}
+          DeviceActions={this.props.DeviceActions}
+          ExperimentActions={this.props.ExperimentActions}
           availableDevices={this.props.availableDevices}
           type={this.props.type}
           paradigm={this.props.paradigm}
@@ -146,7 +143,6 @@ export default class Collect extends Component<Props, State> {
           group={this.props.group}
           session={this.props.session}
           openRunComponent={this.handleRunComponentOpen}
-          title={this.props.title}
         />
       </>
     );

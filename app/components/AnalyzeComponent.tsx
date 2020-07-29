@@ -79,7 +79,7 @@ interface Props {
       }
     | null
     | undefined;
-  jupyterActions: object;
+  JupyterActions: typeof  JupyterActions;
 }
 
 interface State {
@@ -185,7 +185,7 @@ export default class Analyze extends Component<Props, State> {
       this.props.title
     );
     if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.jupyterActions.launchKernel();
+      this.props.JupyterActions.launchKernel();
     }
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
@@ -217,7 +217,7 @@ export default class Analyze extends Component<Props, State> {
       selectedFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value)
     });
-    this.props.jupyterActions.loadCleanedEpochs(data.value);
+    this.props.JupyterActions.loadCleanedEpochs(data.value);
   }
 
   handleBehaviorDatasetChange(event: object, data: object) {
@@ -333,7 +333,7 @@ export default class Analyze extends Component<Props, State> {
 
   handleChannelSelect(channelName: string) {
     this.setState({ selectedChannel: channelName });
-    this.props.jupyterActions.loadERP(channelName);
+    this.props.JupyterActions.loadERP(channelName);
   }
 
   concatSubjectNames = (subjects: Array<string | null | undefined>) => {

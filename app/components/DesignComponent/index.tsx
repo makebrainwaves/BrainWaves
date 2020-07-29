@@ -42,6 +42,7 @@ import conditionIncongruent from '../../assets/stroop/mismatch6_r.png';
 
 import { loadProtocol } from '../../utils/labjs/functions';
 import InputModal from '../InputModal';
+import { ExperimentActions } from '../../actions';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -61,7 +62,7 @@ interface Props {
     [key: string]: Trial;
   };
   timelines: {};
-  experimentActions: object;
+  ExperimentActions: typeof ExperimentActions;
   description: ExperimentDescription;
   isEEGEnabled: boolean;
 }
@@ -97,7 +98,7 @@ export default class Design extends Component<Props, State> {
     this.endPreview = this.endPreview.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
-      props.experimentActions.loadDefaultTimeline();
+      props.ExperimentActions.LoadDefaultTimeline();
     }
   }
 
@@ -130,13 +131,13 @@ export default class Design extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    this.props.experimentActions.createNewWorkspace({
+    this.props.ExperimentActions.createNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
       paradigm: 'Custom'
       // paradigm: this.props.paradigm
     });
-    this.props.experimentActions.saveWorkspace();
+    this.props.ExperimentActions.saveWorkspace();
   }
 
   handlePreview(e) {
@@ -149,8 +150,8 @@ export default class Design extends Component<Props, State> {
   }
 
   handleEEGEnabled(event: object, data: object) {
-    this.props.experimentActions.setEEGEnabled(data.checked);
-    this.props.experimentActions.saveWorkspace();
+    this.props.ExperimentActions.setEEGEnabled(data.checked);
+    this.props.ExperimentActions.saveWorkspace();
   }
 
   renderConditionIcon(type) {

@@ -57,7 +57,7 @@ interface Props {
     [key: string]: Trial;
   };
   timelines: {};
-  experimentActions: object;
+  ExperimentActions: typeof  ExperimentActions;
   isEEGEnabled: boolean;
   description: ExperimentDescription;
 }
@@ -92,7 +92,7 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleProgressBar = this.handleProgressBar.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
-      props.experimentActions.loadDefaultTimeline();
+      props.ExperimentActions.loadDefaultTimeline();
     }
     this.endPreview = this.endPreview.bind(this);
   }
@@ -113,7 +113,7 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleEEGEnabled(event: object, data: object) {
-    this.props.experimentActions.setEEGEnabled(data.checked);
+    this.props.ExperimentActions.setEEGEnabled(data.checked);
   }
 
   handleStartExperiment() {
@@ -126,9 +126,9 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleSaveParams() {
-    this.props.experimentActions.setParams(this.state.params);
-    this.props.experimentActions.setDescription(this.state.description);
-    this.props.experimentActions.saveWorkspace();
+    this.props.ExperimentActions.setParams(this.state.params);
+    this.props.ExperimentActions.setDescription(this.state.description);
+    this.props.ExperimentActions.saveWorkspace();
     this.setState({ saved: true });
   }
 

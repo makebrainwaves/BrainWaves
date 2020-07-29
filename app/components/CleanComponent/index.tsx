@@ -10,21 +10,21 @@ import {
   SidebarPusher,
   Divider,
   DropdownProps,
-  DropdownItemProps
+  DropdownItemProps,
+  SemanticICONS
 } from 'semantic-ui-react';
 import * as path from 'path';
 import { Link } from 'react-router-dom';
 import { isNil, isArray, isString } from 'lodash';
-import { isStr } from 'react-toastify/dist/utils';
-import { SemanticICONS } from 'semantic-ui-react/dist/commonjs/generic';
 import styles from '../styles/collect.css';
 import commonStyles from '../styles/common.css';
 import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
 import { Kernel } from '../../constants/interfaces';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
+import { JupyterActions, ExperimentActions } from '../../actions';
 
-interface Props {
+export interface Props {
   type?: EXPERIMENTS;
   title: string;
   deviceType: DEVICES;
@@ -34,8 +34,8 @@ interface Props {
   epochsInfo: Array<{
     [key: string]: number | string;
   }>;
-  jupyterActions: object;
-  experimentActions: object;
+  JupyterActions: typeof JupyterActions;
+  ExperimentActions: typeof ExperimentActions;
   subject: string;
   session: number;
 }
@@ -73,7 +73,7 @@ export default class Clean extends Component<Props, State> {
   async componentDidMount() {
     const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
     if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.jupyterActions.launchKernel();
+      this.props.JupyterActions.LaunchKernel();
     }
     this.setState({
       subjects: workspaceRawData
@@ -115,8 +115,8 @@ export default class Clean extends Component<Props, State> {
   }
 
   handleLoadData() {
-    this.props.experimentActions.setSubject(this.state.selectedSubject);
-    this.props.jupyterActions.loadEpochs(this.state.selectedFilePaths);
+    this.props.ExperimentActions.SetSubject(this.state.selectedSubject);
+    this.props.JupyterActions.LoadEpochs(this.state.selectedFilePaths);
   }
 
   handleSidebarToggle() {
@@ -248,7 +248,7 @@ export default class Clean extends Component<Props, State> {
                       <Button
                         primary
                         disabled={isNil(this.props.epochsInfo)}
-                        onClick={this.props.jupyterActions.cleanEpochs}
+                        onClick={this.props.JupyterActions.CleanEpochs()}
                       >
                         Clean Data
                       </Button>

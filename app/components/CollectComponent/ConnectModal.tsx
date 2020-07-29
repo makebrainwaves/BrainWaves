@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import { isNil, debounce } from 'lodash';
 import { Modal, Button, Segment, List, Grid, Divider } from 'semantic-ui-react';
@@ -8,17 +9,19 @@ import {
   SCREENS
 } from '../../constants/constants';
 import styles from '../styles/collect.css';
+import { SignalQualityData } from '../../constants/interfaces';
+import { DeviceActions } from '../../actions';
 
 interface Props {
   history: object;
   open: boolean;
   onClose: () => void;
   connectedDevice: object;
-  signalQualityObservable: any | null | undefined;
+  signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: object;
+  DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
 }
 
@@ -48,7 +51,7 @@ export default class ConnectModal extends Component<Props, State> {
     super(props);
     this.state = {
       selectedDevice: null,
-      instructionProgress: INSTRUCTION_PROGRESS.Searching
+      instructionProgress: INSTRUCTION_PROGRESS.SEARCHING
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
@@ -78,18 +81,18 @@ export default class ConnectModal extends Component<Props, State> {
 
   handleSearch() {
     this.setState({ instructionProgress: 0 });
-    this.props.deviceActions.setDeviceAvailability(
+    this.props.DeviceActions.SetDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
   }
 
   handleConnect() {
-    this.props.deviceActions.connectToDevice(this.state.selectedDevice);
+    this.props.DeviceActions.ConnectToDevice(this.state.selectedDevice);
   }
 
-  handleinstructionProgress(step: INSTRUCTION_PROGRESS) {
-    if (step !== 0) {
-      this.setState({ instructionProgress: step });
+  handleinstructionProgress(progress: INSTRUCTION_PROGRESS) {
+    if (progress !== 0) {
+      this.setState({ instructionProgress: progress });
     }
   }
 
@@ -156,7 +159,7 @@ export default class ConnectModal extends Component<Props, State> {
           <Modal.Content>
             <Grid textAlign="center" columns="equal">
               <Grid.Column>
-                {this.state.step !== 0 && (
+                {this.state.instructionProgress !== 0 && (
                   <Button
                     fluid
                     className={styles.secondaryButton}

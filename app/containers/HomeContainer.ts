@@ -1,9 +1,7 @@
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Home from '../components/HomeComponent';
-import * as deviceActions from '../actions/deviceActions';
-import * as jupyterActions from '../actions/jupyterActions';
-import * as experimentActions from '../actions/experimentActions';
+import { DeviceActions, ExperimentActions, JupyterActions } from '../actions';
 
 function mapStateToProps(state) {
   return {
@@ -14,9 +12,9 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    deviceActions: bindActionCreators(deviceActions, dispatch),
-    jupyterActions: bindActionCreators(jupyterActions, dispatch),
-    experimentActions: bindActionCreators(experimentActions, dispatch)
+    DeviceActions: bindActionCreators(DeviceActions, dispatch),
+    JupyterActions: bindActionCreators(JupyterActions, dispatch),
+    ExperimentActions: bindActionCreators(ExperimentActions, dispatch)
   };
 }
 

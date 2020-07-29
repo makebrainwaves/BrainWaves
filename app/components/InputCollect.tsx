@@ -1,12 +1,17 @@
 import React, { Component } from 'react';
-import { Input, Modal, Button } from 'semantic-ui-react';
-import { debounce } from 'lodash';
+import { Input, Modal, Button, InputOnChangeData } from 'semantic-ui-react';
 import styles from './styles/common.css';
 
+interface InputData {
+  subject: string;
+  group: string;
+  session: number;
+}
 interface Props {
   open: boolean;
-  onClose: (arg0: string) => void;
-  onExit: (arg0: string) => void;
+  data: InputData;
+  onClose: (subject: string, group: string, session: number) => void;
+  onExit: () => void;
   header: string;
 }
 
@@ -14,7 +19,6 @@ interface State {
   subject: string;
   group: string;
   session: number;
-  isError: boolean;
   isSubjectError: boolean;
   isSessionError: boolean;
 }
@@ -29,7 +33,6 @@ export default class InputCollect extends Component<Props, State> {
       subject: this.props.data && this.props.data.subject,
       group: this.props.data && this.props.data.group,
       session: this.props.data && this.props.data.session,
-      isError: false,
       isSubjectError: false,
       isSessionError: false
     };
@@ -39,20 +42,25 @@ export default class InputCollect extends Component<Props, State> {
     this.handleExit = this.handleExit.bind(this);
   }
 
-  sanitizeTextInput(text: string) {
-    return text.replace(/[|&;$%@"<>()+,./]/g, '');
-  }
-
-  handleTextEntry(event, data, field) {
-    const val = field === 'session' ? parseInt(data.value) : data.value;
-    this.setState({ [field]: val });
+  handleTextEntry(data: InputOnChangeData, field: keyof InputData) {
+    switch (field) {
+      case 'session':
+        this.setState({ [field]: parseInt(data.value, 10) });
+        break;
+      case 'group':
+        this.setState({ [field]: data.value });
+        break;
+      case 'subject':
+      default:
+        this.setState({ subject: data.value });
+    }
   }
 
   handleClose() {
     if (this.state.subject.length >= 1 && this.state.session) {
       this.props.onClose(
-        this.sanitizeTextInput(this.state.subject),
-        this.sanitizeTextInput(this.state.group),
+        sanitizeTextInput(this.state.subject),
+        sanitizeTextInput(this.state.group),
         this.state.session
       );
     } else {
@@ -69,7 +77,7 @@ export default class InputCollect extends Component<Props, State> {
     this.props.onExit();
   }
 
-  handleEnterSubmit(event: object) {
+  handleEnterSubmit(event: KeyboardEvent) {
     if (event.key === 'Enter') {
       this.handleClose();
     }
@@ -90,9 +98,7 @@ export default class InputCollect extends Component<Props, State> {
             focus
             fluid
             error={this.state.isSubjectError}
-            onChange={(object, data) =>
-              this.handleTextEntry(object, data, 'subject')
-            }
+            onChange={(object, data) => this.handleTextEntry(data, 'subject')}
             onKeyDown={this.handleEnterSubmit}
             value={this.state.subject}
             autoFocus
@@ -103,9 +109,7 @@ export default class InputCollect extends Component<Props, State> {
           <Input
             focus
             fluid
-            onChange={(object, data) =>
-              this.handleTextEntry(object, data, 'group')
-            }
+            onChange={(object, data) => this.handleTextEntry(data, 'group')}
             onKeyDown={this.handleEnterSubmit}
             value={this.state.group}
           />
@@ -116,9 +120,7 @@ export default class InputCollect extends Component<Props, State> {
             focus
             fluid
             error={this.state.isSessionError}
-            onChange={(object, data) =>
-              this.handleTextEntry(object, data, 'session')
-            }
+            onChange={(object, data) => this.handleTextEntry(data, 'session')}
             onKeyDown={this.handleEnterSubmit}
             value={this.state.session}
             type="number"
@@ -130,4 +132,8 @@ export default class InputCollect extends Component<Props, State> {
       </Modal>
     );
   }
+}
+
+function sanitizeTextInput(text: string) {
+  return text.replace(/[|&;$%@"<>()+,./]/g, '');
 }

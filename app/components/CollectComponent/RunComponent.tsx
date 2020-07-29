@@ -14,6 +14,7 @@ import {
   Trial,
   ExperimentParameters
 } from '../../constants/interfaces';
+import { ExperimentActions } from '../../actions';
 
 const { dialog } = remote;
 
@@ -31,8 +32,9 @@ interface Props {
   group: string;
   session: number;
   deviceType: DEVICES;
+  paradigm: EXPERIMENTS;
   isEEGEnabled: boolean;
-  experimentActions: object;
+  ExperimentActions: typeof ExperimentActions;
 }
 
 interface State {
@@ -55,11 +57,11 @@ export default class Run extends Component<Props, State> {
 
   componentDidMount() {
     if (this.props.mainTimeline.length <= 0) {
-      this.props.experimentActions.loadDefaultTimeline();
+      this.props.ExperimentActions.LoadDefaultTimeline();
     }
   }
 
-  handleStartExperiment() {
+  async handleStartExperiment() {
     const filename = `${this.props.subject}-${this.props.group}-${this.props.session}-behavior.csv`;
     const { subject, title } = this.props;
     const fileExists = checkFileExists(title, subject, filename);
@@ -69,25 +71,23 @@ export default class Run extends Component<Props, State> {
         message:
           'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?'
       };
-      const response = dialog.showMessageBox(options);
-      if (response === 1) {
-        this.props.experimentActions.start();
+      const response = await dialog.showMessageBox(options);
+      if (response.response === 1) {
+        this.props.ExperimentActions.Start();
       }
-    } else {
-      this.props.experimentActions.start();
     }
   }
 
   handleCloseInputCollect(subject: string, group: string, session: number) {
-    this.props.experimentActions.setSubject(subject);
-    this.props.experimentActions.setGroup(group);
+    this.props.ExperimentActions.SetSubject(subject);
+    this.props.ExperimentActions.SetGroup(group);
     // error here
-    this.props.experimentActions.setSession(parseFloat(session));
+    this.props.ExperimentActions.SetSession(session);
     this.setState({ isInputCollectOpen: false });
   }
 
   insertLabJsCallback() {
-    let injectionFunction = () => null;
+    let injectionFunction = (value: any, time: number) => {};
     if (this.props.isEEGEnabled) {
       injectionFunction =
         this.props.deviceType === 'MUSE'
@@ -172,7 +172,7 @@ export default class Run extends Component<Props, State> {
             params: this.props.params,
             eventCallback: this.insertLabJsCallback(),
             on_finish: csv => {
-              this.props.experimentActions.stop({ data: csv });
+              this.props.ExperimentActions.Stop({ data: csv });
             }
           }}
         />

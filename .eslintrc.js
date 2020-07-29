@@ -23,6 +23,7 @@ module.exports = {
     'react/jsx-one-expression-per-line': 'off',
     'react/no-access-state-in-setstate': 'warn',
     'react/no-will-update-set-state': 'warn',
+    'react/jsx-curly-newline': 'off',
     'react/prop-types': 'off',
     'react/static-property-placement': 'off'
   },

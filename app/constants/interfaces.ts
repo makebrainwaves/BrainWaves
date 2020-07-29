@@ -57,7 +57,7 @@ export interface ExperimentSettings {
   title: string;
   script: any;
   params: ExperimentParameters;
-  eventCallback: (e: Event, time: number) => null;
+  eventCallback: (e: Event, time: number) => void;
   on_finish: (csv: any) => void;
 }
 

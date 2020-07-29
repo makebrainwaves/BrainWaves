@@ -1,8 +1,7 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Analyze from '../components/AnalyzeComponent';
-import * as experimentActions from '../actions/experimentActions';
-import * as jupyterActions from '../actions/jupyterActions';
+import { JupyterActions, ExperimentActions } from '../actions';
 
 function mapStateToProps(state) {
   return {
@@ -16,8 +15,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    experimentActions: bindActionCreators(experimentActions, dispatch),
-    jupyterActions: bindActionCreators(jupyterActions, dispatch)
+    ExperimentActions: bindActionCreators(ExperimentActions, dispatch),
+    JupyterActions: bindActionCreators(JupyterActions, dispatch)
   };
 }
 

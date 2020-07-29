@@ -45,15 +45,15 @@ const HOME_STEPS = {
 interface Props {
   kernelStatus: KERNEL_STATUS;
   history: object;
-  jupyterActions: object;
+  JupyterActions: typeof  JupyterActions;
   connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  deviceActions: object;
+  DeviceActions: typeof  DeviceActions;
   availableDevices: Array<any>;
-  experimentActions: object;
+  ExperimentActions: typeof  ExperimentActions;
 }
 
 interface State {
@@ -106,7 +106,7 @@ export default class Home extends Component<Props, State> {
       this.handleLoadRecentWorkspace(experimentType);
       // Create pre-designed workspace if opened for first time
     } else {
-      this.props.experimentActions.createNewWorkspace({
+      this.props.ExperimentActions.createNewWorkspace({
         title: experimentType,
         type: experimentType,
         paradigm: experimentType
@@ -126,7 +126,7 @@ export default class Home extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    this.props.experimentActions.createNewWorkspace({
+    this.props.ExperimentActions.createNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
       paradigm: EXPERIMENTS.CUSTOM
@@ -137,7 +137,7 @@ export default class Home extends Component<Props, State> {
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
     if (!isNil(recentWorkspaceState)) {
-      this.props.experimentActions.setState(recentWorkspaceState);
+      this.props.ExperimentActions.setState(recentWorkspaceState);
     }
     this.props.history.push(SCREENS.DESIGN.route);
   }
@@ -452,7 +452,7 @@ export default class Home extends Component<Props, State> {
             deviceAvailability={this.props.deviceAvailability}
             connectionStatus={this.props.connectionStatus}
             availableDevices={this.props.availableDevices}
-            deviceActions={this.props.deviceActions}
+            DeviceActions={this.props.DeviceActions}
           />
         );
     }
