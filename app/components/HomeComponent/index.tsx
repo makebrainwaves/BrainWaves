@@ -3,7 +3,7 @@ import { isNil } from 'lodash';
 import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import * as moment from 'moment';
-
+import { HashHistory } from 'history';
 import { remote } from 'electron';
 import styles from '../styles/common.css';
 import {
@@ -11,7 +11,8 @@ import {
   SCREENS,
   KERNEL_STATUS,
   CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
+  DEVICE_AVAILABILITY,
+  DEVICES
 } from '../../constants/constants';
 import faceHouseIcon from '../../assets/common/FacesHouses.png';
 import stroopIcon from '../../assets/common/Stroop.png';
@@ -26,6 +27,11 @@ import {
   openWorkspaceDir,
   deleteWorkspaceDir
 } from '../../utils/filesystem/storage';
+import {
+  JupyterActions,
+  DeviceActions,
+  ExperimentActions
+} from '../../actions';
 
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
@@ -44,16 +50,17 @@ const HOME_STEPS = {
 
 interface Props {
   kernelStatus: KERNEL_STATUS;
-  history: object;
-  JupyterActions: typeof  JupyterActions;
+  history: HashHistory;
+  JupyterActions: typeof JupyterActions;
   connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  DeviceActions: typeof  DeviceActions;
+  DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
-  ExperimentActions: typeof  ExperimentActions;
+  ExperimentActions: typeof ExperimentActions;
+  activeStep?: string;
 }
 
 interface State {
@@ -106,7 +113,7 @@ export default class Home extends Component<Props, State> {
       this.handleLoadRecentWorkspace(experimentType);
       // Create pre-designed workspace if opened for first time
     } else {
-      this.props.ExperimentActions.createNewWorkspace({
+      this.props.ExperimentActions.CreateNewWorkspace({
         title: experimentType,
         type: experimentType,
         paradigm: experimentType
@@ -126,7 +133,7 @@ export default class Home extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    this.props.ExperimentActions.createNewWorkspace({
+    this.props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
       paradigm: EXPERIMENTS.CUSTOM
@@ -137,7 +144,7 @@ export default class Home extends Component<Props, State> {
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
     if (!isNil(recentWorkspaceState)) {
-      this.props.ExperimentActions.setState(recentWorkspaceState);
+      this.props.ExperimentActions.SetState(recentWorkspaceState);
     }
     this.props.history.push(SCREENS.DESIGN.route);
   }
@@ -155,13 +162,13 @@ export default class Home extends Component<Props, State> {
     });
   }
 
-  handleDeleteWorkspace(dir) {
+  async handleDeleteWorkspace(dir) {
     const options = {
       buttons: ['No', 'Yes'],
       message: 'Do you really want to delete the experiment?'
     };
-    const response = dialog.showMessageBox(options);
-    if (response === 1) {
+    const response = await dialog.showMessageBox(options);
+    if (response.response === 1) {
       deleteWorkspaceDir(dir);
       this.setState({ recentWorkspaces: readWorkspaces() });
     }
@@ -327,9 +334,9 @@ export default class Home extends Component<Props, State> {
                         </Header>
                         <div className={styles.experimentCardDescription}>
                           <p>
-                            Investigate why it is hard to deal with
+                            {`Investigate why it is hard to deal with
                             contradictory information (like the word "RED"
-                            printed in blue).
+                            printed in blue).`}
                           </p>
                         </div>
                       </Grid.Column>

@@ -3,7 +3,10 @@ import { Button } from 'semantic-ui-react';
 
 interface Props {
   isPreviewing: boolean;
-  onClick: () => void;
+  onClick: (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    data: ButtonProps
+  ) => void;
 }
 
 export default class PreviewButton extends PureComponent<Props> {

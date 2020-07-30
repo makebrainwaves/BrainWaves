@@ -4,14 +4,13 @@ import { createEpicMiddleware } from 'redux-observable';
 import { createHashHistory } from 'history';
 import { routerMiddleware, routerActions } from 'react-router-redux';
 import { createLogger } from 'redux-logger';
-import rootReducer from '../reducers';
+import rootReducer, { RootState } from '../reducers';
 import rootEpic from '../epics';
-import * as JupyterActions from '../actions/JupyterActions';
-import * as DeviceActions from '../actions/DeviceActions';
+import { JupyterActions, DeviceActions } from '../actions';
 
 const history = createHashHistory();
 
-const configureStore = (initialState?: AppState) => {
+const configureStore = (initialState?: RootState) => {
   // Redux Configuration
   const middleware = [];
   const enhancers = [];

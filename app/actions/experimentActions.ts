@@ -26,7 +26,7 @@ export const ExperimentActions = {
   ExperimentCleanup: createAction('EXPERIMENT_CLEANUP'),
   SetTimeline: createAction<any, 'SET_TIMELINE'>('SET_TIMELINE'),
   SetTitle: createAction<any, 'SET_TITLE'>('SET_TITLE'),
-  SaveWorkspace: createAction<any, 'SAVE_WORKSPACE'>('SAVE_WORKSPACE'),
+  SaveWorkspace: createAction('SAVE_WORKSPACE'),
   SetState: createAction<any, 'SET_EXPERIMENT_STATE'>('SET_EXPERIMENT_STATE'),
   SetEEGEnabled: createAction<any, 'SET_EEG_ENABLED'>('SET_EEG_ENABLED'),
   UpdateSession: createAction('UPDATE_SESSION')

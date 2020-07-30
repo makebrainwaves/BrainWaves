@@ -12,7 +12,8 @@ interface Props {
   };
   activeStep: string;
   onStepClick: (arg0: string) => void;
-  button?: React.ReactNode;
+  saveButton?: JSX.Element;
+  enableEEGToggle?: JSX.Element;
 }
 
 export default class SecondaryNavComponent extends Component<Props> {

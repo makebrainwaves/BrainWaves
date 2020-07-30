@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
+import { HashHistory } from 'history';
 import {
   Grid,
   Button,
   Segment,
   Header,
   Image,
-  Checkbox
+  Checkbox,
+  CheckboxProps
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
@@ -51,8 +53,8 @@ const DESIGN_STEPS = {
   PREVIEW: 'PREVIEW'
 };
 
-interface Props {
-  history: object;
+export interface Props {
+  history: HashHistory;
   type: EXPERIMENTS;
   paradigm: EXPERIMENTS;
   title: string;
@@ -65,6 +67,27 @@ interface Props {
   ExperimentActions: typeof ExperimentActions;
   description: ExperimentDescription;
   isEEGEnabled: boolean;
+  overview: string;
+  overview_title: string;
+  // TODO: this is too many props and we should put them into a
+  // redux structure at some point
+  background_links: { address: string; name: string }[];
+  background_first_column: string;
+  background_first_column_question: string;
+
+  background_second_column: string;
+  background_second_column_question: string;
+
+  protocol: string;
+  protocol_title: string;
+
+  protocol_condition_first_img: any;
+  protocol_condition_first_title: string;
+  protocol_condition_first: string;
+
+  protocol_condition_second_img: any;
+  protocol_condition_second_title: string;
+  protocol_condition_second: string;
 }
 
 interface State {
@@ -75,11 +98,6 @@ interface State {
 }
 
 export default class Design extends Component<Props, State> {
-  // handleStartExperiment: (Object) => void;
-
-  // handleCustomizeExperiment: (Object) => void;
-  // handlePreview: (Object) => void;
-  // handleLoadCustomExperiment: (string) => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -131,81 +149,69 @@ export default class Design extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    this.props.ExperimentActions.createNewWorkspace({
+    this.props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
       paradigm: 'Custom'
       // paradigm: this.props.paradigm
     });
-    this.props.ExperimentActions.saveWorkspace();
+    this.props.ExperimentActions.SaveWorkspace();
   }
 
   handlePreview(e) {
     e.target.blur();
-    this.setState({ isPreviewing: !this.state.isPreviewing });
+    this.setState(prevState => ({
+      isPreviewing: !prevState.isPreviewing
+    }));
   }
 
   endPreview() {
     this.setState({ isPreviewing: false });
   }
 
-  handleEEGEnabled(event: object, data: object) {
-    this.props.ExperimentActions.setEEGEnabled(data.checked);
-    this.props.ExperimentActions.saveWorkspace();
+  handleEEGEnabled(
+    event: React.FormEvent<HTMLInputElement>,
+    data: CheckboxProps
+  ) {
+    this.props.ExperimentActions.SetEEGEnabled(data.checked);
+    this.props.ExperimentActions.SaveWorkspace();
   }
 
-  renderConditionIcon(type) {
+  static renderConditionIcon(type) {
     switch (type) {
       case 'conditionCongruent':
         return conditionCongruent;
-        break;
       case 'conditionIncongruent':
         return conditionIncongruent;
-        break;
       case 'conditionOrangeT':
         return conditionOrangeT;
-        break;
       case 'conditionNoOrangeT':
         return conditionNoOrangeT;
-        break;
       case 'conditionFace':
         return conditionFace;
-        break;
       case 'conditionHouse':
         return conditionHouse;
-        break;
       case 'multiConditionShape':
         return multiConditionShape;
-        break;
       case 'multiConditionDots':
       default:
         return multiConditionDots;
-        break;
     }
   }
 
-  renderOverviewIcon(type) {
+  static renderOverviewIcon(type) {
     switch (type) {
       case EXPERIMENTS.N170:
         return facesHousesOverview;
-        break;
-
       case EXPERIMENTS.STROOP:
         return stroopOverview;
-        break;
-
       case EXPERIMENTS.MULTI:
         return multitaskingOverview;
-        break;
-
       case EXPERIMENTS.SEARCH:
         return searchOverview;
-        break;
-
       case EXPERIMENTS.CUSTOM:
       default:
         return customOverview;
-        break;
     }
   }
 
@@ -224,7 +230,7 @@ export default class Design extends Component<Props, State> {
             <Grid.Row stretched>
               <Grid.Column stretched width={5}>
                 <Segment basic>
-                  <Image src={this.renderOverviewIcon(this.props.type)} />
+                  <Image src={Design.renderOverviewIcon(this.props.type)} />
                 </Segment>
               </Grid.Column>
 
@@ -249,7 +255,7 @@ export default class Design extends Component<Props, State> {
             <Grid.Row>
               <Grid.Column stretched width={4}>
                 <Segment basic>
-                  <Image src={this.renderOverviewIcon(this.props.type)} />
+                  <Image src={Design.renderOverviewIcon(this.props.type)} />
                 </Segment>
               </Grid.Column>
 
@@ -313,7 +319,7 @@ export default class Design extends Component<Props, State> {
                   <Grid.Row>
                     <Grid.Column width={5}>
                       <Image
-                        src={this.renderConditionIcon(
+                        src={Design.renderConditionIcon(
                           this.props.protocol_condition_first_img
                         )}
                       />
@@ -331,7 +337,7 @@ export default class Design extends Component<Props, State> {
                   <Grid.Row>
                     <Grid.Column width={5}>
                       <Image
-                        src={this.renderConditionIcon(
+                        src={Design.renderConditionIcon(
                           this.props.protocol_condition_second_img
                         )}
                       />
@@ -372,7 +378,7 @@ export default class Design extends Component<Props, State> {
             <Grid.Column width={4} verticalAlign="middle">
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={e => this.handlePreview(e)}
+                onClick={this.handlePreview}
               />
             </Grid.Column>
           </Grid>
@@ -391,16 +397,14 @@ export default class Design extends Component<Props, State> {
           steps={DESIGN_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
-          onEditClick={this.handleCustomizeExperiment}
           enableEEGToggle={
             <Checkbox
               toggle
               defaultChecked={this.props.isEEGEnabled}
-              onChange={(event, data) => this.handleEEGEnabled(event, data)}
+              onChange={this.handleEEGEnabled}
               className={styles.EEGToggle}
             />
           }
-          canEditExperiment={this.props.paradigm === 'Faces and Houses'}
         />
         {this.renderSectionContent()}
         <InputModal

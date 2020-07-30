@@ -13,7 +13,7 @@ import { SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
 interface Props {
-  history: object;
+  history: HashHistory;
   open: boolean;
   onClose: () => void;
   connectedDevice: object;

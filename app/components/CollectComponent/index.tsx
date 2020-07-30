@@ -19,7 +19,7 @@ import RunComponent from './RunComponent';
 import { ExperimentActions, DeviceActions } from '../../actions';
 
 export interface Props {
-  history: object;
+  history: HashHistory;
   ExperimentActions: typeof ExperimentActions;
   connectedDevice: object;
   deviceType: DEVICES;

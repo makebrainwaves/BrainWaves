@@ -10,6 +10,8 @@ import {
   Table
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
+import { HashHistory } from 'history';
+
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
@@ -48,7 +50,7 @@ const FIELDS = {
 };
 
 interface Props {
-  history: object;
+  history: HashHistory;
   type: EXPERIMENTS | null | undefined;
   title: string;
   params: ExperimentParameters;
@@ -57,7 +59,7 @@ interface Props {
     [key: string]: Trial;
   };
   timelines: {};
-  ExperimentActions: typeof  ExperimentActions;
+  ExperimentActions: typeof ExperimentActions;
   isEEGEnabled: boolean;
   description: ExperimentDescription;
 }

@@ -19,7 +19,7 @@ import ConnectModal from './CollectComponent/ConnectModal';
 import styles from './styles/common.css';
 
 interface Props {
-  history: object;
+  history: HashHistory;
   connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
