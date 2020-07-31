@@ -31,6 +31,7 @@ import hypothesisImage from '../../assets/common/Hypothesis2.png';
 import { loadProtocol } from '../../utils/labjs/functions';
 import { readImages } from '../../utils/filesystem/storage';
 import StimuliRow from './StimuliRow';
+import { ExperimentActions } from '../../actions/experimentActions';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -94,13 +95,13 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleProgressBar = this.handleProgressBar.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     if (isNil(props.params)) {
-      props.ExperimentActions.loadDefaultTimeline();
+      props.ExperimentActions.LoadDefaultTimeline();
     }
     this.endPreview = this.endPreview.bind(this);
   }
 
   endPreview() {
-    // this.setState({ isPreviewing: false });
+    this.setState({ isPreviewing: false });
   }
 
   handleStepClick(step: string) {
@@ -115,7 +116,7 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleEEGEnabled(event: object, data: object) {
-    this.props.ExperimentActions.setEEGEnabled(data.checked);
+    this.props.ExperimentActions.SetEEGEnabled(data.checked);
   }
 
   handleStartExperiment() {
@@ -128,9 +129,9 @@ export default class CustomDesign extends Component<Props, State> {
   }
 
   handleSaveParams() {
-    this.props.ExperimentActions.setParams(this.state.params);
-    this.props.ExperimentActions.setDescription(this.state.description);
-    this.props.ExperimentActions.saveWorkspace();
+    this.props.ExperimentActions.SetParams(this.state.params);
+    this.props.ExperimentActions.SetDescription(this.state.description);
+    this.props.ExperimentActions.SaveWorkspace();
     this.setState({ saved: true });
   }
 

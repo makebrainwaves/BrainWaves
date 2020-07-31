@@ -35,6 +35,8 @@ import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import JupyterPlotWidget from './JupyterPlotWidget';
 import { HelpButton } from './CollectComponent/HelpSidebar';
+import { Kernel } from '../constants/interfaces';
+import { JupyterActions } from '../actions/jupyterActions';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -79,7 +81,7 @@ interface Props {
       }
     | null
     | undefined;
-  JupyterActions: typeof  JupyterActions;
+  JupyterActions: typeof JupyterActions;
 }
 
 interface State {
@@ -141,7 +143,7 @@ export default class Analyze extends Component<Props, State> {
         this.props.isEEGEnabled === true
           ? ANALYZE_STEPS.OVERVIEW
           : ANALYZE_STEPS.BEHAVIOR,
-      eegFilePaths: [{ key: '', text: '', value: '' }],
+      eegFilePaths: [{ key: '', text: '', value: { name: '', dir: '' } }],
       behaviorFilePaths: [{ key: '', text: '', value: '' }],
       dependentVariables: [{ key: '', text: '', value: '' }],
       dataToPlot: [],
@@ -185,7 +187,7 @@ export default class Analyze extends Component<Props, State> {
       this.props.title
     );
     if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.JupyterActions.launchKernel();
+      this.props.JupyterActions.LaunchKernel();
     }
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
@@ -208,16 +210,19 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleStepClick(step: string) {
-    this.setState({ activeStep: step });
-  }
+  concatSubjectNames = (subjects: Array<string | null | undefined>) => {
+    if (subjects.length < 1) {
+      return '';
+    }
+    return subjects.reduce((acc, curr) => `${acc}-${curr}`);
+  };
 
   handleDatasetChange(event: object, data: object) {
     this.setState({
       selectedFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value)
     });
-    this.props.JupyterActions.loadCleanedEpochs(data.value);
+    this.props.JupyterActions.LoadCleanedEpochs(data.value);
   }
 
   handleBehaviorDatasetChange(event: object, data: object) {
@@ -238,7 +243,7 @@ export default class Analyze extends Component<Props, State> {
 
   async handleDropdownClick() {
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
-    if (behavioralData.length != this.state.behaviorFilePaths.length) {
+    if (behavioralData.length !== this.state.behaviorFilePaths.length) {
       this.setState({
         behaviorFilePaths: behavioralData.map(filepath => ({
           key: filepath.name,
@@ -333,15 +338,12 @@ export default class Analyze extends Component<Props, State> {
 
   handleChannelSelect(channelName: string) {
     this.setState({ selectedChannel: channelName });
-    this.props.JupyterActions.loadERP(channelName);
+    this.props.JupyterActions.LoadERP(channelName);
   }
 
-  concatSubjectNames = (subjects: Array<string | null | undefined>) => {
-    if (subjects.length < 1) {
-      return '';
-    }
-    return subjects.reduce((acc, curr) => `${acc}-${curr}`);
-  };
+  handleStepClick(step: string) {
+    this.setState({ activeStep: step });
+  }
 
   renderEpochLabels() {
     if (
