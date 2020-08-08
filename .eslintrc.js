@@ -26,7 +26,8 @@ module.exports = {
     'react/no-did-update-set-state': 'warn',
     'react/no-will-update-set-state': 'warn',
     'react/prop-types': 'off',
-    'react/static-property-placement': 'off'
+    'react/static-property-placement': 'off',
+    'react/no-array-index-key': 'off'
   },
   settings: {
     'import/resolver': {

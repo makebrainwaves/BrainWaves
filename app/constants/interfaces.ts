@@ -45,6 +45,10 @@ export type ExperimentParameters = {
     title: string;
     response: string;
   };
+  nbPracticeTrials?: number;
+  randomize?: 'random' | 'sequential';
+  selfPaced?: boolean;
+  presentationTime?: number;
 };
 
 export type ExperimentDescription = {
@@ -94,6 +98,16 @@ export interface SampleParameter {
 }
 
 export type StimulusVariable = () => any;
+
+export interface StimuliDesc {
+  dir: any;
+  filename: string;
+  name: string;
+  condition: any;
+  response: any;
+  phase: string;
+  type: number;
+}
 
 // --------------------------------------------------------------------
 // Jupyter

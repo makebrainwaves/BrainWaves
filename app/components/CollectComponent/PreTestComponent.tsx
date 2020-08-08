@@ -14,21 +14,29 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import { HelpSidebar, HelpButton } from './HelpSidebar';
 import styles from '../styles/collect.css';
+import { loadProtocol } from '../../utils/labjs/functions';
+import { ExperimentActions, DeviceActions } from '../../actions';
 import {
+  DEVICES,
+  DEVICE_AVAILABILITY,
+  EXPERIMENTS,
   PLOTTING_INTERVAL,
   CONNECTION_STATUS
 } from '../../constants/constants';
-import { loadProtocol } from '../../utils/labjs/functions';
+import {
+  ExperimentParameters,
+  MainTimeline,
+  Trial
+} from '../../constants/interfaces';
 
 interface Props {
-  ExperimentActions: typeof  ExperimentActions;
+  ExperimentActions: typeof ExperimentActions;
   connectedDevice: object;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  DeviceActions: typeof  DeviceActions;
-  ExperimentActions: typeof  ExperimentActions;
+  DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
   paradigm: EXPERIMENTS;
@@ -42,6 +50,7 @@ interface Props {
   subject: string;
   group: string;
   session: number;
+  title: string;
   openRunComponent: () => void;
 }
 
@@ -66,7 +75,7 @@ export default class PreTestComponent extends Component<Props, State> {
   }
 
   componentDidMount() {
-    Mousetrap.bind('esc', this.props.ExperimentActions.stop);
+    Mousetrap.bind('esc', this.props.ExperimentActions.Stop);
   }
 
   componentWillUnmount() {

@@ -18,19 +18,20 @@ import {
   MainTimeline,
   Trial,
   ExperimentParameters,
-  ExperimentDescription
+  ExperimentDescription,
+  StimuliDesc
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
-import ParamSlider from './ParamSlider';
+import { ParamSlider } from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
 import { loadProtocol } from '../../utils/labjs/functions';
 import { readImages } from '../../utils/filesystem/storage';
-import StimuliRow from './StimuliRow';
+import { StimuliRow } from './StimuliRow';
 import { ExperimentActions } from '../../actions/experimentActions';
 
 const CUSTOM_STEPS = {
@@ -243,12 +244,12 @@ export default class CustomDesign extends Component<Props, State> {
             <Segment basic>
               <Header as="h1">Conditions</Header>
               <p>
-                Select the folder with images for each condition and choose the
-                correct response. You can upload image files with the following
-                extensions: ".png", ".jpg", ".jpeg". Make sure when you preview
-                your experiment that the resolution is high enough. You can
-                resize or compress your images in an image editing program or on
-                one of the websites online.
+                {`Select the folder with images for each condition and choose
+                the correct response. You can upload image files with the
+                following extensions: ".png", ".jpg", ".jpeg". Make sure when
+                you preview your experiment that the resolution is high enough.
+                You can resize or compress your images in an image editing
+                program or on one of the websites online.`}
               </p>
             </Segment>
 
@@ -284,9 +285,9 @@ export default class CustomDesign extends Component<Props, State> {
                           }
                         }
                       });
-                      let newStimuli = [];
-                      await stimi.map(stimul => {
-                        let dirStimuli = [];
+                      let newStimuli: StimuliDesc[] = [];
+                      await stimi.forEach(stimul => {
+                        let dirStimuli: StimuliDesc[] = [];
                         const { dir } = this.state.params[stimul.name];
                         if (dir && typeof dir !== 'undefined' && dir !== '') {
                           dirStimuli = readImages(dir).map(i => ({
@@ -339,15 +340,20 @@ export default class CustomDesign extends Component<Props, State> {
                       selection
                       label="Order"
                       value={this.state.params.randomize}
-                      onChange={(event, data) =>
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            randomize: data.value
-                          },
-                          saved: false
-                        })
-                      }
+                      onChange={(event, data) => {
+                        if (
+                          data.value === 'sequential' ||
+                          data.value === 'random'
+                        ) {
+                          this.setState({
+                            params: {
+                              ...this.state.params,
+                              randomize: data.value
+                            },
+                            saved: false
+                          });
+                        }
+                      }}
                       placeholder="Response"
                       options={[
                         { key: 'random', text: 'Random', value: 'random' },
@@ -367,7 +373,7 @@ export default class CustomDesign extends Component<Props, State> {
                         this.setState({
                           params: {
                             ...this.state.params,
-                            nbTrials: parseInt(data.value)
+                            nbTrials: parseInt(data.value, 10)
                           },
                           saved: false
                         })
@@ -382,7 +388,7 @@ export default class CustomDesign extends Component<Props, State> {
                         this.setState({
                           params: {
                             ...this.state.params,
-                            nbPracticeTrials: parseInt(data.value)
+                            nbPracticeTrials: parseInt(data.value, 10)
                           },
                           saved: false
                         })
@@ -408,7 +414,7 @@ export default class CustomDesign extends Component<Props, State> {
                 {this.state.params.stimuli &&
                   this.state.params.stimuli.map((e, num) => (
                     <StimuliRow
-                      key={num}
+                      key={`stim_row_${num}`}
                       num={num}
                       conditions={[1, 2, 3, 4].map(
                         n => this.state.params[`stimulus${n}`].title
@@ -432,7 +438,7 @@ export default class CustomDesign extends Component<Props, State> {
                           saved: false
                         });
                       }}
-                      onChange={(num, key, data) => {
+                      onChange={(changedNum, key, data) => {
                         const { stimuli } = this.state.params;
                         stimuli[num][key] = data;
                         let { nbPracticeTrials } = this.state.params;
@@ -490,7 +496,7 @@ export default class CustomDesign extends Component<Props, State> {
                     7: '1.75',
                     8: '2'
                   }}
-                  ms_conversion="250"
+                  msConversion="250"
                   onChange={value =>
                     this.setState({
                       params: { ...this.state.params, iti: value },
@@ -532,7 +538,11 @@ export default class CustomDesign extends Component<Props, State> {
                 <Segment basic>
                   <ParamSlider
                     label="Presentation time (seconds)"
-                    value={this.state.params.presentationTime}
+                    value={
+                      this.state.params.presentationTime
+                        ? this.state.params.presentationTime
+                        : 0
+                    }
                     marks={{
                       1: '0.25',
                       2: '0.5',
@@ -543,7 +553,7 @@ export default class CustomDesign extends Component<Props, State> {
                       7: '1.75',
                       8: '2'
                     }}
-                    ms_conversion="250"
+                    msConversion="250"
                     onChange={value =>
                       this.setState({
                         params: {

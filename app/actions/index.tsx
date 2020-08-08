@@ -1,3 +1,3 @@
-export * from './ExperimentActions';
-export * from './JupyterActions';
-export * from './DeviceActions';
+export * from './experimentActions';
+export * from './jupyterActions';
+export * from './deviceActions';

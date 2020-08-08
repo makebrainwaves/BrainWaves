@@ -6,34 +6,36 @@ import styles from '../styles/common.css';
 interface Props {
   value: number;
   label: string;
+  marks: { [num: number]: string };
+  msConversion: string;
   onChange: (arg0: number) => void;
 }
 
-export default class ParamSlider extends PureComponent<Props> {
-  render() {
-    const { marks, ms_conversion } = this.props;
-    return (
-      <div>
-        <p className={styles.label}>{this.props.label}</p>
-        <Segment basic>
-          {this.props.label !== 'Practice trials' ||
-          Object.keys(marks).length > 1 ? (
-            <Slider
-              dots
-              marks={this.props.marks}
-              min={Math.min(...Object.keys(marks))}
-              max={Math.max(...Object.keys(marks))}
-              value={this.props.value / parseInt(ms_conversion, 10)}
-              onChange={value =>
-                this.props.onChange(value * parseInt(ms_conversion, 10))
-              }
-              defaultValue={1}
-            />
-          ) : (
-            <div>You have not chosen any practice trials.</div>
-          )}
-        </Segment>
-      </div>
-    );
-  }
-}
+export const ParamSlider: React.FC<Props> = ({
+  marks,
+  msConversion,
+  value,
+  label,
+  onChange
+}) => {
+  return (
+    <div>
+      <p className={styles.label}>{label}</p>
+      <Segment basic>
+        {label !== 'Practice trials' || Object.keys(marks).length > 1 ? (
+          <Slider
+            dots
+            marks={marks}
+            min={Math.min(...Object.keys(marks))}
+            max={Math.max(...Object.keys(marks))}
+            value={value / parseInt(msConversion, 10)}
+            onChange={val => onChange(val * parseInt(msConversion, 10))}
+            defaultValue={1}
+          />
+        ) : (
+          <div>You have not chosen any practice trials.</div>
+        )}
+      </Segment>
+    </div>
+  );
+};
