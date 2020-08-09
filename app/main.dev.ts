@@ -8,6 +8,8 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { autoUpdater } from 'electron-updater';
@@ -52,7 +54,7 @@ const installExtensions = async () => {
   const extensions = ['REACT_DEVELOPER_TOOLS', 'REDUX_DEVTOOLS'];
 
   return Promise.all(
-    extensions.map(name => installer.default(installer[name], forceDownload))
+    extensions.map((name) => installer.default(installer[name], forceDownload))
   ).catch(console.log);
 };
 
@@ -69,13 +71,15 @@ const createWindow = async () => {
     width: 1280,
     height: 800,
     webPreferences:
-      process.env.NODE_ENV === 'development' || process.env.E2E_BUILD === 'true'
+      (process.env.NODE_ENV === 'development' ||
+        process.env.E2E_BUILD === 'true') &&
+      process.env.ERB_SECURE !== 'true'
         ? {
-            nodeIntegration: true
+            nodeIntegration: true,
           }
         : {
-            preload: path.join(__dirname, 'dist/renderer.prod.js')
-          }
+            preload: path.join(__dirname, 'dist/renderer.prod.js'),
+          },
   });
 
   mainWindow.setMinimumSize(1075, 708);
@@ -127,7 +131,12 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('ready', createWindow);
+if (process.env.E2E_BUILD === 'true') {
+  // eslint-disable-next-line promise/catch-or-return
+  app.whenReady().then(createWindow);
+} else {
+  app.on('ready', createWindow);
+}
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
