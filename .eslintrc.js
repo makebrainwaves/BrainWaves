@@ -2,8 +2,6 @@ module.exports = {
   extends: 'erb/typescript',
   rules: {
     // A temporary hack related to IDE not resolving correct package.json
-    '@typescript-eslint/ban-ts-ignore': 'warn',
-    '@typescript-eslint/no-use-before-define': 'off',
     'consistent-return': 'warn',
     'dot-notation': 'off',
     'import/no-extraneous-dependencies': 'off',
