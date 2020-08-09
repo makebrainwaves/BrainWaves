@@ -1,7 +1,9 @@
 module.exports = {
   extends: 'erb/typescript',
   rules: {
-    // A temporary hack related to IDE not resolving correct package.json
+    '@typescript-eslint/ban-ts-comment': 'warn',
+    '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/naming-convention': 'off',
     'consistent-return': 'warn',
     'dot-notation': 'off',
     'import/no-extraneous-dependencies': 'off',
@@ -21,11 +23,11 @@ module.exports = {
     'react/jsx-props-no-spreading': 'off',
     'react/jsx-wrap-multilines': 'off',
     'react/no-access-state-in-setstate': 'warn',
+    'react/no-array-index-key': 'off',
     'react/no-did-update-set-state': 'warn',
     'react/no-will-update-set-state': 'warn',
     'react/prop-types': 'off',
     'react/static-property-placement': 'off',
-    'react/no-array-index-key': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,
