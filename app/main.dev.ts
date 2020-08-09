@@ -101,6 +101,7 @@ const createWindow = async () => {
       mainWindow.show();
       mainWindow.focus();
     }
+    mainWindow.webContents.openDevTools();
   });
 
   mainWindow.on('closed', () => {
@@ -114,10 +115,9 @@ const createWindow = async () => {
   new AppUpdater();
 
   mainWindow.setMenu(null);
-  if (process.env.NODE_ENV === 'development') {
-    // Devtools don't exist?
-    mainWindow.webContents.openDevTools();
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  // mainWindow.webContents.openDevTools();
+  // }
 };
 
 /**

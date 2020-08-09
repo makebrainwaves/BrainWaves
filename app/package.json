@@ -18,6 +18,7 @@
   "dependencies": {
     "@neurosity/pipes": "^3.2.3",
     "@babel/runtime": "7.10.2",
+    "@babel/runtime-corejs2": "^7.10.2",
     "bleat": "^0.1.9",
     "enchannel-zmq-backend": "^9.1.22",
     "kernelspecs": "^2.0.0",
@@ -27,7 +28,6 @@
   },
   "devDependencies": {
     "@babel/register": "^7.10.1",
-    "@babel/runtime-corejs2": "^7.10.2",
     "patch-package": "^6.2.2"
   }
 }
