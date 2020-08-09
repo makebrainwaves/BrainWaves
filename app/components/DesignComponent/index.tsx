@@ -7,7 +7,7 @@ import {
   Header,
   Image,
   Checkbox,
-  CheckboxProps
+  CheckboxProps,
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
@@ -19,7 +19,7 @@ import {
   MainTimeline,
   Trial,
   ExperimentParameters,
-  ExperimentDescription
+  ExperimentDescription,
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
@@ -50,7 +50,7 @@ const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
   BACKGROUND: 'BACKGROUND',
   PROTOCOL: 'PROTOCOL',
-  PREVIEW: 'PREVIEW'
+  PREVIEW: 'PREVIEW',
 };
 
 export interface Props {
@@ -104,7 +104,7 @@ export default class Design extends Component<Props, State> {
       activeStep: DESIGN_STEPS.OVERVIEW,
       isPreviewing: false,
       isNewExperimentModalOpen: false,
-      recentWorkspaces: []
+      recentWorkspaces: [],
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -134,7 +134,7 @@ export default class Design extends Component<Props, State> {
 
   handleCustomizeExperiment() {
     this.setState({
-      isNewExperimentModalOpen: true
+      isNewExperimentModalOpen: true,
     });
   }
 
@@ -152,7 +152,7 @@ export default class Design extends Component<Props, State> {
     this.props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
-      paradigm: 'Custom'
+      paradigm: 'Custom',
       // paradigm: this.props.paradigm
     });
     this.props.ExperimentActions.SaveWorkspace();
@@ -160,8 +160,8 @@ export default class Design extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState(prevState => ({
-      isPreviewing: !prevState.isPreviewing
+    this.setState((prevState) => ({
+      isPreviewing: !prevState.isPreviewing,
     }));
   }
 
@@ -280,7 +280,7 @@ export default class Design extends Component<Props, State> {
               <Grid.Column width={2}>
                 <Segment basic>
                   <div className={styles.externalLinks}>
-                    {this.props.background_links.map(link => (
+                    {this.props.background_links.map((link) => (
                       <Button
                         key={link.address}
                         secondary

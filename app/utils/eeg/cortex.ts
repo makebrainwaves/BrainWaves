@@ -23,7 +23,7 @@ const EventEmitter = require('events');
 
 const CORTEX_URL = 'wss://localhost:6868';
 
-const safeParse = msg => {
+const safeParse = (msg) => {
   try {
     return JSON.parse(msg);
   } catch (_) {
@@ -42,6 +42,7 @@ class JSONRPCError extends Error {
     this.message = err.message;
     this.code = err.code;
   }
+
   toString() {
     return `${super.toString()} (${this.code})`;
   }
@@ -60,24 +61,25 @@ export default class Cortex extends EventEmitter {
       this._log('ws: Socket closed');
     });
     this.verbose = options.verbose !== null ? options.verbose : 1;
-    this.handleError = error => {
+    this.handleError = (error) => {
       throw new JSONRPCError(error);
     };
 
     this.ready = new Promise(
-      resolve => this.ws.addEventListener('open', resolve),
+      (resolve) => this.ws.addEventListener('open', resolve),
       this.handleError
     )
       .then(() => this._log('ws: Socket opened'))
       .then(() => this.call('inspectApi'))
-      .then(methods => {
-        methods.forEach(m => {
+      .then((methods) => {
+        methods.forEach((m) => {
           this.defineMethod(m.methodName, m.params);
         });
         this._log(`rpc: Added ${methods.length} methods from inspectApi`);
         return methods;
       });
   }
+
   _onmsg(msg) {
     const data = safeParse(msg.data);
     if (!data) return this._warn('unparseable message', msg);
@@ -97,28 +99,32 @@ export default class Cortex extends EventEmitter {
       }
     } else if ('sid' in data) {
       const dataKeys = Object.keys(data).filter(
-        k => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
+        (k) => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
       );
       dataKeys.forEach(
-        k =>
+        (k) =>
           this.emit(k, data) || this._warn('no listeners for stream event', k)
       );
     } else {
       this._log('rpc: Unrecognised data', data);
     }
   }
+
   _warn(...msg) {
     if (this.verbose > 0) console.warn('[Cortex WARN]', ...msg);
   }
+
   _log(...msg) {
     if (this.verbose > 1) console.log('[Cortex LOG]', ...msg);
   }
+
   _debug(...msg) {
     if (this.verbose > 2) console.debug('[Cortex DEBUG]', ...msg);
   }
+
   init({ clientId, clientSecret, license, debit } = {}) {
     const token = this.getUserLogin()
-      .then(users => {
+      .then((users) => {
         if (users.length === 0) {
           return Promise.reject(new Error('No logged in user'));
         }
@@ -134,7 +140,7 @@ export default class Cortex extends EventEmitter {
           clientId,
           clientSecret,
           license,
-          debit
+          debit,
         }).then(({ cortexToken }) => {
           this._log('init: Got auth token');
           this._debug('init: Auth token', cortexToken);
@@ -145,12 +151,14 @@ export default class Cortex extends EventEmitter {
 
     return token;
   }
+
   close() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.ws.close();
       this.ws.once('close', resolve);
     });
   }
+
   call(method, params = {}) {
     const id = this.msgId++;
     const msg = JSON.stringify({ jsonrpc: '2.0', method, params, id });
@@ -168,16 +176,19 @@ export default class Cortex extends EventEmitter {
       };
     });
   }
+
   defineMethod(methodName, paramDefs = []) {
     if (this[methodName]) return;
-    const needsAuth = paramDefs.some(p => p.name === 'cortexToken');
-    const requiredParams = paramDefs.filter(p => p.required).map(p => p.name);
+    const needsAuth = paramDefs.some((p) => p.name === 'cortexToken');
+    const requiredParams = paramDefs
+      .filter((p) => p.required)
+      .map((p) => p.name);
 
     this[methodName] = (params = {}) => {
       if (needsAuth && this.cortexToken && !params.cortexToken) {
         params = { ...params, cortexToken: this.cortexToken };
       }
-      const missingParams = requiredParams.filter(p => params[p] == null);
+      const missingParams = requiredParams.filter((p) => params[p] == null);
       if (missingParams.length > 0) {
         return this.handleError(
           new Error(

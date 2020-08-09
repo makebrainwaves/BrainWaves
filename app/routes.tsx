@@ -18,7 +18,7 @@ const renderMergedProps = (component, ...rest) => {
 const PropsRoute = ({ component, ...rest }) => (
   <Route
     {...rest}
-    render={routeProps => renderMergedProps(component, routeProps, rest)}
+    render={(routeProps) => renderMergedProps(component, routeProps, rest)}
   />
 );
 

@@ -7,7 +7,7 @@ import {
   Form,
   Checkbox,
   Image,
-  Table
+  Table,
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import { HashHistory } from 'history';
@@ -19,7 +19,7 @@ import {
   Trial,
   ExperimentParameters,
   ExperimentDescription,
-  StimuliDesc
+  StimuliDesc,
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
@@ -40,7 +40,7 @@ const CUSTOM_STEPS = {
   TRIALS: 'TRIALS',
   PARAMETERS: 'PARAMETERS',
   INSTRUCTIONS: 'INSTRUCTIONS',
-  PREVIEW: 'PREVIEW'
+  PREVIEW: 'PREVIEW',
 };
 
 const FIELDS = {
@@ -48,7 +48,7 @@ const FIELDS = {
   HYPOTHESIS: 'Hypothesis',
   METHODS: 'Methods',
   INTRO: 'Experiment Instructions',
-  HELP: 'Instructions for the task screen'
+  HELP: 'Instructions for the task screen',
 };
 
 interface Props {
@@ -87,7 +87,7 @@ export default class CustomDesign extends Component<Props, State> {
       isPreviewing: true,
       description: props.description,
       params: props.params,
-      saved: false
+      saved: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
@@ -112,7 +112,7 @@ export default class CustomDesign extends Component<Props, State> {
 
   handleProgressBar(event: object, data: object) {
     this.setState({
-      params: { ...this.state.params, showProgessBar: data.checked }
+      params: { ...this.state.params, showProgessBar: data.checked },
     });
   }
 
@@ -141,7 +141,7 @@ export default class CustomDesign extends Component<Props, State> {
       { name: 'stimulus1', number: 1 },
       { name: 'stimulus2', number: 2 },
       { name: 'stimulus3', number: 3 },
-      { name: 'stimulus4', number: 4 }
+      { name: 'stimulus4', number: 4 },
     ];
     switch (this.state.activeStep) {
       case CUSTOM_STEPS.OVERVIEW:
@@ -173,9 +173,9 @@ export default class CustomDesign extends Component<Props, State> {
                     this.setState({
                       description: {
                         ...this.state.description,
-                        question: data.value
+                        question: data.value,
                       },
-                      saved: false
+                      saved: false,
                     })
                   }
                 />
@@ -200,9 +200,9 @@ export default class CustomDesign extends Component<Props, State> {
                     this.setState({
                       description: {
                         ...this.state.description,
-                        hypothesis: data.value
+                        hypothesis: data.value,
                       },
-                      saved: false
+                      saved: false,
                     })
                   }
                 />
@@ -227,9 +227,9 @@ export default class CustomDesign extends Component<Props, State> {
                     this.setState({
                       description: {
                         ...this.state.description,
-                        methods: data.value
+                        methods: data.value,
                       },
-                      saved: false
+                      saved: false,
                     })
                   }
                 />
@@ -272,7 +272,7 @@ export default class CustomDesign extends Component<Props, State> {
                     {...this.state.params[name]}
                     numberImages={
                       this.state.params.stimuli.filter(
-                        trial => trial.type === number
+                        (trial) => trial.type === number
                       ).length
                     }
                     onChange={async (key, data, changedName) => {
@@ -281,23 +281,23 @@ export default class CustomDesign extends Component<Props, State> {
                           ...this.state.params,
                           [changedName]: {
                             ...this.state.params[changedName],
-                            [key]: data
-                          }
-                        }
+                            [key]: data,
+                          },
+                        },
                       });
                       let newStimuli: StimuliDesc[] = [];
-                      await stimi.forEach(stimul => {
+                      await stimi.forEach((stimul) => {
                         let dirStimuli: StimuliDesc[] = [];
                         const { dir } = this.state.params[stimul.name];
                         if (dir && typeof dir !== 'undefined' && dir !== '') {
-                          dirStimuli = readImages(dir).map(i => ({
+                          dirStimuli = readImages(dir).map((i) => ({
                             dir,
                             filename: i,
                             name: i,
                             condition: this.state.params[stimul.name].title,
                             response: this.state.params[stimul.name].response,
                             phase: 'main',
-                            type: stimul.number
+                            type: stimul.number,
                           }));
                         }
                         if (dirStimuli.length) dirStimuli[0].phase = 'practice';
@@ -307,13 +307,13 @@ export default class CustomDesign extends Component<Props, State> {
                         params: {
                           ...this.state.params,
                           stimuli: [...newStimuli],
-                          nbTrials: newStimuli.filter(t => t.phase === 'main')
+                          nbTrials: newStimuli.filter((t) => t.phase === 'main')
                             .length,
                           nbPracticeTrials: newStimuli.filter(
-                            t => t.phase === 'practice'
-                          ).length
+                            (t) => t.phase === 'practice'
+                          ).length,
                         },
-                        saved: false
+                        saved: false,
                       });
                     }}
                   />
@@ -348,9 +348,9 @@ export default class CustomDesign extends Component<Props, State> {
                           this.setState({
                             params: {
                               ...this.state.params,
-                              randomize: data.value
+                              randomize: data.value,
                             },
-                            saved: false
+                            saved: false,
                           });
                         }
                       }}
@@ -360,8 +360,8 @@ export default class CustomDesign extends Component<Props, State> {
                         {
                           key: 'sequential',
                           text: 'Sequential',
-                          value: 'sequential'
-                        }
+                          value: 'sequential',
+                        },
                       ]}
                     />
                     <Form.Input
@@ -373,9 +373,9 @@ export default class CustomDesign extends Component<Props, State> {
                         this.setState({
                           params: {
                             ...this.state.params,
-                            nbTrials: parseInt(data.value, 10)
+                            nbTrials: parseInt(data.value, 10),
                           },
-                          saved: false
+                          saved: false,
                         })
                       }
                     />
@@ -388,9 +388,9 @@ export default class CustomDesign extends Component<Props, State> {
                         this.setState({
                           params: {
                             ...this.state.params,
-                            nbPracticeTrials: parseInt(data.value, 10)
+                            nbPracticeTrials: parseInt(data.value, 10),
                           },
-                          saved: false
+                          saved: false,
                         })
                       }
                     />
@@ -417,25 +417,26 @@ export default class CustomDesign extends Component<Props, State> {
                       key={`stim_row_${num}`}
                       num={num}
                       conditions={[1, 2, 3, 4].map(
-                        n => this.state.params[`stimulus${n}`].title
+                        (n) => this.state.params[`stimulus${n}`].title
                       )}
                       {...e}
-                      onDelete={deletedNum => {
+                      onDelete={(deletedNum) => {
                         const { stimuli } = this.state.params;
                         stimuli.splice(deletedNum, 1);
                         const nbPracticeTrials = stimuli.filter(
-                          s => s.phase === 'practice'
+                          (s) => s.phase === 'practice'
                         ).length;
-                        const nbTrials = stimuli.filter(s => s.phase === 'main')
-                          .length;
+                        const nbTrials = stimuli.filter(
+                          (s) => s.phase === 'main'
+                        ).length;
                         this.setState({
                           params: {
                             ...this.state.params,
                             stimuli: [...stimuli],
                             nbPracticeTrials,
-                            nbTrials
+                            nbTrials,
                           },
-                          saved: false
+                          saved: false,
                         });
                       }}
                       onChange={(changedNum, key, data) => {
@@ -445,9 +446,9 @@ export default class CustomDesign extends Component<Props, State> {
                         let { nbTrials } = this.state.params;
                         if (key === 'phase') {
                           nbPracticeTrials = stimuli.filter(
-                            s => s.phase === 'practice'
+                            (s) => s.phase === 'practice'
                           ).length;
-                          nbTrials = stimuli.filter(s => s.phase === 'main')
+                          nbTrials = stimuli.filter((s) => s.phase === 'main')
                             .length;
                         }
                         this.setState({
@@ -455,9 +456,9 @@ export default class CustomDesign extends Component<Props, State> {
                             ...this.state.params,
                             stimuli: [...stimuli],
                             nbPracticeTrials,
-                            nbTrials
+                            nbTrials,
                           },
-                          saved: false
+                          saved: false,
                         });
                       }}
                     />
@@ -494,13 +495,13 @@ export default class CustomDesign extends Component<Props, State> {
                     5: '1.25',
                     6: '1.5',
                     7: '1.75',
-                    8: '2'
+                    8: '2',
                   }}
                   msConversion="250"
-                  onChange={value =>
+                  onChange={(value) =>
                     this.setState({
                       params: { ...this.state.params, iti: value },
-                      saved: false
+                      saved: false,
                     })
                   }
                 />
@@ -522,13 +523,13 @@ export default class CustomDesign extends Component<Props, State> {
                 <Checkbox
                   defaultChecked={this.state.params.selfPaced}
                   label="Self-paced data collection"
-                  onChange={value =>
+                  onChange={(value) =>
                     this.setState({
                       params: {
                         ...this.state.params,
-                        selfPaced: !this.state.params.selfPaced
+                        selfPaced: !this.state.params.selfPaced,
                       },
-                      saved: false
+                      saved: false,
                     })
                   }
                 />
@@ -551,16 +552,16 @@ export default class CustomDesign extends Component<Props, State> {
                       5: '1.25',
                       6: '1.5',
                       7: '1.75',
-                      8: '2'
+                      8: '2',
                     }}
                     msConversion="250"
-                    onChange={value =>
+                    onChange={(value) =>
                       this.setState({
                         params: {
                           ...this.state.params,
-                          presentationTime: value
+                          presentationTime: value,
                         },
-                        saved: false
+                        saved: false,
                       })
                     }
                   />
@@ -594,7 +595,7 @@ export default class CustomDesign extends Component<Props, State> {
                     onChange={(event, data) =>
                       this.setState({
                         params: { ...this.state.params, intro: data.value },
-                        saved: false
+                        saved: false,
                       })
                     }
                   />
@@ -621,7 +622,7 @@ export default class CustomDesign extends Component<Props, State> {
                     onChange={(event, data) =>
                       this.setState({
                         params: { ...this.state.params, taskHelp: data.value },
-                        saved: false
+                        saved: false,
                       })
                     }
                   />
@@ -656,7 +657,7 @@ export default class CustomDesign extends Component<Props, State> {
               <Segment basic>
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
-                  onClick={e => this.handlePreview(e)}
+                  onClick={(e) => this.handlePreview(e)}
                 />
               </Segment>
             </Grid.Column>

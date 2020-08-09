@@ -52,7 +52,7 @@ export const restoreExperimentState = (state: ExperimentStateType) => {
       ...state,
       subject: '',
       group: '',
-      session: 1
+      session: 1,
     };
     if (!timestampedState.title) {
       return;
@@ -74,7 +74,7 @@ export const storeBehaviouralData = (
   const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior');
   const filename = `${subject}-${group}-${session}-behavior.csv`;
   mkdirPathSync(dir);
-  fs.writeFile(path.join(dir, filename), csv, err => {
+  fs.writeFile(path.join(dir, filename), csv, (err) => {
     if (err) {
       console.error(err);
     }
@@ -90,7 +90,7 @@ export const storeJupyterImage = (
   const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
   const filename = `${imageTitle}.png`;
   mkdirPathSync(dir);
-  fs.writeFile(path.join(dir, filename), rawData, err => {
+  fs.writeFile(path.join(dir, filename), rawData, (err) => {
     if (err) {
       console.error(err);
     }
@@ -105,7 +105,7 @@ export const readWorkspaces = () => {
   try {
     return fs
       .readdirSync(workspaces)
-      .filter(workspace => workspace !== '.DS_Store');
+      .filter((workspace) => workspace !== '.DS_Store');
   } catch (e) {
     if (e.code === 'ENOENT') {
       mkdirPathSync(workspaces);
@@ -120,10 +120,10 @@ export const readWorkspaceRawEEGData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
     const rawFiles = files
-      .filter(filepath => filepath.slice(-7).includes('raw.csv'))
-      .map(filepath => ({
+      .filter((filepath) => filepath.slice(-7).includes('raw.csv'))
+      .map((filepath) => ({
         name: path.basename(filepath),
-        path: filepath
+        path: filepath,
       }));
     return rawFiles;
   } catch (e) {
@@ -139,10 +139,10 @@ export const readWorkspaceCleanedEEGData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
     return files
-      .filter(filepath => filepath.slice(-7).includes('epo.fif'))
-      .map(filepath => ({
+      .filter((filepath) => filepath.slice(-7).includes('epo.fif'))
+      .map((filepath) => ({
         name: path.basename(filepath),
-        path: filepath
+        path: filepath,
       }));
   } catch (e) {
     console.log(e);
@@ -155,10 +155,10 @@ export const readWorkspaceBehaviorData = async (title: string) => {
   try {
     const files = await recursive(getWorkspaceDir(title));
     const behaviorFiles = files
-      .filter(filepath => filepath.slice(-12).includes('behavior.csv'))
-      .map(filepath => ({
+      .filter((filepath) => filepath.slice(-12).includes('behavior.csv'))
+      .map((filepath) => ({
         name: path.basename(filepath),
-        path: filepath
+        path: filepath,
       }));
     return behaviorFiles;
   } catch (e) {
@@ -174,7 +174,7 @@ export const readAndParseState = (dir: string) => {
   try {
     return JSON.parse(
       fs.readFileSync(path.join(workspaces, dir, 'appState.json'), {
-        encoding: 'string'
+        encoding: 'string',
       })
     );
   } catch (e) {
@@ -187,7 +187,7 @@ export const readAndParseState = (dir: string) => {
 
 // Reads a list of images that are in a directory
 export const readImages = (dir: string) =>
-  fs.readdirSync(dir).filter(filename => {
+  fs.readdirSync(dir).filter((filename) => {
     const extension = filename.slice(-3).toLowerCase();
     return (
       extension === 'png' ||
@@ -201,30 +201,30 @@ export const readImages = (dir: string) =>
 export const getImages = (params: ExperimentParameters) =>
   fs
     .readdirSync(params.stimulus1.dir)
-    .map(filename => path.join(params.stimulus1.dir, filename))
+    .map((filename) => path.join(params.stimulus1.dir, filename))
     .concat(
       fs
         .readdirSync(params.stimulus2.dir)
-        .map(filename => path.join(params.stimulus2.dir, filename))
+        .map((filename) => path.join(params.stimulus2.dir, filename))
     );
 
 // -----------------------------------------------------------------------------------------------
 // Util
 
 // Creates a directory path if it doesn't exist
-export const mkdirPathSync = dirPath => {
+export const mkdirPathSync = (dirPath) => {
   mkdirp.sync(dirPath);
 };
 
 export const getSubjectNamesFromFiles = (filePaths: Array<string>) =>
   filePaths
-    .map(filePath => path.basename(filePath))
-    .map(fileName => fileName.substring(0, fileName.indexOf('-')));
+    .map((filePath) => path.basename(filePath))
+    .map((fileName) => fileName.substring(0, fileName.indexOf('-')));
 
 // Read CSV files with behavioral data and return an object
 export const readBehaviorData = (files: Array<string>) => {
   try {
-    return files.map(file => {
+    return files.map((file) => {
       const csv = fs.readFileSync(file, 'utf-8');
       const obj = convertCSVToObject(csv);
       obj.meta.datafile = file;
@@ -244,20 +244,20 @@ export const storeAggregatedBehaviorData = (data, title) => {
 const saveFileOnDisk = (data, title) => {
   dialog.showSaveDialog({
     title: 'Select a folder to save the data',
-    defaultPath: path.join(getWorkspaceDir(title), 'Data', `aggregated.csv`)
+    defaultPath: path.join(getWorkspaceDir(title), 'Data', `aggregated.csv`),
   });
 };
 
 // convert a csv file to an object with Papaparse
-const convertCSVToObject = csv => {
+const convertCSVToObject = (csv) => {
   const data = Papa.parse(csv, {
-    header: true
+    header: true,
   });
   return data;
 };
 
 // convert an object to a csv file with Papaparse
-const convertObjectToSCV = data => {
+const convertObjectToSCV = (data) => {
   const csv = Papa.unparse(data);
   return csv;
 };

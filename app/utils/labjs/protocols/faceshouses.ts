@@ -68,15 +68,15 @@ const stimuli = [
   'House27',
   'House28',
   'House29',
-  'House30'
-].map(s => ({
+  'House30',
+].map((s) => ({
   condition: s.startsWith('Face') ? 'Face' : 'House',
   dir: s.startsWith('Face') ? facesDir : housesDir,
   filename: `${s}.jpg`,
   name: s,
   response: s.startsWith('Face') ? '1' : '9',
   phase: 'main',
-  type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2
+  type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2,
 }));
 
 // phase: ['Face1', 'House1'].includes(s) ? 'practice' : 'main',
@@ -109,8 +109,8 @@ export const buildN170Timeline = () => ({
     {
       name: 'Link 1',
       address:
-        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'
-    }
+        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
+    },
   ],
   protocal_links: [],
   params: {
@@ -132,42 +132,42 @@ export const buildN170Timeline = () => ({
       dir: facesDir,
       title: 'Face',
       type: EVENTS.STIMULUS_1,
-      response: '1'
+      response: '1',
     },
     stimulus2: {
       dir: housesDir,
       title: 'House',
       type: EVENTS.STIMULUS_2,
-      response: '9'
+      response: '9',
     },
     stimulus3: {
       dir: '',
       title: '',
       type: 3,
-      response: ''
+      response: '',
     },
     stimulus4: {
       dir: '',
       title: '',
       type: 4,
-      response: ''
+      response: '',
     },
-    stimuli
+    stimuli,
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000
+      post_trial_gap: 1000,
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500
-    }
+      post_trial_gap: 500,
+    },
   },
   timelines: {
     faceHouseTimeline: {
@@ -177,13 +177,13 @@ export const buildN170Timeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false
+          response_ends_trial: false,
         },
         {
           id: 'trial',
-          response_ends_trial: false
-        }
-      ]
-    }
-  }
+          response_ends_trial: false,
+        },
+      ],
+    },
+  },
 });

@@ -11,7 +11,7 @@ enum HELP_STEP {
   LEARN_BRAIN = 5,
   LEARN_BLINK = 6,
   LEARN_THOUGHT = 7,
-  LEARN_ALPHA = 8
+  LEARN_ALPHA = 8,
 }
 
 interface Props {
@@ -25,7 +25,7 @@ export default class CleanSidebar extends Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
-      helpStep: HELP_STEP.MENU
+      helpStep: HELP_STEP.MENU,
     };
     this.handleStartLearn = this.handleStartLearn.bind(this);
     this.handleStartSignal = this.handleStartSignal.bind(this);

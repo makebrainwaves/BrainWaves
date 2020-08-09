@@ -39,57 +39,57 @@ const initialState = {
   channelInfo: [],
   psdPlot: null,
   topoPlot: null,
-  erpPlot: null
+  erpPlot: null,
 };
 
-export default createReducer(initialState, builder =>
+export default createReducer(initialState, (builder) =>
   builder
     .addCase(JupyterActions.SetKernel, (state, action) => {
       return {
         ...state,
-        kernel: action.payload
+        kernel: action.payload,
       };
     })
     .addCase(JupyterActions.SetKernelStatus, (state, action) => {
       return {
         ...state,
-        kernelStatus: action.payload
+        kernelStatus: action.payload,
       };
     })
     .addCase(JupyterActions.SetMainChannel, (state, action) => {
       return {
         ...state,
-        mainChannel: action.payload
+        mainChannel: action.payload,
       };
     })
     .addCase(JupyterActions.SetEpochInfo, (state, action) => {
       return {
         ...state,
-        epochsInfo: action.payload
+        epochsInfo: action.payload,
       };
     })
     .addCase(JupyterActions.SetChannelInfo, (state, action) => {
       return {
         ...state,
-        channelInfo: action.payload
+        channelInfo: action.payload,
       };
     })
     .addCase(JupyterActions.SetPSDPlot, (state, action) => {
       return {
         ...state,
-        psdPlot: action.payload
+        psdPlot: action.payload,
       };
     })
     .addCase(JupyterActions.SetTopoPlot, (state, action) => {
       return {
         ...state,
-        topoPlot: action.payload
+        topoPlot: action.payload,
       };
     })
     .addCase(JupyterActions.SetERPPlot, (state, action) => {
       return {
         ...state,
-        erpPlot: action.payload
+        erpPlot: action.payload,
       };
     })
     .addCase(ExperimentActions.ExperimentCleanup, (state, action) => {
@@ -97,7 +97,7 @@ export default createReducer(initialState, builder =>
         ...state,
         epochsInfo: [],
         psdPlot: null,
-        erpPlot: null
+        erpPlot: null,
       };
     })
 );

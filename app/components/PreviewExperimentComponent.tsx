@@ -7,7 +7,7 @@ import { getImages } from '../utils/filesystem/storage';
 import {
   MainTimeline,
   Trial,
-  ExperimentParameters
+  ExperimentParameters,
 } from '../constants/interfaces';
 
 interface Props {
@@ -50,9 +50,9 @@ export default class PreviewExperimentComponent extends Component<Props> {
             params: this.props.previewParams || this.props.params,
             eventCallback:
               PreviewExperimentComponent.insertPreviewLabJsCallback,
-            on_finish: csv => {
+            on_finish: (csv) => {
               this.props.onEnd();
-            }
+            },
           }}
         />
       </div>

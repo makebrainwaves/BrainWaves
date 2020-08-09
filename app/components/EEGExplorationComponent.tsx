@@ -5,14 +5,14 @@ import {
   Header,
   Segment,
   Image,
-  Divider
+  Divider,
 } from 'semantic-ui-react';
 import { HashHistory } from 'history';
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
-  DEVICES
+  DEVICES,
 } from '../constants/constants';
 import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
@@ -42,7 +42,7 @@ export default class Home extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      isConnectModalOpen: false
+      isConnectModalOpen: false,
     };
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleStartConnect = this.handleStartConnect.bind(this);

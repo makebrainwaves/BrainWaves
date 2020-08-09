@@ -35,7 +35,7 @@ export default class SecondaryNavComponent extends Component<Props> {
   renderSteps() {
     return (
       <>
-        {Object.values(this.props.steps).map(stepTitle => (
+        {Object.values(this.props.steps).map((stepTitle) => (
           <SecondaryNavSegment
             key={stepTitle}
             title={stepTitle}
@@ -72,7 +72,7 @@ export default class SecondaryNavComponent extends Component<Props> {
                 <Dropdown.Menu className={styles.dropdownMenu}>
                   <Dropdown.Item
                     className={styles.dropdownItem}
-                    onClick={e => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div>Enable EEG</div>
                     {this.props.enableEEGToggle}

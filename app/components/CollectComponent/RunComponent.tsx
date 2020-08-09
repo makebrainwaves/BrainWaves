@@ -12,7 +12,7 @@ import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
   MainTimeline,
   Trial,
-  ExperimentParameters
+  ExperimentParameters,
 } from '../../constants/interfaces';
 import { ExperimentActions } from '../../actions';
 
@@ -48,7 +48,7 @@ export default class Run extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      isInputCollectOpen: props.subject.length === 0
+      isInputCollectOpen: props.subject.length === 0,
     };
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.insertLabJsCallback = this.insertLabJsCallback.bind(this);
@@ -69,7 +69,7 @@ export default class Run extends Component<Props, State> {
       const options = {
         buttons: ['No', 'Yes'],
         message:
-          'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?'
+          'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?',
       };
       const response = await dialog.showMessageBox(options);
       if (response.response === 1) {
@@ -171,9 +171,9 @@ export default class Run extends Component<Props, State> {
             script: this.props.paradigm,
             params: this.props.params,
             eventCallback: this.insertLabJsCallback(),
-            on_finish: csv => {
+            on_finish: (csv) => {
               this.props.ExperimentActions.Stop({ data: csv });
-            }
+            },
           }}
         />
       </div>
@@ -199,7 +199,7 @@ export default class Run extends Component<Props, State> {
           data={{
             subject: this.props.subject,
             group: this.props.group,
-            session: this.props.session
+            session: this.props.session,
           }}
         />
       </div>

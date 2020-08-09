@@ -34,8 +34,8 @@ export const buildCustomTimeline = () => ({
     {
       name: 'Link 1',
       address:
-        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn'
-    }
+        'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
+    },
   ],
   protocal_links: [],
   params: {
@@ -57,42 +57,42 @@ export const buildCustomTimeline = () => ({
       dir: '',
       title: 'Condition 1',
       type: EVENTS.STIMULUS_1,
-      response: ''
+      response: '',
     },
     stimulus2: {
       dir: '',
       title: 'Condition 2',
       type: EVENTS.STIMULUS_2,
-      response: ''
+      response: '',
     },
     stimulus3: {
       dir: '',
       title: '',
       type: 3,
-      response: ''
+      response: '',
     },
     stimulus4: {
       dir: '',
       title: '',
       type: 4,
-      response: ''
+      response: '',
     },
-    stimuli: []
+    stimuli: [],
   },
   mainTimeline: ['intro', 'faceHouseTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',
       id: 'intro',
-      post_trial_gap: 1000
+      post_trial_gap: 1000,
     },
     end: {
       id: 'end',
       type: 'callback-html-display',
       stimulus: 'Thanks for participating. Press any key to continue',
       response_ends_trial: true,
-      post_trial_gap: 500
-    }
+      post_trial_gap: 500,
+    },
   },
   timelines: {
     faceHouseTimeline: {
@@ -102,13 +102,13 @@ export const buildCustomTimeline = () => ({
           id: 'interTrial',
           type: 'callback-image-display',
           stimulus: fixation,
-          response_ends_trial: false
+          response_ends_trial: false,
         },
         {
           id: 'trial',
-          response_ends_trial: false
-        }
-      ]
-    }
-  }
+          response_ends_trial: false,
+        },
+      ],
+    },
+  },
 });

@@ -44,8 +44,8 @@ class SignalQualityIndicatorComponent extends Component<Props> {
     }
 
     this.signalQualitySubscription = observable.subscribe(
-      epoch => {
-        Object.keys(epoch.signalQuality).forEach(key => {
+      (epoch) => {
+        Object.keys(epoch.signalQuality).forEach((key) => {
           d3.select(`#${key}`)
             .attr('visibility', 'show')
             .attr('stroke', '#000')
@@ -55,7 +55,7 @@ class SignalQualityIndicatorComponent extends Component<Props> {
             .attr('fill', epoch.signalQuality[key]);
         });
       },
-      error => new Error(`Error in signalQualitySubscription ${error}`)
+      (error) => new Error(`Error in signalQualitySubscription ${error}`)
     );
   }
 

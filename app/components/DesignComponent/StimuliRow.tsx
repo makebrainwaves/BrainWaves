@@ -18,10 +18,10 @@ interface Props {
 const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
   key: i.toString(),
   text: i.toString(),
-  value: i.toString()
+  value: i.toString(),
 }));
 
-export const StimuliRow: React.FC<Props> = props => {
+export const StimuliRow: React.FC<Props> = (props) => {
   return (
     <Table.Row className={styles.trialsRow}>
       <Table.Cell className={styles.conditionsNameRow}>
@@ -51,7 +51,7 @@ export const StimuliRow: React.FC<Props> = props => {
           <div
             className={styles.trialsTrialTypeRowSelector}
             style={{
-              backgroundColor: props.phase === 'main' ? '#1AC4EF' : '#EB1B66'
+              backgroundColor: props.phase === 'main' ? '#1AC4EF' : '#EB1B66',
             }}
           >
             {props.phase === 'main' ? 'Experimental' : 'Practice'}
@@ -61,7 +61,7 @@ export const StimuliRow: React.FC<Props> = props => {
             style={{
               display: 'grid',
               color: '#C4C4C4',
-              justifyContent: 'end'
+              justifyContent: 'end',
             }}
           >
             <Dropdown.Menu>

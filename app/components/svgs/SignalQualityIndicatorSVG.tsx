@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SvgComponent = props => (
+const SvgComponent = (props) => (
   <svg
     id="SignalQualityIndicator"
     data-name="SignalQualityIndicator"

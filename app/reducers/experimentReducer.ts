@@ -5,7 +5,7 @@ import {
   MainTimeline,
   Trial,
   ExperimentDescription,
-  ExperimentParameters
+  ExperimentParameters,
 } from '../constants/interfaces';
 
 export interface ExperimentStateType {
@@ -39,91 +39,91 @@ const initialState: ExperimentStateType = {
   session: 1,
   isRunning: false,
   isEEGEnabled: false,
-  description: { question: '', hypothesis: '', methods: '' }
+  description: { question: '', hypothesis: '', methods: '' },
 };
 
-export default createReducer(initialState, builder =>
+export default createReducer(initialState, (builder) =>
   builder
     .addCase(ExperimentActions.SetType, (state, action) => {
       return {
         ...state,
-        type: action.payload
+        type: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetParadigm, (state, action) => {
       return {
         ...state,
-        paradigm: action.payload
+        paradigm: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetSubject, (state, action) => {
       return {
         ...state,
-        subject: action.payload
+        subject: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetGroup, (state, action) => {
       return {
         ...state,
-        group: action.payload
+        group: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetSession, (state, action) => {
       return {
         ...state,
-        session: action.payload
+        session: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetParams, (state, action) => {
       return {
         ...state,
-        params: { ...state.params, ...action.payload }
+        params: { ...state.params, ...action.payload },
       };
     })
 
     .addCase(ExperimentActions.SetTimeline, (state, action) => {
       return {
         ...state,
-        ...action.payload
+        ...action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetTitle, (state, action) => {
       return {
         ...state,
-        title: action.payload
+        title: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetDescription, (state, action) => {
       return {
         ...state,
-        description: action.payload
+        description: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetIsRunning, (state, action) => {
       return {
         ...state,
-        isRunning: action.payload
+        isRunning: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetEEGEnabled, (state, action) => {
       return {
         ...state,
-        isEEGEnabled: action.payload
+        isEEGEnabled: action.payload,
       };
     })
 
     .addCase(ExperimentActions.SetExperimentState, (state, action) => {
       return {
-        ...action.payload
+        ...action.payload,
       };
     })
     .addCase(

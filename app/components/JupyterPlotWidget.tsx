@@ -3,7 +3,7 @@ import { Segment, Button } from 'semantic-ui-react';
 import {
   richestMimetype,
   standardDisplayOrder,
-  standardTransforms
+  standardTransforms,
 } from '@nteract/transforms';
 import { isNil } from 'lodash';
 import { storeJupyterImage } from '../utils/filesystem/storage';
@@ -30,7 +30,7 @@ export default class JupyterPlotWidget extends Component<Props, State> {
     super(props);
     this.state = {
       rawData: '',
-      mimeType: ''
+      mimeType: '',
     };
     this.handleSave = this.handleSave.bind(this);
   }

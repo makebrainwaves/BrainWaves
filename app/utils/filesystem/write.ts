@@ -47,7 +47,7 @@ export const writeEEGData = (writeStream: fs.WriteStream, eegData: EEGData) => {
     writeStream.write(`${eegData.data[i].toString()},`); // Round data
   }
   if (has(eegData, 'marker')) {
-    writeStream.write(`${eegData['marker']}\n`);
+    writeStream.write(`${eegData.marker}\n`);
   } else {
     writeStream.write(`0\n`);
   }

@@ -12,7 +12,7 @@ import {
   KERNEL_STATUS,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
-  DEVICES
+  DEVICES,
 } from '../../constants/constants';
 import faceHouseIcon from '../../assets/common/FacesHouses.png';
 import stroopIcon from '../../assets/common/Stroop.png';
@@ -25,12 +25,12 @@ import {
   readWorkspaces,
   readAndParseState,
   openWorkspaceDir,
-  deleteWorkspaceDir
+  deleteWorkspaceDir,
 } from '../../utils/filesystem/storage';
 import {
   JupyterActions,
   DeviceActions,
-  ExperimentActions
+  ExperimentActions,
 } from '../../actions';
 
 import InputModal from '../InputModal';
@@ -45,7 +45,7 @@ const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now
   RECENT: 'MY EXPERIMENTS',
   NEW: 'EXPERIMENT BANK',
-  EXPLORE: 'EXPLORE EEG DATA'
+  EXPLORE: 'EXPLORE EEG DATA',
 };
 
 interface Props {
@@ -83,7 +83,7 @@ export default class Home extends Component<Props, State> {
       recentWorkspaces: [],
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
-      overviewExperimentType: EXPERIMENTS.NONE
+      overviewExperimentType: EXPERIMENTS.NONE,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
@@ -106,7 +106,7 @@ export default class Home extends Component<Props, State> {
   handleNewExperiment(experimentType: EXPERIMENTS) {
     if (experimentType === EXPERIMENTS.CUSTOM) {
       this.setState({
-        isNewExperimentModalOpen: true
+        isNewExperimentModalOpen: true,
       });
       // If pre-designed experiment, load existing workspace
     } else if (this.state.recentWorkspaces.includes(experimentType)) {
@@ -116,7 +116,7 @@ export default class Home extends Component<Props, State> {
       this.props.ExperimentActions.CreateNewWorkspace({
         title: experimentType,
         type: experimentType,
-        paradigm: experimentType
+        paradigm: experimentType,
       });
       this.props.history.push(SCREENS.DESIGN.route);
     }
@@ -136,7 +136,7 @@ export default class Home extends Component<Props, State> {
     this.props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
-      paradigm: EXPERIMENTS.CUSTOM
+      paradigm: EXPERIMENTS.CUSTOM,
     });
     this.props.history.push(SCREENS.DESIGN.route);
   }
@@ -152,20 +152,20 @@ export default class Home extends Component<Props, State> {
   handleOpenOverview(type: EXPERIMENTS) {
     this.setState({
       overviewExperimentType: type,
-      isOverviewComponentOpen: true
+      isOverviewComponentOpen: true,
     });
   }
 
   handleCloseOverview() {
     this.setState({
-      isOverviewComponentOpen: false
+      isOverviewComponentOpen: false,
     });
   }
 
   async handleDeleteWorkspace(dir) {
     const options = {
       buttons: ['No', 'Yes'],
-      message: 'Do you really want to delete the experiment?'
+      message: 'Do you really want to delete the experiment?',
     };
     const response = await dialog.showMessageBox(options);
     if (response.response === 1) {
@@ -209,9 +209,9 @@ export default class Home extends Component<Props, State> {
                         readAndParseState(b).params.dateModified || 0;
                       return bTime - aTime;
                     })
-                    .map(dir => {
+                    .map((dir) => {
                       const {
-                        params: { dateModified }
+                        params: { dateModified },
                       } = readAndParseState(dir);
                       return (
                         <Table.Row key={dir} className={styles.experimentRow}>

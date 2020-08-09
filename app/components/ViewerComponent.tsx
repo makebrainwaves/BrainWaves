@@ -5,7 +5,7 @@ import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   DEVICES,
-  VIEWER_DEFAULTS
+  VIEWER_DEFAULTS,
 } from '../constants/constants';
 
 const Mousetrap = require('mousetrap');
@@ -30,7 +30,7 @@ class ViewerComponent extends Component<Props, State> {
     this.state = {
       ...VIEWER_DEFAULTS,
       channels:
-        props.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS : MUSE_CHANNELS
+        props.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS : MUSE_CHANNELS,
     };
     this.graphView = null;
     this.signalQualitySubscription = null;
@@ -43,7 +43,7 @@ class ViewerComponent extends Component<Props, State> {
         plottingInterval: this.props.plottingInterval,
         channels: this.state.channels,
         domain: this.state.domain,
-        channelColours: this.state.channels.map(() => '#66B0A9')
+        channelColours: this.state.channels.map(() => '#66B0A9'),
       });
       this.setKeyListeners();
       if (!isNil(this.props.signalQualityObservable)) {
@@ -63,7 +63,7 @@ class ViewerComponent extends Component<Props, State> {
         channels:
           this.props.deviceType === DEVICES.MUSE
             ? MUSE_CHANNELS
-            : EMOTIV_CHANNELS
+            : EMOTIV_CHANNELS,
       });
     }
     if (this.state.channels !== prevState.channels) {
@@ -98,10 +98,10 @@ class ViewerComponent extends Component<Props, State> {
       this.signalQualitySubscription.unsubscribe();
     }
     this.signalQualitySubscription = observable.subscribe(
-      chunk => {
+      (chunk) => {
         this.graphView.send('newData', chunk);
       },
-      error => new Error(`Error in epochSubscription ${error}`)
+      (error) => new Error(`Error in epochSubscription ${error}`)
     );
   }
 

@@ -5,13 +5,13 @@ import {
   EXPERIMENTS,
   DEVICES,
   CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
+  DEVICE_AVAILABILITY,
 } from '../../constants/constants';
 import {
   MainTimeline,
   Trial,
   ExperimentParameters,
-  SignalQualityData
+  SignalQualityData,
 } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
@@ -57,7 +57,7 @@ export default class Collect extends Component<Props, State> {
     super(props);
     this.state = {
       isConnectModalOpen: false,
-      isRunComponentOpen: !props.isEEGEnabled
+      isRunComponentOpen: !props.isEEGEnabled,
     };
     this.handleStartConnect = this.handleStartConnect.bind(this);
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);

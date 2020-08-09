@@ -8,7 +8,7 @@ import {
   Divider,
   Button,
   Checkbox,
-  Sidebar
+  Sidebar,
 } from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
@@ -18,18 +18,18 @@ import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
   KERNEL_STATUS,
-  EXPERIMENTS
+  EXPERIMENTS,
 } from '../constants/constants';
 import {
   readWorkspaceCleanedEEGData,
   getSubjectNamesFromFiles,
   readWorkspaceBehaviorData,
   readBehaviorData,
-  storeAggregatedBehaviorData
+  storeAggregatedBehaviorData,
 } from '../utils/filesystem/storage';
 import {
   aggregateDataForPlot,
-  aggregateBehaviorDataToSave
+  aggregateBehaviorDataToSave,
 } from '../utils/behavior/compute';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
@@ -41,11 +41,11 @@ import { JupyterActions } from '../actions/jupyterActions';
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
   ERP: 'ERP',
-  BEHAVIOR: 'BEHAVIOR'
+  BEHAVIOR: 'BEHAVIOR',
 };
 
 const ANALYZE_STEPS_BEHAVIOR = {
-  BEHAVIOR: 'BEHAVIOR'
+  BEHAVIOR: 'BEHAVIOR',
 };
 
 interface Props {
@@ -161,7 +161,7 @@ export default class Analyze extends Component<Props, State> {
       selectedChannel:
         props.deviceType === DEVICES.EMOTIV
           ? EMOTIV_CHANNELS[0]
-          : MUSE_CHANNELS[0]
+          : MUSE_CHANNELS[0],
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
@@ -191,22 +191,22 @@ export default class Analyze extends Component<Props, State> {
     }
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
-      eegFilePaths: workspaceCleanData.map(filepath => ({
+      eegFilePaths: workspaceCleanData.map((filepath) => ({
         key: filepath.name,
         text: filepath.name,
-        value: filepath.path
+        value: filepath.path,
       })),
-      behaviorFilePaths: behavioralData.map(filepath => ({
+      behaviorFilePaths: behavioralData.map((filepath) => ({
         key: filepath.name,
         text: filepath.name,
-        value: filepath.path
+        value: filepath.path,
       })),
-      dependentVariables: ['Response Time', 'Accuracy'].map(dv => ({
+      dependentVariables: ['Response Time', 'Accuracy'].map((dv) => ({
         key: dv,
         text: dv,
-        value: dv
+        value: dv,
       })),
-      selectedDependentVariable: 'Response Time'
+      selectedDependentVariable: 'Response Time',
     });
   }
 
@@ -220,7 +220,7 @@ export default class Analyze extends Component<Props, State> {
   handleDatasetChange(event: object, data: object) {
     this.setState({
       selectedFilePaths: data.value,
-      selectedSubjects: getSubjectNamesFromFiles(data.value)
+      selectedSubjects: getSubjectNamesFromFiles(data.value),
     });
     this.props.JupyterActions.LoadCleanedEpochs(data.value);
   }
@@ -237,7 +237,7 @@ export default class Analyze extends Component<Props, State> {
       selectedBehaviorFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value),
       dataToPlot,
-      layout
+      layout,
     });
   }
 
@@ -245,11 +245,11 @@ export default class Analyze extends Component<Props, State> {
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     if (behavioralData.length !== this.state.behaviorFilePaths.length) {
       this.setState({
-        behaviorFilePaths: behavioralData.map(filepath => ({
+        behaviorFilePaths: behavioralData.map((filepath) => ({
           key: filepath.name,
           text: filepath.name,
-          value: filepath.path
-        }))
+          value: filepath.path,
+        })),
       });
     }
   }
@@ -265,7 +265,7 @@ export default class Analyze extends Component<Props, State> {
     this.setState({
       selectedDependentVariable: data.value,
       dataToPlot,
-      layout
+      layout,
     });
   }
 
@@ -281,7 +281,7 @@ export default class Analyze extends Component<Props, State> {
       removeOutliers: !this.state.removeOutliers,
       dataToPlot,
       layout,
-      helpMode: 'outliers'
+      helpMode: 'outliers',
     });
   }
 
@@ -296,7 +296,7 @@ export default class Analyze extends Component<Props, State> {
     this.setState({
       showDataPoints: !this.state.showDataPoints,
       dataToPlot,
-      layout
+      layout,
     });
   }
 
@@ -316,14 +316,14 @@ export default class Analyze extends Component<Props, State> {
         dataToPlot,
         layout,
         displayMode,
-        helpMode: displayMode
+        helpMode: displayMode,
       });
     }
   }
 
   toggleDisplayInfoVisibility() {
     this.setState({
-      isSidebarVisible: !this.state.isSidebarVisible
+      isSidebarVisible: !this.state.isSidebarVisible,
     });
   }
 
@@ -351,7 +351,7 @@ export default class Analyze extends Component<Props, State> {
       this.state.selectedFilePaths.length >= 1
     ) {
       const numberConditions = this.props.epochsInfo.filter(
-        infoObj =>
+        (infoObj) =>
           infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
       ).length;
       let colors;
@@ -364,7 +364,7 @@ export default class Analyze extends Component<Props, State> {
         <div>
           {this.props.epochsInfo
             .filter(
-              infoObj =>
+              (infoObj) =>
                 infoObj.name !== 'Drop Percentage' &&
                 infoObj.name !== 'Total Epochs'
             )
@@ -566,7 +566,7 @@ export default class Analyze extends Component<Props, State> {
                 overflow: 'auto',
                 maxHeight: 650,
                 display: 'grid',
-                justifyContent: 'center'
+                justifyContent: 'center',
               }}
             >
               <Segment basic textAlign="left" className={styles.plotSegment}>

@@ -33,7 +33,7 @@ export const DeviceActions = {
   SetSignalQualityObservable: createAction<any, 'SET_SIGNAL_OBSERVABLE'>(
     'SET_SIGNAL_OBSERVABLE'
   ),
-  Cleanup: createAction<any, 'CLEANUP'>('CLEANUP')
+  Cleanup: createAction<any, 'CLEANUP'>('CLEANUP'),
 } as const;
 
 export type DeviceActionType = ActionType<

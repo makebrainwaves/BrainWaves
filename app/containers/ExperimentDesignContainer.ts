@@ -5,13 +5,13 @@ import { ExperimentActions } from '../actions';
 
 function mapStateToProps(state) {
   return {
-    ...state.experiment
+    ...state.experiment,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    ExperimentActions: bindActionCreators(ExperimentActions, dispatch)
+    ExperimentActions: bindActionCreators(ExperimentActions, dispatch),
   };
 }
 

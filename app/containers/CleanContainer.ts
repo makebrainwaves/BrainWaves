@@ -11,14 +11,14 @@ function mapStateToProps(state) {
     group: state.experiment.group,
     session: state.experiment.session,
     deviceType: state.device.deviceType,
-    ...state.jupyter
+    ...state.jupyter,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     ExperimentActions: bindActionCreators(ExperimentActions, dispatch),
-    JupyterActions: bindActionCreators(JupyterActions, dispatch)
+    JupyterActions: bindActionCreators(JupyterActions, dispatch),
   };
 }
 

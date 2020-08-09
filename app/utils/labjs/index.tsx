@@ -32,11 +32,11 @@ class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
         faceshouses.parameters = props.settings.params;
         faceshouses.parameters.title = props.settings.title;
         faceshouses.files = props.settings.params.stimuli
-          .map(image => ({
+          .map((image) => ({
             [path.join(image.dir, image.filename)]: path.join(
               image.dir,
               image.filename
-            )
+            ),
           }))
           .reduce((obj, item) => {
             // return { ...obj, item }; ??
@@ -50,11 +50,11 @@ class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
         custom.parameters = props.settings.params;
         custom.parameters.title = props.settings.title;
         custom.files = props.settings.params.stimuli
-          .map(image => ({
+          .map((image) => ({
             [path.join(image.dir, image.filename)]: path.join(
               image.dir,
               image.filename
-            )
+            ),
           }))
           .reduce((obj, item) => {
             // return { ...obj, item }; ??
@@ -70,10 +70,10 @@ class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
       this.study = undefined;
       props.settings.on_finish(csv);
     });
-    this.study.parameters.callbackForEEG = e => {
+    this.study.parameters.callbackForEEG = (e) => {
       props.settings.eventCallback(e, new Date().getTime());
     };
-    this.study.options.events['keydown'] = async e => {
+    this.study.options.events.keydown = async (e) => {
       if (e.code === 'Escape') {
         if (this.study) {
           await this.study.internals.controller.audioContext.close();

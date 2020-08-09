@@ -6,7 +6,7 @@ import {
   DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
-  SCREENS
+  SCREENS,
 } from '../../constants/constants';
 import styles from '../styles/collect.css';
 import { SignalQualityData } from '../../constants/interfaces';
@@ -33,7 +33,7 @@ interface State {
 enum INSTRUCTION_PROGRESS {
   SEARCHING,
   TURN_ON,
-  COMPUTER_CONNECTABILITY
+  COMPUTER_CONNECTABILITY,
 }
 
 export default class ConnectModal extends Component<Props, State> {
@@ -51,15 +51,15 @@ export default class ConnectModal extends Component<Props, State> {
     super(props);
     this.state = {
       selectedDevice: null,
-      instructionProgress: INSTRUCTION_PROGRESS.SEARCHING
+      instructionProgress: INSTRUCTION_PROGRESS.SEARCHING,
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
-      trailing: false
+      trailing: false,
     });
     this.handleConnect = debounce(this.handleConnect.bind(this), 1000, {
       leading: true,
-      trailing: false
+      trailing: false,
     });
     this.handleinstructionProgress = this.handleinstructionProgress.bind(this);
   }
@@ -100,7 +100,7 @@ export default class ConnectModal extends Component<Props, State> {
     return (
       <Segment basic>
         <List divided relaxed inverted>
-          {this.props.availableDevices.map(device => (
+          {this.props.availableDevices.map((device) => (
             <List.Item className={styles.deviceItem} key={device.id}>
               <List.Icon
                 link

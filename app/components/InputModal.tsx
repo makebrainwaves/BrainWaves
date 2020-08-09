@@ -24,7 +24,7 @@ export default class InputModal extends Component<Props, State> {
     super(props);
     this.state = {
       enteredText: '',
-      isError: false
+      isError: false,
     };
     this.handleTextEntry = debounce(this.handleTextEntry, 100).bind(this);
     this.handleClose = this.handleClose.bind(this);
@@ -49,7 +49,7 @@ export default class InputModal extends Component<Props, State> {
   }
 
   handleEnterSubmit(event: object) {
-    if (event['key'] === 'Enter') {
+    if (event.key === 'Enter') {
       this.handleClose();
     }
   }

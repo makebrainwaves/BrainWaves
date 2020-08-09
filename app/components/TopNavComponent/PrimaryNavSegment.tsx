@@ -10,7 +10,7 @@ interface Props {
   order: number;
 }
 
-const PrimaryNavSegment = props => {
+const PrimaryNavSegment = (props) => {
   return (
     <Grid.Column
       width={2}

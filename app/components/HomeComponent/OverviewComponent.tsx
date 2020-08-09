@@ -11,7 +11,7 @@ import { loadProtocol } from '../../utils/labjs/functions';
 const OVERVIEW_STEPS = {
   OVERVIEW: 'OVERVIEW',
   BACKGROUND: 'BACKGROUND',
-  PROTOCOL: 'PROTOCOL'
+  PROTOCOL: 'PROTOCOL',
 };
 
 interface Props {
@@ -30,7 +30,7 @@ export default class OverviewComponent extends Component<Props, State> {
     super(props);
     this.state = {
       activeStep: OVERVIEW_STEPS.OVERVIEW,
-      isPreviewing: false
+      isPreviewing: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
@@ -43,9 +43,9 @@ export default class OverviewComponent extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       ...prevState,
-      isPreviewing: !prevState.isPreviewing
+      isPreviewing: !prevState.isPreviewing,
     }));
   }
 
@@ -79,7 +79,7 @@ export default class OverviewComponent extends Component<Props, State> {
               </Segment>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
-                onClick={e => this.handlePreview(e)}
+                onClick={(e) => this.handlePreview(e)}
               />
             </Grid.Column>
           </Grid>

@@ -4,7 +4,7 @@ export const parseSingleQuoteJSON = (string: string) =>
   JSON.parse(string.replace(/'/g, '"'));
 
 export const parseKernelStatus = (msg: object) => {
-  switch (msg['content']['execution_state']) {
+  switch (msg.content.execution_state) {
     case 'busy':
       return KERNEL_STATUS.BUSY;
     case 'idle':

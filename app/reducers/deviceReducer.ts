@@ -4,13 +4,13 @@ import {
   DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
-  SIGNAL_QUALITY
+  SIGNAL_QUALITY,
 } from '../constants/constants';
 import {
   DeviceInfo,
   Device,
   EEGData,
-  SignalQualityData
+  SignalQualityData,
 } from '../constants/interfaces';
 import { DeviceActions } from '../actions';
 
@@ -32,54 +32,54 @@ const initialState: DeviceStateType = {
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
   signalQualityObservable: null,
-  deviceType: DEVICES.EMOTIV
+  deviceType: DEVICES.EMOTIV,
 };
 
-export default createReducer(initialState, builder =>
+export default createReducer(initialState, (builder) =>
   builder
     .addCase(DeviceActions.ConnectToDevice, (state, action) => {
       return {
         ...state,
-        deviceType: action.payload
+        deviceType: action.payload,
       };
     })
     .addCase(DeviceActions.SetDeviceInfo, (state, action) => {
       return {
         ...state,
-        connectedDevice: action.payload
+        connectedDevice: action.payload,
       };
     })
 
     .addCase(DeviceActions.SetAvailableDevices, (state, action) => {
       return {
         ...state,
-        availableDevices: action.payload
+        availableDevices: action.payload,
       };
     })
     .addCase(DeviceActions.SetConnectionStatus, (state, action) => {
       return {
         ...state,
-        connectionStatus: action.payload
+        connectionStatus: action.payload,
       };
     })
     .addCase(DeviceActions.SetDeviceAvailability, (state, action) => {
       return {
         ...state,
-        deviceAvailability: action.payload
+        deviceAvailability: action.payload,
       };
     })
 
     .addCase(DeviceActions.SetRawObservable, (state, action) => {
       return {
         ...state,
-        rawObservable: action.payload
+        rawObservable: action.payload,
       };
     })
 
     .addCase(DeviceActions.SetSignalQualityObservable, (state, action) => {
       return {
         ...state,
-        signalQualityObservable: action.payload
+        signalQualityObservable: action.payload,
       };
     })
     .addCase(DeviceActions.Cleanup, (state, action) => {

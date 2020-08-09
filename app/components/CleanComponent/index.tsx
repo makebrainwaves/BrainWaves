@@ -11,7 +11,7 @@ import {
   Divider,
   DropdownProps,
   DropdownItemProps,
-  SemanticICONS
+  SemanticICONS,
 } from 'semantic-ui-react';
 import * as path from 'path';
 import { Link } from 'react-router-dom';
@@ -58,7 +58,7 @@ export default class Clean extends Component<Props, State> {
       eegFilePaths: [{ key: '', text: '', value: '' }],
       selectedFilePaths: [],
       selectedSubject: props.subject,
-      isSidebarVisible: false
+      isSidebarVisible: false,
     };
     this.handleRecordingChange = this.handleRecordingChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
@@ -78,26 +78,26 @@ export default class Clean extends Component<Props, State> {
     this.setState({
       subjects: workspaceRawData
         .map(
-          filepath =>
+          (filepath) =>
             filepath.path.split(path.sep)[
               filepath.path.split(path.sep).length - 3
             ]
         )
         .reduce((acc, curr) => {
-          if (acc.find(subject => subject.key === curr)) {
+          if (acc.find((subject) => subject.key === curr)) {
             return acc;
           }
           return acc.concat({
             key: curr,
             text: curr,
-            value: curr
+            value: curr,
           });
         }, []),
-      eegFilePaths: workspaceRawData.map(filepath => ({
+      eegFilePaths: workspaceRawData.map((filepath) => ({
         key: filepath.name,
         text: filepath.name,
-        value: filepath.path
-      }))
+        value: filepath.path,
+      })),
     });
   }
 
@@ -147,7 +147,7 @@ export default class Clean extends Component<Props, State> {
     const { epochsInfo } = this.props;
     if (!isNil(epochsInfo)) {
       const drop = epochsInfo.find(
-        infoObj => infoObj.name === 'Drop Percentage'
+        (infoObj) => infoObj.name === 'Drop Percentage'
       )?.value;
 
       if (drop && drop >= 2) {
@@ -214,7 +214,7 @@ export default class Clean extends Component<Props, State> {
                     selection
                     closeOnChange
                     value={this.state.selectedFilePaths}
-                    options={this.state.eegFilePaths.filter(filepath => {
+                    options={this.state.eegFilePaths.filter((filepath) => {
                       if (isString(filepath.value)) {
                         const subjectFromFilepath = filepath.value.split(
                           path.sep

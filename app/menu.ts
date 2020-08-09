@@ -1,4 +1,4 @@
-/* eslint @typescript-eslint/ban-ts-ignore: off */
+/* eslint @typescript-eslint/ban-ts-comment: off */
 import {
   app,
   Menu,

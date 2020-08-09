@@ -117,7 +117,7 @@ const receiveChannelMessageEpic: Epic<
       state$.value.jupyter.mainChannel.pipe(
         map<object, JupyterActionType>((msg) => {
           console.log(debugParseMessage(msg));
-          switch (msg['header']['msg_type']) {
+          switch (msg.header.msg_type) {
             case 'kernel_info_reply':
               return JupyterActions.SetKernelInfo(msg);
             case 'status':

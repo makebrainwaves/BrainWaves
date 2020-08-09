@@ -7,7 +7,7 @@ import styles from '../styles/topnavbar.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
 import {
   readAndParseState,
-  readWorkspaces
+  readWorkspaces,
 } from '../../utils/filesystem/storage';
 import BrainwavesIcon from '../../assets/common/Brainwaves_Icon_big.png';
 import { ExperimentActions } from '../../actions';
@@ -32,10 +32,10 @@ export default class TopNavComponent extends Component<Props, State> {
     }
 
     const routeOrder = Object.values(SCREENS).find(
-      screen => screen.route === navSegmentScreen.route
+      (screen) => screen.route === navSegmentScreen.route
     )?.order;
     const currentOrder = Object.values(SCREENS).find(
-      screen => screen.route === this.props.location.pathname
+      (screen) => screen.route === this.props.location.pathname
     )?.order;
     if (routeOrder && currentOrder && currentOrder > routeOrder) {
       return styles.visitedNavColumn;
@@ -88,7 +88,7 @@ export default class TopNavComponent extends Component<Props, State> {
               }}
             >
               <Dropdown.Menu>
-                {this.state.recentWorkspaces.map(workspace => (
+                {this.state.recentWorkspaces.map((workspace) => (
                   <Dropdown.Item
                     key={workspace}
                     onClick={() => this.handleLoadRecentWorkspace(workspace)}

@@ -34,7 +34,7 @@ export default class InputCollect extends Component<Props, State> {
       group: this.props.data && this.props.data.group,
       session: this.props.data && this.props.data.session,
       isSubjectError: false,
-      isSessionError: false
+      isSessionError: false,
     };
     this.handleTextEntry = this.handleTextEntry.bind(this);
     this.handleClose = this.handleClose.bind(this);

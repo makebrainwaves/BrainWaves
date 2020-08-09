@@ -5,7 +5,7 @@ import {
   Button,
   List,
   Header,
-  Sidebar
+  Sidebar,
 } from 'semantic-ui-react';
 import Mousetrap from 'mousetrap';
 import ViewerComponent from '../ViewerComponent';
@@ -21,12 +21,12 @@ import {
   DEVICE_AVAILABILITY,
   EXPERIMENTS,
   PLOTTING_INTERVAL,
-  CONNECTION_STATUS
+  CONNECTION_STATUS,
 } from '../../constants/constants';
 import {
   ExperimentParameters,
   MainTimeline,
-  Trial
+  Trial,
 } from '../../constants/interfaces';
 
 interface Props {
@@ -67,7 +67,7 @@ export default class PreTestComponent extends Component<Props, State> {
     super(props);
     this.state = {
       isPreviewing: false,
-      isSidebarVisible: true
+      isSidebarVisible: true,
     };
     this.handlePreview = this.handlePreview.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
@@ -88,17 +88,17 @@ export default class PreTestComponent extends Component<Props, State> {
 
   handlePreview(e) {
     e.target.blur();
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       ...prevState,
       isSidebarVisible: false,
-      isPreviewing: !prevState.isPreviewing
+      isPreviewing: !prevState.isPreviewing,
     }));
   }
 
   handleSidebarToggle() {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       ...prevState,
-      isSidebarVisible: !prevState.isSidebarVisible
+      isSidebarVisible: !prevState.isSidebarVisible,
     }));
   }
 
@@ -179,7 +179,7 @@ export default class PreTestComponent extends Component<Props, State> {
               <Grid.Column floated="right">
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
-                  onClick={e => this.handlePreview(e)}
+                  onClick={(e) => this.handlePreview(e)}
                 />
                 <Button
                   primary

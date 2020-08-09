@@ -17,13 +17,13 @@ export const loadDialog = (event, arg) => {
   }
 };
 
-const selectTimeline = event => {
+const selectTimeline = (event) => {
   dialog.showOpenDialog(
     {
       title: 'Select a jsPsych timeline file',
-      properties: ['openFile', 'promptToCreate']
+      properties: ['openFile', 'promptToCreate'],
     },
-    filePaths => {
+    (filePaths) => {
       if (filePaths) {
         event.sender.send('loadDialogReply', filePaths[0]);
       }
@@ -31,13 +31,13 @@ const selectTimeline = event => {
   );
 };
 
-const selectStimulusFolder = event => {
+const selectStimulusFolder = (event) => {
   dialog.showOpenDialog(
     {
       title: 'Select a folder of images',
-      properties: ['openDirectory']
+      properties: ['openDirectory'],
     },
-    dir => {
+    (dir) => {
       if (dir) {
         event.sender.send('loadDialogReply', dir[0]);
       } else {

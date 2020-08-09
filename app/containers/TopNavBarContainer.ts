@@ -9,13 +9,13 @@ function mapStateToProps(state) {
     location: state.router.location,
     isRunning: state.experiment.isRunning,
     type: state.experiment.type,
-    isEEGEnabled: state.experiment.isEEGEnabled
+    isEEGEnabled: state.experiment.isEEGEnabled,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    ExperimentActions: bindActionCreators(ExperimentActions, dispatch)
+    ExperimentActions: bindActionCreators(ExperimentActions, dispatch),
   };
 }
 

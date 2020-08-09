@@ -16,7 +16,7 @@ export const ParamSlider: React.FC<Props> = ({
   msConversion,
   value,
   label,
-  onChange
+  onChange,
 }) => {
   return (
     <div>
@@ -29,7 +29,7 @@ export const ParamSlider: React.FC<Props> = ({
             min={Math.min(...Object.keys(marks))}
             max={Math.max(...Object.keys(marks))}
             value={value / parseInt(msConversion, 10)}
-            onChange={val => onChange(val * parseInt(msConversion, 10))}
+            onChange={(val) => onChange(val * parseInt(msConversion, 10))}
             defaultValue={1}
           />
         ) : (

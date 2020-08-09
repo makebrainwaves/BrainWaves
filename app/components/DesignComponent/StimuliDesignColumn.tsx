@@ -20,7 +20,7 @@ interface Props {
 const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
   key: i.toString(),
   text: i.toString(),
-  value: i.toString()
+  value: i.toString(),
 }));
 
 export default class StimuliDesignColumn extends Component<Props> {
@@ -29,7 +29,7 @@ export default class StimuliDesignColumn extends Component<Props> {
     this.handleSelectFolder = this.handleSelectFolder.bind(this);
     this.handleRemoveFolder = this.handleRemoveFolder.bind(this);
     this.state = {
-      numberImages: undefined
+      numberImages: undefined,
     };
   }
 
@@ -52,7 +52,7 @@ export default class StimuliDesignColumn extends Component<Props> {
         toast.error('No images in folder!');
       }
       this.setState({
-        numberImages: images.length
+        numberImages: images.length,
       });
       this.props.onChange('dir', dir, `stimulus${this.props.num}`);
     }
@@ -60,7 +60,7 @@ export default class StimuliDesignColumn extends Component<Props> {
 
   handleRemoveFolder() {
     this.setState({
-      numberImages: 0
+      numberImages: 0,
     });
     this.props.onChange('dir', '', `stimulus${this.props.num}`);
   }
@@ -108,10 +108,7 @@ export default class StimuliDesignColumn extends Component<Props> {
               <div>
                 Folder{' '}
                 {this.props.dir &&
-                  this.props.dir
-                    .split(path.sep)
-                    .slice(-1)
-                    .join(' / ')}
+                  this.props.dir.split(path.sep).slice(-1).join(' / ')}
               </div>
               <div>
                 ( {this.state.numberImages || this.props.numberImages} images ){' '}

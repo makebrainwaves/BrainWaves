@@ -29,7 +29,7 @@ export const ExperimentActions = {
   SaveWorkspace: createAction('SAVE_WORKSPACE'),
   SetState: createAction<any, 'SET_EXPERIMENT_STATE'>('SET_EXPERIMENT_STATE'),
   SetEEGEnabled: createAction<any, 'SET_EEG_ENABLED'>('SET_EEG_ENABLED'),
-  UpdateSession: createAction('UPDATE_SESSION')
+  UpdateSession: createAction('UPDATE_SESSION'),
 } as const;
 
 export type ExperimentActionType = ActionType<

@@ -12,7 +12,7 @@ enum HELP_STEP {
   LEARN_BRAIN,
   LEARN_BLINK,
   LEARN_THOUGHTS,
-  LEARN_ALPHA
+  LEARN_ALPHA,
 }
 
 interface Props {
@@ -30,7 +30,7 @@ export class HelpSidebar extends Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
-      helpStep: HELP_STEP.MENU
+      helpStep: HELP_STEP.MENU,
     };
     this.handleStartLearn = this.handleStartLearn.bind(this);
     this.handleStartSignal = this.handleStartSignal.bind(this);
@@ -53,17 +53,17 @@ export class HelpSidebar extends Component<Props, State> {
     ) {
       this.setState({ helpStep: HELP_STEP.MENU });
     } else {
-      this.setState(prevState => ({
+      this.setState((prevState) => ({
         ...prevState,
-        helpStep: prevState.helpStep + 1
+        helpStep: prevState.helpStep + 1,
       }));
     }
   }
 
   handleBack() {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       ...prevState,
-      helpStep: prevState.helpStep - 1
+      helpStep: prevState.helpStep - 1,
     }));
   }
 

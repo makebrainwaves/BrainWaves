@@ -42,7 +42,7 @@ export const JupyterActions = {
   ReceiveDisplayData: createAction<any, 'RECEIVE_DISPLAY_DATA'>(
     'RECEIVE_DISPLAY_DATA'
   ),
-  ReceiveStream: createAction<any, 'RECEIVE_STREAM'>('RECEIVE_STREAM')
+  ReceiveStream: createAction<any, 'RECEIVE_STREAM'>('RECEIVE_STREAM'),
 } as const;
 
 export type JupyterActionType = ActionType<

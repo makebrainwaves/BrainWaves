@@ -6,14 +6,14 @@ import { DeviceActions, ExperimentActions } from '../actions';
 function mapStateToProps(state) {
   return {
     ...state.device,
-    ...state.experiment
+    ...state.experiment,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
     DeviceActions: bindActionCreators(DeviceActions, dispatch),
-    ExperimentActions: bindActionCreators(ExperimentActions, dispatch)
+    ExperimentActions: bindActionCreators(ExperimentActions, dispatch),
   };
 }
 

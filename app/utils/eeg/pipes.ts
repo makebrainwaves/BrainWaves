@@ -2,12 +2,12 @@ import { pipe } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   SIGNAL_QUALITY,
-  SIGNAL_QUALITY_THRESHOLDS
+  SIGNAL_QUALITY_THRESHOLDS,
 } from '../../constants/constants';
 
 export const parseMuseSignalQuality = () =>
   pipe(
-    map(epoch => ({
+    map((epoch) => ({
       ...epoch,
       signalQuality: object.assign(
         {},
@@ -25,13 +25,13 @@ export const parseMuseSignalQuality = () =>
             return { [channelName]: SIGNAL_QUALITY.DISCONNECTED };
           }
         )
-      )
+      ),
     }))
   );
 
 export const parseEmotivSignalQuality = () =>
   pipe(
-    map(epoch => ({
+    map((epoch) => ({
       ...epoch,
       signalQuality: object.assign(
         {},
@@ -49,6 +49,6 @@ export const parseEmotivSignalQuality = () =>
             return { [channelName]: SIGNAL_QUALITY.BAD };
           }
         )
-      )
+      ),
     }))
   );
