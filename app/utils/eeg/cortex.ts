@@ -18,7 +18,7 @@
  * just pass information back and forth without doing much with it, with the
  * exception of the login/auth flow, which we expose as the init() method.
  */
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
 const EventEmitter = require('events');
 
 const CORTEX_URL = 'wss://localhost:6868';

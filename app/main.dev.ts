@@ -114,7 +114,7 @@ const createWindow = async () => {
   // eslint-disable-next-line
   new AppUpdater();
 
-  mainWindow.setMenu(null);
+  // mainWindow.setMenu(null);
   // if (process.env.NODE_ENV === 'development') {
   // mainWindow.webContents.openDevTools();
   // }

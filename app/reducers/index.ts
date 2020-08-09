@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
-import { routerReducer as router } from 'react-router-redux';
+import { connectRouter } from 'connected-react-router';
+import { History } from 'history';
 import jupyter, { JupyterStateType } from './jupyterReducer';
 import device, { DeviceStateType } from './deviceReducer';
 import experiment, { ExperimentStateType } from './experimentReducer';
@@ -8,14 +9,14 @@ export interface RootState {
   jupyter: JupyterStateType;
   device: DeviceStateType;
   experiment: ExperimentStateType;
-  router: unknown;
+  router: any;
 }
 
-const rootReducer = combineReducers({
-  jupyter,
-  device,
-  experiment,
-  router
-});
-
-export default rootReducer;
+export default function createRootReducer(history: History) {
+  return combineReducers({
+    router: connectRouter(history),
+    jupyter,
+    device,
+    experiment,
+  });
+}

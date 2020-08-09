@@ -10,20 +10,20 @@ import {
   takeUntil,
   throttleTime,
   ignoreElements,
-  tap
+  tap,
 } from 'rxjs/operators';
 import { ExperimentActions, ExperimentActionType } from '../actions';
 import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
-  CONNECTION_STATUS
+  CONNECTION_STATUS,
 } from '../constants/constants';
 import { loadProtocol } from '../utils/labjs/functions';
 import {
   createEEGWriteStream,
   writeHeader,
-  writeEEGData
+  writeEEGData,
 } from '../utils/filesystem/write';
 import {
   getWorkspaceDir,
@@ -31,7 +31,7 @@ import {
   restoreExperimentState,
   createWorkspaceDir,
   storeBehaviouralData,
-  readWorkspaceBehaviorData
+  readWorkspaceBehaviorData,
 } from '../utils/filesystem/storage';
 import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
 import { RootState } from '../reducers';
@@ -43,12 +43,12 @@ const createNewWorkspaceEpic: Epic<
   ExperimentActionType,
   ExperimentActionType,
   RootState
-> = action$ =>
+> = (action$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
     pluck('payload'),
-    tap(workspaceInfo => createWorkspaceDir(workspaceInfo.title)),
-    mergeMap(workspaceInfo =>
+    tap((workspaceInfo) => createWorkspaceDir(workspaceInfo.title)),
+    mergeMap((workspaceInfo) =>
       of(
         ExperimentActions.SetType(workspaceInfo.type),
         ExperimentActions.SetParadigm(workspaceInfo.paradigm),
@@ -107,7 +107,7 @@ const startEpic = (action$, state$) =>
               )
             )
           )
-          .subscribe(eegData => writeEEGData(writeStream, eegData));
+          .subscribe((eegData) => writeEEGData(writeStream, eegData));
       }
     }),
     mapTo(true),
@@ -159,9 +159,9 @@ const updateSessionEpic: Epic<
     mergeMap(() =>
       from(readWorkspaceBehaviorData(state$.value.experiment.title!))
     ),
-    map(behaviorFiles => {
+    map((behaviorFiles) => {
       if (behaviorFiles.length > 0) {
-        const subjectFiles = behaviorFiles.filter(filepath =>
+        const subjectFiles = behaviorFiles.filter((filepath) =>
           filepath.name.startsWith(state$.value.experiment.subject)
         );
         return subjectFiles.length + 1;
@@ -171,10 +171,10 @@ const updateSessionEpic: Epic<
     map(ExperimentActions.SetSession)
   );
 
-const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = action$ =>
+const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (action$) =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
-    filter(pathname => pathname !== '/' && pathname !== '/home'),
+    filter((pathname) => pathname !== '/' && pathname !== '/home'),
     map(ExperimentActions.SaveWorkspace)
   );
 
@@ -202,7 +202,7 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
 ) =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
     pluck('payload', 'pathname'),
-    filter(pathname => pathname === '/' || pathname === '/home'),
+    filter((pathname) => pathname === '/' || pathname === '/home'),
     tap(() => restoreExperimentState(state$.value.experiment)),
     map(ExperimentActions.ExperimentCleanup)
   );
@@ -211,7 +211,8 @@ export default combineEpics(
   loadDefaultTimelineEpic,
   createNewWorkspaceEpic,
   startEpic,
-  experimentStopEpic, // setSubjectEpic,
+  experimentStopEpic,
+  // setSubjectEpic,
   // setGroupEpic,
   updateSessionEpic,
   autoSaveEpic,
