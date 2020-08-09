@@ -420,9 +420,9 @@ export default class CustomDesign extends Component<Props, State> {
                         n => this.state.params[`stimulus${n}`].title
                       )}
                       {...e}
-                      onDelete={num => {
+                      onDelete={deletedNum => {
                         const { stimuli } = this.state.params;
-                        stimuli.splice(num, 1);
+                        stimuli.splice(deletedNum, 1);
                         const nbPracticeTrials = stimuli.filter(
                           s => s.phase === 'practice'
                         ).length;
@@ -440,7 +440,7 @@ export default class CustomDesign extends Component<Props, State> {
                       }}
                       onChange={(changedNum, key, data) => {
                         const { stimuli } = this.state.params;
-                        stimuli[num][key] = data;
+                        stimuli[changedNum][key] = data;
                         let { nbPracticeTrials } = this.state.params;
                         let { nbTrials } = this.state.params;
                         if (key === 'phase') {

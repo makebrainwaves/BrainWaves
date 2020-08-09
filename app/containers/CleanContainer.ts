@@ -2,6 +2,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import CleanComponent from '../components/CleanComponent';
 import { JupyterActions, ExperimentActions } from '../actions';
+
 function mapStateToProps(state) {
   return {
     type: state.experiment.type,

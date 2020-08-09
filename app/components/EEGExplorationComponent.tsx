@@ -7,16 +7,19 @@ import {
   Image,
   Divider
 } from 'semantic-ui-react';
+import { HashHistory } from 'history';
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
-  DEVICE_AVAILABILITY
+  DEVICE_AVAILABILITY,
+  DEVICES
 } from '../constants/constants';
 import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import styles from './styles/common.css';
+import { DeviceActions } from '../actions';
 
 interface Props {
   history: HashHistory;
@@ -25,7 +28,7 @@ interface Props {
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  DeviceActions: typeof  DeviceActions;
+  DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
 }
 
@@ -57,15 +60,15 @@ export default class Home extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.DeviceActions.setDeviceAvailability(
+    this.props.DeviceActions.SetDeviceAvailability(
       DEVICE_AVAILABILITY.SEARCHING
     );
   }
 
   handleStopConnect() {
-    this.props.DeviceActions.disconnectFromDevice(this.props.connectedDevice);
+    this.props.DeviceActions.DisconnectFromDevice(this.props.connectedDevice);
     this.setState({ isConnectModalOpen: false });
-    this.props.DeviceActions.setDeviceAvailability(DEVICE_AVAILABILITY.NONE);
+    this.props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE);
   }
 
   handleConnectModalClose() {
@@ -134,7 +137,6 @@ export default class Home extends Component<Props, State> {
               connectionStatus={this.props.connectionStatus}
               DeviceActions={this.props.DeviceActions}
               availableDevices={this.props.availableDevices}
-              style={{ marginTop: '100px' }}
             />
           </Grid.Row>
         )}

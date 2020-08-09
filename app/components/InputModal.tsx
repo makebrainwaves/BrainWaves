@@ -6,7 +6,7 @@ import styles from './styles/common.css';
 interface Props {
   open: boolean;
   onClose: (arg0: string) => void;
-  onExit: (arg0: string) => void;
+  onExit: () => void;
   header: string;
 }
 
@@ -16,9 +16,10 @@ interface State {
 }
 
 export default class InputModal extends Component<Props, State> {
-  // handleClose: () => void;
-  // handleExit: () => void;
-  // handleEnterSubmit: (Object) => void;
+  static sanitizeTextInput(text: string) {
+    return text.replace(/[|&;$%@"<>()+,./]/g, '');
+  }
+
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -30,9 +31,6 @@ export default class InputModal extends Component<Props, State> {
     this.handleEnterSubmit = this.handleEnterSubmit.bind(this);
     this.handleExit = this.handleExit.bind(this);
   }
-  sanitizeTextInput(text: string) {
-    return text.replace(/[|&;$%@"<>()+,./]/g, '');
-  }
 
   handleTextEntry(event, data) {
     this.setState({ enteredText: data.value });
@@ -40,7 +38,7 @@ export default class InputModal extends Component<Props, State> {
 
   handleClose() {
     if (this.state.enteredText.length >= 1) {
-      this.props.onClose(this.sanitizeTextInput(this.state.enteredText));
+      this.props.onClose(InputModal.sanitizeTextInput(this.state.enteredText));
     } else {
       this.setState({ isError: true });
     }
@@ -51,7 +49,7 @@ export default class InputModal extends Component<Props, State> {
   }
 
   handleEnterSubmit(event: object) {
-    if (event.key === 'Enter') {
+    if (event['key'] === 'Enter') {
       this.handleClose();
     }
   }

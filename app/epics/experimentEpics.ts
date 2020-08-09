@@ -12,10 +12,7 @@ import {
   ignoreElements,
   tap
 } from 'rxjs/operators';
-import {
-  ExperimentActions,
-  ExperimentActionType
-} from '../actions/ExperimentActions';
+import { ExperimentActions, ExperimentActionType } from '../actions';
 import {
   DEVICES,
   MUSE_CHANNELS,

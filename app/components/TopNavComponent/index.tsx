@@ -10,12 +10,14 @@ import {
   readWorkspaces
 } from '../../utils/filesystem/storage';
 import BrainwavesIcon from '../../assets/common/Brainwaves_Icon_big.png';
+import { ExperimentActions } from '../../actions';
 
 interface Props {
   title: string | null | undefined;
   location: { pathname: string; search: string; hash: string };
   isRunning: boolean;
-  ExperimentActions: typeof  ExperimentActions;
+  ExperimentActions: typeof ExperimentActions;
+  isEEGEnabled: boolean;
   type: EXPERIMENTS;
 }
 
@@ -48,7 +50,7 @@ export default class TopNavComponent extends Component<Props, State> {
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
     if (!isNil(recentWorkspaceState)) {
-      this.props.ExperimentActions.setState(recentWorkspaceState);
+      this.props.ExperimentActions.SetState(recentWorkspaceState);
     }
   }
 

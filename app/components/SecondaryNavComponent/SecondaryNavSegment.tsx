@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Grid } from 'semantic-ui-react';
 import styles from '../styles/secondarynav.css';
 
@@ -8,20 +8,16 @@ interface Props {
   onClick: () => void;
 }
 
-export default class SecondaryNavSegment extends Component<Props> {
-  // props: Props;
-
-  render() {
-    return (
-      <Grid.Column
-        as="a"
-        onClick={this.props.onClick}
-        textAlign="center"
-        verticalAlign="bottom"
-        className={[this.props.style, styles.secondaryNavSegment].join(' ')}
-      >
-        {this.props.title}
-      </Grid.Column>
-    );
-  }
+export default function SecondaryNavSegment(props: Props) {
+  return (
+    <Grid.Column
+      as="a"
+      onClick={props.onClick}
+      textAlign="center"
+      verticalAlign="bottom"
+      className={[props.style, styles.secondaryNavSegment].join(' ')}
+    >
+      {props.title}
+    </Grid.Column>
+  );
 }

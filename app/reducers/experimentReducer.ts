@@ -1,5 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { ExperimentActions } from '../actions/ExperimentActions';
+import { ExperimentActions } from '../actions';
 import { EXPERIMENTS } from '../constants/constants';
 import {
   MainTimeline,
