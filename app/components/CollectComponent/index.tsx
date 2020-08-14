@@ -20,21 +20,17 @@ import { ExperimentActions, DeviceActions } from '../../actions';
 export interface Props {
   history: HashHistory;
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: object;
+  connectedDevice: Record<string, any>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
+  studyObject: any;
   signalQualityObservable: Observable<SignalQualityData>;
   isRunning: boolean;
   params: ExperimentParameters;
-  paradigm: EXPERIMENTS;
-  trials: {
-    [key: string]: Trial;
-  };
-  timelines: {};
   subject: string;
   group: string;
   session: number;
@@ -48,9 +44,6 @@ interface State {
 }
 
 export default class Collect extends Component<Props, State> {
-  // handleConnectModalClose: () => void;
-  // handleRunComponentOpen: () => void;
-  // handleRunComponentClose: () => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -62,6 +55,7 @@ export default class Collect extends Component<Props, State> {
     this.handleRunComponentOpen = this.handleRunComponentOpen.bind(this);
     this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
     if (isNil(props.params)) {
+      // TODO: Timeline -> Parameters name change?
       props.ExperimentActions.LoadDefaultTimeline();
     }
   }
@@ -131,11 +125,9 @@ export default class Collect extends Component<Props, State> {
           ExperimentActions={this.props.ExperimentActions}
           availableDevices={this.props.availableDevices}
           type={this.props.type}
-          paradigm={this.props.paradigm}
           isRunning={this.props.isRunning}
           params={this.props.params}
-          trials={this.props.trials}
-          timelines={this.props.timelines}
+          title={this.props.title}
           subject={this.props.subject}
           group={this.props.group}
           session={this.props.session}

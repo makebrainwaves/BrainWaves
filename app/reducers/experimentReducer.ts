@@ -2,24 +2,24 @@ import { createReducer } from '@reduxjs/toolkit';
 import { ExperimentActions } from '../actions';
 import { EXPERIMENTS } from '../constants/constants';
 import {
-  MainTimeline,
-  Trial,
   ExperimentDescription,
   ExperimentParameters,
 } from '../constants/interfaces';
 
 export interface ExperimentStateType {
-  readonly type: EXPERIMENTS | null | undefined;
-  readonly title: string | null | undefined;
-  readonly params: ExperimentParameters | null | undefined;
-  readonly mainTimeline: MainTimeline;
-  readonly trials: {
-    [key: string]: Trial;
-  };
-  readonly timelines: {};
-  readonly plugins: object;
+  readonly type: EXPERIMENTS;
+  readonly title: string;
+  // Aspects of a study that can be tweaked within the BrainWaves app
+  readonly params: ExperimentParameters | null;
+  // lab.js study object that is executed by lab.js to rendder the study
+  readonly studyObject: any;
+  readonly plugins: Record<string, any>;
+  // Subject/student name (e.g. Brian)
   readonly subject: string;
+  // Classroom group name
+  // TODO: Should this be optional?
   readonly group: string;
+  // Session num. Each complete run through of the experiment is one session
   readonly session: number;
   readonly isRunning: boolean;
   readonly isEEGEnabled: boolean;
@@ -30,9 +30,7 @@ const initialState: ExperimentStateType = {
   type: EXPERIMENTS.NONE,
   title: '',
   params: null,
-  mainTimeline: [],
-  trials: {},
-  timelines: {},
+  studyObject: {},
   plugins: {},
   subject: '',
   group: '',

@@ -5,7 +5,7 @@ export enum EXPERIMENTS {
   SSVEP = 'Steady-state Visual Evoked Potential',
   STROOP = 'Stroop Task',
   MULTI = 'Multi-tasking',
-  SEARCH = 'Visual search',
+  SEARCH = 'Visual Search',
   CUSTOM = 'Custom',
 }
 

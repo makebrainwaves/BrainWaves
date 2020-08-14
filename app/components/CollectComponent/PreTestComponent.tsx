@@ -23,15 +23,11 @@ import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
 } from '../../constants/constants';
-import {
-  ExperimentParameters,
-  MainTimeline,
-  Trial,
-} from '../../constants/interfaces';
+import { ExperimentParameters, Trial } from '../../constants/interfaces';
 
 interface Props {
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: object;
+  connectedDevice: Record<string, any>;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
@@ -39,14 +35,8 @@ interface Props {
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
-  paradigm: EXPERIMENTS;
   isRunning: boolean;
   params: ExperimentParameters;
-  mainTimeline: MainTimeline;
-  trials: {
-    [key: string]: Trial;
-  };
-  timelines: {};
   subject: string;
   group: string;
   session: number;
@@ -60,9 +50,6 @@ interface State {
 }
 
 export default class PreTestComponent extends Component<Props, State> {
-  // state: State;
-
-  // handlePreview: () => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -106,11 +93,10 @@ export default class PreTestComponent extends Component<Props, State> {
     if (this.state.isPreviewing) {
       return (
         <PreviewExperimentComponent
-          {...loadProtocol(this.props.paradigm)}
+          {...loadProtocol(this.props.type)}
           isPreviewing={this.state.isPreviewing}
           onEnd={this.endPreview}
           type={this.props.type}
-          paradigm={this.props.paradigm}
           previewParams={this.props.params}
           title={this.props.title}
         />

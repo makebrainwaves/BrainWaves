@@ -7,7 +7,7 @@ import InputCollect from '../InputCollect';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
-import { ExperimentWindow } from '../../utils/labjs';
+import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import { Trial, ExperimentParameters } from '../../constants/interfaces';
 import { ExperimentActions } from '../../actions';
@@ -15,19 +15,15 @@ import { ExperimentActions } from '../../actions';
 const { dialog } = remote;
 
 interface Props {
-  type: EXPERIMENTS | null | undefined;
+  type: EXPERIMENTS;
   title: string;
   isRunning: boolean;
   params: ExperimentParameters;
-  trials: {
-    [key: string]: Trial;
-  };
-  timelines: {};
   subject: string;
+  studyObject: any;
   group: string;
   session: number;
   deviceType: DEVICES;
-  paradigm: EXPERIMENTS;
   isEEGEnabled: boolean;
   ExperimentActions: typeof ExperimentActions;
 }
@@ -37,9 +33,6 @@ interface State {
 }
 
 export default class Run extends Component<Props, State> {
-  // insertLabJsCallback: () => void;
-  // handleCloseInputCollect: (string, string, number) => void;
-  // handleClean: () => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -55,8 +48,8 @@ export default class Run extends Component<Props, State> {
   }
 
   async handleStartExperiment() {
-    const filename = `${this.props.subject}-${this.props.group}-${this.props.session}-behavior.csv`;
-    const { subject, title } = this.props;
+    const { subject, title, session, group } = this.props;
+    const filename = `${subject}-${group}-${session}-behavior.csv`;
     const fileExists = checkFileExists(title, subject, filename);
     if (fileExists) {
       const options = {
@@ -106,6 +99,7 @@ export default class Run extends Component<Props, State> {
         </Grid.Column>
       );
     }
+    return <></>;
   }
 
   renderExperiment() {
@@ -156,17 +150,19 @@ export default class Run extends Component<Props, State> {
         </div>
       );
     }
+
+    const { title, type, studyObject, params } = this.props;
+
     return (
       <div className={styles.experimentWindow}>
         <ExperimentWindow
-          settings={{
-            title: this.props.title,
-            script: this.props.paradigm,
-            params: this.props.params,
-            eventCallback: this.insertLabJsCallback(),
-            on_finish: (csv) => {
-              this.props.ExperimentActions.Stop({ data: csv });
-            },
+          title={title}
+          type={type}
+          studyObject={studyObject}
+          params={params}
+          eventCallback={this.insertLabJsCallback()}
+          onFinish={(csv) => {
+            ExperimentActions.Stop({ data: csv });
           }}
         />
       </div>

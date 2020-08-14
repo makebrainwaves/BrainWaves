@@ -1,21 +1,19 @@
 import React, { Component } from 'react';
 import { Segment } from 'semantic-ui-react';
-import { ExperimentWindow } from '../utils/labjs';
+import { ExperimentWindow } from './ExperimentWindow';
 import styles from './styles/collect.css';
 
 import { getImages } from '../utils/filesystem/storage';
 import { Trial, ExperimentParameters } from '../constants/interfaces';
+import { EXPERIMENTS } from '../constants/constants';
 
 interface Props {
   title: string;
-  paradigm: string;
+  type: EXPERIMENTS;
+  studyObject: any;
   params: ExperimentParameters;
   previewParams?: ExperimentParameters;
   isPreviewing: boolean;
-  trials: {
-    [key: string]: Trial;
-  };
-  timelines: {};
   onEnd: () => void;
 }
 
@@ -39,15 +37,13 @@ export default class PreviewExperimentComponent extends Component<Props> {
     return (
       <div className={styles.previewExpComponent}>
         <ExperimentWindow
-          settings={{
-            title: this.props.title,
-            script: this.props.paradigm,
-            params: this.props.previewParams || this.props.params,
-            eventCallback:
-              PreviewExperimentComponent.insertPreviewLabJsCallback,
-            on_finish: (csv) => {
-              this.props.onEnd();
-            },
+          title={this.props.title}
+          type={this.props.type}
+          studyObject={this.props.studyObject}
+          params={this.props.previewParams || this.props.params}
+          eventCallback={PreviewExperimentComponent.insertPreviewLabJsCallback}
+          onFinish={(csv) => {
+            this.props.onEnd();
           }}
         />
       </div>
