@@ -52,7 +52,7 @@ interface Props {
   kernelStatus: KERNEL_STATUS;
   history: HashHistory;
   JupyterActions: typeof JupyterActions;
-  connectedDevice: object;
+  connectedDevice: Record<string, unknown>;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
@@ -72,10 +72,6 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-  // handleLoadCustomExperiment: (string) => void;
-  // handleOpenOverview: (EXPERIMENTS) => void;
-  // handleCloseOverview: () => void;
-  // handleDeleteWorkspace: (string) => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -203,16 +199,20 @@ export default class Home extends Component<Props, State> {
                 <Table.Body className={styles.experimentTable}>
                   {this.state.recentWorkspaces
                     .sort((a, b) => {
-                      const aTime =
-                        readAndParseState(a).params.dateModified || 0;
-                      const bTime =
-                        readAndParseState(b).params.dateModified || 0;
+                      const aState = readAndParseState(a);
+                      const bState = readAndParseState(b);
+
+                      const aTime = aState?.params?.dateModified || 0;
+                      const bTime = bState?.params?.dateModified || 0;
+
                       return bTime - aTime;
                     })
                     .map((dir) => {
-                      const {
-                        params: { dateModified },
-                      } = readAndParseState(dir);
+                      const workspaceState = readAndParseState(dir);
+                      if (!workspaceState) {
+                        return undefined;
+                      }
+                      const dateModified = workspaceState.params?.dateModified;
                       return (
                         <Table.Row key={dir} className={styles.experimentRow}>
                           <Table.Cell className={styles.experimentRowName}>
