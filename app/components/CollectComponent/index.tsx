@@ -8,7 +8,6 @@ import {
   DEVICE_AVAILABILITY,
 } from '../../constants/constants';
 import {
-  MainTimeline,
   Trial,
   ExperimentParameters,
   SignalQualityData,
@@ -32,7 +31,6 @@ export interface Props {
   isRunning: boolean;
   params: ExperimentParameters;
   paradigm: EXPERIMENTS;
-  mainTimeline: MainTimeline;
   trials: {
     [key: string]: Trial;
   };
@@ -136,7 +134,6 @@ export default class Collect extends Component<Props, State> {
           paradigm={this.props.paradigm}
           isRunning={this.props.isRunning}
           params={this.props.params}
-          mainTimeline={this.props.mainTimeline}
           trials={this.props.trials}
           timelines={this.props.timelines}
           subject={this.props.subject}

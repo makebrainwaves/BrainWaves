@@ -170,7 +170,7 @@ export const readWorkspaceBehaviorData = async (title: string) => {
 };
 
 // Reads an experiment state tree from disk and parses it from JSON
-export const readAndParseState = (dir: string) => {
+export const readAndParseState = (dir: string): ExperimentStateType | null => {
   try {
     return JSON.parse(
       fs.readFileSync(path.join(workspaces, dir, 'appState.json'), {

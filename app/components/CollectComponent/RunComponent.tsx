@@ -9,11 +9,7 @@ import { injectMuseMarker } from '../../utils/eeg/muse';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { ExperimentWindow } from '../../utils/labjs';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters,
-} from '../../constants/interfaces';
+import { Trial, ExperimentParameters } from '../../constants/interfaces';
 import { ExperimentActions } from '../../actions';
 
 const { dialog } = remote;
@@ -23,7 +19,6 @@ interface Props {
   title: string;
   isRunning: boolean;
   params: ExperimentParameters;
-  mainTimeline: MainTimeline;
   trials: {
     [key: string]: Trial;
   };
@@ -56,9 +51,7 @@ export default class Run extends Component<Props, State> {
   }
 
   componentDidMount() {
-    if (this.props.mainTimeline.length <= 0) {
-      this.props.ExperimentActions.LoadDefaultTimeline();
-    }
+    this.props.ExperimentActions.LoadDefaultTimeline();
   }
 
   async handleStartExperiment() {

@@ -4,11 +4,7 @@ import { ExperimentWindow } from '../utils/labjs';
 import styles from './styles/collect.css';
 
 import { getImages } from '../utils/filesystem/storage';
-import {
-  MainTimeline,
-  Trial,
-  ExperimentParameters,
-} from '../constants/interfaces';
+import { Trial, ExperimentParameters } from '../constants/interfaces';
 
 interface Props {
   title: string;
@@ -16,7 +12,6 @@ interface Props {
   params: ExperimentParameters;
   previewParams?: ExperimentParameters;
   isPreviewing: boolean;
-  mainTimeline: MainTimeline;
   trials: {
     [key: string]: Trial;
   };

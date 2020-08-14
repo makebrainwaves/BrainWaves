@@ -63,7 +63,6 @@ export const buildStroopTimeline = () => ({
       response: '9',
     },
   },
-  mainTimeline: ['intro', 'stroopTimeline', 'end'], // array of trial and timeline ids
   trials: {
     intro: {
       type: 'callback-html-display',

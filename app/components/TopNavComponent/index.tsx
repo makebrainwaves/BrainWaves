@@ -12,7 +12,7 @@ import {
 import BrainwavesIcon from '../../assets/common/Brainwaves_Icon_big.png';
 import { ExperimentActions } from '../../actions';
 
-interface Props {
+export interface Props {
   title: string | null | undefined;
   location: { pathname: string; search: string; hash: string };
   isRunning: boolean;
@@ -26,6 +26,16 @@ interface State {
 }
 
 export default class TopNavComponent extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      recentWorkspaces: [],
+    };
+    this.getStyleForScreen = this.getStyleForScreen.bind(this);
+    this.updateWorkspaces = this.updateWorkspaces.bind(this);
+    this.handleLoadRecentWorkspace = this.handleLoadRecentWorkspace.bind(this);
+  }
+
   getStyleForScreen(navSegmentScreen: typeof SCREENS[keyof typeof SCREENS]) {
     if (navSegmentScreen.route === this.props.location.pathname) {
       return styles.activeNavColumn;

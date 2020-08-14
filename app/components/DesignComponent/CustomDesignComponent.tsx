@@ -15,7 +15,6 @@ import { HashHistory } from 'history';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
-  MainTimeline,
   Trial,
   ExperimentParameters,
   ExperimentDescription,
@@ -56,7 +55,6 @@ interface Props {
   type: EXPERIMENTS | null | undefined;
   title: string;
   params: ExperimentParameters;
-  mainTimeline: MainTimeline;
   trials: {
     [key: string]: Trial;
   };

@@ -113,9 +113,9 @@ const receiveChannelMessageEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(JupyterActions.SetMainChannel)),
-    mergeMap<{}, ObservableInput<JupyterActionType>>(() =>
+    mergeMap<Record<string, unknown>, ObservableInput<JupyterActionType>>(() =>
       state$.value.jupyter.mainChannel.pipe(
-        map<object, JupyterActionType>((msg) => {
+        map<{ header: { msg_type: string } }, JupyterActionType>((msg) => {
           console.log(debugParseMessage(msg));
           switch (msg.header.msg_type) {
             case 'kernel_info_reply':

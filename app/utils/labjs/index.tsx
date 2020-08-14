@@ -3,6 +3,8 @@ import path from 'path';
 import clonedeep from 'lodash.clonedeep';
 import * as lab from 'lab.js/dist/lab.dev';
 import { ExperimentSettings } from '../../constants/interfaces';
+
+// TODO: Switch to using .json files to load lab.js studies
 import visualsearch from './scripts/visualsearch';
 import stroop from './scripts/stroop';
 import multitasking from './scripts/multitasking';
@@ -64,7 +66,7 @@ class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
         this.study = lab.util.fromObject(clonedeep(custom), lab);
         break;
     }
-    this.study.run();
+
     this.study.on('end', () => {
       const csv = this.study.options.datastore.exportCsv();
       this.study = undefined;
@@ -81,6 +83,8 @@ class ExperimentWindow extends Component<{ settings: ExperimentSettings }> {
         }
       }
     };
+
+    this.study.run();
   }
 
   componentWillUnmount() {

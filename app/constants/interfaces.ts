@@ -1,5 +1,5 @@
 /*
- * This file contains all the custom types that we use for Flow type checking
+ * This file contains many of the TypeScript interfaces that are used across the project
  */
 
 import { ChildProcess } from 'child_process';
@@ -7,9 +7,7 @@ import { EVENTS, SIGNAL_QUALITY } from './constants';
 
 // TODO: Write interfaces for device objects (Observables, Classes, etc)
 
-// ------------------------------------------------------------------
-// lab.js Experiment
-
+// All mutable aspects of an experiment that can be updated by the DesignComponent
 export type ExperimentParameters = {
   dateModified?: number;
   trialDuration: number;
