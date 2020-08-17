@@ -3,7 +3,7 @@ import { isNil } from 'lodash';
 import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import * as moment from 'moment';
-import { HashHistory } from 'history';
+import { History } from 'history';
 import { remote } from 'electron';
 import styles from '../styles/common.css';
 import {
@@ -50,7 +50,7 @@ const HOME_STEPS = {
 
 interface Props {
   kernelStatus: KERNEL_STATUS;
-  history: HashHistory;
+  history: History;
   JupyterActions: typeof JupyterActions;
   connectedDevice: Record<string, unknown>;
   signalQualityObservable: any | null | undefined;

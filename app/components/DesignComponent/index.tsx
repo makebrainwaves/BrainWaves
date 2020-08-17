@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { HashHistory } from 'history';
+import { History } from 'history';
 import {
   Grid,
   Button,
@@ -53,7 +53,7 @@ const DESIGN_STEPS = {
 };
 
 export interface Props {
-  history: HashHistory;
+  history: History;
   type: EXPERIMENTS;
   paradigm: EXPERIMENTS;
   title: string;

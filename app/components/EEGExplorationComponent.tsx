@@ -7,7 +7,7 @@ import {
   Image,
   Divider,
 } from 'semantic-ui-react';
-import { HashHistory } from 'history';
+import { History } from 'history';
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
@@ -22,7 +22,7 @@ import styles from './styles/common.css';
 import { DeviceActions } from '../actions';
 
 interface Props {
-  history: HashHistory;
+  history: History;
   connectedDevice: Record<string, any>;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
