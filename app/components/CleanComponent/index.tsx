@@ -101,14 +101,14 @@ export default class Clean extends Component<Props, State> {
     });
   }
 
-  handleRecordingChange(event: object, data: DropdownProps) {
+  handleRecordingChange(event: Record<string, any>, data: DropdownProps) {
     if (isArray(data.value)) {
       const filePaths = data.value.filter<string>(isString);
       this.setState({ selectedFilePaths: filePaths });
     }
   }
 
-  handleSubjectChange(event: object, data: DropdownProps) {
+  handleSubjectChange(event: Record<string, any>, data: DropdownProps) {
     if (!isNil(data) && isString(data.value)) {
       this.setState({ selectedSubject: data.value, selectedFilePaths: [] });
     }

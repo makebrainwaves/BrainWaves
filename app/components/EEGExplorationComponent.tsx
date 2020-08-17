@@ -23,7 +23,7 @@ import { DeviceActions } from '../actions';
 
 interface Props {
   history: HashHistory;
-  connectedDevice: object;
+  connectedDevice: Record<string, any>;
   signalQualityObservable: any | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;

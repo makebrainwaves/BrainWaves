@@ -48,7 +48,7 @@ export default class InputModal extends Component<Props, State> {
     this.props.onExit();
   }
 
-  handleEnterSubmit(event: object) {
+  handleEnterSubmit(event: Record<string, any>) {
     if (event.key === 'Enter') {
       this.handleClose();
     }

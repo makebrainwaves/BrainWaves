@@ -55,10 +55,6 @@ interface Props {
   type: EXPERIMENTS | null | undefined;
   title: string;
   params: ExperimentParameters;
-  trials: {
-    [key: string]: Trial;
-  };
-  timelines: {};
   ExperimentActions: typeof ExperimentActions;
   isEEGEnabled: boolean;
   description: ExperimentDescription;
@@ -103,13 +99,13 @@ export default class CustomDesign extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  handleProgressBar(event: object, data: object) {
+  handleProgressBar(event: Record<string, any>, data: Record<string, any>) {
     this.setState({
       params: { ...this.state.params, showProgessBar: data.checked },
     });
   }
 
-  handleEEGEnabled(event: object, data: object) {
+  handleEEGEnabled(event: Record<string, any>, data: Record<string, any>) {
     this.props.ExperimentActions.SetEEGEnabled(data.checked);
   }
 

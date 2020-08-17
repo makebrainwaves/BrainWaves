@@ -112,8 +112,11 @@ interface State {
   removeOutliers: boolean;
   showDataPoints: boolean;
   isSidebarVisible: boolean;
-  displayOutlierVisible: boolean;
+  // TODO: implement outlier display toggle
+  // displayOutlierVisible: boolean;
   displayMode: string;
+  dataToPlot: number[];
+  layout: Record<string, any>;
   helpMode: string;
   dependentVariables: Array<
     | {
@@ -128,14 +131,6 @@ interface State {
 // TODO: Add a channel callback from reading epochs so this screen can be aware of which channels are
 // available in dataset
 export default class Analyze extends Component<Props, State> {
-  // handleDependentVariableChange: (Object, Object) => void;
-
-  // handleRemoveOutliers: (Object, Object) => void;
-  // handleDisplayModeChange: (string) => void;
-  // handleDataPoints: (Object, Object) => void;
-  // saveSelectedDatasets: () => void;
-  // handleStepClick: (Object, Object) => void;
-  // toggleDisplayInfoVisibility: () => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -217,7 +212,7 @@ export default class Analyze extends Component<Props, State> {
     return subjects.reduce((acc, curr) => `${acc}-${curr}`);
   };
 
-  handleDatasetChange(event: object, data: object) {
+  handleDatasetChange(event: Record<string, any>, data: Record<string, any>) {
     this.setState({
       selectedFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value),
@@ -225,14 +220,21 @@ export default class Analyze extends Component<Props, State> {
     this.props.JupyterActions.LoadCleanedEpochs(data.value);
   }
 
-  handleBehaviorDatasetChange(event: object, data: object) {
-    const { dataToPlot, layout } = aggregateDataForPlot(
+  handleBehaviorDatasetChange(
+    event: Record<string, any>,
+    data: Record<string, any>
+  ) {
+    const aggregatedData = aggregateDataForPlot(
       readBehaviorData(data.value),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       this.state.showDataPoints,
       this.state.displayMode
     );
+    if (!aggregatedData) {
+      return;
+    }
+    const { dataToPlot, layout } = aggregatedData;
     this.setState({
       selectedBehaviorFilePaths: data.value,
       selectedSubjects: getSubjectNamesFromFiles(data.value),
@@ -254,14 +256,21 @@ export default class Analyze extends Component<Props, State> {
     }
   }
 
-  handleDependentVariableChange(event: object, data: object) {
-    const { dataToPlot, layout } = aggregateDataForPlot(
+  handleDependentVariableChange(
+    event: Record<string, any>,
+    data: Record<string, any>
+  ) {
+    const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       data.value,
       this.state.removeOutliers,
       this.state.showDataPoints,
       this.state.displayMode
     );
+    if (!aggregatedData) {
+      return;
+    }
+    const { dataToPlot, layout } = aggregatedData;
     this.setState({
       selectedDependentVariable: data.value,
       dataToPlot,
@@ -269,7 +278,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleRemoveOutliers(event: object, data: object) {
+  handleRemoveOutliers(event: Record<string, any>, data: Record<string, any>) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
@@ -285,7 +294,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDataPoints(event: object, data: object) {
+  handleDataPoints(event: Record<string, any>, data: Record<string, any>) {
     const { dataToPlot, layout } = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,

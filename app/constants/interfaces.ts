@@ -80,7 +80,7 @@ export type Timeline = {
   id: string;
   timeline: Array<Trial>;
   sample?: SampleParameter;
-  timeline_variables?: Array<object>;
+  timeline_variables?: Array<Record<string, any>>;
 };
 
 export interface SampleParameter {
@@ -105,9 +105,9 @@ export interface StimuliDesc {
 // Jupyter
 
 export interface Kernel {
-  config: object;
+  config: Record<string, any>;
   connectionFile: string;
-  kernelSpec: object;
+  kernelSpec: Record<string, any>;
   spawn: ChildProcess;
 }
 

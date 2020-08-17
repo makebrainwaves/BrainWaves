@@ -16,7 +16,7 @@ interface Props {
   history: HashHistory;
   open: boolean;
   onClose: () => void;
-  connectedDevice: object;
+  connectedDevice: Record<string, any>;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
