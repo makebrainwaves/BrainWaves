@@ -73,11 +73,6 @@ interface State {
 }
 
 export default class CustomDesign extends Component<Props, State> {
-  // handleStartExperiment: (Object) => void;
-
-  // handlePreview: () => void;
-  // handleSaveParams: () => void;
-  // handleProgressBar: (Object, Object) => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -640,15 +635,17 @@ export default class CustomDesign extends Component<Props, State> {
               verticalAlign="middle"
               className={styles.previewWindow}
             >
-              <PreviewExperimentComponent
-                {...loadProtocol(this.props.paradigm)}
-                isPreviewing={this.state.isPreviewing}
-                onEnd={this.endPreview}
-                type={this.props.type}
-                paradigm={this.props.paradigm}
-                previewParams={this.props.params}
-                title={this.props.title}
-              />
+              {this.props.type && (
+                <PreviewExperimentComponent
+                  {...loadProtocol(this.props.type)}
+                  isPreviewing={this.state.isPreviewing}
+                  onEnd={this.endPreview}
+                  type={this.props.type}
+                  paradigm={this.props.type}
+                  previewParams={this.props.params}
+                  title={this.props.title}
+                />
+              )}
             </Grid.Column>
 
             <Grid.Column width={2} verticalAlign="top">

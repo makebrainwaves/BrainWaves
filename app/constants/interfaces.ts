@@ -47,6 +47,7 @@ export type ExperimentParameters = {
   randomize?: 'random' | 'sequential';
   selfPaced?: boolean;
   presentationTime?: number;
+  taskHelp?: string;
 };
 
 export type ExperimentDescription = {
@@ -62,13 +63,6 @@ export interface ExperimentSettings {
   eventCallback: (e: Event, time: number) => void;
   on_finish: (csv: any) => void;
 }
-
-// ---------------------------------------------------
-// jsPsych
-// TODO: figure out if this is still being used
-
-// Array of timeline and trial ids that will be presented in experiment
-export type MainTimeline = Array<string>;
 
 // jsPsych trial presented as part of an experiment
 export interface Trial {

@@ -16,7 +16,6 @@ import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import { readWorkspaces } from '../../utils/filesystem/storage';
 import {
-  MainTimeline,
   Trial,
   ExperimentParameters,
   ExperimentDescription,
@@ -59,11 +58,6 @@ export interface Props {
   paradigm: EXPERIMENTS;
   title: string;
   params: ExperimentParameters;
-  mainTimeline: MainTimeline;
-  trials: {
-    [key: string]: Trial;
-  };
-  timelines: {};
   ExperimentActions: typeof ExperimentActions;
   description: ExperimentDescription;
   isEEGEnabled: boolean;

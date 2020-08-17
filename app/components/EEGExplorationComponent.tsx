@@ -37,8 +37,6 @@ interface State {
 }
 
 export default class Home extends Component<Props, State> {
-  // handleConnectModalClose: () => void;
-  // handleStartConnect: () => void;
   constructor(props: Props) {
     super(props);
     this.state = {
