@@ -3,7 +3,7 @@ import { of, from, timer, ObservableInput } from 'rxjs';
 import { map, pluck, mergeMap, tap, filter, catchError } from 'rxjs/operators';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
-import { isActionOf } from 'typesafe-actions';
+import { isActionOf } from '../utils/redux';
 import { DeviceActions, DeviceActionType, ExperimentActions } from '../actions';
 import {
   getEmotiv,
@@ -26,7 +26,6 @@ import {
   SEARCH_TIMER,
 } from '../constants/constants';
 import { Device, DeviceInfo } from '../constants/interfaces';
-import { DeviceStateType } from '../reducers/deviceReducer';
 import { RootState } from '../reducers';
 
 // -------------------------------------------------------------------------

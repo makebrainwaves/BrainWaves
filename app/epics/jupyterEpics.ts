@@ -11,11 +11,11 @@ import {
 } from 'rxjs/operators';
 import { find } from 'kernelspecs';
 import { launchSpec } from 'spawnteract';
-import { isActionOf } from 'typesafe-actions';
 import { createMainChannel } from 'enchannel-zmq-backend';
 import { isNil } from 'lodash';
 import { kernelInfoRequest, executeRequest } from '@nteract/messaging';
 import { toast } from 'react-toastify';
+import { isActionOf } from '../utils/redux';
 import { JupyterActions, JupyterActionType } from '../actions';
 import { execute, awaitOkMessage } from '../utils/jupyter/pipes';
 import { RootState } from '../reducers';

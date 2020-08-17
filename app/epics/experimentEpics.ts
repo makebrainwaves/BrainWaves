@@ -1,4 +1,3 @@
-import { isActionOf } from 'typesafe-actions';
 import { combineEpics, Epic } from 'redux-observable';
 import { from, of, ObservableInput } from 'rxjs';
 import {
@@ -12,6 +11,7 @@ import {
   ignoreElements,
   tap,
 } from 'rxjs/operators';
+import { isActionOf } from '../utils/redux';
 import { ExperimentActions, ExperimentActionType } from '../actions';
 import {
   DEVICES,

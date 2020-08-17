@@ -7,9 +7,9 @@ import {
 
 export const parseMuseSignalQuality = () =>
   pipe(
-    map((epoch) => ({
+    map((epoch: Record<string, any>) => ({
       ...epoch,
-      signalQuality: object.assign(
+      signalQuality: Object.assign(
         {},
         ...Object.entries(epoch.signalQuality).map(
           ([channelName, signalQuality]) => {
@@ -31,9 +31,9 @@ export const parseMuseSignalQuality = () =>
 
 export const parseEmotivSignalQuality = () =>
   pipe(
-    map((epoch) => ({
+    map((epoch: Record<string, any>) => ({
       ...epoch,
-      signalQuality: object.assign(
+      signalQuality: Object.assign(
         {},
         ...Object.entries(epoch.signalQuality).map(
           ([channelName, signalQuality]) => {
