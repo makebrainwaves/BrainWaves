@@ -11,7 +11,7 @@ export const JupyterActions = {
   SendExecuteRequest: createAction<string, 'SEND_EXECUTE_REQUEST'>(
     'SEND_EXECUTE_REQUEST'
   ),
-  LoadEpochs: createAction<object[], 'LOAD_EPOCHS'>('LOAD_EPOCHS'),
+  LoadEpochs: createAction<string[], 'LOAD_EPOCHS'>('LOAD_EPOCHS'),
   LoadCleanedEpochs: createAction<string[], 'LOAD_CLEANED_EPOCHS'>(
     'LOAD_CLEANED_EPOCHS'
   ),
