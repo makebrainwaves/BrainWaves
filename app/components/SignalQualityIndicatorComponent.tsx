@@ -2,16 +2,17 @@ import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Segment } from 'semantic-ui-react';
 import * as d3 from 'd3';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
+import { PipesEpoch } from '../constants/interfaces';
 
 interface Props {
-  signalQualityObservable: Observable | null | undefined;
-  plottingInterval: number | null | undefined;
+  signalQualityObservable: Observable<PipesEpoch>;
+  plottingInterval: number;
 }
 
 class SignalQualityIndicatorComponent extends Component<Props> {
-  // signalQualitySubscription: Subscription;
+  signalQualitySubscription: Subscription | null;
 
   constructor(props: Props) {
     super(props);

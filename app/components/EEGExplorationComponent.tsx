@@ -7,6 +7,7 @@ import {
   Image,
   Divider,
 } from 'semantic-ui-react';
+import { Observable } from 'rxjs';
 import { History } from 'history';
 import {
   PLOTTING_INTERVAL,
@@ -20,11 +21,12 @@ import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import styles from './styles/common.css';
 import { DeviceActions } from '../actions';
+import { SignalQualityData, PipesEpoch } from '../constants/interfaces';
 
 interface Props {
   history: History;
   connectedDevice: Record<string, any>;
-  signalQualityObservable: any | null | undefined;
+  signalQualityObservable: Observable<PipesEpoch>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;

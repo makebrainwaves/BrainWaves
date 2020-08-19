@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import { isNil, debounce } from 'lodash';
+import { History } from 'history';
 import { Modal, Button, Segment, List, Grid, Divider } from 'semantic-ui-react';
 import {
   DEVICES,
@@ -9,7 +10,7 @@ import {
   SCREENS,
 } from '../../constants/constants';
 import styles from '../styles/collect.css';
-import { SignalQualityData } from '../../constants/interfaces';
+import { SignalQualityData, PipesEpoch } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   connectedDevice: Record<string, any>;
-  signalQualityObservable?: Observable<SignalQualityData>;
+  signalQualityObservable?: Observable<PipesEpoch>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;

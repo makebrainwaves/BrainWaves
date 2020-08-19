@@ -8,14 +8,18 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import { loadProtocol } from '../../utils/labjs/functions';
 
-const OVERVIEW_STEPS = {
-  OVERVIEW: 'OVERVIEW',
-  BACKGROUND: 'BACKGROUND',
-  PROTOCOL: 'PROTOCOL',
-};
+enum OVERVIEW_STEPS {
+  OVERVIEW = 'OVERVIEW',
+  BACKGROUND = 'BACKGROUND',
+  PROTOCOL = 'PROTOCOL',
+}
 
 interface Props {
   type: EXPERIMENTS;
+  protocol: string;
+  background: string;
+  background_title: string;
+  overview: string;
   onStartExperiment: (arg0: EXPERIMENTS) => void;
   onCloseOverview: () => void;
 }
@@ -38,7 +42,9 @@ export default class OverviewComponent extends Component<Props, State> {
   }
 
   handleStepClick(step: string) {
-    this.setState({ activeStep: step });
+    if (isEnum(OVERVIEW_STEPS)(step)) {
+      this.setState({ activeStep: step });
+    }
   }
 
   handlePreview(e) {
@@ -66,11 +72,10 @@ export default class OverviewComponent extends Component<Props, State> {
               className={styles.previewWindow}
             >
               <PreviewExperimentComponent
-                {...loadProtocol(this.props.paradigm)}
+                {...loadProtocol(this.props.type)}
                 isPreviewing={this.state.isPreviewing}
                 onEnd={this.endPreview}
                 type={this.props.type}
-                paradigm={this.props.paradigm}
               />
             </Grid.Column>
             <Grid.Column stretched width={4} verticalAlign="middle">
@@ -141,7 +146,7 @@ export default class OverviewComponent extends Component<Props, State> {
           steps={OVERVIEW_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
-          button={
+          saveButton={
             <Button
               primary
               onClick={() => this.props.onStartExperiment(this.props.type)}
@@ -156,4 +161,9 @@ export default class OverviewComponent extends Component<Props, State> {
       </>
     );
   }
+}
+
+// Generic curreid enum type guard
+function isEnum<T>(en: T) {
+  return (val: any): val is T[keyof T] => val in Object.values(en);
 }

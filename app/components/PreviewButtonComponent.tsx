@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Button } from 'semantic-ui-react';
+import { Button, ButtonProps } from 'semantic-ui-react';
 
 interface Props {
   isPreviewing: boolean;

@@ -112,7 +112,6 @@ export default class Home extends Component<Props, State> {
       this.props.ExperimentActions.CreateNewWorkspace({
         title: experimentType,
         type: experimentType,
-        paradigm: experimentType,
       });
       this.props.history.push(SCREENS.DESIGN.route);
     }
@@ -132,7 +131,6 @@ export default class Home extends Component<Props, State> {
     this.props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
-      paradigm: EXPERIMENTS.CUSTOM,
     });
     this.props.history.push(SCREENS.DESIGN.route);
   }

@@ -159,6 +159,7 @@ const isConnectingEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     map(() => DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTING))
   );
 
+// TODO: confirm the shape of data that actually flows through these observables  and formalize with interfaces
 const setRawObservableEpic: Epic<
   DeviceActionType,
   DeviceActionType,

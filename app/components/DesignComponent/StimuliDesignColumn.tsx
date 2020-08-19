@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import { Form, Button, Table, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import * as path from 'path';
+import { isString } from 'lodash';
 import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
@@ -14,7 +15,12 @@ interface Props {
   title: string;
   response: string;
   dir: string;
-  onChange: (arg0: string, arg1: string) => void;
+  numberImages?: number;
+  onChange: (arg0: string, arg1: string, arg2: string) => void;
+}
+
+interface State {
+  numberImages?: number;
 }
 
 const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
@@ -23,7 +29,7 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
   value: i.toString(),
 }));
 
-export default class StimuliDesignColumn extends Component<Props> {
+export default class StimuliDesignColumn extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.handleSelectFolder = this.handleSelectFolder.bind(this);
@@ -46,7 +52,7 @@ export default class StimuliDesignColumn extends Component<Props> {
 
   async handleSelectFolder() {
     const dir = await loadFromSystemDialog(FILE_TYPES.STIMULUS_DIR);
-    if (dir) {
+    if (dir && isString(dir)) {
       const images = readImages(dir);
       if (images.length < 1) {
         toast.error('No images in folder!');
@@ -90,13 +96,15 @@ export default class StimuliDesignColumn extends Component<Props> {
             fluid
             selection
             value={this.props.response}
-            onChange={(event, data) =>
-              this.props.onChange(
-                'response',
-                data.value,
-                `stimulus${this.props.num}`
-              )
-            }
+            onChange={(event, data) => {
+              if (data.value && isString(data.value)) {
+                this.props.onChange(
+                  'response',
+                  data.value,
+                  `stimulus${this.props.num}`
+                );
+              }
+            }}
             placeholder="Select"
             options={RESPONSE_OPTIONS}
           />
