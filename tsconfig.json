@@ -11,11 +11,6 @@
     "pretty": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    /* Additional Checks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
     /* Module Resolution Options */
     "moduleResolution": "node",
     "esModuleInterop": true,
