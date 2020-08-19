@@ -4,10 +4,11 @@ import {
   SIGNAL_QUALITY,
   SIGNAL_QUALITY_THRESHOLDS,
 } from '../../constants/constants';
+import { PipesEpoch } from '../../constants/interfaces';
 
 export const parseMuseSignalQuality = () =>
   pipe(
-    map((epoch: Record<string, any>) => ({
+    map((epoch: PipesEpoch) => ({
       ...epoch,
       signalQuality: Object.assign(
         {},
@@ -31,7 +32,7 @@ export const parseMuseSignalQuality = () =>
 
 export const parseEmotivSignalQuality = () =>
   pipe(
-    map((epoch: Record<string, any>) => ({
+    map((epoch: PipesEpoch) => ({
       ...epoch,
       signalQuality: Object.assign(
         {},

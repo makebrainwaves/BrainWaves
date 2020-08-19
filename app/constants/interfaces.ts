@@ -136,6 +136,16 @@ export interface DeviceInfo {
   samplingRate: number;
 }
 
+export interface PipesEpoch {
+  data: number[][];
+  signalQuality: { [channelName: string]: number };
+  info: {
+    samplingRate: number;
+    startTime: number;
+    channelNames?: string[];
+  };
+}
+
 // --------------------------------------------------------------------
 // General
 

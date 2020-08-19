@@ -32,7 +32,7 @@ export const debugParseMessage = (msg: Record<string, any>) => {
       }
 
       if (msg.content.data) {
-        content = Object.keys(msg.content.data);
+        content = JSON.stringify(Object.keys(msg.content.data));
       }
 
       break;

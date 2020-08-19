@@ -3,8 +3,10 @@
  * These functions are all executed in the main process
  */
 
-import { dialog } from 'electron';
+import { remote } from 'electron';
 import { FILE_TYPES } from '../../constants/constants';
+
+const { dialog } = remote;
 
 export const loadDialog = (event, arg) => {
   switch (arg) {
@@ -18,31 +20,23 @@ export const loadDialog = (event, arg) => {
 };
 
 const selectTimeline = (event) => {
-  dialog.showOpenDialog(
-    {
-      title: 'Select a jsPsych timeline file',
-      properties: ['openFile', 'promptToCreate'],
-    },
-    (filePaths) => {
-      if (filePaths) {
-        event.sender.send('loadDialogReply', filePaths[0]);
-      }
-    }
-  );
+  const filePaths = dialog.showOpenDialog({
+    title: 'Select a jsPsych timeline file',
+    properties: ['openFile', 'promptToCreate'],
+  });
+  if (filePaths) {
+    event.sender.send('loadDialogReply', filePaths[0]);
+  }
 };
 
 const selectStimulusFolder = (event) => {
-  dialog.showOpenDialog(
-    {
-      title: 'Select a folder of images',
-      properties: ['openDirectory'],
-    },
-    (dir) => {
-      if (dir) {
-        event.sender.send('loadDialogReply', dir[0]);
-      } else {
-        event.sender.send('loadDialogReply', '');
-      }
-    }
-  );
+  const dirs = dialog.showOpenDialog({
+    title: 'Select a folder of images',
+    properties: ['openDirectory'],
+  });
+  if (dirs) {
+    event.sender.send('loadDialogReply', dirs[0]);
+  } else {
+    event.sender.send('loadDialogReply', '');
+  }
 };
