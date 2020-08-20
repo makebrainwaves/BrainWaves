@@ -1,5 +1,5 @@
 import { Segment } from 'semantic-ui-react';
-import React, { PureComponent } from 'react';
+import React from 'react';
 import Slider from 'rc-slider';
 import styles from '../styles/common.css';
 
@@ -26,8 +26,8 @@ export const ParamSlider: React.FC<Props> = ({
           <Slider
             dots
             marks={marks}
-            min={Math.min(...Object.keys(marks))}
-            max={Math.max(...Object.keys(marks))}
+            min={Math.min(...Object.keys(marks).map(parseInt))}
+            max={Math.max(...Object.keys(marks).map(parseInt))}
             value={value / parseInt(msConversion, 10)}
             onChange={(val) => onChange(val * parseInt(msConversion, 10))}
             defaultValue={1}

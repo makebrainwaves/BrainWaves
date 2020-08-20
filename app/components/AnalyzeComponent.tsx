@@ -9,8 +9,9 @@ import {
   Button,
   Checkbox,
   Sidebar,
+  DropdownProps,
 } from 'semantic-ui-react';
-import { isNil } from 'lodash';
+import { isNil, isArray, isString } from 'lodash';
 import Plot from 'react-plotly.js';
 import styles from './styles/common.css';
 import {
@@ -50,64 +51,48 @@ const ANALYZE_STEPS_BEHAVIOR = {
 
 interface Props {
   title: string;
-  type: EXPERIMENTS | null | undefined;
+  type: EXPERIMENTS;
   deviceType: DEVICES;
   isEEGEnabled: boolean;
-  kernel: Kernel | null | undefined;
+  kernel: Kernel;
   kernelStatus: KERNEL_STATUS;
-  mainChannel: any | null | undefined;
-  epochsInfo:
-    | Array<{
-        [key: string]: number | string;
-      }>
-    | null
-    | undefined;
-  channelInfo: Array<string> | null | undefined;
-  psdPlot:
-    | {
-        [key: string]: string;
-      }
-    | null
-    | undefined;
-  topoPlot:
-    | {
-        [key: string]: string;
-      }
-    | null
-    | undefined;
-  erpPlot:
-    | {
-        [key: string]: string;
-      }
-    | null
-    | undefined;
+  mainChannel: any;
+  epochsInfo: Array<{
+    [key: string]: number | string;
+  }>;
+
+  channelInfo: Array<string>;
+  psdPlot: {
+    [key: string]: string;
+  };
+
+  topoPlot: {
+    [key: string]: string;
+  };
+
+  erpPlot: {
+    [key: string]: string;
+  };
+
   JupyterActions: typeof JupyterActions;
 }
 
 interface State {
   activeStep: string;
   selectedChannel: string;
-  eegFilePaths: Array<
-    | {
-        key: string;
-        text: string;
-        value: { name: string; dir: string };
-      }
-    | null
-    | undefined
-  >;
-  behaviorFilePaths: Array<
-    | {
-        key: string;
-        text: string;
-        value: string;
-      }
-    | null
-    | undefined
-  >;
-  selectedFilePaths: Array<string | null | undefined>;
-  selectedBehaviorFilePaths: Array<string | null | undefined>;
-  selectedSubjects: Array<string | null | undefined>;
+  eegFilePaths: Array<{
+    key: string;
+    text: string;
+    value: { name: string; dir: string };
+  }>;
+  behaviorFilePaths: Array<{
+    key: string;
+    text: string;
+    value: string;
+  }>;
+  selectedFilePaths: Array<string>;
+  selectedBehaviorFilePaths: Array<string>;
+  selectedSubjects: Array<string>;
   selectedDependentVariable: string;
   removeOutliers: boolean;
   showDataPoints: boolean;
@@ -118,18 +103,15 @@ interface State {
   dataToPlot: number[];
   layout: Record<string, any>;
   helpMode: string;
-  dependentVariables: Array<
-    | {
-        key: string;
-        text: string;
-        value: string;
-      }
-    | null
-    | undefined
-  >;
+  dependentVariables: Array<{
+    key: string;
+    text: string;
+    value: string;
+  }>;
 }
 // TODO: Add a channel callback from reading epochs so this screen can be aware of which channels are
 // available in dataset
+// TODO: Refactor component to DRY up handler functions
 export default class Analyze extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -212,12 +194,14 @@ export default class Analyze extends Component<Props, State> {
     return subjects.reduce((acc, curr) => `${acc}-${curr}`);
   };
 
-  handleDatasetChange(event: Record<string, any>, data: Record<string, any>) {
-    this.setState({
-      selectedFilePaths: data.value,
-      selectedSubjects: getSubjectNamesFromFiles(data.value),
-    });
-    this.props.JupyterActions.LoadCleanedEpochs(data.value);
+  handleDatasetChange(event: Record<string, any>, data: DropdownProps) {
+    if (isStringArray(data.value)) {
+      this.setState({
+        selectedFilePaths: data.value,
+        selectedSubjects: getSubjectNamesFromFiles(data.value),
+      });
+      this.props.JupyterActions.LoadCleanedEpochs(data.value);
+    }
   }
 
   handleBehaviorDatasetChange(
@@ -279,13 +263,17 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleRemoveOutliers(event: Record<string, any>, data: Record<string, any>) {
-    const { dataToPlot, layout } = aggregateDataForPlot(
+    const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
       !this.state.removeOutliers,
       this.state.showDataPoints,
       this.state.displayMode
     );
+    if (!aggregatedData) {
+      return;
+    }
+    const { dataToPlot, layout } = aggregatedData;
     this.setState({
       removeOutliers: !this.state.removeOutliers,
       dataToPlot,
@@ -295,13 +283,17 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleDataPoints(event: Record<string, any>, data: Record<string, any>) {
-    const { dataToPlot, layout } = aggregateDataForPlot(
+    const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       !this.state.showDataPoints,
       this.state.displayMode
     );
+    if (!aggregatedData) {
+      return;
+    }
+    const { dataToPlot, layout } = aggregatedData;
     this.setState({
       showDataPoints: !this.state.showDataPoints,
       dataToPlot,
@@ -314,13 +306,17 @@ export default class Analyze extends Component<Props, State> {
       this.state.selectedBehaviorFilePaths &&
       this.state.selectedBehaviorFilePaths.length > 0
     ) {
-      const { dataToPlot, layout } = aggregateDataForPlot(
+      const aggregatedData = aggregateDataForPlot(
         readBehaviorData(this.state.selectedBehaviorFilePaths),
         this.state.selectedDependentVariable,
         this.state.removeOutliers,
         this.state.showDataPoints,
         displayMode
       );
+      if (!aggregatedData) {
+        return;
+      }
+      const { dataToPlot, layout } = aggregatedData;
       this.setState({
         dataToPlot,
         layout,
@@ -475,7 +471,9 @@ export default class Analyze extends Component<Props, State> {
                   selection
                   closeOnChange
                   value={this.state.selectedFilePaths}
-                  options={this.state.eegFilePaths}
+                  options={this.state.eegFilePaths.map(
+                    (eegFilePath) => eegFilePath.value
+                  )}
                   onChange={this.handleDatasetChange}
                 />
                 {this.renderEpochLabels()}
@@ -658,4 +656,8 @@ export default class Analyze extends Component<Props, State> {
       </div>
     );
   }
+}
+
+function isStringArray(data: any): data is string[] {
+  return isArray(data.value) && data.value.every(isString);
 }

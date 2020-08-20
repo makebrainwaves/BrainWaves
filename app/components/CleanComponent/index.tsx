@@ -248,7 +248,7 @@ export default class Clean extends Component<Props, State> {
                       <Button
                         primary
                         disabled={isNil(this.props.epochsInfo)}
-                        onClick={this.props.JupyterActions.CleanEpochs()}
+                        onClick={this.props.JupyterActions.CleanEpochs}
                       >
                         Clean Data
                       </Button>

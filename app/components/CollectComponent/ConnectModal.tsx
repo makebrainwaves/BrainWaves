@@ -10,7 +10,7 @@ import {
   SCREENS,
 } from '../../constants/constants';
 import styles from '../styles/collect.css';
-import { SignalQualityData, PipesEpoch } from '../../constants/interfaces';
+import { SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
 interface Props {
@@ -18,7 +18,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   connectedDevice: Record<string, any>;
-  signalQualityObservable?: Observable<PipesEpoch>;
+  signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
@@ -27,7 +27,7 @@ interface Props {
 }
 
 interface State {
-  selectedDevice: any | null | undefined;
+  selectedDevice: any;
   instructionProgress: INSTRUCTION_PROGRESS;
 }
 

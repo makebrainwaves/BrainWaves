@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
+import { History } from 'history';
 import {
   EXPERIMENTS,
   DEVICES,
@@ -11,6 +12,7 @@ import {
   Trial,
   ExperimentParameters,
   SignalQualityData,
+  PipesEpoch,
 } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';

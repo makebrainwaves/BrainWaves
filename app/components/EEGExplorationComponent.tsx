@@ -21,12 +21,12 @@ import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import styles from './styles/common.css';
 import { DeviceActions } from '../actions';
-import { SignalQualityData, PipesEpoch } from '../constants/interfaces';
+import { SignalQualityData } from '../constants/interfaces';
 
 interface Props {
   history: History;
   connectedDevice: Record<string, any>;
-  signalQualityObservable: Observable<PipesEpoch>;
+  signalQualityObservable: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Segment, Form, Button, Table, Dropdown } from 'semantic-ui-react';
+import { isString } from 'lodash';
 import styles from '../styles/common.css';
 
 interface Props {
@@ -21,25 +22,34 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
   value: i.toString(),
 }));
 
-export const StimuliRow: React.FC<Props> = (props) => {
+export const StimuliRow: React.FC<Props> = ({
+  name,
+  num,
+  response,
+  dir,
+  condition,
+  phase,
+  onChange,
+  onDelete,
+}) => {
   return (
     <Table.Row className={styles.trialsRow}>
       <Table.Cell className={styles.conditionsNameRow}>
-        <div style={{ alignSelf: 'center' }}>{props.num + 1}.</div>
-        <div>{props.name}</div>
+        <div style={{ alignSelf: 'center' }}>{num + 1}.</div>
+        <div>{name}</div>
       </Table.Cell>
 
       <Table.Cell className={styles.experimentRowName}>
-        <div>{props.condition}</div>
+        <div>{condition}</div>
       </Table.Cell>
 
       <Table.Cell className={styles.experimentRowName}>
         <Form.Select
           fluid
           selection
-          value={props.response}
+          value={response}
           onChange={(event, data) =>
-            props.onChange(props.num, 'response', data.value)
+            onChange(num, 'response', isString(data.value) ? data.value : '')
           }
           placeholder="Response"
           options={RESPONSE_OPTIONS}
@@ -51,10 +61,10 @@ export const StimuliRow: React.FC<Props> = (props) => {
           <div
             className={styles.trialsTrialTypeRowSelector}
             style={{
-              backgroundColor: props.phase === 'main' ? '#1AC4EF' : '#EB1B66',
+              backgroundColor: phase === 'main' ? '#1AC4EF' : '#EB1B66',
             }}
           >
-            {props.phase === 'main' ? 'Experimental' : 'Practice'}
+            {phase === 'main' ? 'Experimental' : 'Practice'}
           </div>
           <Dropdown
             fluid
@@ -65,14 +75,10 @@ export const StimuliRow: React.FC<Props> = (props) => {
             }}
           >
             <Dropdown.Menu>
-              <Dropdown.Item
-                onClick={() => props.onChange(props.num, 'phase', 'main')}
-              >
+              <Dropdown.Item onClick={() => onChange(num, 'phase', 'main')}>
                 <div>Experimental</div>
               </Dropdown.Item>
-              <Dropdown.Item
-                onClick={() => props.onChange(props.num, 'phase', 'practice')}
-              >
+              <Dropdown.Item onClick={() => onChange(num, 'phase', 'practice')}>
                 <div>Practice</div>
               </Dropdown.Item>
             </Dropdown.Menu>
@@ -82,7 +88,7 @@ export const StimuliRow: React.FC<Props> = (props) => {
         <Button
           secondary
           onClick={() => {
-            props.onDelete(props.num);
+            onDelete(num);
           }}
         >
           Delete

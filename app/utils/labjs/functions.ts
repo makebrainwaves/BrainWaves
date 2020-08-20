@@ -7,7 +7,7 @@ import { buildSearchTimeline } from './protocols/search';
 import { buildCustomTimeline } from './protocols/custom';
 
 // loads a protocol of the experiment
-// TODOL refactor this experiment description system to be much more predictable
+// TODO refactor this experiment description system to be much more predictable
 export const loadProtocol = (paradigm: EXPERIMENTS) => {
   let protocol;
   switch (paradigm) {

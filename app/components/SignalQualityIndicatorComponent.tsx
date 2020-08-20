@@ -4,10 +4,10 @@ import { Segment } from 'semantic-ui-react';
 import * as d3 from 'd3';
 import { Observable, Subscription } from 'rxjs';
 import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
-import { PipesEpoch } from '../constants/interfaces';
+import { PipesEpoch, SignalQualityData } from '../constants/interfaces';
 
 interface Props {
-  signalQualityObservable: Observable<PipesEpoch>;
+  signalQualityObservable: Observable<SignalQualityData>;
   plottingInterval: number;
 }
 

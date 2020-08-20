@@ -8,12 +8,12 @@ import {
   DEVICES,
   VIEWER_DEFAULTS,
 } from '../constants/constants';
-import { PipesEpoch } from '../constants/interfaces';
+import { PipesEpoch, SignalQualityData } from '../constants/interfaces';
 
 const Mousetrap = require('mousetrap');
 
 interface Props {
-  signalQualityObservable: Observable<PipesEpoch>;
+  signalQualityObservable: Observable<SignalQualityData>;
   deviceType: DEVICES;
   plottingInterval: number;
 }

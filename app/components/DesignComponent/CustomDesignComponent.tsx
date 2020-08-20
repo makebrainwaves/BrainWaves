@@ -9,7 +9,7 @@ import {
   Image,
   Table,
 } from 'semantic-ui-react';
-import { isNil } from 'lodash';
+import { isNil, isString } from 'lodash';
 import { History } from 'history';
 
 import styles from '../styles/common.css';
@@ -158,15 +158,18 @@ export default class CustomDesign extends Component<Props, State> {
                   label={FIELDS.QUESTION}
                   value={this.state.description.question}
                   placeholder="Explain your research question here."
-                  onChange={(event, data) =>
+                  onChange={(event, data) => {
+                    if (!isString(data.value)) {
+                      return;
+                    }
                     this.setState({
                       description: {
                         ...this.state.description,
                         question: data.value,
                       },
                       saved: false,
-                    })
-                  }
+                    });
+                  }}
                 />
               </Form>
             </Grid.Column>
@@ -185,15 +188,18 @@ export default class CustomDesign extends Component<Props, State> {
                   label={FIELDS.HYPOTHESIS}
                   value={this.state.description.hypothesis}
                   placeholder="Describe your hypothesis here."
-                  onChange={(event, data) =>
+                  onChange={(event, data) => {
+                    if (!isString(data.value)) {
+                      return;
+                    }
                     this.setState({
                       description: {
                         ...this.state.description,
                         hypothesis: data.value,
                       },
                       saved: false,
-                    })
-                  }
+                    });
+                  }}
                 />
               </Form>
             </Grid.Column>
@@ -212,15 +218,18 @@ export default class CustomDesign extends Component<Props, State> {
                   label={FIELDS.METHODS}
                   value={this.state.description.methods}
                   placeholder="Explain how you will design your experiment to answer the question here."
-                  onChange={(event, data) =>
+                  onChange={(event, data) => {
+                    if (!isString(data.value)) {
+                      return;
+                    }
                     this.setState({
                       description: {
                         ...this.state.description,
                         methods: data.value,
                       },
                       saved: false,
-                    })
-                  }
+                    });
+                  }}
                 />
               </Form>
             </Grid.Column>
@@ -581,12 +590,15 @@ export default class CustomDesign extends Component<Props, State> {
                     autoHeight
                     value={this.state.params.intro}
                     placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press the the space bar on your keyboard to start doing the practice trials. If you want to skip the practice trials and go directly to the task, press the 'q' button on your keyboard."
-                    onChange={(event, data) =>
+                    onChange={(event, data) => {
+                      if (!isString(data.value)) {
+                        return;
+                      }
                       this.setState({
                         params: { ...this.state.params, intro: data.value },
                         saved: false,
-                      })
-                    }
+                      });
+                    }}
                   />
                 </Form>
               </Segment>
@@ -608,12 +620,15 @@ export default class CustomDesign extends Component<Props, State> {
                     autoHeight
                     value={this.state.params.taskHelp}
                     placeholder="e.g., Press 1 for a face and 9 for a house"
-                    onChange={(event, data) =>
+                    onChange={(event, data) => {
+                      if (!isString(data.value)) {
+                        return;
+                      }
                       this.setState({
                         params: { ...this.state.params, taskHelp: data.value },
                         saved: false,
-                      })
-                    }
+                      });
+                    }}
                   />
                 </Form>
               </Segment>
