@@ -68,11 +68,7 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
             image.filename
           ),
         }))
-        .reduce((obj, item) => {
-          // return { ...obj, item }; ??
-          obj[Object.keys(item)[0]] = Object.values(item)[0];
-          return obj;
-        }, {});
+        .reduce((obj, item) => ({ ...obj, ...item }), {});
     }
 
     studyWithParams.on('end', () => {

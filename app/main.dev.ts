@@ -101,7 +101,6 @@ const createWindow = async () => {
       mainWindow.show();
       mainWindow.focus();
     }
-    mainWindow.webContents.openDevTools();
   });
 
   mainWindow.on('closed', () => {
@@ -113,11 +112,6 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
-
-  // mainWindow.setMenu(null);
-  // if (process.env.NODE_ENV === 'development') {
-  // mainWindow.webContents.openDevTools();
-  // }
 };
 
 /**

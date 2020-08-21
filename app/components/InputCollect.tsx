@@ -24,9 +24,6 @@ interface State {
 }
 
 export default class InputCollect extends Component<Props, State> {
-  // handleClose: () => void;
-  // handleExit: () => void;
-  // handleEnterSubmit: (Object) => void;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -132,8 +129,4 @@ export default class InputCollect extends Component<Props, State> {
       </Modal>
     );
   }
-}
-
-function sanitizeTextInput(text: string) {
-  return text.replace(/[|&;$%@"<>()+,./]/g, '');
 }

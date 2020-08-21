@@ -3,10 +3,8 @@
  * These functions are all executed in the main process
  */
 
-import { remote } from 'electron';
+import { dialog } from 'electron';
 import { FILE_TYPES } from '../../constants/constants';
-
-const { dialog } = remote;
 
 export const loadDialog = (event, arg) => {
   switch (arg) {

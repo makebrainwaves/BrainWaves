@@ -1,5 +1,5 @@
 {
-  "name": "BrainWaves",
+  "name": "brainwaves",
   "productName": "BrainWaves",
   "version": "0.14.0",
   "description": "EEG Experiment Desktop Application",
@@ -96,8 +96,8 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate",
+      "owner": "makebrainwaves",
+      "repo": "brainwaves",
       "private": false
     }
   },
@@ -112,11 +112,6 @@
   },
   "contributors": [
     {
-      "name": "Dano Morrison",
-      "email": "dano@neurotechx.com",
-      "url": "https://github.com/makebrainwaves"
-    },
-    {
       "name": "Teon L Brooks",
       "url": "https://teonian.com"
     },
@@ -129,13 +124,14 @@
   "keywords": [
     "eeg",
     "electron",
-    "boilerplate",
     "react",
     "redux",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
+    "redux-observable",
+    "muse",
+    "emotiv",
+    "pyodide",
+    "wasm",
+    "lab.js"
   ],
   "homepage": "https://wp.nyu.edu/brainwaves/",
   "jest": {

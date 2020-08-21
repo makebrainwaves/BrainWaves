@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Input, Modal, Button } from 'semantic-ui-react';
 import { debounce } from 'lodash';
+import { sanitizeTextInput } from '../utils/ui';
 import styles from './styles/common.css';
 
 interface Props {
@@ -16,10 +17,6 @@ interface State {
 }
 
 export default class InputModal extends Component<Props, State> {
-  static sanitizeTextInput(text: string) {
-    return text.replace(/[|&;$%@"<>()+,./]/g, '');
-  }
-
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -38,7 +35,7 @@ export default class InputModal extends Component<Props, State> {
 
   handleClose() {
     if (this.state.enteredText.length >= 1) {
-      this.props.onClose(InputModal.sanitizeTextInput(this.state.enteredText));
+      this.props.onClose(sanitizeTextInput(this.state.enteredText));
     } else {
       this.setState({ isError: true });
     }

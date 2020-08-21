@@ -4,7 +4,7 @@ import { ExperimentWindow } from './ExperimentWindow';
 import styles from './styles/collect.css';
 
 import { getImages } from '../utils/filesystem/storage';
-import { Trial, ExperimentParameters } from '../constants/interfaces';
+import { ExperimentParameters } from '../constants/interfaces';
 import { EXPERIMENTS } from '../constants/constants';
 
 interface Props {
