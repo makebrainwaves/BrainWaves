@@ -8,15 +8,17 @@ const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
 const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
-const stimuli = Array.from({length:30}, (v,k) => `Face${k+1}`).concat(Array.from({length:30}, (v,k) => `House${k+1}`).map((s) => ({;
-  condition: s.startsWith('Face') ? 'Face' : 'House',
-  dir: s.startsWith('Face') ? facesDir : housesDir,
-  filename: `${s}.jpg`,
-  name: s,
-  response: s.startsWith('Face') ? '1' : '9',
-  phase: 'main',
-  type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2,
-}));
+const stimuli = Array.from({ length: 30 }, (_, i) => `Face${i + 1}`)
+  .concat(Array.from({ length: 30 }, (v, k) => `House${k + 1}`))
+  .map((s) => ({
+    condition: s.startsWith('Face') ? 'Face' : 'House',
+    dir: s.startsWith('Face') ? facesDir : housesDir,
+    filename: `${s}.jpg`,
+    name: s,
+    response: s.startsWith('Face') ? '1' : '9',
+    phase: 'main',
+    type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2,
+  }));
 
 // phase: ['Face1', 'House1'].includes(s) ? 'practice' : 'main',
 
