@@ -1,7 +1,7 @@
 {
   "name": "brainwaves",
   "productName": "BrainWaves",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "EEG Experiment Desktop Application",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
