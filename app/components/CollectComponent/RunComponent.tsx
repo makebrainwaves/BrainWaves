@@ -61,6 +61,8 @@ export default class Run extends Component<Props, State> {
       if (response.response === 1) {
         this.props.ExperimentActions.Start();
       }
+    } else {
+      this.props.ExperimentActions.Start();
     }
   }
 
@@ -162,7 +164,7 @@ export default class Run extends Component<Props, State> {
           params={params}
           eventCallback={this.insertLabJsCallback()}
           onFinish={(csv) => {
-            ExperimentActions.Stop({ data: csv });
+            this.props.ExperimentActions.Stop({ data: csv });
           }}
         />
       </div>

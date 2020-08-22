@@ -653,6 +653,7 @@ export default class CustomDesign extends Component<Props, State> {
                   onEnd={this.endPreview}
                   type={this.props.type}
                   paradigm={this.props.type}
+                  fullscreen={false}
                   previewParams={this.props.params}
                   title={this.props.title}
                 />

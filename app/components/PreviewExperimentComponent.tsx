@@ -42,6 +42,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
           studyObject={this.props.studyObject}
           params={this.props.previewParams || this.props.params}
           eventCallback={PreviewExperimentComponent.insertPreviewLabJsCallback}
+          fullScreen={false}
           onFinish={(csv) => {
             this.props.onEnd();
           }}

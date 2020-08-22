@@ -17,6 +17,7 @@ export interface ExperimentWindowProps {
   type: EXPERIMENTS;
   studyObject: any;
   params: ExperimentParameters;
+  fullScreen?: boolean;
   eventCallback: (value: any, time: number) => void;
   onFinish: (csv: any) => void;
 }
@@ -26,11 +27,11 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
   type,
   studyObject,
   params,
+  fullScreen = true,
   eventCallback,
   onFinish,
 }) => {
   useEffect(() => {
-    console.log('Experiment Window effect');
     // TODO: move this study mutation into Redux
     let studyWithParams = studyObject;
 
@@ -103,7 +104,10 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
   }, []);
 
   return (
-    <div className="container fullscreen" data-labjs-section="main">
+    <div
+      className={`container ${fullScreen && 'fullscreen'}`}
+      data-labjs-section="main"
+    >
       <main className="content-vertical-center content-horizontal-center">
         <div>
           <h2>Loading Experiment</h2>
