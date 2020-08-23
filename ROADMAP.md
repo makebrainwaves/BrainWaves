@@ -5,11 +5,6 @@
 July/August 2020: Jiffy Lube & Pyodide
 Fall 2020+: LSL & Lab.js
 
-## Jiffy Lube
-
-- Finishing soon
-- Will provide CI and better dev experience
-
 ## Pyodide
 
 - Successfully added pyodide via webworker
@@ -34,8 +29,10 @@ Fall 2020+: LSL & Lab.js
 ## Lab.js
 
 - Type lab.js data (pending lab.js TypeScript library update)
+- Remove jspsych and refactor lab.js usage
 
 ## Non-technical stuff
+
 - Share on HN/reddit
 - Consider writing short papers for JOSS and/or Journal of Open Source Education
 - UCSD

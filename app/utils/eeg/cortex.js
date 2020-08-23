@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle, camelcase */
+
 /*
  * JS Cortex Wrapper
  * *****************
@@ -17,8 +18,7 @@
  * just pass information back and forth without doing much with it, with the
  * exception of the login/auth flow, which we expose as the init() method.
  */
-
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
 const EventEmitter = require('events');
 
 const CORTEX_URL = 'wss://localhost:6868';
@@ -42,12 +42,13 @@ class JSONRPCError extends Error {
     this.message = err.message;
     this.code = err.code;
   }
+
   toString() {
     return `${super.toString()} (${this.code})`;
   }
 }
 
-class Cortex extends EventEmitter {
+export default class Cortex extends EventEmitter {
   constructor(options = {}) {
     super();
     this.options = options;
@@ -78,6 +79,7 @@ class Cortex extends EventEmitter {
         return methods;
       });
   }
+
   _onmsg(msg) {
     const data = safeParse(msg.data);
     if (!data) return this._warn('unparseable message', msg);
@@ -85,8 +87,11 @@ class Cortex extends EventEmitter {
     this._debug('ws: <-', msg.data);
 
     if ('id' in data) {
-      const id = data.id;
-      this._log(`[${id}] <-`, data.result ? 'success' : `error (${data.error.message})`);
+      const { id } = data;
+      this._log(
+        `[${id}] <-`,
+        data.result ? 'success' : `error (${data.error.message})`
+      );
       if (this.requests[id]) {
         this.requests[id](data.error, data.result);
       } else {
@@ -96,20 +101,27 @@ class Cortex extends EventEmitter {
       const dataKeys = Object.keys(data).filter(
         (k) => k !== 'sid' && k !== 'time' && Array.isArray(data[k])
       );
-      dataKeys.forEach((k) => this.emit(k, data) || this._warn('no listeners for stream event', k));
+      dataKeys.forEach(
+        (k) =>
+          this.emit(k, data) || this._warn('no listeners for stream event', k)
+      );
     } else {
       this._log('rpc: Unrecognised data', data);
     }
   }
+
   _warn(...msg) {
     if (this.verbose > 0) console.warn('[Cortex WARN]', ...msg);
   }
+
   _log(...msg) {
     if (this.verbose > 1) console.log('[Cortex LOG]', ...msg);
   }
+
   _debug(...msg) {
     if (this.verbose > 2) console.debug('[Cortex DEBUG]', ...msg);
   }
+
   init({ clientId, clientSecret, license, debit } = {}) {
     const token = this.getUserLogin()
       .then((users) => {
@@ -120,7 +132,9 @@ class Cortex extends EventEmitter {
       })
       .then(({ accessGranted }) => {
         if (!accessGranted) {
-          return Promise.reject(new Error('Please approve this application in the EMOTIV app'));
+          return Promise.reject(
+            new Error('Please approve this application in the EMOTIV app')
+          );
         }
         return this.authorize({
           clientId,
@@ -137,12 +151,14 @@ class Cortex extends EventEmitter {
 
     return token;
   }
+
   close() {
     return new Promise((resolve) => {
       this.ws.close();
       this.ws.once('close', resolve);
     });
   }
+
   call(method, params = {}) {
     const id = this.msgId++;
     const msg = JSON.stringify({ jsonrpc: '2.0', method, params, id });
@@ -160,19 +176,26 @@ class Cortex extends EventEmitter {
       };
     });
   }
+
   defineMethod(methodName, paramDefs = []) {
     if (this[methodName]) return;
     const needsAuth = paramDefs.some((p) => p.name === 'cortexToken');
-    const requiredParams = paramDefs.filter((p) => p.required).map((p) => p.name);
+    const requiredParams = paramDefs
+      .filter((p) => p.required)
+      .map((p) => p.name);
 
     this[methodName] = (params = {}) => {
       if (needsAuth && this.cortexToken && !params.cortexToken) {
-        params = Object.assign({}, params, { cortexToken: this.cortexToken });
+        params = { ...params, cortexToken: this.cortexToken };
       }
       const missingParams = requiredParams.filter((p) => params[p] == null);
       if (missingParams.length > 0) {
         return this.handleError(
-          new Error(`Missing required params for ${methodName}: ${missingParams.join(', ')}`)
+          new Error(
+            `Missing required params for ${methodName}: ${missingParams.join(
+              ', '
+            )}`
+          )
         );
       }
       return this.call(methodName, params);
@@ -181,5 +204,3 @@ class Cortex extends EventEmitter {
 }
 
 Cortex.JSONRPCError = JSONRPCError;
-
-module.exports = Cortex;

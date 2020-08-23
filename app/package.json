@@ -1,7 +1,7 @@
 {
   "name": "BrainWaves",
   "productName": "BrainWaves",
-  "version": "0.13.0",
+  "version": "0.14.1",
   "description": "EEG Desktop Application",
   "main": "./main.prod.js",
   "type": "module",
@@ -12,12 +12,13 @@
   },
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
-    "postinstall": "patch-package && npm run electron-rebuild"
+    "postinstall": "patch-package && yarn electron-rebuild"
   },
   "license": "MIT",
   "dependencies": {
     "@neurosity/pipes": "^3.2.3",
     "@babel/runtime": "7.10.2",
+    "@babel/runtime-corejs2": "^7.10.2",
     "bleat": "^0.1.9",
     "enchannel-zmq-backend": "^9.1.22",
     "kernelspecs": "^2.0.0",
@@ -27,7 +28,6 @@
   },
   "devDependencies": {
     "@babel/register": "^7.10.1",
-    "@babel/runtime-corejs2": "^7.10.2",
     "patch-package": "^6.2.2"
   }
 }
