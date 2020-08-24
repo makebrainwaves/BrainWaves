@@ -108,6 +108,7 @@ export default class Home extends Component<Props, State> {
       });
       // If pre-designed experiment, load existing workspace
     } else if (this.state.recentWorkspaces.includes(experimentType)) {
+      console.log('RECENT', this.state.recentWorkspaces);
       this.handleLoadRecentWorkspace(experimentType);
       // Create pre-designed workspace if opened for first time
     } else {
@@ -139,6 +140,7 @@ export default class Home extends Component<Props, State> {
 
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
+    console.log('recent workspace state', recentWorkspaceState);
     if (!isNil(recentWorkspaceState)) {
       this.props.ExperimentActions.SetState(recentWorkspaceState);
     }

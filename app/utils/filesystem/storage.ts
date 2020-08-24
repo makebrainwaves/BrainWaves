@@ -31,18 +31,11 @@ export const openWorkspaceDir = (title: string) =>
 // -----------------------------------------------------------------------------------------------
 // Storing
 
-// Writes 'experiment' store state to file as a JSON object
+// Writes experiment tree state to file as a JSON object
 export const storeExperimentState = (state: ExperimentStateType) => {
-  const timestampedState = state;
-  if (!timestampedState.title) {
-    return;
-  }
-  if (timestampedState && timestampedState.params) {
-    timestampedState.params.dateModified = Date.now(); // saves the timestamp
-  }
   fs.writeFileSync(
-    path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
-    JSON.stringify(timestampedState)
+    path.join(getWorkspaceDir(state.title), 'appState.json'),
+    JSON.stringify(state)
   );
 };
 
