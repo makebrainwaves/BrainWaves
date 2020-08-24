@@ -26,7 +26,7 @@ import { SignalQualityData } from '../constants/interfaces';
 interface Props {
   history: History;
   connectedDevice: Record<string, any>;
-  signalQualityObservable: Observable<SignalQualityData>;
+  signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
@@ -84,28 +84,29 @@ export default class Home extends Component<Props, State> {
         className={styles.contentGrid}
         style={{ alignItems: 'center' }}
       >
-        {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && (
-          <Grid.Row>
-            <Grid.Column stretched width={6}>
-              <SignalQualityIndicatorComponent
-                signalQualityObservable={this.props.signalQualityObservable}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
-            </Grid.Column>
-            <Grid.Column stretched width={10}>
-              <div className={styles.disconnectButtonContainer}>
-                <Button secondary onClick={this.handleStopConnect}>
-                  Disconnect EEG Device
-                </Button>
-              </div>
-              <ViewerComponent
-                signalQualityObservable={this.props.signalQualityObservable}
-                deviceType={this.props.deviceType}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
-            </Grid.Column>
-          </Grid.Row>
-        )}
+        {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
+          this.props.signalQualityObservable && (
+            <Grid.Row>
+              <Grid.Column stretched width={6}>
+                <SignalQualityIndicatorComponent
+                  signalQualityObservable={this.props.signalQualityObservable}
+                  plottingInterval={PLOTTING_INTERVAL}
+                />
+              </Grid.Column>
+              <Grid.Column stretched width={10}>
+                <div className={styles.disconnectButtonContainer}>
+                  <Button secondary onClick={this.handleStopConnect}>
+                    Disconnect EEG Device
+                  </Button>
+                </div>
+                <ViewerComponent
+                  signalQualityObservable={this.props.signalQualityObservable}
+                  deviceType={this.props.deviceType}
+                  plottingInterval={PLOTTING_INTERVAL}
+                />
+              </Grid.Column>
+            </Grid.Row>
+          )}
         {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
           <Grid.Row stretched>
             <Grid.Column stretched width={5}>

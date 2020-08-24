@@ -165,11 +165,12 @@ export const readWorkspaceBehaviorData = async (title: string) => {
 // Reads an experiment state tree from disk and parses it from JSON
 export const readAndParseState = (dir: string): ExperimentStateType | null => {
   try {
-    return JSON.parse(
+    const state = JSON.parse(
       fs.readFileSync(path.join(workspaces, dir, 'appState.json'), {
-        encoding: 'string',
+        encoding: 'utf8',
       })
     );
+    return state;
   } catch (e) {
     if (e.code === 'ENOENT') {
       console.log('appState does not exist for recent workspace');

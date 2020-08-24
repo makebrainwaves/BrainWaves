@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import * as moment from 'moment';
 import { History } from 'history';
 import { remote } from 'electron';
-import { Observable } from 'redux';
+import { Observable } from 'rxjs';
 import styles from '../styles/common.css';
 import {
   EXPERIMENTS,
@@ -50,7 +50,7 @@ const HOME_STEPS = {
   EXPLORE: 'EXPLORE EEG DATA',
 };
 
-interface Props {
+export interface Props {
   activeStep?: string;
   availableDevices: Array<any>;
   connectedDevice: Record<string, unknown>;
@@ -108,7 +108,6 @@ export default class Home extends Component<Props, State> {
       });
       // If pre-designed experiment, load existing workspace
     } else if (this.state.recentWorkspaces.includes(experimentType)) {
-      console.log('RECENT', this.state.recentWorkspaces);
       this.handleLoadRecentWorkspace(experimentType);
       // Create pre-designed workspace if opened for first time
     } else {
@@ -140,7 +139,6 @@ export default class Home extends Component<Props, State> {
 
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
-    console.log('recent workspace state', recentWorkspaceState);
     if (!isNil(recentWorkspaceState)) {
       this.props.ExperimentActions.SetState(recentWorkspaceState);
     }
@@ -198,23 +196,25 @@ export default class Home extends Component<Props, State> {
                     </Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
+
                 <Table.Body className={styles.experimentTable}>
                   {this.state.recentWorkspaces
                     .sort((a, b) => {
                       const aState = readAndParseState(a);
                       const bState = readAndParseState(b);
 
-                      const aTime = aState?.params?.dateModified || 0;
-                      const bTime = bState?.params?.dateModified || 0;
+                      const aTime = aState?.dateModified || 0;
+                      const bTime = bState?.dateModified || 0;
 
                       return bTime - aTime;
                     })
                     .map((dir) => {
                       const workspaceState = readAndParseState(dir);
+                      console.log(workspaceState);
                       if (!workspaceState) {
                         return undefined;
                       }
-                      const dateModified = workspaceState.params?.dateModified;
+                      const dateModified = workspaceState.dateModified;
                       return (
                         <Table.Row key={dir} className={styles.experimentRow}>
                           <Table.Cell className={styles.experimentRowName}>
