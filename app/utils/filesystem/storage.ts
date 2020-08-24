@@ -31,18 +31,11 @@ export const openWorkspaceDir = (title: string) =>
 // -----------------------------------------------------------------------------------------------
 // Storing
 
-// Writes 'experiment' store state to file as a JSON object
+// Writes experiment tree state to file as a JSON object
 export const storeExperimentState = (state: ExperimentStateType) => {
-  const timestampedState = state;
-  if (!timestampedState.title) {
-    return;
-  }
-  if (timestampedState && timestampedState.params) {
-    timestampedState.params.dateModified = Date.now(); // saves the timestamp
-  }
   fs.writeFileSync(
-    path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
-    JSON.stringify(timestampedState)
+    path.join(getWorkspaceDir(state.title), 'appState.json'),
+    JSON.stringify(state)
   );
 };
 
@@ -172,11 +165,12 @@ export const readWorkspaceBehaviorData = async (title: string) => {
 // Reads an experiment state tree from disk and parses it from JSON
 export const readAndParseState = (dir: string): ExperimentStateType | null => {
   try {
-    return JSON.parse(
+    const state = JSON.parse(
       fs.readFileSync(path.join(workspaces, dir, 'appState.json'), {
-        encoding: 'string',
+        encoding: 'utf8',
       })
     );
+    return state;
   } catch (e) {
     if (e.code === 'ENOENT') {
       console.log('appState does not exist for recent workspace');

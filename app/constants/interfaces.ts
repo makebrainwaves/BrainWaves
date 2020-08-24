@@ -9,7 +9,6 @@ import { EVENTS, SIGNAL_QUALITY } from './constants';
 
 // All mutable aspects of an experiment that can be updated by the DesignComponent
 export type ExperimentParameters = {
-  dateModified?: number;
   trialDuration: number;
   nbTrials: number;
   iti: number;

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import * as moment from 'moment';
 import { History } from 'history';
 import { remote } from 'electron';
+import { Observable } from 'rxjs';
 import styles from '../styles/common.css';
 import {
   EXPERIMENTS,
@@ -32,12 +33,13 @@ import {
   DeviceActions,
   ExperimentActions,
 } from '../../actions';
-
+import { ExperimentCard } from './ExperimentCard';
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import { loadProtocol } from '../../utils/labjs/functions';
 import EEGExplorationComponent from '../EEGExplorationComponent';
+import { SignalQualityData } from '../../constants/interfaces';
 
 const { dialog } = remote;
 
@@ -48,26 +50,26 @@ const HOME_STEPS = {
   EXPLORE: 'EXPLORE EEG DATA',
 };
 
-interface Props {
-  kernelStatus: KERNEL_STATUS;
-  history: History;
-  JupyterActions: typeof JupyterActions;
+export interface Props {
+  activeStep?: string;
+  availableDevices: Array<any>;
   connectedDevice: Record<string, unknown>;
-  signalQualityObservable: any | null | undefined;
-  deviceType: DEVICES;
-  deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
-  availableDevices: Array<any>;
+  deviceAvailability: DEVICE_AVAILABILITY;
+  deviceType: DEVICES;
   ExperimentActions: typeof ExperimentActions;
-  activeStep?: string;
+  history: History;
+  JupyterActions: typeof JupyterActions;
+  kernelStatus: KERNEL_STATUS;
+  signalQualityObservable?: Observable<SignalQualityData>;
 }
 
 interface State {
   activeStep: string;
-  recentWorkspaces: Array<string>;
   isNewExperimentModalOpen: boolean;
   isOverviewComponentOpen: boolean;
+  recentWorkspaces: Array<string>;
   overviewExperimentType: EXPERIMENTS;
 }
 
@@ -194,23 +196,25 @@ export default class Home extends Component<Props, State> {
                     </Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
+
                 <Table.Body className={styles.experimentTable}>
                   {this.state.recentWorkspaces
                     .sort((a, b) => {
                       const aState = readAndParseState(a);
                       const bState = readAndParseState(b);
 
-                      const aTime = aState?.params?.dateModified || 0;
-                      const bTime = bState?.params?.dateModified || 0;
+                      const aTime = aState?.dateModified || 0;
+                      const bTime = bState?.dateModified || 0;
 
                       return bTime - aTime;
                     })
                     .map((dir) => {
                       const workspaceState = readAndParseState(dir);
+                      console.log(workspaceState);
                       if (!workspaceState) {
                         return undefined;
                       }
-                      const dateModified = workspaceState.params?.dateModified;
+                      const dateModified = workspaceState.dateModified;
                       return (
                         <Table.Row key={dir} className={styles.experimentRow}>
                           <Table.Cell className={styles.experimentRowName}>
@@ -277,170 +281,57 @@ export default class Home extends Component<Props, State> {
           <Grid columns="two" relaxed padded>
             <Grid.Row>
               <Grid.Column>
-                <Segment>
-                  <Grid
-                    columns="two"
-                    className={styles.experimentCard}
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
-                  >
-                    <Grid.Row>
-                      <Grid.Column
-                        width={4}
-                        className={styles.experimentCardImage}
-                      >
-                        <Image src={faceHouseIcon} />
-                      </Grid.Column>
-                      <Grid.Column
-                        width={12}
-                        className={styles.descriptionContainer}
-                      >
-                        <Header as="h1" className={styles.experimentCardHeader}>
-                          Faces/Houses
-                        </Header>
-                        <div className={styles.experimentCardDescription}>
-                          <p>
-                            Explore how people react to different kinds of
-                            images, like faces vs. houses.
-                          </p>
-                        </div>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-                </Segment>
+                <ExperimentCard
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+                  icon={faceHouseIcon}
+                  title="Faces/Houses"
+                  description={`Explore how people react to different kinds of
+                            images, like faces vs. houses.`}
+                />
               </Grid.Column>
 
               <Grid.Column>
-                <Segment>
-                  <Grid
-                    columns="two"
-                    className={styles.experimentCard}
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
-                  >
-                    <Grid.Row>
-                      <Grid.Column
-                        width={4}
-                        className={styles.experimentCardImage}
-                      >
-                        <Image src={stroopIcon} />
-                      </Grid.Column>
-                      <Grid.Column
-                        width={12}
-                        className={styles.descriptionContainer}
-                      >
-                        <Header as="h1" className={styles.experimentCardHeader}>
-                          Stroop
-                        </Header>
-                        <div className={styles.experimentCardDescription}>
-                          <p>
-                            {`Investigate why it is hard to deal with
+                <ExperimentCard
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
+                  icon={stroopIcon}
+                  title="Stroop"
+                  description={`Investigate why it is hard to deal with
                             contradictory information (like the word "RED"
                             printed in blue).`}
-                          </p>
-                        </div>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-                </Segment>
+                />
               </Grid.Column>
             </Grid.Row>
 
             <Grid.Row>
               <Grid.Column>
-                <Segment>
-                  <Grid
-                    columns="two"
-                    className={styles.experimentCard}
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
-                  >
-                    <Grid.Row>
-                      <Grid.Column
-                        width={4}
-                        className={styles.experimentCardImage}
-                      >
-                        <Image src={multitaskingIcon} />
-                      </Grid.Column>
-                      <Grid.Column
-                        width={12}
-                        className={styles.descriptionContainer}
-                      >
-                        <Header as="h1" className={styles.experimentCardHeader}>
-                          Multi-tasking
-                        </Header>
-                        <div className={styles.experimentCardDescription}>
-                          <p>
-                            Explore why it is challenging to carry out multiple
-                            tasks at the same time.
-                          </p>
-                        </div>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-                </Segment>
+                <ExperimentCard
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
+                  icon={multitaskingIcon}
+                  title="Multi-tasking"
+                  description={`Explore why it is challenging to carry out multiple
+                            tasks at the same time.`}
+                />
               </Grid.Column>
 
               <Grid.Column>
-                <Segment>
-                  <Grid
-                    columns="two"
-                    className={styles.experimentCard}
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
-                  >
-                    <Grid.Row>
-                      <Grid.Column
-                        width={4}
-                        className={styles.experimentCardImage}
-                      >
-                        <Image src={searchIcon} />
-                      </Grid.Column>
-                      <Grid.Column
-                        width={12}
-                        className={styles.descriptionContainer}
-                      >
-                        <Header as="h1" className={styles.experimentCardHeader}>
-                          Visual Search
-                        </Header>
-                        <div className={styles.experimentCardDescription}>
-                          <p>
-                            Examine why it is difficult to find your keys in a
-                            messy room.
-                          </p>
-                        </div>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-                </Segment>
+                <ExperimentCard
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
+                  icon={searchIcon}
+                  title="Visual Search"
+                  description={`Examine why it is difficult to find your keys in a
+                            messy room.`}
+                />
               </Grid.Column>
             </Grid.Row>
 
             <Grid.Row>
               <Grid.Column>
-                <Segment>
-                  <Grid
-                    columns="two"
-                    className={styles.experimentCard}
-                    onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
-                  >
-                    <Grid.Row>
-                      <Grid.Column
-                        width={4}
-                        className={styles.experimentCardImage}
-                      >
-                        <Image src={customIcon} />
-                      </Grid.Column>
-                      <Grid.Column
-                        width={12}
-                        className={styles.descriptionContainer}
-                      >
-                        <Header as="h1" className={styles.experimentCardHeader}>
-                          Custom experiment
-                        </Header>
-                        <div className={styles.experimentCardDescription}>
-                          <p>Design your own experiment!</p>
-                        </div>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-                </Segment>
+                <ExperimentCard
+                  onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+                  icon={customIcon}
+                  title="Custom"
+                  description="Design your own experiment!"
+                />
               </Grid.Column>
 
               <Grid.Column />

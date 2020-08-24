@@ -24,6 +24,7 @@ export interface ExperimentStateType {
   readonly isRunning: boolean;
   readonly isEEGEnabled: boolean;
   readonly description: ExperimentDescription;
+  readonly dateModified: number | null;
 }
 
 const initialState: ExperimentStateType = {
@@ -38,6 +39,7 @@ const initialState: ExperimentStateType = {
   isRunning: false,
   isEEGEnabled: false,
   description: { question: '', hypothesis: '', methods: '' },
+  dateModified: null,
 };
 
 export default createReducer(initialState, (builder) =>
@@ -88,6 +90,13 @@ export default createReducer(initialState, (builder) =>
       return {
         ...state,
         ...action.payload,
+      };
+    })
+
+    .addCase(ExperimentActions.SetDateModified, (state, action) => {
+      return {
+        ...state,
+        dateModified: action.payload,
       };
     })
 

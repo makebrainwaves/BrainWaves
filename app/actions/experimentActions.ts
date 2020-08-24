@@ -14,6 +14,9 @@ export const ExperimentActions = {
   SetGroup: createAction<any, 'SET_GROUP'>('SET_GROUP'),
   SetSession: createAction<any, 'SET_SESSION'>('SET_SESSION'),
   SetParams: createAction<any, 'SET_PARAMS'>('SET_PARAMS'),
+  SetDateModified: createAction<number, 'SET_DATE_MODIFIED'>(
+    'SET_DATE_MODIFIED'
+  ),
   SetDescription: createAction<any, 'SET_DESCRIPTION'>('SET_DESCRIPTION'),
   CreateNewWorkspace: createAction<any, 'CREATE_NEW_WORKSPACE'>(
     'CREATE_NEW_WORKSPACE'

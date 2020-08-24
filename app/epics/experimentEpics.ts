@@ -191,9 +191,11 @@ const saveWorkspaceEpic: Epic<
         ? state$.value.experiment.title.length > 1
         : false
     ),
-    map(() => getWorkspaceDir(state$.value.experiment.title!)),
-    tap(() => storeExperimentState(state$.value.experiment)),
-    ignoreElements()
+    map(() => Date.now()),
+    tap((now) =>
+      storeExperimentState({ ...state$.value.experiment, dateModified: now })
+    ),
+    map(ExperimentActions.SetDateModified)
   );
 
 const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
