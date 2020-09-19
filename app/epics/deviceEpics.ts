@@ -129,7 +129,7 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
-    map<Device, Promise<any>>((device) =>
+    map((device) =>
       isNil(device.name) ? connectToEmotiv(device) : connectToMuse(device)
     ),
     mergeMap<Promise<any>, ObservableInput<DeviceInfo>>((promise) =>
@@ -137,6 +137,7 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     ),
     mergeMap<DeviceInfo, ObservableInput<any>>((deviceInfo) => {
       if (!isNil(deviceInfo) && !isNil(deviceInfo.samplingRate)) {
+        console.log(deviceInfo);
         return of(
           DeviceActions.SetDeviceType(
             deviceInfo.name.includes('Muse') ? DEVICES.MUSE : DEVICES.EMOTIV

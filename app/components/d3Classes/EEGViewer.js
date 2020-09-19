@@ -14,7 +14,7 @@ class EEGViewer {
     this.zoom = 1;
     this.zoomScalar = 1.5;
     this.canvas = d3.select(svg);
-    this.margin = { top: 20, right: 10, bottom: 0, left: 20 };
+    this.margin = { top: 20, right: 10, bottom: 0, left: 30 };
     this.channelMaxs = new Array(this.channels.length).fill(100);
     this.channelMins = new Array(this.channels.length).fill(-100);
     this.lastTimestamp = new Date().getTime();

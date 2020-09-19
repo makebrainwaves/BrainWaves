@@ -1,5 +1,12 @@
 import 'hazardous';
-import { withLatestFrom, share, startWith, filter } from 'rxjs/operators';
+import {
+  withLatestFrom,
+  share,
+  startWith,
+  filter,
+  tap,
+  map,
+} from 'rxjs/operators';
 import {
   addInfo,
   epoch,
@@ -7,58 +14,45 @@ import {
   addSignalQuality,
 } from '@neurosity/pipes';
 import { release } from 'os';
-import { MUSE_SERVICE, MuseClient, zipSamples } from 'muse-js';
-import { from } from 'rxjs';
+import { MUSE_SERVICE, MuseClient, zipSamples, EEGSample } from 'muse-js';
+import { from, Observable } from 'rxjs';
+import { isNaN } from 'lodash';
 import { parseMuseSignalQuality } from './pipes';
 import {
   MUSE_SAMPLING_RATE,
   MUSE_CHANNELS,
   PLOTTING_INTERVAL,
 } from '../../constants/constants';
+import { Device, EEGData } from '../../constants/interfaces';
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
-let bluetooth = {};
-let client: MuseClient;
 if (
-  process.platform !== 'win32' ||
-  parseInt(release().split('.')[0], 10) >= 10
+  process.platform === 'win32' &&
+  parseInt(release().split('.')[0], 10) < 10
 ) {
-  // Just returns the client object from Muse JS
-  // eslint-disable-next-line global-require
-  bluetooth = require('bleat').webbluetooth;
-  client = new MuseClient();
-  client.enableAux = true;
+  console.error('Muse EEG not available in Windows 7');
 }
+
+const client = new MuseClient();
+client.enableAux = false;
+
 // Gets an available Muse device
-// TODO: test whether this will ever return multiple devices if available
+// TODO: is being able to request only one Muse at a time a problem in a classroom scenario?
 export const getMuse = async () => {
-  let device = {};
-  if (process.platform === 'win32') {
-    if (parseInt(release().split('.')[0], 10) >= 10) {
-      console.log('win 7 ');
-      return null;
-    }
-    // @ts-ignore
-    device = await bluetooth.requestDevice({
-      filters: [{ services: [MUSE_SERVICE] }],
-    });
-  } else {
-    device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [MUSE_SERVICE] }],
-    });
-  }
-  return [device];
+  const deviceInstance = await navigator.bluetooth.requestDevice({
+    filters: [{ services: [MUSE_SERVICE] }],
+  });
+  return [{ id: deviceInstance.id, name: deviceInstance.name }];
 };
 
 // Attempts to connect to a muse device. If successful, returns a device info object
-export const connectToMuse = async (device) => {
-  if (process.platform === 'win32') {
-    const gatt = await device.gatt.connect();
-    await client.connect(gatt);
-  } else {
-    await client.connect();
-  }
+export const connectToMuse = async (device: Device) => {
+  const deviceInstance = await navigator.bluetooth.requestDevice({
+    filters: [{ services: [MUSE_SERVICE], name: device.name }],
+  });
+  const gatt = await deviceInstance.gatt?.connect();
+  await client.connect(gatt);
   return {
     name: client.deviceName,
     samplingRate: MUSE_SAMPLING_RATE,
@@ -74,7 +68,12 @@ export const createRawMuseObservable = async () => {
   const eegStream = await client.eegReadings;
   const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
   return from(zipSamples(eegStream)).pipe(
-    filter((sample) => !sample.data.includes(NaN)),
+    // Remove nans if present (muse 2)
+    map<EEGSample, EEGSample>((sample) => ({
+      ...sample,
+      data: sample.data.filter((val) => !isNaN(val)),
+    })),
+    filter((sample) => sample.data.length >= 4),
     withLatestFrom(markers, synchronizeTimestamp),
     share()
   );
@@ -82,7 +81,7 @@ export const createRawMuseObservable = async () => {
 
 // Creates an observable that will epoch, filter, and add signal quality to EEG stream
 export const createMuseSignalQualityObservable = (
-  rawObservable,
+  rawObservable: Observable<EEGData>,
   deviceInfo
 ) => {
   const { samplingRate, channels: channelNames } = deviceInfo;

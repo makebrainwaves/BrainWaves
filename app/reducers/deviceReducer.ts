@@ -26,8 +26,8 @@ export interface DeviceStateType {
 }
 
 const initialState: DeviceStateType = {
-  availableDevices: [{}],
-  connectedDevice: { name: 'disconnected', samplingRate: 0 },
+  availableDevices: [],
+  connectedDevice: { name: 'disconnected', samplingRate: 0, channels: [] },
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,

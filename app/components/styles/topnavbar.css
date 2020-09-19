@@ -1,9 +1,9 @@
 .navContainer {
-  margin-top: 0px !important;
+  margin-top: 0 !important;
   position: relative;
   z-index: 999;
   height: 60px;
-  background: #ffffff;
+  background: #fff;
   box-shadow: 0 5px 16px 0 rgba(0, 0, 0, 0.09);
 }
 
@@ -20,13 +20,13 @@
   line-height: 17px;
   letter-spacing: 0.5px;
   border-style: solid;
-  border-width: 0px;
+  border-width: 0;
   border-bottom-width: 4px;
 }
 
 .initialNavColumn {
-  color: #666666;
-  border-color: #666666;
+  color: #666;
+  border-color: #666;
   border-bottom-color: #fff;
 }
 
@@ -58,13 +58,13 @@
 }
 
 .initialNavColumn .numberBubble {
-  color: #cccccc;
-  border: 2px solid #cccccc;
+  color: #ccc;
+  border: 2px solid #ccc;
 }
 
 .visitedNavColumn .numberBubble {
-  color: #666666;
-  border: 2px solid #666666;
+  color: #666;
+  border: 2px solid #666;
 }
 
 .activeNavColumn .numberBubble {
@@ -87,7 +87,7 @@
   line-height: 17px;
   color: #1a1a1a;
   border-style: solid;
-  border-width: 0px;
+  border-width: 0;
   border-bottom-width: 4px;
   border-bottom-color: #ffc107;
   width: inherit;
@@ -100,7 +100,7 @@
 }
 
 .exitWorkspaceBtn {
-  font-family: Gothic A1 !important;
+  font-family: Gothic A1, sans-serif !important;
   font-style: normal !important;
   font-weight: 900 !important;
   font-size: 24px !important;

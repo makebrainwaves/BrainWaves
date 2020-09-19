@@ -13,6 +13,7 @@
 - Supports Emotiv Epoc+ and Muse devices
 
 ## Screenshots
+
 <p align="center">
   <img src="app_home.png" width="600">
 </p>
@@ -44,7 +45,6 @@ following command on Windows_
 5. Finally, run the following command to create a new jupyter kernel that uses this environment:
    `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
-
 ## Download
 
 - Windows:
@@ -52,7 +52,6 @@ following command on Windows_
 - MacOS: coming soon
 - Linux (only supports Muse):
   [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.7.5/BrainWaves_0.7.4_amd64.deb)
-
 
 ## Installing from Source (for developers)
 
@@ -75,7 +74,6 @@ following command on Windows_
 ### Windows 10
 
 - [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
-
 
 1. First, clone the repo via git:
 
@@ -153,10 +151,10 @@ DEBUG_PROD=true npm run package
 ```
 
 ## Contributing
+
 if you are interested in fixing issues with the BrainWaves app or helping us add additional features, that's amazing! Please see our [How to Contribute](https://github.com/makebrainwaves/BrainWaves/blob/master/CONTRIBUTING.md).
 
 Also, read our [Code of Conduct](https://github.com/makebrainwaves/BrainWaves/blob/master/CODE_OF_CONDUCT.md)
-
 
 ## License
 
