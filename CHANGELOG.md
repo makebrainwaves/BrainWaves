@@ -1,3 +1,10 @@
+# 0.14.2 (September 19, 2020) - TypeScript and tooling update
+
+- TypeScript
+- Dependencies update
+- CI
+- Remove Windows-specific bluetooth overrides
+
 # 0.13.0 (May 18, 2020) - Improved usability and tasks
 
 - Removed remnants of old experiment backend
