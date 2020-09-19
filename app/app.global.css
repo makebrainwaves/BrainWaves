@@ -2,13 +2,10 @@
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
-@import "~font-awesome/css/font-awesome.css";
-@import "~semantic-ui-css/semantic.min.css";
-@import "~jspsych-react/css/jspsych.css";
-@import "~rc-slider/assets/index.css";
-@import "~react-toastify/dist/ReactToastify.css";
-@import "./utils/labjs/lib/lab.css";
-
+@import '~semantic-ui-css/semantic.min.css';
+@import '~rc-slider/assets/index.css';
+@import '~react-toastify/dist/ReactToastify.css';
+@import '~lab.js/dist/lab.css';
 
 body {
   position: relative;
@@ -145,7 +142,7 @@ button:active {
 .ui.primary.button {
   font-size: 18px;
   font-weight: normal !important;
-  color: #e0fff5;
+  color: #fff;
   border: 2px solid #007c70;
   background-color: #007c70;
   border-radius: 4px;
@@ -224,11 +221,11 @@ button:active {
 /* rc-slider-related styles */
 
 .rc-slider-rail {
-  background-color: #cccccc !important;
+  background-color: #ccc !important;
 }
 
 .rc-slider-track {
-  background-color: #cccccc !important;
+  background-color: #ccc !important;
 }
 
 .rc-slider-dot {

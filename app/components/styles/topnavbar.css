@@ -1,9 +1,9 @@
 .navContainer {
-  margin-top: 0px !important;
+  margin-top: 0 !important;
   position: relative;
   z-index: 999;
   height: 60px;
-  background: #ffffff;
+  background: #fff;
   box-shadow: 0 5px 16px 0 rgba(0, 0, 0, 0.09);
 }
 
@@ -20,13 +20,13 @@
   line-height: 17px;
   letter-spacing: 0.5px;
   border-style: solid;
-  border-width: 0px;
+  border-width: 0;
   border-bottom-width: 4px;
 }
 
 .initialNavColumn {
-  color: #666666;
-  border-color: #666666;
+  color: #666;
+  border-color: #666;
   border-bottom-color: #fff;
 }
 
@@ -58,13 +58,13 @@
 }
 
 .initialNavColumn .numberBubble {
-  color: #cccccc;
-  border: 2px solid #cccccc;
+  color: #ccc;
+  border: 2px solid #ccc;
 }
 
 .visitedNavColumn .numberBubble {
-  color: #666666;
-  border: 2px solid #666666;
+  color: #666;
+  border: 2px solid #666;
 }
 
 .activeNavColumn .numberBubble {
@@ -78,7 +78,7 @@
 }
 
 .experimentTitleGridColumn {
-  white-space: nowrap;
+  /* white-space: nowrap; */
   display: flex !important;
   justify-content: center;
   height: inherit;
@@ -87,29 +87,26 @@
   line-height: 17px;
   color: #1a1a1a;
   border-style: solid;
-  border-width: 0px;
+  border-width: 0;
   border-bottom-width: 4px;
   border-bottom-color: #ffc107;
+  width: inherit;
 }
 
-.experimentTitleSegment {
+.homeButton {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  align-items: center;
   justify-content: center;
-  grid-column-gap: 10px;
+  margin-left: 20px !important;
 }
 
-.exitWorkspaceBtn{
-  display: grid;
-  font-family: Gothic A1 !important;
+.exitWorkspaceBtn {
+  font-family: Gothic A1, sans-serif !important;
   font-style: normal !important;
   font-weight: 900 !important;
   font-size: 24px !important;
   line-height: 30px !important;
-  color: #007C70 !important;
+  color: #007c70 !important;
   border: none !important;
-  height: 35px;
-  min-width: 35px;
-  margin-left: 10px !important;
+  height: 30px;
+  min-width: 30px;
 }

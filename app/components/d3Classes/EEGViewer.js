@@ -28,7 +28,7 @@ class EEGViewer {
 
   updateData(epoch) {
     const {
-      info: { samplingRate, startTime }
+      info: { samplingRate, startTime },
     } = epoch;
     this.lastTimestamp =
       startTime + epoch.data[0].length / (samplingRate / 1000);
@@ -39,16 +39,16 @@ class EEGViewer {
           simplify(
             epoch.data[i].map((dataPoint, index) => ({
               x: startTime + index / (samplingRate / 1000),
-              y: dataPoint
+              y: dataPoint,
             })),
             this.downsampling
           )
         )
-        .filter(sample => sample.x >= this.firstTimestamp);
+        .filter((sample) => sample.x >= this.firstTimestamp);
     }
 
     this.channelColours = this.channels.map(
-      channelName => epoch.signalQuality[channelName]
+      (channelName) => epoch.signalQuality[channelName]
     );
     this.redraw();
   }
@@ -66,20 +66,20 @@ class EEGViewer {
   }
 
   zoomIn() {
-    this.zoom = this.zoom / this.zoomScalar;
+    this.zoom /= this.zoomScalar;
     this.redraw();
   }
 
   zoomOut() {
-    this.zoom = this.zoom * this.zoomScalar;
+    this.zoom *= this.zoomScalar;
     this.redraw();
   }
 
   autoScale() {
-    this.channelMaxs = this.data.map(channelData =>
+    this.channelMaxs = this.data.map((channelData) =>
       EEGViewer.findExtreme(channelData, (a, b) => a > b)
     );
-    this.channelMins = this.data.map(channelData =>
+    this.channelMins = this.data.map((channelData) =>
       EEGViewer.findExtreme(channelData, (a, b) => a < b)
     );
     this.zoom = 1;
@@ -88,7 +88,7 @@ class EEGViewer {
 
   resetData() {
     this.data = new Array(this.channels.length).fill([
-      { x: this.lastTimestamp, y: 0 }
+      { x: this.lastTimestamp, y: 0 },
     ]);
     this.channelMaxs = new Array(this.channels.length).fill(100);
     this.channelMins = new Array(this.channels.length).fill(-100);
@@ -133,7 +133,7 @@ class EEGViewer {
       .range([
         (this.channels.length - 1) * (this.height / this.channels.length) +
           this.height / this.channels.length / 2,
-        this.height / this.channels.length / 2
+        this.height / this.channels.length / 2,
       ]);
   }
 
@@ -145,10 +145,7 @@ class EEGViewer {
       .tickFormat((d, i) => this.channels[i].replace(/\s/g, ''))
       .tickValues(d3.range(this.channels.length));
 
-    this.axisY = this.graph
-      .append('g')
-      .attr('class', 'axis')
-      .call(this.yAxis);
+    this.axisY = this.graph.append('g').attr('class', 'axis').call(this.yAxis);
   }
 
   addLines() {
@@ -172,10 +169,10 @@ class EEGViewer {
       .attr('clip-path', 'url(#clip)');
     this.line = d3
       .line()
-      .x(d => this.xScale(d.x))
-      .y(d => this.yScaleLines(d.y))
+      .x((d) => this.xScale(d.x))
+      .y((d) => this.yScaleLines(d.y))
       .curve(d3.curveLinear)
-      .defined(d => d.y);
+      .defined((d) => d.y);
 
     for (let i = 0; i < this.channels.length; i++) {
       const channelData = this.data[i];
@@ -183,7 +180,7 @@ class EEGViewer {
       this.yScaleLines
         .domain([
           this.channelMins[i] / this.zoom,
-          this.channelMaxs[i] / this.zoom
+          this.channelMaxs[i] / this.zoom,
         ])
         .range(EEGViewer.getLineRange(i, this.channels.length, this.height));
 
@@ -205,7 +202,7 @@ class EEGViewer {
         this.yScaleLines
           .domain([
             this.channelMins[i] / this.zoom,
-            this.channelMaxs[i] / this.zoom
+            this.channelMaxs[i] / this.zoom,
           ])
           .range(EEGViewer.getLineRange(i, this.channels.length, this.height));
 
@@ -233,7 +230,7 @@ class EEGViewer {
       this.xScale
         .domain([
           this.lastTimestamp,
-          this.firstTimestamp + this.plottingInterval
+          this.firstTimestamp + this.plottingInterval,
         ])
         .range([this.width, 0]);
     }
@@ -253,7 +250,7 @@ class EEGViewer {
       this.yScaleLabels.range([
         (this.channels.length - 1) * (this.height / this.channels.length) +
           this.height / this.channels.length / 2,
-        this.height / this.channels.length / 2
+        this.height / this.channels.length / 2,
       ]);
       this.axisY.call(this.yAxis);
       this.addLines();

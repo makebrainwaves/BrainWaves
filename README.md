@@ -13,6 +13,7 @@
 - Supports Emotiv Epoc+ and Muse devices
 
 ## Screenshots
+
 <p align="center">
   <img src="app_home.png" width="600">
 </p>
@@ -27,8 +28,8 @@ BrainWaves needs an Anaconda environment called "brainwaves" with the right
 dependencies to run its analysis.
 
 1. Download and install Anaconda for Python 3. We recommend using the
-   [Miniconda installer for Python 3.6 available from this page](https://conda.io/miniconda.html)
-https://github.com/makebrainwaves/BrainWaves
+   [Miniconda installer for Python 3.7 available from this page](https://conda.io/miniconda.html). When installing, select the option to "Add Anaconda to my PATH environment variable".
+
 2. Download the BrainWaves
    [environment file](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.1/environment.yml)
    or grab it by cloning this repository
@@ -39,9 +40,10 @@ following command on Windows_
 3. Open Anaconda prompt (or terminal on Linux and OSX) in the directory where
    the environment file is located and run `conda env create -f environment.yml`
 
-4. If the environment is created successfully, run the following command to create a new jupyter kernel that uses this environment:
-   `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
+4. If the environment is created successfully, activate the new conda environment that is created with `conda activate brainwaves`
 
+5. Finally, run the following command to create a new jupyter kernel that uses this environment:
+   `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
 
 ## Download
 
@@ -50,7 +52,6 @@ following command on Windows_
 - MacOS: coming soon
 - Linux (only supports Muse):
   [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.7.5/BrainWaves_0.7.4_amd64.deb)
-
 
 ## Installing from Source (for developers)
 
@@ -73,7 +74,6 @@ following command on Windows_
 ### Windows 10
 
 - [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
-
 
 1. First, clone the repo via git:
 
@@ -151,10 +151,10 @@ DEBUG_PROD=true npm run package
 ```
 
 ## Contributing
+
 if you are interested in fixing issues with the BrainWaves app or helping us add additional features, that's amazing! Please see our [How to Contribute](https://github.com/makebrainwaves/BrainWaves/blob/master/CONTRIBUTING.md).
 
 Also, read our [Code of Conduct](https://github.com/makebrainwaves/BrainWaves/blob/master/CODE_OF_CONDUCT.md)
-
 
 ## License
 
