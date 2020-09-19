@@ -11,6 +11,19 @@ import { parseEmotivSignalQuality } from './pipes';
 import { CLIENT_ID, CLIENT_SECRET, LICENSE_ID } from '../../../keys';
 import { EMOTIV_CHANNELS, PLOTTING_INTERVAL } from '../../constants/constants';
 import Cortex from './cortex';
+import { Device, DeviceInfo } from '../../constants/interfaces';
+
+interface EmotivHeadset {
+  id: string;
+  status: 'discovered' | 'connecting' | 'connected';
+  connectedBy: 'dongle' | 'bluetooth' | 'usb cabe' | 'extender';
+  dongle: string;
+  firmware: string;
+  motionSensors: string[];
+  sensors: string[];
+  settings: Record<string, string | number>;
+  customName?: string;
+}
 
 // Creates the Cortex object from SDK
 const verbose = process.env.LOG_LEVEL || 1;
@@ -26,11 +39,16 @@ let session;
 
 // Gets a list of available Emotiv devices
 export const getEmotiv = async () => {
-  const devices = await client.queryHeadsets();
-  return devices;
+  const devices: EmotivHeadset[] = await client.queryHeadsets();
+  return devices.map<Device>((headset) => ({
+    id: headset.id,
+    name: headset.customName,
+  }));
 };
 
-export const connectToEmotiv = async (device) => {
+export const connectToEmotiv = async (
+  device: Device
+): Promise<DeviceInfo | null> => {
   await client.ready;
 
   // Authenticate
@@ -43,14 +61,14 @@ export const connectToEmotiv = async (device) => {
     });
   } catch (err) {
     toast.error(`Authentication failed. ${err.message}`);
-    return;
+    return Promise.reject(err);
   }
   // Connect
   try {
     await client.controlDevice({ command: 'connect', headset: device.id });
   } catch (err) {
     toast.error(`Emotiv connection failed. ${err.message}`);
-    return;
+    return Promise.reject(err);
   }
   // Create Session
   try {
@@ -67,11 +85,11 @@ export const connectToEmotiv = async (device) => {
     };
   } catch (err) {
     toast.error(`Session creation failed. ${err.message} `);
+    return Promise.reject(err);
   }
 };
 
 export const disconnectFromEmotiv = async () => {
-  console.log('disconnecting form emotiv');
   const sessionStatus = await client.updateSession({
     session: session.id,
     status: 'close',
@@ -93,13 +111,11 @@ export const createRawEmotivObservable = async () => {
     toast.error(`EEG connection failed. ${err.message}`);
   }
 
-  // @ts-ignore
   return fromEvent(client, 'eeg').pipe(map(createEEGSample));
 };
 
 // Creates an observable that will epoch, filter, and add signal quality to EEG stream
 export const createEmotivSignalQualityObservable = (rawObservable) => {
-  // @ts-ignore
   const signalQualityObservable = fromEvent(client, 'dev');
   const samplingRate = 128;
   const channels = EMOTIV_CHANNELS;

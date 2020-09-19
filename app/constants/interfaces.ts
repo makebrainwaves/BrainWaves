@@ -113,9 +113,12 @@ export interface Kernel {
 // --------------------------------------------------------------------
 // Device
 
-// TODO: type this based on what comes out of muse and emotiv
+// For unconnected available devices
 export interface Device {
-  [key: string]: any;
+  // Human readable
+  name?: string;
+  // Unique ID
+  id: string;
 }
 
 export interface EEGData {
@@ -130,9 +133,11 @@ export interface SignalQualityData {
   timestamp?: number;
 }
 
+// For connected devices
 export interface DeviceInfo {
   name: string;
   samplingRate: number;
+  channels: string[];
 }
 
 export interface PipesEpoch {
