@@ -113,13 +113,14 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   render() {
+    const trueAsString = 'true' as any;
     return (
       <webview
         id="eegView"
         src={`file://${__dirname}/viewer.html`}
-        autosize
-        nodeintegration
-        plugins
+        autosize={trueAsString}
+        nodeintegration={trueAsString}
+        plugins={trueAsString}
       />
     );
   }

@@ -109,7 +109,7 @@ export const EMOTIV_CHANNELS = [
   'AF4',
 ];
 
-export const MUSE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10', 'AUX'];
+export const MUSE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10'];
 
 export const ZOOM_SCALAR = 1.5;
 export const MUSE_SAMPLING_RATE = 256;
