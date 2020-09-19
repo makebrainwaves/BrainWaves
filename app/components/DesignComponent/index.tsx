@@ -32,14 +32,14 @@ import searchOverview from '../../assets/common/VisualSearch.png';
 import customOverview from '../../assets/common/Custom.png';
 
 // conditions images
-import multiConditionShape from '../../assets/multi/multiConditionShape.png';
-import multiConditionDots from '../../assets/multi/multiConditionDots.png';
-import conditionFace from '../../assets/face_house/faces/Face1.jpg';
-import conditionHouse from '../../assets/face_house/houses/House1.jpg';
-import conditionOrangeT from '../../assets/search/conditionOrangeT.png';
-import conditionNoOrangeT from '../../assets/search/conditionNoOrangeT.png';
-import conditionCongruent from '../../assets/stroop/match_g.png';
-import conditionIncongruent from '../../assets/stroop/mismatch6_r.png';
+import multiConditionShape from '../../assets/default_experiments/multitasking/multiConditionShape.png';
+import multiConditionDots from '../../assets/default_experiments/multitasking/multiConditionDots.png';
+import conditionFace from '../../assets/default_experiments/face_house/faces/Face1.jpg';
+import conditionHouse from '../../assets/default_experiments/face_house/houses/House1.jpg';
+import conditionOrangeT from '../../assets/default_experiments/search/conditionOrangeT.png';
+import conditionNoOrangeT from '../../assets/default_experiments/search/conditionNoOrangeT.png';
+import conditionCongruent from '../../assets/default_experiments/stroop/match_g.png';
+import conditionIncongruent from '../../assets/default_experiments/stroop/mismatch6_r.png';
 
 import { loadProtocol } from '../../utils/labjs/functions';
 import InputModal from '../InputModal';
