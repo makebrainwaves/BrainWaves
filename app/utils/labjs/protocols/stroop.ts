@@ -1,12 +1,4 @@
-import * as path from 'path';
 import { EVENTS } from '../../../constants/constants';
-
-// Default directories containing stimuli
-const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
-
-const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
-const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
-const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const buildStroopTimeline = () => ({
   overview_title: `Stroop Experiment`,
@@ -41,7 +33,7 @@ export const buildStroopTimeline = () => ({
         'https://www.psychologytoday.com/us/blog/play-in-mind/201204/when-red-looks-blue-and-yes-means-no',
     },
   ],
-  protocal_links: [],
+  protocol_links: [],
   params: {
     trialDuration: 1000,
     nbTrials: 150,

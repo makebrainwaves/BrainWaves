@@ -37,7 +37,7 @@ export const buildCustomTimeline = () => ({
         'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
     },
   ],
-  protocal_links: [],
+  protocol_links: [],
   params: {
     imageHeight: '500px',
     randomize: 'random',

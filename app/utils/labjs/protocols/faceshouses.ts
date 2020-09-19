@@ -4,8 +4,8 @@ import { EVENTS } from '../../../constants/constants';
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
-const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
-const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
+const facesDir = path.join(rootFolder, 'assets', 'default_experiments', 'face_house', 'faces');
+const housesDir = path.join(rootFolder, 'assets', 'default_experiments', 'face_house', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 const stimuli = Array.from({ length: 30 }, (_, i) => `Face${i + 1}`)
@@ -53,7 +53,7 @@ export const buildN170Timeline = () => ({
         'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
     },
   ],
-  protocal_links: [],
+  protocol_links: [],
   params: {
     imageHeight: '500px',
     randomize: 'random',

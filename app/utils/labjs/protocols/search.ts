@@ -1,12 +1,4 @@
-import * as path from 'path';
 import { EVENTS } from '../../../constants/constants';
-
-// Default directories containing stimuli
-const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
-
-const facesDir = path.join(rootFolder, 'assets', 'face_house', 'faces');
-const housesDir = path.join(rootFolder, 'assets', 'face_house', 'houses');
-const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const buildSearchTimeline = () => ({
   overview_title: `Visual Search Experiment`,
@@ -35,7 +27,7 @@ export const buildSearchTimeline = () => ({
   protocol_condition_second: `If the orange T is not on the screen, participants should press the ‘n’ key instead.`,
   overview_links: [],
   background_links: [],
-  protocal_links: [],
+  protocol_links: [],
   params: {
     trialDuration: 1000,
     nbTrials: 150,
