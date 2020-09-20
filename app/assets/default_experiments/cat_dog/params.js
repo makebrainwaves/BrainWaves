@@ -1,8 +1,8 @@
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
-const facesDir = path.join(rootFolder, 'assets', 'default_experiments', 'face_house', 'faces');
-const housesDir = path.join(rootFolder, 'assets', 'default_experiments', 'face_house', 'houses');
+const facesDir = path.join(rootFolder, 'assets', 'default_experiments', 'faces_houses', 'faces');
+const housesDir = path.join(rootFolder, 'assets', 'default_experiments', 'faces_houses', 'houses');
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 export const stimuli = Array.from({ length: 30 }, (_, i) => `Face${i + 1}`)

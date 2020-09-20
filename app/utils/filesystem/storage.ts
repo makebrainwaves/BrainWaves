@@ -57,7 +57,7 @@ export const restoreExperimentState = (state: ExperimentStateType) => {
   }
 };
 
-export const storeBehaviouralData = (
+export const storeBehavioralData = (
   csv: string,
   title: string,
   subject: string,

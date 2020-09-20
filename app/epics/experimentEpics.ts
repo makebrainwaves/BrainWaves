@@ -30,7 +30,7 @@ import {
   storeExperimentState,
   restoreExperimentState,
   createWorkspaceDir,
-  storeBehaviouralData,
+  storeBehavioralData,
   readWorkspaceBehaviorData,
 } from '../utils/filesystem/storage';
 import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
@@ -126,7 +126,7 @@ const experimentStopEpic: Epic<
       if (!state$.value.experiment.title) {
         return;
       }
-      storeBehaviouralData(
+      storeBehavioralData(
         payload.data,
         state$.value.experiment.title,
         state$.value.experiment.subject,

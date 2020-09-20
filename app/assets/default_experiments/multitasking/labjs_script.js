@@ -6,8 +6,9 @@ const rootFolder = __dirname;
 const assetsDirectory = path.join(
   rootFolder,
   'assets',
-  'labjs',
-  'multitasking'
+  'default_experiments',
+  'multitasking',
+  'stimuli'
 );
 
 // Define study

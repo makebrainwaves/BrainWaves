@@ -25,21 +25,21 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import CustomDesign from './CustomDesignComponent';
 import PreviewButton from '../PreviewButtonComponent';
 
-import facesHousesOverview from '../../assets/common/FacesHouses.png';
-import stroopOverview from '../../assets/common/Stroop.png';
-import multitaskingOverview from '../../assets/common/Multitasking.png';
-import searchOverview from '../../assets/common/VisualSearch.png';
+import facesHousesOverview from '../../assets/default_experiments/faces_houses/icon.png';
+import stroopOverview from '../../assets/default_experiments/stroop/icon.png';
+import multitaskingOverview from '../../assets/default_experiments/multitasking/icon.png';
+import searchOverview from '../../assets/default_experiments/search/icon.png';
 import customOverview from '../../assets/common/Custom.png';
 
 // conditions images
-import multiConditionShape from '../../assets/default_experiments/multitasking/multiConditionShape.png';
-import multiConditionDots from '../../assets/default_experiments/multitasking/multiConditionDots.png';
-import conditionFace from '../../assets/default_experiments/face_house/faces/Face1.jpg';
-import conditionHouse from '../../assets/default_experiments/face_house/houses/House1.jpg';
-import conditionOrangeT from '../../assets/default_experiments/search/conditionOrangeT.png';
-import conditionNoOrangeT from '../../assets/default_experiments/search/conditionNoOrangeT.png';
-import conditionCongruent from '../../assets/default_experiments/stroop/match_g.png';
-import conditionIncongruent from '../../assets/default_experiments/stroop/mismatch6_r.png';
+import multiConditionShape from '../../assets/default_experiments/multitasking/stimuli/multiConditionShape.png';
+import multiConditionDots from '../../assets/default_experiments/multitasking/stimuli/multiConditionDots.png';
+import conditionFace from '../../assets/default_experiments/faces_houses/stimuli/faces/Face1.jpg';
+import conditionHouse from '../../assets/default_experiments/faces_houses/stimuli/houses/House1.jpg';
+import conditionOrangeT from '../../assets/default_experiments/search/stimuli/conditionOrangeT.png';
+import conditionNoOrangeT from '../../assets/default_experiments/search/stimuli/conditionNoOrangeT.png';
+import conditionCongruent from '../../assets/default_experiments/stroop/stimuli/match_g.png';
+import conditionIncongruent from '../../assets/default_experiments/stroop/stimuli/mismatch6_r.png';
 
 import { loadProtocol } from '../../utils/labjs/functions';
 import InputModal from '../InputModal';
@@ -61,28 +61,31 @@ export interface Props {
   ExperimentActions: typeof ExperimentActions;
   description: ExperimentDescription;
   isEEGEnabled: boolean;
-  overview: string;
-  overview_title: string;
   // TODO: this is too many props and we should put them into a
   // redux structure at some point
-  background_links: { address: string; name: string }[];
-  background_first_column: string;
-  background_first_column_question: string;
-
-  background_second_column: string;
-  background_second_column_question: string;
-
-  protocol: string;
-  protocol_title: string;
-
-  protocol_condition_first_img: any;
-  protocol_condition_first_title: string;
-  protocol_condition_first: string;
-
-  protocol_condition_second_img: any;
-  protocol_condition_second_title: string;
-  protocol_condition_second: string;
-}
+  overview: {
+    title: string;
+    overview: string;
+    links: { address: string; name: string }[],
+  };
+  background: {
+    links: { address: string; name: string }[],
+    first_column_statement: string;
+    first_column_question: string;
+    second_column_statement: string;
+    second_column_question: string;
+  };
+  protocol: {
+    title: string;
+    protocol: string;
+    condition_first_img: any;
+    condition_first_title: string;
+    condition_first: string;
+    condition_second_img: any;
+    condition_second_title: string;
+    condition_second: string;
+  };
+};
 
 interface State {
   activeStep: string;
@@ -230,8 +233,8 @@ export default class Design extends Component<Props, State> {
 
               <Grid.Column stretched width={11}>
                 <Segment basic>
-                  <Header as="h1">{this.props.overview_title}</Header>
-                  <p>{this.props.overview}</p>
+                  <Header as="h1">{this.props.overview.title}</Header>
+                  <p>{this.props.overview.overview}</p>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
@@ -255,18 +258,18 @@ export default class Design extends Component<Props, State> {
 
               <Grid.Column stretched width={5}>
                 <Segment basic>
-                  <p>{this.props.background_first_column}</p>
+                  <p>{this.props.background.first_column_statement}</p>
                   <p style={{ fontWeight: 'bold' }}>
-                    {this.props.background_first_column_question}
+                    {this.props.background.first_column_question}
                   </p>
                 </Segment>
               </Grid.Column>
 
               <Grid.Column stretched width={5}>
                 <Segment basic>
-                  <p>{this.props.background_second_column}</p>
+                  <p>{this.props.background.second_column_statement}</p>
                   <p style={{ fontWeight: 'bold' }}>
-                    {this.props.background_second_column_question}
+                    {this.props.background.second_column_question}
                   </p>
                 </Segment>
               </Grid.Column>
@@ -274,7 +277,7 @@ export default class Design extends Component<Props, State> {
               <Grid.Column width={2}>
                 <Segment basic>
                   <div className={styles.externalLinks}>
-                    {this.props.background_links.map((link) => (
+                    {this.props.background.links.map((link) => (
                       <Button
                         key={link.address}
                         secondary
@@ -303,8 +306,8 @@ export default class Design extends Component<Props, State> {
             <Grid.Row stretched>
               <Grid.Column stretched width={7} textAlign="left">
                 <Segment basic>
-                  <Header as="h2">{this.props.protocol_title}</Header>
-                  <p>{this.props.protocol}</p>
+                  <Header as="h2">{this.props.protocol.title}</Header>
+                  <p>{this.props.protocol.protocol}</p>
                 </Segment>
               </Grid.Column>
 
@@ -314,16 +317,16 @@ export default class Design extends Component<Props, State> {
                     <Grid.Column width={5}>
                       <Image
                         src={Design.renderConditionIcon(
-                          this.props.protocol_condition_first_img
+                          this.props.protocol.condition_first_img
                         )}
                       />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
                         <Header as="h3">
-                          {this.props.protocol_condition_first_title}
+                          {this.props.protocol.condition_first_title}
                         </Header>
-                        <p>{this.props.protocol_condition_first}</p>
+                        <p>{this.props.protocol.condition_first}</p>
                       </Segment>
                     </Grid.Column>
                   </Grid.Row>
@@ -332,16 +335,16 @@ export default class Design extends Component<Props, State> {
                     <Grid.Column width={5}>
                       <Image
                         src={Design.renderConditionIcon(
-                          this.props.protocol_condition_second_img
+                          this.props.protocol.condition_second_img
                         )}
                       />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
                         <Header as="h3">
-                          {this.props.protocol_condition_second_title}
+                          {this.props.protocol.condition_second_title}
                         </Header>
-                        <p>{this.props.protocol_condition_second}</p>
+                        <p>{this.props.protocol.condition_second}</p>
                       </Segment>
                     </Grid.Column>
                   </Grid.Row>
