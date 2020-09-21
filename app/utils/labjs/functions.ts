@@ -29,7 +29,7 @@ export const loadProtocol = (paradigm: EXPERIMENTS) => {
 
     case EXPERIMENTS.CUSTOM:
     default:
-      protocol = buildN170Timeline();
+      protocol = buildCustomTimeline();
       break;
   }
   return protocol;
