@@ -66,10 +66,10 @@ export interface Props {
   overview: {
     title: string;
     overview: string;
-    links: { address: string; name: string }[],
+    links: { address: string; name: string }[];
   };
   background: {
-    links: { address: string; name: string }[],
+    links: { address: string; name: string }[];
     first_column_statement: string;
     first_column_question: string;
     second_column_statement: string;
@@ -85,7 +85,7 @@ export interface Props {
     condition_second_title: string;
     condition_second: string;
   };
-};
+}
 
 interface State {
   activeStep: string;

@@ -40,6 +40,7 @@ import OverviewComponent from './OverviewComponent';
 import { loadProtocol } from '../../utils/labjs/functions';
 import EEGExplorationComponent from '../EEGExplorationComponent';
 import { SignalQualityData } from '../../constants/interfaces';
+import strings from '../../strings';
 
 const { dialog } = remote;
 
@@ -95,6 +96,7 @@ export default class Home extends Component<Props, State> {
 
   componentDidMount() {
     this.setState({ recentWorkspaces: readWorkspaces() });
+    console.log(strings);
   }
 
   handleStepClick(step: string) {
@@ -331,6 +333,17 @@ export default class Home extends Component<Props, State> {
                   icon={customIcon}
                   title="Custom"
                   description="Design your own experiment!"
+                />
+              </Grid.Column>
+
+              <Grid.Column />
+            </Grid.Row>
+            <Grid.Row>
+              <Grid.Column>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: strings.defaultExperiments.FacesHouses.Overview,
+                  }}
                 />
               </Grid.Column>
 
