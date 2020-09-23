@@ -20,4 +20,4 @@ export const params = {
     type: EVENTS.STIMULUS_2,
     response: '9',
   },
-},
+};

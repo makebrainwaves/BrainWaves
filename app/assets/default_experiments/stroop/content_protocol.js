@@ -13,5 +13,5 @@ export const protocol = {
   condition_second_img: `conditionIncongruent`,
   condition_second_title: `"Green" written in red`,
   condition_second: `The color is red, so the correct response is ‘r’.`,
-  links: []
+  links: [],
 };
