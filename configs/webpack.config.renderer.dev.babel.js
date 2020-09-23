@@ -189,6 +189,21 @@ export default merge(baseConfig, {
         test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
         use: 'url-loader',
       },
+      // Markdown for copy
+      {
+        test: /\.md$/,
+        use: [
+          {
+            loader: 'html-loader',
+          },
+          {
+            loader: 'markdown-loader',
+            options: {
+              /* your options here */
+            },
+          },
+        ],
+      },
     ],
   },
   resolve: {
