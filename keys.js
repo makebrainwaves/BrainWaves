@@ -1,5 +1,5 @@
-// These  values must be filled with the appropriate Emotiv credentials to be able to use the Cortex SDK
-// We have our credentials stored in environement variables
+// These values must be filled with the appropriate Emotiv credentials to be able to use the Cortex SDK
+// We have our credentials stored in environment variables
 
 const USERNAME = process.env.EMOTIV_USERNAME;
 const PASSWORD = process.env.EMOTIV_PASSWORD;

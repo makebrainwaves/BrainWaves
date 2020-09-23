@@ -1,10 +1,9 @@
 import { EXPERIMENTS } from '../../constants/constants';
 
-import * as buildN170Timeline from '../../assets/default_experiments/faces_houses';
-import * as buildStroopTimeline from '../../assets/default_experiments/stroop';
-import * as buildMultiTimeline from '../../assets/default_experiments/multitasking';
-import * as buildSearchTimeline from '../../assets/default_experiments/search';
-import * as buildCustomTimeline from './protocols/custom';
+import buildN170Timeline from '../../assets/default_experiments/faces_houses';
+import buildStroopTimeline from '../../assets/default_experiments/stroop';
+import buildMultiTimeline from '../../assets/default_experiments/multitasking';
+import buildSearchTimeline from '../../assets/default_experiments/search';
 
 // loads a protocol of the experiment
 // TODO refactor this experiment description system to be much more predictable
@@ -29,7 +28,7 @@ export const loadProtocol = (paradigm: EXPERIMENTS) => {
 
     case EXPERIMENTS.CUSTOM:
     default:
-      protocol = buildCustomTimeline();
+      protocol = {};
       break;
   }
   return protocol;
