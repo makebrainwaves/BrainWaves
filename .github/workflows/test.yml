@@ -30,6 +30,7 @@ jobs:
       - name: yarn test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          keys: ${{ secrets.KEYS }}
         run: |
           yarn package-ci
           yarn lint
