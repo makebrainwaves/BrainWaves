@@ -15,10 +15,10 @@ import {
   DEVICE_AVAILABILITY,
   DEVICES,
 } from '../../constants/constants';
-import faceHouseIcon from '../../assets/common/FacesHouses.png';
-import stroopIcon from '../../assets/common/Stroop.png';
-import multitaskingIcon from '../../assets/common/Multitasking.png';
-import searchIcon from '../../assets/common/VisualSearch.png';
+import faceHouseIcon from '../../assets/default_experiments/faces_houses/icon.png';
+import stroopIcon from '../../assets/default_experiments/stroop/icon.png';
+import multitaskingIcon from '../../assets/default_experiments/multitasking/icon.png';
+import searchIcon from '../../assets/default_experiments/search/icon.png';
 import customIcon from '../../assets/common/Custom.png';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';

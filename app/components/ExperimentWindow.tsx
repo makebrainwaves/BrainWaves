@@ -5,10 +5,10 @@ import * as lab from 'lab.js/dist/lab.dev';
 import { ExperimentParameters } from '../constants/interfaces';
 
 // TODO: Switch to using .json files to load lab.js studies
-import visualsearch from '../utils/labjs/scripts/visualsearch';
-import stroop from '../utils/labjs/scripts/stroop';
-import multitasking from '../utils/labjs/scripts/multitasking';
-import faceshouses from '../utils/labjs/scripts/faceshouses';
+import visualsearch from '../assets/default_experiments/search/labjs_script';
+import stroop from '../assets/default_experiments/stroop/labjs_script';
+import multitasking from '../assets/default_experiments/multitasking/labjs_script';
+import faceshouses from '../assets/default_experiments/faces_houses/labjs_script';
 import custom from '../utils/labjs/scripts/custom';
 import { EXPERIMENTS } from '../constants/constants';
 
