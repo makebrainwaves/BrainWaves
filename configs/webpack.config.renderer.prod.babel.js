@@ -9,6 +9,7 @@ import OptimizeCSSAssetsPlugin from 'optimize-css-assets-webpack-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import { merge } from 'webpack-merge';
 import TerserPlugin from 'terser-webpack-plugin';
+import ImportGlobPlugin from 'babel-plugin-import-glob';
 import baseConfig from './webpack.config.base';
 import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
 import DeleteSourceMaps from '../internals/scripts/DeleteSourceMaps';
@@ -237,5 +238,6 @@ export default merge(baseConfig, {
         process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
       openAnalyzer: process.env.OPEN_ANALYZER === 'true',
     }),
+    new ImportGlobPlugin({}),
   ],
 });
