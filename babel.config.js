@@ -56,6 +56,9 @@ module.exports = (api) => {
       [require('@babel/plugin-proposal-class-properties'), { loose: true }],
       require('@babel/plugin-proposal-json-strings'),
 
+      // glob for easily handling html from markdown
+      require('babel-plugin-import-glob'),
+
       ...(development ? developmentPlugins : productionPlugins),
     ],
   };
