@@ -30,7 +30,11 @@ jobs:
       - name: yarn test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          keys: ${{ secrets.KEYS }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          LICENSE_ID: ${{ secrets.LICENSE_ID }}
         run: |
           yarn package-ci
           yarn lint
