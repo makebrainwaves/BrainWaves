@@ -6,14 +6,14 @@
 self.languagePluginUrl = './src';
 importScripts('./pyodide.js');
 
-const onmessage = function(e) {
+const onmessage = function (e) {
   // eslint-disable-line no-unused-vars
   languagePluginLoader.then(() => {
     // Preloaded packages
     self.pyodide.loadPackage(['matplotlib', 'mne', 'pandas']).then(() => {
-      const data = e.data;
+      const { data } = e;
       const keys = Object.keys(data);
-      for (let key of keys) {
+      for (const key of keys) {
         if (key !== 'python') {
           // Keys other than python must be arguments for the python script.
           // Set them on self, so that `from js import key` works.

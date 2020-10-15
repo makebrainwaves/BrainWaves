@@ -55,7 +55,7 @@ export default class PyodidePlotWidget extends Component<Props, State> {
   }
 
   handleSave() {
-    const buf = Buffer.from(this.state.rawData, "base64");
+    const buf = Buffer.from(this.state.rawData, 'base64');
     storePyodideImage(this.props.title, this.props.imageTitle, buf);
   }
 

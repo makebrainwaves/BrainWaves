@@ -42,7 +42,7 @@ const configureStore = (initialState?: AppState) => {
   const actionCreators = {
     ...deviceActions,
     ...pyodideActions,
-    ...routerActions
+    ...routerActions,
   };
   // If Redux DevTools Extension is installed use it, otherwise use Redux compose
   /* eslint-disable no-underscore-dangle */

@@ -16,8 +16,8 @@ import { isNil } from 'lodash';
 import { kernelInfoRequest, executeRequest } from '@nteract/messaging';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
-import { JupyterActions, JupyterActionType } from '../actions';
-import { execute, awaitOkMessage } from '../utils/jupyter/pipes';
+import { PyodideActions, PyodideActionType } from '../actions';
+import { execute, awaitOkMessage } from '../utils/pyodide/pipes';
 import { RootState } from '../reducers';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
 import {
@@ -34,28 +34,27 @@ import {
   plotERP,
   plotTopoMap,
   saveEpochs,
-} from '../utils/jupyter/cells';
+} from '../utils/pyodide/cells';
 import {
   EMOTIV_CHANNELS,
   EVENTS,
   DEVICES,
   MUSE_CHANNELS,
-  JUPYTER_VARIABLE_NAMES,
+  PYODIDE_VARIABLE_NAMES,
 } from '../constants/constants';
 import {
   parseSingleQuoteJSON,
-  parseKernelStatus,
   debugParseMessage,
-} from '../utils/jupyter/functions';
+} from '../utils/pyodide/functions';
 
 // -------------------------------------------------------------------------
 // Epics
 
-const launchEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
+const launchEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
   action$
 ) =>
   action$.pipe(
-    filter(isActionOf(JupyterActions.LaunchKernel)),
+    filter(isActionOf(PyodideActions.LaunchKernel)),
     mergeMap(() => from(find('brainwaves'))),
     tap((kernelInfo) => {
       if (isNil(kernelInfo)) {

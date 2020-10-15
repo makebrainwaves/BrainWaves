@@ -11,6 +11,4 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(
-  mapDispatchToProps
-)(Home);
+export default connect(mapDispatchToProps)(Home);

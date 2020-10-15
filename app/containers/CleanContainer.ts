@@ -11,7 +11,7 @@ function mapStateToProps(state) {
     group: state.experiment.group,
     session: state.experiment.session,
     deviceType: state.device.deviceType,
-    ...state.pyodide
+    ...state.pyodide,
   };
 }
 
