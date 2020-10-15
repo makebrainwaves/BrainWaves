@@ -21,7 +21,7 @@ import commonStyles from '../styles/common.css';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
-import { JupyterActions, ExperimentActions } from '../../actions';
+import { PyodideActions, ExperimentActions } from '../../actions';
 
 export interface Props {
   type?: EXPERIMENTS;
@@ -224,10 +224,7 @@ export default class Clean extends Component<Props, State> {
                   <Divider hidden section />
                   <Grid textAlign="center" columns="equal">
                     <Grid.Column>
-                      <Button
-                        secondary
-                        onClick={this.handleLoadData}
-                      >
+                      <Button secondary onClick={this.handleLoadData}>
                         Load Dataset
                       </Button>
                     </Grid.Column>

@@ -33,7 +33,11 @@ const writeAndUnzipFile = (response) => {
 };
 
 const downloadFile = (response) => {
-  if (response.statusCode > 300 && response.statusCode < 400 && response.headers.location) {
+  if (
+    response.statusCode > 300 &&
+    response.statusCode < 400 &&
+    response.headers.location
+  ) {
     if (url.parse(response.headers.location).hostname) {
       https.get(response.headers.location, writeAndUnzipFile);
     } else {
@@ -49,10 +53,14 @@ const downloadFile = (response) => {
 
 (() => {
   if (fs.existsSync(`${PYODIDE_DIR}${TAR_NAME}`)) {
-    console.log(`${chalk.green.bold(`Pyodide is already present: ${PYODIDE_VERSION}...`)}`);
+    console.log(
+      `${chalk.green.bold(`Pyodide is already present: ${PYODIDE_VERSION}...`)}`
+    );
     return;
   }
-  console.log(`${chalk.green.bold(`Downloading pyodide ${PYODIDE_VERSION}...`)}`);
+  console.log(
+    `${chalk.green.bold(`Downloading pyodide ${PYODIDE_VERSION}...`)}`
+  );
   mkdirp.sync(`app/utils/pyodide/src`);
   https.get(TAR_URL, downloadFile);
 })();

@@ -1,12 +1,12 @@
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import { History } from 'history';
-import jupyter, { JupyterStateType } from './jupyterReducer';
+import pyodide, { PyodideStateType } from './pyodideReducer';
 import device, { DeviceStateType } from './deviceReducer';
 import experiment, { ExperimentStateType } from './experimentReducer';
 
 export interface RootState {
-  jupyter: JupyterStateType;
+  pyodide: PyodideStateType;
   device: DeviceStateType;
   experiment: ExperimentStateType;
   router: any;
@@ -15,7 +15,7 @@ export interface RootState {
 export default function createRootReducer(history: History) {
   return combineReducers({
     router: connectRouter(history),
-    jupyter,
+    pyodide,
     device,
     experiment,
   });
