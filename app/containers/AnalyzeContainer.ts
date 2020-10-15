@@ -9,7 +9,7 @@ function mapStateToProps(state) {
     type: state.experiment.type,
     deviceType: state.device.deviceType,
     isEEGEnabled: state.experiment.isEEGEnabled,
-    ...state.pyodide
+    ...state.pyodide,
   };
 }
 

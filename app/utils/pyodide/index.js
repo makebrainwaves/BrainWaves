@@ -1,12 +1,10 @@
 import * as path from 'path';
 import { readFileSync } from 'fs';
-import { languagePluginLoader } from './pyodide';
 import { formatFilePath } from './functions';
 
 // ---------------------------------
 // This file contains the JS functions that allow the app to access python-wasm through pyodide
 // These functions wrap the python strings defined in the
-
 
 // -----------------------------
 // Imports and Utility functions
@@ -37,7 +35,9 @@ export const loadCSV = async (csvArray: Array<any>) => {
 
 // NOTE: this command includes a ';' to prevent returning data
 export const filterIIR = async (lowCutoff: number, highCutoff: number) =>
-  pyodideWorker.postMessage({ data: `raw.filter(${lowCutoff}, ${highCutoff}, method='iir');` });
+  pyodideWorker.postMessage({
+    data: `raw.filter(${lowCutoff}, ${highCutoff}, method='iir');`,
+  });
 
 export const epochEvents = async (
   eventIDs: { [string]: number },
@@ -69,7 +69,9 @@ export const requestEpochsInfo = async (variableName: string) => {
 };
 
 export const requestChannelInfo = async () =>
-  pyodideWorker.postMessage({ data: `[ch for ch in clean_epochs.ch_names if ch != 'Marker']` });
+  pyodideWorker.postMessage({
+    data: `[ch for ch in clean_epochs.ch_names if ch != 'Marker']`,
+  });
 
 // -----------------------------
 // Plot functions
@@ -98,6 +100,12 @@ export const plotERP = (channelIndex: number) =>
 export const saveEpochs = (workspaceDir: string, subject: string) =>
   pyodideWorker.postMessage({
     data: `raw_epochs.save(${formatFilePath(
-      path.join(workspaceDir, 'Data', subject, 'EEG', `${subject}-cleaned-epo.fif`)
+      path.join(
+        workspaceDir,
+        'Data',
+        subject,
+        'EEG',
+        `${subject}-cleaned-epo.fif`
+      )
     )}`,
   });

@@ -1,13 +1,11 @@
 import { createAction } from '@reduxjs/toolkit';
 import { ActionType } from 'typesafe-actions';
-import { JUPYTER_VARIABLE_NAMES } from '../constants/constants';
+import { PYODIDE_VARIABLE_NAMES } from '../constants/constants';
 
 // -------------------------------------------------------------------------
 // Actions
 
-export const JupyterActions = {
-  LaunchKernel: createAction('LAUNCH_KERNEL'),
-  RequestKernelInfo: createAction('REQUEST_KERNEL_INFO'),
+export const PyodideActions = {
   SendExecuteRequest: createAction<string, 'SEND_EXECUTE_REQUEST'>(
     'SEND_EXECUTE_REQUEST'
   ),
@@ -19,14 +17,10 @@ export const JupyterActions = {
   LoadERP: createAction<string, 'LOAD_ERP'>('LOAD_ERP'),
   LoadTopo: createAction('LOAD_TOPO'),
   CleanEpochs: createAction('CLEAN_EPOCHS'),
-  CloseKernel: createAction('CLOSE_KERNEL'),
-  SetKernel: createAction<any, 'SET_KERNEL'>('SET_KERNEL'),
-  GetEpochsInfo: createAction<JUPYTER_VARIABLE_NAMES, 'GET_EPOCHS_INFO'>(
+  GetEpochsInfo: createAction<PYODIDE_VARIABLE_NAMES, 'GET_EPOCHS_INFO'>(
     'GET_EPOCHS_INFO'
   ),
   GetChannelInfo: createAction('GET_CHANNEL_INFO'),
-  SetKernelStatus: createAction<any, 'SET_KERNEL_STATUS'>('SET_KERNEL_STATUS'),
-  SetKernelInfo: createAction<any, 'SET_KERNEL_INFO'>('SET_KERNEL_INFO'),
   SetMainChannel: createAction<any, 'SET_MAIN_CHANNEL'>('SET_MAIN_CHANNEL'),
   SetEpochInfo: createAction<any, 'SET_EPOCH_INFO'>('SET_EPOCH_INFO'),
   SetChannelInfo: createAction<any, 'SET_CHANNEL_INFO'>('SET_CHANNEL_INFO'),
@@ -45,6 +39,6 @@ export const JupyterActions = {
   ReceiveStream: createAction<any, 'RECEIVE_STREAM'>('RECEIVE_STREAM'),
 } as const;
 
-export type JupyterActionType = ActionType<
-  typeof JupyterActions[keyof typeof JupyterActions]
+export type PyodideActionType = ActionType<
+  typeof PyodideActions[keyof typeof PyodideActions]
 >;

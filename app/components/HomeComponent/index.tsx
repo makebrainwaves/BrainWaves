@@ -10,7 +10,6 @@ import styles from '../styles/common.css';
 import {
   EXPERIMENTS,
   SCREENS,
-  KERNEL_STATUS,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
   DEVICES,
@@ -41,11 +40,8 @@ import EEGExplorationComponent from '../EEGExplorationComponent';
 import { SignalQualityData } from '../../constants/interfaces';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { languagePluginLoader } from '../../utils/pyodide/pyodide';
-
 const { dialog } = remote;
 
-// this initiates pyodide
-languagePluginLoader;
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now
@@ -65,7 +61,6 @@ export interface Props {
   ExperimentActions: typeof ExperimentActions;
   history: History;
   PyodideActions: typeof PyodideActions;
-  kernelStatus: KERNEL_STATUS;
   signalQualityObservable?: Observable<SignalQualityData>;
 }
 
@@ -98,7 +93,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidMount() {
-    this.props.pyodideActions.launch();
+    this.props.PyodideActions.launch();
     this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
@@ -231,7 +226,7 @@ export default class Home extends Component<Props, State> {
                       if (!workspaceState) {
                         return undefined;
                       }
-                      const dateModified = workspaceState.dateModified;
+                      const { dateModified } = workspaceState;
                       return (
                         <Table.Row key={dir} className={styles.experimentRow}>
                           <Table.Cell className={styles.experimentRowName}>

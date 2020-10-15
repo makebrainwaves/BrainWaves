@@ -13,12 +13,14 @@ export const execute = (command, state$) =>
 export const awaitOkMessage = (action$) =>
   pipe(
     mergeMap(() =>
-      action$.ofType(PyodideActions.ReceiveExecuteReply.type).pipe(
-        pluck('payload'),
-        filter<any>(
-          (msg) => msg.channel === 'shell' && msg.content.status === 'ok'
-        ),
-        take(1)
-      )
+      action$
+        .ofType(PyodideActions.ReceiveExecuteReply.type)
+        .pipe(
+          pluck('payload'),
+          filter <
+            any >
+            ((msg) => msg.channel === 'shell' && msg.content.status === 'ok'),
+          take(1)
+        )
     )
   );

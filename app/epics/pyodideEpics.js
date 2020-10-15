@@ -122,7 +122,9 @@ const pyodideError = (action$) =>
   action$.ofType(SET_PYODIDE_WORKER).pipe(
     pluck('payload'),
     tap((e) =>
-      toast.error(`Error in pyodideWorker at ${e.filename}, Line: ${e.lineno}, ${e.message}`)
+      toast.error(
+        `Error in pyodideWorker at ${e.filename}, Line: ${e.lineno}, ${e.message}`
+      )
     ),
     map(receivePyodideError)
   );
@@ -171,7 +173,11 @@ const loadCleanedEpochsEpic = (action$) =>
     filter((filePathsArray) => filePathsArray.length >= 1),
     map((filePathsArray) => loadCleanedEpochs(filePathsArray)),
     mergeMap(() =>
-      of(getEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS), getChannelInfo(), loadTopo())
+      of(
+        getEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
+        getChannelInfo(),
+        loadTopo()
+      )
     )
   );
 
@@ -179,7 +185,10 @@ const cleanEpochsEpic = (action$, state$) =>
   action$.ofType(CLEAN_EPOCHS).pipe(
     map(cleanEpochsPlot),
     map(() =>
-      saveEpochs(getWorkspaceDir(state$.value.experiment.title), state$.value.experiment.subject)
+      saveEpochs(
+        getWorkspaceDir(state$.value.experiment.title),
+        state$.value.experiment.subject
+      )
     ),
     map(() => getEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
@@ -201,10 +210,13 @@ const getEpochsInfoEpic = (action$) =>
 const getChannelInfoEpic = (action$) =>
   action$.ofType(GET_CHANNEL_INFO).pipe(
     map(requestChannelInfo),
-    map((channelInfoString) => setChannelInfo(parseSingleQuoteJSON(channelInfoString)))
+    map((channelInfoString) =>
+      setChannelInfo(parseSingleQuoteJSON(channelInfoString))
+    )
   );
 
-const loadPSDEpic = (action$) => action$.ofType(LOAD_PSD).pipe(map(plotPSD), map(setPSDPlot));
+const loadPSDEpic = (action$) =>
+  action$.ofType(LOAD_PSD).pipe(map(plotPSD), map(setPSDPlot));
 
 const loadTopoEpic = (action$, state$) =>
   action$.ofType(LOAD_TOPO).pipe(
@@ -213,7 +225,9 @@ const loadTopoEpic = (action$, state$) =>
       of(
         setTopoPlot(topoPlot),
         loadERP(
-          state$.value.device.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS[0] : MUSE_CHANNELS[0]
+          state$.value.device.deviceType === DEVICES.EMOTIV
+            ? EMOTIV_CHANNELS[0]
+            : MUSE_CHANNELS[0]
         )
       )
     )
@@ -225,10 +239,13 @@ const loadERPEpic = (action$) =>
     map((channelName) => {
       if (MUSE_CHANNELS.includes(channelName)) {
         return MUSE_CHANNELS.indexOf(channelName);
-      } else if (EMOTIV_CHANNELS.includes(channelName)) {
+      }
+      if (EMOTIV_CHANNELS.includes(channelName)) {
         return EMOTIV_CHANNELS.indexOf(channelName);
       }
-      console.warn('channel name supplied to loadERPEpic does not belong to either device');
+      console.warn(
+        'channel name supplied to loadERPEpic does not belong to either device'
+      );
       return EMOTIV_CHANNELS[0];
     }),
     map((channelIndex) => plotERP(channelIndex)),
