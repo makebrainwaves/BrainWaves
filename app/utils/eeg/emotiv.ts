@@ -140,7 +140,7 @@ export const createEmotivSignalQualityObservable = (rawObservable) => {
   );
 };
 
-export const injectEmotivMarker = (value, time) => {
+export const injectEmotivMarker = (value: string, time: number) => {
   client.injectMarker({ label: 'event', value, time, session: session.id });
 };
 

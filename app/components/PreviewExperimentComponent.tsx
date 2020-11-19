@@ -4,15 +4,17 @@ import { ExperimentWindow } from './ExperimentWindow';
 import styles from './styles/collect.css';
 
 import { getImages } from '../utils/filesystem/storage';
-import { ExperimentParameters } from '../constants/interfaces';
+import {
+  ExperimentObject,
+  ExperimentParameters,
+} from '../constants/interfaces';
 import { EXPERIMENTS } from '../constants/constants';
 
 interface Props {
   title: string;
   type: EXPERIMENTS;
-  studyObject: any;
+  experimentObject: ExperimentObject;
   params: ExperimentParameters;
-  previewParams?: ExperimentParameters;
   isPreviewing: boolean;
   onEnd: () => void;
 }
@@ -38,14 +40,11 @@ export default class PreviewExperimentComponent extends Component<Props> {
       <div className={styles.previewExpComponent}>
         <ExperimentWindow
           title={this.props.title}
-          type={this.props.type}
-          studyObject={this.props.studyObject}
-          params={this.props.previewParams || this.props.params}
+          experimentObject={this.props.experimentObject}
+          params={this.props.params}
           eventCallback={PreviewExperimentComponent.insertPreviewLabJsCallback}
           fullScreen={false}
-          onFinish={(csv) => {
-            this.props.onEnd();
-          }}
+          onFinish={this.props.onEnd}
         />
       </div>
     );

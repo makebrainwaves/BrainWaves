@@ -8,6 +8,7 @@ module.exports = {
     'dot-notation': 'off',
     'import/no-extraneous-dependencies': 'off',
     'import/prefer-default-export': 'off',
+    'import/no-cycle': 'warn',
     'jsx-a11y/anchor-is-valid': 'warn',
     'jsx-a11y/click-events-have-key-events': 'warn',
     'lines-between-class-members': 'off',

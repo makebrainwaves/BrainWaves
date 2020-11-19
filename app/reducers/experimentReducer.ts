@@ -2,18 +2,18 @@ import { createReducer } from '@reduxjs/toolkit';
 import { ExperimentActions } from '../actions';
 import { EXPERIMENTS } from '../constants/constants';
 import {
-  ExperimentDescription,
+  ExperimentObject,
   ExperimentParameters,
 } from '../constants/interfaces';
 
 export interface ExperimentStateType {
+  // Type of experiment with readable string
   readonly type: EXPERIMENTS;
   readonly title: string;
   // Aspects of a study that can be tweaked within the BrainWaves app
   readonly params: ExperimentParameters | null;
-  // lab.js study object that is executed by lab.js to rendder the study
-  readonly studyObject: any;
-  readonly plugins: Record<string, any>;
+  // lab.js study object that is executed by lab.js to render the study
+  readonly experimentObject: ExperimentObject;
   // Subject/student name (e.g. Brian)
   readonly subject: string;
   // Classroom group name
@@ -23,7 +23,6 @@ export interface ExperimentStateType {
   readonly session: number;
   readonly isRunning: boolean;
   readonly isEEGEnabled: boolean;
-  readonly description: ExperimentDescription;
   readonly dateModified: number | null;
 }
 
@@ -31,14 +30,12 @@ const initialState: ExperimentStateType = {
   type: EXPERIMENTS.NONE,
   title: '',
   params: null,
-  studyObject: {},
-  plugins: {},
+  experimentObject: {},
   subject: '',
   group: '',
   session: 1,
   isRunning: false,
   isEEGEnabled: false,
-  description: { question: '', hypothesis: '', methods: '' },
   dateModified: null,
 };
 
@@ -51,10 +48,10 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(ExperimentActions.SetParadigm, (state, action) => {
+    .addCase(ExperimentActions.SetExperimentObject, (state, action) => {
       return {
         ...state,
-        paradigm: action.payload,
+        experimentObject: action.payload,
       };
     })
 
@@ -86,13 +83,6 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(ExperimentActions.SetTimeline, (state, action) => {
-      return {
-        ...state,
-        ...action.payload,
-      };
-    })
-
     .addCase(ExperimentActions.SetDateModified, (state, action) => {
       return {
         ...state,
@@ -104,13 +94,6 @@ export default createReducer(initialState, (builder) =>
       return {
         ...state,
         title: action.payload,
-      };
-    })
-
-    .addCase(ExperimentActions.SetDescription, (state, action) => {
-      return {
-        ...state,
-        description: action.payload,
       };
     })
 
@@ -128,11 +111,6 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(ExperimentActions.SetExperimentState, (state, action) => {
-      return {
-        ...action.payload,
-      };
-    })
     .addCase(
       ExperimentActions.ExperimentCleanup,
       (state, action) => initialState

@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 // Define study
-const studyObject = {
+const experimentObject = {
   messageHandlers: {},
   title: 'root',
   type: 'lab.flow.Sequence',
@@ -759,4 +759,4 @@ const studyObject = {
 };
 
 // export
-export default studyObject;
+export default experimentObject;

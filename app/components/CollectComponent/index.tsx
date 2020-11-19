@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
-import { isNil } from 'lodash';
 import { History } from 'history';
 import {
   EXPERIMENTS,
@@ -9,10 +8,8 @@ import {
   DEVICE_AVAILABILITY,
 } from '../../constants/constants';
 import {
-  Trial,
   ExperimentParameters,
   SignalQualityData,
-  PipesEpoch,
 } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
@@ -29,7 +26,7 @@ export interface Props {
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<any>;
   type: EXPERIMENTS;
-  studyObject: any;
+  experimentObject: any;
   signalQualityObservable: Observable<SignalQualityData>;
   isRunning: boolean;
   params: ExperimentParameters;
@@ -56,10 +53,6 @@ export default class Collect extends Component<Props, State> {
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleRunComponentOpen = this.handleRunComponentOpen.bind(this);
     this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
-    if (isNil(props.params)) {
-      // TODO: Timeline -> Parameters name change?
-      props.ExperimentActions.LoadDefaultTimeline();
-    }
   }
 
   componentDidMount() {

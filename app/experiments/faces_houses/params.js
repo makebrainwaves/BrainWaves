@@ -1,13 +1,12 @@
 import * as path from 'path';
-import { EVENTS } from '../../../constants/constants';
+import { EVENTS } from '../../constants/constants';
 
 // Default directories containing stimuli
 const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
 const parentDir = path.join(
   rootFolder,
-  'assets',
-  'default_experiments',
+  'experiments',
   'faces_houses',
   'stimuli'
 );
@@ -18,6 +17,7 @@ const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 const stimuli = Array.from({ length: 30 }, (_, i) => `Face${i + 1}`)
   .concat(Array.from({ length: 30 }, (v, k) => `House${k + 1}`))
   .map((s) => ({
+    title: s,
     condition: s.startsWith('Face') ? 'Face' : 'House',
     dir: s.startsWith('Face') ? facesDir : housesDir,
     filename: `${s}.jpg`,
@@ -45,6 +45,11 @@ export const params = {
   the task, press the "q" button on your keyboard.`,
   taskHelp: `Press 1 for a face and 9 for a house`,
   showProgressBar: false,
+  description: {
+    question: '',
+    hypothesis: '',
+    methods: '',
+  },
   // stimulus1: {
   //   dir: facesDir,
   //   title: 'Face',

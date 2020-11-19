@@ -15,11 +15,11 @@ import {
   DEVICE_AVAILABILITY,
   DEVICES,
 } from '../../constants/constants';
-import faceHouseIcon from '../../assets/default_experiments/faces_houses/icon.png';
-import stroopIcon from '../../assets/default_experiments/stroop/icon.png';
-import multitaskingIcon from '../../assets/default_experiments/multitasking/icon.png';
-import searchIcon from '../../assets/default_experiments/search/icon.png';
-import customIcon from '../../assets/common/Custom.png';
+import faceHouseIcon from '../../experiments/faces_houses/icon.png';
+import stroopIcon from '../../experiments/stroop/icon.png';
+import multitaskingIcon from '../../experiments/multitasking/icon.png';
+import searchIcon from '../../experiments/search/icon.png';
+import customIcon from '../../experiments/custom/icon.png';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';
 import {
@@ -37,7 +37,6 @@ import { ExperimentCard } from './ExperimentCard';
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
-import { loadProtocol } from '../../utils/labjs/functions';
 import EEGExplorationComponent from '../EEGExplorationComponent';
 import { SignalQualityData } from '../../constants/interfaces';
 
@@ -137,6 +136,7 @@ export default class Home extends Component<Props, State> {
     this.props.history.push(SCREENS.DESIGN.route);
   }
 
+  // Load recent workspace by copying saved 'experiment' redux state into current redux state
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
     if (!isNil(recentWorkspaceState)) {
@@ -358,7 +358,6 @@ export default class Home extends Component<Props, State> {
     if (this.state.isOverviewComponentOpen) {
       return (
         <OverviewComponent
-          {...loadProtocol(this.state.overviewExperimentType)}
           type={this.state.overviewExperimentType}
           onStartExperiment={this.handleNewExperiment}
           onCloseOverview={this.handleCloseOverview}

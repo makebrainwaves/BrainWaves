@@ -19,22 +19,23 @@ import {
   EMOTIV_CHANNELS,
   CONNECTION_STATUS,
 } from '../constants/constants';
-import { loadProtocol } from '../utils/labjs/functions';
 import {
   createEEGWriteStream,
   writeHeader,
   writeEEGData,
 } from '../utils/filesystem/write';
 import {
-  getWorkspaceDir,
   storeExperimentState,
   restoreExperimentState,
   createWorkspaceDir,
   storeBehavioralData,
   readWorkspaceBehaviorData,
+  getWorkspaceDir,
 } from '../utils/filesystem/storage';
 import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
 import { RootState } from '../reducers';
+import { WorkSpaceInfo } from '../constants/interfaces';
+import { getExperimentFromType } from '../utils/labjs/functions';
 
 // -------------------------------------------------------------------------
 // Epics
@@ -46,24 +47,17 @@ const createNewWorkspaceEpic: Epic<
 > = (action$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
-    pluck('payload'),
+    pluck<'payload', WorkSpaceInfo>('payload'),
     tap((workspaceInfo) => createWorkspaceDir(workspaceInfo.title)),
-    mergeMap((workspaceInfo) =>
-      of(
-        ExperimentActions.SetType(workspaceInfo.type),
-        ExperimentActions.SetParadigm(workspaceInfo.paradigm),
+    mergeMap((workspaceInfo) => {
+      const experiment = getExperimentFromType(workspaceInfo.type);
+      return of(
         ExperimentActions.SetTitle(workspaceInfo.title),
-        ExperimentActions.LoadDefaultTimeline()
-      )
-    )
-  );
-
-const loadDefaultTimelineEpic = (action$, state$) =>
-  action$.pipe(
-    filter(isActionOf(ExperimentActions.LoadDefaultTimeline)),
-    map(() => state$.value.experiment.paradigm),
-    map(loadProtocol),
-    map(ExperimentActions.SetTimeline)
+        ExperimentActions.SetType(workspaceInfo.type),
+        ExperimentActions.SetExperimentObject(experiment?.experimentObject),
+        ExperimentActions.SetParams(experiment?.params)
+      );
+    })
   );
 
 const startEpic = (action$, state$) =>
@@ -122,12 +116,13 @@ const experimentStopEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.Stop)),
     filter(() => state$.value.experiment.isRunning),
-    map(({ payload }) => {
+    pluck<'payload', { data: string }>('payload'),
+    map(({ data }) => {
       if (!state$.value.experiment.title) {
         return;
       }
       storeBehavioralData(
-        payload.data,
+        data,
         state$.value.experiment.title,
         state$.value.experiment.subject,
         state$.value.experiment.group,
@@ -142,12 +137,6 @@ const experimentStopEpic: Epic<
     }),
     mergeMap(() => of(ExperimentActions.SetIsRunning(false)))
   );
-
-// const setSubjectEpic = action$ =>
-//   action$.pipe(filter(isActionOf(SET_SUBJECT).pipe(map(updateSession));
-//
-// const setGroupEpic = action$ =>
-//   action$.pipe(filter(isActionOf(SET_GROUP).pipe(map(updateSession));
 
 const updateSessionEpic: Epic<
   ExperimentActionType,
@@ -210,12 +199,9 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
   );
 
 export default combineEpics(
-  loadDefaultTimelineEpic,
   createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
-  // setSubjectEpic,
-  // setGroupEpic,
   updateSessionEpic,
   autoSaveEpic,
   saveWorkspaceEpic,

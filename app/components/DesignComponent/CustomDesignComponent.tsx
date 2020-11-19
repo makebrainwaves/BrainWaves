@@ -8,6 +8,7 @@ import {
   Checkbox,
   Image,
   Table,
+  CheckboxProps,
 } from 'semantic-ui-react';
 import { isNil, isString } from 'lodash';
 import { History } from 'history';
@@ -15,11 +16,10 @@ import { History } from 'history';
 import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import {
-  Trial,
+  ExperimentObject,
   ExperimentParameters,
-  ExperimentDescription,
-  StimuliDesc,
 } from '../../constants/interfaces';
+import { DesignProps } from './index';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
@@ -28,7 +28,6 @@ import PreviewButton from '../PreviewButtonComponent';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
-import { loadProtocol } from '../../utils/labjs/functions';
 import { readImages } from '../../utils/filesystem/storage';
 import { StimuliRow } from './StimuliRow';
 import { ExperimentActions } from '../../actions/experimentActions';
@@ -50,31 +49,19 @@ const FIELDS = {
   HELP: 'Instructions for the task screen',
 };
 
-interface Props {
-  history: History;
-  type: EXPERIMENTS | null | undefined;
-  title: string;
-  params: ExperimentParameters;
-  ExperimentActions: typeof ExperimentActions;
-  isEEGEnabled: boolean;
-  description: ExperimentDescription;
-}
-
 interface State {
   activeStep: string;
   isPreviewing: boolean;
-  description: ExperimentDescription;
   params: ExperimentParameters;
   saved: boolean;
 }
 
-export default class CustomDesign extends Component<Props, State> {
-  constructor(props: Props) {
+export default class CustomDesign extends Component<DesignProps, State> {
+  constructor(props: DesignProps) {
     super(props);
     this.state = {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: true,
-      description: props.description,
       params: props.params,
       saved: false,
     };
@@ -84,9 +71,6 @@ export default class CustomDesign extends Component<Props, State> {
     this.handleSaveParams = this.handleSaveParams.bind(this);
     this.handleProgressBar = this.handleProgressBar.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
-    if (isNil(props.params)) {
-      props.ExperimentActions.LoadDefaultTimeline();
-    }
     this.endPreview = this.endPreview.bind(this);
   }
 
@@ -99,13 +83,16 @@ export default class CustomDesign extends Component<Props, State> {
     this.setState({ activeStep: step });
   }
 
-  handleProgressBar(event: Record<string, any>, data: Record<string, any>) {
-    this.setState({
-      params: { ...this.state.params, showProgessBar: data.checked },
-    });
+  handleProgressBar(_, data: CheckboxProps) {
+    const { checked } = data;
+    if (checked === undefined) return;
+    this.setState((prevState) => ({
+      params: { ...prevState.params, showProgessBar: checked },
+    }));
   }
 
-  handleEEGEnabled(event: Record<string, any>, data: Record<string, any>) {
+  handleEEGEnabled(_, data: CheckboxProps) {
+    if (data.checked === undefined) return;
     this.props.ExperimentActions.SetEEGEnabled(data.checked);
   }
 
@@ -120,9 +107,18 @@ export default class CustomDesign extends Component<Props, State> {
 
   handleSaveParams() {
     this.props.ExperimentActions.SetParams(this.state.params);
-    this.props.ExperimentActions.SetDescription(this.state.description);
     this.props.ExperimentActions.SaveWorkspace();
     this.setState({ saved: true });
+  }
+
+  handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
+    this.setState((prevState) => ({
+      params: {
+        ...prevState.params,
+        description: { ...prevState.params.description, [section]: text },
+      },
+      saved: false,
+    }));
   }
 
   renderSectionContent() {
@@ -156,19 +152,13 @@ export default class CustomDesign extends Component<Props, State> {
                   autoHeight
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.QUESTION}
-                  value={this.state.description.question}
+                  value={this.state.params.description.question}
                   placeholder="Explain your research question here."
                   onChange={(event, data) => {
                     if (!isString(data.value)) {
                       return;
                     }
-                    this.setState({
-                      description: {
-                        ...this.state.description,
-                        question: data.value,
-                      },
-                      saved: false,
-                    });
+                    this.handleSetText(data.value, 'question');
                   }}
                 />
               </Form>
@@ -186,19 +176,13 @@ export default class CustomDesign extends Component<Props, State> {
                   autoHeight
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.HYPOTHESIS}
-                  value={this.state.description.hypothesis}
+                  value={this.state.params.description.hypothesis}
                   placeholder="Describe your hypothesis here."
                   onChange={(event, data) => {
                     if (!isString(data.value)) {
                       return;
                     }
-                    this.setState({
-                      description: {
-                        ...this.state.description,
-                        hypothesis: data.value,
-                      },
-                      saved: false,
-                    });
+                    this.handleSetText(data.value, 'hypothesis');
                   }}
                 />
               </Form>
@@ -216,19 +200,13 @@ export default class CustomDesign extends Component<Props, State> {
                   autoHeight
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.METHODS}
-                  value={this.state.description.methods}
+                  value={this.state.params.description.methods}
                   placeholder="Explain how you will design your experiment to answer the question here."
                   onChange={(event, data) => {
                     if (!isString(data.value)) {
                       return;
                     }
-                    this.setState({
-                      description: {
-                        ...this.state.description,
-                        methods: data.value,
-                      },
-                      saved: false,
-                    });
+                    this.handleSetText(data.value, 'methods');
                   }}
                 />
               </Form>
@@ -263,58 +241,57 @@ export default class CustomDesign extends Component<Props, State> {
               </Table.Header>
 
               <Table.Body className={styles.experimentTable}>
+                <div>Stimulus customization is currently unavailable</div>
                 {stimi.map(({ name, number }) => (
-                  <StimuliDesignColumn
-                    key={number}
-                    num={number}
-                    {...this.state.params[name]}
-                    numberImages={
-                      this.state.params.stimuli.filter(
-                        (trial) => trial.type === number
-                      ).length
-                    }
-                    onChange={async (key, data, changedName) => {
-                      await this.setState({
-                        params: {
-                          ...this.state.params,
-                          [changedName]: {
-                            ...this.state.params[changedName],
-                            [key]: data,
-                          },
-                        },
-                      });
-                      let newStimuli: StimuliDesc[] = [];
-                      await stimi.forEach((stimul) => {
-                        let dirStimuli: StimuliDesc[] = [];
-                        const { dir } = this.state.params[stimul.name];
-                        if (dir && typeof dir !== 'undefined' && dir !== '') {
-                          dirStimuli = readImages(dir).map((i) => ({
-                            dir,
-                            filename: i,
-                            name: i,
-                            condition: this.state.params[stimul.name].title,
-                            response: this.state.params[stimul.name].response,
-                            phase: 'main',
-                            type: stimul.number,
-                          }));
-                        }
-                        if (dirStimuli.length) dirStimuli[0].phase = 'practice';
-                        newStimuli = newStimuli.concat(...dirStimuli);
-                      });
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          stimuli: [...newStimuli],
-                          nbTrials: newStimuli.filter((t) => t.phase === 'main')
-                            .length,
-                          nbPracticeTrials: newStimuli.filter(
-                            (t) => t.phase === 'practice'
-                          ).length,
-                        },
-                        saved: false,
-                      });
-                    }}
-                  />
+                  <div key={name}>
+                    {`Stimulus name: ${name}, number: ${number}`}
+                  </div>
+                  //   key={number}
+                  //   num={number}
+                  //   {...this.state.params[name]}
+                  //   numberImages={this.state.params.stimuli.length}
+                  //   onChange={async (key, data, changedName) => {
+                  //     await this.setState({
+                  //       params: {
+                  //         ...this.state.params,
+                  //         [changedName]: {
+                  //           ...this.state.params[changedName],
+                  //           [key]: data,
+                  //         },
+                  //       },
+                  //     });
+                  //     let newStimuli: StimuliDesc[] = [];
+                  //     await stimi.forEach((stimul) => {
+                  //       let dirStimuli: StimuliDesc[] = [];
+                  //       const { dir } = this.state.params[stimul.name];
+                  //       if (dir && typeof dir !== 'undefined' && dir !== '') {
+                  //         dirStimuli = readImages(dir).map((i) => ({
+                  //           dir,
+                  //           filename: i,
+                  //           name: i,
+                  //           condition: this.state.params[stimul.name].title,
+                  //           response: this.state.params[stimul.name].response,
+                  //           phase: 'main',
+                  //           type: stimul.number,
+                  //         }));
+                  //       }
+                  //       if (dirStimuli.length) dirStimuli[0].phase = 'practice';
+                  //       newStimuli = newStimuli.concat(...dirStimuli);
+                  //     });
+                  //     this.setState({
+                  //       params: {
+                  //         ...this.state.params,
+                  //         stimuli: [...newStimuli],
+                  //         nbTrials: newStimuli.filter((t) => t.phase === 'main')
+                  //           .length,
+                  //         nbPracticeTrials: newStimuli.filter(
+                  //           (t) => t.phase === 'practice'
+                  //         ).length,
+                  //       },
+                  //       saved: false,
+                  //     });
+                  //   }}
+                  // />
                 ))}
               </Table.Body>
             </Table>
@@ -409,12 +386,14 @@ export default class CustomDesign extends Component<Props, State> {
                 </Table.Row>
               </Table.Header>
               <Table.Body className={styles.trialsTable}>
-                {this.state.params.stimuli &&
+                <div>Stimulus customization is currently unavailable</div>
+
+                {/* {this.state.params.stimuli &&
                   this.state.params.stimuli.map((e, num) => (
                     <StimuliRow
                       key={`stim_row_${num}`}
                       num={num}
-                      conditions={[1, 2, 3, 4].map(
+                      condition={[1, 2, 3, 4].map(
                         (n) => this.state.params[`stimulus${n}`].title
                       )}
                       {...e}
@@ -460,7 +439,7 @@ export default class CustomDesign extends Component<Props, State> {
                         });
                       }}
                     />
-                  ))}
+                  ))} */}
               </Table.Body>
             </Table>
           </Grid>
@@ -648,13 +627,13 @@ export default class CustomDesign extends Component<Props, State> {
             >
               {this.props.type && (
                 <PreviewExperimentComponent
-                  {...loadProtocol(this.props.type)}
                   isPreviewing={this.state.isPreviewing}
                   onEnd={this.endPreview}
                   type={this.props.type}
-                  paradigm={this.props.type}
-                  fullscreen={false}
-                  previewParams={this.props.params}
+                  experimentObject={this.props.experimentObject}
+                  // TODO: I believe this lets the user preview the parameter changes
+                  // before saving them
+                  params={this.state.params}
                   title={this.props.title}
                 />
               )}

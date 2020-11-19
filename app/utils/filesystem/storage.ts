@@ -144,9 +144,11 @@ export const readWorkspaceCleanedEEGData = async (title: string) => {
 };
 
 // Returns a list of the behavioral CSV files in a workspace
-export const readWorkspaceBehaviorData = async (title: string) => {
+export const readWorkspaceBehaviorData = async (
+  title: string
+): Promise<{ name: string; path: string }[]> => {
   try {
-    const files = await recursive(getWorkspaceDir(title));
+    const files: string[] = await recursive(getWorkspaceDir(title));
     const behaviorFiles = files
       .filter((filepath) => filepath.slice(-12).includes('behavior.csv'))
       .map((filepath) => ({
@@ -157,8 +159,8 @@ export const readWorkspaceBehaviorData = async (title: string) => {
   } catch (e) {
     if (e.code === 'ENOENT') {
       console.log(e);
-      return [];
     }
+    return [];
   }
 };
 
