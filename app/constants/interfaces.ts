@@ -3,9 +3,20 @@
  */
 
 import { ChildProcess } from 'child_process';
-import { EVENTS, SIGNAL_QUALITY } from './constants';
+import { EVENTS, EXPERIMENTS, SIGNAL_QUALITY } from './constants';
 
-// TODO: Write interfaces for device objects (Observables, Classes, etc)
+// --------------------------------------------------------------------
+// Experiment
+
+// Placeholder type until lab.js has types for experiment descriptions
+export interface ExperimentObject {
+  [key: string]: any;
+}
+
+export interface WorkSpaceInfo {
+  title: string;
+  type: EXPERIMENTS;
+}
 
 // All mutable aspects of an experiment that can be updated by the DesignComponent
 export type ExperimentParameters = {
@@ -15,89 +26,71 @@ export type ExperimentParameters = {
   jitter: number;
   sampleType: string;
   intro: string;
-  // Setting this to any prevents ridiculous flow runtime errors
-  showProgessBar: any;
-  stimuli: any[];
-  stimulus1: {
-    dir: string;
-    type: typeof EVENTS;
-    title: string;
-    response: string;
-  };
-  stimulus2: {
-    dir: string;
-    type: typeof EVENTS;
-    title: string;
-    response: string;
-  };
-  stimulus3?: {
-    dir: string;
-    type: typeof EVENTS;
-    title: string;
-    response: string;
-  };
-  stimulus4?: {
-    dir: string;
-    type: typeof EVENTS;
-    title: string;
-    response: string;
-  };
+  showProgressBar: boolean;
+  stimuli: Stimulus[];
   nbPracticeTrials?: number;
-  randomize?: 'random' | 'sequential';
+  // 'random' | 'sequential';
+  // TODO: consider refactoring to expose lab.js sample.mode
+  randomize?: string;
   selfPaced?: boolean;
   presentationTime?: number;
   taskHelp?: string;
+  description: ExperimentDescription;
 };
 
-export type ExperimentDescription = {
+export interface Stimulus {
+  condition?: string;
+  response?: string;
+  phase?: string;
+  type: EVENTS;
+  dir: string;
+  title: string;
+  filename: string;
+}
+
+interface ExperimentDescription {
   question: string;
   hypothesis: string;
   methods: string;
-};
+}
 
-export interface ExperimentSettings {
+// TODO: Deprecate these with .md files soon
+interface OverviewText {
   title: string;
-  script: any;
+  overview: string;
+  links: { address: string; name: string }[];
+}
+interface BackgroundText {
+  links: {
+    address: string;
+    name: string;
+  }[];
+  first_column_statement: string;
+  first_column_question: string;
+  second_column_statement: string;
+  second_column_question: string;
+}
+interface ProtocolText {
+  title: string;
+  protocol: string;
+  condition_first_img: any;
+  condition_first_title: string;
+  condition_first: string;
+  condition_second_img: any;
+  condition_second_title: string;
+  condition_second: string;
+}
+
+export interface Experiment {
+  // png
+  experimentObject: ExperimentObject;
+  icon: any;
   params: ExperimentParameters;
-  eventCallback: (e: Event, time: number) => void;
-  on_finish: (csv: any) => void;
-}
-
-// jsPsych trial presented as part of an experiment
-export interface Trial {
-  id: string;
-  type: string;
-  stimulus?: string | StimulusVariable;
-  trial_duration?: (() => number) | number;
-  post_trial_gap?: number;
-  on_load?: (arg0: string) => void | StimulusVariable;
-  choices?: Array<string>;
-}
-
-// Timeline of jsPsych trials
-export type Timeline = {
-  id: string;
-  timeline: Array<Trial>;
-  sample?: SampleParameter;
-  timeline_variables?: Array<Record<string, any>>;
-};
-
-export interface SampleParameter {
-  type: string;
-  size?: number;
-  fn?: () => Array<number>;
-}
-
-export type StimulusVariable = () => any;
-
-export interface StimuliDesc {
-  dir: any;
-  filename: string;
-  name: string;
-  condition: any;
-  response: any;
-  phase: string;
-  type: number;
+  text: {
+    background: BackgroundText;
+    overview: OverviewText;
+    protocol: ProtocolText;
+  };
 }
 
 // --------------------------------------------------------------------
@@ -112,6 +105,8 @@ export interface Kernel {
 
 // --------------------------------------------------------------------
 // Device
+
+// TODO: Write interfaces for device objects (Observables, Classes, etc)
 
 // For unconnected available devices
 export interface Device {

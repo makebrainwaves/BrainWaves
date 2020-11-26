@@ -106,7 +106,7 @@ export const createMuseSignalQualityObservable = (
 };
 
 // Injects an event marker that will be included in muse-js's data stream through
-export const injectMuseMarker = (value, time) => {
+export const injectMuseMarker = (value: string, time: number) => {
   client.injectMarker(value, time);
 };
 

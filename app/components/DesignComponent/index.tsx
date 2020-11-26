@@ -16,34 +16,33 @@ import styles from '../styles/common.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import { readWorkspaces } from '../../utils/filesystem/storage';
 import {
-  Trial,
+  ExperimentObject,
   ExperimentParameters,
-  ExperimentDescription,
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import CustomDesign from './CustomDesignComponent';
 import PreviewButton from '../PreviewButtonComponent';
 
-import facesHousesOverview from '../../assets/common/FacesHouses.png';
-import stroopOverview from '../../assets/common/Stroop.png';
-import multitaskingOverview from '../../assets/common/Multitasking.png';
-import searchOverview from '../../assets/common/VisualSearch.png';
-import customOverview from '../../assets/common/Custom.png';
+import facesHousesOverview from '../../experiments/faces_houses/icon.png';
+import stroopOverview from '../../experiments/stroop/icon.png';
+import multitaskingOverview from '../../experiments/multitasking/icon.png';
+import searchOverview from '../../experiments/search/icon.png';
+import customOverview from '../../experiments/custom/icon.png';
 
 // conditions images
-import multiConditionShape from '../../assets/multi/multiConditionShape.png';
-import multiConditionDots from '../../assets/multi/multiConditionDots.png';
-import conditionFace from '../../assets/face_house/faces/Face1.jpg';
-import conditionHouse from '../../assets/face_house/houses/House1.jpg';
-import conditionOrangeT from '../../assets/search/conditionOrangeT.png';
-import conditionNoOrangeT from '../../assets/search/conditionNoOrangeT.png';
-import conditionCongruent from '../../assets/stroop/match_g.png';
-import conditionIncongruent from '../../assets/stroop/mismatch6_r.png';
+import multiConditionShape from '../../experiments/multitasking/stimuli/multiConditionShape.png';
+import multiConditionDots from '../../experiments/multitasking/stimuli/multiConditionDots.png';
+import conditionFace from '../../experiments/faces_houses/stimuli/faces/Face1.jpg';
+import conditionHouse from '../../experiments/faces_houses/stimuli/houses/House1.jpg';
+import conditionOrangeT from '../../experiments/search/stimuli/conditionOrangeT.png';
+import conditionNoOrangeT from '../../experiments/search/stimuli/conditionNoOrangeT.png';
+import conditionCongruent from '../../experiments/stroop/stimuli/match_g.png';
+import conditionIncongruent from '../../experiments/stroop/stimuli/mismatch6_r.png';
 
-import { loadProtocol } from '../../utils/labjs/functions';
 import InputModal from '../InputModal';
 import { ExperimentActions } from '../../actions';
+import { getExperimentFromType } from '../../utils/labjs/functions';
 
 const DESIGN_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -52,36 +51,14 @@ const DESIGN_STEPS = {
   PREVIEW: 'PREVIEW',
 };
 
-export interface Props {
+export interface DesignProps {
   history: History;
   type: EXPERIMENTS;
-  paradigm: EXPERIMENTS;
   title: string;
   params: ExperimentParameters;
+  experimentObject: ExperimentObject;
   ExperimentActions: typeof ExperimentActions;
-  description: ExperimentDescription;
   isEEGEnabled: boolean;
-  overview: string;
-  overview_title: string;
-  // TODO: this is too many props and we should put them into a
-  // redux structure at some point
-  background_links: { address: string; name: string }[];
-  background_first_column: string;
-  background_first_column_question: string;
-
-  background_second_column: string;
-  background_second_column_question: string;
-
-  protocol: string;
-  protocol_title: string;
-
-  protocol_condition_first_img: any;
-  protocol_condition_first_title: string;
-  protocol_condition_first: string;
-
-  protocol_condition_second_img: any;
-  protocol_condition_second_title: string;
-  protocol_condition_second: string;
 }
 
 interface State {
@@ -91,8 +68,8 @@ interface State {
   recentWorkspaces: Array<string>;
 }
 
-export default class Design extends Component<Props, State> {
-  constructor(props: Props) {
+export default class Design extends Component<DesignProps, State> {
+  constructor(props: DesignProps) {
     super(props);
     this.state = {
       activeStep: DESIGN_STEPS.OVERVIEW,
@@ -109,9 +86,6 @@ export default class Design extends Component<Props, State> {
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
-    if (isNil(props.params)) {
-      props.ExperimentActions.LoadDefaultTimeline();
-    }
   }
 
   componentDidMount() {
@@ -146,8 +120,6 @@ export default class Design extends Component<Props, State> {
     this.props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
-      paradigm: 'Custom',
-      // paradigm: this.props.paradigm
     });
     this.props.ExperimentActions.SaveWorkspace();
   }
@@ -163,16 +135,14 @@ export default class Design extends Component<Props, State> {
     this.setState({ isPreviewing: false });
   }
 
-  handleEEGEnabled(
-    event: React.FormEvent<HTMLInputElement>,
-    data: CheckboxProps
-  ) {
+  handleEEGEnabled(_, data: CheckboxProps) {
+    if (data.checked === undefined) return;
     this.props.ExperimentActions.SetEEGEnabled(data.checked);
     this.props.ExperimentActions.SaveWorkspace();
   }
 
-  static renderConditionIcon(type) {
-    switch (type) {
+  static renderConditionIcon(condition) {
+    switch (condition) {
       case 'conditionCongruent':
         return conditionCongruent;
       case 'conditionIncongruent':
@@ -193,7 +163,7 @@ export default class Design extends Component<Props, State> {
     }
   }
 
-  static renderOverviewIcon(type) {
+  static renderOverviewIcon(type: EXPERIMENTS) {
     switch (type) {
       case EXPERIMENTS.N170:
         return facesHousesOverview;
@@ -210,6 +180,10 @@ export default class Design extends Component<Props, State> {
   }
 
   renderSectionContent() {
+    const {
+      text: { overview, protocol, background },
+    } = getExperimentFromType(this.props.type);
+
     switch (this.state.activeStep) {
       case DESIGN_STEPS.OVERVIEW:
       default:
@@ -230,8 +204,8 @@ export default class Design extends Component<Props, State> {
 
               <Grid.Column stretched width={11}>
                 <Segment basic>
-                  <Header as="h1">{this.props.overview_title}</Header>
-                  <p>{this.props.overview}</p>
+                  <Header as="h1">{overview.title}</Header>
+                  <p>{overview.overview}</p>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
@@ -255,18 +229,18 @@ export default class Design extends Component<Props, State> {
 
               <Grid.Column stretched width={5}>
                 <Segment basic>
-                  <p>{this.props.background_first_column}</p>
+                  <p>{background?.first_column_statement}</p>
                   <p style={{ fontWeight: 'bold' }}>
-                    {this.props.background_first_column_question}
+                    {background?.first_column_question}
                   </p>
                 </Segment>
               </Grid.Column>
 
               <Grid.Column stretched width={5}>
                 <Segment basic>
-                  <p>{this.props.background_second_column}</p>
+                  <p>{background?.second_column_statement}</p>
                   <p style={{ fontWeight: 'bold' }}>
-                    {this.props.background_second_column_question}
+                    {background?.second_column_question}
                   </p>
                 </Segment>
               </Grid.Column>
@@ -274,7 +248,7 @@ export default class Design extends Component<Props, State> {
               <Grid.Column width={2}>
                 <Segment basic>
                   <div className={styles.externalLinks}>
-                    {this.props.background_links.map((link) => (
+                    {background?.links.map((link) => (
                       <Button
                         key={link.address}
                         secondary
@@ -303,8 +277,8 @@ export default class Design extends Component<Props, State> {
             <Grid.Row stretched>
               <Grid.Column stretched width={7} textAlign="left">
                 <Segment basic>
-                  <Header as="h2">{this.props.protocol_title}</Header>
-                  <p>{this.props.protocol}</p>
+                  <Header as="h2">{protocol?.title}</Header>
+                  <p>{protocol?.protocol}</p>
                 </Segment>
               </Grid.Column>
 
@@ -314,16 +288,16 @@ export default class Design extends Component<Props, State> {
                     <Grid.Column width={5}>
                       <Image
                         src={Design.renderConditionIcon(
-                          this.props.protocol_condition_first_img
+                          protocol?.condition_first_img
                         )}
                       />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
                         <Header as="h3">
-                          {this.props.protocol_condition_first_title}
+                          {protocol?.condition_first_title}
                         </Header>
-                        <p>{this.props.protocol_condition_first}</p>
+                        <p>{protocol?.condition_first}</p>
                       </Segment>
                     </Grid.Column>
                   </Grid.Row>
@@ -332,16 +306,16 @@ export default class Design extends Component<Props, State> {
                     <Grid.Column width={5}>
                       <Image
                         src={Design.renderConditionIcon(
-                          this.props.protocol_condition_second_img
+                          protocol?.condition_second_img
                         )}
                       />
                     </Grid.Column>
                     <Grid.Column width={10}>
                       <Segment basic>
                         <Header as="h3">
-                          {this.props.protocol_condition_second_title}
+                          {protocol?.condition_second_title}
                         </Header>
-                        <p>{this.props.protocol_condition_second}</p>
+                        <p>{protocol?.condition_second}</p>
                       </Segment>
                     </Grid.Column>
                   </Grid.Row>
@@ -362,11 +336,12 @@ export default class Design extends Component<Props, State> {
               className={styles.previewWindow}
             >
               <PreviewExperimentComponent
-                {...loadProtocol(this.props.paradigm)}
+                title={this.props.title}
+                params={this.props.params}
+                experimentObject={this.props.experimentObject}
                 isPreviewing={this.state.isPreviewing}
                 onEnd={this.endPreview}
                 type={this.props.type}
-                paradigm={this.props.paradigm}
               />
             </Grid.Column>
             <Grid.Column width={4} verticalAlign="middle">
