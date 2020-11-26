@@ -26,28 +26,24 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
 }) => {
   useEffect(() => {
     // TODO: move this study mutation into Redux?
-
     const experimentClone = clonedeep(experimentObject);
     const paramsClone = clonedeep(params);
     experimentClone.parameters = paramsClone;
     const experimentToRun = lab.util.fromObject(experimentClone, lab);
 
     experimentToRun.parameters.title = title;
-    experimentToRun.files = params.stimuli
-      .map((stimulus) => ({
-        [stimulus.title]: path.join(stimulus.dir, stimulus.filename),
-      }))
-      .reduce((obj, item) => ({ ...obj, ...item }), {});
+    experimentToRun.options.media.images = params.stimuli.map((stimulus) =>
+      path.join(stimulus.dir, stimulus.filename)
+    );
 
     experimentToRun.on('end', () => {
       const csv = experimentToRun.options.datastore.exportCsv();
       onFinish(csv);
     });
 
-    console.log(experimentToRun.files);
-
     // TODO: more natural labjs-y way to do this?
     experimentToRun.parameters.callbackForEEG = (e) => {
+      console.log('proper eeg callback');
       eventCallback(e, new Date().getTime());
     };
 

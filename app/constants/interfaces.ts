@@ -30,6 +30,7 @@ export type ExperimentParameters = {
   stimuli: Stimulus[];
   nbPracticeTrials?: number;
   // 'random' | 'sequential';
+  // TODO: consider refactoring to expose lab.js sample.mode
   randomize?: string;
   selfPaced?: boolean;
   presentationTime?: number;
@@ -37,9 +38,12 @@ export type ExperimentParameters = {
   description: ExperimentDescription;
 };
 
-interface Stimulus {
+export interface Stimulus {
+  condition?: string;
+  response?: string;
+  phase?: string;
+  type: EVENTS;
   dir: string;
-  type: number;
   title: string;
   filename: string;
 }
