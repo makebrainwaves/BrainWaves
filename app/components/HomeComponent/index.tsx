@@ -223,7 +223,6 @@ export default class Home extends Component<Props, State> {
                     })
                     .map((dir) => {
                       const workspaceState = readAndParseState(dir);
-                      console.log(workspaceState);
                       if (!workspaceState) {
                         return undefined;
                       }
@@ -303,7 +302,7 @@ export default class Home extends Component<Props, State> {
                 />
               </Grid.Column>
 
-              <Grid.Column>
+              {/* <Grid.Column>
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
                   icon={stroopIcon}
@@ -335,9 +334,9 @@ export default class Home extends Component<Props, State> {
                             messy room.`}
                 />
               </Grid.Column>
-            </Grid.Row>
+            </Grid.Row> */}
 
-            <Grid.Row>
+              {/* <Grid.Row> */}
               <Grid.Column>
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
