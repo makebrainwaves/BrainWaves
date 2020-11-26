@@ -43,7 +43,6 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
 
     // TODO: more natural labjs-y way to do this?
     experimentToRun.parameters.callbackForEEG = (e) => {
-      console.log('proper eeg callback');
       eventCallback(e, new Date().getTime());
     };
 

@@ -70,7 +70,7 @@ function balanceStimuliByCondition(stimuli: Stimulus[], nbTrials: number) {
   const conditionsParameters = [...conditions].reduce(
     (acc, curr) => ({
       ...acc,
-      [curr ? curr : 'default']: stimuli.filter(
+      [curr || 'default']: stimuli.filter(
         (stimulus) => stimulus.condition === curr
       ),
     }),
@@ -123,6 +123,7 @@ export function initResponseHandlers(this: lab.core.Component) {
   this.data.response_given = 'no';
 
   this.options.events = {
+    // @ts-expect-error
     keydown: (event: { key: number }) => {
       const keyPressed = String(event.key);
       this.data.reaction_time = this.timer;

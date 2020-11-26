@@ -12,7 +12,6 @@ const parentDir = path.join(
 );
 const facesDir = path.join(parentDir, 'faces');
 const housesDir = path.join(parentDir, 'houses');
-const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
 const stimuli = Array.from({ length: 30 }, (_, i) => `Face${i + 1}`)
   .concat(Array.from({ length: 30 }, (v, k) => `House${k + 1}`))

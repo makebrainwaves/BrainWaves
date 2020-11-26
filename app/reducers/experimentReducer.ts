@@ -111,8 +111,14 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(
-      ExperimentActions.ExperimentCleanup,
-      (state, action) => initialState
-    )
+    .addCase(ExperimentActions.SetState, (state, action) => {
+      return {
+        ...state,
+        ...action.payload,
+      };
+    })
+
+    .addCase(ExperimentActions.ExperimentCleanup, (state, action) => {
+      return initialState;
+    })
 );

@@ -39,6 +39,7 @@ import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import EEGExplorationComponent from '../EEGExplorationComponent';
 import { SignalQualityData } from '../../constants/interfaces';
+import { getExperimentFromType } from '../../utils/labjs/functions';
 
 const { dialog } = remote;
 
@@ -139,9 +140,21 @@ export default class Home extends Component<Props, State> {
   // Load recent workspace by copying saved 'experiment' redux state into current redux state
   handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = readAndParseState(dir);
-    if (!isNil(recentWorkspaceState)) {
-      this.props.ExperimentActions.SetState(recentWorkspaceState);
+    if (isNil(recentWorkspaceState)) {
+      toast.error(
+        'Workspace data is corrupted or missing. Please delete and create it again.'
+      );
+      return;
     }
+
+    // This is a stop-gap solution until our lab.js experiment definitions for built-in experiments are fully serializable
+    // Returns an appropriate default experiment object complete with initialization functions
+    const deserializedWorkspaceState = {
+      ...recentWorkspaceState,
+      experimentObject: getExperimentFromType(recentWorkspaceState.type)
+        .experimentObject,
+    };
+    this.props.ExperimentActions.SetState(deserializedWorkspaceState);
     this.props.history.push(SCREENS.DESIGN.route);
   }
 

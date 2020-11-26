@@ -192,9 +192,10 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
   state$
 ) =>
   action$.ofType('@@router/LOCATION_CHANGE').pipe(
-    pluck('payload', 'pathname'),
+    tap((pathname) => console.log('navigation', pathname)),
+    pluck('payload', 'location', 'pathname'),
+    tap((pathname) => console.log('navigation', pathname)),
     filter((pathname) => pathname === '/' || pathname === '/home'),
-    tap(() => restoreExperimentState(state$.value.experiment)),
     map(ExperimentActions.ExperimentCleanup)
   );
 
