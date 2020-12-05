@@ -10,9 +10,11 @@ import {
 import facesHousesExperiment from '../../experiments/faces_houses';
 import stroopExperiment from '../../experiments/stroop';
 
-// Returns  all data necessary to fully describe an experiment from the experiment type
-// Used in order to instantiate experiment state in redux when creating a new workspace,
-// Consumers can access whichever field they are interested in
+/**
+ * Returns  all data necessary to fully describe an experiment from the experiment type
+ * Used in order to instantiate experiment state in redux when creating a new workspace,
+ * Consumers can access whichever field they are interested in
+ */
 export function getExperimentFromType(type: EXPERIMENTS): Experiment {
   switch (type) {
     case EXPERIMENTS.CUSTOM:
@@ -62,6 +64,11 @@ export function initPracticeLoopWithStimuli(this: lab.flow.Loop) {
   this.options.shuffle = randomize === 'random';
 }
 
+/**
+ * Ensures that the experiment will display equal numbers of eazch type of stimuli
+ *  If asset files are included in the stimuliu, will also ensure there is a convenient filepath
+ * field that can be used to render the assets in the experiment
+ */
 function balanceStimuliByCondition(
   stimuli: Stimulus[] | undefined,
   nbTrials: number
@@ -113,19 +120,18 @@ function balanceStimuliByCondition(
   return balancedStimuliWithFilePath;
 }
 
+/**
+ * This code registers an event listener for this screen.
+ * On a keydown event, we record the key and the time of response.
+ * We also record whether the response was correct (by comparing
+ * the pressed key with the correct response which is defined inside the Experiment loop).
+ */
 export function initResponseHandlers(this: lab.core.Component) {
   const {
     options: { id },
     parameters: { response },
   }: { parameters: Stimulus; options: ComponentOptions } = this;
   if (!id) return;
-
-  // Arguments = stimuli, this.options.id, this.data, this.options.events
-  // This code registers an event listener for this screen.
-  // We have a timeout for this screen, but we also want to record responses.
-  // On a keydown event, we record the key and the time of response.
-  // We also record whether the response was correct (by comparing the pressed key with the correct response which is defined inside the Experiment loop).
-  // "this" in the code means the lab.js experiment.
 
   this.data.trial_number =
     1 + parseInt(id.split('_')[id.split('_').length - 2], 10);
@@ -159,6 +165,7 @@ export function resetCorrectResponse(this: lab.core.Component) {
 // -------------------------------------------------------------
 // Stroop
 
+// Initializes the data required to compute response accuracy in the stroop experiment
 export function initStroopTrial(this: lab.core.Component) {
   if (!this.options.id) {
     return;
