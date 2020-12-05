@@ -8,6 +8,7 @@ import {
   Stimulus,
 } from '../../constants/interfaces';
 import facesHousesExperiment from '../../experiments/faces_houses';
+import stroopExperiment from '../../experiments/stroop';
 
 // Returns  all data necessary to fully describe an experiment from the experiment type
 // Used in order to instantiate experiment state in redux when creating a new workspace,
@@ -18,8 +19,8 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
       return facesHousesExperiment;
     case EXPERIMENTS.MULTI:
       return facesHousesExperiment;
-    case EXPERIMENTS.N170:
-      return facesHousesExperiment;
+    case EXPERIMENTS.STROOP:
+      return stroopExperiment;
     case EXPERIMENTS.NONE:
       return facesHousesExperiment;
     case EXPERIMENTS.P300:
@@ -28,7 +29,7 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
       return facesHousesExperiment;
     case EXPERIMENTS.SSVEP:
       return facesHousesExperiment;
-    case EXPERIMENTS.STROOP:
+    case EXPERIMENTS.N170:
     default:
       return facesHousesExperiment;
   }
@@ -61,8 +62,11 @@ export function initPracticeLoopWithStimuli(this: lab.flow.Loop) {
   this.options.shuffle = randomize === 'random';
 }
 
-function balanceStimuliByCondition(stimuli: Stimulus[], nbTrials: number) {
-  if (stimuli.length === 0 || nbTrials === 0) {
+function balanceStimuliByCondition(
+  stimuli: Stimulus[] | undefined,
+  nbTrials: number
+) {
+  if (!stimuli || stimuli.length === 0 || nbTrials === 0) {
     return [];
   }
 
@@ -96,10 +100,15 @@ function balanceStimuliByCondition(stimuli: Stimulus[], nbTrials: number) {
   }
 
   // Add filepath parameter for lab.js usage convenience
-  const balancedStimuliWithFilePath = balancedStimuli.map((stimulus) => ({
-    ...stimulus,
-    filepath: path.join(stimulus.dir, stimulus.filename),
-  }));
+  const balancedStimuliWithFilePath = balancedStimuli.map((stimulus) => {
+    if (stimulus.dir && stimulus.filename) {
+      return {
+        ...stimulus,
+        filepath: path.join(stimulus.dir, stimulus.filename),
+      };
+    }
+    return stimulus;
+  });
 
   return balancedStimuliWithFilePath;
 }
@@ -145,4 +154,32 @@ export function triggerEEGCallback(this: lab.core.Component) {
 
 export function resetCorrectResponse(this: lab.core.Component) {
   this.data.correct_response = false;
+}
+
+// -------------------------------------------------------------
+// Stroop
+
+export function initStroopTrial(this: lab.core.Component) {
+  if (!this.options.id) {
+    return;
+  }
+  this.data.trial_number =
+    1 +
+    parseInt(
+      this.options.id.split('_')[this.options.id.split('_').length - 2],
+      10
+    );
+
+  this.data.condition =
+    this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch';
+
+  this.data.reaction_time = this.state.duration;
+
+  if (this.state.response === this.parameters.color) {
+    this.data.correct_response = true;
+  } else {
+    this.data.correct_response = false;
+  }
+
+  this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
 }

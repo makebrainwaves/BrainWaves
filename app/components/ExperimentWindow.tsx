@@ -5,6 +5,7 @@ import * as lab from 'lab.js/dist/lab.dev';
 import {
   ExperimentObject,
   ExperimentParameters,
+  Stimulus,
 } from '../constants/interfaces';
 
 export interface ExperimentWindowProps {
@@ -32,8 +33,14 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
     const experimentToRun = lab.util.fromObject(experimentClone, lab);
 
     experimentToRun.parameters.title = title;
-    experimentToRun.options.media.images = params.stimuli.map((stimulus) =>
-      path.join(stimulus.dir, stimulus.filename)
+    experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
+      (images, stimulus) => {
+        if (stimulus.dir && stimulus.filename) {
+          return [...images, path.join(stimulus.dir, stimulus.filename)];
+        }
+        return images;
+      },
+      []
     );
 
     experimentToRun.on('end', () => {
