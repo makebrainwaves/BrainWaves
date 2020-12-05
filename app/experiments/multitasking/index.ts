@@ -1,10 +1,17 @@
+// import { stroopExperiment as experimentObject } from './experiment';
 import { params } from './params';
 import { background } from './content_background';
-import { overview } from './content_overview';
 import { protocol } from './content_protocol';
+import { overview } from './content_overview';
+import icon from './icon.png';
 
-const buildTimeline = () => ({
-    params, background, overview, protocol
-});
-
-export default buildTimeline;
+export default {
+  icon,
+  // experimentObject,
+  params,
+  text: {
+    protocol,
+    background,
+    overview,
+  },
+};

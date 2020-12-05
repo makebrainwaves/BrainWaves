@@ -1,4 +1,4 @@
-import { EVENTS } from '../../../constants/constants';
+import { EVENTS } from '../../constants/constants';
 
 export const params = {
   trialDuration: 1000,

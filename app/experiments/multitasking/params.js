@@ -1,4 +1,4 @@
-import { EVENTS } from '../../../constants/constants';
+import { EVENTS } from '../../constants/constants';
 
 export const params = {
   trialDuration: 1000,
@@ -20,5 +20,5 @@ export const params = {
     title: 'Switching',
     type: EVENTS.STIMULUS_2,
     response: '9',
-  }
-}
+  },
+};
