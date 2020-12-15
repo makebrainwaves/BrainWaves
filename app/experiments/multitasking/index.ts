@@ -3,11 +3,12 @@ import { params } from './params';
 import { background } from './content_background';
 import { protocol } from './content_protocol';
 import { overview } from './content_overview';
+import { multitaskingExperimentObject as experimentObject } from './experiment';
 import icon from './icon.png';
 
 export default {
   icon,
-  // experimentObject,
+  experimentObject,
   params,
   text: {
     protocol,

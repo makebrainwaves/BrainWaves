@@ -33,15 +33,17 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
     const experimentToRun = lab.util.fromObject(experimentClone, lab);
 
     experimentToRun.parameters.title = title;
-    experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
-      (images, stimulus) => {
-        if (stimulus.dir && stimulus.filename) {
-          return [...images, path.join(stimulus.dir, stimulus.filename)];
-        }
-        return images;
-      },
-      []
-    );
+    if (params.stimuli) {
+      experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
+        (images, stimulus) => {
+          if (stimulus.dir && stimulus.filename) {
+            return [...images, path.join(stimulus.dir, stimulus.filename)];
+          }
+          return images;
+        },
+        []
+      );
+    }
 
     experimentToRun.on('end', () => {
       const csv = experimentToRun.options.datastore.exportCsv();

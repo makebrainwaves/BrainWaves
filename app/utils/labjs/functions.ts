@@ -9,6 +9,9 @@ import {
 } from '../../constants/interfaces';
 import facesHousesExperiment from '../../experiments/faces_houses';
 import stroopExperiment from '../../experiments/stroop';
+// import customExperiment from '../../experiments/custom';
+import searchExperiment from '../../experiments/search';
+import multitaskingExperiment from '../../experiments/multitasking';
 
 /**
  * Returns  all data necessary to fully describe an experiment from the experiment type
@@ -17,20 +20,20 @@ import stroopExperiment from '../../experiments/stroop';
  */
 export function getExperimentFromType(type: EXPERIMENTS): Experiment {
   switch (type) {
-    case EXPERIMENTS.CUSTOM:
-      return facesHousesExperiment;
     case EXPERIMENTS.MULTI:
-      return facesHousesExperiment;
+      return multitaskingExperiment;
     case EXPERIMENTS.STROOP:
       return stroopExperiment;
     case EXPERIMENTS.NONE:
       return facesHousesExperiment;
-    case EXPERIMENTS.P300:
-      return facesHousesExperiment;
-    case EXPERIMENTS.SEARCH:
-      return facesHousesExperiment;
-    case EXPERIMENTS.SSVEP:
-      return facesHousesExperiment;
+    // case EXPERIMENTS.CUSTOM:
+    // return facesHousesExperiment;
+    // case EXPERIMENTS.P300:
+    //   return p300Experiment;
+    // case EXPERIMENTS.SEARCH:
+    //   return searchExperiment;
+    // case EXPERIMENTS.SSVEP:
+    //   return ssvepExperiment;
     case EXPERIMENTS.N170:
     default:
       return facesHousesExperiment;

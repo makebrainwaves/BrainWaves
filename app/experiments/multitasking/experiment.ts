@@ -1,18 +1,23 @@
-/* eslint-disable */
+/* eslint-disable no-template-curly-in-string */
 
 import * as path from 'path';
+import {
+  initMultitaskingResponseHandlers,
+  initTasks,
+  initTaskScreen,
+  triggerEEGCallback,
+} from './utils';
 
 const rootFolder = __dirname;
 const assetsDirectory = path.join(
   rootFolder,
-  'assets',
-  'default_experiments',
+  'experiments',
   'multitasking',
   'stimuli'
 );
 
 // Define study
-const experimentObject = {
+export const multitaskingExperimentObject = {
   title: 'root',
   type: 'lab.flow.Sequence',
   parameters: {},
@@ -34,71 +39,62 @@ const experimentObject = {
           files: {},
           parameters: {},
           responses: {
-            'keypress(Space)': 'continue'
+            'keypress(Space)': 'continue',
           },
           messageHandlers: {},
           title: 'Intro',
           content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe multi-tasking test\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n  ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E'
+            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe multi-tasking test\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n  ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
         },
         {
           type: 'lab.html.Screen',
           files: {
-            'diamond_2.png': `${assetsDirectory}/diamond_2.png`,
-            'diamond_3.png': `${assetsDirectory}/diamond_3.png`,
-            'rectangle_2.png': `${assetsDirectory}/rectangle_2.png`,
-            'rectangle_3.png': `${assetsDirectory}/rectangle_3.png`,
-            'filling.png': `${assetsDirectory}/filling.png`,
-            'shape.png': `${assetsDirectory}/shape.png`,
-            'example_1.png': `${assetsDirectory}/example_1.png`,
-            'example_2.png': `${assetsDirectory}/example_2.png`,
-            'example_3.png': `${assetsDirectory}/example_3.png`,
-            'example_4.png': `${assetsDirectory}/example_4.png`,
-            'all_conditions.png': `${assetsDirectory}/all_conditions.png`
+            'diamond_2.png': `${path.join(assetsDirectory, 'diamond_2.png')}`,
+            'diamond_3.png': `${path.join(assetsDirectory, 'diamond_3.png')}`,
+            'rectangle_2.png': `${path.join(
+              assetsDirectory,
+              'rectangle_2.png'
+            )}`,
+            'rectangle_3.png': `${path.join(
+              assetsDirectory,
+              'rectangle_3.png'
+            )}`,
+            'filling.png': `${path.join(assetsDirectory, 'filling.png')}`,
+            'shape.png': `${path.join(assetsDirectory, 'shape.png')}`,
+            'example_1.png': `${path.join(assetsDirectory, 'example_1.png')}`,
+            'example_2.png': `${path.join(assetsDirectory, 'example_2.png')}`,
+            'example_3.png': `${path.join(assetsDirectory, 'example_3.png')}`,
+            'example_4.png': `${path.join(assetsDirectory, 'example_4.png')}`,
+            'all_conditions.png': `${path.join(
+              assetsDirectory,
+              'all_conditions.png'
+            )}`,
+          },
+          media: {
+            images: [
+              `${path.join(assetsDirectory, 'diamond_2.png')}`,
+              `${path.join(assetsDirectory, 'diamond_3.png')}`,
+              `${path.join(assetsDirectory, 'rectangle_2.png')}`,
+              `${path.join(assetsDirectory, 'rectangle_3.png')}`,
+              `${path.join(assetsDirectory, 'filling.png')}`,
+              `${path.join(assetsDirectory, 'shape.png')}`,
+              `${path.join(assetsDirectory, 'example_1.png')}`,
+              `${path.join(assetsDirectory, 'example_2.png')}`,
+              `${path.join(assetsDirectory, 'example_3.png')}`,
+              `${path.join(assetsDirectory, 'example_4.png')}`,
+              `${path.join(assetsDirectory, 'all_conditions.png')}`,
+            ],
           },
           parameters: {},
           responses: {
-            'keypress(Space)': 'continue'
+            'keypress(Space)': 'continue',
           },
           messageHandlers: {
-            'before:prepare': function anonymous() {
-              this.options.events['keydown'] = e => {
-                if (e.code === 'KeyQ') {
-                  this.data.skipTraining = true;
-                  this.end();
-                }
-
-                if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-                  const instructions = document.querySelectorAll(
-                    'div.instruction'
-                  );
-                  let notFound = true;
-                  instructions.forEach(i => {
-                    if (i.style.display === 'block' && notFound) {
-                      const cur_id = parseInt(i.id.split('screen_')[1]);
-                      let next_id;
-                      if (e.code === 'ArrowLeft') {
-                        next_id = cur_id - 1;
-                      }
-                      if (e.code === 'ArrowRight') {
-                        next_id = cur_id + 1;
-                      }
-                      if (next_id > 0 && next_id <= 10) {
-                        i.style.display = 'none';
-                        next_id = `screen_${next_id}`;
-                        document.querySelector(`#${next_id}`).style.display =
-                          'block';
-                        notFound = false;
-                      }
-                    }
-                  });
-                }
-              };
-            }
+            'before:prepare': initMultitaskingResponseHandlers,
           },
           title: 'Instructions',
           content:
-            '\u003Cmain\u003E\n\n\u003Cdiv class="instruction" id=\'screen_1\' style="display:block"\u003E\n  \u003Cp\u003E\n    In the following, you will respond to various figures. These are the figures that you will see: diamonds and rectangles with a filling of 2 or 3 dots:\n  \u003C\u002Fp\u003E\n  \u003Ctable\u003E\n      \u003Cthead\u003E\n      \u003Ctr\u003E\n          \u003Cth\u003EDiamond with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003EDiamond with filling of 2 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 2 dots\u003C\u002Fth\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Fthead\u003E\n      \u003Ctbody\u003E\n      \u003Ctr\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'diamond_3.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'diamond_2.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'rectangle_3.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'rectangle_2.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Ftbody\u003E\n  \u003C\u002Ftable\u003E\n  \u003Cp\u003E\n    Use the right arrow key to move to the next instruction.\n  \u003C\u002Fp\u003E\n\n  \u003Cp\u003E\n    If you want to skip the instruction with practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_2\' style="display:none"\u003E\n\n  \u003Cp\u003E\n    You will be shown these figures in sequences of trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Each time you will need to respond with a button press.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    How exactly will be explained in the next screens.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_3\' style="display:none"\u003E\n  \u003Cp\u003E\n    In the shape task, a diamond requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, a rectangle requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this task, ignore the filling (dots) of the shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'shape.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_4\' style="display:none"\u003E\n  \u003Cp\u003E\n    In the filling task, a filling of two dots requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, a filling with three dots requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, ignore the outer shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'filling.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_5\' style="display:none"\u003E\n  \u003Cp\u003E\n    Example 1. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a diamond, which requires a button press of the keyboard key \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling dots!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_1.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_6\' style="display:none" style="width:400px"\u003E\n  \u003Cp\u003E\n    Example 2. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 3 dots, and thus press the keyboard key \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_2.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_7\' style="display:none"\u003E\n  \u003Cimg src=${this.files[\'example_3.png\']} style="width:400px"\u003E\n  \u003Cp\u003E\n    Example 3. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a rectangle, which requires the \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling (here 2 dots)!!!\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_8\' style="display:none"\u003E\n  \u003Cp\u003E\n    Example 4. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 2 dots, and thus press \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_4.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\n\u003Cdiv class="instruction" id=\'screen_9\' style="display:none"\u003E\n  \u003Cp\u003E\n    Here, you can see how to respond in all conditions...\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Just look at shape in the shape task, and at the dots in the filling task...\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'all_conditions.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_10\' style="display:none"\u003E\n  \u003Cp\u003E\n    Are you ready? Press the space bar on your keyboard to quit the instructions and start doing the practice trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Or you can browse back to the previous screens until you understand what you need to do in the two tasks (use the arrow keys).\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    If you want to skip practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter\u003E\n  \u003Cp\u003E\n    Use left\u002Fright arrow keys to go further or back.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E'
+            '\u003Cmain\u003E\n\n\u003Cdiv class="instruction" id=\'screen_1\' style="display:block"\u003E\n  \u003Cp\u003E\n    In the following, you will respond to various figures. These are the figures that you will see: diamonds and rectangles with a filling of 2 or 3 dots:\n  \u003C\u002Fp\u003E\n  \u003Ctable\u003E\n      \u003Cthead\u003E\n      \u003Ctr\u003E\n          \u003Cth\u003EDiamond with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003EDiamond with filling of 2 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 2 dots\u003C\u002Fth\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Fthead\u003E\n      \u003Ctbody\u003E\n      \u003Ctr\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'diamond_3.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'diamond_2.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'rectangle_3.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'rectangle_2.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Ftbody\u003E\n  \u003C\u002Ftable\u003E\n  \u003Cp\u003E\n    Use the right arrow key to move to the next instruction.\n  \u003C\u002Fp\u003E\n\n  \u003Cp\u003E\n    If you want to skip the instruction with practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_2\' style="display:none"\u003E\n\n  \u003Cp\u003E\n    You will be shown these figures in sequences of trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Each time you will need to respond with a button press.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    How exactly will be explained in the next screens.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_3\' style="display:none"\u003E\n  \u003Cp\u003E\n    In the shape task, a diamond requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, a rectangle requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this task, ignore the filling (dots) of the shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'shape.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_4\' style="display:none"\u003E\n  \u003Cp\u003E\n    In the filling task, a filling of two dots requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, a filling with three dots requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, ignore the outer shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'filling.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_5\' style="display:none"\u003E\n  \u003Cp\u003E\n    Example 1. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a diamond, which requires a button press of the keyboard key \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling dots!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_1.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_6\' style="display:none" style="width:400px"\u003E\n  \u003Cp\u003E\n    Example 2. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 3 dots, and thus press the keyboard key \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_2.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_7\' style="display:none"\u003E\n  \u003Cimg src=${this.files[\'example_3.png\']} style="width:400px"\u003E\n  \u003Cp\u003E\n    Example 3. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a rectangle, which requires the \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling (here 2 dots)!!!\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_8\' style="display:none"\u003E\n  \u003Cp\u003E\n    Example 4. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 2 dots, and thus press \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_4.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\n\u003Cdiv class="instruction" id=\'screen_9\' style="display:none"\u003E\n  \u003Cp\u003E\n    Here, you can see how to respond in all conditions...\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Just look at shape in the shape task, and at the dots in the filling task...\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'all_conditions.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_10\' style="display:none"\u003E\n  \u003Cp\u003E\n    Are you ready? Press the space bar on your keyboard to quit the instructions and start doing the practice trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Or you can browse back to the previous screens until you understand what you need to do in the two tasks (use the arrow keys).\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    If you want to skip practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter\u003E\n  \u003Cp\u003E\n    Use left\u002Fright arrow keys to go further or back.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
         },
         {
           type: 'lab.canvas.Frame',
@@ -119,42 +115,42 @@ const experimentObject = {
                 block: 'shape',
                 task: 'training',
                 num_trials: '10',
-                cond: 'No switching'
+                cond: 'No switching',
               },
               {
                 block: 'filling',
                 task: 'training',
                 num_trials: '10',
-                cond: 'No switching'
+                cond: 'No switching',
               },
               {
                 block: 'mixed',
                 task: 'training',
                 num_trials: '20',
-                cond: 'Switching'
+                cond: 'Switching',
               },
               {
                 block: 'shape',
                 task: 'main',
                 num_trials: '20',
-                cond: 'No switching'
+                cond: 'No switching',
               },
               {
                 block: 'filling',
                 task: 'main',
                 num_trials: '20',
-                cond: 'No switching'
+                cond: 'No switching',
               },
               {
                 block: 'mixed',
                 task: 'main',
                 num_trials: '40',
-                cond: 'Switching'
-              }
+                cond: 'Switching',
+              },
             ],
             sample: {
               mode: 'sequential',
-              n: '6'
+              n: '6',
             },
             responses: {},
             messageHandlers: {},
@@ -220,7 +216,7 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '277',
-                      styles: {}
+                      styles: {},
                     },
                     {
                       type: 'i-text',
@@ -269,7 +265,7 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '278',
-                      styles: {}
+                      styles: {},
                     },
                     {
                       type: 'i-text',
@@ -317,17 +313,17 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '279',
-                      styles: {}
-                    }
+                      styles: {},
+                    },
                   ],
                   files: {},
                   parameters: {},
                   responses: {
-                    'keypress(Space)': 'continue'
+                    'keypress(Space)': 'continue',
                   },
                   messageHandlers: {},
                   viewport: [800, 600],
-                  title: 'Ready'
+                  title: 'Ready',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -393,7 +389,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '5': {
                             stroke: null,
@@ -407,7 +403,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '6': {
                             stroke: null,
@@ -421,7 +417,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '7': {
                             stroke: null,
@@ -435,7 +431,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '8': {
                             stroke: null,
@@ -449,7 +445,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '9': {
                             stroke: null,
@@ -463,7 +459,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '10': {
                             stroke: null,
@@ -477,7 +473,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '11': {
                             stroke: null,
@@ -491,7 +487,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '12': {
                             stroke: null,
@@ -505,7 +501,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '13': {
                             stroke: null,
@@ -519,7 +515,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '14': {
                             stroke: null,
@@ -533,7 +529,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '15': {
                             stroke: null,
@@ -547,7 +543,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '16': {
                             stroke: null,
@@ -561,7 +557,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '17': {
                             stroke: null,
@@ -575,7 +571,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '18': {
                             stroke: null,
@@ -589,7 +585,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '19': {
                             stroke: null,
@@ -603,7 +599,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '20': {
                             stroke: null,
@@ -617,7 +613,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '21': {
                             stroke: null,
@@ -631,7 +627,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '22': {
                             stroke: null,
@@ -645,7 +641,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '23': {
                             stroke: null,
@@ -659,7 +655,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '24': {
                             stroke: null,
@@ -673,7 +669,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '25': {
                             stroke: null,
@@ -687,7 +683,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '26': {
                             stroke: null,
@@ -701,7 +697,7 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
+                            textBackgroundColor: '',
                           },
                           '27': {
                             stroke: null,
@@ -715,10 +711,10 @@ const experimentObject = {
                             overline: false,
                             linethrough: false,
                             deltaY: 0,
-                            textBackgroundColor: ''
-                          }
-                        }
-                      }
+                            textBackgroundColor: '',
+                          },
+                        },
+                      },
                     },
                     {
                       type: 'i-text',
@@ -767,7 +763,7 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '300',
-                      styles: {}
+                      styles: {},
                     },
                     {
                       type: 'i-text',
@@ -817,17 +813,17 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '397',
-                      styles: {}
-                    }
+                      styles: {},
+                    },
                   ],
                   files: {},
                   parameters: {},
                   responses: {
-                    'keypress(Space)': 'continue'
+                    'keypress(Space)': 'continue',
                   },
                   messageHandlers: {},
                   viewport: [800, 600],
-                  title: 'Block description'
+                  title: 'Block description',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -878,8 +874,8 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '276',
-                      styles: {}
-                    }
+                      styles: {},
+                    },
                   ],
                   files: {},
                   parameters: {},
@@ -887,7 +883,7 @@ const experimentObject = {
                   messageHandlers: {},
                   viewport: [800, 600],
                   title: 'Concentrate',
-                  timeout: '1000'
+                  timeout: '1000',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -928,7 +924,7 @@ const experimentObject = {
                       radius: 27.5,
                       startAngle: 0,
                       endAngle: 6.283185307179586,
-                      id: '273'
+                      id: '273',
                     },
                     {
                       type: 'i-text',
@@ -976,8 +972,8 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '274',
-                      styles: {}
-                    }
+                      styles: {},
+                    },
                   ],
                   files: {},
                   parameters: {},
@@ -985,7 +981,7 @@ const experimentObject = {
                   messageHandlers: {},
                   viewport: [800, 600],
                   title: '3',
-                  timeout: '1000'
+                  timeout: '1000',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -1026,7 +1022,7 @@ const experimentObject = {
                       radius: 27.5,
                       startAngle: 0,
                       endAngle: 6.283185307179586,
-                      id: '273'
+                      id: '273',
                     },
                     {
                       type: 'i-text',
@@ -1074,8 +1070,8 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '274',
-                      styles: {}
-                    }
+                      styles: {},
+                    },
                   ],
                   files: {},
                   parameters: {},
@@ -1083,7 +1079,7 @@ const experimentObject = {
                   messageHandlers: {},
                   viewport: [800, 600],
                   title: '2',
-                  timeout: '1000'
+                  timeout: '1000',
                 },
                 {
                   type: 'lab.canvas.Screen',
@@ -1124,7 +1120,7 @@ const experimentObject = {
                       radius: 27.5,
                       startAngle: 0,
                       endAngle: 6.283185307179586,
-                      id: '273'
+                      id: '273',
                     },
                     {
                       type: 'i-text',
@@ -1172,8 +1168,8 @@ const experimentObject = {
                       textBackgroundColor: '',
                       charSpacing: 0,
                       id: '274',
-                      styles: {}
-                    }
+                      styles: {},
+                    },
                   ],
                   files: {},
                   parameters: {},
@@ -1181,7 +1177,7 @@ const experimentObject = {
                   messageHandlers: {},
                   viewport: [800, 600],
                   title: '1',
-                  timeout: '1000'
+                  timeout: '1000',
                 },
                 {
                   type: 'lab.flow.Loop',
@@ -1190,85 +1186,11 @@ const experimentObject = {
                   templateParameters: [],
                   sample: {
                     mode: 'draw',
-                    n: ''
+                    n: '',
                   },
                   responses: {},
                   messageHandlers: {
-                    'before:prepare': function anonymous() {
-                      function shuffle(a) {
-                        let j, x, i;
-                        for (i = a.length - 1; i > 0; i--) {
-                          j = Math.floor(Math.random() * (i + 1));
-                          x = a[i];
-                          a[i] = a[j];
-                          a[j] = x;
-                        }
-                        return a;
-                      }
-
-                      let tasksParameters = [];
-                      const blocks =
-                        this.parameters.block === 'mixed'
-                          ? ['shape', 'filling']
-                          : [this.parameters.block, this.parameters.block];
-
-                      function trialConstructor(
-                        block,
-                        dots,
-                        form,
-                        cor_response
-                      ) {
-                        return {
-                          type: block,
-                          dots,
-                          form,
-                          cor_response
-                        };
-                      }
-
-                      const numberBlocks = Math.ceil(
-                        this.parameters.num_trials / 4
-                      );
-
-                      for (let i = 1; i <= numberBlocks; i++) {
-                        for (const block of blocks) {
-                          if (block === 'shape') {
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 2, 'diamond', 'b')
-                            );
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 2, 'square', 'n')
-                            );
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 3, 'diamond', 'b')
-                            );
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 3, 'square', 'n')
-                            );
-                          } else if (block === 'filling') {
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 2, 'diamond', 'b')
-                            );
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 2, 'square', 'b')
-                            );
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 3, 'diamond', 'n')
-                            );
-                            tasksParameters = tasksParameters.concat(
-                              trialConstructor(block, 3, 'square', 'n')
-                            );
-                          }
-                        }
-                      }
-
-                      const tasksParametersShuffled = shuffle(tasksParameters);
-                      // assign options values to parameters of this task
-                      this.options.templateParameters = tasksParametersShuffled.slice(
-                        0,
-                        this.parameters.num_trials
-                      );
-                    }
+                    'before:prepare': initTasks,
                   },
                   title: 'Trial loop',
                   shuffleGroups: [],
@@ -1318,7 +1240,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '17'
+                            id: '17',
                           },
                           {
                             type: 'line',
@@ -1357,7 +1279,7 @@ const experimentObject = {
                             x1: -200,
                             x2: 200,
                             y1: 0,
-                            y2: 0
+                            y2: 0,
                           },
                           {
                             type: 'rect',
@@ -1396,7 +1318,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '91'
+                            id: '91',
                           },
                           {
                             type: 'circle',
@@ -1435,7 +1357,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '105'
+                            id: '105',
                           },
                           {
                             type: 'rect',
@@ -1474,7 +1396,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '98'
+                            id: '98',
                           },
                           {
                             type: 'circle',
@@ -1513,7 +1435,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '103'
+                            id: '103',
                           },
                           {
                             type: 'circle',
@@ -1552,7 +1474,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '104'
+                            id: '104',
                           },
                           {
                             type: 'i-text',
@@ -1600,7 +1522,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '112',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -1648,27 +1570,22 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '113',
-                            styles: {}
-                          }
+                            styles: {},
+                          },
                         ],
                         files: {},
                         parameters: {},
                         responses: {
                           'keypress(b)': 'b',
-                          'keypress(n)': 'n'
+                          'keypress(n)': 'n',
                         },
                         messageHandlers: {
-                          run: function anonymous() {
-                            this.parameters.callbackForEEG(
-                              this.parameters.cond === 'Switching' ? 1 : 2
-                            );
-                            this.data.correct = 'empty';
-                          }
+                          run: triggerEEGCallback,
                         },
                         viewport: [800, 600],
                         title: 'Stimulus',
                         correctResponse: '${parameters.cor_response}',
-                        timeout: '5000'
+                        timeout: '5000',
                       },
                       {
                         type: 'lab.canvas.Screen',
@@ -1720,7 +1637,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '37',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -1769,7 +1686,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '310',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'rect',
@@ -1806,7 +1723,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '36'
+                            id: '36',
                           },
                           {
                             type: 'line',
@@ -1845,7 +1762,7 @@ const experimentObject = {
                             x1: -200,
                             x2: 200,
                             y1: 0,
-                            y2: 0
+                            y2: 0,
                           },
                           {
                             type: 'i-text',
@@ -1893,7 +1810,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '126',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -1941,45 +1858,19 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '127',
-                            styles: {}
-                          }
+                            styles: {},
+                          },
                         ],
                         files: {},
                         parameters: {},
                         responses: {},
                         messageHandlers: {
-                          'before:prepare': function anonymous() {
-                            this.data.trial_number =
-                              1 +
-                              parseInt(
-                                this.options.id.split('_')[
-                                  this.options.id.split('_').length - 2
-                                ]
-                              );
-                            this.data.condition = this.parameters.cond;
-                            this.data.reaction_time = this.state.duration;
-
-                            if (
-                              this.state.response ===
-                              this.parameters.cor_response
-                            ) {
-                              this.data.correct_response = true;
-                            } else {
-                              this.data.correct_response = false;
-                            }
-
-                            if (this.parameters.task === 'main') {
-                              this.data.response_given =
-                                this.state.correct === 'empty' ? 'no' : 'yes';
-                            } else {
-                              this.data.phase = 'practice';
-                            }
-                          }
+                          'before:prepare': initTaskScreen,
                         },
                         viewport: [800, 600],
                         title: 'Feedback',
                         timeout: '${this.parameters.iti}',
-                        tardy: true
+                        tardy: true,
                       },
                       {
                         type: 'lab.canvas.Screen',
@@ -2019,7 +1910,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '123'
+                            id: '123',
                           },
                           {
                             type: 'line',
@@ -2058,7 +1949,7 @@ const experimentObject = {
                             x1: -50,
                             x2: 50,
                             y1: 0,
-                            y2: 0
+                            y2: 0,
                           },
                           {
                             type: 'i-text',
@@ -2107,7 +1998,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '128',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -2156,7 +2047,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '129',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'rect',
@@ -2194,7 +2085,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '130'
+                            id: '130',
                           },
                           {
                             type: 'rect',
@@ -2232,7 +2123,7 @@ const experimentObject = {
                             skewY: 0,
                             rx: 0,
                             ry: 0,
-                            id: '131'
+                            id: '131',
                           },
                           {
                             type: 'i-text',
@@ -2281,7 +2172,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '132',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -2330,7 +2221,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '133',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -2379,7 +2270,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '134',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'i-text',
@@ -2428,7 +2319,7 @@ const experimentObject = {
                             textBackgroundColor: '',
                             charSpacing: 0,
                             id: '135',
-                            styles: {}
+                            styles: {},
                           },
                           {
                             type: 'circle',
@@ -2467,7 +2358,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '136'
+                            id: '136',
                           },
                           {
                             type: 'circle',
@@ -2506,7 +2397,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '137'
+                            id: '137',
                           },
                           {
                             type: 'circle',
@@ -2545,7 +2436,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '138'
+                            id: '138',
                           },
                           {
                             type: 'circle',
@@ -2584,7 +2475,7 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '139'
+                            id: '139',
                           },
                           {
                             type: 'circle',
@@ -2623,8 +2514,8 @@ const experimentObject = {
                             radius: 10,
                             startAngle: 0,
                             endAngle: 6.283185307179586,
-                            id: '140'
-                          }
+                            id: '140',
+                          },
                         ],
                         files: {},
                         parameters: {},
@@ -2634,31 +2525,28 @@ const experimentObject = {
                         title: 'Pause',
                         skip: '${this.state.correct === true}',
                         timeout: '3000',
-                        tardy: true
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
+                        tardy: true,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
         },
         {
           type: 'lab.html.Screen',
           files: {},
           parameters: {},
           responses: {
-            'keypress(Space)': 'end'
+            'keypress(Space)': 'end',
           },
           messageHandlers: {},
           title: 'End',
           content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n'
-        }
-      ]
-    }
-  ]
+            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',
+        },
+      ],
+    },
+  ],
 };
-
-// export
-export default experimentObject;

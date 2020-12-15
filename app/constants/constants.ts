@@ -1,12 +1,12 @@
 export enum EXPERIMENTS {
   NONE = 'NONE',
-  P300 = 'Visual Oddball',
   N170 = 'Faces and Houses',
-  SSVEP = 'Steady-state Visual Evoked Potential',
   STROOP = 'Stroop Task',
   MULTI = 'Multi-tasking',
   SEARCH = 'Visual Search',
-  CUSTOM = 'Custom',
+  // CUSTOM = 'Custom',
+  // P300 = 'Visual Oddball',
+  // SSVEP = 'Steady-state Visual Evoked Potential',
 }
 
 export const SCREENS = {
