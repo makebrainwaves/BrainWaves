@@ -14,7 +14,7 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import { HelpSidebar, HelpButton } from './HelpSidebar';
 import styles from '../styles/collect.css';
-import { loadProtocol } from '../../utils/labjs/functions';
+import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
 import {
   DEVICES,
@@ -23,7 +23,7 @@ import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
 } from '../../constants/constants';
-import { ExperimentParameters, Trial } from '../../constants/interfaces';
+import { ExperimentParameters } from '../../constants/interfaces';
 
 interface Props {
   ExperimentActions: typeof ExperimentActions;
@@ -93,11 +93,11 @@ export default class PreTestComponent extends Component<Props, State> {
     if (this.state.isPreviewing) {
       return (
         <PreviewExperimentComponent
-          {...loadProtocol(this.props.type)}
+          {...getExperimentFromType(this.props.type)}
           isPreviewing={this.state.isPreviewing}
           onEnd={this.endPreview}
           type={this.props.type}
-          previewParams={this.props.params}
+          params={this.props.params}
           title={this.props.title}
         />
       );

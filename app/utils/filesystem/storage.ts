@@ -194,15 +194,23 @@ export const readImages = (dir: string) =>
   });
 
 // Returns an array of images that are used in a timeline for use in preloading
-export const getImages = (params: ExperimentParameters) =>
-  fs
-    .readdirSync(params.stimulus1.dir)
-    .map((filename) => path.join(params.stimulus1.dir, filename))
-    .concat(
-      fs
-        .readdirSync(params.stimulus2.dir)
-        .map((filename) => path.join(params.stimulus2.dir, filename))
-    );
+export const getImages = (params: ExperimentParameters) => {
+  if (!params.stimuli) {
+    return [];
+  }
+  const images: string[] = [];
+
+  for (const stimuli of params.stimuli) {
+    const { dir } = stimuli;
+    if (dir) {
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        images.push(path.join(dir, file));
+      }
+    }
+  }
+  return images;
+};
 
 // -----------------------------------------------------------------------------------------------
 // Util
