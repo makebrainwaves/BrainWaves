@@ -13,7 +13,10 @@ const rootReducer = createRootReducer(history);
 export type RootState = ReturnType<typeof rootReducer>;
 
 const router = routerMiddleware(history);
-const middleware = [...getDefaultMiddleware(), router];
+const middleware = [
+  ...getDefaultMiddleware({ serializableCheck: false }),
+  router,
+];
 
 // Redux Observable (Epic) Middleware
 const epicMiddleware = createEpicMiddleware();

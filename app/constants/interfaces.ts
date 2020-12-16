@@ -20,22 +20,21 @@ export interface WorkSpaceInfo {
 
 // All mutable aspects of an experiment that can be updated by the DesignComponent
 export type ExperimentParameters = {
-  trialDuration: number;
-  nbTrials: number;
+  // TODO: consider refactoring to expose lab.js sample.mode
+  description?: ExperimentDescription;
+  intro: string;
   iti: number;
   jitter: number;
-  sampleType: string;
-  intro: string;
-  showProgressBar: boolean;
-  stimuli: Stimulus[];
   nbPracticeTrials?: number;
-  // 'random' | 'sequential';
-  // TODO: consider refactoring to expose lab.js sample.mode
-  randomize?: string;
-  selfPaced?: boolean;
+  nbTrials: number;
   presentationTime?: number;
+  randomize?: 'random' | 'sequential';
+  sampleType: string;
+  selfPaced?: boolean;
+  showProgressBar: boolean;
+  stimuli?: Stimulus[];
   taskHelp?: string;
-  description: ExperimentDescription;
+  trialDuration: number;
 };
 
 export interface Stimulus {
@@ -43,9 +42,9 @@ export interface Stimulus {
   response?: string;
   phase?: string;
   type: EVENTS;
-  dir: string;
+  dir?: string;
   title: string;
-  filename: string;
+  filename?: string;
 }
 
 interface ExperimentDescription {

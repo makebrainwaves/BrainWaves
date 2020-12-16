@@ -302,7 +302,7 @@ export default class Home extends Component<Props, State> {
                 />
               </Grid.Column>
 
-              {/* <Grid.Column>
+              <Grid.Column>
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
                   icon={stroopIcon}
@@ -313,7 +313,6 @@ export default class Home extends Component<Props, State> {
                 />
               </Grid.Column>
             </Grid.Row>
-
             <Grid.Row>
               <Grid.Column>
                 <ExperimentCard
@@ -334,9 +333,8 @@ export default class Home extends Component<Props, State> {
                             messy room.`}
                 />
               </Grid.Column>
-            </Grid.Row> */}
-
-              {/* <Grid.Row> */}
+            </Grid.Row>
+            {/* <Grid.Row>
               <Grid.Column>
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
@@ -347,7 +345,7 @@ export default class Home extends Component<Props, State> {
               </Grid.Column>
 
               <Grid.Column />
-            </Grid.Row>
+            </Grid.Row> */}
           </Grid>
         );
       case HOME_STEPS.EXPLORE:

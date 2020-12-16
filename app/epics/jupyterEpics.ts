@@ -153,7 +153,7 @@ const loadEpochsEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
   action$,
   state$
 ) =>
-  // @ts-ignore
+  // @ts-expect-error
   action$.pipe(
     filter(isActionOf(JupyterActions.LoadEpochs)),
     pluck('payload'),
@@ -166,18 +166,22 @@ const loadEpochsEpic: Epic<JupyterActionType, JupyterActionType, RootState> = (
     awaitOkMessage(action$),
     execute(filterIIR(1, 30), state$),
     awaitOkMessage(action$),
-    map(() =>
-      epochEvents(
-        {
-          [state$.value.experiment.params!.stimulus1!.title]: EVENTS.STIMULUS_1,
-          [state$.value.experiment.params!.stimulus2!.title]: EVENTS.STIMULUS_2,
-          [state$.value.experiment.params!.stimulus3!.title]: EVENTS.STIMULUS_3,
-          [state$.value.experiment.params!.stimulus4!.title]: EVENTS.STIMULUS_4,
-        },
+    map(() => {
+      if (!state$.value.experiment.params?.stimuli) {
+        return {};
+      }
+
+      return epochEvents(
+        Object.fromEntries(
+          state$.value.experiment.params?.stimuli.map((stimulus, i) => [
+            stimulus.title,
+            i,
+          ])
+        ),
         -0.1,
         0.8
-      )
-    ),
+      );
+    }),
     tap((e) => {
       console.log('e', e);
     }),

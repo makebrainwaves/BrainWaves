@@ -8,27 +8,33 @@ import {
   Stimulus,
 } from '../../constants/interfaces';
 import facesHousesExperiment from '../../experiments/faces_houses';
+import stroopExperiment from '../../experiments/stroop';
+// import customExperiment from '../../experiments/custom';
+import searchExperiment from '../../experiments/search';
+import multitaskingExperiment from '../../experiments/multitasking';
 
-// Returns  all data necessary to fully describe an experiment from the experiment type
-// Used in order to instantiate experiment state in redux when creating a new workspace,
-// Consumers can access whichever field they are interested in
+/**
+ * Returns  all data necessary to fully describe an experiment from the experiment type
+ * Used in order to instantiate experiment state in redux when creating a new workspace,
+ * Consumers can access whichever field they are interested in
+ */
 export function getExperimentFromType(type: EXPERIMENTS): Experiment {
   switch (type) {
-    case EXPERIMENTS.CUSTOM:
-      return facesHousesExperiment;
     case EXPERIMENTS.MULTI:
-      return facesHousesExperiment;
-    case EXPERIMENTS.N170:
-      return facesHousesExperiment;
+      return multitaskingExperiment;
+    case EXPERIMENTS.STROOP:
+      return stroopExperiment;
     case EXPERIMENTS.NONE:
       return facesHousesExperiment;
-    case EXPERIMENTS.P300:
-      return facesHousesExperiment;
+    // case EXPERIMENTS.CUSTOM:
+    // return facesHousesExperiment;
+    // case EXPERIMENTS.P300:
+    //   return p300Experiment;
     case EXPERIMENTS.SEARCH:
-      return facesHousesExperiment;
-    case EXPERIMENTS.SSVEP:
-      return facesHousesExperiment;
-    case EXPERIMENTS.STROOP:
+      return searchExperiment;
+    // case EXPERIMENTS.SSVEP:
+    //   return ssvepExperiment;
+    case EXPERIMENTS.N170:
     default:
       return facesHousesExperiment;
   }
@@ -61,8 +67,16 @@ export function initPracticeLoopWithStimuli(this: lab.flow.Loop) {
   this.options.shuffle = randomize === 'random';
 }
 
-function balanceStimuliByCondition(stimuli: Stimulus[], nbTrials: number) {
-  if (stimuli.length === 0 || nbTrials === 0) {
+/**
+ * Ensures that the experiment will display equal numbers of each type of stimuli
+ *  If asset files are included in the stimuli, will also ensure there is a convenient filepath
+ * field that can be used to render the assets in the experiment
+ */
+function balanceStimuliByCondition(
+  stimuli: Stimulus[] | undefined,
+  nbTrials: number
+) {
+  if (!stimuli || stimuli.length === 0 || nbTrials === 0) {
     return [];
   }
 
@@ -96,27 +110,31 @@ function balanceStimuliByCondition(stimuli: Stimulus[], nbTrials: number) {
   }
 
   // Add filepath parameter for lab.js usage convenience
-  const balancedStimuliWithFilePath = balancedStimuli.map((stimulus) => ({
-    ...stimulus,
-    filepath: path.join(stimulus.dir, stimulus.filename),
-  }));
+  const balancedStimuliWithFilePath = balancedStimuli.map((stimulus) => {
+    if (stimulus.dir && stimulus.filename) {
+      return {
+        ...stimulus,
+        filepath: path.join(stimulus.dir, stimulus.filename),
+      };
+    }
+    return stimulus;
+  });
 
   return balancedStimuliWithFilePath;
 }
 
+/**
+ * This code registers an event listener for this screen.
+ * On a keydown event, we record the key and the time of response.
+ * We also record whether the response was correct (by comparing
+ * the pressed key with the correct response which is defined inside the Experiment loop).
+ */
 export function initResponseHandlers(this: lab.core.Component) {
   const {
     options: { id },
     parameters: { response },
   }: { parameters: Stimulus; options: ComponentOptions } = this;
   if (!id) return;
-
-  // Arguments = stimuli, this.options.id, this.data, this.options.events
-  // This code registers an event listener for this screen.
-  // We have a timeout for this screen, but we also want to record responses.
-  // On a keydown event, we record the key and the time of response.
-  // We also record whether the response was correct (by comparing the pressed key with the correct response which is defined inside the Experiment loop).
-  // "this" in the code means the lab.js experiment.
 
   this.data.trial_number =
     1 + parseInt(id.split('_')[id.split('_').length - 2], 10);
@@ -145,4 +163,33 @@ export function triggerEEGCallback(this: lab.core.Component) {
 
 export function resetCorrectResponse(this: lab.core.Component) {
   this.data.correct_response = false;
+}
+
+// -------------------------------------------------------------
+// Stroop
+
+// Initializes the data required to compute response accuracy in the stroop experiment
+export function initStroopTrial(this: lab.core.Component) {
+  if (!this.options.id) {
+    return;
+  }
+  this.data.trial_number =
+    1 +
+    parseInt(
+      this.options.id.split('_')[this.options.id.split('_').length - 2],
+      10
+    );
+
+  this.data.condition =
+    this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch';
+
+  this.data.reaction_time = this.state.duration;
+
+  if (this.state.response === this.parameters.color) {
+    this.data.correct_response = true;
+  } else {
+    this.data.correct_response = false;
+  }
+
+  this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
 }

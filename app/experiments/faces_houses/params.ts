@@ -26,6 +26,12 @@ const stimuli = Array.from({ length: 30 }, (_, i) => `Face${i + 1}`)
     type: s.startsWith('Face') ? EVENTS.STIMULUS_1 : EVENTS.STIMULUS_2,
   }));
 
+/**
+ * NOTE: this params object may contain additional parameters in use by the experiment that are not
+ * explicitly defined in the ExperimentParameters interface, which explicitly defines parameters that can be tweaked
+ * in the current custom experiment UI.
+ * This inconsistency will likely be able to be fixed when updating to a lab.js builder-based experiment design flow
+ *  */
 export const params = {
   imageHeight: '500px',
   randomize: 'random',
@@ -62,4 +68,4 @@ export const params = {
   //   response: '9',
   // },
   stimuli,
-};
+} as const;

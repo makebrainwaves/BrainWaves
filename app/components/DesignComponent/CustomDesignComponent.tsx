@@ -10,27 +10,19 @@ import {
   Table,
   CheckboxProps,
 } from 'semantic-ui-react';
-import { isNil, isString } from 'lodash';
-import { History } from 'history';
+import { isString } from 'lodash';
 
 import styles from '../styles/common.css';
-import { EXPERIMENTS, SCREENS } from '../../constants/constants';
-import {
-  ExperimentObject,
-  ExperimentParameters,
-} from '../../constants/interfaces';
+import { SCREENS } from '../../constants/constants';
+import { ExperimentParameters } from '../../constants/interfaces';
 import { DesignProps } from './index';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
-import StimuliDesignColumn from './StimuliDesignColumn';
 import { ParamSlider } from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
-import { readImages } from '../../utils/filesystem/storage';
-import { StimuliRow } from './StimuliRow';
-import { ExperimentActions } from '../../actions/experimentActions';
 
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -112,6 +104,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
   }
 
   handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
+    // @ts-expect-error
     this.setState((prevState) => ({
       params: {
         ...prevState.params,
@@ -152,7 +145,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   autoHeight
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.QUESTION}
-                  value={this.state.params.description.question}
+                  value={this.state.params.description?.question}
                   placeholder="Explain your research question here."
                   onChange={(event, data) => {
                     if (!isString(data.value)) {
@@ -176,7 +169,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   autoHeight
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.HYPOTHESIS}
-                  value={this.state.params.description.hypothesis}
+                  value={this.state.params.description?.hypothesis}
                   placeholder="Describe your hypothesis here."
                   onChange={(event, data) => {
                     if (!isString(data.value)) {
@@ -200,7 +193,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   autoHeight
                   style={{ minHeight: 100, maxHeight: 400 }}
                   label={FIELDS.METHODS}
-                  value={this.state.params.description.methods}
+                  value={this.state.params.description?.methods}
                   placeholder="Explain how you will design your experiment to answer the question here."
                   onChange={(event, data) => {
                     if (!isString(data.value)) {
