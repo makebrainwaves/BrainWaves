@@ -4,7 +4,7 @@ export enum EXPERIMENTS {
   STROOP = 'Stroop Task',
   MULTI = 'Multi-tasking',
   SEARCH = 'Visual Search',
-  // CUSTOM = 'Custom',
+  CUSTOM = 'Custom',
   // P300 = 'Visual Oddball',
   // SSVEP = 'Steady-state Visual Evoked Potential',
 }
