@@ -68,8 +68,8 @@ export function initPracticeLoopWithStimuli(this: lab.flow.Loop) {
 }
 
 /**
- * Ensures that the experiment will display equal numbers of eazch type of stimuli
- *  If asset files are included in the stimuliu, will also ensure there is a convenient filepath
+ * Ensures that the experiment will display equal numbers of each type of stimuli
+ *  If asset files are included in the stimuli, will also ensure there is a convenient filepath
  * field that can be used to render the assets in the experiment
  */
 function balanceStimuliByCondition(
