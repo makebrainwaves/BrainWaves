@@ -11,14 +11,16 @@ export const params = {
   we just want to know how quickly you can find an orange T amongst blue Ts
   and upside-down orange Ts. Sounds easy! But it is not at all that easy!`,
   showProgressBar: false,
-  stimulus1: {
-    title: '5 and 10 letters',
-    type: EVENTS.STIMULUS_1,
-    response: '1',
-  },
-  stimulus2: {
-    title: '15 and 20 letters',
-    type: EVENTS.STIMULUS_2,
-    response: '9',
-  },
+  stimulus: [
+    {
+      title: '5 and 10 letters',
+      type: EVENTS.STIMULUS_1,
+      response: '1',
+    },
+    {
+      title: '15 and 20 letters',
+      type: EVENTS.STIMULUS_2,
+      response: '9',
+    },
+  ],
 };

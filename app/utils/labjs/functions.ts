@@ -30,8 +30,8 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
     // return facesHousesExperiment;
     // case EXPERIMENTS.P300:
     //   return p300Experiment;
-    // case EXPERIMENTS.SEARCH:
-    //   return searchExperiment;
+    case EXPERIMENTS.SEARCH:
+      return searchExperiment;
     // case EXPERIMENTS.SSVEP:
     //   return ssvepExperiment;
     case EXPERIMENTS.N170:
