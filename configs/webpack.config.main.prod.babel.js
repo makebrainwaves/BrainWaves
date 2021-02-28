@@ -56,17 +56,21 @@ export default merge(baseConfig, {
      * NODE_ENV should be production so that modules do not perform certain
      * development checks
      *
-     * The keys for emotiv SDK usage are piped into prod builds here via
-     * env variables set by secrets in Github Actions
      */
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
       E2E_BUILD: false,
-      CLIENT_ID: process.env.CLIENT_ID,
-      CLIENT_SECRET: process.env.CLIENT_SECRET,
-      LICENSE_ID: process.env.LICENSE_ID,
+    }),
+    /**
+     * The keys for emotiv SDK usage are piped into prod builds here via
+     * env variables set by secrets in Github Actions
+     */
+    new webpack.DefinePlugin({
+      CLIENT_ID: JSON.stringify(process.env.CLIENT_ID),
+      CLIENT_SECRET: JSON.stringify(process.env.CLIENT_SECRET),
+      LICENSE_ID: JSON.stringify(process.env.LICENSE_ID),
     }),
   ],
 

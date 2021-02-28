@@ -6,8 +6,5 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET; // Created through Cortex Apps 
 const LICENSE_ID = process.env.LICENSE_ID; // Visible on My Account page of Emotiv.com
 
 const envVars = { CLIENT_ID, CLIENT_SECRET, LICENSE_ID };
-Object.keys(envVars).forEach((k) =>
-  console.log(typeof envVars[k] === 'string')
-);
 
 module.exports = { CLIENT_ID, CLIENT_SECRET, LICENSE_ID };

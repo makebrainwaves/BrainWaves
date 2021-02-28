@@ -1,7 +1,7 @@
 {
   "name": "BrainWaves",
   "productName": "BrainWaves",
-  "version": "0.15.0-rc3",
+  "version": "0.15.0",
   "description": "EEG Desktop Application",
   "main": "./main.prod.js",
   "type": "module",

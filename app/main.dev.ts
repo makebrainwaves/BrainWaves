@@ -103,8 +103,6 @@ const createWindow = async () => {
       mainWindow.show();
       mainWindow.focus();
     }
-    // Force dev console open for debug
-    mainWindow.webContents.openDevTools();
   });
 
   mainWindow.on('closed', () => {
