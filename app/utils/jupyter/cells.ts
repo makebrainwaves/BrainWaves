@@ -22,7 +22,7 @@ export const imports = () =>
   ].join('\n');
 
 export const utils = () =>
-  readFileSync(path.join(__dirname, '/utils/jupyter/utils.py'), 'utf8');
+  readFileSync(path.join(process.resourcesPath, '/utils/jupyter/utils.py'), 'utf8');
 
 export const loadCSV = (filePathArray: Array<string>) =>
   [

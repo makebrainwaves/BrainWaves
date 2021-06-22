@@ -8,7 +8,7 @@ import {
   triggerEEGCallback,
 } from './utils';
 
-const rootFolder = __dirname;
+const rootFolder = process.resourcesPath;
 const assetsDirectory = path.join(
   rootFolder,
   'experiments',

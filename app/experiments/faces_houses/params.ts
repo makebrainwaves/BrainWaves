@@ -2,7 +2,7 @@ import * as path from 'path';
 import { EVENTS } from '../../constants/constants';
 
 // Default directories containing stimuli
-const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
+const rootFolder = process.resourcesPath; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
 const parentDir = path.join(
   rootFolder,
@@ -55,17 +55,5 @@ export const params = {
     hypothesis: '',
     methods: '',
   },
-  // stimulus1: {
-  //   dir: facesDir,
-  //   title: 'Face',
-  //   type: EVENTS.STIMULUS_1,
-  //   response: '1',
-  // },
-  // stimulus2: {
-  //   dir: housesDir,
-  //   title: 'House',
-  //   type: EVENTS.STIMULUS_2,
-  //   response: '9',
-  // },
   stimuli,
 } as const;

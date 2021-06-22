@@ -2,7 +2,7 @@ import * as path from 'path';
 import { EVENTS } from '../../../constants/constants';
 
 // Default directories containing stimuli
-const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
+const rootFolder = process.resourcesPath; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
 const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
 
