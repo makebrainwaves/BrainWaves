@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Subscription, Observable } from 'rxjs';
 import { isNil } from 'lodash';
-import { WebviewTag } from 'electron';
+import { WebviewTag, app } from 'electron';
 import {
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
