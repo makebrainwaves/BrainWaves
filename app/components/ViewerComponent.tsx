@@ -117,7 +117,7 @@ class ViewerComponent extends Component<Props, State> {
     return (
       <webview
         id="eegView"
-        src={`file://${__dirname}/viewer.html`}
+        src={`file://${app.getAppPath()}/viewer.html`}
         autosize={trueAsString}
         nodeintegration={trueAsString}
         plugins={trueAsString}

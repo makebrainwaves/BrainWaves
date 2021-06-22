@@ -1,6 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 
 import * as path from 'path';
+import { app } from 'electron';
 import {
   initMultitaskingResponseHandlers,
   initTasks,
@@ -8,7 +9,7 @@ import {
   triggerEEGCallback,
 } from './utils';
 
-const rootFolder = __dirname;
+const rootFolder = app.getAppPath();
 const assetsDirectory = path.join(
   rootFolder,
   'experiments',

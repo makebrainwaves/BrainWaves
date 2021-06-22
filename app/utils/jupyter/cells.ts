@@ -2,6 +2,7 @@
 // File we be replaced by pyodide update
 import * as path from 'path';
 import { readFileSync } from 'fs';
+import { app } from 'electron';
 
 export const imports = () =>
   [
@@ -22,7 +23,7 @@ export const imports = () =>
   ].join('\n');
 
 export const utils = () =>
-  readFileSync(path.join(__dirname, '/utils/jupyter/utils.py'), 'utf8');
+  readFileSync(path.join(app.getAppPath(), '/utils/jupyter/utils.py'), 'utf8');
 
 export const loadCSV = (filePathArray: Array<string>) =>
   [
