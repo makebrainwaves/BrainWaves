@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
-import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
+import { Grid, Button, Header, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import * as moment from 'moment';
 import { History } from 'history';
@@ -18,7 +18,7 @@ import faceHouseIcon from '../../experiments/faces_houses/icon.png';
 import stroopIcon from '../../experiments/stroop/icon.png';
 import multitaskingIcon from '../../experiments/multitasking/icon.png';
 import searchIcon from '../../experiments/search/icon.png';
-import customIcon from '../../experiments/custom/icon.png';
+// import customIcon from '../../experiments/custom/icon.png';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';
 import {
@@ -39,9 +39,8 @@ import OverviewComponent from './OverviewComponent';
 import EEGExplorationComponent from '../EEGExplorationComponent';
 import { SignalQualityData } from '../../constants/interfaces';
 import { getExperimentFromType } from '../../utils/labjs/functions';
-import { languagePluginLoader } from '../../utils/pyodide/pyodide';
-const { dialog } = remote;
 
+const { dialog } = remote;
 
 const HOME_STEPS = {
   // TODO: maybe change the recent and new labels, but not necessary right now

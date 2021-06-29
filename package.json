@@ -276,6 +276,7 @@
     "@nteract/transforms": "^4.4.7",
     "@reduxjs/toolkit": "^1.4.0",
     "ajv": "^6.12.2",
+    "caniuse-lite": "^1.0.30001241",
     "connected-react-router": "^6.6.1",
     "core-js": "^3.6.5",
     "d3": "^5.16.0",
