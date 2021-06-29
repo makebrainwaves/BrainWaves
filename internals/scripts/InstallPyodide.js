@@ -6,9 +6,9 @@ import tar from 'tar-fs';
 import url from 'url';
 import bz2 from 'unbzip2-stream';
 
-const PYODIDE_VERSION = '0.14.3';
+const PYODIDE_VERSION = '0.17.0';
 const TAR_NAME = `pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
-const TAR_URL = `https://github.com/iodide-project/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
+const TAR_URL = `https://github.com/pyodide/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
 const PYODIDE_DIR = 'app/utils/pyodide/src/';
 
 const writeAndUnzipFile = (response) => {
