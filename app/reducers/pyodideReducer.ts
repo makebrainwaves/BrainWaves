@@ -38,12 +38,6 @@ const initialState = {
 
 export default createReducer(initialState, (builder) =>
   builder
-    .addCase(PyodideActions.SetMainChannel, (state, action) => {
-      return {
-        ...state,
-        mainChannel: action.payload,
-      };
-    })
     .addCase(PyodideActions.SetEpochInfo, (state, action) => {
       return {
         ...state,
