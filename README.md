@@ -55,7 +55,7 @@ following command on Windows_
 
 ## Installing from Source (for developers)
 
-- Make sure you have node version >= 7, npm version >= 4 and have followed the [Environment Setup](https://github.com/makebrainwaves/BrainWaves#environment-setup) instructions
+- Make sure you have node version >= 7, yarn, and have followed the [Environment Setup](https://github.com/makebrainwaves/BrainWaves#environment-setup) instructions
 
 ### OS X
 
@@ -85,7 +85,7 @@ git clone https://github.com/makebrainwaves/BrainWaves.git
 
 ```bash
 $ cd BrainWaves
-$ npm install
+$ yarn install
 ```
 
 3. If using Emotiv, insert your Emotiv account's credentials into the file
@@ -98,7 +98,7 @@ Start the app in the `dev` environment. This starts the renderer process in
 starts a webpack dev server that sends hot updates to the renderer process:
 
 ```bash
-$ npm run dev
+$ yarn dev
 ```
 
 Alternatively, you can run the renderer and main processes separately. This way,
@@ -106,8 +106,8 @@ you can restart one process without waiting for the other. Run these two
 commands **simultaneously** in different console tabs:
 
 ```bash
-$ npm run start-renderer-dev
-$ npm run start-main-dev
+$ yarn start-renderer-dev
+$ yarn start-main-dev
 ```
 
 ## Packaging
@@ -115,7 +115,7 @@ $ npm run start-main-dev
 To package apps for the local platform:
 
 ```bash
-$ npm run package
+$ yarn package
 ```
 
 To package apps for all platforms:
@@ -127,27 +127,27 @@ dependencies.
 Then,
 
 ```bash
-$ npm run package-all
+$ yarn package-all
 ```
 
 To package apps with options:
 
 ```bash
-$ npm run package -- --[option]
+$ yarn package -- --[option]
 ```
 
 To run End-to-End Test
 
 ```bash
-$ npm run build
-$ npm run test-e2e
+$ yarn build
+$ yarn test-e2e
 ```
 
 :bulb: You can debug your production build with devtools by simply setting the
 `DEBUG_PROD` env variable:
 
 ```bash
-DEBUG_PROD=true npm run package
+DEBUG_PROD=true yarn package
 ```
 
 ## Contributing
