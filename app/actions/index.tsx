@@ -1,3 +1,3 @@
 export * from './experimentActions';
-export * from './jupyterActions';
+export * from './pyodideActions';
 export * from './deviceActions';
