@@ -3,35 +3,30 @@
  * pyodide to be used in a web worker within this
  */
 
-self.languagePluginUrl = './src';
-importScripts('./pyodide.js');
+//  self.languagePluginUrl = './src';
+importScripts('./src/pyodide/pyodide.js');
 
-const onmessage = function (e) {
-  // eslint-disable-line no-unused-vars
-  languagePluginLoader.then(() => {
-    // Preloaded packages
-    self.pyodide.loadPackage(['matplotlib', 'mne', 'pandas']).then(() => {
-      const { data } = e;
-      const keys = Object.keys(data);
-      for (const key of keys) {
-        if (key !== 'python') {
-          // Keys other than python must be arguments for the python script.
-          // Set them on self, so that `from js import key` works.
-          self[key] = data[key];
-        }
-      }
+async function loadPyodideAndPackages() {
+  await loadPyodide({ indexURL: './src/pyodide/src/pyodide' });
+  await self.pyodide.loadPackage(['matplotlib', 'mne', 'pandas']);
+}
+let pyodideReadyPromise = loadPyodideAndPackages();
 
-      self.pyodide
-        .runPythonAsync(data.python, () => {})
-        .then((results) => {
-          self.postMessage({ results });
-        })
-        .catch((err) => {
-          // if you prefer messages with the error
-          self.postMessage({ error: err.message });
-          // if you prefer onerror events
-          // setTimeout(() => { throw err; });
-        });
+self.onmessage = async (event) => {
+  // make sure loading is done
+  await pyodideReadyPromise;
+  // Don't bother yet with this line, suppose our API is built in such a way:
+  const { python, ...context } = event.data;
+  // The worker copies the context in its own "memory" (an object mapping name to values)
+  for (const key of Object.keys(context)) {
+    self[key] = context[key];
+  }
+  // Now is the easy part, the one that is similar to working in the main thread:
+  try {
+    self.postMessage({
+      results: await self.pyodide.runPythonAsync(python),
     });
-  });
+  } catch (error) {
+    self.postMessage({ error: error.message });
+  }
 };
