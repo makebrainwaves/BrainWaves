@@ -8,9 +8,3 @@ export const readFiles = (filePathsArray) => {
     return file;
   });
 };
-
-// -------------------------------------------
-// Helper methods
-
-const formatFilePath = (filePath: string) =>
-  `"${filePath.replace(/\\/g, '/')}"`;

@@ -92,7 +92,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidMount() {
-    this.props.PyodideActions.launch();
+    this.props.PyodideActions.Launch();
     this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
