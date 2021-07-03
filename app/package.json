@@ -1,8 +1,8 @@
 {
-  "name": "BrainWaves",
+  "name": "brainwaves",
   "productName": "BrainWaves",
   "version": "0.15.1",
-  "description": "EEG Desktop Application",
+  "description": "EEG Experiment Desktop Application",
   "main": "./main.prod.js",
   "type": "module",
   "author": {
@@ -10,11 +10,34 @@
     "email": "dano@neurotechx.com",
     "url": "https://github.com/makebrainwaves"
   },
+  "contributors": [
+    {
+      "name": "Teon L Brooks",
+      "url": "https://teonbrooks.com"
+    },
+    {
+      "name": "Yury Shevchenko",
+      "url": "https://yuryshevchenko.com/"
+    }
+  ],
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
     "postinstall": "yarn electron-rebuild"
   },
   "license": "MIT",
+  "keywords": [
+    "eeg",
+    "electron",
+    "react",
+    "redux",
+    "redux-observable",
+    "muse",
+    "emotiv",
+    "pyodide",
+    "wasm",
+    "lab.js"
+  ],
+  "homepage": "https://github.com/makebrainwaves/BrainWaves/",
   "dependencies": {
     "@neurosity/pipes": "^3.2.3",
     "@babel/runtime": "7.10.2",
