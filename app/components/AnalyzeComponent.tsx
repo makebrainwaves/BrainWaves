@@ -18,7 +18,6 @@ import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
-  KERNEL_STATUS,
   EXPERIMENTS,
 } from '../constants/constants';
 import {
@@ -36,7 +35,6 @@ import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import PyodidePlotWidget from './PyodidePlotWidget';
 import { HelpButton } from './CollectComponent/HelpSidebar';
-import { Kernel } from '../constants/interfaces';
 import { PyodideActions } from '../actions/pyodideActions';
 
 const ANALYZE_STEPS = {
@@ -54,8 +52,6 @@ interface Props {
   type: EXPERIMENTS;
   deviceType: DEVICES;
   isEEGEnabled: boolean;
-  kernel: Kernel;
-  kernelStatus: KERNEL_STATUS;
   mainChannel: any;
   epochsInfo: Array<{
     [key: string]: number | string;
