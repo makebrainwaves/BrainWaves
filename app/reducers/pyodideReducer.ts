@@ -2,7 +2,6 @@ import { createReducer } from '@reduxjs/toolkit';
 import { PyodideActions, ExperimentActions } from '../actions';
 
 export interface PyodideStateType {
-  readonly mainChannel: any | null | undefined;
   readonly epochsInfo: Array<{
     [key: string]: number | string;
   }>;
@@ -28,7 +27,6 @@ export interface PyodideStateType {
 }
 
 const initialState = {
-  mainChannel: null,
   epochsInfo: [],
   channelInfo: [],
   psdPlot: null,

@@ -27,7 +27,6 @@ export interface Props {
   type?: EXPERIMENTS;
   title: string;
   deviceType: DEVICES;
-  mainChannel?: any;
   epochsInfo: Array<{
     [key: string]: number | string;
   }>;
