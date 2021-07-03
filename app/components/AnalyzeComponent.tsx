@@ -52,7 +52,6 @@ interface Props {
   type: EXPERIMENTS;
   deviceType: DEVICES;
   isEEGEnabled: boolean;
-  mainChannel: any;
   epochsInfo: Array<{
     [key: string]: number | string;
   }>;
