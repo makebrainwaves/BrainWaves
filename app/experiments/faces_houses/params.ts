@@ -2,10 +2,13 @@ import * as path from 'path';
 import { EVENTS } from '../../constants/constants';
 
 // Default directories containing stimuli
-const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
+const resourcePath =
+  !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
+    ? process.resourcesPath // Live Mode
+    : __dirname; // Dev Mode
 
 const parentDir = path.join(
-  rootFolder,
+  resourcePath,
   'experiments',
   'faces_houses',
   'stimuli'

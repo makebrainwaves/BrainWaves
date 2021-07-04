@@ -7,6 +7,7 @@ import {
   EMOTIV_CHANNELS,
   DEVICES,
   VIEWER_DEFAULTS,
+  RESOURCE_PATH,
 } from '../constants/constants';
 import { PipesEpoch, SignalQualityData } from '../constants/interfaces';
 
@@ -117,7 +118,7 @@ class ViewerComponent extends Component<Props, State> {
     return (
       <webview
         id="eegView"
-        src={`file://${__dirname}/viewer.html`}
+        src={`file://${RESOURCE_PATH}/app/viewer.html`}
         autosize={trueAsString}
         nodeintegration={trueAsString}
         plugins={trueAsString}
