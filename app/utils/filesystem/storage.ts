@@ -26,7 +26,7 @@ export const createWorkspaceDir = (title: string) =>
 
 // Opens a workspace folder in explorer (or other native OS filesystem browser)
 export const openWorkspaceDir = (title: string) =>
-  shell.openItem(path.join(workspaces, title));
+  shell.showItemInFolder(path.join(workspaces, title));
 
 // -----------------------------------------------------------------------------------------------
 // Storing

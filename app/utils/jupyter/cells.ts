@@ -2,6 +2,7 @@
 // File we be replaced by pyodide update
 import * as path from 'path';
 import { readFileSync } from 'fs';
+import { RESOURCE_PATH } from '../../constants/constants';
 
 export const imports = () =>
   [
@@ -18,24 +19,24 @@ export const imports = () =>
     'import numpy as np',
     'import seaborn as sns',
     'from matplotlib import pyplot as plt',
-    "plt.style.use('fivethirtyeight')"
+    "plt.style.use('fivethirtyeight')",
   ].join('\n');
 
 export const utils = () =>
-  readFileSync(path.join(__dirname, '/utils/jupyter/utils.py'), 'utf8');
+  readFileSync(path.join(RESOURCE_PATH, '/utils/jupyter/utils.py'), 'utf8');
 
 export const loadCSV = (filePathArray: Array<string>) =>
   [
-    `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
+    `files = [${filePathArray.map((filePath) => formatFilePath(filePath))}]`,
     `replace_ch_names = None`,
-    `raw = load_data(files, replace_ch_names)`
+    `raw = load_data(files, replace_ch_names)`,
   ].join('\n');
 
 export const loadCleanedEpochs = (filePathArray: Array<string>) =>
   [
-    `files = [${filePathArray.map(filePath => formatFilePath(filePath))}]`,
+    `files = [${filePathArray.map((filePath) => formatFilePath(filePath))}]`,
     `clean_epochs = concatenate_epochs([read_epochs(file) for file in files])`,
-    `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`
+    `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
   ].join('\n');
 
 // NOTE: this command includes a ';' to prevent returning data
@@ -54,7 +55,7 @@ export const epochEvents = (
   reject: Array<string> | string = 'None'
 ) => {
   const IDs = Object.keys(eventIDs)
-    .filter(k => k !== '')
+    .filter((k) => k !== '')
     .reduce((res, key) => ((res[key] = eventIDs[key]), res), {});
   const command = [
     `event_id = ${JSON.stringify(IDs)}`,
@@ -67,7 +68,7 @@ export const epochEvents = (
     `raw_epochs = Epochs(raw, events=events, event_id=event_id,
                       tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True,
                       verbose=False, picks=picks)`,
-    `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`
+    `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`,
   ].join('\n');
   return command;
 };
@@ -81,7 +82,7 @@ export const requestChannelInfo = () =>
 export const cleanEpochsPlot = () =>
   [
     `%matplotlib`,
-    `raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`
+    `raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`,
   ].join('\n');
 
 export const plotTopoMap = () =>
@@ -91,7 +92,7 @@ export const plotERP = (channelIndex: number | string) =>
   [
     `%matplotlib inline`,
     `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions,
-    ci=97.5, n_boot=1000, title='', diff_waveform=None)`
+    ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
   ].join('\n');
 
 export const saveEpochs = (workspaceDir: string, subject: string) =>

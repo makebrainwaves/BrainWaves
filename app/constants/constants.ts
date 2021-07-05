@@ -139,3 +139,8 @@ export enum FILE_TYPES {
   STIMULUS_DIR = 'STIMULUS_DIR',
   TIMELINE = 'TIMELINE',
 }
+
+export const RESOURCE_PATH =
+  !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
+    ? process.resourcesPath // Live Mode
+    : __dirname; // Dev Mode

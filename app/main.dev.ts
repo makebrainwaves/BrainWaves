@@ -23,6 +23,8 @@ app.commandLine.appendSwitch(
 );
 app.commandLine.appendSwitch('user-activation-v2', 'true');
 
+app.allowRendererProcessReuse = false;
+
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';

@@ -1,6 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 
 import * as path from 'path';
+import { RESOURCE_PATH } from '../../constants/constants';
 import {
   initMultitaskingResponseHandlers,
   initTasks,
@@ -8,9 +9,8 @@ import {
   triggerEEGCallback,
 } from './utils';
 
-const rootFolder = __dirname;
 const assetsDirectory = path.join(
-  rootFolder,
+  RESOURCE_PATH,
   'experiments',
   'multitasking',
   'stimuli'

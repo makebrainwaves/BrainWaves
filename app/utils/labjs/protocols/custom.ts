@@ -1,10 +1,16 @@
 import * as path from 'path';
-import { EVENTS } from '../../../constants/constants';
+import { EVENTS, RESOURCE_PATH } from '../../../constants/constants';
 
 // Default directories containing stimuli
-const rootFolder = __dirname; // Note: there's a weird issue where the fs readdir function reads from BrainWaves dir
 
-const fixation = path.join(rootFolder, 'assets', 'common', 'fixationcross.png');
+const fixation = path.join(
+  RESOURCE_PATH,
+  'experiments',
+  'custom',
+  'assets',
+  'common',
+  'fixationcross.png'
+);
 
 export const buildCustomTimeline = () => ({
   overview_title: `Custom Experiment`,
