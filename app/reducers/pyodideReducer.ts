@@ -1,12 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { Kernel } from '../constants/interfaces';
-import { KERNEL_STATUS } from '../constants/constants';
-import { JupyterActions, ExperimentActions } from '../actions';
+import { PyodideActions, ExperimentActions } from '../actions';
 
-export interface JupyterStateType {
-  readonly kernel: Kernel | null | undefined;
-  readonly kernelStatus: KERNEL_STATUS;
-  readonly mainChannel: any | null | undefined;
+export interface PyodideStateType {
   readonly epochsInfo: Array<{
     [key: string]: number | string;
   }>;
@@ -32,9 +27,6 @@ export interface JupyterStateType {
 }
 
 const initialState = {
-  kernel: null,
-  kernelStatus: KERNEL_STATUS.OFFLINE,
-  mainChannel: null,
   epochsInfo: [],
   channelInfo: [],
   psdPlot: null,
@@ -44,49 +36,31 @@ const initialState = {
 
 export default createReducer(initialState, (builder) =>
   builder
-    .addCase(JupyterActions.SetKernel, (state, action) => {
-      return {
-        ...state,
-        kernel: action.payload,
-      };
-    })
-    .addCase(JupyterActions.SetKernelStatus, (state, action) => {
-      return {
-        ...state,
-        kernelStatus: action.payload,
-      };
-    })
-    .addCase(JupyterActions.SetMainChannel, (state, action) => {
-      return {
-        ...state,
-        mainChannel: action.payload,
-      };
-    })
-    .addCase(JupyterActions.SetEpochInfo, (state, action) => {
+    .addCase(PyodideActions.SetEpochInfo, (state, action) => {
       return {
         ...state,
         epochsInfo: action.payload,
       };
     })
-    .addCase(JupyterActions.SetChannelInfo, (state, action) => {
+    .addCase(PyodideActions.SetChannelInfo, (state, action) => {
       return {
         ...state,
         channelInfo: action.payload,
       };
     })
-    .addCase(JupyterActions.SetPSDPlot, (state, action) => {
+    .addCase(PyodideActions.SetPSDPlot, (state, action) => {
       return {
         ...state,
         psdPlot: action.payload,
       };
     })
-    .addCase(JupyterActions.SetTopoPlot, (state, action) => {
+    .addCase(PyodideActions.SetTopoPlot, (state, action) => {
       return {
         ...state,
         topoPlot: action.payload,
       };
     })
-    .addCase(JupyterActions.SetERPPlot, (state, action) => {
+    .addCase(PyodideActions.SetERPPlot, (state, action) => {
       return {
         ...state,
         erpPlot: action.payload,

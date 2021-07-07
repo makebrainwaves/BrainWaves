@@ -6,7 +6,7 @@ import {
   standardTransforms,
 } from '@nteract/transforms';
 import { isNil } from 'lodash';
-import { storeJupyterImage } from '../utils/filesystem/storage';
+import { storePyodideImage } from '../utils/filesystem/storage';
 
 interface Props {
   title: string;
@@ -24,7 +24,7 @@ interface State {
   mimeType: string;
 }
 
-export default class JupyterPlotWidget extends Component<Props, State> {
+export default class PyodidePlotWidget extends Component<Props, State> {
   // state: State;
   constructor(props: Props) {
     super(props);
@@ -56,7 +56,7 @@ export default class JupyterPlotWidget extends Component<Props, State> {
 
   handleSave() {
     const buf = Buffer.from(this.state.rawData, 'base64');
-    storeJupyterImage(this.props.title, this.props.imageTitle, buf);
+    storePyodideImage(this.props.title, this.props.imageTitle, buf);
   }
 
   renderResults() {

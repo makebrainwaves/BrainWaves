@@ -93,16 +93,6 @@ export interface Experiment {
 }
 
 // --------------------------------------------------------------------
-// Jupyter
-
-export interface Kernel {
-  config: Record<string, any>;
-  connectionFile: string;
-  kernelSpec: Record<string, any>;
-  spawn: ChildProcess;
-}
-
-// --------------------------------------------------------------------
 // Device
 
 // TODO: Write interfaces for device objects (Observables, Classes, etc)

@@ -18,23 +18,19 @@ import { Link } from 'react-router-dom';
 import { isNil, isArray, isString } from 'lodash';
 import styles from '../styles/collect.css';
 import commonStyles from '../styles/common.css';
-import { EXPERIMENTS, DEVICES, KERNEL_STATUS } from '../../constants/constants';
-import { Kernel } from '../../constants/interfaces';
+import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
-import { JupyterActions, ExperimentActions } from '../../actions';
+import { PyodideActions, ExperimentActions } from '../../actions';
 
 export interface Props {
   type?: EXPERIMENTS;
   title: string;
   deviceType: DEVICES;
-  mainChannel?: any;
-  kernel?: Kernel;
-  kernelStatus: KERNEL_STATUS;
   epochsInfo: Array<{
     [key: string]: number | string;
   }>;
-  JupyterActions: typeof JupyterActions;
+  PyodideActions: typeof PyodideActions;
   ExperimentActions: typeof ExperimentActions;
   subject: string;
   session: number;
@@ -72,9 +68,6 @@ export default class Clean extends Component<Props, State> {
 
   async componentDidMount() {
     const workspaceRawData = await readWorkspaceRawEEGData(this.props.title);
-    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.JupyterActions.LaunchKernel();
-    }
     this.setState({
       subjects: workspaceRawData
         .map(
@@ -116,7 +109,7 @@ export default class Clean extends Component<Props, State> {
 
   handleLoadData() {
     this.props.ExperimentActions.SetSubject(this.state.selectedSubject);
-    this.props.JupyterActions.LoadEpochs(this.state.selectedFilePaths);
+    this.props.PyodideActions.LoadEpochs(this.state.selectedFilePaths);
   }
 
   handleSidebarToggle() {
@@ -230,17 +223,7 @@ export default class Clean extends Component<Props, State> {
                   <Divider hidden section />
                   <Grid textAlign="center" columns="equal">
                     <Grid.Column>
-                      <Button
-                        secondary
-                        disabled={
-                          this.props.kernelStatus !== KERNEL_STATUS.IDLE
-                        }
-                        loading={
-                          this.props.kernelStatus === KERNEL_STATUS.STARTING ||
-                          this.props.kernelStatus === KERNEL_STATUS.BUSY
-                        }
-                        onClick={this.handleLoadData}
-                      >
+                      <Button secondary onClick={this.handleLoadData}>
                         Load Dataset
                       </Button>
                     </Grid.Column>
@@ -248,7 +231,7 @@ export default class Clean extends Component<Props, State> {
                       <Button
                         primary
                         disabled={isNil(this.props.epochsInfo)}
-                        onClick={this.props.JupyterActions.CleanEpochs}
+                        onClick={this.props.PyodideActions.CleanEpochs}
                       >
                         Clean Data
                       </Button>

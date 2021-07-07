@@ -1,38 +1,50 @@
 from glob import glob
 import os
+from time import time, strftime, gmtime
 from collections import OrderedDict
-from mne import create_info, concatenate_raws, viz
-from mne.io import RawArray
-from mne.channels import read_montage
-import pandas as pd
+
 import numpy as np
-import seaborn as sns
 from matplotlib import pyplot as plt
+import pandas as pd  # maybe we can remove this dependency
+# import seaborn as sns
 
-sns.set_context('talk')
-sns.set_style('white')
+from mne import (Epochs, concatenate_raws, concatenate_epochs, create_info,
+                 find_events, read_epochs, set_eeg_reference, viz)
+from mne.io import RawArray
+from io import StringIO
+from mne.channels import read_montage
 
 
-def load_data(fnames, sfreq=128., replace_ch_names=None):
-    """Load CSV files from the /data directory into a Raw object.
+# plt.style.use(fivethirtyeight)
 
-    Args:
-        fnames (array): CSV filepaths from which to load data
+# sns.set_context('talk')
+# sns.set_style('white')
 
-    Keyword Args:
-        sfreq (float): EEG sampling frequency
-        replace_ch_names (dict or None): dictionary containing a mapping to
-            rename channels. Useful when an external electrode was used.
 
-    Returns:
-        (mne.io.array.array.RawArray): loaded EEG
+def load_data(sfreq=128., replace_ch_names=None):
+    """Load CSV files from the /data directory into a RawArray object.
+
+    Parameters
+    ----------
+
+    sfreq : float
+        EEG sampling frequency
+    replace_ch_names : dict | None
+        A dict containing a mapping to rename channels.
+        Useful when an external electrode was used during recording.
+
+    Returns
+    -------
+    raw : an instance of mne.io.RawArray
+        The loaded data.
     """
-
+    ## js is loaded in loadPackages
+    ## TODO: Received attached variable name
     raw = []
-    print(fnames)
-    for fname in fnames:
+    for csv in js.csvArray:
+        string_io = StringIO(csv)
         # read the file
-        data = pd.read_csv(fname, index_col=0)
+        data = pd.read_csv(string_io, index_col=0)
 
         data = data.dropna()
 
@@ -73,7 +85,11 @@ def load_data(fnames, sfreq=128., replace_ch_names=None):
 
 
 def plot_topo(epochs, conditions=OrderedDict()):
-    palette = sns.color_palette("hls", len(conditions) + 1)
+    # palette = sns.color_palette("hls", len(conditions) + 1)
+    # temp hack, just pull in the color palette from seaborn
+    palette = [(0.85999999999999999, 0.37119999999999997, 0.33999999999999997),
+               (0.33999999999999997, 0.85999999999999999, 0.37119999999999997),
+               (0.37119999999999997, 0.33999999999999997, 0.85999999999999999)]
     evokeds = [epochs[name].average() for name in (conditions)]
 
     evoked_topo = viz.plot_evoked_topo(
@@ -94,35 +110,48 @@ def plot_topo(epochs, conditions=OrderedDict()):
     return evoked_topo
 
 
-def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=1000,
-                    title='', palette=None,
-                    diff_waveform=(4, 3)):
+def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
+                    n_boot=1000, title='', palette=None, diff_waveform=(4, 3)):
     """Plot Averaged Epochs with ERP conditions.
 
-    Args:
-        epochs (mne.epochs): EEG epochs
+    Parameters
+    ----------
+    epochs : an instance of mne.epochs
+        EEG epochs
+    conditions : an instance of OrderedDict
+        An ordered dictionary that contains the names of the
+        conditions to plot as keys, and the list of corresponding marker
+        numbers as value.
 
-    Keyword Args:
-        conditions (OrderedDict): dictionary that contains the names of the
-            conditions to plot as keys, and the list of corresponding marker
-            numbers as value. E.g.,
+        E.g.,
 
-                conditions = {'Non-target': [0, 1],
-                               'Target': [2, 3, 4]}
+        conditions = {'Non-target': [0, 1],
+                      'Target': [2, 3, 4]}
 
-        ch_ind (int): index of channel to plot data from
-        ci (float): confidence interval in range [0, 100]
-        n_boot (int): number of bootstrap samples
-        title (str): title of the figure
-        palette (list): color palette to use for conditions
-        ylim (tuple): (ymin, ymax)
-        diff_waveform (tuple or None): tuple of ints indicating which
-            conditions to subtract for producing the difference waveform.
+        ch_ind : int
+            An index of channel to plot data from.
+        ci : float
+            The confidence interval of the measurement within
+            the range [0, 100].
+        n_boot : int
+            Number of bootstrap samples.
+        title : str
+            Title of the figure.
+        palette : list
+            Color palette to use for conditions.
+        ylim : tuple
+            (ymin, ymax)
+        diff_waveform : tuple | None
+            tuple of ints indicating which conditions to subtract for
+            producing the difference waveform.
             If None, do not plot a difference waveform
 
-    Returns:
-        (matplotlib.figure.Figure): figure object
-        (list of matplotlib.axes._subplots.AxesSubplot): list of axes
+    Returns
+    -------
+    fig : an instance of matplotlib.figure.Figure
+        A figure object.
+    ax : list of matplotlib.axes._subplots.AxesSubplot
+        A list of axes
     """
     if isinstance(conditions, dict):
         conditions = OrderedDict(conditions)
@@ -172,4 +201,8 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5, n_boot=
     return fig, ax
 
 def get_epochs_info(epochs):
-    return [*[{x: len(epochs[x])} for x in epochs.event_id], {"Drop Percentage": round((1 - len(epochs.events)/len(epochs.drop_log)) * 100, 2)}, {"Total Epochs": len(epochs.events)}]
+    print('Get Epochs Info:')
+    return [*[{x: len(epochs[x])} for x in epochs.event_id],
+            {"Drop Percentage": round((1 - len(epochs.events) /
+                                       len(epochs.drop_log)) * 100, 2)},
+            {"Total Epochs": len(epochs.events)}]

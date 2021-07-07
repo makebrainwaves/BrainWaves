@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
-import { Grid, Button, Header, Segment, Image, Table } from 'semantic-ui-react';
+import { Grid, Button, Header, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import * as moment from 'moment';
 import { History } from 'history';
@@ -10,7 +10,6 @@ import styles from '../styles/common.css';
 import {
   EXPERIMENTS,
   SCREENS,
-  KERNEL_STATUS,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
   DEVICES,
@@ -19,7 +18,7 @@ import faceHouseIcon from '../../experiments/faces_houses/icon.png';
 import stroopIcon from '../../experiments/stroop/icon.png';
 import multitaskingIcon from '../../experiments/multitasking/icon.png';
 import searchIcon from '../../experiments/search/icon.png';
-import customIcon from '../../experiments/custom/icon.png';
+// import customIcon from '../../experiments/custom/icon.png';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';
 import {
@@ -29,7 +28,7 @@ import {
   deleteWorkspaceDir,
 } from '../../utils/filesystem/storage';
 import {
-  JupyterActions,
+  PyodideActions,
   DeviceActions,
   ExperimentActions,
 } from '../../actions';
@@ -60,8 +59,7 @@ export interface Props {
   deviceType: DEVICES;
   ExperimentActions: typeof ExperimentActions;
   history: History;
-  JupyterActions: typeof JupyterActions;
-  kernelStatus: KERNEL_STATUS;
+  PyodideActions: typeof PyodideActions;
   signalQualityObservable?: Observable<SignalQualityData>;
 }
 
@@ -94,6 +92,7 @@ export default class Home extends Component<Props, State> {
   }
 
   componentDidMount() {
+    this.props.PyodideActions.Launch();
     this.setState({ recentWorkspaces: readWorkspaces() });
   }
 
@@ -226,7 +225,7 @@ export default class Home extends Component<Props, State> {
                       if (!workspaceState) {
                         return undefined;
                       }
-                      const dateModified = workspaceState.dateModified;
+                      const { dateModified } = workspaceState;
                       return (
                         <Table.Row key={dir} className={styles.experimentRow}>
                           <Table.Cell className={styles.experimentRowName}>
