@@ -1,14 +1,8 @@
 import * as path from 'path';
-import { EVENTS } from '../../constants/constants';
-
-// Default directories containing stimuli
-const resourcePath =
-  !process.env.NODE_ENV || process.env.NODE_ENV === 'production'
-    ? process.resourcesPath // Live Mode
-    : __dirname; // Dev Mode
+import { EVENTS, RESOURCE_PATH } from '../../constants/constants';
 
 const parentDir = path.join(
-  resourcePath,
+  RESOURCE_PATH,
   'experiments',
   'faces_houses',
   'stimuli'
