@@ -6,6 +6,7 @@ import { DeviceActions, ExperimentActions, PyodideActions } from '../actions';
 function mapStateToProps(state) {
   return {
     ...state.device,
+    ...state.pyodide,
   };
 }
 

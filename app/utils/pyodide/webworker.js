@@ -7,8 +7,8 @@
 importScripts('./src/pyodide/pyodide.js');
 
 async function loadPyodideAndPackages() {
-  await loadPyodide({ indexURL: './src/pyodide/' });
-  await self.pyodide.loadPackage(['matplotlib', 'mne', 'pandas']);
+  self.pyodide = await loadPyodide({ indexURL: './src/pyodide/' });
+  await self.pyodide.loadPackage(['numpy']);
 }
 let pyodideReadyPromise = loadPyodideAndPackages();
 

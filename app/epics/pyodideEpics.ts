@@ -17,8 +17,10 @@ import {
   plotPSD,
   plotERP,
   plotTopoMap,
+  plotTestPlot,
   saveEpochs,
   loadPyodide,
+  loadUtils,
 } from '../utils/pyodide';
 import {
   EMOTIV_CHANNELS,
@@ -39,7 +41,11 @@ const launchEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(PyodideActions.Launch)),
     tap(() => console.log('launching')),
-    map(loadPyodide),
+    mergeMap(loadPyodide),
+    tap((worker) => {
+      console.log('loadPyodide completed, laoding utils');
+      // loadUtils(worker);
+    }),
     map(PyodideActions.SetPyodideWorker)
   );
 
@@ -81,9 +87,9 @@ const pyodideMessageEpic: Epic<
       const { results, error } = e.data;
 
       if (results && !error) {
-        toast(`Pyodide: `, results);
+        toast.error(`Pyodide: ${results}`);
       } else if (error) {
-        toast.error('Pyodide: ', error);
+        toast.error(`Pyodide: ${error}`);
       }
     }),
     map(PyodideActions.ReceiveMessage)
@@ -98,14 +104,15 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     pluck('payload'),
     filter((filePathsArray: string[]) => filePathsArray.length >= 1),
     map((filePathsArray) => readFiles(filePathsArray)),
-    mergeMap((csvArray) => loadCSV(csvArray)),
-    mergeMap(() => filterIIR(1, 30)),
+    mergeMap((csvArray) => loadCSV(state$.value.pyodide.worker!, csvArray)),
+    mergeMap(() => filterIIR(state$.value.pyodide.worker!, 1, 30)),
     map(() => {
       if (!state$.value.experiment.params?.stimuli) {
         return {};
       }
 
       return epochEvents(
+        state$.value.pyodide.worker!,
         Object.fromEntries(
           state$.value.experiment.params?.stimuli.map((stimulus, i) => [
             stimulus.title,
@@ -126,12 +133,14 @@ const loadCleanedEpochsEpic: Epic<
   PyodideActionType,
   PyodideActionType,
   RootState
-> = (action$) =>
+> = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadCleanedEpochs)),
     pluck('payload'),
     filter((filePathsArray) => filePathsArray.length >= 1),
-    map(loadCleanedEpochs),
+    map((epochsArray) =>
+      loadCleanedEpochs(state$.value.pyodide.worker!, epochsArray)
+    ),
     mergeMap(() =>
       of(
         PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
@@ -147,9 +156,10 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.CleanEpochs)),
-    mergeMap(cleanEpochsPlot),
+    mergeMap(() => cleanEpochsPlot(state$.value.pyodide.worker!)),
     map(() =>
       saveEpochs(
+        state$.value.pyodide.worker!,
         getWorkspaceDir(state$.value.experiment.title),
         state$.value.experiment.subject
       )
@@ -165,7 +175,9 @@ const getEpochsInfoEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.GetEpochsInfo)),
     pluck('payload'),
-    mergeMap(requestEpochsInfo),
+    mergeMap((varName) =>
+      requestEpochsInfo(state$.value.pyodide.worker!, varName)
+    ),
     map((epochInfoArray) =>
       epochInfoArray.map((infoObj) => ({
         name: Object.keys(infoObj)[0],
@@ -182,7 +194,7 @@ const getChannelInfoEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.GetChannelInfo)),
-    mergeMap(requestChannelInfo),
+    mergeMap(() => requestChannelInfo(state$.value.pyodide.worker!)),
     map((channelInfoString) =>
       PyodideActions.SetChannelInfo(parseSingleQuoteJSON(channelInfoString))
     )
@@ -194,7 +206,7 @@ const loadPSDEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadPSD)),
-    mergeMap(plotPSD),
+    mergeMap(() => plotPSD(state$.value.pyodide.worker!)),
     map(PyodideActions.SetPSDPlot)
   );
 
@@ -204,16 +216,17 @@ const loadTopoEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadTopo)),
-    mergeMap(plotTopoMap),
+    // mergeMap(plotTopoMap),
+    mergeMap(() => plotTestPlot(state$.value.pyodide.worker!)),
     tap((e) => console.log('received topo map: ', e)),
     mergeMap((topoPlot) =>
       of(
-        PyodideActions.SetTopoPlot(topoPlot),
-        PyodideActions.LoadERP(
-          state$.value.device.deviceType === DEVICES.EMOTIV
-            ? EMOTIV_CHANNELS[0]
-            : MUSE_CHANNELS[0]
-        )
+        PyodideActions.SetTopoPlot(topoPlot)
+        // PyodideActions.LoadERP(
+        //   state$.value.device.deviceType === DEVICES.EMOTIV
+        //     ? EMOTIV_CHANNELS[0]
+        //     : MUSE_CHANNELS[0]
+        // )
       )
     )
   );
@@ -241,7 +254,7 @@ const loadERPEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       );
       return parseInt(EMOTIV_CHANNELS[0], 10);
     }),
-    mergeMap(plotERP),
+    mergeMap((chanIndex) => plotERP(state$.value.pyodide.worker!, chanIndex)),
     map(PyodideActions.SetERPPlot)
   );
 
