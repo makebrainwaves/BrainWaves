@@ -1,5 +1,5 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { of } from 'rxjs';
+import Rx, { fromEvent, Observable, ObservableInput, of } from 'rxjs';
 import { map, mergeMap, tap, pluck, filter } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
@@ -43,12 +43,17 @@ const launchEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     map(PyodideActions.SetPyodideWorker)
   );
 
-const pyodideError: Epic<PyodideActionType, PyodideActionType, RootState> = (
-  action$
-) =>
+const pyodideErrorEpic: Epic<
+  PyodideActionType,
+  PyodideActionType,
+  RootState
+> = (action$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
     pluck('payload'),
+    mergeMap<Worker, Observable<any>>((worker) => {
+      return fromEvent(worker, 'error');
+    }),
     tap((e) =>
       toast.error(
         `Error in pyodideWorker at ${e.filename}, Line: ${e.lineno}, ${e.message}`
@@ -57,15 +62,24 @@ const pyodideError: Epic<PyodideActionType, PyodideActionType, RootState> = (
     map(PyodideActions.ReceiveError)
   );
 
-const receiveChannelMessageEpic: Epic<
+// Once pyodide webworker is created,
+// Create an observable of events that corresond to what it retjurns
+// and then emite those events as redux actions
+const pyodideMessageEpic: Epic<
   PyodideActionType,
   PyodideActionType,
   RootState
-> = (action$, state$) =>
+> = (action$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
+    pluck('payload'),
+    mergeMap<Worker, Observable<any>>((worker) => {
+      return fromEvent(worker, 'message');
+    }),
     tap((e) => {
+      console.log(e);
       const { results, error } = e.data;
+
       if (results && !error) {
         toast(`Pyodide: `, results);
       } else if (error) {
@@ -233,7 +247,8 @@ const loadERPEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 
 export default combineEpics(
   launchEpic,
-  receiveChannelMessageEpic,
+  pyodideMessageEpic,
+  pyodideErrorEpic,
   loadEpochsEpic,
   loadCleanedEpochsEpic,
   cleanEpochsEpic,

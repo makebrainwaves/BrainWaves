@@ -3,6 +3,12 @@ import { bindActionCreators } from 'redux';
 import Home from '../components/HomeComponent';
 import { DeviceActions, ExperimentActions, PyodideActions } from '../actions';
 
+function mapStateToProps(state) {
+  return {
+    ...state.device,
+  };
+}
+
 function mapDispatchToProps(dispatch) {
   return {
     DeviceActions: bindActionCreators(DeviceActions, dispatch),
@@ -11,4 +17,4 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
