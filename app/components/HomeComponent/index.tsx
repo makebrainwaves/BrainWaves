@@ -39,6 +39,7 @@ import OverviewComponent from './OverviewComponent';
 import EEGExplorationComponent from '../EEGExplorationComponent';
 import { SignalQualityData } from '../../constants/interfaces';
 import { getExperimentFromType } from '../../utils/labjs/functions';
+import PyodidePlotWidget from '../PyodidePlotWidget';
 
 const { dialog } = remote;
 
@@ -47,6 +48,7 @@ const HOME_STEPS = {
   RECENT: 'MY EXPERIMENTS',
   NEW: 'EXPERIMENT BANK',
   EXPLORE: 'EXPLORE EEG DATA',
+  PYODIDE_TEST: 'PYODIDE_TEST',
 };
 
 export interface Props {
@@ -61,6 +63,9 @@ export interface Props {
   history: History;
   PyodideActions: typeof PyodideActions;
   signalQualityObservable?: Observable<SignalQualityData>;
+  topoPlot: {
+    [key: string]: string;
+  };
 }
 
 interface State {
@@ -359,6 +364,25 @@ export default class Home extends Component<Props, State> {
             availableDevices={this.props.availableDevices}
             DeviceActions={this.props.DeviceActions}
           />
+        );
+      case HOME_STEPS.PYODIDE_TEST:
+        return (
+          <Grid columns="two" relaxed padded>
+            <Grid.Row>
+              <Grid.Column>
+                <Button onClick={this.props.PyodideActions.LoadTopo}>
+                  Generate Plot
+                </Button>
+              </Grid.Column>
+              <Grid.Column>
+                <PyodidePlotWidget
+                  title={"Test Plot"}
+                  imageTitle={`Test-Topoplot`}
+                  plotMIMEBundle={this.props.topoPlot}
+                />
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
         );
     }
   }

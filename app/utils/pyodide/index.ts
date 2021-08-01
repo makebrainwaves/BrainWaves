@@ -2,8 +2,6 @@ import * as path from 'path';
 import { readFileSync } from 'fs';
 import { formatFilePath } from './functions';
 
-declare const pyodideWorker: Worker;
-
 // ---------------------------------
 // This file contains the JS functions that allow the app to access python-wasm through pyodide
 // These functions wrap the python strings defined in the
@@ -11,27 +9,31 @@ declare const pyodideWorker: Worker;
 // -----------------------------
 // Imports and Utility functions
 
-export const loadPyodide = () => {
-  return new Worker('./utils/pyodide/webworker.js');
+export const loadPyodide = async () => {
+  const freshWorker = await new Worker('./utils/pyodide/webworker.js');
+  return freshWorker;
 };
 
-export const loadUtils = async () =>
-  pyodideWorker.postMessage({
+export const loadUtils = async (worker: Worker) =>
+  worker.postMessage({
     data: readFileSync(path.join(__dirname, '/utils/pyodide/utils.py'), 'utf8'),
   });
 
-export const loadCSV = async (csvArray: Array<any>) => {
+export const loadCSV = async (worker: Worker, csvArray: Array<any>) => {
   // TODO: Pass attached variable name as parameter to load_data
   // @ts-expect-error
   window.csvArray = csvArray;
-  await pyodideWorker.postMessage({ data: `raw = load_data()` });
+  await worker.postMessage({ data: `raw = load_data()` });
 };
 
 // ---------------------------
 // MNE-Related Data Processing
 
-export const loadCleanedEpochs = async (epochsArray: string[]) => {
-  await pyodideWorker.postMessage({
+export const loadCleanedEpochs = async (
+  worker: Worker,
+  epochsArray: string[]
+) => {
+  await worker.postMessage({
     data: [
       `clean_epochs = concatenate_epochs([read_epochs(file) for file in ${epochsArray}])`,
       `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
@@ -40,18 +42,23 @@ export const loadCleanedEpochs = async (epochsArray: string[]) => {
 };
 
 // NOTE: this command includes a ';' to prevent returning data
-export const filterIIR = async (lowCutoff: number, highCutoff: number) =>
-  pyodideWorker.postMessage({
+export const filterIIR = async (
+  worker: Worker,
+  lowCutoff: number,
+  highCutoff: number
+) =>
+  worker.postMessage({
     data: `raw.filter(${lowCutoff}, ${highCutoff}, method='iir');`,
   });
 
 export const epochEvents = async (
+  worker: Worker,
   eventIDs: { [k: string]: number },
   tmin: number,
   tmax: number,
   reject?: string[] | 'None'
 ) =>
-  pyodideWorker.postMessage({
+  worker.postMessage({
     data: [
       `event_id = ${JSON.stringify(eventIDs)}`,
       `tmin=${tmin}`,
@@ -67,49 +74,66 @@ export const epochEvents = async (
     ].join('\n'),
   });
 
-export const requestEpochsInfo = async (variableName: string) => {
-  const pyodideReturn = await pyodideWorker.postMessage({
+export const requestEpochsInfo = async (
+  worker: Worker,
+  variableName: string
+) => {
+  const pyodideReturn = await worker.postMessage({
     data: `get_epochs_info(${variableName})`,
   });
   return pyodideReturn;
 };
 
-export const requestChannelInfo = async () =>
-  pyodideWorker.postMessage({
+export const requestChannelInfo = async (worker: Worker) =>
+  worker.postMessage({
     data: `[ch for ch in clean_epochs.ch_names if ch != 'Marker']`,
   });
 
 // -----------------------------
 // Plot functions
 
-export const cleanEpochsPlot = async () => {
+export const cleanEpochsPlot = async (worker: Worker) => {
   // TODO: Figure out how to get image results from pyodide
-  await pyodideWorker.postMessage({
+  await worker.postMessage({
     data: `raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`,
   });
 };
 
-export const plotPSD = async () => {
+export const plotPSD = async (worker: Worker) => {
   // TODO: Figure out how to get image results from pyodide
-  return pyodideWorker.postMessage({ data: `raw.plot_psd(fmin=1, fmax=30)` });
+  return worker.postMessage({ data: `raw.plot_psd(fmin=1, fmax=30)` });
 };
 
-export const plotTopoMap = async () => {
+export const plotTopoMap = async (worker: Worker) => {
   // TODO: Figure out how to get image results from pyodide
-  return pyodideWorker.postMessage({
+  return worker.postMessage({
     data: `plot_topo(clean_epochs, conditions)`,
   });
 };
 
-export const plotERP = async (channelIndex: number) => {
-  return pyodideWorker.postMessage({
+export const plotTestPlot = async (worker: Worker | null) => {
+  if (!worker) {
+    return;
+  }
+  // TODO: Figure out how to get image results from pyodide
+  return worker.postMessage({
+    data: `plt.plot([1,2,3,4])`,
+  });
+};
+
+export const plotERP = async (worker: Worker, channelIndex: number) => {
+  return worker.postMessage({
     data: `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions,
       ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
   });
 };
 
-export const saveEpochs = (workspaceDir: string, subject: string) =>
-  pyodideWorker.postMessage({
+export const saveEpochs = (
+  worker: Worker,
+  workspaceDir: string,
+  subject: string
+) =>
+  worker.postMessage({
     data: `raw_epochs.save(${formatFilePath(
       path.join(
         workspaceDir,

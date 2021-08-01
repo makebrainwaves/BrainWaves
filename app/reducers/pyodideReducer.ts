@@ -24,18 +24,26 @@ export interface PyodideStateType {
       }
     | null
     | undefined;
+  readonly worker: Worker | null;
 }
 
-const initialState = {
+const initialState: PyodideStateType = {
   epochsInfo: [],
   channelInfo: [],
   psdPlot: null,
   topoPlot: null,
   erpPlot: null,
+  worker: null,
 };
 
 export default createReducer(initialState, (builder) =>
   builder
+    .addCase(PyodideActions.SetPyodideWorker, (state, action) => {
+      return {
+        ...state,
+        worker: action.payload,
+      };
+    })
     .addCase(PyodideActions.SetEpochInfo, (state, action) => {
       return {
         ...state,
