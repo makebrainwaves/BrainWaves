@@ -117,7 +117,7 @@ export const plotTestPlot = async (worker: Worker | null) => {
   }
   // TODO: Figure out how to get image results from pyodide
   return worker.postMessage({
-    data: `plt.plot([1,2,3,4])`,
+    data: `print('hello world')`,
   });
 };
 
