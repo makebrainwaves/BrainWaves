@@ -20,6 +20,8 @@ import {
   plotTestPlot,
   saveEpochs,
   loadPyodide,
+  loadPatches,
+  applyPatches,
   loadUtils,
 } from '../utils/pyodide';
 import {
@@ -43,8 +45,11 @@ const launchEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     tap(() => console.log('launching')),
     mergeMap(loadPyodide),
     tap((worker) => {
-      console.log('loadPyodide completed, laoding utils');
-      // loadUtils(worker);
+      console.log('loadPyodide completed, loading patches');
+      loadPatches(worker);
+      applyPatches(worker);
+      console.log('Now loading utils');
+      loadUtils(worker);
     }),
     map(PyodideActions.SetPyodideWorker)
   );
