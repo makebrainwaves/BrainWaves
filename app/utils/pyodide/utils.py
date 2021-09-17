@@ -12,7 +12,6 @@ from mne import (Epochs, concatenate_raws, concatenate_epochs, create_info,
                  find_events, read_epochs, set_eeg_reference, viz)
 from mne.io import RawArray
 from io import StringIO
-from mne.channels import read_montage
 
 
 # plt.style.use(fivethirtyeight)
@@ -68,15 +67,14 @@ def load_data(sfreq=128., replace_ch_names=None):
 
         # type of each channels
         ch_types = ['eeg'] * (len(ch_ind) - 1) + ['stim']
-        montage = read_montage('standard_1005')
 
         # get data and exclude Aux channel
         data = data.values[:, ch_ind].T
 
         # create MNE object
         info = create_info(ch_names=ch_names, ch_types=ch_types,
-                           sfreq=sfreq, montage=montage)
-        raw.append(RawArray(data=data, info=info))
+                           sfreq=sfreq)
+        raw.append(RawArray(data=data, info=info).set_montage('standard_1005'))
 
     # concatenate all raw objects
     raws = concatenate_raws(raw)

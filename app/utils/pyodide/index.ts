@@ -14,6 +14,16 @@ export const loadPyodide = async () => {
   return freshWorker;
 };
 
+export const loadPatches = async (worker: Worker) =>
+  worker.postMessage({
+    data: readFileSync(path.join(__dirname, '/utils/pyodide/patches.py'), 'utf8'),
+  });
+
+export const applyPatches = async (worker: Worker) =>
+  worker.postMessage({
+    data: `apply_patches()`,
+  });
+
 export const loadUtils = async (worker: Worker) =>
   worker.postMessage({
     data: readFileSync(path.join(__dirname, '/utils/pyodide/utils.py'), 'utf8'),
@@ -117,7 +127,7 @@ export const plotTestPlot = async (worker: Worker | null) => {
   }
   // TODO: Figure out how to get image results from pyodide
   return worker.postMessage({
-    data: `print('hello world')`,
+    data: `import matplotlib.pyplot as plt; fig= plt.plot([1,2,3,4])`,
   });
 };
 
