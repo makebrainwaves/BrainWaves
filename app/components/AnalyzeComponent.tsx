@@ -18,7 +18,6 @@ import {
   DEVICES,
   MUSE_CHANNELS,
   EMOTIV_CHANNELS,
-  KERNEL_STATUS,
   EXPERIMENTS,
 } from '../constants/constants';
 import {
@@ -34,10 +33,9 @@ import {
 } from '../utils/behavior/compute';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
-import JupyterPlotWidget from './JupyterPlotWidget';
+import PyodidePlotWidget from './PyodidePlotWidget';
 import { HelpButton } from './CollectComponent/HelpSidebar';
-import { Kernel } from '../constants/interfaces';
-import { JupyterActions } from '../actions/jupyterActions';
+import { PyodideActions } from '../actions/pyodideActions';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -54,9 +52,6 @@ interface Props {
   type: EXPERIMENTS;
   deviceType: DEVICES;
   isEEGEnabled: boolean;
-  kernel: Kernel;
-  kernelStatus: KERNEL_STATUS;
-  mainChannel: any;
   epochsInfo: Array<{
     [key: string]: number | string;
   }>;
@@ -74,7 +69,7 @@ interface Props {
     [key: string]: string;
   };
 
-  JupyterActions: typeof JupyterActions;
+  PyodideActions: typeof PyodideActions;
 }
 
 interface State {
@@ -163,9 +158,6 @@ export default class Analyze extends Component<Props, State> {
     const workspaceCleanData = await readWorkspaceCleanedEEGData(
       this.props.title
     );
-    if (this.props.kernelStatus === KERNEL_STATUS.OFFLINE) {
-      this.props.JupyterActions.LaunchKernel();
-    }
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
       eegFilePaths: workspaceCleanData.map((filepath) => ({
@@ -200,7 +192,7 @@ export default class Analyze extends Component<Props, State> {
         selectedFilePaths: data.value,
         selectedSubjects: getSubjectNamesFromFiles(data.value),
       });
-      this.props.JupyterActions.LoadCleanedEpochs(data.value);
+      this.props.PyodideActions.LoadCleanedEpochs(data.value);
     }
   }
 
@@ -343,7 +335,7 @@ export default class Analyze extends Component<Props, State> {
 
   handleChannelSelect(channelName: string) {
     this.setState({ selectedChannel: channelName });
-    this.props.JupyterActions.LoadERP(channelName);
+    this.props.PyodideActions.LoadERP(channelName);
   }
 
   handleStepClick(step: string) {
@@ -480,7 +472,7 @@ export default class Analyze extends Component<Props, State> {
               </Segment>
             </Grid.Column>
             <Grid.Column width={8}>
-              <JupyterPlotWidget
+              <PyodidePlotWidget
                 title={this.props.title}
                 imageTitle={`${this.concatSubjectNames(
                   this.state.selectedSubjects
@@ -509,7 +501,7 @@ export default class Analyze extends Component<Props, State> {
               </Segment>
             </Grid.Column>
             <Grid.Column width={8}>
-              <JupyterPlotWidget
+              <PyodidePlotWidget
                 title={this.props.title}
                 imageTitle={`${this.concatSubjectNames(
                   this.state.selectedSubjects

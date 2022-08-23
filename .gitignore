@@ -49,3 +49,5 @@ npm-debug.log.*
 *.sass.d.ts
 *.scss.d.ts
 keys.js
+
+app/utils/pyodide/src
