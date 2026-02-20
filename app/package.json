@@ -17,7 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@neurosity/pipes": "^3.2.3",
-    "@babel/runtime": "7.10.2",
+    "@babel/runtime": "7.26.10",
     "@babel/runtime-corejs2": "^7.10.2",
     "enchannel-zmq-backend": "^9.1.22",
     "kernelspecs": "^2.0.0",
