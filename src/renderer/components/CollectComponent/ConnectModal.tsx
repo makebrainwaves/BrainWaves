@@ -9,7 +9,7 @@ import {
   CONNECTION_STATUS,
   SCREENS,
 } from '../../constants/constants';
-import styles from '../styles/collect.css';
+import styles from '../styles/collect.module.css';
 import { SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 

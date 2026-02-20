@@ -1,7 +1,7 @@
 import { Segment } from 'semantic-ui-react';
 import React from 'react';
 import Slider from 'rc-slider';
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 
 interface Props {
   value: number;

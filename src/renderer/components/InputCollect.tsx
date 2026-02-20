@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Input, Modal, Button, InputOnChangeData } from 'semantic-ui-react';
 import { sanitizeTextInput } from '../utils/ui';
-import styles from './styles/common.css';
+import styles from './styles/common.module.css';
 
 interface InputData {
   subject: string;

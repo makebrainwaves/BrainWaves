@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Input, Modal, Button } from 'semantic-ui-react';
 import { debounce } from 'lodash';
 import { sanitizeTextInput } from '../utils/ui';
-import styles from './styles/common.css';
+import styles from './styles/common.module.css';
 
 interface Props {
   open: boolean;

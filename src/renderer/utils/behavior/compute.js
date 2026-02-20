@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as ss from 'simple-statistics';
-import * as path from 'path';
+import path from 'pathe';
 
 export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
   const processedData = data.map((result) => {

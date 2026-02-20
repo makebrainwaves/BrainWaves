@@ -12,7 +12,7 @@ import {
 } from 'semantic-ui-react';
 import { isString } from 'lodash';
 
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 import { SCREENS } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { DesignProps } from './index';

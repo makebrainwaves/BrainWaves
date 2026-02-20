@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Grid, Header, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
-import styles from '../styles/secondarynav.css';
+import styles from '../styles/secondarynav.module.css';
 import SecondaryNavSegment from './SecondaryNavSegment';
 import { SCREENS } from '../../constants/constants';
 

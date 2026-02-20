@@ -13,11 +13,11 @@ import {
   DropdownItemProps,
   SemanticICONS,
 } from 'semantic-ui-react';
-import * as path from 'path';
+import path from 'pathe';
 import { Link } from 'react-router-dom';
 import { isNil, isArray, isString } from 'lodash';
-import styles from '../styles/collect.css';
-import commonStyles from '../styles/common.css';
+import styles from '../styles/collect.module.css';
+import commonStyles from '../styles/common.module.css';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';

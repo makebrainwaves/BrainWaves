@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import path from 'path';
+import path from 'pathe';
 import clonedeep from 'lodash.clonedeep';
 import * as lab from 'lab.js/dist/lab.dev';
 import {

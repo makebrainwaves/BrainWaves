@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Segment } from 'semantic-ui-react';
 import { ExperimentWindow } from './ExperimentWindow';
-import styles from './styles/collect.css';
+import styles from './styles/collect.module.css';
 
 import { getImages } from '../utils/filesystem/storage';
 import {

@@ -1,6 +1,6 @@
 import React, { Component, useMemo, useState } from 'react';
 import { Grid, Header, Button, Segment } from 'semantic-ui-react';
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import { getExperimentFromType } from '../../utils/labjs/functions';

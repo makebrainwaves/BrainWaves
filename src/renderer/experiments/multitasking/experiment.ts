@@ -1,6 +1,6 @@
 /* eslint-disable no-template-curly-in-string */
 
-import * as path from 'path';
+import path from 'pathe';
 import { RESOURCE_PATH } from '../../constants/constants';
 import {
   initMultitaskingResponseHandlers,

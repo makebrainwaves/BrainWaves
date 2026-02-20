@@ -19,7 +19,7 @@ import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
-import styles from './styles/common.css';
+import styles from './styles/common.module.css';
 import { DeviceActions } from '../actions';
 import { SignalQualityData } from '../constants/interfaces';
 
