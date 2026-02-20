@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Grid, Button, Header, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { History } from 'history';
+
+dayjs.extend(relativeTime);
 import { Observable } from 'rxjs';
 import styles from '../styles/common.module.css';
 import {
@@ -235,7 +238,7 @@ export default class Home extends Component<Props, State> {
                           </Table.Cell>
                           <Table.Cell className={styles.experimentRowName}>
                             {dateModified &&
-                              moment.default(dateModified).fromNow()}
+                              dayjs(dateModified).fromNow()}
                           </Table.Cell>
                           <Table.Cell className={styles.experimentRowName}>
                             <Button

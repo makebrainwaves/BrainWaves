@@ -160,6 +160,7 @@
     "@types/node": "^18.0.0",
     "@types/react": "^16.9.38",
     "@types/react-dom": "^16.9.8",
+    "@types/react-plotly.js": "^2.6.4",
     "@types/react-redux": "^7.1.9",
     "@types/react-router": "^5.1.8",
     "@types/react-router-dom": "^5.1.5",
@@ -169,7 +170,6 @@
     "@typescript-eslint/parser": "^5.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "chalk": "^4.1.0",
-    "concurrently": "^7.0.0",
     "cross-env": "^7.0.0",
     "electron": "^39.6.1",
     "electron-builder": "^24.0.0",
@@ -185,14 +185,12 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.0.0",
     "lint-staged": "^13.0.0",
-    "mkdirp": "^1.0.4",
     "prettier": "^2.0.5",
     "react-test-renderer": "^16.12.0",
     "redux-logger": "^3.0.6",
     "rimraf": "^3.0.0",
     "sass": "^1.50.0",
     "stylelint": "^14.0.0",
-    "stylelint-config-prettier": "^9.0.0",
     "stylelint-config-standard": "^26.0.0",
     "tar-fs": "2.0.1",
     "typescript": "^5.0.0",
@@ -204,27 +202,23 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@neurosity/pipes": "^5.2.1",
-    "@nteract/messaging": "^7.0.7",
     "@nteract/transforms": "^4.4.7",
-    "@reduxjs/toolkit": "^1.4.0",
-    "@types/react-plotly.js": "^2.6.4",
+    "@reduxjs/toolkit": "^2.11.2",
     "ajv": "^6.12.2",
     "caniuse-lite": "^1.0.30001241",
     "connected-react-router": "^6.6.1",
     "d3": "^7.9.0",
-    "electron-log": "^4.2.2",
-    "electron-updater": "^5.0.0",
+    "dayjs": "^1.11.19",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3",
     "events": "^3.3.0",
-    "hazardous": "^0.3.0",
     "history": "^4.7.2",
     "lab.js": "^21.0.0-rc3",
     "lodash": "^4.17.15",
-    "lodash.clonedeep": "^4.5.0",
     "mkdirp": "^1.0.4",
-    "moment": "^2.29.4",
     "mousetrap": "^1.6.5",
     "muse-js": "^3.1.0",
-    "papaparse": "^5.2.0",
+    "papaparse": "^5.5.3",
     "pathe": "^2.0.3",
     "plotly.js": "^2.35.3",
     "rc-slider": "9.2.4",
@@ -235,19 +229,16 @@
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^6.0.5",
-    "recursive-readdir": "^2.2.2",
-    "redux": "^4.0.5",
+    "redux": "^4.2.1",
     "redux-observable": "^2.0.0-rc.2",
     "redux-thunk": "^2.3.0",
-    "regenerator-runtime": "^0.13.5",
     "rxjs": "^7.8.2",
-    "rxjs-compat": "^6.5.5",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.2",
     "simple-statistics": "^7.1.0",
     "simplify-js": "^1.2.4",
     "typesafe-actions": "^5.1.0",
-    "ws": "^7.3.0"
+    "ws": "^8.19.0"
   },
   "engines": {
     "node": ">=18.x",
@@ -266,17 +257,13 @@
         }
       }
     ],
-    "singleQuote": true
+    "singleQuote": true,
+    "trailingComma": "es5"
   },
   "stylelint": {
     "extends": [
-      "stylelint-config-standard",
-      "stylelint-config-prettier"
+      "stylelint-config-standard"
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  }
+  "husky": {}
 }
