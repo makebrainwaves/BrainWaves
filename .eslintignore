@@ -31,8 +31,13 @@ app/node_modules
 # OSX
 .DS_Store
 
-# App packaged
+# Build outputs
 release
+out
+dist
+dll
+
+# Old webpack build artifacts
 app/*.main.prod.js
 app/main.prod.js
 app/main.prod.js.map
@@ -40,8 +45,6 @@ app/renderer.prod.js
 app/renderer.prod.js.map
 app/style.css
 app/style.css.map
-dist
-dll
 main.js
 main.js.map
 

@@ -9,7 +9,7 @@ import bz2 from 'unbzip2-stream';
 const PYODIDE_VERSION = '0.21.0';
 const TAR_NAME = `pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
 const TAR_URL = `https://github.com/pyodide/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-build-${PYODIDE_VERSION}.tar.bz2`;
-const PYODIDE_DIR = 'app/utils/pyodide/src/';
+const PYODIDE_DIR = 'src/renderer/utils/pyodide/src/';
 
 const writeAndUnzipFile = (response) => {
   const filePath = `${PYODIDE_DIR}${TAR_NAME}`;
@@ -61,6 +61,6 @@ const downloadFile = (response) => {
   console.log(
     `${chalk.green.bold(`Downloading pyodide ${PYODIDE_VERSION}...`)}`
   );
-  mkdirp.sync(`app/utils/pyodide/src`);
+  mkdirp.sync(`src/renderer/utils/pyodide/src`);
   https.get(TAR_URL, downloadFile);
 })();
