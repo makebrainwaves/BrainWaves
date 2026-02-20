@@ -3,12 +3,12 @@
 import React, { Component } from 'react';
 import { Form, Button, Table, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
-import * as path from 'path';
+import path from 'pathe';
 import { isString } from 'lodash';
 import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 
 interface Props {
   num: number;

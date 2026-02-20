@@ -1,7 +1,7 @@
 /* eslint-disable react/no-multi-comp */
 import React, { Component } from 'react';
 import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 
 enum HELP_STEP {
   MENU,

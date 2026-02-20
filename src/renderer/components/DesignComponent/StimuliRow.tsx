@@ -3,7 +3,7 @@
 import React from 'react';
 import { Segment, Form, Button, Table, Dropdown } from 'semantic-ui-react';
 import { isString } from 'lodash';
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 
 interface Props {
   name: string;

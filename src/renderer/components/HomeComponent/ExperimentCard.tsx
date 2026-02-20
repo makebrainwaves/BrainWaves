@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react';
 import { Segment, Grid, Header, Image } from 'semantic-ui-react';
-import styles from '../styles/common.css';
+import styles from '../styles/common.module.css';
 
 interface ExperimentCardProps {
   icon: any;

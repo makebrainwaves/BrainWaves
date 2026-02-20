@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid } from 'semantic-ui-react';
-import styles from '../styles/secondarynav.css';
+import styles from '../styles/secondarynav.module.css';
 
 interface Props {
   title: string;

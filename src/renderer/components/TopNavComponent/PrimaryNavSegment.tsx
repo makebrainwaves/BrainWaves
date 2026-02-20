@@ -1,7 +1,7 @@
 import React from 'react';
 import { Grid } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
-import styles from '../styles/topnavbar.css';
+import styles from '../styles/topnavbar.module.css';
 
 interface Props {
   style: string;

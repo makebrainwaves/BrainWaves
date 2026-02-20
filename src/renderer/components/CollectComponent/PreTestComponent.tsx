@@ -13,7 +13,7 @@ import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent'
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import { HelpSidebar, HelpButton } from './HelpSidebar';
-import styles from '../styles/collect.css';
+import styles from '../styles/collect.module.css';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
 import {

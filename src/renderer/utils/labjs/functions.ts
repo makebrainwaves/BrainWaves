@@ -1,6 +1,6 @@
 import * as lab from 'lab.js';
 import { ComponentOptions } from 'lab.js/dist/types';
-import path from 'path';
+import path from 'pathe';
 import { EXPERIMENTS } from '../../constants/constants';
 import {
   Experiment,

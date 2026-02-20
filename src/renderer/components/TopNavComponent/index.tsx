@@ -3,7 +3,7 @@ import { Grid, Segment, Image, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import { isNil } from 'lodash';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
-import styles from '../styles/topnavbar.css';
+import styles from '../styles/topnavbar.module.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
 import {
   readAndParseState,

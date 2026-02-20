@@ -13,7 +13,7 @@ import {
 } from 'semantic-ui-react';
 import { isNil, isArray, isString } from 'lodash';
 import Plot from 'react-plotly.js';
-import styles from './styles/common.css';
+import styles from './styles/common.module.css';
 import {
   DEVICES,
   MUSE_CHANNELS,
