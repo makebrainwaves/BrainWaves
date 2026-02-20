@@ -1,4 +1,4 @@
-import { configureStore, getDefaultMiddleware, Action } from '@reduxjs/toolkit';
+import { configureStore, Action } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
 import { routerMiddleware } from 'connected-react-router';
 import { createEpicMiddleware } from 'redux-observable';
@@ -13,32 +13,29 @@ const rootReducer = createRootReducer(history);
 export type RootState = ReturnType<typeof rootReducer>;
 
 const router = routerMiddleware(history);
-const middleware = [
-  ...getDefaultMiddleware({ serializableCheck: false }),
-  router,
-];
 
 // Redux Observable (Epic) Middleware
 const epicMiddleware = createEpicMiddleware();
-middleware.push(epicMiddleware);
 
 const excludeLoggerEnvs = ['test', 'production'];
 const shouldIncludeLogger = !excludeLoggerEnvs.includes(
   import.meta.env.MODE || ''
 );
 
-if (shouldIncludeLogger) {
-  const logger = createLogger({
-    level: 'info',
-    collapsed: true,
-  });
-  middleware.push(logger);
-}
-
 export const configuredStore = (initialState?: RootState) => {
   const store = configureStore({
     reducer: rootReducer,
-    middleware,
+    middleware: (getDefaultMiddleware) => {
+      const base = getDefaultMiddleware({ serializableCheck: false }).concat(
+        router,
+        epicMiddleware
+      );
+      if (shouldIncludeLogger) {
+        const logger = createLogger({ level: 'info', collapsed: true });
+        return base.concat(logger);
+      }
+      return base;
+    },
     preloadedState: initialState,
   });
 

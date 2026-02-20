@@ -9,7 +9,6 @@ import { app, BrowserWindow, ipcMain, dialog, shell, session } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import recursive from 'recursive-readdir';
 import Papa from 'papaparse';
 import mkdirp from 'mkdirp';
 import { autoUpdater } from 'electron-updater';
@@ -172,36 +171,45 @@ ipcMain.handle('fs:restoreExperimentState', (_event, state: any) => {
   }
 });
 
-ipcMain.handle('fs:readWorkspaceRawEEGData', async (_event, title) => {
+ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
   try {
-    const files = await recursive(getWorkspaceDir(title));
+    const files = fs.readdirSync(getWorkspaceDir(title), { recursive: true }) as string[];
     return files
       .filter((filepath) => filepath.slice(-7).includes('raw.csv'))
-      .map((filepath) => ({ name: path.basename(filepath), path: filepath }));
+      .map((filepath) => {
+        const fullPath = path.join(getWorkspaceDir(title), filepath);
+        return { name: path.basename(filepath), path: fullPath };
+      });
   } catch (e: any) {
     if (e.code === 'ENOENT') console.log(e);
     return [];
   }
 });
 
-ipcMain.handle('fs:readWorkspaceCleanedEEGData', async (_event, title) => {
+ipcMain.handle('fs:readWorkspaceCleanedEEGData', (_event, title) => {
   try {
-    const files = await recursive(getWorkspaceDir(title));
+    const files = fs.readdirSync(getWorkspaceDir(title), { recursive: true }) as string[];
     return files
       .filter((filepath) => filepath.slice(-7).includes('epo.fif'))
-      .map((filepath) => ({ name: path.basename(filepath), path: filepath }));
+      .map((filepath) => {
+        const fullPath = path.join(getWorkspaceDir(title), filepath);
+        return { name: path.basename(filepath), path: fullPath };
+      });
   } catch (e: any) {
     console.log(e);
     return [];
   }
 });
 
-ipcMain.handle('fs:readWorkspaceBehaviorData', async (_event, title) => {
+ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
   try {
-    const files: string[] = await recursive(getWorkspaceDir(title));
+    const files = fs.readdirSync(getWorkspaceDir(title), { recursive: true }) as string[];
     return files
       .filter((filepath) => filepath.slice(-12).includes('behavior.csv'))
-      .map((filepath) => ({ name: path.basename(filepath), path: filepath }));
+      .map((filepath) => {
+        const fullPath = path.join(getWorkspaceDir(title), filepath);
+        return { name: path.basename(filepath), path: fullPath };
+      });
   } catch (e: any) {
     if (e.code === 'ENOENT') console.log(e);
     return [];
