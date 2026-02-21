@@ -51,14 +51,17 @@ export enum PYODIDE_VARIABLE_NAMES {
 
 export const SEARCH_TIMER = 3000;
 
-// NOTE: the actual marker id values of stimulus 1 and 2 are reversed
+// NOTE: TARGET/NONTARGET are intentional semantic aliases for STIMULUS_2/STIMULUS_1
+// because the actual marker id values of stimulus 1 and 2 are reversed.
 export enum EVENTS {
   STIMULUS_1 = 1,
   STIMULUS_2 = 2,
   STIMULUS_3 = 3,
   STIMULUS_4 = 4,
+  /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
   TARGET = 2,
   NONTARGET = 1,
+  /* eslint-enable @typescript-eslint/no-duplicate-enum-values */
 }
 
 export const CHANNELS = {

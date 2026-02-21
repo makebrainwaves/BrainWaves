@@ -16,12 +16,12 @@
     "package-linux": "npm run build && electron-builder build --linux",
     "package-win": "npm run build && electron-builder build --win --x64",
     "postinstall": "electron-builder install-app-deps && node internals/scripts/InstallPyodide.js && node internals/scripts/patchDeps.mjs",
-    "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
+    "lint": "cross-env NODE_ENV=development eslint . --cache",
     "lint-fix": "npm run lint -- --fix",
-    "lint-styles": "stylelint --ignore-path .eslintignore '**/*.*(css|scss)' --syntax scss",
+    "lint-styles": "stylelint '**/*.*(css|scss)'",
     "lint-styles-fix": "npm run lint-styles -- --fix; exit 0",
-    "postlint-fix": "prettier --ignore-path .eslintignore --single-quote --write '**/*.{js,jsx,json,html,css,less,scss,yml}'",
-    "postlint-styles-fix": "prettier --ignore-path .eslintignore --single-quote --write '**/*.{css,scss}'",
+    "postlint-fix": "prettier --single-quote --write '**/*.{js,jsx,json,html,css,less,scss,yml}'",
+    "postlint-styles-fix": "prettier --single-quote --write '**/*.{css,scss}'",
     "test": "cross-env jest --passWithNoTests",
     "test-all": "npm run lint && npm run tsc && npm run build && npm test",
     "tsc": "tsc --noEmit"
@@ -30,15 +30,15 @@
     "*.{js,jsx,ts,tsx}": [
       "cross-env NODE_ENV=development eslint --cache"
     ],
-    "{*.json,.{eslintrc,prettierrc,stylelintrc}}": [
-      "prettier --ignore-path .eslintignore --parser json --write"
+    "{*.json,.{prettierrc,stylelintrc}}": [
+      "prettier --parser json --write"
     ],
     "*.{css,scss}": [
-      "stylelint --ignore-path .eslintignore --syntax scss --fix",
-      "prettier --ignore-path .eslintignore --single-quote --write"
+      "stylelint --fix",
+      "prettier --single-quote --write"
     ],
     "*.{html,md,yml}": [
-      "prettier --ignore-path .eslintignore --single-quote --write"
+      "prettier --single-quote --write"
     ]
   },
   "build": {
@@ -135,7 +135,10 @@
   ],
   "homepage": "https://github.com/makebrainwaves/BrainWaves/",
   "jest": {
-    "testURL": "http://localhost/",
+    "testEnvironment": "node",
+    "testEnvironmentOptions": {
+      "url": "http://localhost/"
+    },
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
@@ -149,14 +152,13 @@
     ],
     "moduleDirectories": [
       "node_modules"
-    ],
-    "setupFiles": []
+    ]
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-proposal-decorators": "^7.10.5",
     "@types/history": "^4.7.6",
-    "@types/jest": "^26.0.5",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.12.0",
     "@types/react": "^16.9.38",
     "@types/react-dom": "^16.9.8",
