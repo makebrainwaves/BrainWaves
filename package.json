@@ -222,7 +222,7 @@
     "muse-js": "^3.1.0",
     "papaparse": "^5.5.3",
     "pathe": "^2.0.3",
-    "plotly.js": "^2.35.3",
+    "plotly.js": "^3.4.0",
     "rc-slider": "9.2.4",
     "react": "^16.13.1",
     "react-dom": "^16.12.0",
