@@ -10,8 +10,8 @@
     "postbuild": "node internals/scripts/BuildViewers.mjs",
     "preview": "electron-vite preview",
     "package": "npm run build && electron-builder build --publish never",
-    "package-all": "npm run build && electron-builder build -mwl",
-    "package-ci": "npm run build && electron-builder --publish always",
+    "package-all": "npm run build && electron-builder build --mac --win --linux",
+    "package-ci": "npm run build && electron-builder build --publish always",
     "package-mac": "npm run build && electron-builder build --mac",
     "package-linux": "npm run build && electron-builder build --linux",
     "package-win": "npm run build && electron-builder build --win --x64",
@@ -20,11 +20,11 @@
     "lint-fix": "npm run lint -- --fix",
     "lint-styles": "stylelint '**/*.*(css|scss)'",
     "lint-styles-fix": "npm run lint-styles -- --fix; exit 0",
-    "postlint-fix": "prettier --single-quote --write '**/*.{js,jsx,json,html,css,less,scss,yml}'",
+    "postlint-fix": "prettier --single-quote --write '**/*.{ts,tsx,js,jsx,json,html,css,less,scss,yml}'",
     "postlint-styles-fix": "prettier --single-quote --write '**/*.{css,scss}'",
     "test": "cross-env jest --passWithNoTests",
-    "test-all": "npm run lint && npm run tsc && npm run build && npm test",
-    "tsc": "tsc --noEmit"
+    "test-all": "npm run lint && npm run lint-styles && npm run typecheck && npm run build && npm test",
+    "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
