@@ -8,26 +8,22 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-2019, ubuntu-18.04]
+        os: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v1
+      - name: Install Node.js and NPM
+        uses: actions/setup-node@v4
         with:
-          node-version: 13
+          node-version: 22
+          cache: 'npm'
 
-      - name: Increase yarn network timeout
-        run: |
-          yarn config set network-timeout 300000
+      - name: npm install
+        run: npm install
 
-      - name: yarn install
-        run: |
-          yarn install
-
-      - name: yarn test
+      - name: Test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ secrets.USERNAME }}
@@ -36,10 +32,10 @@ jobs:
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           LICENSE_ID: ${{ secrets.LICENSE_ID }}
         run: |
-          yarn package-ci
-          yarn lint
-          yarn tsc
+          npm run package-ci
+          npm run lint
+          npm run tsc
 
 # Failing because virtual framebuffer not installed
-#          yarn build-e2e
-#          yarn test-e2e
+#          npm run build-e2e
+#          npm run test-e2e
