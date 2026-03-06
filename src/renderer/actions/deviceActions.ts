@@ -37,5 +37,5 @@ export const DeviceActions = {
 } as const;
 
 export type DeviceActionType = ActionType<
-  typeof DeviceActions[keyof typeof DeviceActions]
+  (typeof DeviceActions)[keyof typeof DeviceActions]
 >;

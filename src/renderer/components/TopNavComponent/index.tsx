@@ -36,7 +36,7 @@ export default class TopNavComponent extends Component<Props, State> {
     this.handleLoadRecentWorkspace = this.handleLoadRecentWorkspace.bind(this);
   }
 
-  getStyleForScreen(navSegmentScreen: typeof SCREENS[keyof typeof SCREENS]) {
+  getStyleForScreen(navSegmentScreen: (typeof SCREENS)[keyof typeof SCREENS]) {
     if (navSegmentScreen.route === this.props.location.pathname) {
       return styles.activeNavColumn;
     }

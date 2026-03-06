@@ -1,4 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
 import * as lab from 'lab.js';
 
 import {
@@ -150,7 +149,7 @@ export const searchExperimentObject = {
                 messageHandlers: {
                   run: function anonymous(this: lab.core.Component) {
                     const taskgrid = document.querySelector('#taskgrid');
-                    const stimuli = this.parameters.stimuli;
+                    const { stimuli } = this.parameters;
 
                     for (const s of stimuli) {
                       const d = document.createElement('div');
@@ -327,7 +326,7 @@ export const searchExperimentObject = {
                     );
                     const taskgrid = document.querySelector('#taskgrid');
                     if (!taskgrid) return;
-                    const stimuli = this.parameters.stimuli;
+                    const { stimuli } = this.parameters;
 
                     for (const s of stimuli) {
                       const d = document.createElement('div');

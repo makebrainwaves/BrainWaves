@@ -79,9 +79,8 @@ export default class Design extends Component<DesignProps, State> {
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
-    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(
-      this
-    );
+    this.handleLoadCustomExperiment =
+      this.handleLoadCustomExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);

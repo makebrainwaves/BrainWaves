@@ -100,7 +100,9 @@
 }
 
 .exitWorkspaceBtn {
-  font-family: Gothic A1, sans-serif !important;
+  font-family:
+    Gothic A1,
+    sans-serif !important;
   font-style: normal !important;
   font-weight: 900 !important;
   font-size: 24px !important;

@@ -88,9 +88,8 @@ export default class Home extends Component<Props, State> {
     };
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleNewExperiment = this.handleNewExperiment.bind(this);
-    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(
-      this
-    );
+    this.handleLoadCustomExperiment =
+      this.handleLoadCustomExperiment.bind(this);
     this.handleOpenOverview = this.handleOpenOverview.bind(this);
     this.handleCloseOverview = this.handleCloseOverview.bind(this);
     this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
@@ -237,8 +236,7 @@ export default class Home extends Component<Props, State> {
                             {dir}
                           </Table.Cell>
                           <Table.Cell className={styles.experimentRowName}>
-                            {dateModified &&
-                              dayjs(dateModified).fromNow()}
+                            {dateModified && dayjs(dateModified).fromNow()}
                           </Table.Cell>
                           <Table.Cell className={styles.experimentRowName}>
                             <Button
@@ -376,7 +374,7 @@ export default class Home extends Component<Props, State> {
               </Grid.Column>
               <Grid.Column>
                 <PyodidePlotWidget
-                  title={"Test Plot"}
+                  title={'Test Plot'}
                   imageTitle={`Test-Topoplot`}
                   plotMIMEBundle={this.props.topoPlot}
                 />

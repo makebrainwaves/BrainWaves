@@ -119,7 +119,8 @@ export default class StimuliDesignColumn extends Component<Props, State> {
                   this.props.dir.split(path.sep).slice(-1).join(' / ')}
               </div>
               <div>
-                ( {this.state.numberImages || this.props.numberImages} images ){' '}
+                ( {this.state.numberImages || this.props.numberImages} images
+                ){' '}
               </div>
               <div>
                 <Icon name="delete" onClick={this.handleRemoveFolder} />

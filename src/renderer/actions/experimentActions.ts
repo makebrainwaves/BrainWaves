@@ -41,5 +41,5 @@ export const ExperimentActions = {
 } as const;
 
 export type ExperimentActionType = ActionType<
-  typeof ExperimentActions[keyof typeof ExperimentActions]
+  (typeof ExperimentActions)[keyof typeof ExperimentActions]
 >;

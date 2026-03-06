@@ -1,5 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-
 import path from 'pathe';
 import { RESOURCE_PATH } from '../../constants/constants';
 import {
@@ -164,8 +162,7 @@ export const multitaskingExperimentObject = {
               responses: {},
               messageHandlers: {},
               title: 'Block sequence',
-              skip:
-                "${this.parameters.task === 'training' && this.state.skipTraining === true}",
+              skip: "${this.parameters.task === 'training' && this.state.skipTraining === true}",
               content: [
                 {
                   type: 'lab.canvas.Screen',
@@ -251,8 +248,7 @@ export const multitaskingExperimentObject = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text:
-                        "${parameters.task === 'training' ? 'for some training?' : 'for the real data collection?'}",
+                      text: "${parameters.task === 'training' ? 'for some training?' : 'for the real data collection?'}",
                       fontSize: 32,
                       fontWeight: 'normal',
                       fontFamily: 'sans-serif',
@@ -333,8 +329,7 @@ export const multitaskingExperimentObject = {
                       version: '2.7.0',
                       originX: 'left',
                       originY: 'center',
-                      left:
-                        "${this.parameters.block === 'mixed' ? 1000 : -120}",
+                      left: "${this.parameters.block === 'mixed' ? 1000 : -120}",
                       top: -64,
                       width: 372.81,
                       height: 78.11,
@@ -749,8 +744,7 @@ export const multitaskingExperimentObject = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text:
-                        'Try to be as fast as you\ncan without making errors!\nPress space bar when\nyou are ready!',
+                      text: 'Try to be as fast as you\ncan without making errors!\nPress space bar when\nyou are ready!',
                       fontSize: '25',
                       fontWeight: 'normal',
                       fontFamily: 'sans-serif',
@@ -770,8 +764,7 @@ export const multitaskingExperimentObject = {
                       version: '2.7.0',
                       originX: 'left',
                       originY: 'center',
-                      left:
-                        "${this.parameters.block === 'mixed' ? -120 : 1000}",
+                      left: "${this.parameters.block === 'mixed' ? -120 : 1000}",
                       top: -75,
                       width: 247.08,
                       height: 120.05,
@@ -799,8 +792,7 @@ export const multitaskingExperimentObject = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text:
-                        'A block with a mix\nof the shape & \nthe filling task',
+                      text: 'A block with a mix\nof the shape & \nthe filling task',
                       fontSize: 32,
                       fontWeight: 'normal',
                       fontFamily: 'sans-serif',
@@ -1286,10 +1278,8 @@ export const multitaskingExperimentObject = {
                             version: '2.7.0',
                             originX: 'center',
                             originY: 'center',
-                            left:
-                              "${this.parameters.form === 'square' ? 0 : 1000}",
-                            top:
-                              "${this.parameters.type === 'shape' ? -75 : 75}",
+                            left: "${this.parameters.form === 'square' ? 0 : 1000}",
+                            top: "${this.parameters.type === 'shape' ? -75 : 75}",
                             width: '100',
                             height: '100',
                             fill: 'transparent',
@@ -1326,8 +1316,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '0',
-                            top:
-                              "${this.parameters.type === 'shape' ? -50 : 50}",
+                            top: "${this.parameters.type === 'shape' ? -50 : 50}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -1364,10 +1353,8 @@ export const multitaskingExperimentObject = {
                             version: '2.7.0',
                             originX: 'center',
                             originY: 'center',
-                            left:
-                              "${this.parameters.form === 'diamond' ? 0 : 1000}",
-                            top:
-                              "${this.parameters.type === 'shape' ? -75 : 75}",
+                            left: "${this.parameters.form === 'diamond' ? 0 : 1000}",
+                            top: "${this.parameters.type === 'shape' ? -75 : 75}",
                             width: 80,
                             height: 80,
                             fill: 'transparent',
@@ -1404,8 +1391,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '${this.parameters.dots === 3 ? 0 : 1000}',
-                            top:
-                              "${this.parameters.type === 'shape' ? -75 : 75}",
+                            top: "${this.parameters.type === 'shape' ? -75 : 75}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -1443,8 +1429,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '0',
-                            top:
-                              "${this.parameters.type === 'shape' ? -100 : 100}",
+                            top: "${this.parameters.type === 'shape' ? -100 : 100}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -1623,8 +1608,7 @@ export const multitaskingExperimentObject = {
                             transformMatrix: null,
                             skewX: 0,
                             skewY: 0,
-                            text:
-                              "${this.state.correct ? '' : 'That was the wrong key.'} ",
+                            text: "${this.state.correct ? '' : 'That was the wrong key.'} ",
                             fontSize: 32,
                             fontWeight: 'normal',
                             fontFamily: 'sans-serif',
@@ -1672,8 +1656,7 @@ export const multitaskingExperimentObject = {
                             transformMatrix: null,
                             skewX: 0,
                             skewY: 0,
-                            text:
-                              "${this.state.correct === 'empty' ? 'The time is up' : ''} ",
+                            text: "${this.state.correct === 'empty' ? 'The time is up' : ''} ",
                             fontSize: 32,
                             fontWeight: 'normal',
                             fontFamily: 'sans-serif',
@@ -1960,8 +1943,7 @@ export const multitaskingExperimentObject = {
                             top: -195,
                             width: 78.2,
                             height: 36.16,
-                            fill:
-                              "${this.parameters.type === 'shape' ? 'black' : 'lightgrey'}",
+                            fill: "${this.parameters.type === 'shape' ? 'black' : 'lightgrey'}",
                             stroke: null,
                             strokeWidth: 1,
                             strokeDashArray: null,
@@ -2009,8 +1991,7 @@ export const multitaskingExperimentObject = {
                             top: '195',
                             width: 85.36,
                             height: 36.16,
-                            fill:
-                              "${this.parameters.type === 'filling' ? 'black' : 'lightgrey'}",
+                            fill: "${this.parameters.type === 'filling' ? 'black' : 'lightgrey'}",
                             stroke: null,
                             strokeWidth: 1,
                             strokeDashArray: null,
@@ -2055,8 +2036,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '120',
-                            top:
-                              "${this.parameters.type === 'shape' ? -90 : 1000}",
+                            top: "${this.parameters.type === 'shape' ? -90 : 1000}",
                             width: 80,
                             height: 80,
                             fill: 'transparent',
@@ -2093,8 +2073,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '-120',
-                            top:
-                              "${this.parameters.type === 'shape' ? -90 : 1000}",
+                            top: "${this.parameters.type === 'shape' ? -90 : 1000}",
                             width: 60,
                             height: 60,
                             fill: 'transparent',
@@ -2131,8 +2110,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '-120',
-                            top:
-                              "${this.parameters.type === 'shape' ? -25 : 1000}",
+                            top: "${this.parameters.type === 'shape' ? -25 : 1000}",
                             width: 16,
                             height: 36.16,
                             fill: 'black',
@@ -2180,8 +2158,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '120',
-                            top:
-                              "${this.parameters.type === 'shape' ? -25 : 1000}",
+                            top: "${this.parameters.type === 'shape' ? -25 : 1000}",
                             width: 16,
                             height: 36.16,
                             fill: 'black',
@@ -2229,8 +2206,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '-120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 125 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 125 : 1000}",
                             width: 16,
                             height: 36.16,
                             fill: 'black',
@@ -2278,8 +2254,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 125 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 125 : 1000}",
                             width: 16,
                             height: 36.16,
                             fill: 'black',
@@ -2327,8 +2302,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '-120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 30 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 30 : 1000}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -2366,8 +2340,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '-120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 90 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 90 : 1000}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -2405,8 +2378,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 90 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 90 : 1000}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -2444,8 +2416,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 60 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 60 : 1000}",
                             width: 20,
                             height: 20,
                             fill: 'black',
@@ -2483,8 +2454,7 @@ export const multitaskingExperimentObject = {
                             originX: 'center',
                             originY: 'center',
                             left: '120',
-                            top:
-                              "${this.parameters.type === 'filling' ? 30 : 1000}",
+                            top: "${this.parameters.type === 'filling' ? 30 : 1000}",
                             width: 20,
                             height: 20,
                             fill: 'black',

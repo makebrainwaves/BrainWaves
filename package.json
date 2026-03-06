@@ -136,9 +136,6 @@
   "homepage": "https://github.com/makebrainwaves/BrainWaves/",
   "jest": {
     "testEnvironment": "node",
-    "testEnvironmentOptions": {
-      "url": "http://localhost/"
-    },
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
@@ -243,22 +240,10 @@
     "ws": "^8.19.0"
   },
   "engines": {
-    "node": ">=18.x",
+    "node": "^20.19.0 || >=22.12.0",
     "npm": ">=8.x"
   },
   "prettier": {
-    "overrides": [
-      {
-        "files": [
-          ".prettierrc",
-          ".eslintrc",
-          ".stylelintrc"
-        ],
-        "options": {
-          "parser": "json"
-        }
-      }
-    ],
     "singleQuote": true,
     "trailingComma": "es5"
   },
@@ -266,6 +251,5 @@
     "extends": [
       "stylelint-config-standard"
     ]
-  },
-  "husky": {}
+  }
 }

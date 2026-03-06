@@ -143,9 +143,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
   // Misc
   // ------------------------------------------------------------------
-  getResourcePath: (): Promise<string> =>
-    ipcRenderer.invoke('getResourcePath'),
+  getResourcePath: (): Promise<string> => ipcRenderer.invoke('getResourcePath'),
 
-  getViewerUrl: (): Promise<string> =>
-    ipcRenderer.invoke('getViewerUrl'),
+  getViewerUrl: (): Promise<string> => ipcRenderer.invoke('getViewerUrl'),
 });

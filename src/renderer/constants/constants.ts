@@ -138,5 +138,6 @@ export enum FILE_TYPES {
 
 // Injected synchronously by the preload script via additionalArguments.
 // In dev: points to src/renderer/. In prod: points to process.resourcesPath.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const RESOURCE_PATH: string = (window as any).__ELECTRON_RESOURCE_PATH__ || '';
+
+export const RESOURCE_PATH: string =
+  (window as any).__ELECTRON_RESOURCE_PATH__ || '';

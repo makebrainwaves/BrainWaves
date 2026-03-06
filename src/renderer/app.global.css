@@ -7,7 +7,10 @@ body {
   position: relative;
   height: 100vh;
   background: rgba(255, 255, 255, 0.2);
-  font-family: Lato, Helvetica Neue, sans-serif;
+  font-family:
+    Lato,
+    Helvetica Neue,
+    sans-serif;
   overflow-y: hidden;
 }
 
@@ -183,12 +186,18 @@ button:active {
 .ui.sidebar {
   box-shadow: none !important;
   border: 2px solid #e6e6e6 !important;
-  transition: width 0.5s ease, transform 0.5s ease, -webkit-transform 0.5s ease !important;
+  transition:
+    width 0.5s ease,
+    transform 0.5s ease,
+    -webkit-transform 0.5s ease !important;
 }
 
 .pusher {
   width: 100%;
-  transition: width 0.5s ease, transform 0.5s ease, -webkit-transform 0.5s ease !important;
+  transition:
+    width 0.5s ease,
+    transform 0.5s ease,
+    -webkit-transform 0.5s ease !important;
   float: right;
 }
 

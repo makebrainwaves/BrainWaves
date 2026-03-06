@@ -1,5 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-
 import { core } from 'lab.js';
 import { initStroopTrial } from '../../utils/labjs/functions';
 
@@ -272,8 +270,7 @@ export const stroopExperiment = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text:
-                        "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
+                      text: "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
                       fontSize: '52',
                       fontWeight: 'bold',
                       fontFamily: 'sans-serif',
@@ -663,8 +660,7 @@ export const stroopExperiment = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text:
-                        "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
+                      text: "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
                       fontSize: '52',
                       fontWeight: 'bold',
                       fontFamily: 'sans-serif',

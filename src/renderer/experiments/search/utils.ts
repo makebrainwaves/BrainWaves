@@ -82,7 +82,7 @@ export function initPracticeTrials(this: lab.flow.Loop) {
 
 export function initGrid(this: lab.html.Screen) {
   const taskgrid = document.querySelector('#taskgrid');
-  const stimuli = this.parameters.stimuli;
+  const { stimuli } = this.parameters;
 
   for (const s of stimuli) {
     const d = document.createElement('div');

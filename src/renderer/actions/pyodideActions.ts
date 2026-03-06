@@ -32,5 +32,5 @@ export const PyodideActions = {
 } as const;
 
 export type PyodideActionType = ActionType<
-  typeof PyodideActions[keyof typeof PyodideActions]
+  (typeof PyodideActions)[keyof typeof PyodideActions]
 >;

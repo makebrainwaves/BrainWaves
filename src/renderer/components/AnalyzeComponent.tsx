@@ -137,21 +137,18 @@ export default class Analyze extends Component<Props, State> {
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
-    this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(
-      this
-    );
-    this.handleDependentVariableChange = this.handleDependentVariableChange.bind(
-      this
-    );
+    this.handleBehaviorDatasetChange =
+      this.handleBehaviorDatasetChange.bind(this);
+    this.handleDependentVariableChange =
+      this.handleDependentVariableChange.bind(this);
     this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
     this.handleDisplayModeChange = this.handleDisplayModeChange.bind(this);
     this.handleDataPoints = this.handleDataPoints.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleDropdownClick = this.handleDropdownClick.bind(this);
-    this.toggleDisplayInfoVisibility = this.toggleDisplayInfoVisibility.bind(
-      this
-    );
+    this.toggleDisplayInfoVisibility =
+      this.toggleDisplayInfoVisibility.bind(this);
   }
 
   async componentDidMount() {

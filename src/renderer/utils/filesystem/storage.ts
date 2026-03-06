@@ -33,11 +33,13 @@ export const openWorkspaceDir = (title: string): Promise<void> =>
 // -----------------------------------------------------------------------------------------------
 // Storing
 
-export const storeExperimentState = (state: ExperimentStateType): Promise<void> =>
-  api().storeExperimentState(state);
+export const storeExperimentState = (
+  state: ExperimentStateType
+): Promise<void> => api().storeExperimentState(state);
 
-export const restoreExperimentState = (state: ExperimentStateType): Promise<void> =>
-  api().restoreExperimentState(state);
+export const restoreExperimentState = (
+  state: ExperimentStateType
+): Promise<void> => api().restoreExperimentState(state);
 
 export const storeBehavioralData = (
   csv: string,
@@ -45,7 +47,8 @@ export const storeBehavioralData = (
   subject: string,
   group: string,
   session: number
-): Promise<void> => api().storeBehavioralData(csv, title, subject, group, session);
+): Promise<void> =>
+  api().storeBehavioralData(csv, title, subject, group, session);
 
 export const storePyodideImage = (
   title: string,
@@ -67,8 +70,9 @@ export const readWorkspaceCleanedEEGData = (title: string) =>
 export const readWorkspaceBehaviorData = (title: string) =>
   api().readWorkspaceBehaviorData(title);
 
-export const readAndParseState = (dir: string): Promise<ExperimentStateType | null> =>
-  api().readAndParseState(dir);
+export const readAndParseState = (
+  dir: string
+): Promise<ExperimentStateType | null> => api().readAndParseState(dir);
 
 export const readImages = (dir: string): Promise<string[]> =>
   api().readImages(dir);
@@ -79,8 +83,10 @@ export const getImages = (params: ExperimentParameters): Promise<string[]> =>
 export const readBehaviorData = (files: string[]) =>
   api().readBehaviorData(files);
 
-export const storeAggregatedBehaviorData = (data: unknown, title: string): Promise<void> =>
-  api().storeAggregatedBehaviorData(data, title);
+export const storeAggregatedBehaviorData = (
+  data: unknown,
+  title: string
+): Promise<void> => api().storeAggregatedBehaviorData(data, title);
 
 // -----------------------------------------------------------------------------------------------
 // Util

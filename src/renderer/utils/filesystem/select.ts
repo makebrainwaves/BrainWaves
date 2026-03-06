@@ -15,5 +15,6 @@ declare global {
   }
 }
 
-export const loadFromSystemDialog = (fileType: FILE_TYPES): Promise<string | null> =>
-  window.electronAPI.loadDialog(fileType);
+export const loadFromSystemDialog = (
+  fileType: FILE_TYPES
+): Promise<string | null> => window.electronAPI.loadDialog(fileType);

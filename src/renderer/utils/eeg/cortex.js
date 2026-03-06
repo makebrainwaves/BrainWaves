@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle, camelcase */
-
 /*
  * JS Cortex Wrapper
  * *****************

@@ -37,8 +37,6 @@ export default class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-
-
 const installExtensions = async () => {
   const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
   const sess = session.defaultSession;
@@ -47,7 +45,9 @@ const installExtensions = async () => {
   const loadExt = async (id: string) => {
     const extPath = path.join(extDir, id);
     if (!fs.existsSync(extPath)) return;
-    const existing = sess.extensions.getAllExtensions().find((e) => e.id === id);
+    const existing = sess.extensions
+      .getAllExtensions()
+      .find((e) => e.id === id);
     if (existing && !forceDownload) return;
     if (existing) {
       sess.removeExtension(id);
@@ -115,9 +115,7 @@ ipcMain.handle('shell:moveItemToTrash', (_event, fullPath) =>
 );
 
 // Workspace management
-ipcMain.handle('fs:getWorkspaceDir', (_event, title) =>
-  getWorkspaceDir(title)
-);
+ipcMain.handle('fs:getWorkspaceDir', (_event, title) => getWorkspaceDir(title));
 
 ipcMain.handle('fs:createWorkspaceDir', (_event, title) => {
   mkdirPathSync(getWorkspaceDir(title));
@@ -173,7 +171,9 @@ ipcMain.handle('fs:restoreExperimentState', (_event, state: any) => {
 
 ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
   try {
-    const files = fs.readdirSync(getWorkspaceDir(title), { recursive: true }) as string[];
+    const files = fs.readdirSync(getWorkspaceDir(title), {
+      recursive: true,
+    }) as string[];
     return files
       .filter((filepath) => filepath.slice(-7).includes('raw.csv'))
       .map((filepath) => {
@@ -188,7 +188,9 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
 
 ipcMain.handle('fs:readWorkspaceCleanedEEGData', (_event, title) => {
   try {
-    const files = fs.readdirSync(getWorkspaceDir(title), { recursive: true }) as string[];
+    const files = fs.readdirSync(getWorkspaceDir(title), {
+      recursive: true,
+    }) as string[];
     return files
       .filter((filepath) => filepath.slice(-7).includes('epo.fif'))
       .map((filepath) => {
@@ -203,7 +205,9 @@ ipcMain.handle('fs:readWorkspaceCleanedEEGData', (_event, title) => {
 
 ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
   try {
-    const files = fs.readdirSync(getWorkspaceDir(title), { recursive: true }) as string[];
+    const files = fs.readdirSync(getWorkspaceDir(title), {
+      recursive: true,
+    }) as string[];
     return files
       .filter((filepath) => filepath.slice(-12).includes('behavior.csv'))
       .map((filepath) => {
@@ -219,12 +223,7 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
 ipcMain.handle(
   'fs:storeBehavioralData',
   (_event, csv, title, subject, group, session) => {
-    const dir = path.join(
-      getWorkspaceDir(title),
-      'Data',
-      subject,
-      'Behavior'
-    );
+    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior');
     const filename = `${subject}-${group}-${session}-behavior.csv`;
     mkdirPathSync(dir);
     return new Promise<void>((resolve, reject) => {
@@ -310,19 +309,16 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle(
-  'fs:checkFileExists',
-  (_event, title, subject, filename) => {
-    const file = path.join(
-      getWorkspaceDir(title),
-      'Data',
-      subject,
-      'Behavior',
-      filename
-    );
-    return fs.existsSync(file);
-  }
-);
+ipcMain.handle('fs:checkFileExists', (_event, title, subject, filename) => {
+  const file = path.join(
+    getWorkspaceDir(title),
+    'Data',
+    subject,
+    'Behavior',
+    filename
+  );
+  return fs.existsSync(file);
+});
 
 ipcMain.handle('fs:readFiles', (_event, filePathsArray: string[]) => {
   return filePathsArray.map((filePath) => {
@@ -455,7 +451,6 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
-  // eslint-disable-next-line
   new AppUpdater();
 };
 

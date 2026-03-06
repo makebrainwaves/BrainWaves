@@ -164,7 +164,8 @@ const updateSessionEpic: Epic<
   );
 
 const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (action$) =>
-  action$.pipe(ofType('@@router/LOCATION_CHANGE'),
+  action$.pipe(
+    ofType('@@router/LOCATION_CHANGE'),
     pluck('payload', 'pathname'),
     filter((pathname) => pathname !== '/' && pathname !== '/home'),
     map(ExperimentActions.SaveWorkspace)
@@ -198,7 +199,8 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
   action$,
   state$
 ) =>
-  action$.pipe(ofType('@@router/LOCATION_CHANGE'),
+  action$.pipe(
+    ofType('@@router/LOCATION_CHANGE'),
     tap((pathname) => console.log('navigation', pathname)),
     pluck('payload', 'location', 'pathname'),
     tap((pathname) => console.log('navigation', pathname)),

@@ -156,6 +156,21 @@ export default [
     },
   },
 
+  // --- Root-level Node.js scripts (e.g. keys.js) ---
+  {
+    files: ['*.js', '*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2020,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+
   // --- Internals scripts — Node.js, more relaxed ---
   {
     files: ['internals/**/*.{js,mjs,ts}'],

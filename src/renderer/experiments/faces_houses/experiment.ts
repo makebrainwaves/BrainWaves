@@ -1,5 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-
 import {
   initPracticeLoopWithStimuli,
   initLoopWithStimuli,
@@ -124,8 +122,7 @@ export const facesHousesExperiment = {
                     stroke: null,
                     strokeWidth: 1,
                     fill: "${ state.correct_response ? 'green' : 'red' }",
-                    text:
-                      "${ state.correct_response ? 'Well done!' : 'Please respond accurately' }",
+                    text: "${ state.correct_response ? 'Well done!' : 'Please respond accurately' }",
                     fontStyle: 'normal',
                     fontWeight: 'bold',
                     fontSize: '52',

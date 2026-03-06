@@ -26,7 +26,9 @@ contextBridge.exposeInMainWorld('viewerAPI', {
     ipcRenderer.on('updateDomain', (_event, message) => callback(message)),
 
   onUpdateDownsampling: (callback: (message: unknown) => void) =>
-    ipcRenderer.on('updateDownsampling', (_event, message) => callback(message)),
+    ipcRenderer.on('updateDownsampling', (_event, message) =>
+      callback(message)
+    ),
 
   onAutoScale: (callback: () => void) =>
     ipcRenderer.on('autoScale', () => callback()),

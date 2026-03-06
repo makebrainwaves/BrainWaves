@@ -11,9 +11,8 @@ export function initMultitaskingResponseHandlers(this: lab.flow.Loop) {
     }
 
     if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-      const instructions = document.querySelectorAll<HTMLElement>(
-        'div.instruction'
-      );
+      const instructions =
+        document.querySelectorAll<HTMLElement>('div.instruction');
       let notFound = true;
       instructions.forEach((i) => {
         if (i.style.display === 'block' && notFound) {

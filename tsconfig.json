@@ -22,14 +22,6 @@
       "@preload/*": ["src/preload/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "electron.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "out",
-    "release",
-    "dist"
-  ]
+  "include": ["src/**/*", "electron.d.ts"],
+  "exclude": ["node_modules", "out", "release", "dist"]
 }
