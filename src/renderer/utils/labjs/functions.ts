@@ -1,5 +1,4 @@
 import * as lab from 'lab.js';
-import { ComponentOptions } from 'lab.js/dist/types';
 import path from 'pathe';
 import { EXPERIMENTS } from '../../constants/constants';
 import {
@@ -41,20 +40,20 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
 }
 
 // Initializes a Loop component with a provided list of stimuli and other parameters extracted from experiment parameters
-export function initLoopWithStimuli(this: lab.flow.Loop) {
+export function initLoopWithStimuli(this: lab.flow.Loop<Record<string, any>>) {
   const {
     parameters: { stimuli, nbTrials, randomize },
   }: { parameters: ExperimentParameters } = this;
 
   const balancedStimuli = balanceStimuliByCondition(stimuli, nbTrials);
 
-  this.options.templateParameters = balancedStimuli;
+  this.options.templateParameters = (balancedStimuli ?? []) as Record<string, any>[];
   this.options.shuffle = randomize === 'random';
 }
 
 // Initializes a Loop component with a provided list of stimuli and other parameters extracted from experiment parameters
 // uses nbPracticeTrials
-export function initPracticeLoopWithStimuli(this: lab.flow.Loop) {
+export function initPracticeLoopWithStimuli(this: lab.flow.Loop<Record<string, any>>) {
   const {
     parameters: { stimuli, nbPracticeTrials, randomize },
   }: { parameters: ExperimentParameters } = this;
@@ -63,7 +62,7 @@ export function initPracticeLoopWithStimuli(this: lab.flow.Loop) {
 
   const balancedStimuli = balanceStimuliByCondition(stimuli, nbPracticeTrials);
 
-  this.options.templateParameters = balancedStimuli;
+  this.options.templateParameters = (balancedStimuli ?? []) as Record<string, any>[];
   this.options.shuffle = randomize === 'random';
 }
 
@@ -133,7 +132,7 @@ export function initResponseHandlers(this: lab.core.Component) {
   const {
     options: { id },
     parameters: { response },
-  }: { parameters: Stimulus; options: ComponentOptions } = this;
+  }: { parameters: Stimulus; options: lab.core.ComponentOptions } = this;
   if (!id) return;
 
   this.data.trial_number =

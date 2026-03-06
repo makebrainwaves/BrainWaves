@@ -45,7 +45,7 @@ const createNewWorkspaceEpic: Epic<
 > = (action$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
-    pluck<'payload', WorkSpaceInfo>('payload'),
+    map((action) => action.payload as WorkSpaceInfo),
     mergeMap(async (workspaceInfo) => {
       await createWorkspaceDir(workspaceInfo.title);
       return workspaceInfo;
@@ -119,7 +119,7 @@ const experimentStopEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.Stop)),
     filter(() => state$.value.experiment.isRunning),
-    pluck<'payload', { data: string }>('payload'),
+    map((action) => (action.payload as { data: string })),
     map(({ data }) => {
       if (!state$.value.experiment.title) {
         return;
@@ -149,9 +149,9 @@ const updateSessionEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.UpdateSession)),
     mergeMap(() =>
-      from(readWorkspaceBehaviorData(state$.value.experiment.title!))
+      from(readWorkspaceBehaviorData(state$.value.experiment.title!) as Promise<any[]>)
     ),
-    map((behaviorFiles) => {
+    map((behaviorFiles: any[]) => {
       if (behaviorFiles.length > 0) {
         const subjectFiles = behaviorFiles.filter((filepath) =>
           filepath.name.startsWith(state$.value.experiment.subject)

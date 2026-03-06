@@ -86,8 +86,8 @@ export default class Design extends Component<DesignProps, State> {
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
   }
 
-  componentDidMount() {
-    this.setState({ recentWorkspaces: readWorkspaces() });
+  async componentDidMount() {
+    this.setState({ recentWorkspaces: await readWorkspaces() });
   }
 
   handleStepClick(step: string) {

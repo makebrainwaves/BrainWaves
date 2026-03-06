@@ -62,14 +62,14 @@ export const connectToEmotiv = async (
       debit: 1,
     });
   } catch (err) {
-    toast.error(`Authentication failed. ${err.message}`);
+    toast.error(`Authentication failed. ${(err as Error).message}`);
     return Promise.reject(err);
   }
   // Connect
   try {
     await client.controlDevice({ command: 'connect', headset: device.id });
   } catch (err) {
-    toast.error(`Emotiv connection failed. ${err.message}`);
+    toast.error(`Emotiv connection failed. ${(err as Error).message}`);
     return Promise.reject(err);
   }
   // Create Session
@@ -86,7 +86,7 @@ export const connectToEmotiv = async (
       channels: EMOTIV_CHANNELS,
     };
   } catch (err) {
-    toast.error(`Session creation failed. ${err.message} `);
+    toast.error(`Session creation failed. ${(err as Error).message} `);
     return Promise.reject(err);
   }
 };
@@ -110,7 +110,7 @@ export const createRawEmotivObservable = async () => {
       streams: ['eeg', 'dev'],
     });
   } catch (err) {
-    toast.error(`EEG connection failed. ${err.message}`);
+    toast.error(`EEG connection failed. ${(err as Error).message}`);
   }
 
   return fromEvent(client, 'eeg').pipe(map(createEEGSample));
@@ -133,8 +133,7 @@ export const createEmotivSignalQualityObservable = (rawObservable) => {
     }),
     bandpassFilter({
       nbChannels: channels.length,
-      lowCutoff: 1,
-      highCutoff: 50,
+      cutoffFrequencies: [1, 50],
     }),
     withLatestFrom(signalQualityObservable, integrateSignalQuality),
     parseEmotivSignalQuality(),

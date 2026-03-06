@@ -32,14 +32,14 @@ export const configuredStore = (initialState?: RootState) => {
       );
       if (shouldIncludeLogger) {
         const logger = createLogger({ level: 'info', collapsed: true });
-        return base.concat(logger);
+        return base.concat(logger) as unknown as typeof base;
       }
       return base;
     },
-    preloadedState: initialState,
+    preloadedState: initialState as any,
   });
 
-  epicMiddleware.run(rootEpic);
+  epicMiddleware.run(rootEpic as any);
   return store;
 };
 

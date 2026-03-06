@@ -128,7 +128,7 @@ export const searchExperimentObject = {
                   parameters: {},
                   responses: {},
                   messageHandlers: {
-                    run: function anonymous(this: lab.flow.Loop) {
+                    run: function anonymous(this: lab.flow.Loop<Record<string, any>>) {
                       this.data.response = 'noresponse';
                       this.data.correct = false;
                     },

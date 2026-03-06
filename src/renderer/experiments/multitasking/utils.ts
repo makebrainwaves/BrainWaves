@@ -1,16 +1,16 @@
 import * as lab from 'lab.js';
 
-export function initMultitaskingResponseHandlers(this: lab.flow.Loop) {
+export function initMultitaskingResponseHandlers(this: lab.flow.Loop<Record<string, any>>) {
   if (!this.options.events) return;
 
-  // @ts-expect-error
-  this.options.events.keydown = (e: { code: string }) => {
-    if (e.code === 'KeyQ') {
+  this.options.events.keydown = (e: Event) => {
+    const { code } = e as unknown as { code: string };
+    if (code === 'KeyQ') {
       this.data.skipTraining = true;
       this.end();
     }
 
-    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+    if (code === 'ArrowLeft' || code === 'ArrowRight') {
       const instructions =
         document.querySelectorAll<HTMLElement>('div.instruction');
       let notFound = true;
@@ -18,10 +18,10 @@ export function initMultitaskingResponseHandlers(this: lab.flow.Loop) {
         if (i.style.display === 'block' && notFound) {
           const cur_id = parseInt(i.id.split('screen_')[1], 10);
           let next_id;
-          if (e.code === 'ArrowLeft') {
+          if (code === 'ArrowLeft') {
             next_id = cur_id - 1;
           }
-          if (e.code === 'ArrowRight') {
+          if (code === 'ArrowRight') {
             next_id = cur_id + 1;
           }
           if (next_id > 0 && next_id <= 10) {
@@ -42,7 +42,7 @@ export function initMultitaskingResponseHandlers(this: lab.flow.Loop) {
   };
 }
 
-export function initTasks(this: lab.flow.Loop) {
+export function initTasks(this: lab.flow.Loop<Record<string, any>>) {
   function shuffle(a) {
     let j;
     let x;

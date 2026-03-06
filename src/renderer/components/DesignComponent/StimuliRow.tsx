@@ -48,9 +48,10 @@ export const StimuliRow: React.FC<Props> = ({
           fluid
           selection
           value={response}
-          onChange={(event, data) =>
-            onChange(num, 'response', isString(data.value) ? data.value : '')
-          }
+          onChange={(event, data) => {
+            const val = data.value;
+            onChange(num, 'response', isString(val) ? (val as string) : '');
+          }}
           placeholder="Response"
           options={RESPONSE_OPTIONS}
         />

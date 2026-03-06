@@ -53,13 +53,13 @@ export default class TopNavComponent extends Component<Props, State> {
     return styles.initialNavColumn;
   }
 
-  updateWorkspaces = () => {
-    this.setState({ recentWorkspaces: readWorkspaces() });
+  updateWorkspaces = async () => {
+    this.setState({ recentWorkspaces: await readWorkspaces() });
   };
 
-  handleLoadRecentWorkspace(dir: string) {
-    const recentWorkspaceState = readAndParseState(dir);
-    if (!isNil(recentWorkspaceState)) {
+  async handleLoadRecentWorkspace(dir: string) {
+    const recentWorkspaceState = await readAndParseState(dir);
+    if (recentWorkspaceState != null) {
       this.props.ExperimentActions.SetState(recentWorkspaceState);
     }
   }

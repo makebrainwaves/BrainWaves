@@ -89,7 +89,7 @@ const OverviewComponent: React.FC<Props> = ({
 };
 
 // Generic curreid enum type guard
-function isEnum<T>(en: T) {
+function isEnum<T extends object>(en: T) {
   return (val: any): val is T[keyof T] => val in Object.values(en);
 }
 

@@ -34,15 +34,11 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentWillUnmount() {
-    if (!isNil(this.signalQualitySubscription)) {
-      this.signalQualitySubscription.unsubscribe();
-    }
+    this.signalQualitySubscription?.unsubscribe();
   }
 
   subscribeToObservable(observable: any) {
-    if (!isNil(this.signalQualitySubscription)) {
-      this.signalQualitySubscription.unsubscribe();
-    }
+    this.signalQualitySubscription?.unsubscribe();
 
     this.signalQualitySubscription = observable.subscribe(
       (epoch) => {

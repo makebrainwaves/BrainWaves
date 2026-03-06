@@ -148,10 +148,11 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   value={this.state.params.description?.question}
                   placeholder="Explain your research question here."
                   onChange={(event, data) => {
-                    if (!isString(data.value)) {
+                    const val = data.value;
+                    if (!isString(val)) {
                       return;
                     }
-                    this.handleSetText(data.value, 'question');
+                    this.handleSetText(val as string, 'question');
                   }}
                 />
               </Form>
@@ -172,10 +173,11 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   value={this.state.params.description?.hypothesis}
                   placeholder="Describe your hypothesis here."
                   onChange={(event, data) => {
-                    if (!isString(data.value)) {
+                    const val = data.value;
+                    if (!isString(val)) {
                       return;
                     }
-                    this.handleSetText(data.value, 'hypothesis');
+                    this.handleSetText(val as string, 'hypothesis');
                   }}
                 />
               </Form>
@@ -196,10 +198,11 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   value={this.state.params.description?.methods}
                   placeholder="Explain how you will design your experiment to answer the question here."
                   onChange={(event, data) => {
-                    if (!isString(data.value)) {
+                    const val = data.value;
+                    if (!isString(val)) {
                       return;
                     }
-                    this.handleSetText(data.value, 'methods');
+                    this.handleSetText(val as string, 'methods');
                   }}
                 />
               </Form>
@@ -563,11 +566,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     value={this.state.params.intro}
                     placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press the the space bar on your keyboard to start doing the practice trials. If you want to skip the practice trials and go directly to the task, press the 'q' button on your keyboard."
                     onChange={(event, data) => {
-                      if (!isString(data.value)) {
+                      const val = data.value;
+                      if (!isString(val)) {
                         return;
                       }
                       this.setState({
-                        params: { ...this.state.params, intro: data.value },
+                        params: { ...this.state.params, intro: val as string },
                         saved: false,
                       });
                     }}
@@ -593,11 +597,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     value={this.state.params.taskHelp}
                     placeholder="e.g., Press 1 for a face and 9 for a house"
                     onChange={(event, data) => {
-                      if (!isString(data.value)) {
+                      const val = data.value;
+                      if (!isString(val)) {
                         return;
                       }
                       this.setState({
-                        params: { ...this.state.params, taskHelp: data.value },
+                        params: { ...this.state.params, taskHelp: val as string },
                         saved: false,
                       });
                     }}

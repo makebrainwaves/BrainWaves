@@ -70,12 +70,12 @@ function constructTrials(
   // assign options values to parameters of this task
 }
 
-export function initSearchTrials(this: lab.flow.Loop) {
+export function initSearchTrials(this: lab.flow.Loop<Record<string, any>>) {
   this.options.templateParameters = constructTrials(10, 'main', 25);
   this.options.shuffle = true; // already shuffled before
 }
 
-export function initPracticeTrials(this: lab.flow.Loop) {
+export function initPracticeTrials(this: lab.flow.Loop<Record<string, any>>) {
   this.options.templateParameters = constructTrials(1, 'practice', 25);
   this.options.shuffle = true; // already shuffled before
 }

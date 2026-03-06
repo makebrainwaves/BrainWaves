@@ -40,9 +40,7 @@ export default class PyodidePlotWidget extends Component<Props, State> {
       this.props.plotMIMEBundle !== prevProps.plotMIMEBundle &&
       !isNil(this.props.plotMIMEBundle)
     ) {
-      const bundle: {
-        [key: string]: string;
-      } = this.props.plotMIMEBundle;
+      const bundle = this.props.plotMIMEBundle as { [key: string]: string };
       const mimeType = richestMimetype(
         bundle,
         standardDisplayOrder,
@@ -56,7 +54,7 @@ export default class PyodidePlotWidget extends Component<Props, State> {
 
   handleSave() {
     const buf = Buffer.from(this.state.rawData, 'base64');
-    storePyodideImage(this.props.title, this.props.imageTitle, buf);
+    storePyodideImage(this.props.title, this.props.imageTitle, buf.buffer as ArrayBuffer);
   }
 
   renderResults() {

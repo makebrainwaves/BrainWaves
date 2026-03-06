@@ -13,6 +13,7 @@ import {
 } from 'semantic-ui-react';
 import { isNil, isArray, isString } from 'lodash';
 import Plot from 'react-plotly.js';
+import type { Data as PlotlyData } from 'plotly.js';
 import styles from './styles/common.module.css';
 import {
   DEVICES,
@@ -95,7 +96,7 @@ interface State {
   // TODO: implement outlier display toggle
   // displayOutlierVisible: boolean;
   displayMode: string;
-  dataToPlot: number[];
+  dataToPlot: PlotlyData[];
   layout: Record<string, any>;
   helpMode: string;
   dependentVariables: Array<{
@@ -118,7 +119,7 @@ export default class Analyze extends Component<Props, State> {
       eegFilePaths: [{ key: '', text: '', value: { name: '', dir: '' } }],
       behaviorFilePaths: [{ key: '', text: '', value: '' }],
       dependentVariables: [{ key: '', text: '', value: '' }],
-      dataToPlot: [],
+      dataToPlot: [] as PlotlyData[],
       layout: {},
       selectedDependentVariable: '',
       removeOutliers: true,

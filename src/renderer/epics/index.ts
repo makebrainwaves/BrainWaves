@@ -3,4 +3,4 @@ import pyodide from './pyodideEpics';
 import device from './deviceEpics';
 import experiment from './experimentEpics';
 
-export default combineEpics(device, experiment, pyodide);
+export default combineEpics(device as any, experiment as any, pyodide as any);

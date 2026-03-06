@@ -161,14 +161,15 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.CleanEpochs)),
-    mergeMap(() => cleanEpochsPlot(state$.value.pyodide.worker!)),
-    map(() =>
-      saveEpochs(
+    mergeMap(async () => {
+      await cleanEpochsPlot(state$.value.pyodide.worker!);
+      const dir = await getWorkspaceDir(state$.value.experiment.title);
+      return saveEpochs(
         state$.value.pyodide.worker!,
-        getWorkspaceDir(state$.value.experiment.title),
+        dir,
         state$.value.experiment.subject
-      )
-    ),
+      );
+    }),
     map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
@@ -181,7 +182,7 @@ const getEpochsInfoEpic: Epic<
     filter(isActionOf(PyodideActions.GetEpochsInfo)),
     pluck('payload'),
     mergeMap((varName) =>
-      requestEpochsInfo(state$.value.pyodide.worker!, varName)
+      requestEpochsInfo(state$.value.pyodide.worker!, varName) as unknown as Promise<any[]>
     ),
     map((epochInfoArray) =>
       epochInfoArray.map((infoObj) => ({
@@ -199,7 +200,7 @@ const getChannelInfoEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.GetChannelInfo)),
-    mergeMap(() => requestChannelInfo(state$.value.pyodide.worker!)),
+    mergeMap(() => requestChannelInfo(state$.value.pyodide.worker!) as unknown as Promise<string>),
     map((channelInfoString) =>
       PyodideActions.SetChannelInfo(parseSingleQuoteJSON(channelInfoString))
     )

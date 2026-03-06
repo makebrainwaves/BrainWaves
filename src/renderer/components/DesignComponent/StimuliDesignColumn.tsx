@@ -53,7 +53,7 @@ export default class StimuliDesignColumn extends Component<Props, State> {
   async handleSelectFolder() {
     const dir = await loadFromSystemDialog(FILE_TYPES.STIMULUS_DIR);
     if (dir && isString(dir)) {
-      const images = readImages(dir);
+      const images = await readImages(dir);
       if (images.length < 1) {
         toast.error('No images in folder!');
       }
@@ -97,10 +97,11 @@ export default class StimuliDesignColumn extends Component<Props, State> {
             selection
             value={this.props.response}
             onChange={(event, data) => {
-              if (data.value && isString(data.value)) {
+              const val = data.value;
+              if (val && isString(val)) {
                 this.props.onChange(
                   'response',
-                  data.value,
+                  val as string,
                   `stimulus${this.props.num}`
                 );
               }

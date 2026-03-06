@@ -96,9 +96,7 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   componentWillUnmount() {
-    if (!isNil(this.signalQualitySubscription)) {
-      this.signalQualitySubscription.unsubscribe();
-    }
+    this.signalQualitySubscription?.unsubscribe();
     Mousetrap.unbind('up');
     Mousetrap.unbind('down');
   }
@@ -109,9 +107,7 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   subscribeToObservable(observable: any) {
-    if (!isNil(this.signalQualitySubscription)) {
-      this.signalQualitySubscription.unsubscribe();
-    }
+    this.signalQualitySubscription?.unsubscribe();
     this.signalQualitySubscription = observable.subscribe(
       (chunk) => {
         this.graphView?.send('newData', chunk);

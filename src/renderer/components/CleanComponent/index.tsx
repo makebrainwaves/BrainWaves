@@ -95,15 +95,17 @@ export default class Clean extends Component<Props, State> {
   }
 
   handleRecordingChange(event: Record<string, any>, data: DropdownProps) {
-    if (isArray(data.value)) {
-      const filePaths = data.value.filter<string>(isString);
+    const { value } = data;
+    if (isArray(value)) {
+      const filePaths = (value as (string | number | boolean)[]).filter(isString) as string[];
       this.setState({ selectedFilePaths: filePaths });
     }
   }
 
   handleSubjectChange(event: Record<string, any>, data: DropdownProps) {
-    if (!isNil(data) && isString(data.value)) {
-      this.setState({ selectedSubject: data.value, selectedFilePaths: [] });
+    const { value } = data;
+    if (!isNil(data) && isString(value)) {
+      this.setState({ selectedSubject: value as string, selectedFilePaths: [] });
     }
   }
 
@@ -143,7 +145,7 @@ export default class Clean extends Component<Props, State> {
         (infoObj) => infoObj.name === 'Drop Percentage'
       )?.value;
 
-      if (drop && drop >= 2) {
+      if (drop && typeof drop === 'number' && drop >= 2) {
         return (
           <Link to="/analyze">
             <Button primary>Analyze Dataset</Button>
@@ -208,10 +210,12 @@ export default class Clean extends Component<Props, State> {
                     closeOnChange
                     value={this.state.selectedFilePaths}
                     options={this.state.eegFilePaths.filter((filepath) => {
-                      if (isString(filepath.value)) {
-                        const subjectFromFilepath = filepath.value.split(
+                      const val = filepath.value;
+                      if (isString(val)) {
+                        const strVal = val as string;
+                        const subjectFromFilepath = strVal.split(
                           path.sep
-                        )[filepath.value.split(path.sep).length - 3];
+                        )[strVal.split(path.sep).length - 3];
                         return (
                           this.state.selectedSubject === subjectFromFilepath
                         );
@@ -231,7 +235,7 @@ export default class Clean extends Component<Props, State> {
                       <Button
                         primary
                         disabled={isNil(this.props.epochsInfo)}
-                        onClick={this.props.PyodideActions.CleanEpochs}
+                        onClick={() => this.props.PyodideActions.CleanEpochs()}
                       >
                         Clean Data
                       </Button>

@@ -160,7 +160,7 @@ export default class ConnectModal extends Component<Props, State> {
           <Modal.Content>
             <Grid textAlign="center" columns="equal">
               <Grid.Column>
-                {this.state.instructionProgress !== 0 && (
+                {(this.state.instructionProgress as number) !== 0 && (
                   <Button
                     fluid
                     className={styles.secondaryButton}

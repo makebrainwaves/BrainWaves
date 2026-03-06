@@ -30,7 +30,7 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
     const experimentClone = clonedeep(experimentObject);
     const paramsClone = clonedeep(params);
     experimentClone.parameters = paramsClone;
-    const experimentToRun = lab.util.fromObject(experimentClone, lab);
+    const experimentToRun = lab.core.deserialize(experimentClone, lab);
 
     experimentToRun.parameters.title = title;
     if (params.stimuli) {

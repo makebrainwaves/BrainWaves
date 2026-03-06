@@ -59,15 +59,15 @@ export const disconnectFromMuse = () => client.disconnect();
 export const createRawMuseObservable = async () => {
   await client.start();
   const eegStream = await client.eegReadings;
-  const markers = await client.eventMarkers.pipe(startWith({ timestamp: 0 }));
-  return from(zipSamples(eegStream)).pipe(
+  const markers = await (client.eventMarkers as any).pipe(startWith({ timestamp: 0 }));
+  return from(zipSamples(eegStream) as any).pipe(
     // Remove nans if present (muse 2)
-    map<EEGSample, EEGSample>((sample) => ({
+    map((sample: any) => ({
       ...sample,
       data: sample.data.filter((val) => !isNaN(val)),
     })),
     filter((sample) => sample.data.length >= 4),
-    withLatestFrom(markers, synchronizeTimestamp),
+    withLatestFrom(markers as any, synchronizeTimestamp),
     share()
   );
 };
@@ -90,8 +90,7 @@ export const createMuseSignalQualityObservable = (
     }),
     bandpassFilter({
       nbChannels: channelNames.length,
-      lowCutoff: 1,
-      highCutoff: 50,
+      cutoffFrequencies: [1, 50],
     }),
     addSignalQuality(),
     parseMuseSignalQuality()

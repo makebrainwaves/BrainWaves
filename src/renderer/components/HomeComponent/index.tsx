@@ -29,6 +29,7 @@ import {
   openWorkspaceDir,
   deleteWorkspaceDir,
 } from '../../utils/filesystem/storage';
+import { ExperimentStateType } from '../../reducers/experimentReducer';
 import {
   PyodideActions,
   DeviceActions,
@@ -74,6 +75,7 @@ interface State {
   isOverviewComponentOpen: boolean;
   recentWorkspaces: Array<string>;
   overviewExperimentType: EXPERIMENTS;
+  workspaceStates: Record<string, ExperimentStateType | null>;
 }
 
 export default class Home extends Component<Props, State> {
@@ -82,6 +84,7 @@ export default class Home extends Component<Props, State> {
     this.state = {
       activeStep: this.props.activeStep || HOME_STEPS.RECENT,
       recentWorkspaces: [],
+      workspaceStates: {},
       isNewExperimentModalOpen: false,
       isOverviewComponentOpen: false,
       overviewExperimentType: EXPERIMENTS.NONE,
@@ -95,9 +98,20 @@ export default class Home extends Component<Props, State> {
     this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.props.PyodideActions.Launch();
-    this.setState({ recentWorkspaces: readWorkspaces() });
+    const recentWorkspaces = await readWorkspaces();
+    this.setState({ recentWorkspaces });
+    await this.loadWorkspaceStates(recentWorkspaces);
+  }
+
+  async loadWorkspaceStates(workspaces: string[]) {
+    const entries = await Promise.all(
+      workspaces.map(async (dir) => [dir, await readAndParseState(dir)] as const)
+    );
+    this.setState({
+      workspaceStates: Object.fromEntries(entries),
+    });
   }
 
   handleStepClick(step: string) {
@@ -141,9 +155,9 @@ export default class Home extends Component<Props, State> {
   }
 
   // Load recent workspace by copying saved 'experiment' redux state into current redux state
-  handleLoadRecentWorkspace(dir: string) {
-    const recentWorkspaceState = readAndParseState(dir);
-    if (isNil(recentWorkspaceState)) {
+  async handleLoadRecentWorkspace(dir: string) {
+    const recentWorkspaceState = await readAndParseState(dir);
+    if (recentWorkspaceState == null) {
       toast.error(
         'Workspace data is corrupted or missing. Please delete and create it again.'
       );
@@ -157,7 +171,7 @@ export default class Home extends Component<Props, State> {
       experimentObject: getExperimentFromType(recentWorkspaceState.type)
         .experimentObject,
     };
-    this.props.ExperimentActions.SetState(deserializedWorkspaceState);
+    this.props.ExperimentActions.SetState(deserializedWorkspaceState as any);
     this.props.history.push(SCREENS.DESIGN.route);
   }
 
@@ -182,7 +196,9 @@ export default class Home extends Component<Props, State> {
     const response = await window.electronAPI.showMessageBox(options);
     if (response.response === 1) {
       deleteWorkspaceDir(dir);
-      this.setState({ recentWorkspaces: readWorkspaces() });
+      const recentWorkspaces = await readWorkspaces();
+      this.setState({ recentWorkspaces });
+      await this.loadWorkspaceStates(recentWorkspaces);
     }
   }
 
@@ -216,8 +232,8 @@ export default class Home extends Component<Props, State> {
                 <Table.Body className={styles.experimentTable}>
                   {this.state.recentWorkspaces
                     .sort((a, b) => {
-                      const aState = readAndParseState(a);
-                      const bState = readAndParseState(b);
+                      const aState = this.state.workspaceStates[a];
+                      const bState = this.state.workspaceStates[b];
 
                       const aTime = aState?.dateModified || 0;
                       const bTime = bState?.dateModified || 0;
@@ -225,7 +241,7 @@ export default class Home extends Component<Props, State> {
                       return bTime - aTime;
                     })
                     .map((dir) => {
-                      const workspaceState = readAndParseState(dir);
+                      const workspaceState = this.state.workspaceStates[dir];
                       if (!workspaceState) {
                         return undefined;
                       }
@@ -368,7 +384,7 @@ export default class Home extends Component<Props, State> {
           <Grid columns="two" relaxed padded>
             <Grid.Row>
               <Grid.Column>
-                <Button onClick={this.props.PyodideActions.LoadTopo}>
+                <Button onClick={() => this.props.PyodideActions.LoadTopo()}>
                   Generate Plot
                 </Button>
               </Grid.Column>

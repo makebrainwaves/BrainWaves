@@ -24,6 +24,7 @@
     "postlint-styles-fix": "prettier --single-quote --write '**/*.{css,scss}'",
     "test": "cross-env jest --passWithNoTests",
     "test-all": "npm run lint && npm run lint-styles && npm run typecheck && npm run build && npm test",
+    "tsc": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
