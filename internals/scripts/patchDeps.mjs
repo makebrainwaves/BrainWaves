@@ -24,7 +24,7 @@ function fixElectronPathTxt() {
   if (!existsSync(pathTxt)) return;
 
   const current = readFileSync(pathTxt, 'utf8').trim();
-  const correct = 'dist/Electron.app/Contents/MacOS/Electron';
+  const correct = 'Electron.app/Contents/MacOS/Electron';
   const binary = join(root, 'node_modules/electron', correct);
 
   if (current !== correct && existsSync(binary)) {

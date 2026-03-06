@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import path from 'pathe';
 import { cloneDeep as clonedeep } from 'lodash';
-import * as lab from 'lab.js/dist/lab.dev';
+import * as lab from 'lab.js';
 import {
   ExperimentObject,
   ExperimentParameters,
