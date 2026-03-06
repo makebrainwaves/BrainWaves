@@ -1,12 +1,11 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import Root from './containers/Root';
 import { configuredStore, history } from './store';
 import './app.global.css';
 
 const store = configuredStore();
 
-render(
-  <Root store={store} history={history} />,
-  document.getElementById('root')
+createRoot(document.getElementById('root') as HTMLElement).render(
+  <Root store={store} history={history} />
 );

@@ -17,10 +17,6 @@ import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
 
-// Chrome extension IDs for React and Redux DevTools
-const REACT_DEVTOOLS_ID = 'fmkadmapgofadopljbjfkapdkoienihi';
-const REDUX_DEVTOOLS_ID = 'lmhkpmbekcpmknklioeibfkpmmfibljd';
-
 // Needed for WASM/SharedArrayBuffer support (pyodide)
 app.commandLine.appendSwitch(
   'enable-experimental-web-platform-features',
@@ -36,29 +32,6 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
-const installExtensions = async () => {
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const sess = session.defaultSession;
-  const extDir = path.join(app.getPath('userData'), 'extensions');
-
-  const loadExt = async (id: string) => {
-    const extPath = path.join(extDir, id);
-    if (!fs.existsSync(extPath)) return;
-    const existing = sess.extensions
-      .getAllExtensions()
-      .find((e) => e.id === id);
-    if (existing && !forceDownload) return;
-    if (existing) {
-      sess.removeExtension(id);
-    }
-    await sess.extensions.loadExtension(extPath);
-  };
-
-  await Promise.all([REACT_DEVTOOLS_ID, REDUX_DEVTOOLS_ID].map(loadExt)).catch(
-    console.log
-  );
-};
 
 // ------------------------------------------------------------------
 // Filesystem helpers (mirroring renderer's storage.ts / write.ts)
@@ -397,9 +370,6 @@ ipcMain.handle('getViewerUrl', () => {
 // ------------------------------------------------------------------
 
 const createWindow = async () => {
-  if (is.dev || process.env.DEBUG_PROD === 'true') {
-    await installExtensions();
-  }
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -409,6 +379,7 @@ const createWindow = async () => {
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: false,
       webviewTag: true,
       additionalArguments: [
         // Pass resource path so preload can inject it synchronously
@@ -451,7 +422,9 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
-  new AppUpdater();
+  if (app.isPackaged) {
+    new AppUpdater();
+  }
 };
 
 // ------------------------------------------------------------------
