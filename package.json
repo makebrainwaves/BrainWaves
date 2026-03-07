@@ -22,7 +22,8 @@
     "lint-styles-fix": "npm run lint-styles -- --fix; exit 0",
     "postlint-fix": "prettier --single-quote --write '**/*.{ts,tsx,js,jsx,json,html,css,less,scss,yml}'",
     "postlint-styles-fix": "prettier --single-quote --write '**/*.{css,scss}'",
-    "test": "cross-env jest --passWithNoTests",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test-all": "npm run lint && npm run lint-styles && npm run typecheck && npm run build && npm test",
     "tsc": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
@@ -135,38 +136,20 @@
     "lab.js"
   ],
   "homepage": "https://github.com/makebrainwaves/BrainWaves/",
-  "jest": {
-    "testEnvironment": "node",
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "json"
-    ],
-    "moduleDirectories": [
-      "node_modules"
-    ]
-  },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-proposal-decorators": "^7.10.5",
-    "@types/history": "^4.7.6",
-    "@types/jest": "^30.0.0",
+    "@testing-library/jest-dom": "^6.4.0",
+    "@testing-library/react": "^16.0.0",
     "@types/node": "^22.12.0",
     "@types/react": "^18.x",
     "@types/react-dom": "^18.x",
     "@types/react-plotly.js": "^2.6.4",
-    "@types/react-router": "^5.1.8",
-    "@types/react-router-dom": "^5.1.5",
     "@types/redux-logger": "^3.0.8",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
     "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.0",
     "chalk": "^4.1.0",
     "cross-env": "^7.0.0",
     "electron": "^39.6.1",
@@ -180,20 +163,21 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "husky": "^8.0.0",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^30.2.0",
+    "jsdom": "^25.0.0",
     "lint-staged": "^16.2.7",
+    "postcss": "^8.4.0",
     "prettier": "^3.8.1",
-    "react-test-renderer": "^18.x",
     "redux-logger": "^3.0.6",
     "rimraf": "^6.1.3",
     "sass": "^1.50.0",
     "stylelint": "^17.3.0",
     "stylelint-config-standard": "^40.0.0",
+    "tailwindcss": "^3.4.0",
     "tar-fs": "^2.1.4",
     "typescript": "^5.0.0",
     "unbzip2-stream": "1.4.2",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^3.0.0"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -201,16 +185,19 @@
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@neurosity/pipes": "^5.2.1",
     "@nteract/transforms": "^3.2.0",
+    "@radix-ui/react-dialog": "^1.1.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
     "@reduxjs/toolkit": "^2.11.2",
     "ajv": "^8.18.0",
     "caniuse-lite": "^1.0.30001241",
-    "connected-react-router": "^6.6.1",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
     "d3": "^7.9.0",
     "dayjs": "^1.11.19",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.8.3",
     "events": "^3.3.0",
-    "history": "^4.7.2",
     "lab.js": "23.0.0-alpha4",
     "lodash": "^4.17.15",
     "mkdirp": "^1.0.4",
@@ -224,27 +211,21 @@
     "react-dom": "^18.x",
     "react-plotly.js": "^2.6.0",
     "react-redux": "^9.2.0",
-    "react-router": "^5.2.0",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.26.0",
     "react-toastify": "^11.x",
     "redux": "^5.x",
     "redux-observable": "^2.0.0-rc.2",
     "redux-thunk": "^2.3.0",
     "rxjs": "^7.8.2",
-    "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^2.1.5",
     "simple-statistics": "^7.1.0",
     "simplify-js": "^1.2.4",
+    "tailwind-merge": "^2.3.0",
     "typesafe-actions": "^5.1.0",
     "ws": "^8.19.0"
   },
   "overrides": {
     "react": "^18.x",
-    "react-dom": "^18.x",
-    "connected-react-router": {
-      "react-redux": "^9.2.0",
-      "redux": "^5.x"
-    }
+    "react-dom": "^18.x"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0",

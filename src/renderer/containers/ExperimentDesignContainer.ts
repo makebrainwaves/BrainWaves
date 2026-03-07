@@ -1,5 +1,7 @@
+import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Design from '../components/DesignComponent';
 import { ExperimentActions } from '../actions';
 
@@ -15,4 +17,11 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Design);
+const ConnectedDesign = connect(mapStateToProps, mapDispatchToProps)(Design);
+
+function ExperimentDesignContainer(props: any) {
+  const navigate = useNavigate();
+  return React.createElement(ConnectedDesign, { ...props, navigate });
+}
+
+export default ExperimentDesignContainer;

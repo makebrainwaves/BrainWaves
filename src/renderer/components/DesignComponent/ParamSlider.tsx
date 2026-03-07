@@ -1,4 +1,3 @@
-import { Segment } from 'semantic-ui-react';
 import React from 'react';
 import Slider from 'rc-slider';
 import styles from '../styles/common.module.css';
@@ -21,7 +20,7 @@ export const ParamSlider: React.FC<Props> = ({
   return (
     <div>
       <p className={styles.label}>{label}</p>
-      <Segment basic>
+      <div className="py-2">
         {label !== 'Practice trials' || Object.keys(marks).length > 1 ? (
           <Slider
             dots
@@ -35,7 +34,7 @@ export const ParamSlider: React.FC<Props> = ({
         ) : (
           <div>You have not chosen any practice trials.</div>
         )}
-      </Segment>
+      </div>
     </div>
   );
 };

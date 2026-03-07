@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
-import { Grid, Button, Header, Image, Table } from 'semantic-ui-react';
+import { Button } from '../ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { History } from 'history';
-
 dayjs.extend(relativeTime);
 import { Observable } from 'rxjs';
 import styles from '../styles/common.module.css';
@@ -61,7 +60,7 @@ export interface Props {
   deviceAvailability: DEVICE_AVAILABILITY;
   deviceType: DEVICES;
   ExperimentActions: typeof ExperimentActions;
-  history: History;
+  navigate: (path: string) => void;
   PyodideActions: typeof PyodideActions;
   signalQualityObservable?: Observable<SignalQualityData>;
   topoPlot: {
@@ -132,7 +131,7 @@ export default class Home extends Component<Props, State> {
         title: experimentType,
         type: experimentType,
       });
-      this.props.history.push(SCREENS.DESIGN.route);
+      this.props.navigate(SCREENS.DESIGN.route);
     }
   }
 
@@ -151,7 +150,7 @@ export default class Home extends Component<Props, State> {
       title,
       type: EXPERIMENTS.CUSTOM,
     });
-    this.props.history.push(SCREENS.DESIGN.route);
+    this.props.navigate(SCREENS.DESIGN.route);
   }
 
   // Load recent workspace by copying saved 'experiment' redux state into current redux state
@@ -172,7 +171,7 @@ export default class Home extends Component<Props, State> {
         .experimentObject,
     };
     this.props.ExperimentActions.SetState(deserializedWorkspaceState as any);
-    this.props.history.push(SCREENS.DESIGN.route);
+    this.props.navigate(SCREENS.DESIGN.route);
   }
 
   handleOpenOverview(type: EXPERIMENTS) {
@@ -207,29 +206,22 @@ export default class Home extends Component<Props, State> {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
         return (
-          <Grid
-            stackable
-            padded
-            columns="equal"
-            className={styles.myExperimentsPage}
-          >
+          <div className={styles.myExperimentsPage}>
             {this.state.recentWorkspaces.length > 0 ? (
-              <Table basic="very">
-                <Table.Header>
-                  <Table.Row className={styles.experimentHeaderRow}>
-                    <Table.HeaderCell className={styles.experimentHeaderName}>
+              <Table>
+                <TableHeader>
+                  <TableRow className={styles.experimentHeaderRow}>
+                    <TableHead className={styles.experimentHeaderName}>
                       Experiment name
-                    </Table.HeaderCell>
-                    <Table.HeaderCell>Date Last Opened</Table.HeaderCell>
-                    <Table.HeaderCell
-                      className={styles.experimentHeaderActionsName}
-                    >
+                    </TableHead>
+                    <TableHead>Date Last Opened</TableHead>
+                    <TableHead className={styles.experimentHeaderActionsName}>
                       Actions
-                    </Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
 
-                <Table.Body className={styles.experimentTable}>
+                <TableBody className={styles.experimentTable}>
                   {this.state.recentWorkspaces
                     .sort((a, b) => {
                       const aState = this.state.workspaceStates[a];
@@ -247,129 +239,102 @@ export default class Home extends Component<Props, State> {
                       }
                       const { dateModified } = workspaceState;
                       return (
-                        <Table.Row key={dir} className={styles.experimentRow}>
-                          <Table.Cell className={styles.experimentRowName}>
+                        <TableRow key={dir} className={styles.experimentRow}>
+                          <TableCell className={styles.experimentRowName}>
                             {dir}
-                          </Table.Cell>
-                          <Table.Cell className={styles.experimentRowName}>
+                          </TableCell>
+                          <TableCell className={styles.experimentRowName}>
                             {dateModified && dayjs(dateModified).fromNow()}
-                          </Table.Cell>
-                          <Table.Cell className={styles.experimentRowName}>
+                          </TableCell>
+                          <TableCell className={styles.experimentRowName}>
                             <Button
-                              secondary
+                              variant="secondary"
                               onClick={() => this.handleDeleteWorkspace(dir)}
                             >
                               Delete
                             </Button>
                             <Button
-                              secondary
+                              variant="secondary"
                               onClick={() => openWorkspaceDir(dir)}
                             >
                               Go to Folder
                             </Button>
                             <Button
-                              primary
+                              variant="default"
                               onClick={() =>
                                 this.handleLoadRecentWorkspace(dir)
                               }
                             >
                               Open Experiment
                             </Button>
-                          </Table.Cell>
-                        </Table.Row>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                </Table.Body>
+                </TableBody>
               </Table>
             ) : (
-              <Grid.Column textAlign="center">
-                <Image
+              <div className="text-center">
+                <img
                   src={divingMan}
-                  centered
                   className={styles.noExperimentsImage}
+                  alt="No experiments"
                 />
-                <Header className={styles.noExperimentsTitle}>
+                <h2 className={styles.noExperimentsTitle}>
                   You don&apos;t have any experiments yet
-                </Header>
+                </h2>
                 <p className={styles.noExperimentsText}>
                   Head over to the &quot;Experiment Bank&quot; section to start
                   an experiment.
                 </p>
                 <Button
-                  primary
+                  variant="default"
                   onClick={() => this.handleStepClick('EXPERIMENT BANK')}
                 >
                   View Experiments
                 </Button>
-              </Grid.Column>
+              </div>
             )}
-          </Grid>
+          </div>
         );
       case HOME_STEPS.NEW:
       default:
         return (
-          <Grid columns="two" relaxed padded>
-            <Grid.Row>
-              <Grid.Column>
-                <ExperimentCard
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
-                  icon={faceHouseIcon}
-                  title="Faces/Houses"
-                  description={`Explore how people react to different kinds of
-                            images, like faces vs. houses.`}
-                />
-              </Grid.Column>
-
-              <Grid.Column>
-                <ExperimentCard
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
-                  icon={stroopIcon}
-                  title="Stroop"
-                  description={`Investigate why it is hard to deal with
-                            contradictory information (like the word "RED"
-                            printed in blue).`}
-                />
-              </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-              <Grid.Column>
-                <ExperimentCard
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
-                  icon={multitaskingIcon}
-                  title="Multi-tasking"
-                  description={`Explore why it is challenging to carry out multiple
-                            tasks at the same time.`}
-                />
-              </Grid.Column>
-
-              <Grid.Column>
-                <ExperimentCard
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
-                  icon={searchIcon}
-                  title="Visual Search"
-                  description={`Examine why it is difficult to find your keys in a
-                            messy room.`}
-                />
-              </Grid.Column>
-            </Grid.Row>
-            {/* <Grid.Row>
-              <Grid.Column>
-                <ExperimentCard
-                  onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
-                  icon={customIcon}
-                  title="Custom"
-                  description="Design your own experiment!"
-                />
-              </Grid.Column>
-
-              <Grid.Column />
-            </Grid.Row> */}
-          </Grid>
+          <div className="grid grid-cols-2 gap-4 p-4">
+            <ExperimentCard
+              onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+              icon={faceHouseIcon}
+              title="Faces/Houses"
+              description={`Explore how people react to different kinds of
+                        images, like faces vs. houses.`}
+            />
+            <ExperimentCard
+              onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
+              icon={stroopIcon}
+              title="Stroop"
+              description={`Investigate why it is hard to deal with
+                        contradictory information (like the word "RED"
+                        printed in blue).`}
+            />
+            <ExperimentCard
+              onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
+              icon={multitaskingIcon}
+              title="Multi-tasking"
+              description={`Explore why it is challenging to carry out multiple
+                        tasks at the same time.`}
+            />
+            <ExperimentCard
+              onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
+              icon={searchIcon}
+              title="Visual Search"
+              description={`Examine why it is difficult to find your keys in a
+                        messy room.`}
+            />
+          </div>
         );
       case HOME_STEPS.EXPLORE:
         return (
           <EEGExplorationComponent
-            history={this.props.history}
             connectedDevice={this.props.connectedDevice}
             signalQualityObservable={this.props.signalQualityObservable}
             deviceType={this.props.deviceType}
@@ -381,22 +346,20 @@ export default class Home extends Component<Props, State> {
         );
       case HOME_STEPS.PYODIDE_TEST:
         return (
-          <Grid columns="two" relaxed padded>
-            <Grid.Row>
-              <Grid.Column>
-                <Button onClick={() => this.props.PyodideActions.LoadTopo()}>
-                  Generate Plot
-                </Button>
-              </Grid.Column>
-              <Grid.Column>
-                <PyodidePlotWidget
-                  title={'Test Plot'}
-                  imageTitle={`Test-Topoplot`}
-                  plotMIMEBundle={this.props.topoPlot}
-                />
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+          <div className="grid grid-cols-2 gap-4 p-4">
+            <div>
+              <Button variant="default" onClick={() => this.props.PyodideActions.LoadTopo()}>
+                Generate Plot
+              </Button>
+            </div>
+            <div>
+              <PyodidePlotWidget
+                title={'Test Plot'}
+                imageTitle={`Test-Topoplot`}
+                plotMIMEBundle={this.props.topoPlot}
+              />
+            </div>
+          </div>
         );
     }
   }
@@ -414,7 +377,7 @@ export default class Home extends Component<Props, State> {
     return (
       <>
         <SecondaryNavComponent
-          title={<Image src={appLogo} />}
+          title={<img src={appLogo} alt="BrainWaves" />}
           steps={HOME_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}

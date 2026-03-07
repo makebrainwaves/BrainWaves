@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Segment, Button } from 'semantic-ui-react';
+import { Button } from './ui/button';
 import {
   richestMimetype,
   standardDisplayOrder,
@@ -67,7 +67,7 @@ export default class PyodidePlotWidget extends Component<Props, State> {
   renderSaveButton() {
     if (this.state.rawData) {
       return (
-        <Button primary size="tiny" onClick={this.handleSave}>
+        <Button variant="default" size="sm" onClick={this.handleSave}>
           Save Image
         </Button>
       );
@@ -76,10 +76,10 @@ export default class PyodidePlotWidget extends Component<Props, State> {
 
   render() {
     return (
-      <Segment basic>
+      <div className="p-2">
         {this.renderResults()}
         {this.renderSaveButton()}
-      </Segment>
+      </div>
     );
   }
 }

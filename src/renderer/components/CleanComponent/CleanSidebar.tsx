@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
+import { Button } from '../ui/button';
 import styles from '../styles/common.module.css';
 
 enum HELP_STEP {
@@ -58,49 +58,33 @@ export default class CleanSidebar extends Component<Props, State> {
 
   renderMenu() {
     return (
-      <>
-        <Menu secondary vertical fluid>
-          <Header className={styles.helpHeader} as="h1">
-            What would you like to do?
-          </Header>
-          <Menu.Item onClick={this.handleStartSignal}>
-            <Segment basic className={styles.helpMenuItem}>
-              <Icon name="star outline" size="large" />
-              Improve the signal quality of your sensors
-            </Segment>
-          </Menu.Item>
-          <Menu.Item onClick={this.handleStartLearn}>
-            <Segment basic className={styles.helpMenuItem}>
-              <Icon name="exclamation triangle" size="large" />
-              Learn about how the subjects movements create noise
-            </Segment>
-          </Menu.Item>
-        </Menu>
-      </>
+      <div className="flex flex-col">
+        <h1 className={styles.helpHeader}>What would you like to do?</h1>
+        <div className={styles.helpMenuItem} onClick={this.handleStartSignal}>
+          ★ Improve the signal quality of your sensors
+        </div>
+        <div className={styles.helpMenuItem} onClick={this.handleStartLearn}>
+          ⚠ Learn about how the subjects movements create noise
+        </div>
+      </div>
     );
   }
 
   renderHelp(header: string, content: string) {
     return (
       <>
-        <Segment basic className={styles.helpContent}>
-          <Header className={styles.helpHeader} as="h1">
-            {header}
-          </Header>
+        <div className={styles.helpContent}>
+          <h1 className={styles.helpHeader}>{header}</h1>
           {content}
-        </Segment>
-        <Grid columns="equal">
-          <Grid.Column>
-            <Button fluid secondary onClick={this.handleBack}>
-              Back
-            </Button>
-          </Grid.Column>
-          <Grid.Column>
-            <Button fluid primary onClick={this.handleNext}>
-              Next
-            </Button>
-          </Grid.Column>
-        </Grid>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <Button variant="secondary" className="w-full" onClick={this.handleBack}>
+            Back
+          </Button>
+          <Button variant="default" className="w-full" onClick={this.handleNext}>
+            Next
+          </Button>
+        </div>
       </>
     );
   }
@@ -155,18 +139,14 @@ export default class CleanSidebar extends Component<Props, State> {
 
   render() {
     return (
-      <Segment basic padded vertical className={styles.helpSidebar}>
-        <Button
-          basic
-          circular
-          size="large"
-          floated="right"
-          icon="x"
+      <div className={styles.helpSidebar}>
+        <button
           className={styles.closeButton}
           onClick={this.props.handleClose}
-        />
+          aria-label="Close"
+        >✕</button>
         {this.renderHelpContent()}
-      </Segment>
+      </div>
     );
   }
 }
