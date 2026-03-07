@@ -1,14 +1,5 @@
 import React, { Component } from 'react';
-import { History } from 'history';
-import {
-  Grid,
-  Button,
-  Segment,
-  Header,
-  Image,
-  Checkbox,
-  CheckboxProps,
-} from 'semantic-ui-react';
+import { Button } from '../ui/button';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import styles from '../styles/common.module.css';
@@ -51,7 +42,7 @@ const DESIGN_STEPS = {
 };
 
 export interface DesignProps {
-  history: History;
+  navigate: (path: string) => void;
   type: EXPERIMENTS;
   title: string;
   params: ExperimentParameters;
@@ -95,7 +86,7 @@ export default class Design extends Component<DesignProps, State> {
   }
 
   handleStartExperiment() {
-    this.props.history.push(SCREENS.COLLECT.route);
+    this.props.navigate(SCREENS.COLLECT.route);
   }
 
   handleCustomizeExperiment() {
@@ -133,9 +124,8 @@ export default class Design extends Component<DesignProps, State> {
     this.setState({ isPreviewing: false });
   }
 
-  handleEEGEnabled(_, data: CheckboxProps) {
-    if (data.checked === undefined) return;
-    this.props.ExperimentActions.SetEEGEnabled(data.checked);
+  handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
+    this.props.ExperimentActions.SetEEGEnabled(e.target.checked);
     this.props.ExperimentActions.SaveWorkspace();
   }
 
@@ -186,153 +176,85 @@ export default class Design extends Component<DesignProps, State> {
       case DESIGN_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            stretched
-            relaxed
-            padded
-            className={styles.contentGrid}
-            style={{ alignItems: 'center' }}
-          >
-            <Grid.Row stretched>
-              <Grid.Column stretched width={5}>
-                <Segment basic>
-                  <Image src={Design.renderOverviewIcon(this.props.type)} />
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column stretched width={11}>
-                <Segment basic>
-                  <Header as="h1">{overview.title}</Header>
-                  <p>{overview.overview}</p>
-                </Segment>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+            <div className="w-5/12 p-2">
+              <img src={Design.renderOverviewIcon(this.props.type)} alt={overview.title} />
+            </div>
+            <div className="w-7/12 p-2">
+              <h1>{overview.title}</h1>
+              <p>{overview.overview}</p>
+            </div>
+          </div>
         );
 
       case DESIGN_STEPS.BACKGROUND:
         return (
-          <Grid
-            relaxed
-            padded
-            className={styles.contentGrid}
-            style={{ alignItems: 'center' }}
-          >
-            <Grid.Row>
-              <Grid.Column stretched width={4}>
-                <Segment basic>
-                  <Image src={Design.renderOverviewIcon(this.props.type)} />
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column stretched width={5}>
-                <Segment basic>
-                  <p>{background?.first_column_statement}</p>
-                  <p style={{ fontWeight: 'bold' }}>
-                    {background?.first_column_question}
-                  </p>
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column stretched width={5}>
-                <Segment basic>
-                  <p>{background?.second_column_statement}</p>
-                  <p style={{ fontWeight: 'bold' }}>
-                    {background?.second_column_question}
-                  </p>
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column width={2}>
-                <Segment basic>
-                  <div className={styles.externalLinks}>
-                    {background?.links.map((link) => (
-                      <Button
-                        key={link.address}
-                        secondary
-                        onClick={() => {
-                          window.open(link.address, '_blank');
-                        }}
-                      >
-                        {link.name}
-                      </Button>
-                    ))}
-                  </div>
-                </Segment>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+            <div className="w-1/4 p-2">
+              <img src={Design.renderOverviewIcon(this.props.type)} alt="overview" />
+            </div>
+            <div className="w-5/12 p-2">
+              <p>{background?.first_column_statement}</p>
+              <p style={{ fontWeight: 'bold' }}>{background?.first_column_question}</p>
+            </div>
+            <div className="w-5/12 p-2">
+              <p>{background?.second_column_statement}</p>
+              <p style={{ fontWeight: 'bold' }}>{background?.second_column_question}</p>
+            </div>
+            <div className="p-2">
+              <div className={styles.externalLinks}>
+                {background?.links.map((link) => (
+                  <Button
+                    key={link.address}
+                    variant="secondary"
+                    onClick={() => { window.open(link.address, '_blank'); }}
+                  >
+                    {link.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
         );
 
       case DESIGN_STEPS.PROTOCOL:
         return (
-          <Grid
-            relaxed
-            padded
-            className={styles.contentGrid}
-            style={{ alignItems: 'center' }}
-          >
-            <Grid.Row stretched>
-              <Grid.Column stretched width={7} textAlign="left">
-                <Segment basic>
-                  <Header as="h2">{protocol?.title}</Header>
-                  <p>{protocol?.protocol}</p>
-                </Segment>
-              </Grid.Column>
-
-              <Grid.Column width={9}>
-                <Grid>
-                  <Grid.Row>
-                    <Grid.Column width={5}>
-                      <Image
-                        src={Design.renderConditionIcon(
-                          protocol?.condition_first_img
-                        )}
-                      />
-                    </Grid.Column>
-                    <Grid.Column width={10}>
-                      <Segment basic>
-                        <Header as="h3">
-                          {protocol?.condition_first_title}
-                        </Header>
-                        <p>{protocol?.condition_first}</p>
-                      </Segment>
-                    </Grid.Column>
-                  </Grid.Row>
-
-                  <Grid.Row>
-                    <Grid.Column width={5}>
-                      <Image
-                        src={Design.renderConditionIcon(
-                          protocol?.condition_second_img
-                        )}
-                      />
-                    </Grid.Column>
-                    <Grid.Column width={10}>
-                      <Segment basic>
-                        <Header as="h3">
-                          {protocol?.condition_second_title}
-                        </Header>
-                        <p>{protocol?.condition_second}</p>
-                      </Segment>
-                    </Grid.Column>
-                  </Grid.Row>
-                </Grid>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+            <div className="w-7/12 p-2 text-left">
+              <h2>{protocol?.title}</h2>
+              <p>{protocol?.protocol}</p>
+            </div>
+            <div className="w-5/12 p-2 space-y-4">
+              <div className="flex gap-2 items-center">
+                <img
+                  className="w-1/3"
+                  src={Design.renderConditionIcon(protocol?.condition_first_img)}
+                  alt={protocol?.condition_first_title}
+                />
+                <div className="w-2/3">
+                  <h3>{protocol?.condition_first_title}</h3>
+                  <p>{protocol?.condition_first}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 items-center">
+                <img
+                  className="w-1/3"
+                  src={Design.renderConditionIcon(protocol?.condition_second_img)}
+                  alt={protocol?.condition_second_title}
+                />
+                <div className="w-2/3">
+                  <h3>{protocol?.condition_second_title}</h3>
+                  <p>{protocol?.condition_second}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         );
 
       case DESIGN_STEPS.PREVIEW:
         return (
-          <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={12}
-              textAlign="right"
-              verticalAlign="middle"
-              className={styles.previewWindow}
-            >
+          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+            <div className={['w-3/4', styles.previewWindow].join(' ')}>
               <PreviewExperimentComponent
                 title={this.props.title}
                 params={this.props.params}
@@ -341,14 +263,14 @@ export default class Design extends Component<DesignProps, State> {
                 onEnd={this.endPreview}
                 type={this.props.type}
               />
-            </Grid.Column>
-            <Grid.Column width={4} verticalAlign="middle">
+            </div>
+            <div className="w-1/4 flex justify-center">
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
                 onClick={this.handlePreview}
               />
-            </Grid.Column>
-          </Grid>
+            </div>
+          </div>
         );
     }
   }
@@ -365,8 +287,8 @@ export default class Design extends Component<DesignProps, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           enableEEGToggle={
-            <Checkbox
-              toggle
+            <input
+              type="checkbox"
               defaultChecked={this.props.isEEGEnabled}
               onChange={this.handleEEGEnabled}
               className={styles.EEGToggle}

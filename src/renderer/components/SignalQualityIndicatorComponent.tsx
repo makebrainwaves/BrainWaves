@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
-import { Segment } from 'semantic-ui-react';
 import * as d3 from 'd3';
 import { Observable, Subscription } from 'rxjs';
 import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
-import { PipesEpoch, SignalQualityData } from '../constants/interfaces';
+import { SignalQualityData } from '../constants/interfaces';
 
 interface Props {
   signalQualityObservable: Observable<SignalQualityData>;
@@ -58,9 +57,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
 
   render() {
     return (
-      <Segment basic size="massive">
+      <div>
         <SignalQualityIndicatorSVG />
-      </Segment>
+      </div>
     );
   }
 }

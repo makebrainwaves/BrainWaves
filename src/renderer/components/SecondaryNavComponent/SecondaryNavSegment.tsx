@@ -1,5 +1,4 @@
 import React from 'react';
-import { Grid } from 'semantic-ui-react';
 import styles from '../styles/secondarynav.module.css';
 
 interface Props {
@@ -10,14 +9,11 @@ interface Props {
 
 export default function SecondaryNavSegment(props: Props) {
   return (
-    <Grid.Column
-      as="a"
+    <a
       onClick={props.onClick}
-      textAlign="center"
-      verticalAlign="bottom"
-      className={[props.style, styles.secondaryNavSegment].join(' ')}
+      className={[props.style, styles.secondaryNavSegment, 'text-center flex items-end justify-center'].join(' ')}
     >
       {props.title}
-    </Grid.Column>
+    </a>
   );
 }

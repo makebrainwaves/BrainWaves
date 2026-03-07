@@ -1,7 +1,8 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
 import React, { Component } from 'react';
-import { Form, Button, Table, Icon } from 'semantic-ui-react';
+import { Button } from '../ui/button';
+import { TableRow, TableCell } from '../ui/table';
 import { toast } from 'react-toastify';
 import path from 'pathe';
 import { isString } from 'lodash';
@@ -73,67 +74,54 @@ export default class StimuliDesignColumn extends Component<Props, State> {
 
   render() {
     return (
-      <Table.Row className={styles.conditionRow}>
-        <Table.Cell className={styles.conditionsNameRow}>
+      <TableRow className={styles.conditionRow}>
+        <TableCell className={styles.conditionsNameRow}>
           {this.props.num}
-          <Form>
-            <Form.Input
-              value={this.props.title}
-              onChange={(event, data) =>
-                this.props.onChange(
-                  'title',
-                  data.value,
-                  `stimulus${this.props.num}`
-                )
-              }
-              placeholder="Enter condition name"
-            />
-          </Form>
-        </Table.Cell>
+          <input
+            className="border border-gray-300 rounded px-2 py-1 w-full mt-1"
+            value={this.props.title}
+            onChange={(event) =>
+              this.props.onChange('title', event.target.value, `stimulus${this.props.num}`)
+            }
+            placeholder="Enter condition name"
+          />
+        </TableCell>
 
-        <Table.Cell className={styles.experimentRowName}>
-          <Form.Select
-            fluid
-            selection
+        <TableCell className={styles.experimentRowName}>
+          <select
+            className="w-full border border-gray-300 rounded px-2 py-1"
             value={this.props.response}
-            onChange={(event, data) => {
-              const val = data.value;
+            onChange={(event) => {
+              const val = event.target.value;
               if (val && isString(val)) {
-                this.props.onChange(
-                  'response',
-                  val as string,
-                  `stimulus${this.props.num}`
-                );
+                this.props.onChange('response', val, `stimulus${this.props.num}`);
               }
             }}
-            placeholder="Select"
-            options={RESPONSE_OPTIONS}
-          />
-        </Table.Cell>
+          >
+            <option value="">Select</option>
+            {RESPONSE_OPTIONS.map((o) => (
+              <option key={o.key} value={o.value}>{o.text}</option>
+            ))}
+          </select>
+        </TableCell>
 
-        <Table.Cell className={styles.experimentRowName}>
+        <TableCell className={styles.experimentRowName}>
           {this.props.dir ? (
             <div className={styles.selectedFolderContainer}>
               <div>
                 Folder{' '}
-                {this.props.dir &&
-                  this.props.dir.split(path.sep).slice(-1).join(' / ')}
+                {this.props.dir && this.props.dir.split(path.sep).slice(-1).join(' / ')}
               </div>
-              <div>
-                ( {this.state.numberImages || this.props.numberImages} images
-                ){' '}
-              </div>
-              <div>
-                <Icon name="delete" onClick={this.handleRemoveFolder} />
-              </div>
+              <div>( {this.state.numberImages || this.props.numberImages} images )</div>
+              <button onClick={this.handleRemoveFolder} aria-label="Remove">✕</button>
             </div>
           ) : (
-            <Button secondary onClick={this.handleSelectFolder}>
+            <Button variant="secondary" onClick={this.handleSelectFolder}>
               Select folder
             </Button>
           )}
-        </Table.Cell>
-      </Table.Row>
+        </TableCell>
+      </TableRow>
     );
   }
 }

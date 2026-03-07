@@ -1,15 +1,6 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Button,
-  Segment,
-  Header,
-  Form,
-  Checkbox,
-  Image,
-  Table,
-  CheckboxProps,
-} from 'semantic-ui-react';
+import { Button } from '../ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
 import { isString } from 'lodash';
 
 import styles from '../styles/common.module.css';
@@ -75,21 +66,19 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.setState({ activeStep: step });
   }
 
-  handleProgressBar(_, data: CheckboxProps) {
-    const { checked } = data;
-    if (checked === undefined) return;
+  handleProgressBar(e: React.ChangeEvent<HTMLInputElement>) {
+    const checked = e.target.checked;
     this.setState((prevState) => ({
       params: { ...prevState.params, showProgessBar: checked },
     }));
   }
 
-  handleEEGEnabled(_, data: CheckboxProps) {
-    if (data.checked === undefined) return;
-    this.props.ExperimentActions.SetEEGEnabled(data.checked);
+  handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
+    this.props.ExperimentActions.SetEEGEnabled(e.target.checked);
   }
 
   handleStartExperiment() {
-    this.props.history.push(SCREENS.COLLECT.route);
+    this.props.navigate(SCREENS.COLLECT.route);
   }
 
   handlePreview(e) {
@@ -125,96 +114,48 @@ export default class CustomDesign extends Component<DesignProps, State> {
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            stretched
-            relaxed
-            padded
-            columns="equal"
-            className={styles.contentGrid}
-          >
-            <Grid.Column stretched verticalAlign="middle">
-              <Image
-                as={Segment}
-                basic
-                centered
-                src={researchQuestionImage}
-                className={styles.overviewImage}
+          <div className={['flex gap-4 p-4', styles.contentGrid].join(' ')}>
+            <div className="flex-1 flex flex-col items-center">
+              <img src={researchQuestionImage} className={styles.overviewImage} alt="Research Question" />
+              <label className="block text-sm font-medium mb-1">{FIELDS.QUESTION}</label>
+              <textarea
+                style={{ minHeight: 100, maxHeight: 400 }}
+                className="w-full border border-gray-300 rounded p-2"
+                value={this.state.params.description?.question}
+                placeholder="Explain your research question here."
+                onChange={(event) => this.handleSetText(event.target.value, 'question')}
               />
-              <Form>
-                <Form.TextArea
-                  autoHeight
-                  style={{ minHeight: 100, maxHeight: 400 }}
-                  label={FIELDS.QUESTION}
-                  value={this.state.params.description?.question}
-                  placeholder="Explain your research question here."
-                  onChange={(event, data) => {
-                    const val = data.value;
-                    if (!isString(val)) {
-                      return;
-                    }
-                    this.handleSetText(val as string, 'question');
-                  }}
-                />
-              </Form>
-            </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
-              <Image
-                as={Segment}
-                basic
-                centered
-                src={hypothesisImage}
-                className={styles.overviewImage}
+            </div>
+            <div className="flex-1 flex flex-col items-center">
+              <img src={hypothesisImage} className={styles.overviewImage} alt="Hypothesis" />
+              <label className="block text-sm font-medium mb-1">{FIELDS.HYPOTHESIS}</label>
+              <textarea
+                style={{ minHeight: 100, maxHeight: 400 }}
+                className="w-full border border-gray-300 rounded p-2"
+                value={this.state.params.description?.hypothesis}
+                placeholder="Describe your hypothesis here."
+                onChange={(event) => this.handleSetText(event.target.value, 'hypothesis')}
               />
-              <Form>
-                <Form.TextArea
-                  autoHeight
-                  style={{ minHeight: 100, maxHeight: 400 }}
-                  label={FIELDS.HYPOTHESIS}
-                  value={this.state.params.description?.hypothesis}
-                  placeholder="Describe your hypothesis here."
-                  onChange={(event, data) => {
-                    const val = data.value;
-                    if (!isString(val)) {
-                      return;
-                    }
-                    this.handleSetText(val as string, 'hypothesis');
-                  }}
-                />
-              </Form>
-            </Grid.Column>
-            <Grid.Column verticalAlign="middle">
-              <Image
-                as={Segment}
-                basic
-                centered
-                src={methodsImage}
-                className={styles.overviewImage}
+            </div>
+            <div className="flex-1 flex flex-col items-center">
+              <img src={methodsImage} className={styles.overviewImage} alt="Methods" />
+              <label className="block text-sm font-medium mb-1">{FIELDS.METHODS}</label>
+              <textarea
+                style={{ minHeight: 100, maxHeight: 400 }}
+                className="w-full border border-gray-300 rounded p-2"
+                value={this.state.params.description?.methods}
+                placeholder="Explain how you will design your experiment to answer the question here."
+                onChange={(event) => this.handleSetText(event.target.value, 'methods')}
               />
-              <Form>
-                <Form.TextArea
-                  autoHeight
-                  style={{ minHeight: 100, maxHeight: 400 }}
-                  label={FIELDS.METHODS}
-                  value={this.state.params.description?.methods}
-                  placeholder="Explain how you will design your experiment to answer the question here."
-                  onChange={(event, data) => {
-                    const val = data.value;
-                    if (!isString(val)) {
-                      return;
-                    }
-                    this.handleSetText(val as string, 'methods');
-                  }}
-                />
-              </Form>
-            </Grid.Column>
-          </Grid>
+            </div>
+          </div>
         );
 
       case CUSTOM_STEPS.CONDITIONS:
         return (
-          <Grid>
-            <Segment basic>
-              <Header as="h1">Conditions</Header>
+          <div className="p-4">
+            <div className="mb-4">
+              <h1>Conditions</h1>
               <p>
                 {`Select the folder with images for each condition and choose
                 the correct response. You can upload image files with the
@@ -223,429 +164,214 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 You can resize or compress your images in an image editing
                 program or on one of the websites online.`}
               </p>
-            </Segment>
+            </div>
 
-            <Table basic="very">
-              <Table.Header>
-                <Table.Row className={styles.conditionHeaderRow}>
-                  <Table.HeaderCell className={styles.conditionHeaderRowName}>
+            <Table>
+              <TableHeader>
+                <TableRow className={styles.conditionHeaderRow}>
+                  <TableHead className={styles.conditionHeaderRowName}>
                     Condition
-                  </Table.HeaderCell>
-                  <Table.HeaderCell>Default Key Response</Table.HeaderCell>
-                  <Table.HeaderCell>Condition Folder</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
+                  </TableHead>
+                  <TableHead>Default Key Response</TableHead>
+                  <TableHead>Condition Folder</TableHead>
+                </TableRow>
+              </TableHeader>
 
-              <Table.Body className={styles.experimentTable}>
-                <div>Stimulus customization is currently unavailable</div>
+              <TableBody className={styles.experimentTable}>
+                <TableRow>
+                  <TableCell colSpan={3}>Stimulus customization is currently unavailable</TableCell>
+                </TableRow>
                 {stimi.map(({ name, number }) => (
-                  <div key={name}>
-                    {`Stimulus name: ${name}, number: ${number}`}
-                  </div>
-                  //   key={number}
-                  //   num={number}
-                  //   {...this.state.params[name]}
-                  //   numberImages={this.state.params.stimuli.length}
-                  //   onChange={async (key, data, changedName) => {
-                  //     await this.setState({
-                  //       params: {
-                  //         ...this.state.params,
-                  //         [changedName]: {
-                  //           ...this.state.params[changedName],
-                  //           [key]: data,
-                  //         },
-                  //       },
-                  //     });
-                  //     let newStimuli: StimuliDesc[] = [];
-                  //     await stimi.forEach((stimul) => {
-                  //       let dirStimuli: StimuliDesc[] = [];
-                  //       const { dir } = this.state.params[stimul.name];
-                  //       if (dir && typeof dir !== 'undefined' && dir !== '') {
-                  //         dirStimuli = readImages(dir).map((i) => ({
-                  //           dir,
-                  //           filename: i,
-                  //           name: i,
-                  //           condition: this.state.params[stimul.name].title,
-                  //           response: this.state.params[stimul.name].response,
-                  //           phase: 'main',
-                  //           type: stimul.number,
-                  //         }));
-                  //       }
-                  //       if (dirStimuli.length) dirStimuli[0].phase = 'practice';
-                  //       newStimuli = newStimuli.concat(...dirStimuli);
-                  //     });
-                  //     this.setState({
-                  //       params: {
-                  //         ...this.state.params,
-                  //         stimuli: [...newStimuli],
-                  //         nbTrials: newStimuli.filter((t) => t.phase === 'main')
-                  //           .length,
-                  //         nbPracticeTrials: newStimuli.filter(
-                  //           (t) => t.phase === 'practice'
-                  //         ).length,
-                  //       },
-                  //       saved: false,
-                  //     });
-                  //   }}
-                  // />
+                  <TableRow key={name}>
+                    <TableCell colSpan={3}>{`Stimulus name: ${name}, number: ${number}`}</TableCell>
+                  </TableRow>
                 ))}
-              </Table.Body>
+              </TableBody>
             </Table>
-          </Grid>
+          </div>
         );
 
       case CUSTOM_STEPS.TRIALS:
         return (
-          <Grid>
+          <div className="p-4">
             <div className={styles.trialsHeader}>
               <div>
-                <Header as="h1">Trials</Header>
+                <h1>Trials</h1>
                 <p>Edit the correct key response and type of each trial.</p>
               </div>
-
-              <div>
-                <Form style={{ alignSelf: 'flex-end' }}>
-                  <Form.Group className={styles.trialsTopInfoBar}>
-                    <Form.Select
-                      fluid
-                      selection
-                      label="Order"
-                      value={this.state.params.randomize}
-                      onChange={(event, data) => {
-                        if (
-                          data.value === 'sequential' ||
-                          data.value === 'random'
-                        ) {
-                          this.setState({
-                            params: {
-                              ...this.state.params,
-                              randomize: data.value,
-                            },
-                            saved: false,
-                          });
-                        }
-                      }}
-                      placeholder="Response"
-                      options={[
-                        { key: 'random', text: 'Random', value: 'random' },
-                        {
-                          key: 'sequential',
-                          text: 'Sequential',
-                          value: 'sequential',
-                        },
-                      ]}
-                    />
-                    <Form.Input
-                      label="Total experimental trials"
-                      type="number"
-                      fluid
-                      value={this.state.params.nbTrials}
-                      onChange={(event, data) =>
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            nbTrials: parseInt(data.value, 10),
-                          },
-                          saved: false,
-                        })
+              <div className={styles.trialsTopInfoBar} style={{ alignSelf: 'flex-end' }}>
+                <div>
+                  <label className="block text-sm mb-1">Order</label>
+                  <select
+                    className="border border-gray-300 rounded px-2 py-1"
+                    value={this.state.params.randomize}
+                    onChange={(event) => {
+                      const val = event.target.value;
+                      if (val === 'sequential' || val === 'random') {
+                        this.setState({ params: { ...this.state.params, randomize: val }, saved: false });
                       }
-                    />
-                    <Form.Input
-                      label="Total practice trials"
-                      type="number"
-                      fluid
-                      value={this.state.params.nbPracticeTrials}
-                      onChange={(event, data) =>
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            nbPracticeTrials: parseInt(data.value, 10),
-                          },
-                          saved: false,
-                        })
-                      }
-                    />
-                  </Form.Group>
-                </Form>
+                    }}
+                  >
+                    <option value="random">Random</option>
+                    <option value="sequential">Sequential</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Total experimental trials</label>
+                  <input
+                    type="number"
+                    className="border border-gray-300 rounded px-2 py-1"
+                    value={this.state.params.nbTrials}
+                    onChange={(event) => this.setState({ params: { ...this.state.params, nbTrials: parseInt(event.target.value, 10) }, saved: false })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Total practice trials</label>
+                  <input
+                    type="number"
+                    className="border border-gray-300 rounded px-2 py-1"
+                    value={this.state.params.nbPracticeTrials}
+                    onChange={(event) => this.setState({ params: { ...this.state.params, nbPracticeTrials: parseInt(event.target.value, 10) }, saved: false })}
+                  />
+                </div>
               </div>
             </div>
 
-            <Table basic="very">
-              <Table.Header>
-                <Table.Row className={styles.trialsHeaderRow}>
-                  <Table.HeaderCell className={styles.conditionHeaderRowName}>
-                    Name
-                  </Table.HeaderCell>
-                  <Table.HeaderCell>Condition</Table.HeaderCell>
-                  <Table.HeaderCell>Correct Key Response</Table.HeaderCell>
-                  <Table.HeaderCell>Trial Type</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body className={styles.trialsTable}>
-                <div>Stimulus customization is currently unavailable</div>
-
-                {/* {this.state.params.stimuli &&
-                  this.state.params.stimuli.map((e, num) => (
-                    <StimuliRow
-                      key={`stim_row_${num}`}
-                      num={num}
-                      condition={[1, 2, 3, 4].map(
-                        (n) => this.state.params[`stimulus${n}`].title
-                      )}
-                      {...e}
-                      onDelete={(deletedNum) => {
-                        const { stimuli } = this.state.params;
-                        stimuli.splice(deletedNum, 1);
-                        const nbPracticeTrials = stimuli.filter(
-                          (s) => s.phase === 'practice'
-                        ).length;
-                        const nbTrials = stimuli.filter(
-                          (s) => s.phase === 'main'
-                        ).length;
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            stimuli: [...stimuli],
-                            nbPracticeTrials,
-                            nbTrials,
-                          },
-                          saved: false,
-                        });
-                      }}
-                      onChange={(changedNum, key, data) => {
-                        const { stimuli } = this.state.params;
-                        stimuli[changedNum][key] = data;
-                        let { nbPracticeTrials } = this.state.params;
-                        let { nbTrials } = this.state.params;
-                        if (key === 'phase') {
-                          nbPracticeTrials = stimuli.filter(
-                            (s) => s.phase === 'practice'
-                          ).length;
-                          nbTrials = stimuli.filter((s) => s.phase === 'main')
-                            .length;
-                        }
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            stimuli: [...stimuli],
-                            nbPracticeTrials,
-                            nbTrials,
-                          },
-                          saved: false,
-                        });
-                      }}
-                    />
-                  ))} */}
-              </Table.Body>
+            <Table>
+              <TableHeader>
+                <TableRow className={styles.trialsHeaderRow}>
+                  <TableHead className={styles.conditionHeaderRowName}>Name</TableHead>
+                  <TableHead>Condition</TableHead>
+                  <TableHead>Correct Key Response</TableHead>
+                  <TableHead>Trial Type</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className={styles.trialsTable}>
+                <TableRow>
+                  <TableCell colSpan={4}>Stimulus customization is currently unavailable</TableCell>
+                </TableRow>
+              </TableBody>
             </Table>
-          </Grid>
+          </div>
         );
 
       case CUSTOM_STEPS.PARAMETERS:
         return (
-          <Grid>
-            <Grid.Column
-              width={8}
-              style={{ display: 'grid', alignContent: 'space-between' }}
-            >
-              <Segment basic>
-                <Header as="h1">Inter-trial interval</Header>
+          <div className="flex gap-4 p-4">
+            <div className="w-1/2 flex flex-col justify-between">
+              <div>
+                <h1>Inter-trial interval</h1>
                 <p>
                   Select the inter-trial interval duration. This is the amount
                   of time between trials measured from the end of one trial to
                   the start of the next one.
                 </p>
-              </Segment>
-              <Segment basic style={{ marginTop: '100px' }}>
+              </div>
+              <div style={{ marginTop: '100px' }}>
                 <ParamSlider
                   label="ITI Duration (seconds)"
                   value={this.state.params.iti}
-                  marks={{
-                    1: '0.25',
-                    2: '0.5',
-                    3: '0.75',
-                    4: '1',
-                    5: '1.25',
-                    6: '1.5',
-                    7: '1.75',
-                    8: '2',
-                  }}
+                  marks={{ 1: '0.25', 2: '0.5', 3: '0.75', 4: '1', 5: '1.25', 6: '1.5', 7: '1.75', 8: '2' }}
                   msConversion="250"
-                  onChange={(value) =>
-                    this.setState({
-                      params: { ...this.state.params, iti: value },
-                      saved: false,
-                    })
-                  }
+                  onChange={(value) => this.setState({ params: { ...this.state.params, iti: value }, saved: false })}
                 />
-              </Segment>
-            </Grid.Column>
+              </div>
+            </div>
 
-            <Grid.Column
-              width={8}
-              style={{ display: 'grid', alignContent: 'space-between' }}
-            >
-              <Segment basic>
-                <Header as="h1">Image duration</Header>
+            <div className="w-1/2 flex flex-col justify-between">
+              <div>
+                <h1>Image duration</h1>
                 <p>
                   Select the time of presentation or make it self-paced -
                   present the image until participants respond.
                 </p>
-              </Segment>
-              <Segment basic>
-                <Checkbox
-                  defaultChecked={this.state.params.selfPaced}
-                  label="Self-paced data collection"
-                  onChange={(value) =>
-                    this.setState({
-                      params: {
-                        ...this.state.params,
-                        selfPaced: !this.state.params.selfPaced,
-                      },
-                      saved: false,
-                    })
-                  }
-                />
-              </Segment>
-
+              </div>
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    defaultChecked={this.state.params.selfPaced}
+                    onChange={() => this.setState({ params: { ...this.state.params, selfPaced: !this.state.params.selfPaced }, saved: false })}
+                  />
+                  Self-paced data collection
+                </label>
+              </div>
               {!this.state.params.selfPaced ? (
-                <Segment basic>
+                <div>
                   <ParamSlider
                     label="Presentation time (seconds)"
-                    value={
-                      this.state.params.presentationTime
-                        ? this.state.params.presentationTime
-                        : 0
-                    }
-                    marks={{
-                      1: '0.25',
-                      2: '0.5',
-                      3: '0.75',
-                      4: '1',
-                      5: '1.25',
-                      6: '1.5',
-                      7: '1.75',
-                      8: '2',
-                    }}
+                    value={this.state.params.presentationTime ? this.state.params.presentationTime : 0}
+                    marks={{ 1: '0.25', 2: '0.5', 3: '0.75', 4: '1', 5: '1.25', 6: '1.5', 7: '1.75', 8: '2' }}
                     msConversion="250"
-                    onChange={(value) =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          presentationTime: value,
-                        },
-                        saved: false,
-                      })
-                    }
+                    onChange={(value) => this.setState({ params: { ...this.state.params, presentationTime: value }, saved: false })}
                   />
-                </Segment>
+                </div>
               ) : (
-                <Segment basic style={{ marginBottom: '85px' }} />
+                <div style={{ marginBottom: '85px' }} />
               )}
-            </Grid.Column>
-          </Grid>
+            </div>
+          </div>
         );
 
       case CUSTOM_STEPS.INSTRUCTIONS:
         return (
-          <Grid stretched>
-            <Grid.Column
-              width={8}
-              stretched
-              style={{ display: 'grid', alignContent: 'space-between' }}
-            >
-              <Segment basic>
-                <Header as="h1">Experiment Instructions</Header>
-                <p>
-                  Edit the instruction that will be displayed on the first
-                  screen.
-                </p>
-                <Form>
-                  <Form.TextArea
-                    autoHeight
-                    value={this.state.params.intro}
-                    placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press the the space bar on your keyboard to start doing the practice trials. If you want to skip the practice trials and go directly to the task, press the 'q' button on your keyboard."
-                    onChange={(event, data) => {
-                      const val = data.value;
-                      if (!isString(val)) {
-                        return;
-                      }
-                      this.setState({
-                        params: { ...this.state.params, intro: val as string },
-                        saved: false,
-                      });
-                    }}
-                  />
-                </Form>
-              </Segment>
-            </Grid.Column>
+          <div className="flex gap-4 p-4">
+            <div className="w-1/2">
+              <h1>Experiment Instructions</h1>
+              <p>Edit the instruction that will be displayed on the first screen.</p>
+              <textarea
+                className="w-full border border-gray-300 rounded p-2"
+                style={{ minHeight: 150 }}
+                value={this.state.params.intro}
+                placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house."
+                onChange={(event) => {
+                  const val = event.target.value;
+                  if (!isString(val)) return;
+                  this.setState({ params: { ...this.state.params, intro: val }, saved: false });
+                }}
+              />
+            </div>
 
-            <Grid.Column
-              width={8}
-              stretched
-              style={{ display: 'grid', alignContent: 'space-between' }}
-            >
-              <Segment basic>
-                <Header as="h1">Instructions for the task screen</Header>
-                <p>
-                  Edit the instruction that will be displayed in the footer
-                  during the task.
-                </p>
-                <Form>
-                  <Form.TextArea
-                    autoHeight
-                    value={this.state.params.taskHelp}
-                    placeholder="e.g., Press 1 for a face and 9 for a house"
-                    onChange={(event, data) => {
-                      const val = data.value;
-                      if (!isString(val)) {
-                        return;
-                      }
-                      this.setState({
-                        params: { ...this.state.params, taskHelp: val as string },
-                        saved: false,
-                      });
-                    }}
-                  />
-                </Form>
-              </Segment>
-            </Grid.Column>
-          </Grid>
+            <div className="w-1/2">
+              <h1>Instructions for the task screen</h1>
+              <p>Edit the instruction that will be displayed in the footer during the task.</p>
+              <textarea
+                className="w-full border border-gray-300 rounded p-2"
+                style={{ minHeight: 150 }}
+                value={this.state.params.taskHelp}
+                placeholder="e.g., Press 1 for a face and 9 for a house"
+                onChange={(event) => {
+                  const val = event.target.value;
+                  if (!isString(val)) return;
+                  this.setState({ params: { ...this.state.params, taskHelp: val }, saved: false });
+                }}
+              />
+            </div>
+          </div>
         );
 
       case CUSTOM_STEPS.PREVIEW:
         return (
-          <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={14}
-              textAlign="right"
-              verticalAlign="middle"
-              className={styles.previewWindow}
-            >
+          <div className={['flex items-start p-4', styles.contentGrid].join(' ')}>
+            <div className={['flex-1', styles.previewWindow].join(' ')}>
               {this.props.type && (
                 <PreviewExperimentComponent
                   isPreviewing={this.state.isPreviewing}
                   onEnd={this.endPreview}
                   type={this.props.type}
                   experimentObject={this.props.experimentObject}
-                  // TODO: I believe this lets the user preview the parameter changes
-                  // before saving them
                   params={this.state.params}
                   title={this.props.title}
                 />
               )}
-            </Grid.Column>
-
-            <Grid.Column width={2} verticalAlign="top">
-              <Segment basic>
-                <PreviewButton
-                  isPreviewing={this.state.isPreviewing}
-                  onClick={(e) => this.handlePreview(e)}
-                />
-              </Segment>
-            </Grid.Column>
-          </Grid>
+            </div>
+            <div className="flex-shrink-0 p-2">
+              <PreviewButton
+                isPreviewing={this.state.isPreviewing}
+                onClick={(e) => this.handlePreview(e)}
+              />
+            </div>
+          </div>
         );
     }
   }
@@ -659,23 +385,20 @@ export default class CustomDesign extends Component<DesignProps, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           enableEEGToggle={
-            <Checkbox
-              toggle
+            <input
+              type="checkbox"
               defaultChecked={this.props.isEEGEnabled}
-              onChange={(event, data) => this.handleEEGEnabled(event, data)}
+              onChange={(event) => this.handleEEGEnabled(event)}
               className={styles.EEGToggle}
             />
           }
           saveButton={
             <Button
-              compact
-              size="small"
-              secondary
-              onClick={() => {
-                this.handleSaveParams();
-              }}
+              variant="secondary"
+              size="sm"
+              onClick={() => this.handleSaveParams()}
             >
-              {this.state.saved ? 'Save' : 'Save'}
+              Save
             </Button>
           }
         />

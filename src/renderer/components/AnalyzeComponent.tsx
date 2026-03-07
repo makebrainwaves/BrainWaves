@@ -1,17 +1,6 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Icon,
-  Segment,
-  Header,
-  Dropdown,
-  Divider,
-  Button,
-  Checkbox,
-  Sidebar,
-  DropdownProps,
-} from 'semantic-ui-react';
-import { isNil, isArray, isString } from 'lodash';
+import { Button } from './ui/button';
+import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
 import type { Data as PlotlyData } from 'plotly.js';
 import styles from './styles/common.module.css';
@@ -184,34 +173,29 @@ export default class Analyze extends Component<Props, State> {
     return subjects.reduce((acc, curr) => `${acc}-${curr}`);
   };
 
-  handleDatasetChange(event: Record<string, any>, data: DropdownProps) {
-    if (isStringArray(data.value)) {
-      this.setState({
-        selectedFilePaths: data.value,
-        selectedSubjects: getSubjectNamesFromFiles(data.value),
-      });
-      this.props.PyodideActions.LoadCleanedEpochs(data.value);
-    }
+  handleDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const values = Array.from(e.target.selectedOptions, (o) => o.value);
+    this.setState({
+      selectedFilePaths: values,
+      selectedSubjects: getSubjectNamesFromFiles(values),
+    });
+    this.props.PyodideActions.LoadCleanedEpochs(values);
   }
 
-  handleBehaviorDatasetChange(
-    event: Record<string, any>,
-    data: Record<string, any>
-  ) {
+  handleBehaviorDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const values = Array.from(e.target.selectedOptions, (o) => o.value);
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(data.value),
+      readBehaviorData(values),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       this.state.showDataPoints,
       this.state.displayMode
     );
-    if (!aggregatedData) {
-      return;
-    }
+    if (!aggregatedData) return;
     const { dataToPlot, layout } = aggregatedData;
     this.setState({
-      selectedBehaviorFilePaths: data.value,
-      selectedSubjects: getSubjectNamesFromFiles(data.value),
+      selectedBehaviorFilePaths: values,
+      selectedSubjects: getSubjectNamesFromFiles(values),
       dataToPlot,
       layout,
     });
@@ -230,29 +214,21 @@ export default class Analyze extends Component<Props, State> {
     }
   }
 
-  handleDependentVariableChange(
-    event: Record<string, any>,
-    data: Record<string, any>
-  ) {
+  handleDependentVariableChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const value = e.target.value;
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
-      data.value,
+      value,
       this.state.removeOutliers,
       this.state.showDataPoints,
       this.state.displayMode
     );
-    if (!aggregatedData) {
-      return;
-    }
+    if (!aggregatedData) return;
     const { dataToPlot, layout } = aggregatedData;
-    this.setState({
-      selectedDependentVariable: data.value,
-      dataToPlot,
-      layout,
-    });
+    this.setState({ selectedDependentVariable: value, dataToPlot, layout });
   }
 
-  handleRemoveOutliers(event: Record<string, any>, data: Record<string, any>) {
+  handleRemoveOutliers() {
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
@@ -260,19 +236,12 @@ export default class Analyze extends Component<Props, State> {
       this.state.showDataPoints,
       this.state.displayMode
     );
-    if (!aggregatedData) {
-      return;
-    }
+    if (!aggregatedData) return;
     const { dataToPlot, layout } = aggregatedData;
-    this.setState({
-      removeOutliers: !this.state.removeOutliers,
-      dataToPlot,
-      layout,
-      helpMode: 'outliers',
-    });
+    this.setState({ removeOutliers: !this.state.removeOutliers, dataToPlot, layout, helpMode: 'outliers' });
   }
 
-  handleDataPoints(event: Record<string, any>, data: Record<string, any>) {
+  handleDataPoints() {
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
@@ -280,15 +249,9 @@ export default class Analyze extends Component<Props, State> {
       !this.state.showDataPoints,
       this.state.displayMode
     );
-    if (!aggregatedData) {
-      return;
-    }
+    if (!aggregatedData) return;
     const { dataToPlot, layout } = aggregatedData;
-    this.setState({
-      showDataPoints: !this.state.showDataPoints,
-      dataToPlot,
-      layout,
-    });
+    this.setState({ showDataPoints: !this.state.showDataPoints, dataToPlot, layout });
   }
 
   handleDisplayModeChange(displayMode) {
@@ -349,12 +312,9 @@ export default class Analyze extends Component<Props, State> {
         (infoObj) =>
           infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
       ).length;
-      let colors;
-      if (numberConditions === 4) {
-        colors = ['red', 'yellow', 'green', 'blue'];
-      } else {
-        colors = ['red', 'green', 'teal', 'orange'];
-      }
+      const colors = numberConditions === 4
+        ? ['red', 'yellow', 'green', 'blue']
+        : ['red', 'green', 'teal', 'orange'];
       return (
         <div>
           {this.props.epochsInfo
@@ -364,11 +324,11 @@ export default class Analyze extends Component<Props, State> {
                 infoObj.name !== 'Total Epochs'
             )
             .map((infoObj, index) => (
-              <>
-                <Header as="h4">{infoObj.name}</Header>
-                <Icon name="circle" color={colors[index]} />
-                {infoObj.value}
-              </>
+              <div key={String(infoObj.name)}>
+                <h4>{infoObj.name}</h4>
+                <span style={{ color: colors[index] }}>●</span>
+                {' '}{infoObj.value}
+              </div>
             ))}
         </div>
       );
@@ -422,22 +382,15 @@ export default class Analyze extends Component<Props, State> {
 
   renderHelp(header: string, content: string) {
     return (
-      <>
-        <Segment basic className={styles.helpContent}>
-          <Button
-            circular
-            size="large"
-            floated="right"
-            icon="x"
-            className={styles.closeButton}
-            onClick={this.toggleDisplayInfoVisibility}
-          />
-          <Header className={styles.helpHeader} as="h1">
-            {header}
-          </Header>
-          {content}
-        </Segment>
-      </>
+      <div className={styles.helpContent}>
+        <button
+          className={styles.closeButton}
+          onClick={this.toggleDisplayInfoVisibility}
+          aria-label="Close"
+        >✕</button>
+        <h1 className={styles.helpHeader}>{header}</h1>
+        {content}
+      </div>
     );
   }
 
@@ -447,29 +400,30 @@ export default class Analyze extends Component<Props, State> {
       default:
         return (
           <>
-            <Grid.Column width={4}>
-              <Segment basic textAlign="left" className={styles.infoSegment}>
-                <Header as="h1">Overview</Header>
+            <div className="w-1/3 p-2 text-left">
+              <div className={styles.infoSegment}>
+                <h1>Overview</h1>
                 <p>
                   Load cleaned datasets from different subjects and view how the
                   EEG differs between electrodes
                 </p>
-                <Header as="h4">Select Clean Datasets</Header>
-                <Dropdown
-                  fluid
+                <h4>Select Clean Datasets</h4>
+                <select
                   multiple
-                  selection
-                  closeOnChange
+                  className="w-full border border-gray-300 rounded p-1"
                   value={this.state.selectedFilePaths}
-                  options={this.state.eegFilePaths.map(
-                    (eegFilePath) => eegFilePath.value
-                  )}
                   onChange={this.handleDatasetChange}
-                />
+                >
+                  {this.state.eegFilePaths.map((eegFilePath) => (
+                    <option key={eegFilePath.key} value={String(eegFilePath.value)}>
+                      {eegFilePath.text}
+                    </option>
+                  ))}
+                </select>
                 {this.renderEpochLabels()}
-              </Segment>
-            </Grid.Column>
-            <Grid.Column width={8}>
+              </div>
+            </div>
+            <div className="w-2/3 p-2">
               <PyodidePlotWidget
                 title={this.props.title}
                 imageTitle={`${this.concatSubjectNames(
@@ -477,15 +431,15 @@ export default class Analyze extends Component<Props, State> {
                 )}-Topoplot`}
                 plotMIMEBundle={this.props.topoPlot}
               />
-            </Grid.Column>
+            </div>
           </>
         );
       case ANALYZE_STEPS.ERP:
         return (
           <>
-            <Grid.Column width={4} className={styles.analyzeColumn}>
-              <Segment basic textAlign="left" className={styles.infoSegment}>
-                <Header as="h1">ERP</Header>
+            <div className={['w-1/3 p-2 text-left', styles.analyzeColumn].join(' ')}>
+              <div className={styles.infoSegment}>
+                <h1>ERP</h1>
                 <p>
                   The event-related potential represents EEG activity elicited
                   by a particular sensory event
@@ -494,11 +448,11 @@ export default class Analyze extends Component<Props, State> {
                   channelinfo={this.props.channelInfo}
                   onChannelClick={this.handleChannelSelect}
                 />
-                <Divider hidden />
+                <div className="my-2" />
                 {this.renderEpochLabels()}
-              </Segment>
-            </Grid.Column>
-            <Grid.Column width={8}>
+              </div>
+            </div>
+            <div className="w-2/3 p-2">
               <PyodidePlotWidget
                 title={this.props.title}
                 imageTitle={`${this.concatSubjectNames(
@@ -506,117 +460,92 @@ export default class Analyze extends Component<Props, State> {
                 )}-${this.state.selectedChannel}-ERP`}
                 plotMIMEBundle={this.props.erpPlot}
               />
-            </Grid.Column>
+            </div>
           </>
         );
       case ANALYZE_STEPS.BEHAVIOR:
         return (
           <>
-            <Grid.Column width={4}>
-              <Segment basic textAlign="left" className={styles.infoSegment}>
-                <Header as="h1">Overview</Header>
+            <div className="w-1/3 p-2 text-left">
+              <div className={styles.infoSegment}>
+                <h1>Overview</h1>
                 <p>
-                  Load datasets from different subjects and view behavioral
-                  results
+                  Load datasets from different subjects and view behavioral results
                 </p>
-
-                <div>
-                  <span className="ui header">Datasets</span>
-                  <Button
-                    className="export"
-                    onClick={this.saveSelectedDatasets}
-                  >
-                    <Icon name="download" />
-                    Export
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">Datasets</span>
+                  <Button variant="outline" size="sm" onClick={this.saveSelectedDatasets}>
+                    ↓ Export
                   </Button>
                 </div>
-                <p />
-
-                <Dropdown
-                  fluid
+                <select
                   multiple
-                  selection
-                  search
-                  closeOnChange
+                  className="w-full border border-gray-300 rounded p-1"
                   value={this.state.selectedBehaviorFilePaths}
-                  options={this.state.behaviorFilePaths}
                   onChange={this.handleBehaviorDatasetChange}
                   onClick={this.handleDropdownClick}
-                />
-                <p />
-                <Divider hidden />
-                <span className="ui header">Dependent Variable</span>
-                <p />
-                <Dropdown
-                  fluid
-                  selection
-                  closeOnChange
+                >
+                  {this.state.behaviorFilePaths.map((fp) => (
+                    <option key={fp.key} value={fp.value}>{fp.text}</option>
+                  ))}
+                </select>
+                <div className="my-2" />
+                <p className="font-semibold">Dependent Variable</p>
+                <select
+                  className="w-full border border-gray-300 rounded p-1"
                   value={this.state.selectedDependentVariable}
-                  options={this.state.dependentVariables}
                   onChange={this.handleDependentVariableChange}
-                />
-              </Segment>
-            </Grid.Column>
-            <Grid.Column
-              width={12}
-              style={{
-                overflow: 'auto',
-                maxHeight: 650,
-                display: 'grid',
-                justifyContent: 'center',
-              }}
+                >
+                  {this.state.dependentVariables.map((dv) => (
+                    <option key={dv.key} value={dv.value}>{dv.text}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div
+              className="w-2/3 p-2"
+              style={{ overflow: 'auto', maxHeight: 650 }}
             >
-              <Segment basic textAlign="left" className={styles.plotSegment}>
+              <div className={['text-left', styles.plotSegment].join(' ')}>
                 <Plot data={this.state.dataToPlot} layout={this.state.layout} />
-                <p />
-                <Checkbox
-                  checked={this.state.removeOutliers}
-                  label="Remove Response Time Outliers"
-                  onChange={this.handleRemoveOutliers}
-                />
-
-                <p />
-                <Button.Group>
-                  <Button
-                    className="tertiary"
-                    toggle
-                    active={this.state.displayMode === 'datapoints'}
+                <div className="my-2" />
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={this.state.removeOutliers}
+                    onChange={this.handleRemoveOutliers}
+                  />
+                  Remove Response Time Outliers
+                </label>
+                <div className="my-2" />
+                <div className="flex gap-1">
+                  <button
+                    className={['px-3 py-1 border rounded', this.state.displayMode === 'datapoints' ? 'bg-gray-200' : ''].join(' ')}
                     onClick={() => this.handleDisplayModeChange('datapoints')}
                   >
                     Data Points
-                  </Button>
-                  <Button
-                    className="tertiary"
-                    toggle
-                    active={this.state.displayMode === 'errorbars'}
+                  </button>
+                  <button
+                    className={['px-3 py-1 border rounded', this.state.displayMode === 'errorbars' ? 'bg-gray-200' : ''].join(' ')}
                     onClick={() => this.handleDisplayModeChange('errorbars')}
                   >
                     Bar Graph
-                  </Button>
-                  <Button
-                    className="tertiary"
-                    toggle
-                    active={this.state.displayMode === 'whiskers'}
+                  </button>
+                  <button
+                    className={['px-3 py-1 border rounded', this.state.displayMode === 'whiskers' ? 'bg-gray-200' : ''].join(' ')}
                     onClick={() => this.handleDisplayModeChange('whiskers')}
                   >
                     Box Plot
-                  </Button>
-                </Button.Group>
-
+                  </button>
+                </div>
                 <HelpButton onClick={this.toggleDisplayInfoVisibility} />
-
-                <Sidebar
-                  width="wide"
-                  direction="right"
-                  as={Segment}
-                  visible={this.state.isSidebarVisible}
-                >
-                  <Segment basic padded vertical className={styles.helpSidebar}>
+                {this.state.isSidebarVisible && (
+                  <div className={styles.helpSidebar}>
                     {this.renderHelpContent()}
-                  </Segment>
-                </Sidebar>
-              </Segment>
-            </Grid.Column>
+                  </div>
+                )}
+              </div>
+            </div>
           </>
         );
     }
@@ -635,19 +564,10 @@ export default class Analyze extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />
-        <Grid
-          columns="equal"
-          textAlign="center"
-          verticalAlign="top"
-          className={styles.contentGrid}
-        >
+        <div className={['flex items-start', styles.contentGrid].join(' ')}>
           {this.renderSectionContent()}
-        </Grid>
+        </div>
       </div>
     );
   }
-}
-
-function isStringArray(data: any): data is string[] {
-  return isArray(data.value) && data.value.every(isString);
 }

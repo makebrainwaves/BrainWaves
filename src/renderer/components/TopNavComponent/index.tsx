@@ -1,6 +1,5 @@
-import React, { Component } from 'react';
-import { Grid, Segment, Image, Dropdown } from 'semantic-ui-react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { isNil } from 'lodash';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import styles from '../styles/topnavbar.module.css';
@@ -14,129 +13,119 @@ import { ExperimentActions } from '../../actions';
 
 export interface Props {
   title: string | null | undefined;
-  location: { pathname: string; search: string; hash: string };
   isRunning: boolean;
   ExperimentActions: typeof ExperimentActions;
   isEEGEnabled: boolean;
   type: EXPERIMENTS;
 }
 
-interface State {
-  recentWorkspaces: Array<string>;
-}
+export default function TopNavComponent(props: Props) {
+  const location = useLocation();
+  const [recentWorkspaces, setRecentWorkspaces] = useState<string[]>([]);
 
-export default class TopNavComponent extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      recentWorkspaces: [],
-    };
-    this.getStyleForScreen = this.getStyleForScreen.bind(this);
-    this.updateWorkspaces = this.updateWorkspaces.bind(this);
-    this.handleLoadRecentWorkspace = this.handleLoadRecentWorkspace.bind(this);
-  }
-
-  getStyleForScreen(navSegmentScreen: (typeof SCREENS)[keyof typeof SCREENS]) {
-    if (navSegmentScreen.route === this.props.location.pathname) {
+  const getStyleForScreen = (
+    navSegmentScreen: (typeof SCREENS)[keyof typeof SCREENS]
+  ) => {
+    if (navSegmentScreen.route === location.pathname) {
       return styles.activeNavColumn;
     }
-
     const routeOrder = Object.values(SCREENS).find(
       (screen) => screen.route === navSegmentScreen.route
     )?.order;
     const currentOrder = Object.values(SCREENS).find(
-      (screen) => screen.route === this.props.location.pathname
+      (screen) => screen.route === location.pathname
     )?.order;
     if (routeOrder && currentOrder && currentOrder > routeOrder) {
       return styles.visitedNavColumn;
     }
     return styles.initialNavColumn;
-  }
-
-  updateWorkspaces = async () => {
-    this.setState({ recentWorkspaces: await readWorkspaces() });
   };
 
-  async handleLoadRecentWorkspace(dir: string) {
+  const updateWorkspaces = async () => {
+    setRecentWorkspaces(await readWorkspaces());
+  };
+
+  const handleLoadRecentWorkspace = async (dir: string) => {
     const recentWorkspaceState = await readAndParseState(dir);
     if (recentWorkspaceState != null) {
-      this.props.ExperimentActions.SetState(recentWorkspaceState);
+      props.ExperimentActions.SetState(recentWorkspaceState);
     }
+  };
+
+  if (
+    location.pathname === SCREENS.HOME.route ||
+    location.pathname === SCREENS.BANK.route ||
+    location.pathname === '/' ||
+    props.isRunning
+  ) {
+    return null;
   }
 
-  render() {
-    if (
-      this.props.location.pathname === SCREENS.HOME.route ||
-      this.props.location.pathname === SCREENS.BANK.route ||
-      this.props.location.pathname === '/' ||
-      this.props.isRunning
-    ) {
-      return null;
-    }
-    return (
-      <Grid className={styles.navContainer} verticalAlign="middle">
-        <Grid.Column className={styles.experimentTitleGridColumn}>
-          <Segment basic className={styles.homeButton}>
-            <NavLink to={SCREENS.HOME.route}>
-              <Image
-                centered
-                className={styles.exitWorkspaceBtn}
-                src={BrainwavesIcon}
-              />
-              Home
-            </NavLink>
-          </Segment>
-        </Grid.Column>
+  return (
+    <div className={styles.navContainer}>
+      <div className={styles.experimentTitleGridColumn}>
+        <div className={styles.homeButton}>
+          <NavLink to={SCREENS.HOME.route}>
+            <img
+              className={styles.exitWorkspaceBtn}
+              src={BrainwavesIcon}
+              alt="Home"
+            />
+            Home
+          </NavLink>
+        </div>
+      </div>
 
-        <Grid.Column width={3} className={styles.experimentTitleGridColumn}>
-          <Segment basic>
-            <Dropdown
-              text={this.props.title ? this.props.title : 'Untitled'}
-              direction="right"
-              onClick={() => {
-                this.updateWorkspaces();
-              }}
-            >
-              <Dropdown.Menu>
-                {this.state.recentWorkspaces.map((workspace) => (
-                  <Dropdown.Item
-                    key={workspace}
-                    onClick={() => this.handleLoadRecentWorkspace(workspace)}
+      <div className={styles.experimentTitleGridColumn}>
+        <div className="relative">
+          <button
+            onClick={updateWorkspaces}
+            className={styles.workspaceDropdownTrigger}
+          >
+            {props.title ? props.title : 'Untitled'}
+          </button>
+          {recentWorkspaces.length > 0 && (
+            <ul className={styles.workspaceDropdownMenu}>
+              {recentWorkspaces.map((workspace) => (
+                <li key={workspace}>
+                  <button
+                    onClick={() => handleLoadRecentWorkspace(workspace)}
+                    className={styles.workspaceDropdownItem}
                   >
-                    <p>{workspace}</p>
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          </Segment>
-        </Grid.Column>
+                    {workspace}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
 
+      <PrimaryNavSegment
+        {...SCREENS.DESIGN}
+        style={getStyleForScreen(SCREENS.DESIGN)}
+      />
+      <PrimaryNavSegment
+        {...SCREENS.COLLECT}
+        style={getStyleForScreen(SCREENS.COLLECT)}
+      />
+      {props.isEEGEnabled ? (
         <PrimaryNavSegment
-          {...SCREENS.DESIGN}
-          style={this.getStyleForScreen(SCREENS.DESIGN)}
+          {...SCREENS.CLEAN}
+          style={getStyleForScreen(SCREENS.CLEAN)}
         />
+      ) : null}
+      {props.isEEGEnabled ? (
         <PrimaryNavSegment
-          {...SCREENS.COLLECT}
-          style={this.getStyleForScreen(SCREENS.COLLECT)}
+          {...SCREENS.ANALYZE}
+          style={getStyleForScreen(SCREENS.ANALYZE)}
         />
-        {this.props.isEEGEnabled ? (
-          <PrimaryNavSegment
-            {...SCREENS.CLEAN}
-            style={this.getStyleForScreen(SCREENS.CLEAN)}
-          />
-        ) : null}
-        {this.props.isEEGEnabled ? (
-          <PrimaryNavSegment
-            {...SCREENS.ANALYZE}
-            style={this.getStyleForScreen(SCREENS.ANALYZE)}
-          />
-        ) : (
-          <PrimaryNavSegment
-            {...SCREENS.ANALYZEBEHAVIOR}
-            style={this.getStyleForScreen(SCREENS.ANALYZE)}
-          />
-        )}
-      </Grid>
-    );
-  }
+      ) : (
+        <PrimaryNavSegment
+          {...SCREENS.ANALYZEBEHAVIOR}
+          style={getStyleForScreen(SCREENS.ANALYZE)}
+        />
+      )}
+    </div>
+  );
 }

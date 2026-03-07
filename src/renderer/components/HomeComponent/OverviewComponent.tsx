@@ -1,5 +1,5 @@
 import React, { Component, useMemo, useState } from 'react';
-import { Grid, Header, Button, Segment } from 'semantic-ui-react';
+import { Button } from '../ui/button';
 import styles from '../styles/common.module.css';
 import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
@@ -40,43 +40,32 @@ const OverviewComponent: React.FC<Props> = ({
       case OVERVIEW_STEPS.OVERVIEW:
       default:
         return (
-          <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <Header as="h1">{experiment?.text.overview.title}</Header>
-            </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                {experiment?.text.overview.overview}
-              </Segment>
-            </Grid.Column>
-          </Grid>
+          <div className={['flex items-center gap-8', styles.contentGrid].join(' ')}>
+            <div className="flex-1 text-right">
+              <h1>{experiment?.text.overview.title}</h1>
+            </div>
+            <div className="flex-1">
+              <p>{experiment?.text.overview.overview}</p>
+            </div>
+          </div>
         );
     }
   };
 
   return (
     <>
-      <Button
-        basic
-        circular
-        size="huge"
-        floated="right"
-        icon="x"
+      <button
         className={styles.closeButton}
         onClick={onCloseOverview}
-      />
+        aria-label="Close"
+      >✕</button>
       <SecondaryNavComponent
         title={type}
         steps={OVERVIEW_STEPS}
         activeStep={activeStep}
         onStepClick={handleStepClick}
         saveButton={
-          <Button primary onClick={() => onStartExperiment(type)}>
+          <Button variant="default" onClick={() => onStartExperiment(type)}>
             Start Experiment
           </Button>
         }

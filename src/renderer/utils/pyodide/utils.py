@@ -155,7 +155,12 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
         conditions = OrderedDict(conditions)
 
     if palette is None:
-        palette = sns.color_palette("hls", len(conditions) + 1)
+        palette = [
+            (0.86, 0.37, 0.34),
+            (0.34, 0.86, 0.37),
+            (0.37, 0.34, 0.86),
+            (0.86, 0.72, 0.34),
+        ]
 
     X = epochs.get_data()
     times = epochs.times
@@ -163,8 +168,20 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     fig, ax = plt.subplots()
 
     for cond, color in zip(conditions.values(), palette):
-        sns.tsplot(X[y.isin(cond), ch_ind], time=times, color=color,
-                   n_boot=n_boot, ci=ci)
+        cond_data = X[y.isin(cond), ch_ind]
+        mean = np.nanmean(cond_data, axis=0)
+        n_samples = cond_data.shape[0]
+        boot_means = np.array([
+            np.nanmean(
+                cond_data[np.random.randint(0, n_samples, n_samples)], axis=0
+            )
+            for _ in range(n_boot)
+        ])
+        alpha = (100 - ci) / 2
+        low = np.percentile(boot_means, alpha, axis=0)
+        high = np.percentile(boot_means, 100 - alpha, axis=0)
+        ax.plot(times, mean, color=color)
+        ax.fill_between(times, low, high, color=color, alpha=0.3)
 
     if diff_waveform:
         diff = (np.nanmean(X[y == diff_waveform[1], ch_ind], axis=0) -
@@ -176,11 +193,6 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
 
     ax.set_xlabel('Time (s)')
     ax.set_ylabel('Amplitude (uV)')
-    ax.set_xlabel('Time (s)')
-    ax.set_ylabel('Amplitude (uV)')
-
-    # Round y axis tick labels to 2 decimal places
-    # ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
     if diff_waveform:
         legend = (['{} - {}'.format(diff_waveform[1], diff_waveform[0])] +
@@ -188,7 +200,8 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     else:
         legend = conditions.keys()
     ax.legend(legend)
-    sns.despine()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
     plt.tight_layout()
 
     if title:
