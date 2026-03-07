@@ -1,9 +1,42 @@
-import React, { Component } from 'react';
-import { Grid, Header, Dropdown } from 'semantic-ui-react';
+import React, { Component, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import styles from '../styles/secondarynav.module.css';
 import SecondaryNavSegment from './SecondaryNavSegment';
 import { SCREENS } from '../../constants/constants';
+
+interface SettingsDropdownProps {
+  enableEEGToggle: JSX.Element;
+  saveButton?: JSX.Element;
+  dropdownSettings: string;
+  dropdownMenu: string;
+  dropdownItem: string;
+  homeRoute: string;
+}
+
+function SettingsDropdown({ enableEEGToggle, saveButton, dropdownSettings, dropdownMenu, dropdownItem, homeRoute }: SettingsDropdownProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button className={dropdownSettings} onClick={() => setOpen((o) => !o)} aria-label="Settings">
+        ⚙
+      </button>
+      {open && (
+        <div className={dropdownMenu} style={{ position: 'absolute', right: 0, zIndex: 50 }}>
+          <div className={dropdownItem} onClick={(e) => e.stopPropagation()}>
+            <div>Enable EEG</div>
+            {enableEEGToggle}
+          </div>
+          <div className={dropdownItem}>
+            <NavLink to={homeRoute} onClick={() => setOpen(false)}>
+              <p>Exit Experiment</p>
+            </NavLink>
+          </div>
+        </div>
+      )}
+      {saveButton}
+    </div>
+  );
+}
 
 interface Props {
   title: string | React.ReactNode;
@@ -24,9 +57,9 @@ export default class SecondaryNavComponent extends Component<Props> {
   renderTitle() {
     if (typeof this.props.title === 'string') {
       return (
-        <Header className={styles.secondaryNavContainerExpName}>
+        <span className={styles.secondaryNavContainerExpName}>
           {this.props.title}
-        </Header>
+        </span>
       );
     }
     return this.props.title;
@@ -53,42 +86,28 @@ export default class SecondaryNavComponent extends Component<Props> {
 
   render() {
     return (
-      <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
-        <Grid.Column width={3} verticalAlign="bottom">
+      <div className={['flex items-center', styles.secondaryNavContainer].join(' ')}>
+        <div className="w-1/4 flex items-end">
           {this.renderTitle()}
-        </Grid.Column>
+        </div>
 
         {this.renderSteps()}
 
         {this.props.enableEEGToggle && (
-          <Grid.Column width={2} floated="right">
+          <div className="ml-auto">
             <div className={styles.settingsButtons}>
-              <Dropdown
-                icon="setting"
-                direction="left"
-                fluid
-                className={styles.dropdownSettings}
-              >
-                <Dropdown.Menu className={styles.dropdownMenu}>
-                  <Dropdown.Item
-                    className={styles.dropdownItem}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div>Enable EEG</div>
-                    {this.props.enableEEGToggle}
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <NavLink to={SCREENS.HOME.route}>
-                      <p>Exit Experiment</p>
-                    </NavLink>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-              {this.props.saveButton}
+              <SettingsDropdown
+                enableEEGToggle={this.props.enableEEGToggle}
+                saveButton={this.props.saveButton}
+                dropdownSettings={styles.dropdownSettings}
+                dropdownMenu={styles.dropdownMenu}
+                dropdownItem={styles.dropdownItem}
+                homeRoute={SCREENS.HOME.route}
+              />
             </div>
-          </Grid.Column>
+          </div>
         )}
-      </Grid>
+      </div>
     );
   }
 }

@@ -1,8 +1,8 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import { isNil, debounce } from 'lodash';
-import { History } from 'history';
-import { Modal, Button, Segment, List, Grid, Divider } from 'semantic-ui-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Button } from '../ui/button';
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
@@ -14,7 +14,6 @@ import { SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
 interface Props {
-  history: History;
   open: boolean;
   onClose: () => void;
   connectedDevice: Record<string, any>;
@@ -99,92 +98,69 @@ export default class ConnectModal extends Component<Props, State> {
 
   renderAvailableDeviceList() {
     return (
-      <Segment basic>
-        <List divided relaxed inverted>
-          {this.props.availableDevices.map((device) => (
-            <List.Item className={styles.deviceItem} key={device.id}>
-              <List.Icon
-                link
-                name={
-                  this.state.selectedDevice === device
-                    ? 'check circle outline'
-                    : 'circle outline'
-                }
-                size="large"
-                verticalAlign="middle"
-                onClick={() => this.setState({ selectedDevice: device })}
-              />
-              <List.Content>
-                <List.Header>{ConnectModal.getDeviceName(device)}</List.Header>
-              </List.Content>
-            </List.Item>
-          ))}
-        </List>
-      </Segment>
+      <ul className="divide-y divide-gray-200">
+        {this.props.availableDevices.map((device) => (
+          <li
+            key={device.id}
+            className={[styles.deviceItem, 'flex items-center gap-2 py-2 cursor-pointer'].join(' ')}
+            onClick={() => this.setState({ selectedDevice: device })}
+          >
+            <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
+            <span>{ConnectModal.getDeviceName(device)}</span>
+          </li>
+        ))}
+      </ul>
     );
   }
 
   renderContent() {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
-        <>
-          <Modal.Content className={styles.searchingText}>
-            Searching for available headset(s)...
-          </Modal.Content>
-        </>
+        <p className={styles.searchingText}>
+          Searching for available headset(s)...
+        </p>
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
-        <>
-          <Modal.Content className={styles.searchingText}>
-            Connecting to{' '}
-            {ConnectModal.getDeviceName(this.state.selectedDevice)}
-            ...
-          </Modal.Content>
-        </>
+        <p className={styles.searchingText}>
+          Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}...
+        </p>
       );
     }
     if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
       return (
         <>
-          <Modal.Header className={styles.connectHeader}>
-            Turn your headset on
-          </Modal.Header>
-          <Modal.Content>
+          <h2 className={styles.connectHeader}>Turn your headset on</h2>
+          <p>
             Make sure your headset is on and fully charged.
-            <p />
+          </p>
+          <p>
             If the headset needs charging, set the power switch to off and plug
             in the headset. <b>Do not charge the headset while wearing it</b>
-          </Modal.Content>
-          <Modal.Content>
-            <Grid textAlign="center" columns="equal">
-              <Grid.Column>
-                {(this.state.instructionProgress as number) !== 0 && (
-                  <Button
-                    fluid
-                    className={styles.secondaryButton}
-                    onClick={() => this.handleinstructionProgress(0)}
-                  >
-                    Back
-                  </Button>
-                )}
-              </Grid.Column>
-              <Grid.Column>
-                <Button
-                  fluid
-                  className={styles.primaryButton}
-                  onClick={() =>
-                    this.handleinstructionProgress(
-                      INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
-                    )
-                  }
-                >
-                  Next
-                </Button>
-              </Grid.Column>
-            </Grid>
-          </Modal.Content>
+          </p>
+          <div className="flex gap-2 mt-4">
+            {(this.state.instructionProgress as number) !== 0 && (
+              <Button
+                variant="secondary"
+                className={['w-full', styles.secondaryButton].join(' ')}
+                onClick={() => this.handleinstructionProgress(0)}
+              >
+                Back
+              </Button>
+            )}
+            <Button
+              variant="default"
+              className={['w-full', styles.primaryButton].join(' ')}
+              onClick={() =>
+                this.handleinstructionProgress(
+                  INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
+                )
+              }
+            >
+              Next
+            </Button>
+          </div>
         </>
       );
     }
@@ -194,114 +170,78 @@ export default class ConnectModal extends Component<Props, State> {
     ) {
       return (
         <>
-          <Modal.Header className={styles.connectHeader}>
-            Insert the USB Receiver
-          </Modal.Header>
-          <Modal.Content>
+          <h2 className={styles.connectHeader}>Insert the USB Receiver</h2>
+          <p>
             Insert the USB receiver into a USB port on your computer. Ensure
             that the LED on the receiver is continously lit or flickering
             rapidly. If it is blinking slowly or not illuminated, remove and
             reinsert the receiver
-          </Modal.Content>
-          <Modal.Content>
-            <Grid textAlign="center" columns="equal">
-              <Grid.Column>
-                <Button
-                  fluid
-                  className={styles.secondaryButton}
-                  onClick={() =>
-                    this.handleinstructionProgress(INSTRUCTION_PROGRESS.TURN_ON)
-                  }
-                >
-                  Back
-                </Button>
-              </Grid.Column>
-              <Grid.Column>
-                <Button
-                  fluid
-                  className={styles.primaryButton}
-                  onClick={this.handleSearch}
-                >
-                  Next
-                </Button>
-              </Grid.Column>
-            </Grid>
-          </Modal.Content>
+          </p>
+          <div className="flex gap-2 mt-4">
+            <Button
+              variant="secondary"
+              className={['w-full', styles.secondaryButton].join(' ')}
+              onClick={() =>
+                this.handleinstructionProgress(INSTRUCTION_PROGRESS.TURN_ON)
+              }
+            >
+              Back
+            </Button>
+            <Button
+              variant="default"
+              className={['w-full', styles.primaryButton].join(' ')}
+              onClick={this.handleSearch}
+            >
+              Next
+            </Button>
+          </div>
         </>
       );
     }
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE) {
       return (
         <>
-          <Modal.Header className={styles.connectHeader}>
-            Headset(s) found
-          </Modal.Header>
-          <Modal.Content>
-            Please select which headset you would like to connect.
-          </Modal.Content>
-          <Modal.Content>{this.renderAvailableDeviceList()}</Modal.Content>
-          <Divider section hidden />
-          <Modal.Content>
-            <Grid textAlign="center" columns="equal">
-              <Grid.Column>
-                <Button
-                  fluid
-                  className={styles.secondaryButton}
-                  onClick={() => this.handleinstructionProgress(1)}
-                >
-                  Back
-                </Button>
-              </Grid.Column>
-              <Grid.Column>
-                <Button
-                  fluid
-                  className={styles.primaryButton}
-                  disabled={isNil(this.state.selectedDevice)}
-                  onClick={this.handleConnect}
-                >
-                  Connect
-                </Button>
-              </Grid.Column>
-            </Grid>
-          </Modal.Content>
-          <Modal.Content>
-            <a
-              role="link"
-              tabIndex={0}
+          <h2 className={styles.connectHeader}>Headset(s) found</h2>
+          <p>Please select which headset you would like to connect.</p>
+          {this.renderAvailableDeviceList()}
+          <div className="flex gap-2 mt-4">
+            <Button
+              variant="secondary"
+              className={['w-full', styles.secondaryButton].join(' ')}
               onClick={() => this.handleinstructionProgress(1)}
             >
-              Don&#39;t see your device?
-            </a>
-          </Modal.Content>
+              Back
+            </Button>
+            <Button
+              variant="default"
+              className={['w-full', styles.primaryButton].join(' ')}
+              disabled={isNil(this.state.selectedDevice)}
+              onClick={this.handleConnect}
+            >
+              Connect
+            </Button>
+          </div>
+          <a
+            role="link"
+            tabIndex={0}
+            className="block mt-2 text-sm cursor-pointer"
+            onClick={() => this.handleinstructionProgress(1)}
+          >
+            Don&#39;t see your device?
+          </a>
         </>
       );
     }
-    return <></>;
+    return null;
   }
 
   render() {
     return (
-      <Modal
-        basic
-        centered
-        closeOnDimmerClick
-        closeOnDocumentClick
-        open={this.props.open}
-        onOpen={this.handleSearch}
-        className={styles.connectModal}
-      >
-        <Button
-          circular
-          basic
-          bordered="false"
-          inverted
-          size="large"
-          icon="x"
-          className={styles.modalCloseButton}
-          onClick={this.props.onClose}
-        />
-        {this.renderContent()}
-      </Modal>
+      <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.props.onClose(); }}>
+        <DialogContent className={styles.connectModal}>
+          {this.renderContent()}
+        </DialogContent>
+      </Dialog>
     );
   }
 }

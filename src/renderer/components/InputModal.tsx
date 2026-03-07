@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Input, Modal, Button } from 'semantic-ui-react';
 import { debounce } from 'lodash';
 import { sanitizeTextInput } from '../utils/ui';
 import styles from './styles/common.module.css';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Button } from './ui/button';
 
 interface Props {
   open: boolean;
@@ -29,8 +30,8 @@ export default class InputModal extends Component<Props, State> {
     this.handleExit = this.handleExit.bind(this);
   }
 
-  handleTextEntry(event, data) {
-    this.setState({ enteredText: data.value });
+  handleTextEntry(event: React.ChangeEvent<HTMLInputElement>) {
+    this.setState({ enteredText: event.target.value });
   }
 
   handleClose() {
@@ -53,28 +54,22 @@ export default class InputModal extends Component<Props, State> {
 
   render() {
     return (
-      <Modal
-        dimmer="inverted"
-        centered
-        className={styles.inputModal}
-        open={this.props.open}
-        onClose={this.handleExit}
-      >
-        <Modal.Content>{this.props.header}</Modal.Content>
-        <Modal.Content>
-          <Input
-            focus
-            fluid
-            error={this.state.isError}
+      <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.handleExit(); }}>
+        <DialogContent className={styles.inputModal}>
+          <DialogHeader>
+            <DialogTitle>{this.props.header}</DialogTitle>
+          </DialogHeader>
+          <input
+            className={['w-full border rounded px-3 py-2', this.state.isError ? 'border-red-500' : 'border-gray-300'].join(' ')}
             onChange={this.handleTextEntry}
             onKeyDown={this.handleEnterSubmit}
             autoFocus
           />
-        </Modal.Content>
-        <Modal.Actions>
-          <Button color="blue" content="OK" onClick={this.handleClose} />
-        </Modal.Actions>
-      </Modal>
+          <div className="flex justify-end mt-4">
+            <Button variant="default" onClick={this.handleClose}>OK</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 }

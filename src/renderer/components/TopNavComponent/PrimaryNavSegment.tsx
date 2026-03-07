@@ -1,5 +1,4 @@
 import React from 'react';
-import { Grid } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import styles from '../styles/topnavbar.module.css';
 
@@ -10,17 +9,14 @@ interface Props {
   order: number;
 }
 
-const PrimaryNavSegment = (props) => {
+const PrimaryNavSegment = (props: Props) => {
   return (
-    <Grid.Column
-      width={2}
-      className={[props.style, styles.navColumn].join(' ')}
-    >
+    <div className={[props.style, styles.navColumn].join(' ')}>
       <NavLink to={props.route}>
         <div className={styles.numberBubble}>{props.order}</div>
         {props.title}
       </NavLink>
-    </Grid.Column>
+    </div>
   );
 };
 

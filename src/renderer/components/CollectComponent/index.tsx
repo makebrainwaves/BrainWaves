@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
-import { History } from 'history';
 import {
   EXPERIMENTS,
   DEVICES,
@@ -17,7 +16,6 @@ import RunComponent from './RunComponent';
 import { ExperimentActions, DeviceActions } from '../../actions';
 
 export interface Props {
-  history: History;
   ExperimentActions: typeof ExperimentActions;
   connectedDevice: Record<string, any>;
   deviceType: DEVICES;
@@ -99,7 +97,6 @@ export default class Collect extends Component<Props, State> {
     return (
       <>
         <ConnectModal
-          history={this.props.history}
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}

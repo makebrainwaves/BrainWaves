@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
+import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 import styles from '../styles/common.module.css';
 import InputCollect from '../InputCollect';
@@ -96,67 +96,51 @@ const Run: React.FC<Props> = ({
 
   return (
     <div className={styles.mainContainer} data-tid="container">
-      <Grid columns={1} divided relaxed className={styles.experimentContainer}>
-        <Grid.Row centered>
-          {!isRunning && (
-            <div className={styles.mainContainer}>
-              <Segment
-                basic
-                textAlign="left"
-                className={styles.descriptionContainer}
-                vertical
-              >
-                <Header as="h1">{title}</Header>
+      <div className={styles.experimentContainer}>
+        {!isRunning && (
+          <div className={styles.mainContainer}>
+            <div className={['text-left', styles.descriptionContainer].join(' ')}>
+              <h1>{title}</h1>
+              <button
+                className={styles.closeButton}
+                onClick={() => setIsInputCollectOpen(true)}
+                aria-label="Edit"
+              >✏</button>
+              <div className={styles.infoSegment}>
+                Subject ID: <b>{subject}</b>
+              </div>
+              <div className={styles.infoSegment}>
+                Group Name: <b>{group}</b>
+              </div>
+              <div className={styles.infoSegment}>
+                Session Number: <b>{session}</b>
+              </div>
+              <div className="mt-6">
                 <Button
-                  basic
-                  circular
-                  size="huge"
-                  icon="edit"
-                  className={styles.closeButton}
-                  onClick={() => setIsInputCollectOpen(true)}
-                />
-                <Segment basic className={styles.infoSegment}>
-                  Subject ID: <b>{subject}</b>
-                </Segment>
-
-                <Segment basic className={styles.infoSegment}>
-                  Group Name: <b>{group}</b>
-                </Segment>
-
-                <Segment basic className={styles.infoSegment}>
-                  Session Number: <b>{session}</b>
-                </Segment>
-
-                <Divider hidden section />
-                <Grid textAlign="center" columns="equal">
-                  <Grid.Column>
-                    <Button
-                      fluid
-                      primary
-                      onClick={handleStartExperiment}
-                      disabled={!subject}
-                    >
-                      Run Experiment
-                    </Button>
-                  </Grid.Column>
-                </Grid>
-              </Segment>
+                  variant="default"
+                  className="w-full"
+                  onClick={handleStartExperiment}
+                  disabled={!subject}
+                >
+                  Run Experiment
+                </Button>
+              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {isRunning && (
-            <div className={styles.experimentWindow}>
-              <ExperimentWindow
-                title={title}
-                experimentObject={experimentObject}
-                params={params}
-                eventCallback={eventCallback}
-                onFinish={onFinish}
-              />
-            </div>
-          )}
-        </Grid.Row>
-      </Grid>
+        {isRunning && (
+          <div className={styles.experimentWindow}>
+            <ExperimentWindow
+              title={title}
+              experimentObject={experimentObject}
+              params={params}
+              eventCallback={eventCallback}
+              onFinish={onFinish}
+            />
+          </div>
+        )}
+      </div>
       <InputCollect
         open={isInputCollectOpen}
         onClose={handleCloseInputCollect}

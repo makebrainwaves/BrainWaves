@@ -1,8 +1,9 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
-import React from 'react';
-import { Segment, Form, Button, Table, Dropdown } from 'semantic-ui-react';
+import React, { useState } from 'react';
 import { isString } from 'lodash';
+import { Button } from '../ui/button';
+import { TableRow, TableCell } from '../ui/table';
 import styles from '../styles/common.module.css';
 
 interface Props {
@@ -32,69 +33,62 @@ export const StimuliRow: React.FC<Props> = ({
   onChange,
   onDelete,
 }) => {
+  const [phaseMenuOpen, setPhaseMenuOpen] = useState(false);
+
   return (
-    <Table.Row className={styles.trialsRow}>
-      <Table.Cell className={styles.conditionsNameRow}>
+    <TableRow className={styles.trialsRow}>
+      <TableCell className={styles.conditionsNameRow}>
         <div style={{ alignSelf: 'center' }}>{num + 1}.</div>
         <div>{name}</div>
-      </Table.Cell>
+      </TableCell>
 
-      <Table.Cell className={styles.experimentRowName}>
+      <TableCell className={styles.experimentRowName}>
         <div>{condition}</div>
-      </Table.Cell>
+      </TableCell>
 
-      <Table.Cell className={styles.experimentRowName}>
-        <Form.Select
-          fluid
-          selection
+      <TableCell className={styles.experimentRowName}>
+        <select
+          className="w-full border border-gray-300 rounded px-2 py-1"
           value={response}
-          onChange={(event, data) => {
-            const val = data.value;
-            onChange(num, 'response', isString(val) ? (val as string) : '');
+          onChange={(event) => {
+            const val = event.target.value;
+            onChange(num, 'response', isString(val) ? val : '');
           }}
-          placeholder="Response"
-          options={RESPONSE_OPTIONS}
-        />
-      </Table.Cell>
+        >
+          <option value="">Response</option>
+          {RESPONSE_OPTIONS.map((o) => (
+            <option key={o.key} value={o.value}>{o.text}</option>
+          ))}
+        </select>
+      </TableCell>
 
-      <Table.Cell className={styles.trialsTrialTypeRow}>
-        <Segment basic className={styles.trialsTrialTypeSegment}>
+      <TableCell className={styles.trialsTrialTypeRow}>
+        <div className={styles.trialsTrialTypeSegment}>
           <div
             className={styles.trialsTrialTypeRowSelector}
-            style={{
-              backgroundColor: phase === 'main' ? '#1AC4EF' : '#EB1B66',
-            }}
+            style={{ backgroundColor: phase === 'main' ? '#1AC4EF' : '#EB1B66' }}
           >
             {phase === 'main' ? 'Experimental' : 'Practice'}
           </div>
-          <Dropdown
-            fluid
-            style={{
-              display: 'grid',
-              color: '#C4C4C4',
-              justifyContent: 'end',
-            }}
-          >
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => onChange(num, 'phase', 'main')}>
-                <div>Experimental</div>
-              </Dropdown.Item>
-              <Dropdown.Item onClick={() => onChange(num, 'phase', 'practice')}>
-                <div>Practice</div>
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </Segment>
-
-        <Button
-          secondary
-          onClick={() => {
-            onDelete(num);
-          }}
-        >
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <button
+              style={{ color: '#C4C4C4' }}
+              onClick={() => setPhaseMenuOpen((o) => !o)}
+            >
+              ▾
+            </button>
+            {phaseMenuOpen && (
+              <div style={{ position: 'absolute', right: 0, zIndex: 10, background: 'white', border: '1px solid #eee', borderRadius: 4 }}>
+                <div className="px-3 py-1 cursor-pointer hover:bg-gray-100" onClick={() => { onChange(num, 'phase', 'main'); setPhaseMenuOpen(false); }}>Experimental</div>
+                <div className="px-3 py-1 cursor-pointer hover:bg-gray-100" onClick={() => { onChange(num, 'phase', 'practice'); setPhaseMenuOpen(false); }}>Practice</div>
+              </div>
+            )}
+          </div>
+        </div>
+        <Button variant="secondary" onClick={() => onDelete(num)}>
           Delete
         </Button>
-      </Table.Cell>
-    </Table.Row>
+      </TableCell>
+    </TableRow>
   );
 };
