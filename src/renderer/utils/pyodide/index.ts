@@ -12,8 +12,10 @@ import utilsPy from './utils.py?raw';
 // Imports and Utility functions
 
 export const loadPyodide = async () => {
-  // Classic worker (importScripts used inside cannot run in module workers)
-  const freshWorker = new Worker(new URL('./webworker.js', import.meta.url));
+  // Module worker — required for Pyodide 0.26+ which ships pyodide.mjs as ESM.
+  const freshWorker = new Worker(new URL('./webworker.js', import.meta.url), {
+    type: 'module',
+  });
   return freshWorker;
 };
 
@@ -126,7 +128,8 @@ export const plotTestPlot = async (worker: Worker | null) => {
     return;
   }
   return worker.postMessage({
-    data: `import matplotlib.pyplot as plt; fig= plt.plot([1,2,3,4])`,
+    // data: `import matplotlib.pyplot as plt; fig= plt.plot([1,2,3,4])`,
+    data: `[1,2,3,4]`
   });
 };
 

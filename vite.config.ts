@@ -41,10 +41,8 @@ export default defineConfig({
   // ------------------------------------------------------------------
   renderer: {
     // Serve the pyodide runtime files as static assets so Vite does NOT
-    // transform them.  importScripts() in a classic worker cannot load
-    // ES modules; Vite's HMR injection turns .js files into ESM, breaking
-    // the worker.  Files in publicDir are served verbatim at the root URL:
-    //   /pyodide/pyodide.js, /pyodide/pyodide.asm.js, etc.
+    // transform them.  Files in publicDir are served verbatim at the root URL:
+    //   /pyodide/pyodide.mjs, /pyodide/pyodide.asm.js, /packages/*.whl, etc.
     publicDir: path.resolve(__dirname, 'src/renderer/utils/pyodide/src'),
     plugins: [
       react({
@@ -74,6 +72,13 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: ['@neurosity/pipes'],
+      // Prevent Vite from pre-bundling pyodide. In dev mode it will be served
+      // raw from node_modules via /@fs/, which is what pyodide.mjs expects.
+      exclude: ['pyodide'],
+    },
+    worker: {
+      // ES module workers are required for `import { loadPyodide } from "pyodide"`.
+      format: 'es',
     },
     build: {
       rollupOptions: {
