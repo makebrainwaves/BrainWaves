@@ -55,3 +55,6 @@ keys.js
 
 app/utils/pyodide/src
 src/renderer/utils/pyodide/src
+
+# Git worktrees
+.worktrees/
