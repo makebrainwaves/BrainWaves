@@ -1,14 +1,5 @@
 import React, { Component } from 'react';
 import { History } from 'history';
-import {
-  Grid,
-  Button,
-  Segment,
-  Header,
-  Image,
-  Checkbox,
-  CheckboxProps,
-} from 'semantic-ui-react';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import styles from '../styles/common.module.css';
@@ -133,9 +124,8 @@ export default class Design extends Component<DesignProps, State> {
     this.setState({ isPreviewing: false });
   }
 
-  handleEEGEnabled(_, data: CheckboxProps) {
-    if (data.checked === undefined) return;
-    this.props.ExperimentActions.SetEEGEnabled(data.checked);
+  handleEEGEnabled(checked: boolean) {
+    this.props.ExperimentActions.SetEEGEnabled(checked);
     this.props.ExperimentActions.SaveWorkspace();
   }
 
@@ -186,152 +176,150 @@ export default class Design extends Component<DesignProps, State> {
       case DESIGN_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            stretched
-            relaxed
-            padded
-            className={styles.contentGrid}
+          <div
+            className={`flex gap-4 items-center ${styles.contentGrid}`}
             style={{ alignItems: 'center' }}
           >
-            <Grid.Row stretched>
-              <Grid.Column stretched width={5}>
-                <Segment basic>
-                  <Image src={Design.renderOverviewIcon(this.props.type)} />
-                </Segment>
-              </Grid.Column>
+            <div className="flex gap-4 items-start w-full">
+              <div className="flex-1" style={{ flexBasis: '5/16' }}>
+                <div className="p-4">
+                  <img
+                    src={Design.renderOverviewIcon(this.props.type)}
+                    className="max-w-full"
+                  />
+                </div>
+              </div>
 
-              <Grid.Column stretched width={11}>
-                <Segment basic>
-                  <Header as="h1">{overview.title}</Header>
+              <div className="flex-1" style={{ flexBasis: '11/16' }}>
+                <div className="p-4">
+                  <h1 className="text-2xl font-bold mb-2">{overview.title}</h1>
                   <p>{overview.overview}</p>
-                </Segment>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
         );
 
       case DESIGN_STEPS.BACKGROUND:
         return (
-          <Grid
-            relaxed
-            padded
-            className={styles.contentGrid}
+          <div
+            className={`${styles.contentGrid}`}
             style={{ alignItems: 'center' }}
           >
-            <Grid.Row>
-              <Grid.Column stretched width={4}>
-                <Segment basic>
-                  <Image src={Design.renderOverviewIcon(this.props.type)} />
-                </Segment>
-              </Grid.Column>
+            <div className="flex gap-4 items-start w-full">
+              <div style={{ width: '25%' }}>
+                <div className="p-4">
+                  <img
+                    src={Design.renderOverviewIcon(this.props.type)}
+                    className="max-w-full"
+                  />
+                </div>
+              </div>
 
-              <Grid.Column stretched width={5}>
-                <Segment basic>
+              <div style={{ width: '31.25%' }}>
+                <div className="p-4">
                   <p>{background?.first_column_statement}</p>
                   <p style={{ fontWeight: 'bold' }}>
                     {background?.first_column_question}
                   </p>
-                </Segment>
-              </Grid.Column>
+                </div>
+              </div>
 
-              <Grid.Column stretched width={5}>
-                <Segment basic>
+              <div style={{ width: '31.25%' }}>
+                <div className="p-4">
                   <p>{background?.second_column_statement}</p>
                   <p style={{ fontWeight: 'bold' }}>
                     {background?.second_column_question}
                   </p>
-                </Segment>
-              </Grid.Column>
+                </div>
+              </div>
 
-              <Grid.Column width={2}>
-                <Segment basic>
+              <div style={{ width: '12.5%' }}>
+                <div className="p-4">
                   <div className={styles.externalLinks}>
                     {background?.links.map((link) => (
-                      <Button
+                      <button
                         key={link.address}
-                        secondary
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
                         onClick={() => {
                           window.open(link.address, '_blank');
                         }}
                       >
                         {link.name}
-                      </Button>
+                      </button>
                     ))}
                   </div>
-                </Segment>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
         );
 
       case DESIGN_STEPS.PROTOCOL:
         return (
-          <Grid
-            relaxed
-            padded
-            className={styles.contentGrid}
+          <div
+            className={`${styles.contentGrid}`}
             style={{ alignItems: 'center' }}
           >
-            <Grid.Row stretched>
-              <Grid.Column stretched width={7} textAlign="left">
-                <Segment basic>
-                  <Header as="h2">{protocol?.title}</Header>
+            <div className="flex gap-4 items-start w-full">
+              <div style={{ width: '43.75%', textAlign: 'left' }}>
+                <div className="p-4">
+                  <h2 className="text-xl font-semibold mb-2">{protocol?.title}</h2>
                   <p>{protocol?.protocol}</p>
-                </Segment>
-              </Grid.Column>
+                </div>
+              </div>
 
-              <Grid.Column width={9}>
-                <Grid>
-                  <Grid.Row>
-                    <Grid.Column width={5}>
-                      <Image
+              <div style={{ width: '56.25%' }}>
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-4 items-start">
+                    <div style={{ width: '31.25%' }}>
+                      <img
                         src={Design.renderConditionIcon(
                           protocol?.condition_first_img
                         )}
+                        className="max-w-full"
                       />
-                    </Grid.Column>
-                    <Grid.Column width={10}>
-                      <Segment basic>
-                        <Header as="h3">
+                    </div>
+                    <div style={{ width: '62.5%' }}>
+                      <div className="p-4">
+                        <h3 className="text-lg font-bold mb-1">
                           {protocol?.condition_first_title}
-                        </Header>
+                        </h3>
                         <p>{protocol?.condition_first}</p>
-                      </Segment>
-                    </Grid.Column>
-                  </Grid.Row>
+                      </div>
+                    </div>
+                  </div>
 
-                  <Grid.Row>
-                    <Grid.Column width={5}>
-                      <Image
+                  <div className="flex gap-4 items-start">
+                    <div style={{ width: '31.25%' }}>
+                      <img
                         src={Design.renderConditionIcon(
                           protocol?.condition_second_img
                         )}
+                        className="max-w-full"
                       />
-                    </Grid.Column>
-                    <Grid.Column width={10}>
-                      <Segment basic>
-                        <Header as="h3">
+                    </div>
+                    <div style={{ width: '62.5%' }}>
+                      <div className="p-4">
+                        <h3 className="text-lg font-bold mb-1">
                           {protocol?.condition_second_title}
-                        </Header>
+                        </h3>
                         <p>{protocol?.condition_second}</p>
-                      </Segment>
-                    </Grid.Column>
-                  </Grid.Row>
-                </Grid>
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         );
 
       case DESIGN_STEPS.PREVIEW:
         return (
-          <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={12}
-              textAlign="right"
-              verticalAlign="middle"
-              className={styles.previewWindow}
+          <div className={`flex gap-4 items-start ${styles.contentGrid}`}>
+            <div
+              className={`${styles.previewWindow}`}
+              style={{ flex: '0 0 75%', textAlign: 'right' }}
             >
               <PreviewExperimentComponent
                 title={this.props.title}
@@ -341,14 +329,14 @@ export default class Design extends Component<DesignProps, State> {
                 onEnd={this.endPreview}
                 type={this.props.type}
               />
-            </Grid.Column>
-            <Grid.Column width={4} verticalAlign="middle">
+            </div>
+            <div style={{ flex: '0 0 25%', display: 'flex', alignItems: 'center' }}>
               <PreviewButton
                 isPreviewing={this.state.isPreviewing}
                 onClick={this.handlePreview}
               />
-            </Grid.Column>
-          </Grid>
+            </div>
+          </div>
         );
     }
   }
@@ -365,12 +353,14 @@ export default class Design extends Component<DesignProps, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           enableEEGToggle={
-            <Checkbox
-              toggle
-              defaultChecked={this.props.isEEGEnabled}
-              onChange={this.handleEEGEnabled}
-              className={styles.EEGToggle}
-            />
+            <label className={`flex items-center gap-2 cursor-pointer ${styles.EEGToggle}`}>
+              <input
+                type="checkbox"
+                defaultChecked={this.props.isEEGEnabled}
+                onChange={(e) => this.handleEEGEnabled(e.target.checked)}
+                className="w-4 h-4"
+              />
+            </label>
           }
         />
         {this.renderSectionContent()}

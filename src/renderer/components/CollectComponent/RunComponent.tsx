@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import { Grid, Button, Segment, Header, Divider } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import styles from '../styles/common.module.css';
 import InputCollect from '../InputCollect';
@@ -96,51 +95,45 @@ const Run: React.FC<Props> = ({
 
   return (
     <div className={styles.mainContainer} data-tid="container">
-      <Grid columns={1} divided relaxed className={styles.experimentContainer}>
-        <Grid.Row centered>
+      <div className={`flex flex-wrap gap-4 ${styles.experimentContainer}`}>
+        <div className="flex items-center w-full gap-4 justify-center">
           {!isRunning && (
             <div className={styles.mainContainer}>
-              <Segment
-                basic
-                textAlign="left"
-                className={styles.descriptionContainer}
-                vertical
+              <div
+                className={`text-left ${styles.descriptionContainer}`}
               >
-                <Header as="h1">{title}</Header>
-                <Button
-                  basic
-                  circular
-                  size="huge"
-                  icon="edit"
-                  className={styles.closeButton}
+                <h1 className="text-2xl font-bold">{title}</h1>
+                <button
+                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-300 transition-colors font-medium"
                   onClick={() => setIsInputCollectOpen(true)}
-                />
-                <Segment basic className={styles.infoSegment}>
+                >
+                  ✏️
+                </button>
+                <div className={`p-4 ${styles.infoSegment}`}>
                   Subject ID: <b>{subject}</b>
-                </Segment>
+                </div>
 
-                <Segment basic className={styles.infoSegment}>
+                <div className={`p-4 ${styles.infoSegment}`}>
                   Group Name: <b>{group}</b>
-                </Segment>
+                </div>
 
-                <Segment basic className={styles.infoSegment}>
+                <div className={`p-4 ${styles.infoSegment}`}>
                   Session Number: <b>{session}</b>
-                </Segment>
+                </div>
 
-                <Divider hidden section />
-                <Grid textAlign="center" columns="equal">
-                  <Grid.Column>
-                    <Button
-                      fluid
-                      primary
+                <hr className="my-4 border-gray-200" />
+                <div className="flex flex-wrap gap-4 text-center">
+                  <div className="flex-1">
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium w-full disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleStartExperiment}
                       disabled={!subject}
                     >
                       Run Experiment
-                    </Button>
-                  </Grid.Column>
-                </Grid>
-              </Segment>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -155,8 +148,8 @@ const Run: React.FC<Props> = ({
               />
             </div>
           )}
-        </Grid.Row>
-      </Grid>
+        </div>
+      </div>
       <InputCollect
         open={isInputCollectOpen}
         onClose={handleCloseInputCollect}

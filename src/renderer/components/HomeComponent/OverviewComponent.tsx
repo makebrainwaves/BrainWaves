@@ -1,5 +1,4 @@
-import React, { Component, useMemo, useState } from 'react';
-import { Grid, Header, Button, Segment } from 'semantic-ui-react';
+import React, { useMemo, useState } from 'react';
 import styles from '../styles/common.module.css';
 import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
@@ -40,45 +39,38 @@ const OverviewComponent: React.FC<Props> = ({
       case OVERVIEW_STEPS.OVERVIEW:
       default:
         return (
-          <Grid stretched relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={6}
-              textAlign="right"
-              verticalAlign="middle"
-            >
-              <Header as="h1">{experiment?.text.overview.title}</Header>
-            </Grid.Column>
-            <Grid.Column stretched width={6} verticalAlign="middle">
-              <Segment as="p" basic>
-                {experiment?.text.overview.overview}
-              </Segment>
-            </Grid.Column>
-          </Grid>
+          <div className={`grid grid-cols-12 gap-4 ${styles.contentGrid}`}>
+            <div className="col-span-6 flex items-center justify-end">
+              <h1 className="text-2xl font-bold">{experiment?.text.overview.title}</h1>
+            </div>
+            <div className="col-span-6 flex items-center">
+              <p className="p-4">{experiment?.text.overview.overview}</p>
+            </div>
+          </div>
         );
     }
   };
 
   return (
     <>
-      <Button
-        basic
-        circular
-        size="huge"
-        floated="right"
-        icon="x"
-        className={styles.closeButton}
+      <button
+        className={`bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-200 float-right ${styles.closeButton}`}
         onClick={onCloseOverview}
-      />
+      >
+        ✕
+      </button>
       <SecondaryNavComponent
         title={type}
         steps={OVERVIEW_STEPS}
         activeStep={activeStep}
         onStepClick={handleStepClick}
         saveButton={
-          <Button primary onClick={() => onStartExperiment(type)}>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
+            onClick={() => onStartExperiment(type)}
+          >
             Start Experiment
-          </Button>
+          </button>
         }
       />
       <div className={styles.homeContentContainer}>
@@ -88,7 +80,7 @@ const OverviewComponent: React.FC<Props> = ({
   );
 };
 
-// Generic curreid enum type guard
+// Generic curried enum type guard
 function isEnum<T extends object>(en: T) {
   return (val: any): val is T[keyof T] => val in Object.values(en);
 }

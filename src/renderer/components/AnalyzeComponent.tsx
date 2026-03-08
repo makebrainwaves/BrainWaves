@@ -1,16 +1,4 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Icon,
-  Segment,
-  Header,
-  Dropdown,
-  Divider,
-  Button,
-  Checkbox,
-  Sidebar,
-  DropdownProps,
-} from 'semantic-ui-react';
 import { isNil, isArray, isString } from 'lodash';
 import Plot from 'react-plotly.js';
 import type { Data as PlotlyData } from 'plotly.js';
@@ -184,22 +172,27 @@ export default class Analyze extends Component<Props, State> {
     return subjects.reduce((acc, curr) => `${acc}-${curr}`);
   };
 
-  handleDatasetChange(event: Record<string, any>, data: DropdownProps) {
-    if (isStringArray(data.value)) {
+  handleDatasetChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const selectedValues = Array.from(event.target.selectedOptions).map(
+      (opt) => opt.value
+    );
+    if (isStringArray(selectedValues)) {
       this.setState({
-        selectedFilePaths: data.value,
-        selectedSubjects: getSubjectNamesFromFiles(data.value),
+        selectedFilePaths: selectedValues,
+        selectedSubjects: getSubjectNamesFromFiles(selectedValues),
       });
-      this.props.PyodideActions.LoadCleanedEpochs(data.value);
+      this.props.PyodideActions.LoadCleanedEpochs(selectedValues);
     }
   }
 
   handleBehaviorDatasetChange(
-    event: Record<string, any>,
-    data: Record<string, any>
+    event: React.ChangeEvent<HTMLSelectElement>
   ) {
+    const selectedValues = Array.from(event.target.selectedOptions).map(
+      (opt) => opt.value
+    );
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(data.value),
+      readBehaviorData(selectedValues),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       this.state.showDataPoints,
@@ -210,8 +203,8 @@ export default class Analyze extends Component<Props, State> {
     }
     const { dataToPlot, layout } = aggregatedData;
     this.setState({
-      selectedBehaviorFilePaths: data.value,
-      selectedSubjects: getSubjectNamesFromFiles(data.value),
+      selectedBehaviorFilePaths: selectedValues,
+      selectedSubjects: getSubjectNamesFromFiles(selectedValues),
       dataToPlot,
       layout,
     });
@@ -231,12 +224,12 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleDependentVariableChange(
-    event: Record<string, any>,
-    data: Record<string, any>
+    event: React.ChangeEvent<HTMLSelectElement>
   ) {
+    const value = event.target.value;
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
-      data.value,
+      value,
       this.state.removeOutliers,
       this.state.showDataPoints,
       this.state.displayMode
@@ -246,13 +239,13 @@ export default class Analyze extends Component<Props, State> {
     }
     const { dataToPlot, layout } = aggregatedData;
     this.setState({
-      selectedDependentVariable: data.value,
+      selectedDependentVariable: value,
       dataToPlot,
       layout,
     });
   }
 
-  handleRemoveOutliers(event: Record<string, any>, data: Record<string, any>) {
+  handleRemoveOutliers(event: React.ChangeEvent<HTMLInputElement>) {
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
@@ -272,7 +265,7 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDataPoints(event: Record<string, any>, data: Record<string, any>) {
+  handleDataPoints(event: React.ChangeEvent<HTMLInputElement>) {
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
@@ -351,9 +344,9 @@ export default class Analyze extends Component<Props, State> {
       ).length;
       let colors;
       if (numberConditions === 4) {
-        colors = ['red', 'yellow', 'green', 'blue'];
+        colors = ['text-red-500', 'text-yellow-500', 'text-green-500', 'text-blue-500'];
       } else {
-        colors = ['red', 'green', 'teal', 'orange'];
+        colors = ['text-red-500', 'text-green-500', 'text-teal-500', 'text-orange-500'];
       }
       return (
         <div>
@@ -365,8 +358,8 @@ export default class Analyze extends Component<Props, State> {
             )
             .map((infoObj, index) => (
               <>
-                <Header as="h4">{infoObj.name}</Header>
-                <Icon name="circle" color={colors[index]} />
+                <h4 className="text-base font-semibold">{infoObj.name}</h4>
+                <span className={`${colors[index]}`}>&#9679;</span>
                 {infoObj.value}
               </>
             ))}
@@ -382,7 +375,7 @@ export default class Analyze extends Component<Props, State> {
         return this.renderHelp(
           'Data Points',
           `In this graph, each dot refers to one data point, clustered by group (e.g., conditions).
-          It’s the most “neutral” way of presenting the data, of course, but it may be difficult to see any patterns.
+          It's the most "neutral" way of presenting the data, of course, but it may be difficult to see any patterns.
           Why is it always a good idea to look at all your datapoints before interpreting any trends in the data?`
         );
       case 'errorbars':
@@ -401,9 +394,9 @@ export default class Analyze extends Component<Props, State> {
           `Box plots summarize the data in a more informative way:
           they actually tell you something about the distribution of datapoints within a group,
           by taking the median as its reference point instead of the mean
-          (the median is the “middle” point in a dataset after sorting it from the lowest to the highest value).
-          The boxes represent so-called “quartiles” which are cut off at the value right between the median and the smallest value or highest value in the dataset.
-          The lines (“whiskers”) show how much variability there is in the data outside of those quartiles;
+          (the median is the "middle" point in a dataset after sorting it from the lowest to the highest value).
+          The boxes represent so-called "quartiles" which are cut off at the value right between the median and the smallest value or highest value in the dataset.
+          The lines ("whiskers") show how much variability there is in the data outside of those quartiles;
           any outliers are shown as individual points. Can you go through each plot and describe exactly what you see?
           When you toggle between this view and the bar graph view, do the data look very different?`
         );
@@ -411,9 +404,9 @@ export default class Analyze extends Component<Props, State> {
       default:
         return this.renderHelp(
           'Outliers',
-          `A datapoint is tagged as an “outlier” if its value exceeds 2 standard deviations below or above the mean of all data in the group.
-          If a datapoint is unusually high or low (it “deviates”) compared to the rest of the group,
-          it is likely a special case that doesn’t tell us anything informative about the group as a whole.
+          `A datapoint is tagged as an "outlier" if its value exceeds 2 standard deviations below or above the mean of all data in the group.
+          If a datapoint is unusually high or low (it "deviates") compared to the rest of the group,
+          it is likely a special case that doesn't tell us anything informative about the group as a whole.
           Removing such outliers can help unskew the data. What might outliers mean in your dataset?
           Can you think of any other cases where identifying outliers can be helpful?`
         );
@@ -423,20 +416,18 @@ export default class Analyze extends Component<Props, State> {
   renderHelp(header: string, content: string) {
     return (
       <>
-        <Segment basic className={styles.helpContent}>
-          <Button
-            circular
-            size="large"
-            floated="right"
-            icon="x"
-            className={styles.closeButton}
+        <div className={`p-4 ${styles.helpContent}`}>
+          <button
+            className="float-right bg-gray-200 text-gray-800 px-3 py-1 rounded-full hover:bg-gray-300 transition-colors font-medium"
             onClick={this.toggleDisplayInfoVisibility}
-          />
-          <Header className={styles.helpHeader} as="h1">
+          >
+            ✕
+          </button>
+          <h1 className={`text-2xl font-bold ${styles.helpHeader}`}>
             {header}
-          </Header>
+          </h1>
           {content}
-        </Segment>
+        </div>
       </>
     );
   }
@@ -447,29 +438,35 @@ export default class Analyze extends Component<Props, State> {
       default:
         return (
           <>
-            <Grid.Column width={4}>
-              <Segment basic textAlign="left" className={styles.infoSegment}>
-                <Header as="h1">Overview</Header>
+            <div className="col-span-4">
+              <div className={`text-left p-4 ${styles.infoSegment}`}>
+                <h1 className="text-2xl font-bold">Overview</h1>
                 <p>
                   Load cleaned datasets from different subjects and view how the
                   EEG differs between electrodes
                 </p>
-                <Header as="h4">Select Clean Datasets</Header>
-                <Dropdown
-                  fluid
+                <h4 className="text-base font-semibold mt-4 mb-1">
+                  Select Clean Datasets
+                </h4>
+                <select
                   multiple
-                  selection
-                  closeOnChange
+                  className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={this.state.selectedFilePaths}
-                  options={this.state.eegFilePaths.map(
-                    (eegFilePath) => eegFilePath.value
-                  )}
                   onChange={this.handleDatasetChange}
-                />
+                >
+                  {this.state.eegFilePaths.map((eegFilePath) => (
+                    <option
+                      key={eegFilePath.key}
+                      value={eegFilePath.key}
+                    >
+                      {eegFilePath.text}
+                    </option>
+                  ))}
+                </select>
                 {this.renderEpochLabels()}
-              </Segment>
-            </Grid.Column>
-            <Grid.Column width={8}>
+              </div>
+            </div>
+            <div className="col-span-8">
               <PyodidePlotWidget
                 title={this.props.title}
                 imageTitle={`${this.concatSubjectNames(
@@ -477,15 +474,15 @@ export default class Analyze extends Component<Props, State> {
                 )}-Topoplot`}
                 plotMIMEBundle={this.props.topoPlot}
               />
-            </Grid.Column>
+            </div>
           </>
         );
       case ANALYZE_STEPS.ERP:
         return (
           <>
-            <Grid.Column width={4} className={styles.analyzeColumn}>
-              <Segment basic textAlign="left" className={styles.infoSegment}>
-                <Header as="h1">ERP</Header>
+            <div className={`col-span-4 ${styles.analyzeColumn}`}>
+              <div className={`text-left p-4 ${styles.infoSegment}`}>
+                <h1 className="text-2xl font-bold">ERP</h1>
                 <p>
                   The event-related potential represents EEG activity elicited
                   by a particular sensory event
@@ -494,11 +491,11 @@ export default class Analyze extends Component<Props, State> {
                   channelinfo={this.props.channelInfo}
                   onChannelClick={this.handleChannelSelect}
                 />
-                <Divider hidden />
+                <hr className="my-4 border-gray-200" />
                 {this.renderEpochLabels()}
-              </Segment>
-            </Grid.Column>
-            <Grid.Column width={8}>
+              </div>
+            </div>
+            <div className="col-span-8">
               <PyodidePlotWidget
                 title={this.props.title}
                 imageTitle={`${this.concatSubjectNames(
@@ -506,59 +503,63 @@ export default class Analyze extends Component<Props, State> {
                 )}-${this.state.selectedChannel}-ERP`}
                 plotMIMEBundle={this.props.erpPlot}
               />
-            </Grid.Column>
+            </div>
           </>
         );
       case ANALYZE_STEPS.BEHAVIOR:
         return (
           <>
-            <Grid.Column width={4}>
-              <Segment basic textAlign="left" className={styles.infoSegment}>
-                <Header as="h1">Overview</Header>
+            <div className="col-span-4">
+              <div className={`text-left p-4 ${styles.infoSegment}`}>
+                <h1 className="text-2xl font-bold">Overview</h1>
                 <p>
                   Load datasets from different subjects and view behavioral
                   results
                 </p>
 
-                <div>
-                  <span className="ui header">Datasets</span>
-                  <Button
-                    className="export"
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Datasets</span>
+                  <button
+                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
                     onClick={this.saveSelectedDatasets}
                   >
-                    <Icon name="download" />
-                    Export
-                  </Button>
+                    ⬇ Export
+                  </button>
                 </div>
                 <p />
 
-                <Dropdown
-                  fluid
+                <select
                   multiple
-                  selection
-                  search
-                  closeOnChange
+                  className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={this.state.selectedBehaviorFilePaths}
-                  options={this.state.behaviorFilePaths}
                   onChange={this.handleBehaviorDatasetChange}
                   onClick={this.handleDropdownClick}
-                />
+                >
+                  {this.state.behaviorFilePaths.map((filepath) => (
+                    <option key={filepath.key} value={filepath.value}>
+                      {filepath.text}
+                    </option>
+                  ))}
+                </select>
                 <p />
-                <Divider hidden />
-                <span className="ui header">Dependent Variable</span>
+                <hr className="my-4 border-gray-200" />
+                <span className="font-semibold">Dependent Variable</span>
                 <p />
-                <Dropdown
-                  fluid
-                  selection
-                  closeOnChange
+                <select
+                  className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={this.state.selectedDependentVariable}
-                  options={this.state.dependentVariables}
                   onChange={this.handleDependentVariableChange}
-                />
-              </Segment>
-            </Grid.Column>
-            <Grid.Column
-              width={12}
+                >
+                  {this.state.dependentVariables.map((dv) => (
+                    <option key={dv.key} value={dv.value}>
+                      {dv.text}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div
+              className="col-span-12"
               style={{
                 overflow: 'auto',
                 maxHeight: 650,
@@ -566,57 +567,64 @@ export default class Analyze extends Component<Props, State> {
                 justifyContent: 'center',
               }}
             >
-              <Segment basic textAlign="left" className={styles.plotSegment}>
+              <div className={`text-left p-4 ${styles.plotSegment}`}>
                 <Plot data={this.state.dataToPlot} layout={this.state.layout} />
                 <p />
-                <Checkbox
-                  checked={this.state.removeOutliers}
-                  label="Remove Response Time Outliers"
-                  onChange={this.handleRemoveOutliers}
-                />
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={this.state.removeOutliers}
+                    onChange={this.handleRemoveOutliers}
+                    className="w-4 h-4"
+                  />
+                  Remove Response Time Outliers
+                </label>
 
                 <p />
-                <Button.Group>
-                  <Button
-                    className="tertiary"
-                    toggle
-                    active={this.state.displayMode === 'datapoints'}
+                <div className="flex gap-2">
+                  <button
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      this.state.displayMode === 'datapoints'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    }`}
                     onClick={() => this.handleDisplayModeChange('datapoints')}
                   >
                     Data Points
-                  </Button>
-                  <Button
-                    className="tertiary"
-                    toggle
-                    active={this.state.displayMode === 'errorbars'}
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      this.state.displayMode === 'errorbars'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    }`}
                     onClick={() => this.handleDisplayModeChange('errorbars')}
                   >
                     Bar Graph
-                  </Button>
-                  <Button
-                    className="tertiary"
-                    toggle
-                    active={this.state.displayMode === 'whiskers'}
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      this.state.displayMode === 'whiskers'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    }`}
                     onClick={() => this.handleDisplayModeChange('whiskers')}
                   >
                     Box Plot
-                  </Button>
-                </Button.Group>
+                  </button>
+                </div>
 
                 <HelpButton onClick={this.toggleDisplayInfoVisibility} />
 
-                <Sidebar
-                  width="wide"
-                  direction="right"
-                  as={Segment}
-                  visible={this.state.isSidebarVisible}
-                >
-                  <Segment basic padded vertical className={styles.helpSidebar}>
-                    {this.renderHelpContent()}
-                  </Segment>
-                </Sidebar>
-              </Segment>
-            </Grid.Column>
+                {this.state.isSidebarVisible && (
+                  <div className="border rounded-lg p-4 bg-white shadow-sm mt-4">
+                    <div className={`p-4 ${styles.helpSidebar}`}>
+                      {this.renderHelpContent()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </>
         );
     }
@@ -635,19 +643,16 @@ export default class Analyze extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />
-        <Grid
-          columns="equal"
-          textAlign="center"
-          verticalAlign="top"
-          className={styles.contentGrid}
+        <div
+          className={`grid grid-cols-12 gap-4 text-center ${styles.contentGrid}`}
         >
           {this.renderSectionContent()}
-        </Grid>
+        </div>
       </div>
     );
   }
 }
 
 function isStringArray(data: any): data is string[] {
-  return isArray(data.value) && data.value.every(isString);
+  return isArray(data) && data.every(isString);
 }

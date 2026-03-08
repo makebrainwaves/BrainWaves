@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Segment } from 'semantic-ui-react';
 import { ExperimentWindow } from './ExperimentWindow';
 import styles from './styles/collect.module.css';
 
@@ -32,7 +31,7 @@ export default class PreviewExperimentComponent extends Component<Props> {
     if (!this.props.isPreviewing) {
       return (
         <div className={styles.previewPlaceholder}>
-          <Segment basic> The experiment will be shown in the window </Segment>
+          <div className="border rounded-lg p-4 bg-white shadow-sm"> The experiment will be shown in the window </div>
         </div>
       );
     }

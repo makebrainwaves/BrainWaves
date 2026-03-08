@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Grid, Segment, Image, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import { isNil } from 'lodash';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
@@ -23,6 +22,7 @@ export interface Props {
 
 interface State {
   recentWorkspaces: Array<string>;
+  isDropdownOpen: boolean;
 }
 
 export default class TopNavComponent extends Component<Props, State> {
@@ -30,6 +30,7 @@ export default class TopNavComponent extends Component<Props, State> {
     super(props);
     this.state = {
       recentWorkspaces: [],
+      isDropdownOpen: false,
     };
     this.getStyleForScreen = this.getStyleForScreen.bind(this);
     this.updateWorkspaces = this.updateWorkspaces.bind(this);
@@ -74,42 +75,48 @@ export default class TopNavComponent extends Component<Props, State> {
       return null;
     }
     return (
-      <Grid className={styles.navContainer} verticalAlign="middle">
-        <Grid.Column className={styles.experimentTitleGridColumn}>
-          <Segment basic className={styles.homeButton}>
+      <div className={`flex items-center gap-4 flex-wrap ${styles.navContainer}`}>
+        <div className={styles.experimentTitleGridColumn}>
+          <div className={`p-4 ${styles.homeButton}`}>
             <NavLink to={SCREENS.HOME.route}>
-              <Image
-                centered
-                className={styles.exitWorkspaceBtn}
+              <img
+                className={`mx-auto ${styles.exitWorkspaceBtn}`}
                 src={BrainwavesIcon}
               />
               Home
             </NavLink>
-          </Segment>
-        </Grid.Column>
+          </div>
+        </div>
 
-        <Grid.Column width={3} className={styles.experimentTitleGridColumn}>
-          <Segment basic>
-            <Dropdown
-              text={this.props.title ? this.props.title : 'Untitled'}
-              direction="right"
+        <div className={styles.experimentTitleGridColumn}>
+          <div className="p-4 relative">
+            <button
+              className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-200"
               onClick={() => {
                 this.updateWorkspaces();
+                this.setState((s) => ({ isDropdownOpen: !s.isDropdownOpen }));
               }}
             >
-              <Dropdown.Menu>
+              {this.props.title ? this.props.title : 'Untitled'}
+            </button>
+            {this.state.isDropdownOpen && (
+              <ul className="absolute top-full left-0 bg-white border rounded shadow-lg z-10 min-w-max">
                 {this.state.recentWorkspaces.map((workspace) => (
-                  <Dropdown.Item
+                  <li
                     key={workspace}
-                    onClick={() => this.handleLoadRecentWorkspace(workspace)}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      this.handleLoadRecentWorkspace(workspace);
+                      this.setState({ isDropdownOpen: false });
+                    }}
                   >
                     <p>{workspace}</p>
-                  </Dropdown.Item>
+                  </li>
                 ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          </Segment>
-        </Grid.Column>
+              </ul>
+            )}
+          </div>
+        </div>
 
         <PrimaryNavSegment
           {...SCREENS.DESIGN}
@@ -136,7 +143,7 @@ export default class TopNavComponent extends Component<Props, State> {
             style={this.getStyleForScreen(SCREENS.ANALYZE)}
           />
         )}
-      </Grid>
+      </div>
     );
   }
 }

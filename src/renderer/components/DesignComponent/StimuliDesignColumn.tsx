@@ -1,7 +1,6 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
 import React, { Component } from 'react';
-import { Form, Button, Table, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import path from 'pathe';
 import { isString } from 'lodash';
@@ -73,45 +72,54 @@ export default class StimuliDesignColumn extends Component<Props, State> {
 
   render() {
     return (
-      <Table.Row className={styles.conditionRow}>
-        <Table.Cell className={styles.conditionsNameRow}>
+      <tr className={styles.conditionRow}>
+        <td className={styles.conditionsNameRow}>
           {this.props.num}
-          <Form>
-            <Form.Input
-              value={this.props.title}
-              onChange={(event, data) =>
-                this.props.onChange(
-                  'title',
-                  data.value,
-                  `stimulus${this.props.num}`
-                )
-              }
-              placeholder="Enter condition name"
-            />
-          </Form>
-        </Table.Cell>
+          <form>
+            <div className="mb-4">
+              <input
+                value={this.props.title}
+                onChange={(event) =>
+                  this.props.onChange(
+                    'title',
+                    event.target.value,
+                    `stimulus${this.props.num}`
+                  )
+                }
+                placeholder="Enter condition name"
+                className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </form>
+        </td>
 
-        <Table.Cell className={styles.experimentRowName}>
-          <Form.Select
-            fluid
-            selection
+        <td className={styles.experimentRowName}>
+          <select
             value={this.props.response}
-            onChange={(event, data) => {
-              const val = data.value;
+            onChange={(event) => {
+              const val = event.target.value;
               if (val && isString(val)) {
                 this.props.onChange(
                   'response',
-                  val as string,
+                  val,
                   `stimulus${this.props.num}`
                 );
               }
             }}
-            placeholder="Select"
-            options={RESPONSE_OPTIONS}
-          />
-        </Table.Cell>
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              Select
+            </option>
+            {RESPONSE_OPTIONS.map((opt) => (
+              <option key={opt.key} value={opt.value}>
+                {opt.text}
+              </option>
+            ))}
+          </select>
+        </td>
 
-        <Table.Cell className={styles.experimentRowName}>
+        <td className={styles.experimentRowName}>
           {this.props.dir ? (
             <div className={styles.selectedFolderContainer}>
               <div>
@@ -124,16 +132,26 @@ export default class StimuliDesignColumn extends Component<Props, State> {
                 ){' '}
               </div>
               <div>
-                <Icon name="delete" onClick={this.handleRemoveFolder} />
+                <button
+                  type="button"
+                  onClick={this.handleRemoveFolder}
+                  className="text-gray-500 hover:text-red-600 transition-colors"
+                  aria-label="Remove folder"
+                >
+                  ✕
+                </button>
               </div>
             </div>
           ) : (
-            <Button secondary onClick={this.handleSelectFolder}>
+            <button
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
+              onClick={this.handleSelectFolder}
+            >
               Select folder
-            </Button>
+            </button>
           )}
-        </Table.Cell>
-      </Table.Row>
+        </td>
+      </tr>
     );
   }
 }

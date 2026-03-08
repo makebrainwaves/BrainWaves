@@ -1,12 +1,4 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Button,
-  Header,
-  Segment,
-  Image,
-  Divider,
-} from 'semantic-ui-react';
 import { Observable } from 'rxjs';
 import { History } from 'history';
 import {
@@ -77,56 +69,59 @@ export default class Home extends Component<Props, State> {
 
   render() {
     return (
-      <Grid
-        stretched
-        relaxed
-        padded
-        className={styles.contentGrid}
+      <div
+        className={`grid grid-cols-12 gap-4 ${styles.contentGrid}`}
         style={{ alignItems: 'center' }}
       >
         {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
           this.props.signalQualityObservable && (
-            <Grid.Row>
-              <Grid.Column stretched width={6}>
+            <div className="col-span-12 flex items-center w-full gap-4">
+              <div className="col-span-6 flex-1">
                 <SignalQualityIndicatorComponent
                   signalQualityObservable={this.props.signalQualityObservable}
                   plottingInterval={PLOTTING_INTERVAL}
                 />
-              </Grid.Column>
-              <Grid.Column stretched width={10}>
+              </div>
+              <div className="col-span-10 flex-1">
                 <div className={styles.disconnectButtonContainer}>
-                  <Button secondary onClick={this.handleStopConnect}>
+                  <button
+                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
+                    onClick={this.handleStopConnect}
+                  >
                     Disconnect EEG Device
-                  </Button>
+                  </button>
                 </div>
                 <ViewerComponent
                   signalQualityObservable={this.props.signalQualityObservable}
                   deviceType={this.props.deviceType}
                   plottingInterval={PLOTTING_INTERVAL}
                 />
-              </Grid.Column>
-            </Grid.Row>
+              </div>
+            </div>
           )}
         {this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
-          <Grid.Row stretched>
-            <Grid.Column stretched width={5}>
-              <Segment basic>
-                <Image src={eegImage} />
-              </Segment>
-            </Grid.Column>
+          <div className="col-span-12 flex items-center w-full gap-4">
+            <div className="col-span-5 flex-1">
+              <div className="p-4">
+                <img src={eegImage} />
+              </div>
+            </div>
 
-            <Grid.Column stretched width={11}>
-              <Segment basic>
-                <Header as="h1">Explore Raw EEG</Header>
-                <Divider />
+            <div className="col-span-11 flex-1">
+              <div className="p-4">
+                <h1 className="text-2xl font-bold">Explore Raw EEG</h1>
+                <hr className="my-4 border-gray-200" />
                 <p>
                   Connect directly to an EEG device and view raw streaming data
                 </p>
-                <Button primary onClick={this.handleStartConnect}>
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
+                  onClick={this.handleStartConnect}
+                >
                   Connect
-                </Button>
-              </Segment>
-            </Grid.Column>
+                </button>
+              </div>
+            </div>
             <ConnectModal
               history={this.props.history}
               open={this.state.isConnectModalOpen}
@@ -139,9 +134,9 @@ export default class Home extends Component<Props, State> {
               DeviceActions={this.props.DeviceActions}
               availableDevices={this.props.availableDevices}
             />
-          </Grid.Row>
+          </div>
         )}
-      </Grid>
+      </div>
     );
   }
 }

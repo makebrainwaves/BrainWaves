@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
 import styles from '../styles/common.module.css';
 
 enum HELP_STEP {
@@ -69,23 +68,25 @@ export class HelpSidebar extends Component<Props, State> {
   renderMenu() {
     return (
       <>
-        <Menu secondary vertical fluid>
-          <Header className={styles.helpHeader} as="h1">
+        <nav className="flex flex-col w-full">
+          <h1 className={styles.helpHeader}>
             What would you like to do?
-          </Header>
-          <Menu.Item onClick={this.handleStartSignal}>
-            <Segment basic className={styles.helpMenuItem}>
-              <Icon name="star outline" size="large" />
-              Improve the signal quality of your sensors
-            </Segment>
-          </Menu.Item>
-          <Menu.Item onClick={this.handleStartLearn}>
-            <Segment basic className={styles.helpMenuItem}>
-              <Icon name="exclamation triangle" size="large" />
-              Learn about how the subjects movements create noise
-            </Segment>
-          </Menu.Item>
-        </Menu>
+          </h1>
+          <button
+            className={`text-left ${styles.helpMenuItem}`}
+            onClick={this.handleStartSignal}
+          >
+            <span className="mr-2">&#9733;</span>
+            Improve the signal quality of your sensors
+          </button>
+          <button
+            className={`text-left ${styles.helpMenuItem}`}
+            onClick={this.handleStartLearn}
+          >
+            <span className="mr-2">&#9888;</span>
+            Learn about how the subjects movements create noise
+          </button>
+        </nav>
       </>
     );
   }
@@ -93,24 +94,30 @@ export class HelpSidebar extends Component<Props, State> {
   renderHelp(header: string, content: string) {
     return (
       <>
-        <Segment basic className={styles.helpContent}>
-          <Header className={styles.helpHeader} as="h1">
+        <div className={styles.helpContent}>
+          <h1 className={styles.helpHeader}>
             {header}
-          </Header>
+          </h1>
           {content}
-        </Segment>
-        <Grid columns="equal">
-          <Grid.Column>
-            <Button fluid secondary onClick={this.handleBack}>
+        </div>
+        <div className="flex w-full gap-4">
+          <div className="flex-1">
+            <button
+              className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
+              onClick={this.handleBack}
+            >
               Back
-            </Button>
-          </Grid.Column>
-          <Grid.Column>
-            <Button fluid primary onClick={this.handleNext}>
+            </button>
+          </div>
+          <div className="flex-1">
+            <button
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
+              onClick={this.handleNext}
+            >
               Next
-            </Button>
-          </Grid.Column>
-        </Grid>
+            </button>
+          </div>
+        </div>
       </>
     );
   }
@@ -165,29 +172,30 @@ export class HelpSidebar extends Component<Props, State> {
 
   render() {
     return (
-      <Segment basic padded vertical className={styles.helpSidebar}>
-        <Segment basic className={styles.closeButton}>
-          <Button
-            circular
-            size="large"
-            icon="x"
+      <div className={`py-4 ${styles.helpSidebar}`}>
+        <div className={styles.closeButton}>
+          <button
+            className="rounded-full w-10 h-10 text-lg font-bold bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center"
             onClick={this.props.handleClose}
-          />
-        </Segment>
+            aria-label="Close help sidebar"
+          >
+            ✕
+          </button>
+        </div>
         {this.renderHelpContent()}
-      </Segment>
+      </div>
     );
   }
 }
 
 export const HelpButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   return (
-    <Button
-      circular
-      icon="question"
-      className={styles.helpButton}
-      floated="right"
+    <button
+      className={`rounded-full w-10 h-10 text-lg font-bold bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center float-right ${styles.helpButton}`}
       onClick={onClick}
-    />
+      aria-label="Help"
+    >
+      ?
+    </button>
   );
 };

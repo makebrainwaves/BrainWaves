@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { Input, Modal, Button, InputOnChangeData } from 'semantic-ui-react';
 import { sanitizeTextInput } from '../utils/ui';
 import styles from './styles/common.module.css';
+import { Dialog, DialogContent } from './ui/dialog';
 
 interface InputData {
   subject: string;
@@ -40,17 +40,17 @@ export default class InputCollect extends Component<Props, State> {
     this.handleExit = this.handleExit.bind(this);
   }
 
-  handleTextEntry(data: InputOnChangeData, field: keyof InputData) {
+  handleTextEntry(value: string, field: keyof InputData) {
     switch (field) {
       case 'session':
-        this.setState({ [field]: parseInt(data.value, 10) });
+        this.setState({ [field]: parseInt(value, 10) });
         break;
       case 'group':
-        this.setState({ [field]: data.value });
+        this.setState({ [field]: value });
         break;
       case 'subject':
       default:
-        this.setState({ subject: data.value });
+        this.setState({ subject: value });
     }
   }
 
@@ -83,51 +83,50 @@ export default class InputCollect extends Component<Props, State> {
 
   render() {
     return (
-      <Modal
-        dimmer="inverted"
-        centered
-        className={styles.inputModal}
+      <Dialog
         open={this.props.open}
-        onClose={this.handleExit}
+        onOpenChange={(open) => { if (!open) this.handleExit(); }}
       >
-        <Modal.Content>
-          Enter Subject ID
-          <Input
-            focus
-            fluid
-            error={this.state.isSubjectError}
-            onChange={(object, data) => this.handleTextEntry(data, 'subject')}
-            onKeyDown={this.handleEnterSubmit}
-            value={this.state.subject}
-            autoFocus
-          />
-        </Modal.Content>
-        <Modal.Content>
-          Enter group name (optional)
-          <Input
-            focus
-            fluid
-            onChange={(object, data) => this.handleTextEntry(data, 'group')}
-            onKeyDown={this.handleEnterSubmit}
-            value={this.state.group}
-          />
-        </Modal.Content>
-        <Modal.Content>
-          Enter session number
-          <Input
-            focus
-            fluid
-            error={this.state.isSessionError}
-            onChange={(object, data) => this.handleTextEntry(data, 'session')}
-            onKeyDown={this.handleEnterSubmit}
-            value={this.state.session}
-            type="number"
-          />
-        </Modal.Content>
-        <Modal.Actions>
-          <Button color="blue" content="OK" onClick={this.handleClose} />
-        </Modal.Actions>
-      </Modal>
+        <DialogContent className={styles.inputModal}>
+          <div className="mb-4">
+            <label className="block mb-1">Enter Subject ID</label>
+            <input
+              className={`border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500${this.state.isSubjectError ? ' border-red-500' : ' border-gray-300'}`}
+              onChange={(e) => this.handleTextEntry(e.target.value, 'subject')}
+              onKeyDown={this.handleEnterSubmit as any}
+              value={this.state.subject}
+              autoFocus
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Enter group name (optional)</label>
+            <input
+              className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => this.handleTextEntry(e.target.value, 'group')}
+              onKeyDown={this.handleEnterSubmit as any}
+              value={this.state.group}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Enter session number</label>
+            <input
+              className={`border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500${this.state.isSessionError ? ' border-red-500' : ' border-gray-300'}`}
+              onChange={(e) => this.handleTextEntry(e.target.value, 'session')}
+              onKeyDown={this.handleEnterSubmit as any}
+              value={this.state.session}
+              type="number"
+            />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
+              onClick={this.handleClose}
+            >
+              OK
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 }

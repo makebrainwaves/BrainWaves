@@ -1,15 +1,4 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Button,
-  Segment,
-  Header,
-  Form,
-  Checkbox,
-  Image,
-  Table,
-  CheckboxProps,
-} from 'semantic-ui-react';
 import { isString } from 'lodash';
 
 import styles from '../styles/common.module.css';
@@ -75,17 +64,16 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.setState({ activeStep: step });
   }
 
-  handleProgressBar(_, data: CheckboxProps) {
-    const { checked } = data;
+  handleProgressBar(checked: boolean | undefined) {
     if (checked === undefined) return;
     this.setState((prevState) => ({
       params: { ...prevState.params, showProgessBar: checked },
     }));
   }
 
-  handleEEGEnabled(_, data: CheckboxProps) {
-    if (data.checked === undefined) return;
-    this.props.ExperimentActions.SetEEGEnabled(data.checked);
+  handleEEGEnabled(checked: boolean | undefined) {
+    if (checked === undefined) return;
+    this.props.ExperimentActions.SetEEGEnabled(checked);
   }
 
   handleStartExperiment() {
@@ -125,96 +113,87 @@ export default class CustomDesign extends Component<DesignProps, State> {
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
-          <Grid
-            stretched
-            relaxed
-            padded
-            columns="equal"
-            className={styles.contentGrid}
-          >
-            <Grid.Column stretched verticalAlign="middle">
-              <Image
-                as={Segment}
-                basic
-                centered
+          <div className={`grid grid-cols-2 gap-4 ${styles.contentGrid}`} style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+            <div className="flex flex-col items-center justify-center">
+              <img
                 src={researchQuestionImage}
-                className={styles.overviewImage}
+                className={`max-w-full ${styles.overviewImage}`}
               />
-              <Form>
-                <Form.TextArea
-                  autoHeight
-                  style={{ minHeight: 100, maxHeight: 400 }}
-                  label={FIELDS.QUESTION}
-                  value={this.state.params.description?.question}
-                  placeholder="Explain your research question here."
-                  onChange={(event, data) => {
-                    const val = data.value;
-                    if (!isString(val)) {
-                      return;
-                    }
-                    this.handleSetText(val as string, 'question');
-                  }}
-                />
-              </Form>
-            </Grid.Column>
-            <Grid.Column stretched verticalAlign="middle">
-              <Image
-                as={Segment}
-                basic
-                centered
+              <form>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">{FIELDS.QUESTION}</label>
+                  <textarea
+                    style={{ minHeight: 100, maxHeight: 400 }}
+                    value={this.state.params.description?.question}
+                    placeholder="Explain your research question here."
+                    onChange={(event) => {
+                      const val = event.target.value;
+                      if (!isString(val)) {
+                        return;
+                      }
+                      this.handleSetText(val, 'question');
+                    }}
+                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <img
                 src={hypothesisImage}
-                className={styles.overviewImage}
+                className={`max-w-full ${styles.overviewImage}`}
               />
-              <Form>
-                <Form.TextArea
-                  autoHeight
-                  style={{ minHeight: 100, maxHeight: 400 }}
-                  label={FIELDS.HYPOTHESIS}
-                  value={this.state.params.description?.hypothesis}
-                  placeholder="Describe your hypothesis here."
-                  onChange={(event, data) => {
-                    const val = data.value;
-                    if (!isString(val)) {
-                      return;
-                    }
-                    this.handleSetText(val as string, 'hypothesis');
-                  }}
-                />
-              </Form>
-            </Grid.Column>
-            <Grid.Column verticalAlign="middle">
-              <Image
-                as={Segment}
-                basic
-                centered
+              <form>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">{FIELDS.HYPOTHESIS}</label>
+                  <textarea
+                    style={{ minHeight: 100, maxHeight: 400 }}
+                    value={this.state.params.description?.hypothesis}
+                    placeholder="Describe your hypothesis here."
+                    onChange={(event) => {
+                      const val = event.target.value;
+                      if (!isString(val)) {
+                        return;
+                      }
+                      this.handleSetText(val, 'hypothesis');
+                    }}
+                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <img
                 src={methodsImage}
-                className={styles.overviewImage}
+                className={`max-w-full ${styles.overviewImage}`}
               />
-              <Form>
-                <Form.TextArea
-                  autoHeight
-                  style={{ minHeight: 100, maxHeight: 400 }}
-                  label={FIELDS.METHODS}
-                  value={this.state.params.description?.methods}
-                  placeholder="Explain how you will design your experiment to answer the question here."
-                  onChange={(event, data) => {
-                    const val = data.value;
-                    if (!isString(val)) {
-                      return;
-                    }
-                    this.handleSetText(val as string, 'methods');
-                  }}
-                />
-              </Form>
-            </Grid.Column>
-          </Grid>
+              <form>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">{FIELDS.METHODS}</label>
+                  <textarea
+                    style={{ minHeight: 100, maxHeight: 400 }}
+                    value={this.state.params.description?.methods}
+                    placeholder="Explain how you will design your experiment to answer the question here."
+                    onChange={(event) => {
+                      const val = event.target.value;
+                      if (!isString(val)) {
+                        return;
+                      }
+                      this.handleSetText(val, 'methods');
+                    }}
+                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
         );
 
       case CUSTOM_STEPS.CONDITIONS:
         return (
-          <Grid>
-            <Segment basic>
-              <Header as="h1">Conditions</Header>
+          <div>
+            <div className="p-4">
+              <h1 className="text-2xl font-bold mb-2">Conditions</h1>
               <p>
                 {`Select the folder with images for each condition and choose
                 the correct response. You can upload image files with the
@@ -223,166 +202,118 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 You can resize or compress your images in an image editing
                 program or on one of the websites online.`}
               </p>
-            </Segment>
+            </div>
 
-            <Table basic="very">
-              <Table.Header>
-                <Table.Row className={styles.conditionHeaderRow}>
-                  <Table.HeaderCell className={styles.conditionHeaderRowName}>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className={styles.conditionHeaderRow}>
+                  <th className={`border border-gray-200 px-4 py-2 bg-gray-50 text-left ${styles.conditionHeaderRowName}`}>
                     Condition
-                  </Table.HeaderCell>
-                  <Table.HeaderCell>Default Key Response</Table.HeaderCell>
-                  <Table.HeaderCell>Condition Folder</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
+                  </th>
+                  <th className="border border-gray-200 px-4 py-2 bg-gray-50 text-left">Default Key Response</th>
+                  <th className="border border-gray-200 px-4 py-2 bg-gray-50 text-left">Condition Folder</th>
+                </tr>
+              </thead>
 
-              <Table.Body className={styles.experimentTable}>
-                <div>Stimulus customization is currently unavailable</div>
+              <tbody className={styles.experimentTable}>
+                <tr><td><div>Stimulus customization is currently unavailable</div></td></tr>
                 {stimi.map(({ name, number }) => (
-                  <div key={name}>
-                    {`Stimulus name: ${name}, number: ${number}`}
-                  </div>
-                  //   key={number}
-                  //   num={number}
-                  //   {...this.state.params[name]}
-                  //   numberImages={this.state.params.stimuli.length}
-                  //   onChange={async (key, data, changedName) => {
-                  //     await this.setState({
-                  //       params: {
-                  //         ...this.state.params,
-                  //         [changedName]: {
-                  //           ...this.state.params[changedName],
-                  //           [key]: data,
-                  //         },
-                  //       },
-                  //     });
-                  //     let newStimuli: StimuliDesc[] = [];
-                  //     await stimi.forEach((stimul) => {
-                  //       let dirStimuli: StimuliDesc[] = [];
-                  //       const { dir } = this.state.params[stimul.name];
-                  //       if (dir && typeof dir !== 'undefined' && dir !== '') {
-                  //         dirStimuli = readImages(dir).map((i) => ({
-                  //           dir,
-                  //           filename: i,
-                  //           name: i,
-                  //           condition: this.state.params[stimul.name].title,
-                  //           response: this.state.params[stimul.name].response,
-                  //           phase: 'main',
-                  //           type: stimul.number,
-                  //         }));
-                  //       }
-                  //       if (dirStimuli.length) dirStimuli[0].phase = 'practice';
-                  //       newStimuli = newStimuli.concat(...dirStimuli);
-                  //     });
-                  //     this.setState({
-                  //       params: {
-                  //         ...this.state.params,
-                  //         stimuli: [...newStimuli],
-                  //         nbTrials: newStimuli.filter((t) => t.phase === 'main')
-                  //           .length,
-                  //         nbPracticeTrials: newStimuli.filter(
-                  //           (t) => t.phase === 'practice'
-                  //         ).length,
-                  //       },
-                  //       saved: false,
-                  //     });
-                  //   }}
-                  // />
+                  <tr key={name}>
+                    <td>{`Stimulus name: ${name}, number: ${number}`}</td>
+                  </tr>
                 ))}
-              </Table.Body>
-            </Table>
-          </Grid>
+              </tbody>
+            </table>
+          </div>
         );
 
       case CUSTOM_STEPS.TRIALS:
         return (
-          <Grid>
+          <div>
             <div className={styles.trialsHeader}>
               <div>
-                <Header as="h1">Trials</Header>
+                <h1 className="text-2xl font-bold mb-2">Trials</h1>
                 <p>Edit the correct key response and type of each trial.</p>
               </div>
 
               <div>
-                <Form style={{ alignSelf: 'flex-end' }}>
-                  <Form.Group className={styles.trialsTopInfoBar}>
-                    <Form.Select
-                      fluid
-                      selection
-                      label="Order"
-                      value={this.state.params.randomize}
-                      onChange={(event, data) => {
-                        if (
-                          data.value === 'sequential' ||
-                          data.value === 'random'
-                        ) {
+                <form style={{ alignSelf: 'flex-end' }}>
+                  <div className={`flex gap-4 ${styles.trialsTopInfoBar}`}>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Order</label>
+                      <select
+                        value={this.state.params.randomize}
+                        onChange={(event) => {
+                          const val = event.target.value;
+                          if (val === 'sequential' || val === 'random') {
+                            this.setState({
+                              params: {
+                                ...this.state.params,
+                                randomize: val,
+                              },
+                              saved: false,
+                            });
+                          }
+                        }}
+                        className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="" disabled>Response</option>
+                        <option value="random">Random</option>
+                        <option value="sequential">Sequential</option>
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Total experimental trials</label>
+                      <input
+                        type="number"
+                        value={this.state.params.nbTrials}
+                        onChange={(event) =>
                           this.setState({
                             params: {
                               ...this.state.params,
-                              randomize: data.value,
+                              nbTrials: parseInt(event.target.value, 10),
                             },
                             saved: false,
-                          });
+                          })
                         }
-                      }}
-                      placeholder="Response"
-                      options={[
-                        { key: 'random', text: 'Random', value: 'random' },
-                        {
-                          key: 'sequential',
-                          text: 'Sequential',
-                          value: 'sequential',
-                        },
-                      ]}
-                    />
-                    <Form.Input
-                      label="Total experimental trials"
-                      type="number"
-                      fluid
-                      value={this.state.params.nbTrials}
-                      onChange={(event, data) =>
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            nbTrials: parseInt(data.value, 10),
-                          },
-                          saved: false,
-                        })
-                      }
-                    />
-                    <Form.Input
-                      label="Total practice trials"
-                      type="number"
-                      fluid
-                      value={this.state.params.nbPracticeTrials}
-                      onChange={(event, data) =>
-                        this.setState({
-                          params: {
-                            ...this.state.params,
-                            nbPracticeTrials: parseInt(data.value, 10),
-                          },
-                          saved: false,
-                        })
-                      }
-                    />
-                  </Form.Group>
-                </Form>
+                        className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Total practice trials</label>
+                      <input
+                        type="number"
+                        value={this.state.params.nbPracticeTrials}
+                        onChange={(event) =>
+                          this.setState({
+                            params: {
+                              ...this.state.params,
+                              nbPracticeTrials: parseInt(event.target.value, 10),
+                            },
+                            saved: false,
+                          })
+                        }
+                        className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
 
-            <Table basic="very">
-              <Table.Header>
-                <Table.Row className={styles.trialsHeaderRow}>
-                  <Table.HeaderCell className={styles.conditionHeaderRowName}>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className={styles.trialsHeaderRow}>
+                  <th className={`border border-gray-200 px-4 py-2 bg-gray-50 text-left ${styles.conditionHeaderRowName}`}>
                     Name
-                  </Table.HeaderCell>
-                  <Table.HeaderCell>Condition</Table.HeaderCell>
-                  <Table.HeaderCell>Correct Key Response</Table.HeaderCell>
-                  <Table.HeaderCell>Trial Type</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body className={styles.trialsTable}>
-                <div>Stimulus customization is currently unavailable</div>
+                  </th>
+                  <th className="border border-gray-200 px-4 py-2 bg-gray-50 text-left">Condition</th>
+                  <th className="border border-gray-200 px-4 py-2 bg-gray-50 text-left">Correct Key Response</th>
+                  <th className="border border-gray-200 px-4 py-2 bg-gray-50 text-left">Trial Type</th>
+                </tr>
+              </thead>
+              <tbody className={styles.trialsTable}>
+                <tr><td><div>Stimulus customization is currently unavailable</div></td></tr>
 
                 {/* {this.state.params.stimuli &&
                   this.state.params.stimuli.map((e, num) => (
@@ -436,27 +367,27 @@ export default class CustomDesign extends Component<DesignProps, State> {
                       }}
                     />
                   ))} */}
-              </Table.Body>
-            </Table>
-          </Grid>
+              </tbody>
+            </table>
+          </div>
         );
 
       case CUSTOM_STEPS.PARAMETERS:
         return (
-          <Grid>
-            <Grid.Column
-              width={8}
+          <div className="grid grid-cols-2 gap-4">
+            <div
+              className="w-2/3"
               style={{ display: 'grid', alignContent: 'space-between' }}
             >
-              <Segment basic>
-                <Header as="h1">Inter-trial interval</Header>
+              <div className="p-4">
+                <h1 className="text-2xl font-bold mb-2">Inter-trial interval</h1>
                 <p>
                   Select the inter-trial interval duration. This is the amount
                   of time between trials measured from the end of one trial to
                   the start of the next one.
                 </p>
-              </Segment>
-              <Segment basic style={{ marginTop: '100px' }}>
+              </div>
+              <div className="p-4" style={{ marginTop: '100px' }}>
                 <ParamSlider
                   label="ITI Duration (seconds)"
                   value={this.state.params.iti}
@@ -478,38 +409,42 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     })
                   }
                 />
-              </Segment>
-            </Grid.Column>
+              </div>
+            </div>
 
-            <Grid.Column
-              width={8}
+            <div
+              className="w-2/3"
               style={{ display: 'grid', alignContent: 'space-between' }}
             >
-              <Segment basic>
-                <Header as="h1">Image duration</Header>
+              <div className="p-4">
+                <h1 className="text-2xl font-bold mb-2">Image duration</h1>
                 <p>
                   Select the time of presentation or make it self-paced -
                   present the image until participants respond.
                 </p>
-              </Segment>
-              <Segment basic>
-                <Checkbox
-                  defaultChecked={this.state.params.selfPaced}
-                  label="Self-paced data collection"
-                  onChange={(value) =>
-                    this.setState({
-                      params: {
-                        ...this.state.params,
-                        selfPaced: !this.state.params.selfPaced,
-                      },
-                      saved: false,
-                    })
-                  }
-                />
-              </Segment>
+              </div>
+              <div className="p-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    defaultChecked={this.state.params.selfPaced}
+                    onChange={(e) =>
+                      this.setState({
+                        params: {
+                          ...this.state.params,
+                          selfPaced: !this.state.params.selfPaced,
+                        },
+                        saved: false,
+                      })
+                    }
+                    className="w-4 h-4"
+                  />
+                  <span>Self-paced data collection</span>
+                </label>
+              </div>
 
               {!this.state.params.selfPaced ? (
-                <Segment basic>
+                <div className="p-4">
                   <ParamSlider
                     label="Presentation time (seconds)"
                     value={
@@ -538,90 +473,89 @@ export default class CustomDesign extends Component<DesignProps, State> {
                       })
                     }
                   />
-                </Segment>
+                </div>
               ) : (
-                <Segment basic style={{ marginBottom: '85px' }} />
+                <div className="p-4" style={{ marginBottom: '85px' }} />
               )}
-            </Grid.Column>
-          </Grid>
+            </div>
+          </div>
         );
 
       case CUSTOM_STEPS.INSTRUCTIONS:
         return (
-          <Grid stretched>
-            <Grid.Column
-              width={8}
-              stretched
+          <div className="grid grid-cols-2 gap-4">
+            <div
+              className="w-2/3"
               style={{ display: 'grid', alignContent: 'space-between' }}
             >
-              <Segment basic>
-                <Header as="h1">Experiment Instructions</Header>
+              <div className="p-4">
+                <h1 className="text-2xl font-bold mb-2">Experiment Instructions</h1>
                 <p>
                   Edit the instruction that will be displayed on the first
                   screen.
                 </p>
-                <Form>
-                  <Form.TextArea
-                    autoHeight
-                    value={this.state.params.intro}
-                    placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press the the space bar on your keyboard to start doing the practice trials. If you want to skip the practice trials and go directly to the task, press the 'q' button on your keyboard."
-                    onChange={(event, data) => {
-                      const val = data.value;
-                      if (!isString(val)) {
-                        return;
-                      }
-                      this.setState({
-                        params: { ...this.state.params, intro: val as string },
-                        saved: false,
-                      });
-                    }}
-                  />
-                </Form>
-              </Segment>
-            </Grid.Column>
+                <form>
+                  <div className="mb-4">
+                    <textarea
+                      value={this.state.params.intro}
+                      placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house. Press the the space bar on your keyboard to start doing the practice trials. If you want to skip the practice trials and go directly to the task, press the 'q' button on your keyboard."
+                      onChange={(event) => {
+                        const val = event.target.value;
+                        if (!isString(val)) {
+                          return;
+                        }
+                        this.setState({
+                          params: { ...this.state.params, intro: val },
+                          saved: false,
+                        });
+                      }}
+                      className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </form>
+              </div>
+            </div>
 
-            <Grid.Column
-              width={8}
-              stretched
+            <div
+              className="w-2/3"
               style={{ display: 'grid', alignContent: 'space-between' }}
             >
-              <Segment basic>
-                <Header as="h1">Instructions for the task screen</Header>
+              <div className="p-4">
+                <h1 className="text-2xl font-bold mb-2">Instructions for the task screen</h1>
                 <p>
                   Edit the instruction that will be displayed in the footer
                   during the task.
                 </p>
-                <Form>
-                  <Form.TextArea
-                    autoHeight
-                    value={this.state.params.taskHelp}
-                    placeholder="e.g., Press 1 for a face and 9 for a house"
-                    onChange={(event, data) => {
-                      const val = data.value;
-                      if (!isString(val)) {
-                        return;
-                      }
-                      this.setState({
-                        params: { ...this.state.params, taskHelp: val as string },
-                        saved: false,
-                      });
-                    }}
-                  />
-                </Form>
-              </Segment>
-            </Grid.Column>
-          </Grid>
+                <form>
+                  <div className="mb-4">
+                    <textarea
+                      value={this.state.params.taskHelp}
+                      placeholder="e.g., Press 1 for a face and 9 for a house"
+                      onChange={(event) => {
+                        const val = event.target.value;
+                        if (!isString(val)) {
+                          return;
+                        }
+                        this.setState({
+                          params: { ...this.state.params, taskHelp: val },
+                          saved: false,
+                        });
+                      }}
+                      className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         );
 
       case CUSTOM_STEPS.PREVIEW:
         return (
-          <Grid relaxed padded className={styles.contentGrid}>
-            <Grid.Column
-              stretched
-              width={14}
-              textAlign="right"
-              verticalAlign="middle"
-              className={styles.previewWindow}
+          <div className={`flex gap-4 items-start ${styles.contentGrid}`}>
+            <div
+              className={`flex-1 ${styles.previewWindow}`}
+              style={{ textAlign: 'right' }}
             >
               {this.props.type && (
                 <PreviewExperimentComponent
@@ -635,17 +569,17 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   title={this.props.title}
                 />
               )}
-            </Grid.Column>
+            </div>
 
-            <Grid.Column width={2} verticalAlign="top">
-              <Segment basic>
+            <div style={{ width: '10%' }}>
+              <div className="p-4">
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
                   onClick={(e) => this.handlePreview(e)}
                 />
-              </Segment>
-            </Grid.Column>
-          </Grid>
+              </div>
+            </div>
+          </div>
         );
     }
   }
@@ -659,24 +593,24 @@ export default class CustomDesign extends Component<DesignProps, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
           enableEEGToggle={
-            <Checkbox
-              toggle
-              defaultChecked={this.props.isEEGEnabled}
-              onChange={(event, data) => this.handleEEGEnabled(event, data)}
-              className={styles.EEGToggle}
-            />
+            <label className={`flex items-center gap-2 cursor-pointer ${styles.EEGToggle}`}>
+              <input
+                type="checkbox"
+                defaultChecked={this.props.isEEGEnabled}
+                onChange={(e) => this.handleEEGEnabled(e.target.checked)}
+                className="w-4 h-4"
+              />
+            </label>
           }
           saveButton={
-            <Button
-              compact
-              size="small"
-              secondary
+            <button
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium text-sm"
               onClick={() => {
                 this.handleSaveParams();
               }}
             >
               {this.state.saved ? 'Save' : 'Save'}
-            </Button>
+            </button>
           }
         />
         {this.renderSectionContent()}

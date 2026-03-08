@@ -187,8 +187,12 @@
     "@neurosity/pipes": "^5.2.1",
     "@nteract/transforms": "^3.2.0",
     "@reduxjs/toolkit": "^2.11.2",
+    "@tailwindcss/vite": "^4.2.1",
     "ajv": "^8.18.0",
+    "autoprefixer": "^10.4.27",
     "caniuse-lite": "^1.0.30001241",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "dayjs": "^1.11.19",
     "electron-log": "^5.4.3",
@@ -197,6 +201,7 @@
     "history": "^4.7.2",
     "lab.js": "23.0.0-alpha4",
     "lodash": "^4.17.15",
+    "lucide-react": "^0.577.0",
     "mkdirp": "^1.0.4",
     "mousetrap": "^1.6.5",
     "muse-js": "^3.1.0",
@@ -215,20 +220,16 @@
     "redux-observable": "^2.0.0-rc.2",
     "redux-thunk": "^2.3.0",
     "rxjs": "^7.8.2",
-    "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^2.1.5",
     "simple-statistics": "^7.1.0",
     "simplify-js": "^1.2.4",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.1",
     "typesafe-actions": "^5.1.0",
     "ws": "^8.19.0"
   },
   "overrides": {
     "react": "^18.x",
-    "react-dom": "^18.x",
-    "connected-react-router": {
-      "react-redux": "^9.2.0",
-      "redux": "^5.x"
-    }
+    "react-dom": "^18.x"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0",

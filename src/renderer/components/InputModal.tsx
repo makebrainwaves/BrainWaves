@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { Input, Modal, Button } from 'semantic-ui-react';
 import { debounce } from 'lodash';
 import { sanitizeTextInput } from '../utils/ui';
 import styles from './styles/common.module.css';
+import { Dialog, DialogContent } from './ui/dialog';
 
 interface Props {
   open: boolean;
@@ -29,8 +29,8 @@ export default class InputModal extends Component<Props, State> {
     this.handleExit = this.handleExit.bind(this);
   }
 
-  handleTextEntry(event, data) {
-    this.setState({ enteredText: data.value });
+  handleTextEntry(event: React.ChangeEvent<HTMLInputElement>) {
+    this.setState({ enteredText: event.target.value });
   }
 
   handleClose() {
@@ -53,28 +53,30 @@ export default class InputModal extends Component<Props, State> {
 
   render() {
     return (
-      <Modal
-        dimmer="inverted"
-        centered
-        className={styles.inputModal}
+      <Dialog
         open={this.props.open}
-        onClose={this.handleExit}
+        onOpenChange={(open) => { if (!open) this.handleExit(); }}
       >
-        <Modal.Content>{this.props.header}</Modal.Content>
-        <Modal.Content>
-          <Input
-            focus
-            fluid
-            error={this.state.isError}
-            onChange={this.handleTextEntry}
-            onKeyDown={this.handleEnterSubmit}
-            autoFocus
-          />
-        </Modal.Content>
-        <Modal.Actions>
-          <Button color="blue" content="OK" onClick={this.handleClose} />
-        </Modal.Actions>
-      </Modal>
+        <DialogContent className={styles.inputModal}>
+          <div className="mb-4">{this.props.header}</div>
+          <div className="mb-4">
+            <input
+              className={`border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500${this.state.isError ? ' border-red-500' : ' border-gray-300'}`}
+              onChange={this.handleTextEntry}
+              onKeyDown={this.handleEnterSubmit as any}
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
+              onClick={this.handleClose}
+            >
+              OK
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 }

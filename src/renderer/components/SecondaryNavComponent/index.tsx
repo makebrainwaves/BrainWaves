@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Grid, Header, Dropdown } from 'semantic-ui-react';
 import { NavLink } from 'react-router-dom';
 import styles from '../styles/secondarynav.module.css';
 import SecondaryNavSegment from './SecondaryNavSegment';
@@ -16,17 +15,34 @@ interface Props {
   enableEEGToggle?: JSX.Element;
 }
 
-export default class SecondaryNavComponent extends Component<Props> {
-  shouldComponentUpdate(nextProps) {
-    return nextProps.activeStep !== this.props.activeStep;
+interface SettingsState {
+  isSettingsOpen: boolean;
+}
+
+export default class SecondaryNavComponent extends Component<Props, SettingsState> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { isSettingsOpen: false };
+    this.toggleSettings = this.toggleSettings.bind(this);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return (
+      nextProps.activeStep !== this.props.activeStep ||
+      nextState.isSettingsOpen !== this.state.isSettingsOpen
+    );
+  }
+
+  toggleSettings() {
+    this.setState((prev) => ({ isSettingsOpen: !prev.isSettingsOpen }));
   }
 
   renderTitle() {
     if (typeof this.props.title === 'string') {
       return (
-        <Header className={styles.secondaryNavContainerExpName}>
+        <h3 className={`text-lg font-bold ${styles.secondaryNavContainerExpName}`}>
           {this.props.title}
-        </Header>
+        </h3>
       );
     }
     return this.props.title;
@@ -53,42 +69,47 @@ export default class SecondaryNavComponent extends Component<Props> {
 
   render() {
     return (
-      <Grid verticalAlign="middle" className={styles.secondaryNavContainer}>
-        <Grid.Column width={3} verticalAlign="bottom">
+      <div className={`flex items-center ${styles.secondaryNavContainer}`}>
+        <div className="w-1/4 flex items-end">
           {this.renderTitle()}
-        </Grid.Column>
+        </div>
 
         {this.renderSteps()}
 
         {this.props.enableEEGToggle && (
-          <Grid.Column width={2} floated="right">
-            <div className={styles.settingsButtons}>
-              <Dropdown
-                icon="setting"
-                direction="left"
-                fluid
-                className={styles.dropdownSettings}
+          <div className="w-1/6 ml-auto">
+            <div className={`relative ${styles.settingsButtons}`}>
+              <button
+                className={`px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors ${styles.dropdownSettings}`}
+                onClick={this.toggleSettings}
+                aria-haspopup="true"
+                aria-expanded={this.state.isSettingsOpen}
               >
-                <Dropdown.Menu className={styles.dropdownMenu}>
-                  <Dropdown.Item
-                    className={styles.dropdownItem}
+                ⚙
+              </button>
+              {this.state.isSettingsOpen && (
+                <div
+                  className={`absolute right-0 mt-1 bg-white border rounded shadow-lg z-20 min-w-max ${styles.dropdownMenu}`}
+                >
+                  <div
+                    className={`px-4 py-2 ${styles.dropdownItem}`}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div>Enable EEG</div>
                     {this.props.enableEEGToggle}
-                  </Dropdown.Item>
-                  <Dropdown.Item>
+                  </div>
+                  <div className="px-4 py-2 hover:bg-gray-100">
                     <NavLink to={SCREENS.HOME.route}>
                       <p>Exit Experiment</p>
                     </NavLink>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+                  </div>
+                </div>
+              )}
               {this.props.saveButton}
             </div>
-          </Grid.Column>
+          </div>
         )}
-      </Grid>
+      </div>
     );
   }
 }

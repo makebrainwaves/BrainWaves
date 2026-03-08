@@ -1,27 +1,29 @@
 import React, { PureComponent } from 'react';
-import { Button, ButtonProps } from 'semantic-ui-react';
 
 interface Props {
   isPreviewing: boolean;
-  onClick: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    data: ButtonProps
-  ) => void;
+  onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }
 
 export default class PreviewButton extends PureComponent<Props> {
   render() {
     if (!this.props.isPreviewing) {
       return (
-        <Button secondary onClick={this.props.onClick}>
+        <button
+          className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
+          onClick={this.props.onClick}
+        >
           Preview Experiment
-        </Button>
+        </button>
       );
     }
     return (
-      <Button negative onClick={this.props.onClick}>
+      <button
+        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors font-medium"
+        onClick={this.props.onClick}
+      >
         Stop Preview
-      </Button>
+      </button>
     );
   }
 }

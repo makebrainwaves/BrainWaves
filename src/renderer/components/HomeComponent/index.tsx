@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
-import { Grid, Button, Header, Image, Table } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -207,29 +206,22 @@ export default class Home extends Component<Props, State> {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
         return (
-          <Grid
-            stackable
-            padded
-            columns="equal"
-            className={styles.myExperimentsPage}
-          >
+          <div className={`flex flex-wrap gap-4 ${styles.myExperimentsPage}`}>
             {this.state.recentWorkspaces.length > 0 ? (
-              <Table basic="very">
-                <Table.Header>
-                  <Table.Row className={styles.experimentHeaderRow}>
-                    <Table.HeaderCell className={styles.experimentHeaderName}>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className={styles.experimentHeaderRow}>
+                    <th className={`text-left py-2 px-4 ${styles.experimentHeaderName}`}>
                       Experiment name
-                    </Table.HeaderCell>
-                    <Table.HeaderCell>Date Last Opened</Table.HeaderCell>
-                    <Table.HeaderCell
-                      className={styles.experimentHeaderActionsName}
-                    >
+                    </th>
+                    <th className="text-left py-2 px-4">Date Last Opened</th>
+                    <th className={`text-left py-2 px-4 ${styles.experimentHeaderActionsName}`}>
                       Actions
-                    </Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
+                    </th>
+                  </tr>
+                </thead>
 
-                <Table.Body className={styles.experimentTable}>
+                <tbody className={styles.experimentTable}>
                   {this.state.recentWorkspaces
                     .sort((a, b) => {
                       const aState = this.state.workspaceStates[a];
@@ -247,70 +239,69 @@ export default class Home extends Component<Props, State> {
                       }
                       const { dateModified } = workspaceState;
                       return (
-                        <Table.Row key={dir} className={styles.experimentRow}>
-                          <Table.Cell className={styles.experimentRowName}>
+                        <tr key={dir} className={styles.experimentRow}>
+                          <td className={`py-2 px-4 ${styles.experimentRowName}`}>
                             {dir}
-                          </Table.Cell>
-                          <Table.Cell className={styles.experimentRowName}>
+                          </td>
+                          <td className={`py-2 px-4 ${styles.experimentRowName}`}>
                             {dateModified && dayjs(dateModified).fromNow()}
-                          </Table.Cell>
-                          <Table.Cell className={styles.experimentRowName}>
-                            <Button
-                              secondary
+                          </td>
+                          <td className={`py-2 px-4 ${styles.experimentRowName}`}>
+                            <button
+                              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium mr-2"
                               onClick={() => this.handleDeleteWorkspace(dir)}
                             >
                               Delete
-                            </Button>
-                            <Button
-                              secondary
+                            </button>
+                            <button
+                              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium mr-2"
                               onClick={() => openWorkspaceDir(dir)}
                             >
                               Go to Folder
-                            </Button>
-                            <Button
-                              primary
+                            </button>
+                            <button
+                              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
                               onClick={() =>
                                 this.handleLoadRecentWorkspace(dir)
                               }
                             >
                               Open Experiment
-                            </Button>
-                          </Table.Cell>
-                        </Table.Row>
+                            </button>
+                          </td>
+                        </tr>
                       );
                     })}
-                </Table.Body>
-              </Table>
+                </tbody>
+              </table>
             ) : (
-              <Grid.Column textAlign="center">
-                <Image
+              <div className="flex-1 text-center">
+                <img
                   src={divingMan}
-                  centered
-                  className={styles.noExperimentsImage}
+                  className={`mx-auto max-w-full ${styles.noExperimentsImage}`}
                 />
-                <Header className={styles.noExperimentsTitle}>
+                <h3 className={`text-lg font-bold ${styles.noExperimentsTitle}`}>
                   You don&apos;t have any experiments yet
-                </Header>
+                </h3>
                 <p className={styles.noExperimentsText}>
                   Head over to the &quot;Experiment Bank&quot; section to start
                   an experiment.
                 </p>
-                <Button
-                  primary
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
                   onClick={() => this.handleStepClick('EXPERIMENT BANK')}
                 >
                   View Experiments
-                </Button>
-              </Grid.Column>
+                </button>
+              </div>
             )}
-          </Grid>
+          </div>
         );
       case HOME_STEPS.NEW:
       default:
         return (
-          <Grid columns="two" relaxed padded>
-            <Grid.Row>
-              <Grid.Column>
+          <div className="flex flex-wrap gap-4 p-4">
+            <div className="flex items-center w-full gap-4">
+              <div className="flex-1">
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
                   icon={faceHouseIcon}
@@ -318,9 +309,9 @@ export default class Home extends Component<Props, State> {
                   description={`Explore how people react to different kinds of
                             images, like faces vs. houses.`}
                 />
-              </Grid.Column>
+              </div>
 
-              <Grid.Column>
+              <div className="flex-1">
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
                   icon={stroopIcon}
@@ -329,10 +320,10 @@ export default class Home extends Component<Props, State> {
                             contradictory information (like the word "RED"
                             printed in blue).`}
                 />
-              </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-              <Grid.Column>
+              </div>
+            </div>
+            <div className="flex items-center w-full gap-4">
+              <div className="flex-1">
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
                   icon={multitaskingIcon}
@@ -340,9 +331,9 @@ export default class Home extends Component<Props, State> {
                   description={`Explore why it is challenging to carry out multiple
                             tasks at the same time.`}
                 />
-              </Grid.Column>
+              </div>
 
-              <Grid.Column>
+              <div className="flex-1">
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
                   icon={searchIcon}
@@ -350,21 +341,21 @@ export default class Home extends Component<Props, State> {
                   description={`Examine why it is difficult to find your keys in a
                             messy room.`}
                 />
-              </Grid.Column>
-            </Grid.Row>
-            {/* <Grid.Row>
-              <Grid.Column>
+              </div>
+            </div>
+            {/* <div className="flex items-center w-full gap-4">
+              <div className="flex-1">
                 <ExperimentCard
                   onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
                   icon={customIcon}
                   title="Custom"
                   description="Design your own experiment!"
                 />
-              </Grid.Column>
+              </div>
 
-              <Grid.Column />
-            </Grid.Row> */}
-          </Grid>
+              <div className="flex-1" />
+            </div> */}
+          </div>
         );
       case HOME_STEPS.EXPLORE:
         return (
@@ -381,22 +372,25 @@ export default class Home extends Component<Props, State> {
         );
       case HOME_STEPS.PYODIDE_TEST:
         return (
-          <Grid columns="two" relaxed padded>
-            <Grid.Row>
-              <Grid.Column>
-                <Button onClick={() => this.props.PyodideActions.LoadTopo()}>
+          <div className="flex flex-wrap gap-4 p-4">
+            <div className="flex items-center w-full gap-4">
+              <div className="flex-1">
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
+                  onClick={() => this.props.PyodideActions.LoadTopo()}
+                >
                   Generate Plot
-                </Button>
-              </Grid.Column>
-              <Grid.Column>
+                </button>
+              </div>
+              <div className="flex-1">
                 <PyodidePlotWidget
                   title={'Test Plot'}
                   imageTitle={`Test-Topoplot`}
                   plotMIMEBundle={this.props.topoPlot}
                 />
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
+              </div>
+            </div>
+          </div>
         );
     }
   }
@@ -414,7 +408,7 @@ export default class Home extends Component<Props, State> {
     return (
       <>
         <SecondaryNavComponent
-          title={<Image src={appLogo} />}
+          title={<img src={appLogo} className="max-w-full" />}
           steps={HOME_STEPS}
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}

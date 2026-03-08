@@ -1,7 +1,6 @@
 /* Breaking this component on its own is done mainly to increase performance. Text input is slow otherwise */
 
-import React from 'react';
-import { Segment, Form, Button, Table, Dropdown } from 'semantic-ui-react';
+import React, { useState, useRef } from 'react';
 import { isString } from 'lodash';
 import styles from '../styles/common.module.css';
 
@@ -32,33 +31,42 @@ export const StimuliRow: React.FC<Props> = ({
   onChange,
   onDelete,
 }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   return (
-    <Table.Row className={styles.trialsRow}>
-      <Table.Cell className={styles.conditionsNameRow}>
+    <tr className={styles.trialsRow}>
+      <td className={styles.conditionsNameRow}>
         <div style={{ alignSelf: 'center' }}>{num + 1}.</div>
         <div>{name}</div>
-      </Table.Cell>
+      </td>
 
-      <Table.Cell className={styles.experimentRowName}>
+      <td className={styles.experimentRowName}>
         <div>{condition}</div>
-      </Table.Cell>
+      </td>
 
-      <Table.Cell className={styles.experimentRowName}>
-        <Form.Select
-          fluid
-          selection
+      <td className={styles.experimentRowName}>
+        <select
           value={response}
-          onChange={(event, data) => {
-            const val = data.value;
-            onChange(num, 'response', isString(val) ? (val as string) : '');
+          onChange={(event) => {
+            const val = event.target.value;
+            onChange(num, 'response', isString(val) ? val : '');
           }}
-          placeholder="Response"
-          options={RESPONSE_OPTIONS}
-        />
-      </Table.Cell>
+          className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="" disabled>
+            Response
+          </option>
+          {RESPONSE_OPTIONS.map((opt) => (
+            <option key={opt.key} value={opt.value}>
+              {opt.text}
+            </option>
+          ))}
+        </select>
+      </td>
 
-      <Table.Cell className={styles.trialsTrialTypeRow}>
-        <Segment basic className={styles.trialsTrialTypeSegment}>
+      <td className={styles.trialsTrialTypeRow}>
+        <div className="p-4" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             className={styles.trialsTrialTypeRowSelector}
             style={{
@@ -67,34 +75,54 @@ export const StimuliRow: React.FC<Props> = ({
           >
             {phase === 'main' ? 'Experimental' : 'Practice'}
           </div>
-          <Dropdown
-            fluid
-            style={{
-              display: 'grid',
-              color: '#C4C4C4',
-              justifyContent: 'end',
-            }}
+          <div
+            ref={dropdownRef}
+            style={{ position: 'relative', display: 'grid', color: '#C4C4C4', justifyContent: 'end' }}
           >
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => onChange(num, 'phase', 'main')}>
-                <div>Experimental</div>
-              </Dropdown.Item>
-              <Dropdown.Item onClick={() => onChange(num, 'phase', 'practice')}>
-                <div>Practice</div>
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </Segment>
+            <button
+              className="px-2 py-1 text-gray-400 hover:text-gray-600"
+              onClick={() => setDropdownOpen((o) => !o)}
+              type="button"
+            >
+              ▾
+            </button>
+            {dropdownOpen && (
+              <div
+                className="absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10"
+                style={{ top: '100%' }}
+              >
+                <div
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    onChange(num, 'phase', 'main');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <div>Experimental</div>
+                </div>
+                <div
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    onChange(num, 'phase', 'practice');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <div>Practice</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-        <Button
-          secondary
+        <button
+          className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
           onClick={() => {
             onDelete(num);
           }}
         >
           Delete
-        </Button>
-      </Table.Cell>
-    </Table.Row>
+        </button>
+      </td>
+    </tr>
   );
 };

@@ -1,12 +1,4 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Segment,
-  Button,
-  List,
-  Header,
-  Sidebar,
-} from 'semantic-ui-react';
 import Mousetrap from 'mousetrap';
 import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
@@ -103,32 +95,32 @@ export default class PreTestComponent extends Component<Props, State> {
       );
     }
     return (
-      <Segment basic>
+      <div className="p-4">
         <SignalQualityIndicatorComponent
           signalQualityObservable={this.props.signalQualityObservable}
           plottingInterval={PLOTTING_INTERVAL}
         />
-        <Segment basic>
-          <List>
-            <List.Item>
-              <List.Icon name="circle" className={styles.greatSignal} />
-              <List.Content>Strong Signal</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Icon name="circle" className={styles.okSignal} />
-              <List.Content>Mediocre signal</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Icon name="circle" className={styles.badSignal} />
-              <List.Content>Weak Signal</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Icon name="circle" className={styles.noSignal} />
-              <List.Content>No Signal</List.Content>
-            </List.Item>
-          </List>
-        </Segment>
-      </Segment>
+        <div className="p-4">
+          <ul className="space-y-2">
+            <li className="flex items-center gap-2">
+              <span className={styles.greatSignal}>&#9679;</span>
+              <span>Strong Signal</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={styles.okSignal}>&#9679;</span>
+              <span>Mediocre signal</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={styles.badSignal}>&#9679;</span>
+              <span>Weak Signal</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={styles.noSignal}>&#9679;</span>
+              <span>No Signal</span>
+            </li>
+          </ul>
+        </div>
+      </div>
     );
   }
 
@@ -140,60 +132,50 @@ export default class PreTestComponent extends Component<Props, State> {
 
   render() {
     return (
-      <Sidebar.Pushable as={Segment} className={styles.preTestPushable} basic>
-        <Sidebar
-          width="wide"
-          direction="right"
-          as={Segment}
-          visible={this.state.isSidebarVisible}
-        >
-          <HelpSidebar handleClose={this.handleSidebarToggle} />
-        </Sidebar>
-        <Sidebar.Pusher>
-          <Grid
-            className={styles.preTestContainer}
-            columns="equal"
-            textAlign="center"
-            verticalAlign="middle"
+      <div className={`relative flex overflow-hidden ${styles.preTestPushable}`}>
+        {this.state.isSidebarVisible && (
+          <div className="absolute right-0 top-0 h-full w-80 z-10 border rounded-lg p-4 bg-white shadow-sm overflow-y-auto">
+            <HelpSidebar handleClose={this.handleSidebarToggle} />
+          </div>
+        )}
+        <div className={`flex-1 ${this.state.isSidebarVisible ? 'mr-80' : ''}`}>
+          <div
+            className={`grid grid-cols-12 gap-4 text-center ${styles.preTestContainer}`}
           >
-            <Grid.Row columns="equal">
-              <Grid.Column>
-                <Header as="h1" floated="left">
-                  Collect
-                </Header>
-              </Grid.Column>
-              <Grid.Column floated="right">
+            <div className="col-span-12 flex items-center w-full gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-left">Collect</h1>
+              </div>
+              <div className="flex-1 flex justify-end gap-2">
                 <PreviewButton
                   isPreviewing={this.state.isPreviewing}
                   onClick={(e) => this.handlePreview(e)}
                 />
-                <Button
-                  primary
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={
                     this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED
                   }
                   onClick={this.props.openRunComponent}
                 >
-                  Run & Record Experiment
-                </Button>
-              </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-              <Grid.Column width={8} className={styles.previewEEGWindow}>
-                {this.renderSignalQualityOrPreview()}
-              </Grid.Column>
-              <Grid.Column width={8}>
-                <ViewerComponent
-                  signalQualityObservable={this.props.signalQualityObservable}
-                  deviceType={this.props.deviceType}
-                  plottingInterval={PLOTTING_INTERVAL}
-                />
-                {this.renderHelpButton()}
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
-        </Sidebar.Pusher>
-      </Sidebar.Pushable>
+                  Run &amp; Record Experiment
+                </button>
+              </div>
+            </div>
+            <div className={`col-span-6 ${styles.previewEEGWindow}`}>
+              {this.renderSignalQualityOrPreview()}
+            </div>
+            <div className="col-span-6">
+              <ViewerComponent
+                signalQualityObservable={this.props.signalQualityObservable}
+                deviceType={this.props.deviceType}
+                plottingInterval={PLOTTING_INTERVAL}
+              />
+              {this.renderHelpButton()}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 }

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Segment, Header, Menu, Icon, Button, Grid } from 'semantic-ui-react';
 import styles from '../styles/common.module.css';
 
 enum HELP_STEP {
@@ -59,23 +58,27 @@ export default class CleanSidebar extends Component<Props, State> {
   renderMenu() {
     return (
       <>
-        <Menu secondary vertical fluid>
-          <Header className={styles.helpHeader} as="h1">
+        <div className="flex flex-col gap-2">
+          <h3 className={`text-lg font-bold ${styles.helpHeader}`}>
             What would you like to do?
-          </Header>
-          <Menu.Item onClick={this.handleStartSignal}>
-            <Segment basic className={styles.helpMenuItem}>
-              <Icon name="star outline" size="large" />
-              Improve the signal quality of your sensors
-            </Segment>
-          </Menu.Item>
-          <Menu.Item onClick={this.handleStartLearn}>
-            <Segment basic className={styles.helpMenuItem}>
-              <Icon name="exclamation triangle" size="large" />
-              Learn about how the subjects movements create noise
-            </Segment>
-          </Menu.Item>
-        </Menu>
+          </h3>
+          <button
+            className="text-left p-4 hover:bg-gray-100 rounded transition-colors"
+            onClick={this.handleStartSignal}
+          >
+            <div className={`p-4 ${styles.helpMenuItem}`}>
+              ⭐ Improve the signal quality of your sensors
+            </div>
+          </button>
+          <button
+            className="text-left p-4 hover:bg-gray-100 rounded transition-colors"
+            onClick={this.handleStartLearn}
+          >
+            <div className={`p-4 ${styles.helpMenuItem}`}>
+              ⚠️ Learn about how the subjects movements create noise
+            </div>
+          </button>
+        </div>
       </>
     );
   }
@@ -83,24 +86,30 @@ export default class CleanSidebar extends Component<Props, State> {
   renderHelp(header: string, content: string) {
     return (
       <>
-        <Segment basic className={styles.helpContent}>
-          <Header className={styles.helpHeader} as="h1">
+        <div className={`p-4 ${styles.helpContent}`}>
+          <h3 className={`text-lg font-bold ${styles.helpHeader}`}>
             {header}
-          </Header>
+          </h3>
           {content}
-        </Segment>
-        <Grid columns="equal">
-          <Grid.Column>
-            <Button fluid secondary onClick={this.handleBack}>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1">
+            <button
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium w-full"
+              onClick={this.handleBack}
+            >
               Back
-            </Button>
-          </Grid.Column>
-          <Grid.Column>
-            <Button fluid primary onClick={this.handleNext}>
+            </button>
+          </div>
+          <div className="flex-1">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium w-full"
+              onClick={this.handleNext}
+            >
               Next
-            </Button>
-          </Grid.Column>
-        </Grid>
+            </button>
+          </div>
+        </div>
       </>
     );
   }
@@ -155,18 +164,15 @@ export default class CleanSidebar extends Component<Props, State> {
 
   render() {
     return (
-      <Segment basic padded vertical className={styles.helpSidebar}>
-        <Button
-          basic
-          circular
-          size="large"
-          floated="right"
-          icon="x"
-          className={styles.closeButton}
+      <div className={`p-4 ${styles.helpSidebar}`}>
+        <button
+          className="float-right bg-gray-200 text-gray-800 px-3 py-1 rounded-full hover:bg-gray-300 transition-colors font-medium"
           onClick={this.props.handleClose}
-        />
+        >
+          ✕
+        </button>
         {this.renderHelpContent()}
-      </Segment>
+      </div>
     );
   }
 }

@@ -1,18 +1,4 @@
 import React, { Component } from 'react';
-import {
-  Grid,
-  Button,
-  Icon,
-  Segment,
-  Header,
-  Dropdown,
-  Sidebar,
-  SidebarPusher,
-  Divider,
-  DropdownProps,
-  DropdownItemProps,
-  SemanticICONS,
-} from 'semantic-ui-react';
 import path from 'pathe';
 import { Link } from 'react-router-dom';
 import { isNil, isArray, isString } from 'lodash';
@@ -22,6 +8,12 @@ import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
 import { PyodideActions, ExperimentActions } from '../../actions';
+
+interface DropdownOption {
+  key: string;
+  text: string;
+  value: string;
+}
 
 export interface Props {
   type?: EXPERIMENTS;
@@ -37,15 +29,15 @@ export interface Props {
 }
 
 interface State {
-  subjects: Array<DropdownItemProps>;
-  eegFilePaths: Array<DropdownItemProps>;
+  subjects: Array<DropdownOption>;
+  eegFilePaths: Array<DropdownOption>;
   selectedSubject: string;
   selectedFilePaths: Array<string>;
   isSidebarVisible: boolean;
 }
 
 export default class Clean extends Component<Props, State> {
-  icons: SemanticICONS[];
+  icons: string[];
 
   constructor(props: Props) {
     super(props);
@@ -62,8 +54,8 @@ export default class Clean extends Component<Props, State> {
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
     this.icons =
       props.type === EXPERIMENTS.N170
-        ? ['smile', 'home', 'x', 'book']
-        : ['star', 'star outline', 'x', 'book'];
+        ? ['😊', '🏠', '✕', '📖']
+        : ['⭐', '☆', '✕', '📖'];
   }
 
   async componentDidMount() {
@@ -94,18 +86,17 @@ export default class Clean extends Component<Props, State> {
     });
   }
 
-  handleRecordingChange(event: Record<string, any>, data: DropdownProps) {
-    const { value } = data;
-    if (isArray(value)) {
-      const filePaths = (value as (string | number | boolean)[]).filter(isString) as string[];
-      this.setState({ selectedFilePaths: filePaths });
-    }
+  handleRecordingChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const selectedOptions = Array.from(event.target.selectedOptions).map(
+      (opt) => opt.value
+    );
+    this.setState({ selectedFilePaths: selectedOptions });
   }
 
-  handleSubjectChange(event: Record<string, any>, data: DropdownProps) {
-    const { value } = data;
-    if (!isNil(data) && isString(value)) {
-      this.setState({ selectedSubject: value as string, selectedFilePaths: [] });
+  handleSubjectChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const value = event.target.value;
+    if (isString(value)) {
+      this.setState({ selectedSubject: value, selectedFilePaths: [] });
     }
   }
 
@@ -124,15 +115,15 @@ export default class Clean extends Component<Props, State> {
       this.state.selectedFilePaths.length >= 1
     ) {
       return (
-        <Segment basic textAlign="left">
+        <div className="text-left p-4">
           {this.props.epochsInfo.map((infoObj, index) => (
-            <Segment key={infoObj.name} basic>
-              <Icon name={this.icons[index]} />
+            <div key={infoObj.name as string} className="p-4">
+              <span>{this.icons[index]}</span>
               {infoObj.name}
               <p>{infoObj.value}</p>
-            </Segment>
+            </div>
           ))}
-        </Segment>
+        </div>
       );
     }
     return <div />;
@@ -148,7 +139,9 @@ export default class Clean extends Component<Props, State> {
       if (drop && typeof drop === 'number' && drop >= 2) {
         return (
           <Link to="/analyze">
-            <Button primary>Analyze Dataset</Button>
+            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium">
+              Analyze Dataset
+            </button>
           </Link>
         );
       }
@@ -157,100 +150,100 @@ export default class Clean extends Component<Props, State> {
   }
 
   render() {
+    const filteredFilePaths = this.state.eegFilePaths.filter((filepath) => {
+      const strVal = filepath.value;
+      if (isString(strVal)) {
+        const subjectFromFilepath = strVal.split(path.sep)[
+          strVal.split(path.sep).length - 3
+        ];
+        return this.state.selectedSubject === subjectFromFilepath;
+      }
+      return false;
+    });
+
     return (
-      <Sidebar.Pushable basic as={Segment} className={styles.preTestPushable}>
-        <Sidebar
-          width="wide"
-          direction="right"
-          as={Segment}
-          visible={this.state.isSidebarVisible}
-        >
-          <CleanSidebar handleClose={this.handleSidebarToggle} />
-        </Sidebar>
-        <SidebarPusher>
-          <Grid
-            columns="equal"
-            textAlign="center"
-            verticalAlign="middle"
-            className={styles.preTestContainer}
+      <div className={`relative flex overflow-hidden ${styles.preTestPushable}`}>
+        {this.state.isSidebarVisible && (
+          <div className="absolute right-0 top-0 h-full w-80 z-10 border rounded-lg p-4 bg-white shadow-sm overflow-y-auto">
+            <CleanSidebar handleClose={this.handleSidebarToggle} />
+          </div>
+        )}
+        <div className={`flex-1 ${this.state.isSidebarVisible ? 'mr-80' : ''}`}>
+          <div
+            className={`grid grid-cols-12 gap-4 text-center ${styles.preTestContainer}`}
           >
-            <Grid.Row columns="equal">
-              <Grid.Column>
-                <Header as="h1" floated="left">
-                  Clean
-                </Header>
-              </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-              <Grid.Column width={6}>
-                <Segment
-                  basic
-                  textAlign="left"
-                  className={commonStyles.infoSegment}
+            <div className="col-span-12 flex items-center w-full gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-left">Clean</h1>
+              </div>
+            </div>
+            <div className="col-span-6">
+              <div
+                className={`text-left p-4 ${commonStyles.infoSegment}`}
+              >
+                <h1 className="text-2xl font-bold">Select &amp; Clean</h1>
+                <p>
+                  Ready to clean some data? Select a subject and one or more
+                  EEG recordings, then launch the editor
+                </p>
+                <h4 className="text-base font-semibold mt-4 mb-1">
+                  Select Subject
+                </h4>
+                <select
+                  className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={this.state.selectedSubject}
+                  onChange={this.handleSubjectChange}
                 >
-                  <Header as="h1">Select & Clean</Header>
-                  <p>
-                    Ready to clean some data? Select a subject and one or more
-                    EEG recordings, then launch the editor
-                  </p>
-                  <Header as="h4">Select Subject</Header>
-                  <Dropdown
-                    fluid
-                    selection
-                    closeOnChange
-                    value={this.state.selectedSubject}
-                    options={this.state.subjects}
-                    onChange={this.handleSubjectChange}
-                  />
-                  <Header as="h4">Select Recordings</Header>
-                  <Dropdown
-                    fluid
-                    multiple
-                    selection
-                    closeOnChange
-                    value={this.state.selectedFilePaths}
-                    options={this.state.eegFilePaths.filter((filepath) => {
-                      const val = filepath.value;
-                      if (isString(val)) {
-                        const strVal = val as string;
-                        const subjectFromFilepath = strVal.split(
-                          path.sep
-                        )[strVal.split(path.sep).length - 3];
-                        return (
-                          this.state.selectedSubject === subjectFromFilepath
-                        );
-                      }
-                      return false;
-                    })}
-                    onChange={this.handleRecordingChange}
-                  />
-                  <Divider hidden section />
-                  <Grid textAlign="center" columns="equal">
-                    <Grid.Column>
-                      <Button secondary onClick={this.handleLoadData}>
-                        Load Dataset
-                      </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                      <Button
-                        primary
-                        disabled={isNil(this.props.epochsInfo)}
-                        onClick={() => this.props.PyodideActions.CleanEpochs()}
-                      >
-                        Clean Data
-                      </Button>
-                    </Grid.Column>
-                  </Grid>
-                </Segment>
-              </Grid.Column>
-              <Grid.Column width={4}>
-                {this.renderEpochLabels()}
-                {this.renderAnalyzeButton()}
-              </Grid.Column>
-            </Grid.Row>
-          </Grid>
-        </SidebarPusher>
-      </Sidebar.Pushable>
+                  {this.state.subjects.map((subject) => (
+                    <option key={subject.key} value={subject.value}>
+                      {subject.text}
+                    </option>
+                  ))}
+                </select>
+                <h4 className="text-base font-semibold mt-4 mb-1">
+                  Select Recordings
+                </h4>
+                <select
+                  multiple
+                  className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={this.state.selectedFilePaths}
+                  onChange={this.handleRecordingChange}
+                >
+                  {filteredFilePaths.map((filepath) => (
+                    <option key={filepath.key} value={filepath.value}>
+                      {filepath.text}
+                    </option>
+                  ))}
+                </select>
+                <hr className="my-4 border-gray-200" />
+                <div className="flex flex-wrap gap-4 text-center">
+                  <div className="flex-1">
+                    <button
+                      className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
+                      onClick={this.handleLoadData}
+                    >
+                      Load Dataset
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isNil(this.props.epochsInfo)}
+                      onClick={() => this.props.PyodideActions.CleanEpochs()}
+                    >
+                      Clean Data
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-span-4">
+              {this.renderEpochLabels()}
+              {this.renderAnalyzeButton()}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 }

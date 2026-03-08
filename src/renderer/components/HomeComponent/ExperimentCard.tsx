@@ -1,5 +1,4 @@
 import React, { ReactElement } from 'react';
-import { Segment, Grid, Header, Image } from 'semantic-ui-react';
 import styles from '../styles/common.module.css';
 
 interface ExperimentCardProps {
@@ -16,22 +15,18 @@ export function ExperimentCard({
   description,
 }: ExperimentCardProps): ReactElement {
   return (
-    <Segment>
-      <Grid columns="two" className={styles.experimentCard} onClick={onClick}>
-        <Grid.Row>
-          <Grid.Column width={4} className={styles.experimentCardImage}>
-            <Image src={icon} />
-          </Grid.Column>
-          <Grid.Column width={12} className={styles.descriptionContainer}>
-            <Header as="h1" className={styles.experimentCardHeader}>
-              {title}
-            </Header>
-            <div className={styles.experimentCardDescription}>
-              <p>{description}</p>
-            </div>
-          </Grid.Column>
-        </Grid.Row>
-      </Grid>
-    </Segment>
+    <div className="border rounded-lg p-4 bg-white shadow-sm">
+      <div className={`grid grid-cols-12 gap-4 ${styles.experimentCard}`} onClick={onClick}>
+        <div className={`col-span-4 ${styles.experimentCardImage}`}>
+          <img src={icon} />
+        </div>
+        <div className={`col-span-8 ${styles.descriptionContainer}`}>
+          <h1 className={styles.experimentCardHeader}>{title}</h1>
+          <div className={styles.experimentCardDescription}>
+            <p>{description}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

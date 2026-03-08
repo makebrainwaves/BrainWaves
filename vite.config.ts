@@ -1,5 +1,6 @@
 import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { createRequire } from 'module';
 const _require = createRequire(import.meta.url);
@@ -47,6 +48,7 @@ export default defineConfig({
     //   /pyodide/pyodide.js, /pyodide/pyodide.asm.js, etc.
     publicDir: path.resolve(__dirname, 'src/renderer/utils/pyodide/src'),
     plugins: [
+      tailwindcss(),
       react({
         jsxRuntime: 'classic', // React 16 does not ship react/jsx-runtime
         babel: {

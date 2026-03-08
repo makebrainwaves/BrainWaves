@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
-import { Segment } from 'semantic-ui-react';
 import * as d3 from 'd3';
 import { Observable, Subscription } from 'rxjs';
 import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
@@ -58,9 +57,9 @@ class SignalQualityIndicatorComponent extends Component<Props> {
 
   render() {
     return (
-      <Segment basic size="massive">
+      <div className="border rounded-lg p-4 bg-white shadow-sm text-2xl">
         <SignalQualityIndicatorSVG />
-      </Segment>
+      </div>
     );
   }
 }
