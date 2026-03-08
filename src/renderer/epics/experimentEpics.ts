@@ -3,11 +3,9 @@ import { from, of } from 'rxjs';
 import {
   map,
   mergeMap,
-  pluck,
   filter,
   takeUntil,
   throttleTime,
-  tap,
 } from 'rxjs/operators';
 import { isActionOf } from '../utils/redux';
 import { ExperimentActions, ExperimentActionType } from '../actions';
@@ -165,8 +163,8 @@ const updateSessionEpic: Epic<
 
 const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (action$) =>
   action$.pipe(
-    ofType('@@router/LOCATION_CHANGE'),
-    pluck('payload', 'pathname'),
+    filter(isActionOf(ExperimentActions.RouteChanged)),
+    map((action) => action.payload),
     filter((pathname) => pathname !== '/' && pathname !== '/home'),
     map(ExperimentActions.SaveWorkspace)
   );
@@ -200,10 +198,8 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
   state$
 ) =>
   action$.pipe(
-    ofType('@@router/LOCATION_CHANGE'),
-    tap((pathname) => console.log('navigation', pathname)),
-    pluck('payload', 'location', 'pathname'),
-    tap((pathname) => console.log('navigation', pathname)),
+    filter(isActionOf(ExperimentActions.RouteChanged)),
+    map((action) => action.payload),
     filter((pathname) => pathname === '/' || pathname === '/home'),
     map(ExperimentActions.ExperimentCleanup)
   );

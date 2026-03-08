@@ -38,6 +38,7 @@ export const ExperimentActions = {
   ),
   SetEEGEnabled: createAction<boolean, 'SET_EEG_ENABLED'>('SET_EEG_ENABLED'),
   UpdateSession: createAction('UPDATE_SESSION'),
+  RouteChanged: createAction<string, 'ROUTE_CHANGED'>('ROUTE_CHANGED'),
 } as const;
 
 export type ExperimentActionType = ActionType<

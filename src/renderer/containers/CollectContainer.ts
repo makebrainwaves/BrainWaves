@@ -2,6 +2,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Collect from '../components/CollectComponent';
 import { DeviceActions, ExperimentActions } from '../actions';
+import { withRouter } from '../utils/withRouter';
 
 function mapStateToProps(state) {
   return {
@@ -17,4 +18,4 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Collect);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Collect) as any);

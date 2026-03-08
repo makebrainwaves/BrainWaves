@@ -2,6 +2,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Home from '../components/HomeComponent';
 import { DeviceActions, ExperimentActions, PyodideActions } from '../actions';
+import { withRouter } from '../utils/withRouter';
 
 function mapStateToProps(state) {
   return {
@@ -18,4 +19,4 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Home) as any);
