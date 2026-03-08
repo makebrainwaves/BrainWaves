@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import { isNil, debounce } from 'lodash';
-import { History } from 'history';
+
 import {
   DEVICES,
   DEVICE_AVAILABILITY,
@@ -13,7 +13,7 @@ import { SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
 interface Props {
-  history: History;
+  history: { push: (path: string) => void };
   open: boolean;
   onClose: () => void;
   connectedDevice: Record<string, any>;

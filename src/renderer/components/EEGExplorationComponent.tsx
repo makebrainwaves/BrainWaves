@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Observable } from 'rxjs';
-import { History } from 'history';
+
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
@@ -16,7 +16,7 @@ import { DeviceActions } from '../actions';
 import { SignalQualityData } from '../constants/interfaces';
 
 interface Props {
-  history: History;
+  history: { push: (path: string) => void };
   connectedDevice: Record<string, any>;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;

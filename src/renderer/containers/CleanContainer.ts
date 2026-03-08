@@ -2,8 +2,9 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import CleanComponent from '../components/CleanComponent';
 import { PyodideActions, ExperimentActions } from '../actions';
+import { RootState } from '../reducers';
 
-function mapStateToProps(state) {
+function mapStateToProps(state: RootState) {
   return {
     type: state.experiment.type,
     title: state.experiment.title,
@@ -11,7 +12,7 @@ function mapStateToProps(state) {
     group: state.experiment.group,
     session: state.experiment.session,
     deviceType: state.device.deviceType,
-    ...state.pyodide,
+    epochsInfo: state.pyodide.epochsInfo,
   };
 }
 

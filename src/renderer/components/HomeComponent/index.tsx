@@ -3,7 +3,7 @@ import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { History } from 'history';
+
 
 dayjs.extend(relativeTime);
 import { Observable } from 'rxjs';
@@ -60,7 +60,7 @@ export interface Props {
   deviceAvailability: DEVICE_AVAILABILITY;
   deviceType: DEVICES;
   ExperimentActions: typeof ExperimentActions;
-  history: History;
+  history: { push: (path: string) => void };
   PyodideActions: typeof PyodideActions;
   signalQualityObservable?: Observable<SignalQualityData>;
   topoPlot: {

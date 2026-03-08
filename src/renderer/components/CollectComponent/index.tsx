@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import React, { Component } from 'react';
-import { History } from 'history';
+
 import {
   EXPERIMENTS,
   DEVICES,
@@ -17,7 +17,7 @@ import RunComponent from './RunComponent';
 import { ExperimentActions, DeviceActions } from '../../actions';
 
 export interface Props {
-  history: History;
+  history: { push: (path: string) => void };
   ExperimentActions: typeof ExperimentActions;
   connectedDevice: Record<string, any>;
   deviceType: DEVICES;

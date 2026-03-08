@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { History } from 'history';
+
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import styles from '../styles/common.module.css';
@@ -42,7 +42,7 @@ const DESIGN_STEPS = {
 };
 
 export interface DesignProps {
-  history: History;
+  history: { push: (path: string) => void };
   type: EXPERIMENTS;
   title: string;
   params: ExperimentParameters;

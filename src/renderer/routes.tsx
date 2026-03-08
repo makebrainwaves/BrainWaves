@@ -4,12 +4,15 @@ import { App } from './containers/App';
 import HomeContainerRaw from './containers/HomeContainer';
 import ExperimentDesignContainerRaw from './containers/ExperimentDesignContainer';
 import CollectContainerRaw from './containers/CollectContainer';
-import CleanContainerRaw from './containers/CleanContainer';
-import AnalyzeContainerRaw from './containers/AnalyzeContainer';
+import CleanContainer from './containers/CleanContainer';
+import AnalyzeContainer from './containers/AnalyzeContainer';
 import { SCREENS } from './constants/constants';
 
-// These connected components receive their required props from Redux.
-// Cast to a permissive type so routes.tsx doesn't have to enumerate all mapped props.
+// TypeScript cannot infer the type subtraction performed by withRouter<P> when
+// the argument is a ConnectedComponent (react-redux) rather than a plain
+// ComponentType. This is a known limitation at the class-component + connect +
+// withRouter boundary; the HOC works correctly at runtime. The casts below are
+// the pragmatic bridge until these screens are converted to functional components.
 const HomeContainer = HomeContainerRaw as React.ComponentType<{
   activeStep: string;
 }>;
@@ -17,9 +20,6 @@ const ExperimentDesignContainer =
   ExperimentDesignContainerRaw as unknown as React.ComponentType;
 const CollectContainer =
   CollectContainerRaw as unknown as React.ComponentType;
-const CleanContainer = CleanContainerRaw as unknown as React.ComponentType;
-const AnalyzeContainer =
-  AnalyzeContainerRaw as unknown as React.ComponentType;
 
 export default function AppRoutes() {
   return (
