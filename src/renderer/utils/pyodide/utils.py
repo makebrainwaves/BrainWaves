@@ -132,7 +132,7 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
             The confidence interval of the measurement within
             the range [0, 100].
         n_boot : int
-            Number of bootstrap samples.
+            Number of bootstrap samples (unused; kept for API compatibility).
         title : str
             Title of the figure.
         palette : list
@@ -154,17 +154,27 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     if isinstance(conditions, dict):
         conditions = OrderedDict(conditions)
 
+    # Default colour palette (no seaborn dependency)
     if palette is None:
-        palette = sns.color_palette("hls", len(conditions) + 1)
+        palette = [
+            '#e05c56', '#56e05c', '#5c56e0',
+            '#e0b456', '#56e0b4', '#b456e0',
+        ][:len(conditions) + 1]
 
     X = epochs.get_data()
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots()
 
+    alpha = 1 - ci / 100.0  # two-sided alpha for CI
     for cond, color in zip(conditions.values(), palette):
-        sns.tsplot(X[y.isin(cond), ch_ind], time=times, color=color,
-                   n_boot=n_boot, ci=ci)
+        trials = X[y.isin(cond), ch_ind]  # shape: (n_trials, n_times)
+        mean = np.mean(trials, axis=0)
+        sem = np.std(trials, axis=0) / np.sqrt(max(len(trials), 1))
+        z = 1.96  # ~95 % CI; use scipy.stats.norm.ppf if exact alpha needed
+        ax.plot(times, mean, color=color, lw=2)
+        ax.fill_between(times, mean - z * sem, mean + z * sem,
+                        color=color, alpha=0.2)
 
     if diff_waveform:
         diff = (np.nanmean(X[y == diff_waveform[1], ch_ind], axis=0) -
@@ -176,8 +186,10 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
 
     ax.set_xlabel('Time (s)')
     ax.set_ylabel('Amplitude (uV)')
-    ax.set_xlabel('Time (s)')
-    ax.set_ylabel('Amplitude (uV)')
+
+    # Remove top and right spines (seaborn despine equivalent)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
 
     # Round y axis tick labels to 2 decimal places
     # ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -188,7 +200,6 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     else:
         legend = conditions.keys()
     ax.legend(legend)
-    sns.despine()
     plt.tight_layout()
 
     if title:
