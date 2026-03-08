@@ -1,12 +1,25 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { App } from './containers/App';
-import HomeContainer from './containers/HomeContainer';
-import ExperimentDesignContainer from './containers/ExperimentDesignContainer';
-import CollectContainer from './containers/CollectContainer';
-import CleanContainer from './containers/CleanContainer';
-import AnalyzeContainer from './containers/AnalyzeContainer';
+import HomeContainerRaw from './containers/HomeContainer';
+import ExperimentDesignContainerRaw from './containers/ExperimentDesignContainer';
+import CollectContainerRaw from './containers/CollectContainer';
+import CleanContainerRaw from './containers/CleanContainer';
+import AnalyzeContainerRaw from './containers/AnalyzeContainer';
 import { SCREENS } from './constants/constants';
+
+// These connected components receive their required props from Redux.
+// Cast to a permissive type so routes.tsx doesn't have to enumerate all mapped props.
+const HomeContainer = HomeContainerRaw as React.ComponentType<{
+  activeStep: string;
+}>;
+const ExperimentDesignContainer =
+  ExperimentDesignContainerRaw as unknown as React.ComponentType;
+const CollectContainer =
+  CollectContainerRaw as unknown as React.ComponentType;
+const CleanContainer = CleanContainerRaw as unknown as React.ComponentType;
+const AnalyzeContainer =
+  AnalyzeContainerRaw as unknown as React.ComponentType;
 
 export default function AppRoutes() {
   return (
