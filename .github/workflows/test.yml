@@ -32,6 +32,7 @@ jobs:
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           LICENSE_ID: ${{ secrets.LICENSE_ID }}
         run: |
+          npm test
           npm run package-ci
           npm run lint
           npm run tsc

@@ -22,7 +22,8 @@
     "lint-styles-fix": "npm run lint-styles -- --fix; exit 0",
     "postlint-fix": "prettier --single-quote --write '**/*.{ts,tsx,js,jsx,json,html,css,less,scss,yml}'",
     "postlint-styles-fix": "prettier --single-quote --write '**/*.{css,scss}'",
-    "test": "cross-env jest --passWithNoTests",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test-all": "npm run lint && npm run lint-styles && npm run typecheck && npm run build && npm test",
     "tsc": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
@@ -135,28 +136,13 @@
     "lab.js"
   ],
   "homepage": "https://github.com/makebrainwaves/BrainWaves/",
-  "jest": {
-    "testEnvironment": "node",
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/internals/mocks/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "json"
-    ],
-    "moduleDirectories": [
-      "node_modules"
-    ]
-  },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-proposal-decorators": "^7.10.5",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/history": "^4.7.6",
-    "@types/jest": "^30.0.0",
     "@types/node": "^22.12.0",
     "@types/react": "^18.x",
     "@types/react-dom": "^18.x",
@@ -180,11 +166,9 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "husky": "^8.0.0",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^30.2.0",
+    "jsdom": "^28.1.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
-    "react-test-renderer": "^18.x",
     "redux-logger": "^3.0.6",
     "rimraf": "^6.1.3",
     "sass": "^1.50.0",
@@ -193,7 +177,8 @@
     "tar-fs": "^2.1.4",
     "typescript": "^5.0.0",
     "unbzip2-stream": "1.4.2",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
