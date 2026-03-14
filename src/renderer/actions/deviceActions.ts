@@ -1,6 +1,6 @@
 import { createAction } from '@reduxjs/toolkit';
 import { ActionType } from 'typesafe-actions';
-import { DEVICE_AVAILABILITY, CONNECTION_STATUS } from '../constants/constants';
+import { DEVICES, DEVICE_AVAILABILITY, CONNECTION_STATUS } from '../constants/constants';
 import { Device, DeviceInfo } from '../constants/interfaces';
 
 // -------------------------------------------------------------------------
@@ -26,7 +26,7 @@ export const DeviceActions = {
     'SET_AVAILABLE_DEVICES'
   ),
   DeviceFound: createAction<Device[], 'DEVICE_FOUND'>('DEVICE_FOUND'),
-  SetDeviceType: createAction<string, 'SET_DEVICE_TYPE'>('SET_DEVICE_TYPE'),
+  SetDeviceType: createAction<DEVICES, 'SET_DEVICE_TYPE'>('SET_DEVICE_TYPE'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetRawObservable: createAction<any, 'SET_RAW_OBSERVABLE'>(
     // RxJS Observable from BLE device — no stable generic type available

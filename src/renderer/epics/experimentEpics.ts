@@ -175,7 +175,7 @@ const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
     filter(isActionOf(RouterActions.RouteChanged)),
     map((action) => action.payload as string),
     filter((pathname) => pathname !== '/' && pathname !== '/home'),
-    map(ExperimentActions.SaveWorkspace)
+    map(() => ExperimentActions.SaveWorkspace())
   );
 
 const saveWorkspaceEpic: Epic<
@@ -212,7 +212,7 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
     tap((action) => console.log('navigation', action.payload)),
     map((action) => action.payload as string),
     filter((pathname) => pathname === '/' || pathname === '/home'),
-    map(ExperimentActions.ExperimentCleanup)
+    map(() => ExperimentActions.ExperimentCleanup())
   );
 
 export default combineEpics(
