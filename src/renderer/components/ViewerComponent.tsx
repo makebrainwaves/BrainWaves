@@ -17,7 +17,7 @@ import { PipesEpoch, SignalQualityData } from '../constants/interfaces';
 import Mousetrap from 'mousetrap';
 
 interface Props {
-  signalQualityObservable: Observable<SignalQualityData>;
+  signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   deviceType: DEVICES;
   plottingInterval: number;
 }
@@ -58,17 +58,20 @@ class ViewerComponent extends Component<Props, State> {
         channelColours: this.state.channels.map(() => '#66B0A9'),
       });
       this.setKeyListeners();
-      if (!isNil(this.props.signalQualityObservable)) {
-        this.subscribeToObservable(this.props.signalQualityObservable);
+      const { signalQualityObservable } = this.props;
+      if (signalQualityObservable != null) {
+        this.subscribeToObservable(signalQualityObservable);
       }
     });
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
+    const { signalQualityObservable } = this.props;
     if (
-      this.props.signalQualityObservable !== prevProps.signalQualityObservable
+      signalQualityObservable !== prevProps.signalQualityObservable &&
+      signalQualityObservable != null
     ) {
-      this.subscribeToObservable(this.props.signalQualityObservable);
+      this.subscribeToObservable(signalQualityObservable);
     }
     if (this.props.deviceType !== prevProps.deviceType) {
       this.setState({

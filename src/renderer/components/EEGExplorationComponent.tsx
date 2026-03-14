@@ -56,7 +56,7 @@ export default class Home extends Component<Props, State> {
   }
 
   handleStopConnect() {
-    this.props.DeviceActions.DisconnectFromDevice(this.props.connectedDevice);
+    this.props.DeviceActions.DisconnectFromDevice();
     this.setState({ isConnectModalOpen: false });
     this.props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE);
   }

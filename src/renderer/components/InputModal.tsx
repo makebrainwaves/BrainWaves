@@ -45,7 +45,7 @@ export default class InputModal extends Component<Props, State> {
     this.props.onExit();
   }
 
-  handleEnterSubmit(event: Record<string, unknown>) {
+  handleEnterSubmit(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       this.handleClose();
     }
