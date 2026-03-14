@@ -20,134 +20,80 @@
 
 ## Prerequisites
 
-BrainWaves is an Electron app that can be installed natively on your system. However, because it makes use of the [MNE Python](https://martinos.org/mne/stable/index.html) library to perform EEG analysis, it is necessary to set up an appropriate Python environment to be able to analyze collected experimental results.
+- **Node.js** >= 18
+- **npm** >= 9
+- No Python installation required — EEG analysis runs via [Pyodide](https://pyodide.org) (Python compiled to WebAssembly), which is downloaded automatically on first `npm install`.
 
-### Environment Setup
-
-BrainWaves needs an Anaconda environment called "brainwaves" with the right
-dependencies to run its analysis.
-
-1. Download and install Anaconda for Python 3. We recommend using the
-   [Miniconda installer for Python 3.7 available from this page](https://conda.io/miniconda.html). When installing, select the option to "Add Anaconda to my PATH environment variable".
-
-2. Download the BrainWaves
-   [environment file](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.1/environment.yml)
-   or grab it by cloning this repository
-
-_Note: you may need to install Microsoft Visual C++ Build Tools to run this
-following command on Windows_
-
-3. Open Anaconda prompt (or terminal on Linux and OSX) in the directory where
-   the environment file is located and run `conda env create -f environment.yml`
-
-4. If the environment is created successfully, activate the new conda environment that is created with `conda activate brainwaves`
-
-5. Finally, run the following command to create a new jupyter kernel that uses this environment:
-   `python -m ipykernel install --user --name brainwaves --display-name "brainwaves"`
-
-## Download
-
-- Windows:
-  [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.8.1/BrainWaves.Setup.0.8.1.exe)
-- MacOS: coming soon
-- Linux (only supports Muse):
-  [click here](https://github.com/makebrainwaves/BrainWaves/releases/download/v0.7.5/BrainWaves_0.7.4_amd64.deb)
+> **Note:** `npm install` downloads ~300 MB of Pyodide WASM files on first run. This is expected and only happens once.
 
 ## Installing from Source (for developers)
 
-- Make sure you have node version >= 7, yarn, and have followed the [Environment Setup](https://github.com/makebrainwaves/BrainWaves#environment-setup) instructions
-
-### OS X
-
-- may need to update your `.bash_profile` to include the path for your
-  [compiler](https://github.com/sandeepmistry/node-xpc-connection/issues/2)
-  (nothing terribly scary).
-  1. Find it's location
-  ```bash
-  which gcc
-  ```
-  2. Add this path to your `.bash_profile`
-  ```bash
-  export PATH="/usr/bin:$PATH"
-  ```
-
-### Windows 10
-
-- [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
-
-1. First, clone the repo via git:
+1. Clone the repo:
 
 ```bash
 git clone https://github.com/makebrainwaves/BrainWaves.git
+cd BrainWaves
 ```
 
-2. And then install dependencies
+2. Install dependencies (this also installs Pyodide and patches certain deps):
 
 ```bash
-$ cd BrainWaves
-$ yarn install
+npm install
 ```
 
-3. If using Emotiv, insert your Emotiv account's credentials into the file
-   `keys.js`
+### Development
 
-### Run
-
-Start the app in the `dev` environment. This starts the renderer process in
-[**hot-module-replacement**](https://webpack.js.org/guides/hmr-react/) mode and
-starts a webpack dev server that sends hot updates to the renderer process:
+Start the app with hot-reload using [electron-vite](https://electron-vite.org/):
 
 ```bash
-$ yarn dev
+npm run dev
 ```
 
-Alternatively, you can run the renderer and main processes separately. This way,
-you can restart one process without waiting for the other. Run these two
-commands **simultaneously** in different console tabs:
+### Testing
 
 ```bash
-$ yarn start-renderer-dev
-$ yarn start-main-dev
+npm test           # run all Vitest tests once
+npm run test:watch # run tests in watch mode
+npm run test-all   # lint + typecheck + build + test (full CI check)
+```
+
+### Typecheck & Lint
+
+```bash
+npm run typecheck  # TypeScript type check (no emit)
+npm run lint       # ESLint
+npm run lint-fix   # ESLint + Prettier auto-fix
 ```
 
 ## Packaging
 
-To package apps for the local platform:
+Build only (no installer):
 
 ```bash
-$ yarn package
+npm run build
 ```
 
-To package apps for all platforms:
-
-First, refer to
-[Multi Platform Build](https://www.electron.build/multi-platform-build) for
-dependencies.
-
-Then,
+Package for the current platform:
 
 ```bash
-$ yarn package-all
+npm run package
 ```
 
-To package apps with options:
+Package for specific platforms:
 
 ```bash
-$ yarn package -- --[option]
+npm run package-mac    # macOS .dmg
+npm run package-win    # Windows .exe (x64)
+npm run package-linux  # Linux
+npm run package-all    # all platforms (requires cross-platform build tools)
 ```
 
-To run End-to-End Test
+For cross-platform builds, see [electron-builder multi-platform docs](https://www.electron.build/multi-platform-build).
+
+To debug a production build with DevTools:
 
 ```bash
-$ yarn build
-$ yarn test-e2e
-```
-
-:bulb: You can debug your production build with devtools by simply setting the
-`DEBUG_PROD` env variable:
-
-```bash
-DEBUG_PROD=true yarn package
+DEBUG_PROD=true npm run package
 ```
 
 ## Contributing
