@@ -37,7 +37,7 @@ import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import EEGExplorationComponent from '../EEGExplorationComponent';
-import { SignalQualityData } from '../../constants/interfaces';
+import { Device, SignalQualityData } from '../../constants/interfaces';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import PyodidePlotWidget from '../PyodidePlotWidget';
 
@@ -50,7 +50,7 @@ const HOME_STEPS = {
 
 export interface Props {
   activeStep?: string;
-  availableDevices: Array<any>;
+  availableDevices: Array<Device>;
   connectedDevice: Record<string, unknown>;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
@@ -103,7 +103,9 @@ export default class Home extends Component<Props, State> {
 
   async loadWorkspaceStates(workspaces: string[]) {
     const entries = await Promise.all(
-      workspaces.map(async (dir) => [dir, await readAndParseState(dir)] as const)
+      workspaces.map(
+        async (dir) => [dir, await readAndParseState(dir)] as const
+      )
     );
     this.setState({
       workspaceStates: Object.fromEntries(entries),
@@ -158,7 +160,8 @@ export default class Home extends Component<Props, State> {
       experimentObject: getExperimentFromType(recentWorkspaceState.type)
         .experimentObject,
     };
-    this.props.ExperimentActions.SetState(deserializedWorkspaceState as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.props.ExperimentActions.SetState(deserializedWorkspaceState as any); // experimentObject not typed in serialized state
     this.props.navigate(SCREENS.DESIGN.route);
   }
 
@@ -202,8 +205,10 @@ export default class Home extends Component<Props, State> {
                 </div>
                 {this.state.recentWorkspaces
                   .sort((a, b) => {
-                    const aTime = this.state.workspaceStates[a]?.dateModified || 0;
-                    const bTime = this.state.workspaceStates[b]?.dateModified || 0;
+                    const aTime =
+                      this.state.workspaceStates[a]?.dateModified || 0;
+                    const bTime =
+                      this.state.workspaceStates[b]?.dateModified || 0;
                     return bTime - aTime;
                   })
                   .map((dir) => {
@@ -314,7 +319,10 @@ export default class Home extends Component<Props, State> {
         return (
           <div className="grid grid-cols-2 gap-4 p-4">
             <div>
-              <Button variant="default" onClick={() => this.props.PyodideActions.LoadTopo()}>
+              <Button
+                variant="default"
+                onClick={() => this.props.PyodideActions.LoadTopo()}
+              >
                 Generate Plot
               </Button>
             </div>
@@ -357,7 +365,10 @@ export default class Home extends Component<Props, State> {
 
   render() {
     return (
-      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]" data-tid="container">
+      <div
+        className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]"
+        data-tid="container"
+      >
         {this.renderOverviewOrHome()}
         <InputModal
           open={this.state.isNewExperimentModalOpen}

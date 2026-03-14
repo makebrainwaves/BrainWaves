@@ -7,7 +7,10 @@ import { injectMuseMarker } from '../../utils/eeg/muse';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
-import { ExperimentParameters } from '../../constants/interfaces';
+import {
+  ExperimentParameters,
+  ExperimentObject,
+} from '../../constants/interfaces';
 import { ExperimentActions as globalExperimentActions } from '../../actions';
 
 interface Props {
@@ -16,7 +19,7 @@ interface Props {
   isRunning: boolean;
   params: ExperimentParameters;
   subject: string;
-  experimentObject: any;
+  experimentObject: ExperimentObject;
   group: string;
   session: number;
   deviceType: DEVICES;
@@ -90,7 +93,10 @@ const Run: React.FC<Props> = ({
   );
 
   return (
-    <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]" data-tid="container">
+    <div
+      className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]"
+      data-tid="container"
+    >
       <div className="h-full">
         {!isRunning && (
           <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
@@ -103,9 +109,15 @@ const Run: React.FC<Props> = ({
               >
                 ✏
               </button>
-              <div>Subject ID: <b>{subject}</b></div>
-              <div>Group Name: <b>{group}</b></div>
-              <div>Session Number: <b>{session}</b></div>
+              <div>
+                Subject ID: <b>{subject}</b>
+              </div>
+              <div>
+                Group Name: <b>{group}</b>
+              </div>
+              <div>
+                Session Number: <b>{session}</b>
+              </div>
               <div className="mt-6">
                 <Button
                   variant="default"

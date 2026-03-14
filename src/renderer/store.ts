@@ -27,10 +27,12 @@ export const configuredStore = (initialState?: RootState) => {
       }
       return base;
     },
-    preloadedState: initialState as any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    preloadedState: initialState as any, // configureStore preloadedState typing requires any cast with partial state
   });
 
-  epicMiddleware.run(rootEpic as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  epicMiddleware.run(rootEpic as any); // mixed action types across combined epics require any
   return store;
 };
 

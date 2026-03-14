@@ -15,7 +15,8 @@ const navColumnBase =
 const statusStyles = {
   active: 'text-[#1a1a1a] border-accent',
   visited: 'text-[#1a1a1a] border-accent',
-  initial: 'text-[#666] border-transparent hover:text-[#1a1a1a] hover:border-accent-light',
+  initial:
+    'text-[#666] border-transparent hover:text-[#1a1a1a] hover:border-accent-light',
 };
 
 const bubbleStyles = {

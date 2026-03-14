@@ -140,4 +140,5 @@ export enum FILE_TYPES {
 // In dev: points to src/renderer/. In prod: points to process.resourcesPath.
 
 export const RESOURCE_PATH: string =
-  (window as any).__ELECTRON_RESOURCE_PATH__ || '';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).__ELECTRON_RESOURCE_PATH__ || ''; // Injected by Electron preload additionalArguments — not typed

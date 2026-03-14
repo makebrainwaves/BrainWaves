@@ -16,7 +16,7 @@ interface Props {
 
 // Generic curried enum type guard
 function isEnum<T extends object>(en: T) {
-  return (val: any): val is T[keyof T] => val in Object.values(en);
+  return (val: unknown): val is T[keyof T] => val in Object.values(en);
 }
 
 const OverviewComponent: React.FC<Props> = ({

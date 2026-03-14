@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react';
 import { Card } from '../ui/card';
 
 interface ExperimentCardProps {
-  icon: any;
+  icon: string; // image imported via Vite — resolves to a URL string
   title: string;
   description: string;
   onClick: () => void;

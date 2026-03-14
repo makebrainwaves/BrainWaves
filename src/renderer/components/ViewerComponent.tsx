@@ -106,7 +106,7 @@ class ViewerComponent extends Component<Props, State> {
     Mousetrap.bind('down', () => this.graphView?.send('zoomOut'));
   }
 
-  subscribeToObservable(observable: any) {
+  subscribeToObservable(observable: Observable<SignalQualityData>) {
     this.signalQualitySubscription?.unsubscribe();
     this.signalQualitySubscription = observable.subscribe(
       (chunk) => {
@@ -117,7 +117,8 @@ class ViewerComponent extends Component<Props, State> {
   }
 
   render() {
-    const trueAsString = 'true' as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const trueAsString = 'true' as any; // webview attribute requires string 'true' not boolean
     if (!this.state.viewerUrl) {
       return null;
     }

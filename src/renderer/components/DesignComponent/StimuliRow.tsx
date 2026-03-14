@@ -63,7 +63,9 @@ export const StimuliRow: React.FC<Props> = ({
         >
           <option value="">Response</option>
           {RESPONSE_OPTIONS.map((o) => (
-            <option key={o.key} value={o.value}>{o.text}</option>
+            <option key={o.key} value={o.value}>
+              {o.text}
+            </option>
           ))}
         </select>
       </TableCell>
@@ -75,12 +77,18 @@ export const StimuliRow: React.FC<Props> = ({
               {phase === 'main' ? 'Experimental' : 'Practice'}
             </Badge>
             <DropdownMenu>
-              <DropdownMenuTrigger className="text-gray-400 focus:outline-none">▾</DropdownMenuTrigger>
+              <DropdownMenuTrigger className="text-gray-400 focus:outline-none">
+                ▾
+              </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onChange(num, 'phase', 'main')}>
+                <DropdownMenuItem
+                  onClick={() => onChange(num, 'phase', 'main')}
+                >
                   Experimental
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onChange(num, 'phase', 'practice')}>
+                <DropdownMenuItem
+                  onClick={() => onChange(num, 'phase', 'practice')}
+                >
                   Practice
                 </DropdownMenuItem>
               </DropdownMenuContent>

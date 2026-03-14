@@ -91,10 +91,18 @@ export class HelpSidebar extends Component<Props, State> {
           {content}
         </div>
         <div className="flex gap-2 mt-4">
-          <Button variant="secondary" className="w-full" onClick={this.handleBack}>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={this.handleBack}
+          >
             Back
           </Button>
-          <Button variant="default" className="w-full" onClick={this.handleNext}>
+          <Button
+            variant="default"
+            className="w-full"
+            onClick={this.handleNext}
+          >
             Next
           </Button>
         </div>
@@ -154,7 +162,9 @@ export class HelpSidebar extends Component<Props, State> {
     return (
       <div className="h-full p-4 bg-white border-l border-gray-200">
         <div className="flex justify-end">
-          <button onClick={this.props.handleClose} aria-label="Close">✕</button>
+          <button onClick={this.props.handleClose} aria-label="Close">
+            ✕
+          </button>
         </div>
         {this.renderHelpContent()}
       </div>

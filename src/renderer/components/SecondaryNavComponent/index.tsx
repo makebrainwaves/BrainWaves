@@ -15,7 +15,11 @@ interface SettingsDropdownProps {
   homeRoute: string;
 }
 
-function SettingsDropdown({ enableEEGToggle, saveButton, homeRoute }: SettingsDropdownProps) {
+function SettingsDropdown({
+  enableEEGToggle,
+  saveButton,
+  homeRoute,
+}: SettingsDropdownProps) {
   return (
     <div className="flex items-center gap-2 pr-4">
       {saveButton}
@@ -54,7 +58,7 @@ interface Props {
 }
 
 export default class SecondaryNavComponent extends Component<Props> {
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: Props) {
     return nextProps.activeStep !== this.props.activeStep;
   }
 
@@ -104,9 +108,7 @@ export default class SecondaryNavComponent extends Component<Props> {
         )}
 
         {!this.props.enableEEGToggle && this.props.saveButton && (
-          <div className="ml-auto pr-4">
-            {this.props.saveButton}
-          </div>
+          <div className="ml-auto pr-4">{this.props.saveButton}</div>
         )}
       </div>
     );

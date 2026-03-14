@@ -40,8 +40,11 @@ export default class InputCollect extends Component<Props, State> {
     this.handleExit = this.handleExit.bind(this);
   }
 
-  handleTextEntry(event: React.ChangeEvent<HTMLInputElement>, field: keyof InputData) {
-    const value = event.target.value;
+  handleTextEntry(
+    event: React.ChangeEvent<HTMLInputElement>,
+    field: keyof InputData
+  ) {
+    const { value } = event.target;
     switch (field) {
       case 'session':
         this.setState({ [field]: parseInt(value, 10) });
@@ -84,16 +87,29 @@ export default class InputCollect extends Component<Props, State> {
 
   render() {
     return (
-      <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.handleExit(); }}>
+      <Dialog
+        open={this.props.open}
+        onOpenChange={(open) => {
+          if (!open) this.handleExit();
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{this.props.header}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm mb-1">Enter Subject ID</label>
+              <label htmlFor="subject" className="block text-sm mb-1">
+                Enter Subject ID
+              </label>
               <input
-                className={['w-full border rounded px-3 py-2', this.state.isSubjectError ? 'border-red-500' : 'border-gray-300'].join(' ')}
+                id="subject"
+                className={[
+                  'w-full border rounded px-3 py-2',
+                  this.state.isSubjectError
+                    ? 'border-red-500'
+                    : 'border-gray-300',
+                ].join(' ')}
                 onChange={(e) => this.handleTextEntry(e, 'subject')}
                 onKeyDown={this.handleEnterSubmit}
                 value={this.state.subject}
@@ -101,8 +117,11 @@ export default class InputCollect extends Component<Props, State> {
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Enter group name (optional)</label>
+              <label htmlFor="group" className="block text-sm mb-1">
+                Enter group name (optional)
+              </label>
               <input
+                id="group"
                 className="w-full border border-gray-300 rounded px-3 py-2"
                 onChange={(e) => this.handleTextEntry(e, 'group')}
                 onKeyDown={this.handleEnterSubmit}
@@ -110,9 +129,17 @@ export default class InputCollect extends Component<Props, State> {
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Enter session number</label>
+              <label htmlFor="session" className="block text-sm mb-1">
+                Enter session number
+              </label>
               <input
-                className={['w-full border rounded px-3 py-2', this.state.isSessionError ? 'border-red-500' : 'border-gray-300'].join(' ')}
+                id="session"
+                className={[
+                  'w-full border rounded px-3 py-2',
+                  this.state.isSessionError
+                    ? 'border-red-500'
+                    : 'border-gray-300',
+                ].join(' ')}
                 type="number"
                 onChange={(e) => this.handleTextEntry(e, 'session')}
                 onKeyDown={this.handleEnterSubmit}
@@ -121,7 +148,9 @@ export default class InputCollect extends Component<Props, State> {
             </div>
           </div>
           <div className="flex justify-end mt-4">
-            <Button variant="default" onClick={this.handleClose}>OK</Button>
+            <Button variant="default" onClick={this.handleClose}>
+              OK
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -14,7 +14,8 @@ export interface ExperimentWindowProps {
   params: ExperimentParameters;
   fullScreen?: boolean;
   eventCallback: (value: string, time: number) => void;
-  onFinish: (csv: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
 }
 
 export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({

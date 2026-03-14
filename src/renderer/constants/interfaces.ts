@@ -10,7 +10,7 @@ import { EVENTS, EXPERIMENTS, SIGNAL_QUALITY } from './constants';
 
 // Placeholder type until lab.js has types for experiment descriptions
 export interface ExperimentObject {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface WorkSpaceInfo {
@@ -72,10 +72,10 @@ interface BackgroundText {
 interface ProtocolText {
   title: string;
   protocol: string;
-  condition_first_img: any;
+  condition_first_img: string; // image URL from Vite import
   condition_first_title: string;
   condition_first: string;
-  condition_second_img: any;
+  condition_second_img: string; // image URL from Vite import
   condition_second_title: string;
   condition_second: string;
 }
@@ -83,7 +83,7 @@ interface ProtocolText {
 export interface Experiment {
   // png
   experimentObject: ExperimentObject;
-  icon: any;
+  icon: string; // image URL from Vite import
   params: ExperimentParameters;
   text: {
     background: BackgroundText;
@@ -138,6 +138,6 @@ export interface PipesEpoch {
 // General
 
 export interface ActionType {
-  readonly payload: any;
+  readonly payload: unknown;
   readonly type: string;
 }

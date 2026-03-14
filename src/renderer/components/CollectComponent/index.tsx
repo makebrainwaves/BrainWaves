@@ -9,6 +9,8 @@ import {
 import {
   ExperimentParameters,
   SignalQualityData,
+  Device,
+  ExperimentObject,
 } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
@@ -17,14 +19,14 @@ import { ExperimentActions, DeviceActions } from '../../actions';
 
 export interface Props {
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: Record<string, any>;
+  connectedDevice: Record<string, unknown>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
-  availableDevices: Array<any>;
+  availableDevices: Array<Device>;
   type: EXPERIMENTS;
-  experimentObject: any;
+  experimentObject: ExperimentObject;
   signalQualityObservable: Observable<SignalQualityData>;
   isRunning: boolean;
   params: ExperimentParameters;

@@ -15,17 +15,22 @@ import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
 } from '../../constants/constants';
-import { ExperimentParameters } from '../../constants/interfaces';
+import {
+  ExperimentParameters,
+  Device,
+  SignalQualityData,
+} from '../../constants/interfaces';
+import { Observable } from 'rxjs';
 
 interface Props {
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: Record<string, any>;
-  signalQualityObservable: any | null | undefined;
+  connectedDevice: Record<string, unknown>;
+  signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
-  availableDevices: Array<any>;
+  availableDevices: Array<Device>;
   type: EXPERIMENTS;
   isRunning: boolean;
   params: ExperimentParameters;
@@ -101,10 +106,18 @@ export default class PreTestComponent extends Component<Props, State> {
           plottingInterval={PLOTTING_INTERVAL}
         />
         <ul className="mt-2 space-y-1">
-          <li><span className="text-signal-great">●</span> Strong Signal</li>
-          <li><span className="text-signal-ok">●</span> Mediocre signal</li>
-          <li><span className="text-signal-bad">●</span> Weak Signal</li>
-          <li><span className="text-signal-none">●</span> No Signal</li>
+          <li>
+            <span className="text-signal-great">●</span> Strong Signal
+          </li>
+          <li>
+            <span className="text-signal-ok">●</span> Mediocre signal
+          </li>
+          <li>
+            <span className="text-signal-bad">●</span> Weak Signal
+          </li>
+          <li>
+            <span className="text-signal-none">●</span> No Signal
+          </li>
         </ul>
       </div>
     );

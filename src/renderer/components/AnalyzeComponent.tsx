@@ -55,7 +55,11 @@ interface Props {
 interface State {
   activeStep: string;
   selectedChannel: string;
-  eegFilePaths: Array<{ key: string; text: string; value: { name: string; dir: string } }>;
+  eegFilePaths: Array<{
+    key: string;
+    text: string;
+    value: { name: string; dir: string };
+  }>;
   behaviorFilePaths: Array<{ key: string; text: string; value: string }>;
   selectedFilePaths: Array<string>;
   selectedBehaviorFilePaths: Array<string>;
@@ -66,7 +70,7 @@ interface State {
   isSidebarVisible: boolean;
   displayMode: string;
   dataToPlot: PlotlyData[];
-  layout: Record<string, any>;
+  layout: Record<string, unknown>;
   helpMode: string;
   dependentVariables: Array<{ key: string; text: string; value: string }>;
 }
@@ -100,19 +104,24 @@ export default class Analyze extends Component<Props, State> {
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
-    this.handleBehaviorDatasetChange = this.handleBehaviorDatasetChange.bind(this);
-    this.handleDependentVariableChange = this.handleDependentVariableChange.bind(this);
+    this.handleBehaviorDatasetChange =
+      this.handleBehaviorDatasetChange.bind(this);
+    this.handleDependentVariableChange =
+      this.handleDependentVariableChange.bind(this);
     this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
     this.handleDisplayModeChange = this.handleDisplayModeChange.bind(this);
     this.handleDataPoints = this.handleDataPoints.bind(this);
     this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleDropdownClick = this.handleDropdownClick.bind(this);
-    this.toggleDisplayInfoVisibility = this.toggleDisplayInfoVisibility.bind(this);
+    this.toggleDisplayInfoVisibility =
+      this.toggleDisplayInfoVisibility.bind(this);
   }
 
   async componentDidMount() {
-    const workspaceCleanData = await readWorkspaceCleanedEEGData(this.props.title);
+    const workspaceCleanData = await readWorkspaceCleanedEEGData(
+      this.props.title
+    );
     const behavioralData = await readWorkspaceBehaviorData(this.props.title);
     this.setState({
       eegFilePaths: workspaceCleanData.map((filepath) => ({
@@ -181,7 +190,7 @@ export default class Analyze extends Component<Props, State> {
   }
 
   handleDependentVariableChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const value = e.target.value;
+    const { value } = e.target;
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(this.state.selectedBehaviorFilePaths),
       value,
@@ -204,7 +213,12 @@ export default class Analyze extends Component<Props, State> {
     );
     if (!aggregatedData) return;
     const { dataToPlot, layout } = aggregatedData;
-    this.setState({ removeOutliers: !this.state.removeOutliers, dataToPlot, layout, helpMode: 'outliers' });
+    this.setState({
+      removeOutliers: !this.state.removeOutliers,
+      dataToPlot,
+      layout,
+      helpMode: 'outliers',
+    });
   }
 
   handleDataPoints() {
@@ -217,7 +231,11 @@ export default class Analyze extends Component<Props, State> {
     );
     if (!aggregatedData) return;
     const { dataToPlot, layout } = aggregatedData;
-    this.setState({ showDataPoints: !this.state.showDataPoints, dataToPlot, layout });
+    this.setState({
+      showDataPoints: !this.state.showDataPoints,
+      dataToPlot,
+      layout,
+    });
   }
 
   handleDisplayModeChange(displayMode) {
@@ -244,7 +262,10 @@ export default class Analyze extends Component<Props, State> {
 
   saveSelectedDatasets() {
     const data = readBehaviorData(this.state.selectedBehaviorFilePaths);
-    const aggregatedData = aggregateBehaviorDataToSave(data, this.state.removeOutliers);
+    const aggregatedData = aggregateBehaviorDataToSave(
+      data,
+      this.state.removeOutliers
+    );
     storeAggregatedBehaviorData(aggregatedData, this.props.title);
   }
 
@@ -266,9 +287,10 @@ export default class Analyze extends Component<Props, State> {
         (infoObj) =>
           infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
       ).length;
-      const colors = numberConditions === 4
-        ? ['red', 'yellow', 'green', 'blue']
-        : ['red', 'green', 'teal', 'orange'];
+      const colors =
+        numberConditions === 4
+          ? ['red', 'yellow', 'green', 'blue']
+          : ['red', 'green', 'teal', 'orange'];
       return (
         <div>
           {this.props.epochsInfo
@@ -280,8 +302,7 @@ export default class Analyze extends Component<Props, State> {
             .map((infoObj, index) => (
               <div key={String(infoObj.name)}>
                 <h4>{infoObj.name}</h4>
-                <span style={{ color: colors[index] }}>●</span>
-                {' '}{infoObj.value}
+                <span style={{ color: colors[index] }}>●</span> {infoObj.value}
               </div>
             ))}
         </div>
@@ -365,7 +386,10 @@ export default class Analyze extends Component<Props, State> {
                 onChange={this.handleDatasetChange}
               >
                 {this.state.eegFilePaths.map((eegFilePath) => (
-                  <option key={eegFilePath.key} value={String(eegFilePath.value)}>
+                  <option
+                    key={eegFilePath.key}
+                    value={String(eegFilePath.value)}
+                  >
                     {eegFilePath.text}
                   </option>
                 ))}
@@ -387,8 +411,8 @@ export default class Analyze extends Component<Props, State> {
             <div className="w-1/3 p-2 text-left h-full">
               <h1>ERP</h1>
               <p>
-                The event-related potential represents EEG activity elicited
-                by a particular sensory event
+                The event-related potential represents EEG activity elicited by
+                a particular sensory event
               </p>
               <ClickableHeadDiagramSVG
                 channelinfo={this.props.channelInfo}
@@ -412,11 +436,16 @@ export default class Analyze extends Component<Props, State> {
             <div className="w-1/3 p-2 text-left">
               <h1>Overview</h1>
               <p>
-                Load datasets from different subjects and view behavioral results
+                Load datasets from different subjects and view behavioral
+                results
               </p>
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold">Datasets</span>
-                <Button variant="outline" size="sm" onClick={this.saveSelectedDatasets}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={this.saveSelectedDatasets}
+                >
                   ↓ Export
                 </Button>
               </div>
@@ -428,7 +457,9 @@ export default class Analyze extends Component<Props, State> {
                 onClick={this.handleDropdownClick}
               >
                 {this.state.behaviorFilePaths.map((fp) => (
-                  <option key={fp.key} value={fp.value}>{fp.text}</option>
+                  <option key={fp.key} value={fp.value}>
+                    {fp.text}
+                  </option>
                 ))}
               </select>
               <div className="my-2" />
@@ -439,11 +470,16 @@ export default class Analyze extends Component<Props, State> {
                 onChange={this.handleDependentVariableChange}
               >
                 {this.state.dependentVariables.map((dv) => (
-                  <option key={dv.key} value={dv.value}>{dv.text}</option>
+                  <option key={dv.key} value={dv.value}>
+                    {dv.text}
+                  </option>
                 ))}
               </select>
             </div>
-            <div className="w-2/3 p-2" style={{ overflow: 'auto', maxHeight: 650 }}>
+            <div
+              className="w-2/3 p-2"
+              style={{ overflow: 'auto', maxHeight: 650 }}
+            >
               <div className="text-left">
                 <Plot data={this.state.dataToPlot} layout={this.state.layout} />
                 <div className="my-2" />
@@ -457,22 +493,30 @@ export default class Analyze extends Component<Props, State> {
                 </label>
                 <div className="my-2" />
                 <div className="flex gap-1">
-                  {(['datapoints', 'errorbars', 'whiskers'] as const).map((mode) => (
-                    <Button
-                      key={mode}
-                      variant={this.state.displayMode === mode ? 'secondary' : 'outline'}
-                      size="sm"
-                      onClick={() => this.handleDisplayModeChange(mode)}
-                    >
-                      {mode === 'datapoints' ? 'Data Points' : mode === 'errorbars' ? 'Bar Graph' : 'Box Plot'}
-                    </Button>
-                  ))}
+                  {(['datapoints', 'errorbars', 'whiskers'] as const).map(
+                    (mode) => (
+                      <Button
+                        key={mode}
+                        variant={
+                          this.state.displayMode === mode
+                            ? 'secondary'
+                            : 'outline'
+                        }
+                        size="sm"
+                        onClick={() => this.handleDisplayModeChange(mode)}
+                      >
+                        {mode === 'datapoints'
+                          ? 'Data Points'
+                          : mode === 'errorbars'
+                            ? 'Bar Graph'
+                            : 'Box Plot'}
+                      </Button>
+                    )
+                  )}
                 </div>
                 <HelpButton onClick={this.toggleDisplayInfoVisibility} />
                 {this.state.isSidebarVisible && (
-                  <div className="h-full">
-                    {this.renderHelpContent()}
-                  </div>
+                  <div className="h-full">{this.renderHelpContent()}</div>
                 )}
               </div>
             </div>

@@ -71,7 +71,10 @@ export default function TopNavComponent(props: Props) {
       {/* Home button */}
       <div className="flex justify-center items-center h-full border-b-4 border-accent px-4">
         <div className="flex justify-center ml-5">
-          <NavLink to={SCREENS.HOME.route} className="flex items-center gap-1 text-sm">
+          <NavLink
+            to={SCREENS.HOME.route}
+            className="flex items-center gap-1 text-sm"
+          >
             <img src={BrainwavesIcon} alt="Home" className="h-6 w-auto" />
             Home
           </NavLink>
@@ -80,7 +83,11 @@ export default function TopNavComponent(props: Props) {
 
       {/* Workspace title / recent workspaces dropdown */}
       <div className="flex justify-center items-center h-full text-lg tracking-[0.5px] border-b-4 border-accent px-4">
-        <DropdownMenu onOpenChange={(open) => { if (open) updateWorkspaces(); }}>
+        <DropdownMenu
+          onOpenChange={(open) => {
+            if (open) updateWorkspaces();
+          }}
+        >
           <DropdownMenuTrigger className="focus:outline-none font-medium">
             {props.title ? props.title : 'Untitled'} ▾
           </DropdownMenuTrigger>

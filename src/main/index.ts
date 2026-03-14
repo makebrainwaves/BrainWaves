@@ -99,8 +99,8 @@ ipcMain.handle('fs:readWorkspaces', () => {
     return fs
       .readdirSync(workspaces)
       .filter((workspace) => workspace !== '.DS_Store');
-  } catch (e: any) {
-    if (e.code === 'ENOENT') {
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       mkdirPathSync(workspaces);
     }
     console.log(e);
@@ -116,31 +116,37 @@ ipcMain.handle('fs:readAndParseState', (_event, dir) => {
       })
     );
     return state;
-  } catch (e: any) {
-    if (e.code === 'ENOENT') {
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       console.log('appState does not exist for recent workspace');
     }
     return null;
   }
 });
 
-ipcMain.handle('fs:storeExperimentState', (_event, state: any) => {
-  fs.writeFileSync(
-    path.join(getWorkspaceDir(state.title), 'appState.json'),
-    JSON.stringify(state)
-  );
-});
-
-ipcMain.handle('fs:restoreExperimentState', (_event, state: any) => {
-  if (state.type !== 'NONE') {
-    const timestampedState = { ...state, subject: '', group: '', session: 1 };
-    if (!timestampedState.title) return;
+ipcMain.handle(
+  'fs:storeExperimentState',
+  (_event, state: Record<string, unknown>) => {
     fs.writeFileSync(
-      path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
-      JSON.stringify(timestampedState)
+      path.join(getWorkspaceDir(state.title), 'appState.json'),
+      JSON.stringify(state)
     );
   }
-});
+);
+
+ipcMain.handle(
+  'fs:restoreExperimentState',
+  (_event, state: Record<string, unknown>) => {
+    if (state.type !== 'NONE') {
+      const timestampedState = { ...state, subject: '', group: '', session: 1 };
+      if (!timestampedState.title) return;
+      fs.writeFileSync(
+        path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
+        JSON.stringify(timestampedState)
+      );
+    }
+  }
+);
 
 ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
   try {
@@ -153,8 +159,8 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
         const fullPath = path.join(getWorkspaceDir(title), filepath);
         return { name: path.basename(filepath), path: fullPath };
       });
-  } catch (e: any) {
-    if (e.code === 'ENOENT') console.log(e);
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
   }
 });
@@ -170,7 +176,7 @@ ipcMain.handle('fs:readWorkspaceCleanedEEGData', (_event, title) => {
         const fullPath = path.join(getWorkspaceDir(title), filepath);
         return { name: path.basename(filepath), path: fullPath };
       });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.log(e);
     return [];
   }
@@ -187,8 +193,8 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
         const fullPath = path.join(getWorkspaceDir(title), filepath);
         return { name: path.basename(filepath), path: fullPath };
       });
-  } catch (e: any) {
-    if (e.code === 'ENOENT') console.log(e);
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
   }
 });
@@ -235,26 +241,30 @@ ipcMain.handle('fs:readImages', (_event, dir) => {
   });
 });
 
-ipcMain.handle('fs:getImages', (_event, params: any) => {
-  if (!params.stimuli) return [];
-  const images: string[] = [];
-  for (const stimuli of params.stimuli) {
-    const { dir } = stimuli;
-    if (dir) {
-      const files = fs.readdirSync(dir);
-      for (const file of files) {
-        images.push(path.join(dir, file));
+ipcMain.handle(
+  'fs:getImages',
+  (_event, params: { stimuli?: Array<{ dir?: string }> }) => {
+    if (!params.stimuli) return [];
+    const images: string[] = [];
+    for (const stimuli of params.stimuli) {
+      const { dir } = stimuli;
+      if (dir) {
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+          images.push(path.join(dir, file));
+        }
       }
     }
+    return images;
   }
-  return images;
-});
+);
 
 ipcMain.handle('fs:readBehaviorData', (_event, files: string[]) => {
   try {
     return files.map((file) => {
       const csv = fs.readFileSync(file, 'utf-8');
       const obj = Papa.parse(csv, { header: true });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (obj as any).meta.datafile = file;
       return obj;
     });
@@ -267,6 +277,7 @@ ipcMain.handle('fs:readBehaviorData', (_event, files: string[]) => {
 ipcMain.handle(
   'fs:storeAggregatedBehaviorData',
   async (_event, data, title) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const csv = Papa.unparse(data as any);
     await dialog.showSaveDialog(mainWindow!, {
       title: 'Select a folder to save the data',
@@ -321,20 +332,27 @@ ipcMain.on('eeg:writeHeader', (_event, streamId, channels: string[]) => {
   }
 });
 
-ipcMain.on('eeg:writeData', (_event, streamId, eegData: any) => {
-  const stream = activeStreams.get(streamId);
-  if (!stream) return;
-  stream.write(`${eegData.timestamp},`);
-  const len = eegData.data.length;
-  for (let i = 0; i < len; i++) {
-    stream.write(`${eegData.data[i].toString()},`);
+ipcMain.on(
+  'eeg:writeData',
+  (
+    _event,
+    streamId,
+    eegData: { timestamp: number; data: number[]; marker?: string | number }
+  ) => {
+    const stream = activeStreams.get(streamId);
+    if (!stream) return;
+    stream.write(`${eegData.timestamp},`);
+    const len = eegData.data.length;
+    for (let i = 0; i < len; i++) {
+      stream.write(`${eegData.data[i].toString()},`);
+    }
+    if (eegData.marker !== undefined) {
+      stream.write(`${eegData.marker}\n`);
+    } else {
+      stream.write(`0\n`);
+    }
   }
-  if (eegData.marker !== undefined) {
-    stream.write(`${eegData.marker}\n`);
-  } else {
-    stream.write(`0\n`);
-  }
-});
+);
 
 ipcMain.handle('eeg:closeStream', (_event, streamId) => {
   return new Promise<void>((resolve) => {
@@ -370,7 +388,6 @@ ipcMain.handle('getViewerUrl', () => {
 // ------------------------------------------------------------------
 
 const createWindow = async () => {
-
   mainWindow = new BrowserWindow({
     show: false,
     width: 1280,
