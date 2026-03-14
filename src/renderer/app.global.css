@@ -5,6 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --radius: 0.375rem;
+}
+
 body {
   position: relative;
   height: 100vh;

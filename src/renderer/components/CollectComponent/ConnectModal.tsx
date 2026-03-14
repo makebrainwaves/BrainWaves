@@ -9,7 +9,6 @@ import {
   CONNECTION_STATUS,
   SCREENS,
 } from '../../constants/constants';
-import styles from '../styles/collect.module.css';
 import { SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
@@ -37,9 +36,6 @@ enum INSTRUCTION_PROGRESS {
 }
 
 export default class ConnectModal extends Component<Props, State> {
-  // handleSearch: () => void;
-
-  // handleStartTutorial: () => void;
   static getDeviceName(device: any) {
     if (!isNil(device)) {
       return isNil(device.name) ? device.id : device.name;
@@ -81,9 +77,7 @@ export default class ConnectModal extends Component<Props, State> {
 
   handleSearch() {
     this.setState({ instructionProgress: 0 });
-    this.props.DeviceActions.SetDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+    this.props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
   handleConnect() {
@@ -102,7 +96,7 @@ export default class ConnectModal extends Component<Props, State> {
         {this.props.availableDevices.map((device) => (
           <li
             key={device.id}
-            className={[styles.deviceItem, 'flex items-center gap-2 py-2 cursor-pointer'].join(' ')}
+            className="flex items-center gap-2 py-2 cursor-pointer text-lg"
             onClick={() => this.setState({ selectedDevice: device })}
           >
             <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
@@ -116,14 +110,14 @@ export default class ConnectModal extends Component<Props, State> {
   renderContent() {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
-        <p className={styles.searchingText}>
+        <p className="text-center">
           Searching for available headset(s)...
         </p>
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
-        <p className={styles.searchingText}>
+        <p className="text-center">
           Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}...
         </p>
       );
@@ -131,7 +125,7 @@ export default class ConnectModal extends Component<Props, State> {
     if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
       return (
         <>
-          <h2 className={styles.connectHeader}>Turn your headset on</h2>
+          <h2>Turn your headset on</h2>
           <p>
             Make sure your headset is on and fully charged.
           </p>
@@ -143,7 +137,7 @@ export default class ConnectModal extends Component<Props, State> {
             {(this.state.instructionProgress as number) !== 0 && (
               <Button
                 variant="secondary"
-                className={['w-full', styles.secondaryButton].join(' ')}
+                className="w-full"
                 onClick={() => this.handleinstructionProgress(0)}
               >
                 Back
@@ -151,7 +145,7 @@ export default class ConnectModal extends Component<Props, State> {
             )}
             <Button
               variant="default"
-              className={['w-full', styles.primaryButton].join(' ')}
+              className="w-full"
               onClick={() =>
                 this.handleinstructionProgress(
                   INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
@@ -170,7 +164,7 @@ export default class ConnectModal extends Component<Props, State> {
     ) {
       return (
         <>
-          <h2 className={styles.connectHeader}>Insert the USB Receiver</h2>
+          <h2>Insert the USB Receiver</h2>
           <p>
             Insert the USB receiver into a USB port on your computer. Ensure
             that the LED on the receiver is continously lit or flickering
@@ -180,7 +174,7 @@ export default class ConnectModal extends Component<Props, State> {
           <div className="flex gap-2 mt-4">
             <Button
               variant="secondary"
-              className={['w-full', styles.secondaryButton].join(' ')}
+              className="w-full"
               onClick={() =>
                 this.handleinstructionProgress(INSTRUCTION_PROGRESS.TURN_ON)
               }
@@ -189,7 +183,7 @@ export default class ConnectModal extends Component<Props, State> {
             </Button>
             <Button
               variant="default"
-              className={['w-full', styles.primaryButton].join(' ')}
+              className="w-full"
               onClick={this.handleSearch}
             >
               Next
@@ -201,20 +195,20 @@ export default class ConnectModal extends Component<Props, State> {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE) {
       return (
         <>
-          <h2 className={styles.connectHeader}>Headset(s) found</h2>
+          <h2>Headset(s) found</h2>
           <p>Please select which headset you would like to connect.</p>
           {this.renderAvailableDeviceList()}
           <div className="flex gap-2 mt-4">
             <Button
               variant="secondary"
-              className={['w-full', styles.secondaryButton].join(' ')}
+              className="w-full"
               onClick={() => this.handleinstructionProgress(1)}
             >
               Back
             </Button>
             <Button
               variant="default"
-              className={['w-full', styles.primaryButton].join(' ')}
+              className="w-full"
               disabled={isNil(this.state.selectedDevice)}
               onClick={this.handleConnect}
             >
@@ -238,7 +232,7 @@ export default class ConnectModal extends Component<Props, State> {
   render() {
     return (
       <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.props.onClose(); }}>
-        <DialogContent className={styles.connectModal}>
+        <DialogContent className="max-w-sm text-center">
           {this.renderContent()}
         </DialogContent>
       </Dialog>

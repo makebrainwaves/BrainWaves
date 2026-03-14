@@ -3,8 +3,14 @@
 import React, { useState } from 'react';
 import { isString } from 'lodash';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { TableRow, TableCell } from '../ui/table';
-import styles from '../styles/common.module.css';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 
 interface Props {
   name: string;
@@ -33,20 +39,20 @@ export const StimuliRow: React.FC<Props> = ({
   onChange,
   onDelete,
 }) => {
-  const [phaseMenuOpen, setPhaseMenuOpen] = useState(false);
-
   return (
-    <TableRow className={styles.trialsRow}>
-      <TableCell className={styles.conditionsNameRow}>
-        <div style={{ alignSelf: 'center' }}>{num + 1}.</div>
-        <div>{name}</div>
+    <TableRow>
+      <TableCell className="pl-6 pr-2.5">
+        <div className="grid grid-cols-[50px_1fr] items-center gap-2">
+          <span>{num + 1}.</span>
+          <span>{name}</span>
+        </div>
       </TableCell>
 
-      <TableCell className={styles.experimentRowName}>
+      <TableCell className="pl-6 pr-2.5">
         <div>{condition}</div>
       </TableCell>
 
-      <TableCell className={styles.experimentRowName}>
+      <TableCell className="pl-6 pr-2.5">
         <select
           className="w-full border border-gray-300 rounded px-2 py-1"
           value={response}
@@ -62,32 +68,28 @@ export const StimuliRow: React.FC<Props> = ({
         </select>
       </TableCell>
 
-      <TableCell className={styles.trialsTrialTypeRow}>
-        <div className={styles.trialsTrialTypeSegment}>
-          <div
-            className={styles.trialsTrialTypeRowSelector}
-            style={{ backgroundColor: phase === 'main' ? '#1AC4EF' : '#EB1B66' }}
-          >
-            {phase === 'main' ? 'Experimental' : 'Practice'}
+      <TableCell className="pl-6 pr-2.5">
+        <div className="flex items-center gap-2">
+          <div className="grid grid-cols-[auto_1fr] items-center border-2 border-gray-300 rounded px-3 py-2 gap-2">
+            <Badge variant={phase === 'main' ? 'experimental' : 'practice'}>
+              {phase === 'main' ? 'Experimental' : 'Practice'}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-gray-400 focus:outline-none">▾</DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => onChange(num, 'phase', 'main')}>
+                  Experimental
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChange(num, 'phase', 'practice')}>
+                  Practice
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <button
-              style={{ color: '#C4C4C4' }}
-              onClick={() => setPhaseMenuOpen((o) => !o)}
-            >
-              ▾
-            </button>
-            {phaseMenuOpen && (
-              <div style={{ position: 'absolute', right: 0, zIndex: 10, background: 'white', border: '1px solid #eee', borderRadius: 4 }}>
-                <div className="px-3 py-1 cursor-pointer hover:bg-gray-100" onClick={() => { onChange(num, 'phase', 'main'); setPhaseMenuOpen(false); }}>Experimental</div>
-                <div className="px-3 py-1 cursor-pointer hover:bg-gray-100" onClick={() => { onChange(num, 'phase', 'practice'); setPhaseMenuOpen(false); }}>Practice</div>
-              </div>
-            )}
-          </div>
+          <Button variant="secondary" onClick={() => onDelete(num)}>
+            Delete
+          </Button>
         </div>
-        <Button variant="secondary" onClick={() => onDelete(num)}>
-          Delete
-        </Button>
       </TableCell>
     </TableRow>
   );

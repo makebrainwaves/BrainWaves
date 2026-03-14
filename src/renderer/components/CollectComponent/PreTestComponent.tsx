@@ -6,7 +6,6 @@ import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent'
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import { HelpSidebar, HelpButton } from './HelpSidebar';
-import styles from '../styles/collect.module.css';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
 import {
@@ -102,10 +101,10 @@ export default class PreTestComponent extends Component<Props, State> {
           plottingInterval={PLOTTING_INTERVAL}
         />
         <ul className="mt-2 space-y-1">
-          <li><span className={styles.greatSignal}>●</span> Strong Signal</li>
-          <li><span className={styles.okSignal}>●</span> Mediocre signal</li>
-          <li><span className={styles.badSignal}>●</span> Weak Signal</li>
-          <li><span className={styles.noSignal}>●</span> No Signal</li>
+          <li><span className="text-signal-great">●</span> Strong Signal</li>
+          <li><span className="text-signal-ok">●</span> Mediocre signal</li>
+          <li><span className="text-signal-bad">●</span> Weak Signal</li>
+          <li><span className="text-signal-none">●</span> No Signal</li>
         </ul>
       </div>
     );
@@ -119,13 +118,13 @@ export default class PreTestComponent extends Component<Props, State> {
 
   render() {
     return (
-      <div className={['relative flex', styles.preTestPushable].join(' ')}>
+      <div className="relative flex h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
         {this.state.isSidebarVisible && (
           <div className="absolute right-0 top-0 h-full w-64 z-10">
             <HelpSidebar handleClose={this.handleSidebarToggle} />
           </div>
         )}
-        <div className={['flex-1', styles.preTestContainer].join(' ')}>
+        <div className="flex-1 p-[3%]">
           <div className="flex items-center justify-between mb-4">
             <h1>Collect</h1>
             <div className="flex gap-2">
@@ -145,7 +144,7 @@ export default class PreTestComponent extends Component<Props, State> {
             </div>
           </div>
           <div className="flex gap-4">
-            <div className={['w-1/2', styles.previewEEGWindow].join(' ')}>
+            <div className="w-1/2 h-full items-center mb-5">
               {this.renderSignalQualityOrPreview()}
             </div>
             <div className="w-1/2">

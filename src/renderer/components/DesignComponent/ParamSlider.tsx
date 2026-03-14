@@ -1,6 +1,5 @@
 import React from 'react';
 import Slider from 'rc-slider';
-import styles from '../styles/common.module.css';
 
 interface Props {
   value: number;
@@ -19,7 +18,7 @@ export const ParamSlider: React.FC<Props> = ({
 }) => {
   return (
     <div>
-      <p className={styles.label}>{label}</p>
+      <p className="text-sm font-bold leading-[17px]">{label}</p>
       <div className="py-2">
         {label !== 'Practice trials' || Object.keys(marks).length > 1 ? (
           <Slider

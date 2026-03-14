@@ -3,8 +3,6 @@ import path from 'pathe';
 import { Link } from 'react-router-dom';
 import { isNil, isString } from 'lodash';
 import { Button } from '../ui/button';
-import styles from '../styles/collect.module.css';
-import commonStyles from '../styles/common.module.css';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
@@ -73,11 +71,7 @@ export default class Clean extends Component<Props, State> {
           if (acc.find((subject) => subject.key === curr)) {
             return acc;
           }
-          return acc.concat({
-            key: curr,
-            text: curr,
-            value: curr,
-          });
+          return acc.concat({ key: curr, text: curr, value: curr });
         }, []),
       eegFilePaths: workspaceRawData.map((filepath) => ({
         key: filepath.name,
@@ -154,18 +148,18 @@ export default class Clean extends Component<Props, State> {
     });
 
     return (
-      <div className={['relative flex', styles.preTestPushable].join(' ')}>
+      <div className="relative flex h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
         {this.state.isSidebarVisible && (
           <div className="absolute right-0 top-0 h-full w-64 z-10">
             <CleanSidebar handleClose={this.handleSidebarToggle} />
           </div>
         )}
-        <div className={['flex-1', styles.preTestContainer].join(' ')}>
+        <div className="flex-1 p-[3%]">
           <div className="flex items-center mb-4">
             <h1>Clean</h1>
           </div>
           <div className="flex gap-4">
-            <div className={['w-6/12 text-left', commonStyles.infoSegment].join(' ')}>
+            <div className="w-6/12 text-left">
               <h1>Select & Clean</h1>
               <p>
                 Ready to clean some data? Select a subject and one or more

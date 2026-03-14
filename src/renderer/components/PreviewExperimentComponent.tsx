@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import { ExperimentWindow } from './ExperimentWindow';
-import styles from './styles/collect.module.css';
-
 import { getImages } from '../utils/filesystem/storage';
 import {
   ExperimentObject,
@@ -30,13 +28,13 @@ export default class PreviewExperimentComponent extends Component<Props> {
   render() {
     if (!this.props.isPreviewing) {
       return (
-        <div className={styles.previewPlaceholder}>
-          <div className="p-2"> The experiment will be shown in the window </div>
+        <div className="grid items-center justify-center h-full">
+          <div className="p-2">The experiment will be shown in the window</div>
         </div>
       );
     }
     return (
-      <div className={styles.previewExpComponent}>
+      <div className="h-full w-full flex">
         <ExperimentWindow
           title={this.props.title}
           experimentObject={this.props.experimentObject}

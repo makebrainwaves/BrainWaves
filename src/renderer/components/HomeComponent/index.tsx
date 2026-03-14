@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import { isNil } from 'lodash';
 import { Button } from '../ui/button';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
+import { Card } from '../ui/card';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 import { Observable } from 'rxjs';
-import styles from '../styles/common.module.css';
 import {
   EXPERIMENTS,
   SCREENS,
@@ -19,7 +18,6 @@ import faceHouseIcon from '../../experiments/faces_houses/icon.png';
 import stroopIcon from '../../experiments/stroop/icon.png';
 import multitaskingIcon from '../../experiments/multitasking/icon.png';
 import searchIcon from '../../experiments/search/icon.png';
-// import customIcon from '../../experiments/custom/icon.png';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';
 import {
@@ -44,7 +42,6 @@ import { getExperimentFromType } from '../../utils/labjs/functions';
 import PyodidePlotWidget from '../PyodidePlotWidget';
 
 const HOME_STEPS = {
-  // TODO: maybe change the recent and new labels, but not necessary right now
   RECENT: 'MY EXPERIMENTS',
   NEW: 'EXPERIMENT BANK',
   EXPLORE: 'EXPLORE EEG DATA',
@@ -119,13 +116,9 @@ export default class Home extends Component<Props, State> {
 
   handleNewExperiment(experimentType: EXPERIMENTS) {
     if (experimentType === EXPERIMENTS.CUSTOM) {
-      this.setState({
-        isNewExperimentModalOpen: true,
-      });
-      // If pre-designed experiment, load existing workspace
+      this.setState({ isNewExperimentModalOpen: true });
     } else if (this.state.recentWorkspaces.includes(experimentType)) {
       this.handleLoadRecentWorkspace(experimentType);
-      // Create pre-designed workspace if opened for first time
     } else {
       this.props.ExperimentActions.CreateNewWorkspace({
         title: experimentType,
@@ -137,7 +130,6 @@ export default class Home extends Component<Props, State> {
 
   handleLoadCustomExperiment(title: string) {
     this.setState({ isNewExperimentModalOpen: false });
-    // Don't create new workspace if it already exists or title is too short
     if (this.state.recentWorkspaces.includes(title)) {
       toast.error(`Experiment already exists`);
       return;
@@ -153,7 +145,6 @@ export default class Home extends Component<Props, State> {
     this.props.navigate(SCREENS.DESIGN.route);
   }
 
-  // Load recent workspace by copying saved 'experiment' redux state into current redux state
   async handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = await readAndParseState(dir);
     if (recentWorkspaceState == null) {
@@ -162,9 +153,6 @@ export default class Home extends Component<Props, State> {
       );
       return;
     }
-
-    // This is a stop-gap solution until our lab.js experiment definitions for built-in experiments are fully serializable
-    // Returns an appropriate default experiment object complete with initialization functions
     const deserializedWorkspaceState = {
       ...recentWorkspaceState,
       experimentObject: getExperimentFromType(recentWorkspaceState.type)
@@ -182,9 +170,7 @@ export default class Home extends Component<Props, State> {
   }
 
   handleCloseOverview() {
-    this.setState({
-      isOverviewComponentOpen: false,
-    });
+    this.setState({ isOverviewComponentOpen: false });
   }
 
   async handleDeleteWorkspace(dir) {
@@ -201,89 +187,69 @@ export default class Home extends Component<Props, State> {
     }
   }
 
-  // TODO: Figure out how to make this not overflow when there's tons of workspaces. Lists?
   renderSectionContent() {
     switch (this.state.activeStep) {
       case HOME_STEPS.RECENT:
         return (
-          <div className={styles.myExperimentsPage}>
+          <div className="pt-[50px]">
             {this.state.recentWorkspaces.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow className={styles.experimentHeaderRow}>
-                    <TableHead className={styles.experimentHeaderName}>
-                      Experiment name
-                    </TableHead>
-                    <TableHead>Date Last Opened</TableHead>
-                    <TableHead className={styles.experimentHeaderActionsName}>
-                      Actions
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody className={styles.experimentTable}>
-                  {this.state.recentWorkspaces
-                    .sort((a, b) => {
-                      const aState = this.state.workspaceStates[a];
-                      const bState = this.state.workspaceStates[b];
-
-                      const aTime = aState?.dateModified || 0;
-                      const bTime = bState?.dateModified || 0;
-
-                      return bTime - aTime;
-                    })
-                    .map((dir) => {
-                      const workspaceState = this.state.workspaceStates[dir];
-                      if (!workspaceState) {
-                        return undefined;
-                      }
-                      const { dateModified } = workspaceState;
-                      return (
-                        <TableRow key={dir} className={styles.experimentRow}>
-                          <TableCell className={styles.experimentRowName}>
-                            {dir}
-                          </TableCell>
-                          <TableCell className={styles.experimentRowName}>
-                            {dateModified && dayjs(dateModified).fromNow()}
-                          </TableCell>
-                          <TableCell className={styles.experimentRowName}>
-                            <Button
-                              variant="secondary"
-                              onClick={() => this.handleDeleteWorkspace(dir)}
-                            >
-                              Delete
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              onClick={() => openWorkspaceDir(dir)}
-                            >
-                              Go to Folder
-                            </Button>
-                            <Button
-                              variant="default"
-                              onClick={() =>
-                                this.handleLoadRecentWorkspace(dir)
-                              }
-                            >
-                              Open Experiment
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+              <div className="space-y-2">
+                {/* Header row */}
+                <div className="grid grid-cols-[1fr_1fr_auto] px-6 py-2 text-sm font-semibold text-[#666]">
+                  <span>Experiment name</span>
+                  <span>Date Last Opened</span>
+                  <span className="min-w-[495px]">Actions</span>
+                </div>
+                {this.state.recentWorkspaces
+                  .sort((a, b) => {
+                    const aTime = this.state.workspaceStates[a]?.dateModified || 0;
+                    const bTime = this.state.workspaceStates[b]?.dateModified || 0;
+                    return bTime - aTime;
+                  })
+                  .map((dir) => {
+                    const workspaceState = this.state.workspaceStates[dir];
+                    if (!workspaceState) return undefined;
+                    const { dateModified } = workspaceState;
+                    return (
+                      <Card
+                        key={dir}
+                        className="grid grid-cols-[1fr_1fr_auto] items-center px-6 py-3 rounded"
+                      >
+                        <span className="text-lg">{dir}</span>
+                        <span className="text-lg">
+                          {dateModified && dayjs(dateModified).fromNow()}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="secondary"
+                            onClick={() => this.handleDeleteWorkspace(dir)}
+                          >
+                            Delete
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            onClick={() => openWorkspaceDir(dir)}
+                          >
+                            Go to Folder
+                          </Button>
+                          <Button
+                            variant="default"
+                            onClick={() => this.handleLoadRecentWorkspace(dir)}
+                          >
+                            Open Experiment
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
+              </div>
             ) : (
-              <div className="text-center">
-                <img
-                  src={divingMan}
-                  className={styles.noExperimentsImage}
-                  alt="No experiments"
-                />
-                <h2 className={styles.noExperimentsTitle}>
+              <div className="text-center mt-[50px]">
+                <img src={divingMan} className="mx-auto" alt="No experiments" />
+                <h2 className="font-normal text-2xl leading-[29px] tracking-[-0.2px] text-[#1a1a1a] mt-4">
                   You don&apos;t have any experiments yet
                 </h2>
-                <p className={styles.noExperimentsText}>
+                <p className="text-lg text-[#1a1a1a] tracking-[-0.2px]">
                   Head over to the &quot;Experiment Bank&quot; section to start
                   an experiment.
                 </p>
@@ -382,7 +348,7 @@ export default class Home extends Component<Props, State> {
           activeStep={this.state.activeStep}
           onStepClick={this.handleStepClick}
         />
-        <div className={styles.homeContentContainer}>
+        <div className="pt-5 h-full overflow-y-auto">
           {this.renderSectionContent()}
         </div>
       </>
@@ -391,7 +357,7 @@ export default class Home extends Component<Props, State> {
 
   render() {
     return (
-      <div className={styles.mainContainer} data-tid="container">
+      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]" data-tid="container">
         {this.renderOverviewOrHome()}
         <InputModal
           open={this.state.isNewExperimentModalOpen}

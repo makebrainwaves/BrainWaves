@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Button } from '../ui/button';
-import styles from '../styles/common.module.css';
 
 enum HELP_STEP {
   MENU,
@@ -24,8 +23,6 @@ interface State {
 
 // TODO: Refactor this into a more reusable Sidebar component that can be used in Collect, Clean, and Analyze screen
 export class HelpSidebar extends Component<Props, State> {
-  // props: Props;
-
   constructor(props) {
     super(props);
     this.state = {
@@ -69,11 +66,17 @@ export class HelpSidebar extends Component<Props, State> {
   renderMenu() {
     return (
       <div className="flex flex-col">
-        <h1 className={styles.helpHeader}>What would you like to do?</h1>
-        <div className={styles.helpMenuItem} onClick={this.handleStartSignal}>
+        <h1 className="mb-4">What would you like to do?</h1>
+        <div
+          className="text-lg p-1 cursor-pointer hover:bg-gray-100"
+          onClick={this.handleStartSignal}
+        >
           ★ Improve the signal quality of your sensors
         </div>
-        <div className={styles.helpMenuItem} onClick={this.handleStartLearn}>
+        <div
+          className="text-lg p-1 cursor-pointer hover:bg-gray-100"
+          onClick={this.handleStartLearn}
+        >
           ⚠ Learn about how the subjects movements create noise
         </div>
       </div>
@@ -83,8 +86,8 @@ export class HelpSidebar extends Component<Props, State> {
   renderHelp(header: string, content: string) {
     return (
       <>
-        <div className={styles.helpContent}>
-          <h1 className={styles.helpHeader}>{header}</h1>
+        <div className="text-lg h-[80%]">
+          <h1 className="mb-4">{header}</h1>
           {content}
         </div>
         <div className="flex gap-2 mt-4">
@@ -149,8 +152,8 @@ export class HelpSidebar extends Component<Props, State> {
 
   render() {
     return (
-      <div className={styles.helpSidebar}>
-        <div className={styles.closeButton}>
+      <div className="h-full p-4 bg-white border-l border-gray-200">
+        <div className="flex justify-end">
           <button onClick={this.props.handleClose} aria-label="Close">✕</button>
         </div>
         {this.renderHelpContent()}
@@ -161,6 +164,12 @@ export class HelpSidebar extends Component<Props, State> {
 
 export const HelpButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   return (
-    <button className={styles.helpButton} onClick={onClick} aria-label="Help">?</button>
+    <button
+      className="h-11 w-11 rounded-full bg-brand text-white flex items-center justify-center font-bold text-lg"
+      onClick={onClick}
+      aria-label="Help"
+    >
+      ?
+    </button>
   );
 };

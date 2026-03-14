@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import styles from '../styles/common.module.css';
+import { Card } from '../ui/card';
 
 interface ExperimentCardProps {
   icon: any;
@@ -15,20 +15,23 @@ export function ExperimentCard({
   description,
 }: ExperimentCardProps): ReactElement {
   return (
-    <div className="border border-gray-200 rounded-lg p-4 shadow-sm">
-      <div className={styles.experimentCard} onClick={onClick}>
-        <div className="flex">
-          <div className={[styles.experimentCardImage, 'w-1/4'].join(' ')}>
-            <img src={icon} alt={title} />
-          </div>
-          <div className={[styles.descriptionContainer, 'w-3/4'].join(' ')}>
-            <h1 className={styles.experimentCardHeader}>{title}</h1>
-            <div className={styles.experimentCardDescription}>
-              <p>{description}</p>
-            </div>
-          </div>
+    <Card
+      className="border-4 border-transparent hover:border-brand cursor-pointer transition-colors"
+      onClick={onClick}
+    >
+      <div className="flex p-4 gap-4">
+        <div className="w-1/4 flex items-center">
+          <img src={icon} alt={title} />
+        </div>
+        <div className="w-3/4 py-6">
+          <h1 className="text-[24px] tracking-[0.86px] leading-[29px] text-[#1a1a1a] font-normal mb-2">
+            {title}
+          </h1>
+          <p className="text-[16px] tracking-[0.57px] leading-[24px] text-[#4a4a4a]">
+            {description}
+          </p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
