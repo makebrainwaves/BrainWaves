@@ -94,12 +94,16 @@ export default class ConnectModal extends Component<Props, State> {
 
   renderAvailableDeviceList() {
     return (
-      <ul className="divide-y divide-gray-200">
+      <ul role="listbox" className="divide-y divide-gray-200">
         {this.props.availableDevices.map((device) => (
           <li
             key={device.id}
+            role="option"
+            aria-selected={this.state.selectedDevice === device}
+            tabIndex={0}
             className="flex items-center gap-2 py-2 cursor-pointer text-lg"
             onClick={() => this.setState({ selectedDevice: device })}
+            onKeyDown={(e) => e.key === 'Enter' && this.setState({ selectedDevice: device })}
           >
             <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
             <span>{ConnectModal.getDeviceName(device)}</span>

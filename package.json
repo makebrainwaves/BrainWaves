@@ -227,7 +227,8 @@
   },
   "overrides": {
     "react": "^18.x",
-    "react-dom": "^18.x"
+    "react-dom": "^18.x",
+    "yauzl": "^3.2.1"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0",
