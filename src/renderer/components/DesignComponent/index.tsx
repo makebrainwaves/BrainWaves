@@ -68,7 +68,8 @@ export default class Design extends Component<DesignProps, State> {
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
-    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
+    this.handleLoadCustomExperiment =
+      this.handleLoadCustomExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
@@ -125,26 +126,39 @@ export default class Design extends Component<DesignProps, State> {
 
   static renderConditionIcon(condition) {
     switch (condition) {
-      case 'conditionCongruent': return conditionCongruent;
-      case 'conditionIncongruent': return conditionIncongruent;
-      case 'conditionOrangeT': return conditionOrangeT;
-      case 'conditionNoOrangeT': return conditionNoOrangeT;
-      case 'conditionFace': return conditionFace;
-      case 'conditionHouse': return conditionHouse;
-      case 'multiConditionShape': return multiConditionShape;
+      case 'conditionCongruent':
+        return conditionCongruent;
+      case 'conditionIncongruent':
+        return conditionIncongruent;
+      case 'conditionOrangeT':
+        return conditionOrangeT;
+      case 'conditionNoOrangeT':
+        return conditionNoOrangeT;
+      case 'conditionFace':
+        return conditionFace;
+      case 'conditionHouse':
+        return conditionHouse;
+      case 'multiConditionShape':
+        return multiConditionShape;
       case 'multiConditionDots':
-      default: return multiConditionDots;
+      default:
+        return multiConditionDots;
     }
   }
 
   static renderOverviewIcon(type: EXPERIMENTS) {
     switch (type) {
-      case EXPERIMENTS.N170: return facesHousesOverview;
-      case EXPERIMENTS.STROOP: return stroopOverview;
-      case EXPERIMENTS.MULTI: return multitaskingOverview;
-      case EXPERIMENTS.SEARCH: return searchOverview;
+      case EXPERIMENTS.N170:
+        return facesHousesOverview;
+      case EXPERIMENTS.STROOP:
+        return stroopOverview;
+      case EXPERIMENTS.MULTI:
+        return multitaskingOverview;
+      case EXPERIMENTS.SEARCH:
+        return searchOverview;
       case EXPERIMENTS.CUSTOM:
-      default: return customOverview;
+      default:
+        return customOverview;
     }
   }
 
@@ -159,7 +173,10 @@ export default class Design extends Component<DesignProps, State> {
         return (
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-5/12 p-2">
-              <img src={Design.renderOverviewIcon(this.props.type)} alt={overview.title} />
+              <img
+                src={Design.renderOverviewIcon(this.props.type)}
+                alt={overview.title}
+              />
             </div>
             <div className="w-7/12 p-2">
               <h1>{overview.title}</h1>
@@ -172,15 +189,22 @@ export default class Design extends Component<DesignProps, State> {
         return (
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-1/4 p-2">
-              <img src={Design.renderOverviewIcon(this.props.type)} alt="overview" />
+              <img
+                src={Design.renderOverviewIcon(this.props.type)}
+                alt="overview"
+              />
             </div>
             <div className="w-5/12 p-2">
               <p>{background?.first_column_statement}</p>
-              <p style={{ fontWeight: 'bold' }}>{background?.first_column_question}</p>
+              <p style={{ fontWeight: 'bold' }}>
+                {background?.first_column_question}
+              </p>
             </div>
             <div className="w-5/12 p-2">
               <p>{background?.second_column_statement}</p>
-              <p style={{ fontWeight: 'bold' }}>{background?.second_column_question}</p>
+              <p style={{ fontWeight: 'bold' }}>
+                {background?.second_column_question}
+              </p>
             </div>
             <div className="p-2">
               <div className="grid grid-cols-1 gap-2.5">
@@ -188,7 +212,9 @@ export default class Design extends Component<DesignProps, State> {
                   <Button
                     key={link.address}
                     variant="secondary"
-                    onClick={() => { window.open(link.address, '_blank'); }}
+                    onClick={() => {
+                      window.open(link.address, '_blank');
+                    }}
                   >
                     {link.name}
                   </Button>
@@ -209,7 +235,9 @@ export default class Design extends Component<DesignProps, State> {
               <div className="flex gap-2 items-center">
                 <img
                   className="w-1/3"
-                  src={Design.renderConditionIcon(protocol?.condition_first_img)}
+                  src={Design.renderConditionIcon(
+                    protocol?.condition_first_img
+                  )}
                   alt={protocol?.condition_first_title}
                 />
                 <div className="w-2/3">
@@ -220,7 +248,9 @@ export default class Design extends Component<DesignProps, State> {
               <div className="flex gap-2 items-center">
                 <img
                   className="w-1/3"
-                  src={Design.renderConditionIcon(protocol?.condition_second_img)}
+                  src={Design.renderConditionIcon(
+                    protocol?.condition_second_img
+                  )}
                   alt={protocol?.condition_second_title}
                 />
                 <div className="w-2/3">

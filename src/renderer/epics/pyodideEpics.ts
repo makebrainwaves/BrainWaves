@@ -62,7 +62,9 @@ const pyodideErrorEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
     pluck('payload'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<Worker, Observable<any>>((worker) => {
+      // Worker error event — ErrorEvent shape varies by runtime
       return fromEvent(worker, 'error');
     }),
     tap((e) =>
@@ -84,7 +86,9 @@ const pyodideMessageEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
     pluck('payload'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<Worker, Observable<any>>((worker) => {
+      // Worker message event — MessageEvent data shape is dynamic
       return fromEvent(worker, 'message');
     }),
     tap((e) => {
@@ -181,8 +185,12 @@ const getEpochsInfoEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.GetEpochsInfo)),
     pluck('payload'),
-    mergeMap((varName) =>
-      requestEpochsInfo(state$.value.pyodide.worker!, varName) as unknown as Promise<any[]>
+    mergeMap(
+      (varName) =>
+        requestEpochsInfo(
+          state$.value.pyodide.worker!,
+          varName
+        ) as unknown as Promise<Record<string, string | number>[]>
     ),
     map((epochInfoArray) =>
       epochInfoArray.map((infoObj) => ({
@@ -200,7 +208,12 @@ const getChannelInfoEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.GetChannelInfo)),
-    mergeMap(() => requestChannelInfo(state$.value.pyodide.worker!) as unknown as Promise<string>),
+    mergeMap(
+      () =>
+        requestChannelInfo(
+          state$.value.pyodide.worker!
+        ) as unknown as Promise<string>
+    ),
     map((channelInfoString) =>
       PyodideActions.SetChannelInfo(parseSingleQuoteJSON(channelInfoString))
     )

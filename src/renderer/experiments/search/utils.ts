@@ -53,7 +53,7 @@ function constructTrials(
   phase: 'practice' | 'main',
   arrLength: number
 ) {
-  let parameters: any = [];
+  let parameters: ReturnType<typeof trialConstructor>[] = [];
   for (let i = 1; i <= nbTrials; i++) {
     parameters = parameters.concat([
       trialConstructor(i, 5, 'yes', phase, arrLength),
@@ -70,12 +70,14 @@ function constructTrials(
   // assign options values to parameters of this task
 }
 
-export function initSearchTrials(this: lab.flow.Loop<Record<string, any>>) {
+export function initSearchTrials(this: lab.flow.Loop<Record<string, unknown>>) {
   this.options.templateParameters = constructTrials(10, 'main', 25);
   this.options.shuffle = true; // already shuffled before
 }
 
-export function initPracticeTrials(this: lab.flow.Loop<Record<string, any>>) {
+export function initPracticeTrials(
+  this: lab.flow.Loop<Record<string, unknown>>
+) {
   this.options.templateParameters = constructTrials(1, 'practice', 25);
   this.options.shuffle = true; // already shuffled before
 }

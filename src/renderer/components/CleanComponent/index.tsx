@@ -87,7 +87,7 @@ export default class Clean extends Component<Props, State> {
   }
 
   handleSubjectChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const value = e.target.value;
+    const { value } = e.target;
     if (!isNil(value) && isString(value)) {
       this.setState({ selectedSubject: value, selectedFilePaths: [] });
     }
@@ -111,8 +111,7 @@ export default class Clean extends Component<Props, State> {
         <div className="text-left">
           {this.props.epochsInfo.map((infoObj, index) => (
             <div key={String(infoObj.name)} className="mb-2">
-              <span>{this.icons[index]}</span>
-              {' '}{infoObj.name}
+              <span>{this.icons[index]}</span> {infoObj.name}
               <p>{infoObj.value}</p>
             </div>
           ))}
@@ -143,7 +142,9 @@ export default class Clean extends Component<Props, State> {
   render() {
     const filteredFilePaths = this.state.eegFilePaths.filter((filepath) => {
       const strVal = filepath.value;
-      const subjectFromFilepath = strVal.split(path.sep)[strVal.split(path.sep).length - 3];
+      const subjectFromFilepath = strVal.split(path.sep)[
+        strVal.split(path.sep).length - 3
+      ];
       return this.state.selectedSubject === subjectFromFilepath;
     });
 
@@ -162,8 +163,8 @@ export default class Clean extends Component<Props, State> {
             <div className="w-6/12 text-left">
               <h1>Select & Clean</h1>
               <p>
-                Ready to clean some data? Select a subject and one or more
-                EEG recordings, then launch the editor
+                Ready to clean some data? Select a subject and one or more EEG
+                recordings, then launch the editor
               </p>
               <h4>Select Subject</h4>
               <select
@@ -172,7 +173,9 @@ export default class Clean extends Component<Props, State> {
                 onChange={this.handleSubjectChange}
               >
                 {this.state.subjects.map((s) => (
-                  <option key={s.key} value={s.value}>{s.text}</option>
+                  <option key={s.key} value={s.value}>
+                    {s.text}
+                  </option>
                 ))}
               </select>
               <h4>Select Recordings</h4>
@@ -183,11 +186,17 @@ export default class Clean extends Component<Props, State> {
                 onChange={this.handleRecordingChange}
               >
                 {filteredFilePaths.map((fp) => (
-                  <option key={fp.key} value={fp.value}>{fp.text}</option>
+                  <option key={fp.key} value={fp.value}>
+                    {fp.text}
+                  </option>
                 ))}
               </select>
               <div className="flex gap-2 mt-4">
-                <Button variant="secondary" className="w-full" onClick={this.handleLoadData}>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={this.handleLoadData}
+                >
                   Load Dataset
                 </Button>
                 <Button

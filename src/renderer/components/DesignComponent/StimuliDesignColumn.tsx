@@ -77,7 +77,11 @@ export default class StimuliDesignColumn extends Component<Props, State> {
               className="border border-gray-300 rounded px-2 py-1 w-full"
               value={this.props.title}
               onChange={(event) =>
-                this.props.onChange('title', event.target.value, `stimulus${this.props.num}`)
+                this.props.onChange(
+                  'title',
+                  event.target.value,
+                  `stimulus${this.props.num}`
+                )
               }
               placeholder="Enter condition name"
             />
@@ -91,13 +95,19 @@ export default class StimuliDesignColumn extends Component<Props, State> {
             onChange={(event) => {
               const val = event.target.value;
               if (val && isString(val)) {
-                this.props.onChange('response', val, `stimulus${this.props.num}`);
+                this.props.onChange(
+                  'response',
+                  val,
+                  `stimulus${this.props.num}`
+                );
               }
             }}
           >
             <option value="">Select</option>
             {RESPONSE_OPTIONS.map((o) => (
-              <option key={o.key} value={o.value}>{o.text}</option>
+              <option key={o.key} value={o.value}>
+                {o.text}
+              </option>
             ))}
           </select>
         </TableCell>
@@ -107,10 +117,15 @@ export default class StimuliDesignColumn extends Component<Props, State> {
             <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
               <div>
                 Folder{' '}
-                {this.props.dir && this.props.dir.split(path.sep).slice(-1).join(' / ')}
+                {this.props.dir &&
+                  this.props.dir.split(path.sep).slice(-1).join(' / ')}
               </div>
-              <div>( {this.state.numberImages || this.props.numberImages} images )</div>
-              <button onClick={this.handleRemoveFolder} aria-label="Remove">✕</button>
+              <div>
+                ( {this.state.numberImages || this.props.numberImages} images )
+              </div>
+              <button onClick={this.handleRemoveFolder} aria-label="Remove">
+                ✕
+              </button>
             </div>
           ) : (
             <Button variant="secondary" onClick={this.handleSelectFolder}>

@@ -32,7 +32,8 @@ const verbose = import.meta.env.VITE_LOG_LEVEL || 1;
 const options = { verbose };
 
 // This global client is used in every Cortex API call
-const client: any = new Cortex(options);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const client: any = new Cortex(options); // Cortex SDK has no TypeScript types
 
 // This global session is how I'm passing data between connectToEmotiv and createRawEmotivObservable
 // I'm not a fan of doing this but I don't want to refactor the Redux store based on this API change that

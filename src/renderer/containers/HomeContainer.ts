@@ -22,7 +22,7 @@ function mapDispatchToProps(dispatch) {
 
 const ConnectedHome = connect(mapStateToProps, mapDispatchToProps)(Home);
 
-function HomeContainer(props: any) {
+function HomeContainer(props: Record<string, unknown>) {
   const navigate = useNavigate();
   return React.createElement(ConnectedHome, { ...props, navigate });
 }

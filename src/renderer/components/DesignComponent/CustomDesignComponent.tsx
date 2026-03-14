@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
 import { Button } from '../ui/button';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '../ui/table';
 import { isString } from 'lodash';
 
 import { SCREENS } from '../../constants/constants';
@@ -66,7 +73,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
   }
 
   handleProgressBar(e: React.ChangeEvent<HTMLInputElement>) {
-    const checked = e.target.checked;
+    const { checked } = e.target;
     this.setState((prevState) => ({
       params: { ...prevState.params, showProgessBar: checked },
     }));
@@ -115,36 +122,60 @@ export default class CustomDesign extends Component<DesignProps, State> {
         return (
           <div className="flex gap-4 p-4 h-[90%]">
             <div className="flex-1 flex flex-col items-center">
-              <img src={researchQuestionImage} className="h-[140px] w-auto" alt="Research Question" />
-              <label className="block text-sm font-medium mb-1">{FIELDS.QUESTION}</label>
+              <img
+                src={researchQuestionImage}
+                className="h-[140px] w-auto"
+                alt="Research Question"
+              />
+              <label className="block text-sm font-medium mb-1">
+                {FIELDS.QUESTION}
+              </label>
               <textarea
                 style={{ minHeight: 100, maxHeight: 400 }}
                 className="w-full border border-gray-300 rounded p-2"
                 value={this.state.params.description?.question}
                 placeholder="Explain your research question here."
-                onChange={(event) => this.handleSetText(event.target.value, 'question')}
+                onChange={(event) =>
+                  this.handleSetText(event.target.value, 'question')
+                }
               />
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <img src={hypothesisImage} className="h-[140px] w-auto" alt="Hypothesis" />
-              <label className="block text-sm font-medium mb-1">{FIELDS.HYPOTHESIS}</label>
+              <img
+                src={hypothesisImage}
+                className="h-[140px] w-auto"
+                alt="Hypothesis"
+              />
+              <label className="block text-sm font-medium mb-1">
+                {FIELDS.HYPOTHESIS}
+              </label>
               <textarea
                 style={{ minHeight: 100, maxHeight: 400 }}
                 className="w-full border border-gray-300 rounded p-2"
                 value={this.state.params.description?.hypothesis}
                 placeholder="Describe your hypothesis here."
-                onChange={(event) => this.handleSetText(event.target.value, 'hypothesis')}
+                onChange={(event) =>
+                  this.handleSetText(event.target.value, 'hypothesis')
+                }
               />
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <img src={methodsImage} className="h-[140px] w-auto" alt="Methods" />
-              <label className="block text-sm font-medium mb-1">{FIELDS.METHODS}</label>
+              <img
+                src={methodsImage}
+                className="h-[140px] w-auto"
+                alt="Methods"
+              />
+              <label className="block text-sm font-medium mb-1">
+                {FIELDS.METHODS}
+              </label>
               <textarea
                 style={{ minHeight: 100, maxHeight: 400 }}
                 className="w-full border border-gray-300 rounded p-2"
                 value={this.state.params.description?.methods}
                 placeholder="Explain how you will design your experiment to answer the question here."
-                onChange={(event) => this.handleSetText(event.target.value, 'methods')}
+                onChange={(event) =>
+                  this.handleSetText(event.target.value, 'methods')
+                }
               />
             </div>
           </div>
@@ -174,11 +205,15 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell colSpan={3}>Stimulus customization is currently unavailable</TableCell>
+                  <TableCell colSpan={3}>
+                    Stimulus customization is currently unavailable
+                  </TableCell>
                 </TableRow>
                 {stimi.map(({ name, number }) => (
                   <TableRow key={name}>
-                    <TableCell colSpan={3}>{`Stimulus name: ${name}, number: ${number}`}</TableCell>
+                    <TableCell
+                      colSpan={3}
+                    >{`Stimulus name: ${name}, number: ${number}`}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -196,14 +231,20 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </div>
               <div className="grid grid-cols-3 gap-2.5 self-end justify-self-end">
                 <div>
-                  <label className="block text-sm mb-1">Order</label>
+                  <label htmlFor="trial-order" className="block text-sm mb-1">
+                    Order
+                  </label>
                   <select
+                    id="trial-order"
                     className="border border-gray-300 rounded px-2 py-1"
                     value={this.state.params.randomize}
                     onChange={(event) => {
                       const val = event.target.value;
                       if (val === 'sequential' || val === 'random') {
-                        this.setState({ params: { ...this.state.params, randomize: val }, saved: false });
+                        this.setState({
+                          params: { ...this.state.params, randomize: val },
+                          saved: false,
+                        });
                       }
                     }}
                   >
@@ -212,21 +253,46 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm mb-1">Total experimental trials</label>
+                  <label htmlFor="nb-trials" className="block text-sm mb-1">
+                    Total experimental trials
+                  </label>
                   <input
+                    id="nb-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
                     value={this.state.params.nbTrials}
-                    onChange={(event) => this.setState({ params: { ...this.state.params, nbTrials: parseInt(event.target.value, 10) }, saved: false })}
+                    onChange={(event) =>
+                      this.setState({
+                        params: {
+                          ...this.state.params,
+                          nbTrials: parseInt(event.target.value, 10),
+                        },
+                        saved: false,
+                      })
+                    }
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mb-1">Total practice trials</label>
+                  <label
+                    htmlFor="nb-practice-trials"
+                    className="block text-sm mb-1"
+                  >
+                    Total practice trials
+                  </label>
                   <input
+                    id="nb-practice-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
                     value={this.state.params.nbPracticeTrials}
-                    onChange={(event) => this.setState({ params: { ...this.state.params, nbPracticeTrials: parseInt(event.target.value, 10) }, saved: false })}
+                    onChange={(event) =>
+                      this.setState({
+                        params: {
+                          ...this.state.params,
+                          nbPracticeTrials: parseInt(event.target.value, 10),
+                        },
+                        saved: false,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -242,7 +308,9 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </TableHeader>
               <TableBody className="overflow-y-scroll max-h-[50vh] block">
                 <TableRow>
-                  <TableCell colSpan={4}>Stimulus customization is currently unavailable</TableCell>
+                  <TableCell colSpan={4}>
+                    Stimulus customization is currently unavailable
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -265,9 +333,23 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 <ParamSlider
                   label="ITI Duration (seconds)"
                   value={this.state.params.iti}
-                  marks={{ 1: '0.25', 2: '0.5', 3: '0.75', 4: '1', 5: '1.25', 6: '1.5', 7: '1.75', 8: '2' }}
+                  marks={{
+                    1: '0.25',
+                    2: '0.5',
+                    3: '0.75',
+                    4: '1',
+                    5: '1.25',
+                    6: '1.5',
+                    7: '1.75',
+                    8: '2',
+                  }}
                   msConversion="250"
-                  onChange={(value) => this.setState({ params: { ...this.state.params, iti: value }, saved: false })}
+                  onChange={(value) =>
+                    this.setState({
+                      params: { ...this.state.params, iti: value },
+                      saved: false,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -284,7 +366,15 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   <input
                     type="checkbox"
                     defaultChecked={this.state.params.selfPaced}
-                    onChange={() => this.setState({ params: { ...this.state.params, selfPaced: !this.state.params.selfPaced }, saved: false })}
+                    onChange={() =>
+                      this.setState({
+                        params: {
+                          ...this.state.params,
+                          selfPaced: !this.state.params.selfPaced,
+                        },
+                        saved: false,
+                      })
+                    }
                   />
                   Self-paced data collection
                 </label>
@@ -293,10 +383,31 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 <div>
                   <ParamSlider
                     label="Presentation time (seconds)"
-                    value={this.state.params.presentationTime ? this.state.params.presentationTime : 0}
-                    marks={{ 1: '0.25', 2: '0.5', 3: '0.75', 4: '1', 5: '1.25', 6: '1.5', 7: '1.75', 8: '2' }}
+                    value={
+                      this.state.params.presentationTime
+                        ? this.state.params.presentationTime
+                        : 0
+                    }
+                    marks={{
+                      1: '0.25',
+                      2: '0.5',
+                      3: '0.75',
+                      4: '1',
+                      5: '1.25',
+                      6: '1.5',
+                      7: '1.75',
+                      8: '2',
+                    }}
                     msConversion="250"
-                    onChange={(value) => this.setState({ params: { ...this.state.params, presentationTime: value }, saved: false })}
+                    onChange={(value) =>
+                      this.setState({
+                        params: {
+                          ...this.state.params,
+                          presentationTime: value,
+                        },
+                        saved: false,
+                      })
+                    }
                   />
                 </div>
               ) : (
@@ -311,7 +422,9 @@ export default class CustomDesign extends Component<DesignProps, State> {
           <div className="flex gap-4 p-4">
             <div className="w-1/2">
               <h1>Experiment Instructions</h1>
-              <p>Edit the instruction that will be displayed on the first screen.</p>
+              <p>
+                Edit the instruction that will be displayed on the first screen.
+              </p>
               <textarea
                 className="w-full border border-gray-300 rounded p-2"
                 style={{ minHeight: 150 }}
@@ -320,13 +433,19 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 onChange={(event) => {
                   const val = event.target.value;
                   if (!isString(val)) return;
-                  this.setState({ params: { ...this.state.params, intro: val }, saved: false });
+                  this.setState({
+                    params: { ...this.state.params, intro: val },
+                    saved: false,
+                  });
                 }}
               />
             </div>
             <div className="w-1/2">
               <h1>Instructions for the task screen</h1>
-              <p>Edit the instruction that will be displayed in the footer during the task.</p>
+              <p>
+                Edit the instruction that will be displayed in the footer during
+                the task.
+              </p>
               <textarea
                 className="w-full border border-gray-300 rounded p-2"
                 style={{ minHeight: 150 }}
@@ -335,7 +454,10 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 onChange={(event) => {
                   const val = event.target.value;
                   if (!isString(val)) return;
-                  this.setState({ params: { ...this.state.params, taskHelp: val }, saved: false });
+                  this.setState({
+                    params: { ...this.state.params, taskHelp: val },
+                    saved: false,
+                  });
                 }}
               />
             </div>

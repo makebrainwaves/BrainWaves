@@ -19,7 +19,7 @@ function mapDispatchToProps(dispatch) {
 
 const ConnectedDesign = connect(mapStateToProps, mapDispatchToProps)(Design);
 
-function ExperimentDesignContainer(props: any) {
+function ExperimentDesignContainer(props: Record<string, unknown>) {
   const navigate = useNavigate();
   return React.createElement(ConnectedDesign, { ...props, navigate });
 }

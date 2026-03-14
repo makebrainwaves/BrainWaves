@@ -1,6 +1,8 @@
 import * as lab from 'lab.js';
 
-export function initMultitaskingResponseHandlers(this: lab.flow.Loop<Record<string, any>>) {
+export function initMultitaskingResponseHandlers(
+  this: lab.flow.Loop<Record<string, unknown>>
+) {
   if (!this.options.events) return;
 
   this.options.events.keydown = (e: Event) => {
@@ -42,7 +44,7 @@ export function initMultitaskingResponseHandlers(this: lab.flow.Loop<Record<stri
   };
 }
 
-export function initTasks(this: lab.flow.Loop<Record<string, any>>) {
+export function initTasks(this: lab.flow.Loop<Record<string, unknown>>) {
   function shuffle(a) {
     let j;
     let x;

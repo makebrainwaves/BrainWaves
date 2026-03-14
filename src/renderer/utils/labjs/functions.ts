@@ -40,20 +40,27 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
 }
 
 // Initializes a Loop component with a provided list of stimuli and other parameters extracted from experiment parameters
-export function initLoopWithStimuli(this: lab.flow.Loop<Record<string, any>>) {
+export function initLoopWithStimuli(
+  this: lab.flow.Loop<Record<string, unknown>>
+) {
   const {
     parameters: { stimuli, nbTrials, randomize },
   }: { parameters: ExperimentParameters } = this;
 
   const balancedStimuli = balanceStimuliByCondition(stimuli, nbTrials);
 
-  this.options.templateParameters = (balancedStimuli ?? []) as Record<string, any>[];
+  this.options.templateParameters = (balancedStimuli ?? []) as Record<
+    string,
+    unknown
+  >[];
   this.options.shuffle = randomize === 'random';
 }
 
 // Initializes a Loop component with a provided list of stimuli and other parameters extracted from experiment parameters
 // uses nbPracticeTrials
-export function initPracticeLoopWithStimuli(this: lab.flow.Loop<Record<string, any>>) {
+export function initPracticeLoopWithStimuli(
+  this: lab.flow.Loop<Record<string, unknown>>
+) {
   const {
     parameters: { stimuli, nbPracticeTrials, randomize },
   }: { parameters: ExperimentParameters } = this;
@@ -62,7 +69,10 @@ export function initPracticeLoopWithStimuli(this: lab.flow.Loop<Record<string, a
 
   const balancedStimuli = balanceStimuliByCondition(stimuli, nbPracticeTrials);
 
-  this.options.templateParameters = (balancedStimuli ?? []) as Record<string, any>[];
+  this.options.templateParameters = (balancedStimuli ?? []) as Record<
+    string,
+    unknown
+  >[];
   this.options.shuffle = randomize === 'random';
 }
 

@@ -12,16 +12,16 @@ import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import { DeviceActions } from '../actions';
-import { SignalQualityData } from '../constants/interfaces';
+import { Device, SignalQualityData } from '../constants/interfaces';
 
 interface Props {
-  connectedDevice: Record<string, any>;
+  connectedDevice: Record<string, unknown>;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
-  availableDevices: Array<any>;
+  availableDevices: Array<Device>;
 }
 
 interface State {
@@ -50,7 +50,9 @@ export default class Home extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
+    this.props.DeviceActions.SetDeviceAvailability(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
   }
 
   handleStopConnect() {

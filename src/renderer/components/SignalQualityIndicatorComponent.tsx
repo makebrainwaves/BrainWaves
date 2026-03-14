@@ -36,7 +36,7 @@ class SignalQualityIndicatorComponent extends Component<Props> {
     this.signalQualitySubscription?.unsubscribe();
   }
 
-  subscribeToObservable(observable: any) {
+  subscribeToObservable(observable: Observable<SignalQualityData>) {
     this.signalQualitySubscription?.unsubscribe();
 
     this.signalQualitySubscription = observable.subscribe(

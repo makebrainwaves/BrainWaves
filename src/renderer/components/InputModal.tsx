@@ -45,7 +45,7 @@ export default class InputModal extends Component<Props, State> {
     this.props.onExit();
   }
 
-  handleEnterSubmit(event: Record<string, any>) {
+  handleEnterSubmit(event: Record<string, unknown>) {
     if (event.key === 'Enter') {
       this.handleClose();
     }
@@ -53,19 +53,29 @@ export default class InputModal extends Component<Props, State> {
 
   render() {
     return (
-      <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.handleExit(); }}>
+      <Dialog
+        open={this.props.open}
+        onOpenChange={(open) => {
+          if (!open) this.handleExit();
+        }}
+      >
         <DialogContent className="max-w-sm text-center">
           <DialogHeader>
             <DialogTitle>{this.props.header}</DialogTitle>
           </DialogHeader>
           <input
-            className={['w-full border rounded px-3 py-2', this.state.isError ? 'border-red-500' : 'border-gray-300'].join(' ')}
+            className={[
+              'w-full border rounded px-3 py-2',
+              this.state.isError ? 'border-red-500' : 'border-gray-300',
+            ].join(' ')}
             onChange={this.handleTextEntry}
             onKeyDown={this.handleEnterSubmit}
             autoFocus
           />
           <div className="flex justify-end mt-4">
-            <Button variant="default" onClick={this.handleClose}>OK</Button>
+            <Button variant="default" onClick={this.handleClose}>
+              OK
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

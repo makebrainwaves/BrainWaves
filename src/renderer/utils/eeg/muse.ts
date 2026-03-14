@@ -59,15 +59,23 @@ export const disconnectFromMuse = () => client.disconnect();
 export const createRawMuseObservable = async () => {
   await client.start();
   const eegStream = await client.eegReadings;
-  const markers = await (client.eventMarkers as any).pipe(startWith({ timestamp: 0 }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markers = await (client.eventMarkers as any).pipe(
+    startWith({ timestamp: 0 })
+  ); // muse-js eventMarkers not typed as Observable
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return from(zipSamples(eegStream) as any).pipe(
+    // muse-js zipSamples return type lacks Observable generic
     // Remove nans if present (muse 2)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     map((sample: any) => ({
+      // muse-js EEGSample type doesn't expose data.filter
       ...sample,
       data: sample.data.filter((val) => !isNaN(val)),
     })),
     filter((sample) => sample.data.length >= 4),
-    withLatestFrom(markers as any, synchronizeTimestamp),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    withLatestFrom(markers as any, synchronizeTimestamp), // markers inferred as any from above
     share()
   );
 };

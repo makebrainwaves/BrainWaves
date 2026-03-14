@@ -132,10 +132,12 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     map((device) =>
       isNil(device.name) ? connectToEmotiv(device) : connectToMuse(device)
     ),
-    mergeMap<Promise<any>, ObservableInput<DeviceInfo>>((promise) =>
+    mergeMap<Promise<DeviceInfo>, ObservableInput<DeviceInfo>>((promise) =>
       promise.then((deviceInfo) => deviceInfo)
     ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<DeviceInfo, ObservableInput<any>>((deviceInfo) => {
+      // returns union of several action types
       if (!isNil(deviceInfo) && !isNil(deviceInfo.samplingRate)) {
         console.log(deviceInfo);
         return of(

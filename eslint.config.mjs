@@ -22,6 +22,7 @@ export default [
       'release/**',
       'dist/**',
       'coverage/**',
+      '.worktrees/**',
       'src/renderer/utils/pyodide/src/**',
       '**/*.css.d.ts',
       '**/*.scss.d.ts',
@@ -73,8 +74,10 @@ export default [
       'import/resolver': { node: {} },
     },
     rules: {
-      // jsx-a11y recommended rules
-      ...jsxA11yPlugin.configs.recommended.rules,
+      // jsx-a11y: disable all accessibility rules (desktop Electron app, not a public web page)
+      ...Object.fromEntries(
+        Object.keys(jsxA11yPlugin.configs.recommended.rules).map((r) => [r, 'off'])
+      ),
 
       // Prettier formatting
       ...prettierConfig.rules,
@@ -82,7 +85,7 @@ export default [
 
       // Downgrade from error → warn for gradual adoption
       '@typescript-eslint/ban-ts-comment': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'warn',
 
       // Disabled from old config
@@ -93,9 +96,6 @@ export default [
       'import/no-extraneous-dependencies': 'off',
       'import/prefer-default-export': 'off',
       'import/no-cycle': 'warn',
-      'jsx-a11y/anchor-is-valid': 'warn',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/no-autofocus': 'warn',
       'react/no-unknown-property': 'warn',
       'lines-between-class-members': 'off',
       'max-classes-per-file': 'off',

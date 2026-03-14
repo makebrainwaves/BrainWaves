@@ -119,7 +119,7 @@ const experimentStopEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.Stop)),
     filter(() => state$.value.experiment.isRunning),
-    map((action) => (action.payload as { data: string })),
+    map((action) => action.payload as { data: string }),
     map(({ data }) => {
       if (!state$.value.experiment.title) {
         return;
@@ -149,9 +149,13 @@ const updateSessionEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.UpdateSession)),
     mergeMap(() =>
-      from(readWorkspaceBehaviorData(state$.value.experiment.title!) as Promise<any[]>)
+      from(
+        readWorkspaceBehaviorData(state$.value.experiment.title!) as Promise<
+          { name: string; path: string }[]
+        >
+      )
     ),
-    map((behaviorFiles: any[]) => {
+    map((behaviorFiles: { name: string; path: string }[]) => {
       if (behaviorFiles.length > 0) {
         const subjectFiles = behaviorFiles.filter((filepath) =>
           filepath.name.startsWith(state$.value.experiment.subject)
@@ -163,7 +167,10 @@ const updateSessionEpic: Epic<
     map(ExperimentActions.SetSession)
   );
 
-const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (action$) =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
+  action$ // RouterActions union requires any here
+) =>
   action$.pipe(
     filter(isActionOf(RouterActions.RouteChanged)),
     map((action) => action.payload as string),
@@ -195,7 +202,9 @@ const saveWorkspaceEpic: Epic<
     map(ExperimentActions.SetDateModified)
   );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
+  // RouterActions union requires any here
   action$
 ) =>
   action$.pipe(

@@ -9,23 +9,23 @@ import {
   CONNECTION_STATUS,
   SCREENS,
 } from '../../constants/constants';
-import { SignalQualityData } from '../../constants/interfaces';
+import { Device, SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  connectedDevice: Record<string, any>;
+  connectedDevice: Record<string, unknown>;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
-  availableDevices: Array<any>;
+  availableDevices: Array<Device>;
 }
 
 interface State {
-  selectedDevice: any;
+  selectedDevice: Device | null;
   instructionProgress: INSTRUCTION_PROGRESS;
 }
 
@@ -36,7 +36,7 @@ enum INSTRUCTION_PROGRESS {
 }
 
 export default class ConnectModal extends Component<Props, State> {
-  static getDeviceName(device: any) {
+  static getDeviceName(device: Device | null) {
     if (!isNil(device)) {
       return isNil(device.name) ? device.id : device.name;
     }
@@ -77,7 +77,9 @@ export default class ConnectModal extends Component<Props, State> {
 
   handleSearch() {
     this.setState({ instructionProgress: 0 });
-    this.props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
+    this.props.DeviceActions.SetDeviceAvailability(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
   }
 
   handleConnect() {
@@ -110,15 +112,14 @@ export default class ConnectModal extends Component<Props, State> {
   renderContent() {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
-        <p className="text-center">
-          Searching for available headset(s)...
-        </p>
+        <p className="text-center">Searching for available headset(s)...</p>
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
         <p className="text-center">
-          Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}...
+          Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}
+          ...
         </p>
       );
     }
@@ -126,9 +127,7 @@ export default class ConnectModal extends Component<Props, State> {
       return (
         <>
           <h2>Turn your headset on</h2>
-          <p>
-            Make sure your headset is on and fully charged.
-          </p>
+          <p>Make sure your headset is on and fully charged.</p>
           <p>
             If the headset needs charging, set the power switch to off and plug
             in the headset. <b>Do not charge the headset while wearing it</b>
@@ -231,7 +230,12 @@ export default class ConnectModal extends Component<Props, State> {
 
   render() {
     return (
-      <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.props.onClose(); }}>
+      <Dialog
+        open={this.props.open}
+        onOpenChange={(open) => {
+          if (!open) this.props.onClose();
+        }}
+      >
         <DialogContent className="max-w-sm text-center">
           {this.renderContent()}
         </DialogContent>
