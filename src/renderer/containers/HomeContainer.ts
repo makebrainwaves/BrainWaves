@@ -4,11 +4,15 @@ import { bindActionCreators } from 'redux';
 import { useNavigate } from 'react-router-dom';
 import Home from '../components/HomeComponent';
 import { DeviceActions, ExperimentActions, PyodideActions } from '../actions';
+import { RootState } from '../store';
 
-function mapStateToProps(state) {
+function mapStateToProps(state: RootState) {
   return {
     ...state.device,
     ...state.pyodide,
+    connectedDevice: state.device.connectedDevice ?? {},
+    topoPlot: state.pyodide.topoPlot ?? {},
+    signalQualityObservable: state.device.signalQualityObservable ?? undefined,
   };
 }
 

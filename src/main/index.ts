@@ -128,7 +128,7 @@ ipcMain.handle(
   'fs:storeExperimentState',
   (_event, state: Record<string, unknown>) => {
     fs.writeFileSync(
-      path.join(getWorkspaceDir(state.title), 'appState.json'),
+      path.join(getWorkspaceDir(state.title as string), 'appState.json'),
       JSON.stringify(state)
     );
   }
@@ -139,9 +139,9 @@ ipcMain.handle(
   (_event, state: Record<string, unknown>) => {
     if (state.type !== 'NONE') {
       const timestampedState = { ...state, subject: '', group: '', session: 1 };
-      if (!timestampedState.title) return;
+      if (!state.title) return;
       fs.writeFileSync(
-        path.join(getWorkspaceDir(timestampedState.title), 'appState.json'),
+        path.join(getWorkspaceDir(state.title as string), 'appState.json'),
         JSON.stringify(timestampedState)
       );
     }

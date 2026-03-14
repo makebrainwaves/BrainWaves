@@ -6,7 +6,7 @@ import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
 import { SignalQualityData } from '../constants/interfaces';
 
 interface Props {
-  signalQualityObservable: Observable<SignalQualityData>;
+  signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   plottingInterval: number;
 }
 
@@ -19,16 +19,19 @@ class SignalQualityIndicatorComponent extends Component<Props> {
   }
 
   componentDidMount() {
-    if (!isNil(this.props.signalQualityObservable)) {
-      this.subscribeToObservable(this.props.signalQualityObservable);
+    const { signalQualityObservable } = this.props;
+    if (signalQualityObservable != null) {
+      this.subscribeToObservable(signalQualityObservable);
     }
   }
 
   componentDidUpdate(prevProps: Props) {
+    const { signalQualityObservable } = this.props;
     if (
-      this.props.signalQualityObservable !== prevProps.signalQualityObservable
+      signalQualityObservable !== prevProps.signalQualityObservable &&
+      signalQualityObservable != null
     ) {
-      this.subscribeToObservable(this.props.signalQualityObservable);
+      this.subscribeToObservable(signalQualityObservable);
     }
   }
 

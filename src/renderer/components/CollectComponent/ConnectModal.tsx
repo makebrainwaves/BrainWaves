@@ -37,8 +37,8 @@ enum INSTRUCTION_PROGRESS {
 
 export default class ConnectModal extends Component<Props, State> {
   static getDeviceName(device: Device | null) {
-    if (!isNil(device)) {
-      return isNil(device.name) ? device.id : device.name;
+    if (device != null) {
+      return device.name ?? device.id;
     }
     return '';
   }
@@ -83,7 +83,9 @@ export default class ConnectModal extends Component<Props, State> {
   }
 
   handleConnect() {
-    this.props.DeviceActions.ConnectToDevice(this.state.selectedDevice);
+    if (this.state.selectedDevice) {
+      this.props.DeviceActions.ConnectToDevice(this.state.selectedDevice);
+    }
   }
 
   handleinstructionProgress(progress: INSTRUCTION_PROGRESS) {

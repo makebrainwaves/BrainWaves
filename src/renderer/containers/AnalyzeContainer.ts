@@ -11,6 +11,9 @@ function mapStateToProps(state: RootState) {
     deviceType: state.device.deviceType,
     isEEGEnabled: state.experiment.isEEGEnabled,
     ...state.pyodide,
+    psdPlot: state.pyodide.psdPlot ?? {},
+    topoPlot: state.pyodide.topoPlot ?? {},
+    erpPlot: state.pyodide.erpPlot ?? {},
   };
 }
 

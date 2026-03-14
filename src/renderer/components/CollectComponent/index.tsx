@@ -27,7 +27,7 @@ export interface Props {
   availableDevices: Array<Device>;
   type: EXPERIMENTS;
   experimentObject: ExperimentObject;
-  signalQualityObservable: Observable<SignalQualityData>;
+  signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   isRunning: boolean;
   params: ExperimentParameters;
   subject: string;
@@ -102,7 +102,7 @@ export default class Collect extends Component<Props, State> {
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
-          signalQualityObservable={this.props.signalQualityObservable}
+          signalQualityObservable={this.props.signalQualityObservable ?? undefined}
           deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}

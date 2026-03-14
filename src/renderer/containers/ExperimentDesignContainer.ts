@@ -4,10 +4,13 @@ import { connect } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Design from '../components/DesignComponent';
 import { ExperimentActions } from '../actions';
+import { RootState } from '../store';
+import { ExperimentParameters } from '../constants/interfaces';
 
-function mapStateToProps(state) {
+function mapStateToProps(state: RootState) {
   return {
     ...state.experiment,
+    params: state.experiment.params as ExperimentParameters,
   };
 }
 
