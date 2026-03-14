@@ -2,8 +2,9 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Collect from '../components/CollectComponent';
 import { DeviceActions, ExperimentActions } from '../actions';
+import { RootState } from '../store';
 
-function mapStateToProps(state) {
+function mapStateToProps(state: RootState) {
   return {
     ...state.device,
     ...state.experiment,

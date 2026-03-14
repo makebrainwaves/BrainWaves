@@ -2,8 +2,9 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import CleanComponent from '../components/CleanComponent';
 import { PyodideActions, ExperimentActions } from '../actions';
+import { RootState } from '../store';
 
-function mapStateToProps(state) {
+function mapStateToProps(state: RootState) {
   return {
     type: state.experiment.type,
     title: state.experiment.title,

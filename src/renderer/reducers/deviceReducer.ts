@@ -37,7 +37,10 @@ const initialState: DeviceStateType = {
 
 export default createReducer(initialState, (builder) =>
   builder
-    .addCase(DeviceActions.ConnectToDevice, (state, action) => {
+    .addCase(DeviceActions.ConnectToDevice, (state) => {
+      return state;
+    })
+    .addCase(DeviceActions.SetDeviceType, (state, action) => {
       return {
         ...state,
         deviceType: action.payload,
