@@ -9,7 +9,8 @@ interface Props {
 
 export default function SecondaryNavSegment(props: Props) {
   return (
-    <a
+    <button
+      type="button"
       onClick={props.onClick}
       className={cn(
         'flex items-end justify-center text-center text-sm font-bold tracking-[0.5px] border-b-4 min-w-fit px-4 pb-1 cursor-pointer',
@@ -19,6 +20,6 @@ export default function SecondaryNavSegment(props: Props) {
       )}
     >
       {props.title}
-    </a>
+    </button>
   );
 }

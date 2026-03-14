@@ -99,11 +99,9 @@ export default class InputCollect extends Component<Props, State> {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label htmlFor="subject" className="block text-sm mb-1">
-                Enter Subject ID
-              </label>
+              <label htmlFor="input-subject" className="block text-sm mb-1">Enter Subject ID</label>
               <input
-                id="subject"
+                id="input-subject"
                 className={[
                   'w-full border rounded px-3 py-2',
                   this.state.isSubjectError
@@ -117,11 +115,11 @@ export default class InputCollect extends Component<Props, State> {
               />
             </div>
             <div>
-              <label htmlFor="group" className="block text-sm mb-1">
+              <label htmlFor="input-group" className="block text-sm mb-1">
                 Enter group name (optional)
               </label>
               <input
-                id="group"
+                id="input-group"
                 className="w-full border border-gray-300 rounded px-3 py-2"
                 onChange={(e) => this.handleTextEntry(e, 'group')}
                 onKeyDown={this.handleEnterSubmit}
@@ -129,11 +127,9 @@ export default class InputCollect extends Component<Props, State> {
               />
             </div>
             <div>
-              <label htmlFor="session" className="block text-sm mb-1">
-                Enter session number
-              </label>
+              <label htmlFor="input-session" className="block text-sm mb-1">Enter session number</label>
               <input
-                id="session"
+                id="input-session"
                 className={[
                   'w-full border rounded px-3 py-2',
                   this.state.isSessionError

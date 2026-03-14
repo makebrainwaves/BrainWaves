@@ -231,9 +231,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </div>
               <div className="grid grid-cols-3 gap-2.5 self-end justify-self-end">
                 <div>
-                  <label htmlFor="trial-order" className="block text-sm mb-1">
-                    Order
-                  </label>
+                  <label htmlFor="trial-order" className="block text-sm mb-1">Order</label>
                   <select
                     id="trial-order"
                     className="border border-gray-300 rounded px-2 py-1"
@@ -273,10 +271,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="nb-practice-trials"
-                    className="block text-sm mb-1"
-                  >
+                  <label htmlFor="nb-practice-trials" className="block text-sm mb-1">
                     Total practice trials
                   </label>
                   <input

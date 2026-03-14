@@ -61,14 +61,20 @@ export default class CleanSidebar extends Component<Props, State> {
       <div className="flex flex-col">
         <h1 className="mb-4">What would you like to do?</h1>
         <div
+          role="button"
+          tabIndex={0}
           className="text-lg p-1 cursor-pointer hover:bg-gray-100"
           onClick={this.handleStartSignal}
+          onKeyDown={(e) => e.key === 'Enter' && this.handleStartSignal()}
         >
           ★ Improve the signal quality of your sensors
         </div>
         <div
+          role="button"
+          tabIndex={0}
           className="text-lg p-1 cursor-pointer hover:bg-gray-100"
           onClick={this.handleStartLearn}
+          onKeyDown={(e) => e.key === 'Enter' && this.handleStartLearn()}
         >
           ⚠ Learn about how the subjects movements create noise
         </div>
