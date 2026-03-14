@@ -1,6 +1,5 @@
-import React, { Component, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '../ui/button';
-import styles from '../styles/common.module.css';
 import { EXPERIMENTS } from '../../constants/constants';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import { getExperimentFromType } from '../../utils/labjs/functions';
@@ -15,8 +14,9 @@ interface Props {
   onCloseOverview: () => void;
 }
 
-interface State {
-  activeStep: OVERVIEW_STEPS;
+// Generic curried enum type guard
+function isEnum<T extends object>(en: T) {
+  return (val: any): val is T[keyof T] => val in Object.values(en);
 }
 
 const OverviewComponent: React.FC<Props> = ({
@@ -31,16 +31,15 @@ const OverviewComponent: React.FC<Props> = ({
       setActiveStep(step);
     }
   };
-  const experiment = useMemo(() => {
-    return getExperimentFromType(type);
-  }, [type]);
+
+  const experiment = useMemo(() => getExperimentFromType(type), [type]);
 
   const renderSectionContent = () => {
     switch (activeStep) {
       case OVERVIEW_STEPS.OVERVIEW:
       default:
         return (
-          <div className={['flex items-center gap-8', styles.contentGrid].join(' ')}>
+          <div className="flex items-center gap-8 h-[90%]">
             <div className="flex-1 text-right">
               <h1>{experiment?.text.overview.title}</h1>
             </div>
@@ -55,10 +54,12 @@ const OverviewComponent: React.FC<Props> = ({
   return (
     <>
       <button
-        className={styles.closeButton}
+        className="flex justify-end w-full border-none shadow-none"
         onClick={onCloseOverview}
         aria-label="Close"
-      >✕</button>
+      >
+        ✕
+      </button>
       <SecondaryNavComponent
         title={type}
         steps={OVERVIEW_STEPS}
@@ -70,16 +71,11 @@ const OverviewComponent: React.FC<Props> = ({
           </Button>
         }
       />
-      <div className={styles.homeContentContainer}>
+      <div className="pt-5 h-full overflow-y-auto">
         {renderSectionContent()}
       </div>
     </>
   );
 };
-
-// Generic curreid enum type guard
-function isEnum<T extends object>(en: T) {
-  return (val: any): val is T[keyof T] => val in Object.values(en);
-}
 
 export default OverviewComponent;

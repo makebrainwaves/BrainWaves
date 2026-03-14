@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { sanitizeTextInput } from '../utils/ui';
-import styles from './styles/common.module.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 
@@ -77,7 +76,7 @@ export default class InputCollect extends Component<Props, State> {
     this.props.onExit();
   }
 
-  handleEnterSubmit(event: KeyboardEvent) {
+  handleEnterSubmit(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       this.handleClose();
     }
@@ -86,7 +85,7 @@ export default class InputCollect extends Component<Props, State> {
   render() {
     return (
       <Dialog open={this.props.open} onOpenChange={(open) => { if (!open) this.handleExit(); }}>
-        <DialogContent className={styles.inputModal}>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{this.props.header}</DialogTitle>
           </DialogHeader>

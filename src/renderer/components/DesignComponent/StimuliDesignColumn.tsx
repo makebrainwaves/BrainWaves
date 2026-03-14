@@ -9,7 +9,6 @@ import { isString } from 'lodash';
 import { readImages } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
-import styles from '../styles/common.module.css';
 
 interface Props {
   num: number;
@@ -58,36 +57,34 @@ export default class StimuliDesignColumn extends Component<Props, State> {
       if (images.length < 1) {
         toast.error('No images in folder!');
       }
-      this.setState({
-        numberImages: images.length,
-      });
+      this.setState({ numberImages: images.length });
       this.props.onChange('dir', dir, `stimulus${this.props.num}`);
     }
   }
 
   handleRemoveFolder() {
-    this.setState({
-      numberImages: 0,
-    });
+    this.setState({ numberImages: 0 });
     this.props.onChange('dir', '', `stimulus${this.props.num}`);
   }
 
   render() {
     return (
-      <TableRow className={styles.conditionRow}>
-        <TableCell className={styles.conditionsNameRow}>
-          {this.props.num}
-          <input
-            className="border border-gray-300 rounded px-2 py-1 w-full mt-1"
-            value={this.props.title}
-            onChange={(event) =>
-              this.props.onChange('title', event.target.value, `stimulus${this.props.num}`)
-            }
-            placeholder="Enter condition name"
-          />
+      <TableRow>
+        <TableCell className="pl-[60px]">
+          <div className="grid grid-cols-[50px_1fr] items-center gap-2">
+            <span>{this.props.num}</span>
+            <input
+              className="border border-gray-300 rounded px-2 py-1 w-full"
+              value={this.props.title}
+              onChange={(event) =>
+                this.props.onChange('title', event.target.value, `stimulus${this.props.num}`)
+              }
+              placeholder="Enter condition name"
+            />
+          </div>
         </TableCell>
 
-        <TableCell className={styles.experimentRowName}>
+        <TableCell className="pl-6 pr-2.5">
           <select
             className="w-full border border-gray-300 rounded px-2 py-1"
             value={this.props.response}
@@ -105,9 +102,9 @@ export default class StimuliDesignColumn extends Component<Props, State> {
           </select>
         </TableCell>
 
-        <TableCell className={styles.experimentRowName}>
+        <TableCell className="pl-6 pr-2.5">
           {this.props.dir ? (
-            <div className={styles.selectedFolderContainer}>
+            <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
               <div>
                 Folder{' '}
                 {this.props.dir && this.props.dir.split(path.sep).slice(-1).join(' / ')}

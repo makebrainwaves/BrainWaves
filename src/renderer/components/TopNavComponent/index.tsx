@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { isNil } from 'lodash';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
-import styles from '../styles/topnavbar.module.css';
 import PrimaryNavSegment from './PrimaryNavSegment';
 import {
   readAndParseState,
@@ -10,6 +9,12 @@ import {
 } from '../../utils/filesystem/storage';
 import BrainwavesIcon from '../../assets/common/Brainwaves_Icon_big.png';
 import { ExperimentActions } from '../../actions';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 
 export interface Props {
   title: string | null | undefined;
@@ -23,11 +28,11 @@ export default function TopNavComponent(props: Props) {
   const location = useLocation();
   const [recentWorkspaces, setRecentWorkspaces] = useState<string[]>([]);
 
-  const getStyleForScreen = (
+  const getStatusForScreen = (
     navSegmentScreen: (typeof SCREENS)[keyof typeof SCREENS]
-  ) => {
+  ): 'active' | 'visited' | 'initial' => {
     if (navSegmentScreen.route === location.pathname) {
-      return styles.activeNavColumn;
+      return 'active';
     }
     const routeOrder = Object.values(SCREENS).find(
       (screen) => screen.route === navSegmentScreen.route
@@ -36,9 +41,9 @@ export default function TopNavComponent(props: Props) {
       (screen) => screen.route === location.pathname
     )?.order;
     if (routeOrder && currentOrder && currentOrder > routeOrder) {
-      return styles.visitedNavColumn;
+      return 'visited';
     }
-    return styles.initialNavColumn;
+    return 'initial';
   };
 
   const updateWorkspaces = async () => {
@@ -62,68 +67,61 @@ export default function TopNavComponent(props: Props) {
   }
 
   return (
-    <div className={styles.navContainer}>
-      <div className={styles.experimentTitleGridColumn}>
-        <div className={styles.homeButton}>
-          <NavLink to={SCREENS.HOME.route}>
-            <img
-              className={styles.exitWorkspaceBtn}
-              src={BrainwavesIcon}
-              alt="Home"
-            />
+    <div className="relative z-[999] h-[60px] bg-white shadow-[0_5px_16px_0_rgba(0,0,0,0.09)] flex items-center">
+      {/* Home button */}
+      <div className="flex justify-center items-center h-full border-b-4 border-accent px-4">
+        <div className="flex justify-center ml-5">
+          <NavLink to={SCREENS.HOME.route} className="flex items-center gap-1 text-sm">
+            <img src={BrainwavesIcon} alt="Home" className="h-6 w-auto" />
             Home
           </NavLink>
         </div>
       </div>
 
-      <div className={styles.experimentTitleGridColumn}>
-        <div className="relative">
-          <button
-            onClick={updateWorkspaces}
-            className={styles.workspaceDropdownTrigger}
-          >
-            {props.title ? props.title : 'Untitled'}
-          </button>
+      {/* Workspace title / recent workspaces dropdown */}
+      <div className="flex justify-center items-center h-full text-lg tracking-[0.5px] border-b-4 border-accent px-4">
+        <DropdownMenu onOpenChange={(open) => { if (open) updateWorkspaces(); }}>
+          <DropdownMenuTrigger className="focus:outline-none font-medium">
+            {props.title ? props.title : 'Untitled'} ▾
+          </DropdownMenuTrigger>
           {recentWorkspaces.length > 0 && (
-            <ul className={styles.workspaceDropdownMenu}>
+            <DropdownMenuContent align="start">
               {recentWorkspaces.map((workspace) => (
-                <li key={workspace}>
-                  <button
-                    onClick={() => handleLoadRecentWorkspace(workspace)}
-                    className={styles.workspaceDropdownItem}
-                  >
-                    {workspace}
-                  </button>
-                </li>
+                <DropdownMenuItem
+                  key={workspace}
+                  onClick={() => handleLoadRecentWorkspace(workspace)}
+                >
+                  {workspace}
+                </DropdownMenuItem>
               ))}
-            </ul>
+            </DropdownMenuContent>
           )}
-        </div>
+        </DropdownMenu>
       </div>
 
       <PrimaryNavSegment
         {...SCREENS.DESIGN}
-        style={getStyleForScreen(SCREENS.DESIGN)}
+        status={getStatusForScreen(SCREENS.DESIGN)}
       />
       <PrimaryNavSegment
         {...SCREENS.COLLECT}
-        style={getStyleForScreen(SCREENS.COLLECT)}
+        status={getStatusForScreen(SCREENS.COLLECT)}
       />
       {props.isEEGEnabled ? (
         <PrimaryNavSegment
           {...SCREENS.CLEAN}
-          style={getStyleForScreen(SCREENS.CLEAN)}
+          status={getStatusForScreen(SCREENS.CLEAN)}
         />
       ) : null}
       {props.isEEGEnabled ? (
         <PrimaryNavSegment
           {...SCREENS.ANALYZE}
-          style={getStyleForScreen(SCREENS.ANALYZE)}
+          status={getStatusForScreen(SCREENS.ANALYZE)}
         />
       ) : (
         <PrimaryNavSegment
           {...SCREENS.ANALYZEBEHAVIOR}
-          style={getStyleForScreen(SCREENS.ANALYZE)}
+          status={getStatusForScreen(SCREENS.ANALYZE)}
         />
       )}
     </div>

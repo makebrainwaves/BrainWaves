@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Button } from '../ui/button';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
-import styles from '../styles/common.module.css';
 import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import { readWorkspaces } from '../../utils/filesystem/storage';
 import {
@@ -20,7 +19,6 @@ import multitaskingOverview from '../../experiments/multitasking/icon.png';
 import searchOverview from '../../experiments/search/icon.png';
 import customOverview from '../../experiments/custom/icon.png';
 
-// conditions images
 import multiConditionShape from '../../experiments/multitasking/stimuli/multiConditionShape.png';
 import multiConditionDots from '../../experiments/multitasking/stimuli/multiConditionDots.png';
 import conditionFace from '../../experiments/faces_houses/stimuli/faces/Face1.jpg';
@@ -70,8 +68,7 @@ export default class Design extends Component<DesignProps, State> {
     this.handleStepClick = this.handleStepClick.bind(this);
     this.handleStartExperiment = this.handleStartExperiment.bind(this);
     this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
-    this.handleLoadCustomExperiment =
-      this.handleLoadCustomExperiment.bind(this);
+    this.handleLoadCustomExperiment = this.handleLoadCustomExperiment.bind(this);
     this.handlePreview = this.handlePreview.bind(this);
     this.endPreview = this.endPreview.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
@@ -90,14 +87,11 @@ export default class Design extends Component<DesignProps, State> {
   }
 
   handleCustomizeExperiment() {
-    this.setState({
-      isNewExperimentModalOpen: true,
-    });
+    this.setState({ isNewExperimentModalOpen: true });
   }
 
   handleLoadCustomExperiment(title: string) {
     this.setState({ isNewExperimentModalOpen: false });
-    // Don't create new workspace if it already exists or title is too short
     if (this.state.recentWorkspaces.includes(title)) {
       toast.error(`Experiment already exists`);
       return;
@@ -131,39 +125,26 @@ export default class Design extends Component<DesignProps, State> {
 
   static renderConditionIcon(condition) {
     switch (condition) {
-      case 'conditionCongruent':
-        return conditionCongruent;
-      case 'conditionIncongruent':
-        return conditionIncongruent;
-      case 'conditionOrangeT':
-        return conditionOrangeT;
-      case 'conditionNoOrangeT':
-        return conditionNoOrangeT;
-      case 'conditionFace':
-        return conditionFace;
-      case 'conditionHouse':
-        return conditionHouse;
-      case 'multiConditionShape':
-        return multiConditionShape;
+      case 'conditionCongruent': return conditionCongruent;
+      case 'conditionIncongruent': return conditionIncongruent;
+      case 'conditionOrangeT': return conditionOrangeT;
+      case 'conditionNoOrangeT': return conditionNoOrangeT;
+      case 'conditionFace': return conditionFace;
+      case 'conditionHouse': return conditionHouse;
+      case 'multiConditionShape': return multiConditionShape;
       case 'multiConditionDots':
-      default:
-        return multiConditionDots;
+      default: return multiConditionDots;
     }
   }
 
   static renderOverviewIcon(type: EXPERIMENTS) {
     switch (type) {
-      case EXPERIMENTS.N170:
-        return facesHousesOverview;
-      case EXPERIMENTS.STROOP:
-        return stroopOverview;
-      case EXPERIMENTS.MULTI:
-        return multitaskingOverview;
-      case EXPERIMENTS.SEARCH:
-        return searchOverview;
+      case EXPERIMENTS.N170: return facesHousesOverview;
+      case EXPERIMENTS.STROOP: return stroopOverview;
+      case EXPERIMENTS.MULTI: return multitaskingOverview;
+      case EXPERIMENTS.SEARCH: return searchOverview;
       case EXPERIMENTS.CUSTOM:
-      default:
-        return customOverview;
+      default: return customOverview;
     }
   }
 
@@ -176,7 +157,7 @@ export default class Design extends Component<DesignProps, State> {
       case DESIGN_STEPS.OVERVIEW:
       default:
         return (
-          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+          <div className="flex items-center p-4 h-[90%]">
             <div className="w-5/12 p-2">
               <img src={Design.renderOverviewIcon(this.props.type)} alt={overview.title} />
             </div>
@@ -189,7 +170,7 @@ export default class Design extends Component<DesignProps, State> {
 
       case DESIGN_STEPS.BACKGROUND:
         return (
-          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+          <div className="flex items-center p-4 h-[90%]">
             <div className="w-1/4 p-2">
               <img src={Design.renderOverviewIcon(this.props.type)} alt="overview" />
             </div>
@@ -202,7 +183,7 @@ export default class Design extends Component<DesignProps, State> {
               <p style={{ fontWeight: 'bold' }}>{background?.second_column_question}</p>
             </div>
             <div className="p-2">
-              <div className={styles.externalLinks}>
+              <div className="grid grid-cols-1 gap-2.5">
                 {background?.links.map((link) => (
                   <Button
                     key={link.address}
@@ -219,7 +200,7 @@ export default class Design extends Component<DesignProps, State> {
 
       case DESIGN_STEPS.PROTOCOL:
         return (
-          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
+          <div className="flex items-center p-4 h-[90%]">
             <div className="w-7/12 p-2 text-left">
               <h2>{protocol?.title}</h2>
               <p>{protocol?.protocol}</p>
@@ -253,8 +234,8 @@ export default class Design extends Component<DesignProps, State> {
 
       case DESIGN_STEPS.PREVIEW:
         return (
-          <div className={['flex items-center p-4', styles.contentGrid].join(' ')}>
-            <div className={['w-3/4', styles.previewWindow].join(' ')}>
+          <div className="flex items-center p-4 h-[90%]">
+            <div className="w-3/4 h-full border border-brand rounded">
               <PreviewExperimentComponent
                 title={this.props.title}
                 params={this.props.params}
@@ -280,7 +261,7 @@ export default class Design extends Component<DesignProps, State> {
       return <CustomDesign {...this.props} />;
     }
     return (
-      <div className={styles.mainContainer}>
+      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
         <SecondaryNavComponent
           title="Experiment Design"
           steps={DESIGN_STEPS}
@@ -291,7 +272,7 @@ export default class Design extends Component<DesignProps, State> {
               type="checkbox"
               defaultChecked={this.props.isEEGEnabled}
               onChange={this.handleEEGEnabled}
-              className={styles.EEGToggle}
+              className="scale-75"
             />
           }
         />

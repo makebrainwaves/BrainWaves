@@ -11,7 +11,6 @@ import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
-import styles from './styles/common.module.css';
 import { DeviceActions } from '../actions';
 import { SignalQualityData } from '../constants/interfaces';
 
@@ -51,9 +50,7 @@ export default class Home extends Component<Props, State> {
 
   handleStartConnect() {
     this.setState({ isConnectModalOpen: true });
-    this.props.DeviceActions.SetDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+    this.props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
   handleStopConnect() {
@@ -68,7 +65,7 @@ export default class Home extends Component<Props, State> {
 
   render() {
     return (
-      <div className={['flex items-center', styles.contentGrid].join(' ')}>
+      <div className="flex items-center h-[90%]">
         {this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
           this.props.signalQualityObservable && (
             <div className="flex w-full">
@@ -79,7 +76,7 @@ export default class Home extends Component<Props, State> {
                 />
               </div>
               <div className="w-3/5">
-                <div className={styles.disconnectButtonContainer}>
+                <div className="flex justify-end">
                   <Button variant="secondary" onClick={this.handleStopConnect}>
                     Disconnect EEG Device
                   </Button>
@@ -97,7 +94,6 @@ export default class Home extends Component<Props, State> {
             <div className="w-5/12 p-2">
               <img src={eegImage} alt="EEG device" />
             </div>
-
             <div className="w-7/12 p-2">
               <h1>Explore Raw EEG</h1>
               <hr className="my-2" />

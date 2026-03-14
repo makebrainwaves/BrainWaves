@@ -3,7 +3,6 @@ import { Button } from '../ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
 import { isString } from 'lodash';
 
-import styles from '../styles/common.module.css';
 import { SCREENS } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { DesignProps } from './index';
@@ -114,9 +113,9 @@ export default class CustomDesign extends Component<DesignProps, State> {
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
-          <div className={['flex gap-4 p-4', styles.contentGrid].join(' ')}>
+          <div className="flex gap-4 p-4 h-[90%]">
             <div className="flex-1 flex flex-col items-center">
-              <img src={researchQuestionImage} className={styles.overviewImage} alt="Research Question" />
+              <img src={researchQuestionImage} className="h-[140px] w-auto" alt="Research Question" />
               <label className="block text-sm font-medium mb-1">{FIELDS.QUESTION}</label>
               <textarea
                 style={{ minHeight: 100, maxHeight: 400 }}
@@ -127,7 +126,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               />
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <img src={hypothesisImage} className={styles.overviewImage} alt="Hypothesis" />
+              <img src={hypothesisImage} className="h-[140px] w-auto" alt="Hypothesis" />
               <label className="block text-sm font-medium mb-1">{FIELDS.HYPOTHESIS}</label>
               <textarea
                 style={{ minHeight: 100, maxHeight: 400 }}
@@ -138,7 +137,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               />
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <img src={methodsImage} className={styles.overviewImage} alt="Methods" />
+              <img src={methodsImage} className="h-[140px] w-auto" alt="Methods" />
               <label className="block text-sm font-medium mb-1">{FIELDS.METHODS}</label>
               <textarea
                 style={{ minHeight: 100, maxHeight: 400 }}
@@ -165,19 +164,15 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 program or on one of the websites online.`}
               </p>
             </div>
-
             <Table>
               <TableHeader>
-                <TableRow className={styles.conditionHeaderRow}>
-                  <TableHead className={styles.conditionHeaderRowName}>
-                    Condition
-                  </TableHead>
+                <TableRow>
+                  <TableHead className="pl-[60px]">Condition</TableHead>
                   <TableHead>Default Key Response</TableHead>
                   <TableHead>Condition Folder</TableHead>
                 </TableRow>
               </TableHeader>
-
-              <TableBody className={styles.experimentTable}>
+              <TableBody>
                 <TableRow>
                   <TableCell colSpan={3}>Stimulus customization is currently unavailable</TableCell>
                 </TableRow>
@@ -194,12 +189,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
       case CUSTOM_STEPS.TRIALS:
         return (
           <div className="p-4">
-            <div className={styles.trialsHeader}>
+            <div className="grid grid-cols-[auto_1fr] w-full">
               <div>
                 <h1>Trials</h1>
                 <p>Edit the correct key response and type of each trial.</p>
               </div>
-              <div className={styles.trialsTopInfoBar} style={{ alignSelf: 'flex-end' }}>
+              <div className="grid grid-cols-3 gap-2.5 self-end justify-self-end">
                 <div>
                   <label className="block text-sm mb-1">Order</label>
                   <select
@@ -236,17 +231,16 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 </div>
               </div>
             </div>
-
             <Table>
               <TableHeader>
-                <TableRow className={styles.trialsHeaderRow}>
-                  <TableHead className={styles.conditionHeaderRowName}>Name</TableHead>
+                <TableRow>
+                  <TableHead className="pl-[60px]">Name</TableHead>
                   <TableHead>Condition</TableHead>
                   <TableHead>Correct Key Response</TableHead>
                   <TableHead>Trial Type</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className={styles.trialsTable}>
+              <TableBody className="overflow-y-scroll max-h-[50vh] block">
                 <TableRow>
                   <TableCell colSpan={4}>Stimulus customization is currently unavailable</TableCell>
                 </TableRow>
@@ -277,7 +271,6 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 />
               </div>
             </div>
-
             <div className="w-1/2 flex flex-col justify-between">
               <div>
                 <h1>Image duration</h1>
@@ -331,7 +324,6 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 }}
               />
             </div>
-
             <div className="w-1/2">
               <h1>Instructions for the task screen</h1>
               <p>Edit the instruction that will be displayed in the footer during the task.</p>
@@ -352,8 +344,8 @@ export default class CustomDesign extends Component<DesignProps, State> {
 
       case CUSTOM_STEPS.PREVIEW:
         return (
-          <div className={['flex items-start p-4', styles.contentGrid].join(' ')}>
-            <div className={['flex-1', styles.previewWindow].join(' ')}>
+          <div className="flex items-start p-4 h-[90%]">
+            <div className="flex-1 h-full border border-brand rounded">
               {this.props.type && (
                 <PreviewExperimentComponent
                   isPreviewing={this.state.isPreviewing}
@@ -378,7 +370,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
 
   render() {
     return (
-      <div className={styles.mainContainer}>
+      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
         <SecondaryNavComponent
           title="Experiment Design"
           steps={CUSTOM_STEPS}
@@ -389,7 +381,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               type="checkbox"
               defaultChecked={this.props.isEEGEnabled}
               onChange={(event) => this.handleEEGEnabled(event)}
-              className={styles.EEGToggle}
+              className="scale-75"
             />
           }
           saveButton={

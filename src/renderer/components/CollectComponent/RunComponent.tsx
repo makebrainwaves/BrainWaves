@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
-import styles from '../styles/common.module.css';
 import InputCollect from '../InputCollect';
 import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
@@ -23,10 +22,6 @@ interface Props {
   deviceType: DEVICES;
   isEEGEnabled: boolean;
   ExperimentActions: typeof globalExperimentActions;
-}
-
-interface State {
-  isInputCollectOpen: boolean;
 }
 
 const Run: React.FC<Props> = ({
@@ -95,26 +90,22 @@ const Run: React.FC<Props> = ({
   );
 
   return (
-    <div className={styles.mainContainer} data-tid="container">
-      <div className={styles.experimentContainer}>
+    <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]" data-tid="container">
+      <div className="h-full">
         {!isRunning && (
-          <div className={styles.mainContainer}>
-            <div className={['text-left', styles.descriptionContainer].join(' ')}>
+          <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+            <div className="text-left">
               <h1>{title}</h1>
               <button
-                className={styles.closeButton}
+                className="flex justify-end w-full"
                 onClick={() => setIsInputCollectOpen(true)}
                 aria-label="Edit"
-              >✏</button>
-              <div className={styles.infoSegment}>
-                Subject ID: <b>{subject}</b>
-              </div>
-              <div className={styles.infoSegment}>
-                Group Name: <b>{group}</b>
-              </div>
-              <div className={styles.infoSegment}>
-                Session Number: <b>{session}</b>
-              </div>
+              >
+                ✏
+              </button>
+              <div>Subject ID: <b>{subject}</b></div>
+              <div>Group Name: <b>{group}</b></div>
+              <div>Session Number: <b>{session}</b></div>
               <div className="mt-6">
                 <Button
                   variant="default"
@@ -130,7 +121,7 @@ const Run: React.FC<Props> = ({
         )}
 
         {isRunning && (
-          <div className={styles.experimentWindow}>
+          <div className="h-full w-full">
             <ExperimentWindow
               title={title}
               experimentObject={experimentObject}
@@ -146,11 +137,7 @@ const Run: React.FC<Props> = ({
         onClose={handleCloseInputCollect}
         onExit={() => setIsInputCollectOpen(false)}
         header="Enter Data"
-        data={{
-          subject,
-          group,
-          session,
-        }}
+        data={{ subject, group, session }}
       />
     </div>
   );
