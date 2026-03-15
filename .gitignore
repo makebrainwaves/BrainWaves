@@ -54,4 +54,4 @@ npm-debug.log.*
 keys.js
 
 app/utils/pyodide/src
-src/renderer/utils/pyodide/src
+src/renderer/utils/webworker/src
