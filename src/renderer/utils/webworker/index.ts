@@ -127,7 +127,7 @@ export const plotTestPlot = async (worker: Worker | null) => {
   }
   return worker.postMessage({
     // data: `import matplotlib.pyplot as plt; fig= plt.plot([1,2,3,4])`,
-    data: `[1,2,3,4]`
+    data: `sum([1,2,3,4])`
   });
 };
 

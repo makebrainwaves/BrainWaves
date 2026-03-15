@@ -39,7 +39,7 @@ const MANIFEST_FILE = path.join(PACKAGES_DIR, 'manifest.json');
 // Root packages whose full transitive dependency tree we need from Pyodide CDN
 // ---------------------------------------------------------------------------
 
-const PYODIDE_ROOT_PACKAGES = ['numpy', 'scipy', 'matplotlib', 'pandas'];
+const PYODIDE_ROOT_PACKAGES = ['numpy', 'scipy', 'matplotlib', 'pandas', 'micropip'];
 
 // ---------------------------------------------------------------------------
 // Pure-Python packages to download from PyPI (not bundled with Pyodide)

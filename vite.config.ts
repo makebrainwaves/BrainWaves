@@ -1,6 +1,7 @@
 import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'node:fs';
 import { createRequire } from 'module';
 const _require = createRequire(import.meta.url);
 
@@ -48,6 +49,45 @@ export default defineConfig({
     //   /pyodide/pyodide.mjs, /pyodide/pyodide.asm.js, /packages/*.whl, etc.
     publicDir: path.resolve(__dirname, 'src/renderer/utils/webworker/src'),
     plugins: [
+      // Serve pyodide runtime and package .whl files directly from the filesystem
+      // before Vite's SPA fallback can intercept them. publicDir alone is not
+      // reliable — Vite's historyApiFallback returns index.html for fetch()
+      // requests to these paths in dev mode.
+      {
+        name: 'serve-pyodide-assets',
+        configureServer(server) {
+          const staticDir = path.resolve(
+            __dirname,
+            'src/renderer/utils/webworker/src'
+          );
+          const contentTypes: Record<string, string> = {
+            '.json': 'application/json',
+            '.whl': 'application/zip',
+            '.zip': 'application/zip',
+            '.wasm': 'application/wasm',
+            '.js': 'application/javascript',
+            '.mjs': 'application/javascript',
+          };
+          server.middlewares.use((req, res, next) => {
+            const url = req.url ?? '';
+            if (url.startsWith('/pyodide/') || url.startsWith('/packages/')) {
+              console.log('[serve-pyodide-assets] intercepted:', url);
+              const filePath = path.join(staticDir, url.split('?')[0]);
+              if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                const ext = path.extname(filePath).toLowerCase();
+                res.setHeader(
+                  'Content-Type',
+                  contentTypes[ext] ?? 'application/octet-stream'
+                );
+                res.setHeader('Cache-Control', 'no-cache');
+                fs.createReadStream(filePath).pipe(res);
+                return;
+              }
+            }
+            next();
+          });
+        },
+      },
       react({
         jsxRuntime: 'classic', // React 16 does not ship react/jsx-runtime
         babel: {
