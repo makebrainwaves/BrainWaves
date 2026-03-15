@@ -4,7 +4,7 @@
  * publicDir so Vite can serve it as static assets.
  *
  * Source:  node_modules/pyodide/
- * Dest:    src/renderer/utils/pyodide/src/pyodide/
+ * Dest:    src/renderer/utils/webworker/src/pyodide/
  *
  * Key files copied:
  *   pyodide.mjs          – ESM entry point (imported by the web worker via npm)
@@ -36,7 +36,7 @@ import chalk from 'chalk';
 
 const _require = createRequire(import.meta.url);
 
-const DEST_DIR     = path.resolve('src/renderer/utils/pyodide/src/pyodide');
+const DEST_DIR     = path.resolve('src/renderer/utils/webworker/src/pyodide');
 const VERSION_FILE = path.join(DEST_DIR, '.pyodide-version');
 
 // Files to exclude from the copy.

@@ -10,7 +10,7 @@
  *
  * 2. `indexURL: '/pyodide/'` — tells pyodide where to find pyodide-lock.json
  *    and binary package wheels (.whl).  These are served from publicDir:
- *      src/renderer/utils/pyodide/src/pyodide/
+ *      src/renderer/utils/webworker/src/pyodide/
  *    which is populated by:
  *      • InstallPyodide.mjs  (copies pyodide-lock.json + runtime from npm)
  *      • InstallMNE.mjs      (downloads binary wheels from Pyodide CDN)
@@ -27,8 +27,8 @@ import { loadPyodide } from 'pyodide';
 
 async function initPyodide() {
   // indexURL tells pyodide where to load pyodide-lock.json and binary wheels.
-  // The publicDir (src/renderer/utils/pyodide/src/) is served at the web root,
-  // so /pyodide/ maps to src/renderer/utils/pyodide/src/pyodide/.
+  // The publicDir (src/renderer/utils/webworker/src/) is served at the web root,
+  // so /pyodide/ maps to src/renderer/utils/webworker/src/pyodide/.
   const pyodide = await loadPyodide({ indexURL: '/pyodide/' });
 
   // Load binary packages from locally served .whl files.

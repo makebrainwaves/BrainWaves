@@ -23,14 +23,14 @@ import {
   loadPatches,
   applyPatches,
   loadUtils,
-} from '../utils/pyodide';
+} from '../utils/webworker';
 import {
   EMOTIV_CHANNELS,
   DEVICES,
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES,
 } from '../constants/constants';
-import { parseSingleQuoteJSON } from '../utils/pyodide/functions';
+import { parseSingleQuoteJSON } from '../utils/webworker/functions';
 
 import { readFiles } from '../utils/filesystem/read';
 

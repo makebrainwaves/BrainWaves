@@ -46,7 +46,7 @@ export default defineConfig({
     // Serve the pyodide runtime files as static assets so Vite does NOT
     // transform them.  Files in publicDir are served verbatim at the root URL:
     //   /pyodide/pyodide.mjs, /pyodide/pyodide.asm.js, /packages/*.whl, etc.
-    publicDir: path.resolve(__dirname, 'src/renderer/utils/pyodide/src'),
+    publicDir: path.resolve(__dirname, 'src/renderer/utils/webworker/src'),
     plugins: [
       react({
         jsxRuntime: 'classic', // React 16 does not ship react/jsx-runtime

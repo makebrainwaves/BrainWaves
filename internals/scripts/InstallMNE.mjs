@@ -12,7 +12,7 @@
  *   Part 2 — Pure-Python packages (from PyPI)
  *     MNE itself and its pure-Python dependencies (pooch, tqdm, platformdirs)
  *     are not bundled with Pyodide.  These are downloaded as py3-none-any
- *     wheels into src/renderer/utils/pyodide/src/packages/ and installed via
+ *     wheels into src/renderer/utils/webworker/src/packages/ and installed via
  *     micropip at worker startup.  A manifest.json is written there so the
  *     worker knows the exact filenames.
  *
@@ -29,10 +29,10 @@ import chalk from 'chalk';
 // Paths
 // ---------------------------------------------------------------------------
 
-const PYODIDE_DIR = path.resolve('src/renderer/utils/pyodide/src/pyodide');
+const PYODIDE_DIR = path.resolve('src/renderer/utils/webworker/src/pyodide');
 const LOCK_FILE   = path.join(PYODIDE_DIR, 'pyodide-lock.json');
 
-const PACKAGES_DIR = path.resolve('src/renderer/utils/pyodide/src/packages');
+const PACKAGES_DIR = path.resolve('src/renderer/utils/webworker/src/packages');
 const MANIFEST_FILE = path.join(PACKAGES_DIR, 'manifest.json');
 
 // ---------------------------------------------------------------------------
