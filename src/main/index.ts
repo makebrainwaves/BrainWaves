@@ -8,6 +8,7 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, session } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
 import os from 'os';
 import Papa from 'papaparse';
 import mkdirp from 'mkdirp';
@@ -22,6 +23,52 @@ app.commandLine.appendSwitch(
   'enable-experimental-web-platform-features',
   'true'
 );
+
+// Port for the local pyodide asset server (serves whl files to web workers,
+// bypassing Vite's dev server which returns HTML for all fetch() requests).
+const PYODIDE_ASSET_PORT = 17173;
+
+const PYODIDE_CONTENT_TYPES: Record<string, string> = {
+  '.json': 'application/json',
+  '.whl': 'application/zip',
+  '.zip': 'application/zip',
+  '.wasm': 'application/wasm',
+  '.js': 'application/javascript',
+  '.mjs': 'application/javascript',
+};
+
+function startPyodideAssetServer(rootDir: string): void {
+  const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+
+    const urlPath = (req.url || '').split('?')[0];
+    const filePath = path.join(rootDir, urlPath);
+    const ext = path.extname(filePath).toLowerCase();
+
+    fs.stat(filePath, (statErr, stat) => {
+      if (statErr || !stat.isFile()) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end(`Not found: ${urlPath}`);
+        return;
+      }
+      res.setHeader('Content-Type', PYODIDE_CONTENT_TYPES[ext] || 'application/octet-stream');
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Cache-Control', 'no-cache');
+      res.writeHead(200);
+      fs.createReadStream(filePath).pipe(res);
+    });
+  });
+
+  server.listen(PYODIDE_ASSET_PORT, '127.0.0.1', () => {
+    console.log(`[main] Pyodide asset server: http://127.0.0.1:${PYODIDE_ASSET_PORT}`);
+  });
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    console.error('[main] Pyodide asset server error:', err.message);
+  });
+}
 
 export default class AppUpdater {
   constructor() {
@@ -98,7 +145,7 @@ ipcMain.handle('fs:readWorkspaces', () => {
   try {
     return fs
       .readdirSync(workspaces)
-      .filter((workspace) => workspace !== '.DS_Store');
+      .filter((workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot');
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       mkdirPathSync(workspaces);
@@ -215,14 +262,27 @@ ipcMain.handle(
 );
 
 ipcMain.handle(
-  'fs:storePyodideImage',
+  'fs:storePyodideImageSvg',
+  (_event, title, imageTitle, svgContent: string) => {
+    const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
+    mkdirPathSync(dir);
+    return new Promise<void>((resolve, reject) => {
+      fs.writeFile(path.join(dir, `${imageTitle}.svg`), svgContent, 'utf8', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+);
+
+ipcMain.handle(
+  'fs:storePyodideImagePng',
   (_event, title, imageTitle, rawData: ArrayBuffer) => {
     const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
-    const filename = `${imageTitle}.png`;
     mkdirPathSync(dir);
     const buffer = Buffer.from(rawData);
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(path.join(dir, filename), buffer, (err) => {
+      fs.writeFile(path.join(dir, `${imageTitle}.png`), buffer, (err) => {
         if (err) reject(err);
         else resolve();
       });
@@ -453,6 +513,18 @@ app.on('window-all-closed', () => {
 });
 
 app.whenReady().then(async () => {
+  // Serve pyodide assets (whl files, runtime files) via a local HTTP server so
+  // web workers can fetch() them without hitting Vite's SPA fallback, which
+  // returns HTML for ALL fetch() requests regardless of path.
+  // Port 17173 is hardcoded and matched in webworker.js.
+  // In dev:  files are in src/renderer/utils/webworker/src/
+  // In prod: files are in resources/webworker/src/ (via extraResources)
+  const pyodideRoot = is.dev
+    ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
+    : path.join(process.resourcesPath, 'webworker/src');
+
+  startPyodideAssetServer(pyodideRoot);
+
   // Enable F12 devtools shortcut and Ctrl+R reload in dev, disable in prod
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);

@@ -15,7 +15,8 @@
     "package-mac": "npm run build && electron-builder build --mac",
     "package-linux": "npm run build && electron-builder build --linux",
     "package-win": "npm run build && electron-builder build --win --x64",
-    "postinstall": "electron-builder install-app-deps && node internals/scripts/InstallPyodide.js && node internals/scripts/patchDeps.mjs",
+    "postinstall": "electron-builder install-app-deps && node internals/scripts/InstallPyodide.mjs && node internals/scripts/InstallMNE.mjs && node internals/scripts/patchDeps.mjs",
+    "install-pyodide": "node internals/scripts/InstallPyodide.mjs && node internals/scripts/InstallMNE.mjs",
     "lint": "cross-env NODE_ENV=development eslint . --cache",
     "lint-fix": "npm run lint -- --fix",
     "lint-styles": "stylelint '**/*.*(css|scss)'",
@@ -97,7 +98,7 @@
         "filter": "**/*"
       },
       {
-        "from": "./src/renderer/utils/pyodide/src/",
+        "from": "./src/renderer/utils/webworker/src/",
         "to": "pyodide",
         "filter": "**/*"
       }
@@ -185,7 +186,6 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@neurosity/pipes": "^5.2.1",
-    "@nteract/transforms": "^3.2.0",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-dropdown-menu": "^2.1.0",
     "@radix-ui/react-select": "^2.2.6",
@@ -208,6 +208,7 @@
     "papaparse": "^5.5.3",
     "pathe": "^2.0.3",
     "plotly.js": "^3.4.0",
+    "pyodide": "^0.29.3",
     "rc-slider": "9.2.4",
     "react": "^18.x",
     "react-dom": "^18.x",

@@ -15,8 +15,8 @@ A priority for this codebase is extensibility modularity and hackability. There 
 - **Bundler**: electron-vite / Vite
 - **State**: Redux Toolkit + redux-observable (RxJS epics)
 - **Language**: TypeScript (strict)
-- **Styling**: Semantic UI React + SCSS
-- **Testing**: Jest
+- **Styling**: Tailwind CSS + shadcn/ui (components in `src/renderer/components/ui/`)
+- **Testing**: Vitest
 - **Linting**: ESLint + Prettier (single quotes, ES5 trailing commas)
 
 ## Key Directories
@@ -24,13 +24,13 @@ A priority for this codebase is extensibility modularity and hackability. There 
 - `src/renderer/` — React renderer process
 - `src/preload/` — Electron preload scripts
 - `src/renderer/experiments/` — Lab.js experiment files
-- `src/renderer/utils/pyodide/` — Pyodide WASM Python runtime
+- `src/renderer/utils/webworker/` — Pyodide WASM Python runtime
 
 ## Dev Workflow
 ```bash
 npm run dev          # Start dev server (patches deps first)
 npm run build        # Build all processes
-npm test             # Run Jest tests
+npm test             # Run Vitest tests
 npm run typecheck    # TypeScript check (no emit)
 npm run lint         # ESLint
 npm run lint-fix     # ESLint + Prettier auto-fix
@@ -45,7 +45,7 @@ npm run package      # Build + package for current platform
 - Keep Electron main/renderer separation strict — use preload IPC bridges
 
 ## Out of Scope
-- Do not modify `src/renderer/utils/pyodide/src/` directly; it is managed by `InstallPyodide.js`
+- Do not modify `src/renderer/utils/webworker/src/` directly; it is managed by `internals/scripts/InstallPyodide.mjs` (Pyodide runtime) and `internals/scripts/InstallMNE.mjs` (scientific packages)
 - Do not alter `electron-builder` publish config without confirming release intent
 
 ## LLM Context

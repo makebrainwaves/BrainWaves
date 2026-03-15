@@ -88,12 +88,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
       session
     ),
 
-  storePyodideImage: (
+  storePyodideImageSvg: (
+    title: string,
+    imageTitle: string,
+    svgContent: string
+  ): Promise<void> =>
+    ipcRenderer.invoke('fs:storePyodideImageSvg', title, imageTitle, svgContent),
+
+  storePyodideImagePng: (
     title: string,
     imageTitle: string,
     rawData: ArrayBuffer
   ): Promise<void> =>
-    ipcRenderer.invoke('fs:storePyodideImage', title, imageTitle, rawData),
+    ipcRenderer.invoke('fs:storePyodideImagePng', title, imageTitle, rawData),
 
   deleteWorkspaceDir: (title: string): Promise<void> =>
     ipcRenderer.invoke('fs:deleteWorkspaceDir', title),

@@ -36,6 +36,7 @@ export const PyodideActions = {
   ReceiveMessage: createAction<any, 'RECEIVE_MESSAGE'>('RECEIVE_MESSAGE'), // Worker message event — shape is dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ReceiveError: createAction<any, 'RECEIVE_ERROR'>('RECEIVE_ERROR'), // Worker error event — shape is dynamic
+  SetWorkerReady: createAction('SET_WORKER_READY'),
 } as const;
 
 export type PyodideActionType = ActionType<

@@ -1,5 +1,5 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { fromEvent, Observable, ObservableInput, of } from 'rxjs';
+import { EMPTY, fromEvent, Observable, ObservableInput, of } from 'rxjs';
 import { map, mergeMap, tap, pluck, filter } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
@@ -23,14 +23,14 @@ import {
   loadPatches,
   applyPatches,
   loadUtils,
-} from '../utils/pyodide';
+} from '../utils/webworker';
 import {
   EMOTIV_CHANNELS,
   DEVICES,
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES,
 } from '../constants/constants';
-import { parseSingleQuoteJSON } from '../utils/pyodide/functions';
+import { parseSingleQuoteJSON } from '../utils/webworker/functions';
 
 import { readFiles } from '../utils/filesystem/read';
 
@@ -76,8 +76,8 @@ const pyodideErrorEpic: Epic<
   );
 
 // Once pyodide webworker is created,
-// Create an observable of events that corresond to what it retjurns
-// and then emite those events as redux actions
+// Create an observable of events that corresond to what it returns
+// and then emits those events as redux actions
 const pyodideMessageEpic: Epic<
   PyodideActionType,
   PyodideActionType,
@@ -87,21 +87,25 @@ const pyodideMessageEpic: Epic<
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
     pluck('payload'),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mergeMap<Worker, Observable<any>>((worker) => {
-      // Worker message event — MessageEvent data shape is dynamic
-      return fromEvent(worker, 'message');
-    }),
-    tap((e) => {
-      console.log(e);
-      const { results, error } = e.data;
-
-      if (results && !error) {
-        toast.error(`Pyodide: ${results}`);
-      } else if (error) {
+    mergeMap<Worker, Observable<any>>((worker) => fromEvent(worker, 'message')),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mergeMap<any, Observable<any>>((e) => {
+      const { results, error, plotKey } = e.data;
+      if (error) {
         toast.error(`Pyodide: ${error}`);
+        return of(PyodideActions.ReceiveError(error));
       }
-    }),
-    map(PyodideActions.ReceiveMessage)
+      // Route plot results to the appropriate Redux state slot.
+      // results is a base64-encoded PNG string returned from Python.
+      const mimeBundle = results ? { 'image/svg+xml': results } : null;
+      switch (plotKey) {
+        case 'ready': return of(PyodideActions.SetWorkerReady());
+        case 'topo': return of(PyodideActions.SetTopoPlot(mimeBundle));
+        case 'psd':  return of(PyodideActions.SetPSDPlot(mimeBundle));
+        case 'erp':  return of(PyodideActions.SetERPPlot(mimeBundle));
+        default:     return of(PyodideActions.ReceiveMessage(e.data));
+      }
+    })
   );
 
 const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
@@ -225,8 +229,8 @@ const loadPSDEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadPSD)),
-    mergeMap(() => plotPSD(state$.value.pyodide.worker!)),
-    map(PyodideActions.SetPSDPlot)
+    tap(() => plotPSD(state$.value.pyodide.worker!)),
+    mergeMap(() => EMPTY)
   );
 
 const loadTopoEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
@@ -235,19 +239,8 @@ const loadTopoEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadTopo)),
-    // mergeMap(plotTopoMap),
-    mergeMap(() => plotTestPlot(state$.value.pyodide.worker!)),
-    tap((e) => console.log('received topo map: ', e)),
-    mergeMap((topoPlot) =>
-      of(
-        PyodideActions.SetTopoPlot(topoPlot)
-        // PyodideActions.LoadERP(
-        //   state$.value.device.deviceType === DEVICES.EMOTIV
-        //     ? EMOTIV_CHANNELS[0]
-        //     : MUSE_CHANNELS[0]
-        // )
-      )
-    )
+    tap(() => plotTestPlot(state$.value.pyodide.worker!)),
+    mergeMap(() => EMPTY)
   );
 
 const loadERPEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
@@ -273,8 +266,8 @@ const loadERPEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       );
       return parseInt(EMOTIV_CHANNELS[0], 10);
     }),
-    mergeMap((chanIndex) => plotERP(state$.value.pyodide.worker!, chanIndex)),
-    map(PyodideActions.SetERPPlot)
+    tap((chanIndex) => plotERP(state$.value.pyodide.worker!, chanIndex)),
+    mergeMap(() => EMPTY)
   );
 
 export default combineEpics(

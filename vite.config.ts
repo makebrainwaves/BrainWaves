@@ -1,6 +1,7 @@
 import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'node:fs';
 import { createRequire } from 'module';
 const _require = createRequire(import.meta.url);
 
@@ -44,12 +45,49 @@ export default defineConfig({
   // ------------------------------------------------------------------
   renderer: {
     // Serve the pyodide runtime files as static assets so Vite does NOT
-    // transform them.  importScripts() in a classic worker cannot load
-    // ES modules; Vite's HMR injection turns .js files into ESM, breaking
-    // the worker.  Files in publicDir are served verbatim at the root URL:
-    //   /pyodide/pyodide.js, /pyodide/pyodide.asm.js, etc.
-    publicDir: path.resolve(__dirname, 'src/renderer/utils/pyodide/src'),
+    // transform them.  Files in publicDir are served verbatim at the root URL:
+    //   /pyodide/pyodide.mjs, /pyodide/pyodide.asm.js, /packages/*.whl, etc.
+    publicDir: path.resolve(__dirname, 'src/renderer/utils/webworker/src'),
     plugins: [
+      // Serve pyodide runtime and package .whl files directly from the filesystem
+      // before Vite's SPA fallback can intercept them. publicDir alone is not
+      // reliable — Vite's historyApiFallback returns index.html for fetch()
+      // requests to these paths in dev mode.
+      {
+        name: 'serve-pyodide-assets',
+        configureServer(server) {
+          const staticDir = path.resolve(
+            __dirname,
+            'src/renderer/utils/webworker/src'
+          );
+          const contentTypes: Record<string, string> = {
+            '.json': 'application/json',
+            '.whl': 'application/zip',
+            '.zip': 'application/zip',
+            '.wasm': 'application/wasm',
+            '.js': 'application/javascript',
+            '.mjs': 'application/javascript',
+          };
+          server.middlewares.use((req, res, next) => {
+            const url = req.url ?? '';
+            if (url.startsWith('/pyodide/') || url.startsWith('/packages/')) {
+              console.log('[serve-pyodide-assets] intercepted:', url);
+              const filePath = path.join(staticDir, url.split('?')[0]);
+              if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                const ext = path.extname(filePath).toLowerCase();
+                res.setHeader(
+                  'Content-Type',
+                  contentTypes[ext] ?? 'application/octet-stream'
+                );
+                res.setHeader('Cache-Control', 'no-cache');
+                fs.createReadStream(filePath).pipe(res);
+                return;
+              }
+            }
+            next();
+          });
+        },
+      },
       react({
         jsxRuntime: 'classic', // React 16 does not ship react/jsx-runtime
         babel: {
@@ -77,6 +115,13 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: ['@neurosity/pipes'],
+      // Prevent Vite from pre-bundling pyodide. In dev mode it will be served
+      // raw from node_modules via /@fs/, which is what pyodide.mjs expects.
+      exclude: ['pyodide'],
+    },
+    worker: {
+      // ES module workers are required for the CDN import in webworker.js.
+      format: 'es',
     },
     build: {
       rollupOptions: {
