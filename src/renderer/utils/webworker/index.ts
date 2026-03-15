@@ -115,12 +115,12 @@ export const plotPSD = async (worker: Worker) => {
   worker.postMessage({
     plotKey: 'psd',
     data: [
-      'import io, base64',
+      'import io',
       '_fig = raw.plot_psd(fmin=1, fmax=30, show=False)',
       '_buf = io.BytesIO()',
-      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
-      'base64.b64encode(_buf.getvalue()).decode()',
+      '_buf.getvalue().decode()',
     ].join('\n'),
   });
 };
@@ -129,12 +129,12 @@ export const plotTopoMap = async (worker: Worker) => {
   worker.postMessage({
     plotKey: 'topo',
     data: [
-      'import io, base64',
+      'import io',
       '_fig = plot_topo(clean_epochs, conditions)',
       '_buf = io.BytesIO()',
-      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
-      'base64.b64encode(_buf.getvalue()).decode()',
+      '_buf.getvalue().decode()',
     ].join('\n'),
   });
 };
@@ -144,15 +144,15 @@ export const plotTestPlot = async (worker: Worker | null) => {
   worker.postMessage({
     plotKey: 'topo',
     data: [
-      'import io, base64',
+      'import io',
       'import matplotlib.pyplot as plt',
       '_fig, _ax = plt.subplots()',
       '_ax.plot([1, 2, 3, 4], [1, 4, 2, 3])',
       '_ax.set_title("Test Plot")',
       '_buf = io.BytesIO()',
-      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
-      'base64.b64encode(_buf.getvalue()).decode()',
+      '_buf.getvalue().decode()',
     ].join('\n'),
   });
 };
@@ -161,12 +161,12 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
   worker.postMessage({
     plotKey: 'erp',
     data: [
-      'import io, base64',
+      'import io',
       `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
       '_buf = io.BytesIO()',
-      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
-      'base64.b64encode(_buf.getvalue()).decode()',
+      '_buf.getvalue().decode()',
     ].join('\n'),
   });
 };

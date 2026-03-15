@@ -186,7 +186,6 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@neurosity/pipes": "^5.2.1",
-    "@nteract/transforms": "^3.2.0",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-dropdown-menu": "^2.1.0",
     "@radix-ui/react-select": "^2.2.6",

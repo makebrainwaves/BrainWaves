@@ -56,6 +56,10 @@ The CDN version is derived from `node_modules/pyodide/package.json` — **not** 
 
 **`micropip.install()` from JS accepts a JS array directly** — as of Pyodide 0.29.x, micropip handles the `JsProxy` conversion internally. `pyodide.toPy()` is not needed.
 
+**WebAgg backend does not work in web workers** — WebAgg tries to access `js.document` to inject CSS/JS into the DOM on first import, which throws `ImportError: cannot import name 'document' from 'js'` in a worker context. Use `agg` instead. Set it via `os.environ["MPLBACKEND"] = "agg"` before any matplotlib import. `fig.savefig()` works with `agg` and is the correct way to get plot images back to the renderer.
+
+**Plot result routing pattern** — `worker.postMessage()` is fire-and-forget (returns `undefined`). Plot epics should use `tap()` to fire the worker message and `mergeMap(() => EMPTY)` to emit nothing. Results come back asynchronously on the worker `message` event. Add a `plotKey` field to each worker message; the worker echoes it back; `pyodideMessageEpic` switches on `plotKey` to dispatch `SetTopoPlot`/`SetPSDPlot`/`SetERPPlot` with a `{ 'image/png': base64string }` MIME bundle. `PyodidePlotWidget` renders this via `@nteract/transforms`.
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch

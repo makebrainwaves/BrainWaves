@@ -265,7 +265,7 @@ ipcMain.handle(
   'fs:storePyodideImage',
   (_event, title, imageTitle, rawData: ArrayBuffer) => {
     const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
-    const filename = `${imageTitle}.png`;
+    const filename = `${imageTitle}.svg`;
     mkdirPathSync(dir);
     const buffer = Buffer.from(rawData);
     return new Promise<void>((resolve, reject) => {

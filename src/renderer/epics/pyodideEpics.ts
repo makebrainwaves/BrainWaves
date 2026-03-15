@@ -97,7 +97,7 @@ const pyodideMessageEpic: Epic<
       }
       // Route plot results to the appropriate Redux state slot.
       // results is a base64-encoded PNG string returned from Python.
-      const mimeBundle = results ? { 'image/png': results } : null;
+      const mimeBundle = results ? { 'image/svg+xml': results } : null;
       switch (plotKey) {
         case 'topo': return of(PyodideActions.SetTopoPlot(mimeBundle));
         case 'psd':  return of(PyodideActions.SetPSDPlot(mimeBundle));
