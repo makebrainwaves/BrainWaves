@@ -163,6 +163,138 @@ Current PyPI packages: `mne`, `pooch`, `tqdm`, `platformdirs`, `lazy-loader`
 
 ---
 
+## Plot Pipeline
+
+### matplotlib Backend in Web Workers
+
+Use `agg`, not `webagg`. Set it before any Python imports run:
+
+```js
+await pyodide.runPythonAsync('import os; os.environ["MPLBACKEND"] = "agg"');
+```
+
+WebAgg (`webagg`) fails in web workers because it tries to inject CSS via `js.document` during initialisation — and `js.document` does not exist in worker scope. The error looks like:
+
+```
+ImportError: cannot import name 'document' from 'js'
+```
+
+`agg` is a non-interactive raster backend that writes to a buffer, which is exactly what we need.
+
+---
+
+### plotKey Correlation Pattern (Fire-and-Forget Messaging)
+
+`worker.postMessage()` returns `undefined` — there is no return channel. Redux-Observable plot load epics cannot receive the worker's result directly.
+
+**Solution:** attach a `plotKey` string to every outgoing message; the worker echoes it back in the response object. `pyodideMessageEpic` routes by `plotKey` to the correct Redux action.
+
+```js
+// webworker.js — echo plotKey back in every response
+const { data, plotKey, ...context } = event.data;
+self.postMessage({ results: await pyodide.runPythonAsync(data), plotKey });
+```
+
+```ts
+// pyodideMessageEpic — route by plotKey
+switch (plotKey) {
+  case 'ready': return of(PyodideActions.SetWorkerReady());
+  case 'topo':  return of(PyodideActions.SetTopoPlot(mimeBundle));
+  case 'psd':   return of(PyodideActions.SetPSDPlot(mimeBundle));
+  case 'erp':   return of(PyodideActions.SetERPPlot(mimeBundle));
+  default:      return of(PyodideActions.ReceiveMessage(e.data));
+}
+```
+
+Plot load epics become fire-and-forget — they call `worker.postMessage()` as a side effect and emit nothing:
+
+```ts
+// loadTopoEpic
+action$.pipe(
+  filter(isActionOf(PyodideActions.LoadTopo)),
+  tap(() => plotTestPlot(state$.value.pyodide.worker!)),
+  mergeMap(() => EMPTY)
+);
+```
+
+---
+
+### Worker Readiness Gating
+
+`loadUtils` posts `plotKey: 'ready'` when `utils.py` finishes loading. This drives an `isWorkerReady` flag in Redux state that gates any UI that depends on Python being initialised.
+
+```ts
+export const loadUtils = async (worker: Worker) =>
+  worker.postMessage({ data: utilsPy, plotKey: 'ready' });
+```
+
+`pyodideMessageEpic` dispatches `PyodideActions.SetWorkerReady()` on receiving `plotKey === 'ready'`.
+
+---
+
+### SVG Output from matplotlib
+
+Produce SVG in Python — no base64 encoding needed:
+
+```python
+import io
+import matplotlib.pyplot as plt
+
+_fig, _ax = plt.subplots()
+_ax.plot([1, 2, 3, 4], [1, 4, 2, 3])
+_buf = io.BytesIO()
+_fig.savefig(_buf, format="svg", bbox_inches="tight")
+plt.close(_fig)
+_buf.getvalue().decode()  # SVG string is the Python return value
+```
+
+The SVG string flows through `pyodide.runPythonAsync()` → worker `postMessage` → Redux state as `{ 'image/svg+xml': string }`.
+
+---
+
+### Rendering SVG Safely in the Renderer
+
+Use a data URI on an `<img>` tag — sandboxed, no script execution:
+
+```tsx
+<img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`} />
+```
+
+Prefer this over `dangerouslySetInnerHTML` — inline SVG executes `<script>` tags and has full DOM access.
+
+---
+
+### PNG Export from SVG
+
+Simple canvas conversion using the SVG's natural pixel dimensions:
+
+```ts
+function svgToPngArrayBuffer(svg: string): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((pngBlob) => {
+        pngBlob!.arrayBuffer().then(resolve).catch(reject);
+      }, 'image/png');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG load failed')); };
+    img.src = url;
+  });
+}
+```
+
+The resulting `ArrayBuffer` is passed through the IPC chain (`preload → main`) for file write. Electron's `contextBridge` serialises `ArrayBuffer` correctly without any additional conversion.
+
+---
+
 ## Summary of File Locations
 
 | What | Where |
@@ -174,3 +306,6 @@ Current PyPI packages: `mne`, `pooch`, `tqdm`, `platformdirs`, `lazy-loader`
 | Install script | `internals/scripts/InstallMNE.mjs` |
 | Electron asset server | `src/main/index.ts` → `startPyodideAssetServer()` |
 | Vite middleware | `vite.config.ts` → `serve-pyodide-assets` plugin |
+| Plot widget component | `src/renderer/components/PyodidePlotWidget.tsx` |
+| Plot epics (Redux-Observable) | `src/renderer/epics/pyodideEpics.ts` |
+| Pyodide Redux state | `src/renderer/reducers/pyodideReducer.ts` |

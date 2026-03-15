@@ -99,6 +99,7 @@ const pyodideMessageEpic: Epic<
       // results is a base64-encoded PNG string returned from Python.
       const mimeBundle = results ? { 'image/svg+xml': results } : null;
       switch (plotKey) {
+        case 'ready': return of(PyodideActions.SetWorkerReady());
         case 'topo': return of(PyodideActions.SetTopoPlot(mimeBundle));
         case 'psd':  return of(PyodideActions.SetPSDPlot(mimeBundle));
         case 'erp':  return of(PyodideActions.SetERPPlot(mimeBundle));

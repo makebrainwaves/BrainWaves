@@ -32,6 +32,7 @@ export const applyPatches = async (worker: Worker) =>
 export const loadUtils = async (worker: Worker) =>
   worker.postMessage({
     data: utilsPy,
+    plotKey: 'ready',
   });
 
 export const loadCSV = async (worker: Worker, csvArray: Array<unknown>) => {

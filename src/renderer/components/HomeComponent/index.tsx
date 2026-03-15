@@ -63,6 +63,7 @@ export interface Props {
   topoPlot: {
     [key: string]: string;
   };
+  isWorkerReady: boolean;
 }
 
 interface State {
@@ -321,14 +322,15 @@ export default class Home extends Component<Props, State> {
             <div>
               <Button
                 variant="default"
+                disabled={!this.props.isWorkerReady}
                 onClick={() => this.props.PyodideActions.LoadTopo()}
               >
-                Generate Plot
+                {this.props.isWorkerReady ? 'Generate Plot' : 'Loading libraries…'}
               </Button>
             </div>
             <div>
               <PyodidePlotWidget
-                title={'Test Plot'}
+                title={'Test_Plot'}
                 imageTitle={`Test-Topoplot`}
                 plotMIMEBundle={this.props.topoPlot}
               />

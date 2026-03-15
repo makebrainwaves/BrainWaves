@@ -50,11 +50,17 @@ export const storeBehavioralData = (
 ): Promise<void> =>
   api().storeBehavioralData(csv, title, subject, group, session);
 
-export const storePyodideImage = (
+export const storePyodideImageSvg = (
+  title: string,
+  imageTitle: string,
+  svgContent: string
+): Promise<void> => api().storePyodideImageSvg(title, imageTitle, svgContent);
+
+export const storePyodideImagePng = (
   title: string,
   imageTitle: string,
   rawData: ArrayBuffer
-): Promise<void> => api().storePyodideImage(title, imageTitle, rawData);
+): Promise<void> => api().storePyodideImagePng(title, imageTitle, rawData);
 
 // -----------------------------------------------------------------------------------------------
 // Reading

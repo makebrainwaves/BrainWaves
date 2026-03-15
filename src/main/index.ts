@@ -145,7 +145,7 @@ ipcMain.handle('fs:readWorkspaces', () => {
   try {
     return fs
       .readdirSync(workspaces)
-      .filter((workspace) => workspace !== '.DS_Store');
+      .filter((workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot');
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       mkdirPathSync(workspaces);
@@ -262,14 +262,27 @@ ipcMain.handle(
 );
 
 ipcMain.handle(
-  'fs:storePyodideImage',
+  'fs:storePyodideImageSvg',
+  (_event, title, imageTitle, svgContent: string) => {
+    const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
+    mkdirPathSync(dir);
+    return new Promise<void>((resolve, reject) => {
+      fs.writeFile(path.join(dir, `${imageTitle}.svg`), svgContent, 'utf8', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+);
+
+ipcMain.handle(
+  'fs:storePyodideImagePng',
   (_event, title, imageTitle, rawData: ArrayBuffer) => {
     const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
-    const filename = `${imageTitle}.svg`;
     mkdirPathSync(dir);
     const buffer = Buffer.from(rawData);
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(path.join(dir, filename), buffer, (err) => {
+      fs.writeFile(path.join(dir, `${imageTitle}.png`), buffer, (err) => {
         if (err) reject(err);
         else resolve();
       });

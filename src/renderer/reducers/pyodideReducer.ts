@@ -25,6 +25,7 @@ export interface PyodideStateType {
     | null
     | undefined;
   readonly worker: Worker | null;
+  readonly isWorkerReady: boolean;
 }
 
 const initialState: PyodideStateType = {
@@ -34,6 +35,7 @@ const initialState: PyodideStateType = {
   topoPlot: null,
   erpPlot: null,
   worker: null,
+  isWorkerReady: false,
 };
 
 export default createReducer(initialState, (builder) =>
@@ -73,6 +75,9 @@ export default createReducer(initialState, (builder) =>
         ...state,
         erpPlot: action.payload,
       };
+    })
+    .addCase(PyodideActions.SetWorkerReady, (state) => {
+      return { ...state, isWorkerReady: true };
     })
     .addCase(ExperimentActions.ExperimentCleanup, (state, action) => {
       return {
