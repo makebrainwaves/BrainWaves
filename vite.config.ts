@@ -80,7 +80,7 @@ export default defineConfig({
       exclude: ['pyodide'],
     },
     worker: {
-      // ES module workers are required for `import { loadPyodide } from "pyodide"`.
+      // ES module workers are required for the CDN import in webworker.js.
       format: 'es',
     },
     build: {
