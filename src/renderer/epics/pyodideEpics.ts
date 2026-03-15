@@ -23,14 +23,14 @@ import {
   loadPatches,
   applyPatches,
   loadUtils,
-} from '../utils/pyodide';
+} from '../utils/webworker';
 import {
   EMOTIV_CHANNELS,
   DEVICES,
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES,
 } from '../constants/constants';
-import { parseSingleQuoteJSON } from '../utils/pyodide/functions';
+import { parseSingleQuoteJSON } from '../utils/webworker/functions';
 
 import { readFiles } from '../utils/filesystem/read';
 
@@ -76,8 +76,8 @@ const pyodideErrorEpic: Epic<
   );
 
 // Once pyodide webworker is created,
-// Create an observable of events that corresond to what it retjurns
-// and then emite those events as redux actions
+// Create an observable of events that corresond to what it returns
+// and then emits those events as redux actions
 const pyodideMessageEpic: Epic<
   PyodideActionType,
   PyodideActionType,

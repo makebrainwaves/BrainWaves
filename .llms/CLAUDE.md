@@ -24,7 +24,7 @@ A priority for this codebase is extensibility modularity and hackability. There 
 - `src/renderer/` — React renderer process
 - `src/preload/` — Electron preload scripts
 - `src/renderer/experiments/` — Lab.js experiment files
-- `src/renderer/utils/pyodide/` — Pyodide WASM Python runtime
+- `src/renderer/utils/webworker/` — Pyodide WASM Python runtime
 
 ## Dev Workflow
 ```bash
@@ -45,7 +45,7 @@ npm run package      # Build + package for current platform
 - Keep Electron main/renderer separation strict — use preload IPC bridges
 
 ## Out of Scope
-- Do not modify `src/renderer/utils/pyodide/src/` directly; it is managed by `InstallPyodide.js`
+- Do not modify `src/renderer/utils/webworker/src/` directly; it is managed by `InstallPyodide.js`
 - Do not alter `electron-builder` publish config without confirming release intent
 
 ## LLM Context
