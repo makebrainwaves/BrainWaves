@@ -56,6 +56,13 @@ const pyodideReadyPromise = (async () => {
     { checkIntegrity: false }
   );
 
+  // Set matplotlib backend before any imports so it takes effect on first import.
+  // Must be 'agg' (non-interactive, buffer-based) — web workers have no DOM,
+  // so WebAgg fails with "cannot import name 'document' from 'js'".
+  await pyodide.runPythonAsync(
+    'import os; os.environ["MPLBACKEND"] = "agg"'
+  );
+
   // Load micropip so we can install MNE and its pure-Python deps.
   await pyodide.loadPackage('micropip', { checkIntegrity: false });
   const micropip = pyodide.pyimport('micropip');
@@ -81,7 +88,7 @@ self.onmessage = async (event) => {
     return;
   }
 
-  const { data, ...context } = event.data;
+  const { data, plotKey, ...context } = event.data;
 
   // Expose context values as globals so Python can access them via the js module.
   for (const [key, value] of Object.entries(context)) {
@@ -89,8 +96,8 @@ self.onmessage = async (event) => {
   }
 
   try {
-    self.postMessage({ results: await pyodide.runPythonAsync(data) });
+    self.postMessage({ results: await pyodide.runPythonAsync(data), plotKey });
   } catch (error) {
-    self.postMessage({ error: error.message });
+    self.postMessage({ error: error.message, plotKey });
   }
 };

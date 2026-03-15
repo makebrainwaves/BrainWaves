@@ -112,29 +112,62 @@ export const cleanEpochsPlot = async (worker: Worker) => {
 };
 
 export const plotPSD = async (worker: Worker) => {
-  return worker.postMessage({ data: `raw.plot_psd(fmin=1, fmax=30)` });
+  worker.postMessage({
+    plotKey: 'psd',
+    data: [
+      'import io, base64',
+      '_fig = raw.plot_psd(fmin=1, fmax=30, show=False)',
+      '_buf = io.BytesIO()',
+      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      'plt.close(_fig)',
+      'base64.b64encode(_buf.getvalue()).decode()',
+    ].join('\n'),
+  });
 };
 
 export const plotTopoMap = async (worker: Worker) => {
-  return worker.postMessage({
-    data: `plot_topo(clean_epochs, conditions)`,
+  worker.postMessage({
+    plotKey: 'topo',
+    data: [
+      'import io, base64',
+      '_fig = plot_topo(clean_epochs, conditions)',
+      '_buf = io.BytesIO()',
+      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      'plt.close(_fig)',
+      'base64.b64encode(_buf.getvalue()).decode()',
+    ].join('\n'),
   });
 };
 
 export const plotTestPlot = async (worker: Worker | null) => {
-  if (!worker) {
-    return;
-  }
-  return worker.postMessage({
-    // data: `import matplotlib.pyplot as plt; fig= plt.plot([1,2,3,4])`,
-    data: `sum([1,2,3,4])`
+  if (!worker) return;
+  worker.postMessage({
+    plotKey: 'topo',
+    data: [
+      'import io, base64',
+      'import matplotlib.pyplot as plt',
+      '_fig, _ax = plt.subplots()',
+      '_ax.plot([1, 2, 3, 4], [1, 4, 2, 3])',
+      '_ax.set_title("Test Plot")',
+      '_buf = io.BytesIO()',
+      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      'plt.close(_fig)',
+      'base64.b64encode(_buf.getvalue()).decode()',
+    ].join('\n'),
   });
 };
 
 export const plotERP = async (worker: Worker, channelIndex: number) => {
-  return worker.postMessage({
-    data: `X, y = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions,
-      ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
+  worker.postMessage({
+    plotKey: 'erp',
+    data: [
+      'import io, base64',
+      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
+      '_buf = io.BytesIO()',
+      '_fig.savefig(_buf, format="png", bbox_inches="tight")',
+      'plt.close(_fig)',
+      'base64.b64encode(_buf.getvalue()).decode()',
+    ].join('\n'),
   });
 };
 
