@@ -6,7 +6,7 @@ import { storePyodideImageSvg, storePyodideImagePng } from '../utils/filesystem/
 interface Props {
   title: string;
   imageTitle: string;
-  plotMIMEBundle: { 'image/svg+xml': string } | null | undefined;
+  plotMIMEBundle: { [key: string]: string } | null | undefined;
 }
 
 function svgToPngArrayBuffer(svg: string): Promise<ArrayBuffer> {
