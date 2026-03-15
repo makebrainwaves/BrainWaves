@@ -41,7 +41,11 @@ function startPyodideAssetServer(rootDir: string): void {
   const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
 
     const urlPath = (req.url || '').split('?')[0];
     const filePath = path.join(rootDir, urlPath);
@@ -53,7 +57,10 @@ function startPyodideAssetServer(rootDir: string): void {
         res.end(`Not found: ${urlPath}`);
         return;
       }
-      res.setHeader('Content-Type', PYODIDE_CONTENT_TYPES[ext] || 'application/octet-stream');
+      res.setHeader(
+        'Content-Type',
+        PYODIDE_CONTENT_TYPES[ext] || 'application/octet-stream'
+      );
       res.setHeader('Content-Length', stat.size);
       res.setHeader('Cache-Control', 'no-cache');
       res.writeHead(200);
@@ -62,7 +69,9 @@ function startPyodideAssetServer(rootDir: string): void {
   });
 
   server.listen(PYODIDE_ASSET_PORT, '127.0.0.1', () => {
-    console.log(`[main] Pyodide asset server: http://127.0.0.1:${PYODIDE_ASSET_PORT}`);
+    console.log(
+      `[main] Pyodide asset server: http://127.0.0.1:${PYODIDE_ASSET_PORT}`
+    );
   });
 
   server.on('error', (err: NodeJS.ErrnoException) => {
@@ -145,7 +154,9 @@ ipcMain.handle('fs:readWorkspaces', () => {
   try {
     return fs
       .readdirSync(workspaces)
-      .filter((workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot');
+      .filter(
+        (workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot'
+      );
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       mkdirPathSync(workspaces);
@@ -267,10 +278,15 @@ ipcMain.handle(
     const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
     mkdirPathSync(dir);
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(path.join(dir, `${imageTitle}.svg`), svgContent, 'utf8', (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
+      fs.writeFile(
+        path.join(dir, `${imageTitle}.svg`),
+        svgContent,
+        'utf8',
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
   }
 );
@@ -369,6 +385,12 @@ ipcMain.handle('fs:readFiles', (_event, filePathsArray: string[]) => {
     console.log('reading file', filePath);
     return fs.readFileSync(filePath, 'utf8');
   });
+});
+
+ipcMain.handle('fs:readFileAsBytes', (_event, filePath: string) => {
+  // Returns a Uint8Array (Buffer extends Uint8Array) for binary files like .fif.
+  // Transferred via IPC structured clone — arrives as Uint8Array in the renderer.
+  return fs.readFileSync(filePath);
 });
 
 // EEG streaming — main process holds write streams for performance

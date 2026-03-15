@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import { toast } from 'react-toastify';
 import { Button } from './ui/button';
-import { storePyodideImageSvg, storePyodideImagePng } from '../utils/filesystem/storage';
+import {
+  storePyodideImageSvg,
+  storePyodideImagePng,
+} from '../utils/filesystem/storage';
 
 interface Props {
   title: string;
   imageTitle: string;
-  plotMIMEBundle: { 'image/svg+xml': string } | null | undefined;
+  plotMIMEBundle: { [key: string]: string } | null | undefined;
 }
 
 function svgToPngArrayBuffer(svg: string): Promise<ArrayBuffer> {
@@ -27,11 +30,17 @@ function svgToPngArrayBuffer(svg: string): Promise<ArrayBuffer> {
       ctx.drawImage(img, 0, 0);
       URL.revokeObjectURL(url);
       canvas.toBlob((pngBlob) => {
-        if (!pngBlob) { reject(new Error('Canvas toBlob failed')); return; }
+        if (!pngBlob) {
+          reject(new Error('Canvas toBlob failed'));
+          return;
+        }
         pngBlob.arrayBuffer().then(resolve).catch(reject);
       }, 'image/png');
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG load failed')); };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('SVG load failed'));
+    };
     img.src = url;
   });
 }
@@ -56,7 +65,11 @@ export default class PyodidePlotWidget extends Component<Props> {
     if (!svg) return;
     try {
       const arrayBuffer = await svgToPngArrayBuffer(svg);
-      await storePyodideImagePng(this.props.title, this.props.imageTitle, arrayBuffer);
+      await storePyodideImagePng(
+        this.props.title,
+        this.props.imageTitle,
+        arrayBuffer
+      );
       toast.success(`Saved ${this.props.imageTitle}.png`);
     } catch (err: unknown) {
       toast.error(`Failed to save PNG: ${(err as Error).message}`);
