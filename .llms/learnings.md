@@ -49,6 +49,13 @@ A `manifest.json` is written to `packages/` so `webworker.js` knows the exact `.
 
 The CDN version is derived from `node_modules/pyodide/package.json` — **not** from `pyodide-lock.json`'s `info.version`, which may be a dev label like `0.28.0.dev0`.
 
+**Packages that must be listed explicitly** (not reachable from matplotlib/scipy/pandas deps in the lock file, but required at runtime):
+- `jinja2` + `markupsafe` — used by matplotlib templates and MNE HTML reports
+- `decorator` — MNE core dep
+- `requests` (+ `certifi`, `charset-normalizer`, `idna`, `urllib3`) — pulled in by `pooch` at MNE import time
+
+**`micropip.install()` from JS accepts a JS array directly** — as of Pyodide 0.29.x, micropip handles the `JsProxy` conversion internally. `pyodide.toPy()` is not needed.
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch

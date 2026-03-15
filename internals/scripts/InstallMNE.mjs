@@ -39,13 +39,13 @@ const MANIFEST_FILE = path.join(PACKAGES_DIR, 'manifest.json');
 // Root packages whose full transitive dependency tree we need from Pyodide CDN
 // ---------------------------------------------------------------------------
 
-const PYODIDE_ROOT_PACKAGES = ['numpy', 'scipy', 'matplotlib', 'pandas', 'micropip'];
+const PYODIDE_ROOT_PACKAGES = ['numpy', 'scipy', 'matplotlib', 'pandas', 'micropip', 'pillow', 'jinja2', 'decorator', 'requests'];
 
 // ---------------------------------------------------------------------------
 // Pure-Python packages to download from PyPI (not bundled with Pyodide)
 // ---------------------------------------------------------------------------
 
-const PYPI_PACKAGES = ['mne', 'pooch', 'tqdm', 'platformdirs'];
+const PYPI_PACKAGES = ['mne', 'pooch', 'tqdm', 'platformdirs', 'lazy-loader'];
 
 // ---------------------------------------------------------------------------
 // Shared network helpers
