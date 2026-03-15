@@ -1,9 +1,13 @@
-name: Test
+name: CI
 
-on: push
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
 
 jobs:
-  release:
+  ci:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -14,31 +18,23 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js and NPM
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
-      - name: npm install
+      - name: Install dependencies
         run: npm install
 
       - name: Test
         run: npm test
 
-      - name: Lint and typecheck
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USERNAME: ${{ secrets.USERNAME }}
-          PASSWORD: ${{ secrets.PASSWORD }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          LICENSE_ID: ${{ secrets.LICENSE_ID }}
-        run: |
-          npm run package-ci
-          npm run lint
-          npm run tsc
+      - name: Lint
+        run: npm run lint
 
-# Failing because virtual framebuffer not installed
-#          npm run build-e2e
-#          npm run test-e2e
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
