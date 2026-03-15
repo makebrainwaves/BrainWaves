@@ -36,9 +36,7 @@ export const loadUtils = async (worker: Worker) =>
 
 export const loadCSV = async (worker: Worker, csvArray: Array<unknown>) => {
   // TODO: Pass attached variable name as parameter to load_data
-  // @ts-expect-error
-  window.csvArray = csvArray;
-  await worker.postMessage({ data: `raw = load_data()` });
+  await worker.postMessage({ data: `raw = load_data()`, csvArray });
 };
 
 // ---------------------------

@@ -25,11 +25,31 @@
 
 import { loadPyodide } from 'pyodide';
 
+/**
+ * Derive the renderer root URL from the worker's own location.
+ *
+ * Dev (Vite HTTP server): self.location.href is an http:// URL — the root is
+ * just the origin, so root-relative paths work as normal.
+ *
+ * Production (Electron file://): Vite bundles workers into assets/, so the
+ * renderer root is one directory above the worker file.
+ */
+function getRendererBaseUrl() {
+  const loc = self.location.href;
+  if (loc.startsWith('http')) {
+    return new URL('/', loc).href;
+  }
+  // file:// — go up from assets/webworker-[hash].js to the renderer root
+  return new URL('../', loc).href;
+}
+
 async function initPyodide() {
+  const base = getRendererBaseUrl();
+
   // indexURL tells pyodide where to load pyodide-lock.json and binary wheels.
-  // The publicDir (src/renderer/utils/webworker/src/) is served at the web root,
-  // so /pyodide/ maps to src/renderer/utils/webworker/src/pyodide/.
-  const pyodide = await loadPyodide({ indexURL: '/pyodide/' });
+  // Resolved from the renderer root so it works under both HTTP (dev) and
+  // file:// (Electron production).
+  const pyodide = await loadPyodide({ indexURL: new URL('pyodide/', base).href });
 
   // Load binary packages from locally served .whl files.
   await pyodide.loadPackage(['numpy', 'scipy', 'matplotlib', 'pandas']);
@@ -37,7 +57,7 @@ async function initPyodide() {
   // Install MNE and its pure-Python deps from pre-downloaded wheels.
   let manifest = {};
   try {
-    const res = await fetch(new URL('/packages/manifest.json', self.location.href).href);
+    const res = await fetch(new URL('packages/manifest.json', base).href);
     if (res.ok) {
       manifest = await res.json();
     } else {
@@ -48,7 +68,7 @@ async function initPyodide() {
   }
 
   const wheelUrls = Object.values(manifest).map(
-    (entry) => new URL(`/packages/${entry.filename}`, self.location.href).href
+    (entry) => new URL(`packages/${entry.filename}`, base).href
   );
 
   if (wheelUrls.length > 0) {
@@ -66,7 +86,14 @@ async function initPyodide() {
 const pyodideReadyPromise = initPyodide();
 
 self.onmessage = async (event) => {
-  const pyodide = await pyodideReadyPromise;
+  // Propagate init failures back to the main thread rather than hanging silently.
+  let pyodide;
+  try {
+    pyodide = await pyodideReadyPromise;
+  } catch (error) {
+    self.postMessage({ error: `Pyodide init failed: ${error.message}` });
+    return;
+  }
 
   const { data, ...context } = event.data;
 
