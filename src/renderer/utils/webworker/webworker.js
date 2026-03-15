@@ -12,13 +12,13 @@
  * can "fetch" it from memory.
  *
  * Package whl files (numpy, scipy, etc.) live in
- * src/renderer/utils/webworker/src/pyodide/ and are served by a tiny Node.js
- * HTTP server on port 17173 started in the Electron main process. This bypasses
- * Vite's dev server, which returns HTML (SPA fallback) for ALL fetch() requests
- * from web workers, including /@fs/ and publicDir paths.
+ * src/renderer/utils/webworker/src/pyodide/ and are served via a custom
+ * Electron protocol scheme (pyodide://) registered in the main process.
+ * This requires no network socket and works in both dev and production.
  *
- * MNE and its pure-Python deps are installed via micropip from local .whl
- * files served by the same pyodide-asset:// protocol under /packages/.
+ * MNE and its pure-Python deps: JS fetches each .whl via pyodide://, writes
+ * the bytes into Pyodide's emscripten FS (/tmp/), then micropip installs from
+ * emfs:///tmp/ — micropip only accepts http/https/emfs URLs, not custom schemes.
  */
 
 // ?url  → Vite resolves to /@fs/... in dev; asset URL in prod.
@@ -26,11 +26,10 @@
 import pyodideMjsUrl from 'pyodide/pyodide.mjs?url';
 import lockFileRaw from 'pyodide/pyodide-lock.json?raw';
 
-// A tiny Node.js HTTP server on port 17173 (started in the Electron main
-// process) serves pyodide assets from src/renderer/utils/webworker/src/.
-// This bypasses Vite's dev server, which returns index.html (SPA fallback)
-// for ALL fetch() requests from web workers, including /@fs/ and publicDir paths.
-const PYODIDE_ASSET_BASE = 'http://127.0.0.1:17173';
+// Custom Electron protocol scheme registered in src/main/index.ts.
+// Serves files from src/renderer/utils/webworker/src/ (dev) or
+// resources/webworker/src/ (prod) without opening a network socket.
+const PYODIDE_ASSET_BASE = 'pyodide://host';
 
 const pyodideReadyPromise = (async () => {
   const { loadPyodide } = await import(/* @vite-ignore */ pyodideMjsUrl);
@@ -67,13 +66,22 @@ const pyodideReadyPromise = (async () => {
   await pyodide.loadPackage('micropip', { checkIntegrity: false });
   const micropip = pyodide.pyimport('micropip');
 
-  // MNE + pure-Python deps are served from /packages/ via pyodide-asset://.
-  const manifestUrl = `${PYODIDE_ASSET_BASE}/packages/manifest.json`;
-  const manifest = await fetch(manifestUrl).then((r) => r.json());
-  const whlUrls = Object.values(manifest).map(
-    ({ filename }) => `${PYODIDE_ASSET_BASE}/packages/${filename}`
+  // MNE + pure-Python deps: micropip only accepts http://, https://, emfs://,
+  // and relative paths — it rejects the pyodide:// custom scheme.
+  // Workaround: JS-fetch each .whl via the protocol handler (which supports it),
+  // write the bytes into Pyodide's emscripten virtual FS, then install via emfs://.
+  const manifest = await fetch(`${PYODIDE_ASSET_BASE}/packages/manifest.json`)
+    .then((r) => r.json());
+
+  for (const { filename } of Object.values(manifest)) {
+    const buffer = await fetch(`${PYODIDE_ASSET_BASE}/packages/${filename}`)
+      .then((r) => r.arrayBuffer());
+    pyodide.FS.writeFile(`/tmp/${filename}`, new Uint8Array(buffer));
+  }
+
+  await micropip.install(
+    Object.values(manifest).map(({ filename }) => `emfs:///tmp/${filename}`)
   );
-  await micropip.install(whlUrls);
 
   return pyodide;
 })();
