@@ -5,10 +5,10 @@
  * All Node.js / filesystem / shell operations the renderer needs
  * are handled here via ipcMain handlers and exposed via the preload.
  */
-import { app, BrowserWindow, ipcMain, dialog, shell, session } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, session, protocol, net } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import http from 'http';
+import { pathToFileURL } from 'url';
 import os from 'os';
 import Papa from 'papaparse';
 import mkdirp from 'mkdirp';
@@ -24,60 +24,19 @@ app.commandLine.appendSwitch(
   'true'
 );
 
-// Port for the local pyodide asset server (serves whl files to web workers,
-// bypassing Vite's dev server which returns HTML for all fetch() requests).
-const PYODIDE_ASSET_PORT = 17173;
-
-const PYODIDE_CONTENT_TYPES: Record<string, string> = {
-  '.json': 'application/json',
-  '.whl': 'application/zip',
-  '.zip': 'application/zip',
-  '.wasm': 'application/wasm',
-  '.js': 'application/javascript',
-  '.mjs': 'application/javascript',
-};
-
-function startPyodideAssetServer(rootDir: string): void {
-  const server = http.createServer((req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204);
-      res.end();
-      return;
-    }
-
-    const urlPath = (req.url || '').split('?')[0];
-    const filePath = path.join(rootDir, urlPath);
-    const ext = path.extname(filePath).toLowerCase();
-
-    fs.stat(filePath, (statErr, stat) => {
-      if (statErr || !stat.isFile()) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end(`Not found: ${urlPath}`);
-        return;
-      }
-      res.setHeader(
-        'Content-Type',
-        PYODIDE_CONTENT_TYPES[ext] || 'application/octet-stream'
-      );
-      res.setHeader('Content-Length', stat.size);
-      res.setHeader('Cache-Control', 'no-cache');
-      res.writeHead(200);
-      fs.createReadStream(filePath).pipe(res);
-    });
-  });
-
-  server.listen(PYODIDE_ASSET_PORT, '127.0.0.1', () => {
-    console.log(
-      `[main] Pyodide asset server: http://127.0.0.1:${PYODIDE_ASSET_PORT}`
-    );
-  });
-
-  server.on('error', (err: NodeJS.ErrnoException) => {
-    console.error('[main] Pyodide asset server error:', err.message);
-  });
-}
+// Register pyodide:// as a privileged custom scheme so web workers can
+// fetch() package .whl files from it. Must be called before app.whenReady().
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'pyodide',
+    privileges: {
+      standard: true,    // treat like http for URL parsing / resolution
+      secure: true,      // counts as a secure origin (needed for WASM, SAB)
+      supportFetchAPI: true, // allow fetch() from renderer and worker contexts
+      corsEnabled: true, // no CORS errors when Pyodide fetches its own assets
+    },
+  },
+]);
 
 export default class AppUpdater {
   constructor() {
@@ -535,17 +494,19 @@ app.on('window-all-closed', () => {
 });
 
 app.whenReady().then(async () => {
-  // Serve pyodide assets (whl files, runtime files) via a local HTTP server so
-  // web workers can fetch() them without hitting Vite's SPA fallback, which
-  // returns HTML for ALL fetch() requests regardless of path.
-  // Port 17173 is hardcoded and matched in webworker.js.
+  // Serve pyodide:// assets (whl files, manifest.json, etc.) directly from the
+  // filesystem via Electron's protocol API — no network socket required.
   // In dev:  files are in src/renderer/utils/webworker/src/
   // In prod: files are in resources/webworker/src/ (via extraResources)
   const pyodideRoot = is.dev
     ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
     : path.join(process.resourcesPath, 'webworker/src');
 
-  startPyodideAssetServer(pyodideRoot);
+  protocol.handle('pyodide', (request) => {
+    const { pathname } = new URL(request.url);
+    const filePath = path.join(pyodideRoot, pathname);
+    return net.fetch(pathToFileURL(filePath).href);
+  });
 
   // Enable F12 devtools shortcut and Ctrl+R reload in dev, disable in prod
   app.on('browser-window-created', (_, window) => {

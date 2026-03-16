@@ -1,13 +1,12 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches:
-      - '**'
-  pull_request:
+    tags:
+      - 'v*'
 
 jobs:
-  ci:
+  release:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -27,14 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Test
-        run: npm test
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Build
-        run: npm run build
+      - name: Build and publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          LICENSE_ID: ${{ secrets.LICENSE_ID }}
+        run: npm run package-ci
