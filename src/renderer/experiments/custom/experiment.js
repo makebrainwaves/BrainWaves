@@ -17,7 +17,7 @@ export const facesHousesExperiment = {
       files: {},
       parameters: {},
       responses: {},
-      messageHandlers: {},
+      hooks: {},
       title: 'The face-house task',
       content: [
         {
@@ -28,7 +28,7 @@ export const facesHousesExperiment = {
             'keypress(Space)': 'continue',
             'keypress(q)': 'skipPractice',
           },
-          messageHandlers: {},
+          hooks: {},
           title: 'Instruction',
           content:
             '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe face-house task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n     ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
@@ -43,7 +43,7 @@ export const facesHousesExperiment = {
             n: '',
           },
           responses: {},
-          messageHandlers: {
+          hooks: {
             'before:prepare': function anonymous() {
               let initParameters = [...this.parameters.stimuli] || [];
 
@@ -134,7 +134,7 @@ export const facesHousesExperiment = {
             files: {},
             parameters: {},
             responses: {},
-            messageHandlers: {},
+            hooks: {},
             title: 'Trial',
             content: [
               {
@@ -166,7 +166,7 @@ export const facesHousesExperiment = {
                 files: {},
                 parameters: {},
                 responses: {},
-                messageHandlers: {},
+                hooks: {},
                 viewport: [800, 600],
                 title: 'Fixation cross',
                 timeout: '${parameters.iti}',
@@ -176,7 +176,7 @@ export const facesHousesExperiment = {
                 files: {},
                 responses: {},
                 parameters: {},
-                messageHandlers: {
+                hooks: {
                   'before:prepare': function anonymous() {
                     console.log('before:prepare screen 1');
 
@@ -254,7 +254,7 @@ export const facesHousesExperiment = {
                 files: {},
                 parameters: {},
                 responses: {},
-                messageHandlers: {
+                hooks: {
                   end: function anonymous() {
                     this.data.correct_response = false;
                   },
@@ -275,7 +275,7 @@ export const facesHousesExperiment = {
           responses: {
             'keypress(Space)': 'continue',
           },
-          messageHandlers: {},
+          hooks: {},
           title: 'Main task',
           content:
             '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EReady for the real data collection?\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n    Press the the space bar to start the main task.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fmain\u003E\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
@@ -290,7 +290,7 @@ export const facesHousesExperiment = {
             n: '',
           },
           responses: {},
-          messageHandlers: {
+          hooks: {
             'before:prepare': function anonymous() {
               let initialParameters = [...this.parameters.stimuli] || [];
               console.log('before:prepare initial params 2', initialParameters);
@@ -384,7 +384,7 @@ export const facesHousesExperiment = {
             files: {},
             parameters: {},
             responses: {},
-            messageHandlers: {},
+            hooks: {},
             title: 'Trial',
             content: [
               {
@@ -416,7 +416,7 @@ export const facesHousesExperiment = {
                 files: {},
                 parameters: {},
                 responses: {},
-                messageHandlers: {},
+                hooks: {},
                 viewport: [800, 600],
                 title: 'Fixation cross',
                 timeout: '${parameters.iti}',
@@ -426,7 +426,7 @@ export const facesHousesExperiment = {
                 files: {},
                 responses: {},
                 parameters: {},
-                messageHandlers: {
+                hooks: {
                   'before:prepare': function anonymous() {
                     // This code registers an event listener for this screen.
                     // We have a timeout for this screen, but we also want to record responses.
@@ -504,7 +504,7 @@ export const facesHousesExperiment = {
                 files: {},
                 parameters: {},
                 responses: {},
-                messageHandlers: {},
+                hooks: {},
                 viewport: [800, 600],
                 title: 'Feedback',
                 tardy: true,
@@ -521,7 +521,7 @@ export const facesHousesExperiment = {
           responses: {
             'keypress(Space)': 'end',
           },
-          messageHandlers: {},
+          hooks: {},
           title: 'End',
           content:
             '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',

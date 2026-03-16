@@ -73,6 +73,13 @@ export default defineConfig({
         events: 'events',
       },
     },
+    server: {
+      fs: {
+        // Allow /@fs/ access to the whole repo root so lab.js can load
+        // experiment stimuli from their absolute filesystem paths.
+        allow: ['.'],
+      },
+    },
     optimizeDeps: {
       include: ['@neurosity/pipes'],
       // Prevent Vite from pre-bundling pyodide. In dev mode it will be served

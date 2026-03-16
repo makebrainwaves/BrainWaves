@@ -2,7 +2,7 @@ import { core } from 'lab.js';
 import { initStroopTrial } from '../../utils/labjs/functions';
 
 export const stroopExperiment = {
-  messageHandlers: {},
+  hooks: {},
   title: 'root',
   type: 'lab.flow.Sequence',
   plugins: [],
@@ -16,11 +16,11 @@ export const stroopExperiment = {
       files: {},
       parameters: {},
       responses: {},
-      messageHandlers: {},
+      hooks: {},
       title: 'Stroop task',
       content: [
         {
-          messageHandlers: {},
+          hooks: {},
           type: 'lab.html.Screen',
           responses: {
             'keypress(Space)': 'continue',
@@ -40,12 +40,12 @@ export const stroopExperiment = {
           files: {},
           parameters: {},
           responses: {},
-          messageHandlers: {},
+          hooks: {},
           title: 'Practice frame',
           tardy: true,
           skip: "${ state.response === 'skipPractice' }",
           content: {
-            messageHandlers: {},
+            hooks: {},
             type: 'lab.flow.Loop',
             responses: {},
             templateParameters: [
@@ -98,7 +98,7 @@ export const stroopExperiment = {
             },
             shuffleGroups: [],
             template: {
-              messageHandlers: {},
+              hooks: {},
               type: 'lab.flow.Sequence',
               responses: {},
               title: 'Trial',
@@ -160,7 +160,7 @@ export const stroopExperiment = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {
+                  hooks: {
                     run: function anonymous(this: core.Component) {
                       this.data.correct = 'empty';
                     },
@@ -229,7 +229,7 @@ export const stroopExperiment = {
                     'keydown(b)': 'blue',
                     'keydown(y)': '#ffe32a',
                   },
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: 'Stroop screen',
                   correctResponse: '${ this.parameters.color }',
@@ -289,7 +289,7 @@ export const stroopExperiment = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {
+                  hooks: {
                     'before:prepare': initStroopTrial,
                   },
                   viewport: [800, 600],
@@ -302,7 +302,7 @@ export const stroopExperiment = {
           },
         },
         {
-          messageHandlers: {},
+          hooks: {},
           type: 'lab.html.Screen',
           responses: {
             'keypress(Space)': 'continue',
@@ -321,10 +321,10 @@ export const stroopExperiment = {
           files: {},
           parameters: {},
           responses: {},
-          messageHandlers: {},
+          hooks: {},
           title: 'Task frame',
           content: {
-            messageHandlers: {},
+            hooks: {},
             type: 'lab.flow.Loop',
             responses: {},
             templateParameters: [
@@ -482,7 +482,7 @@ export const stroopExperiment = {
             },
             shuffleGroups: [],
             template: {
-              messageHandlers: {},
+              hooks: {},
               type: 'lab.flow.Sequence',
               responses: {},
               title: 'Trial',
@@ -544,7 +544,7 @@ export const stroopExperiment = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {
+                  hooks: {
                     run: function anonymous(this: core.Component) {
                       this.data.correct = 'empty';
                     },
@@ -613,7 +613,7 @@ export const stroopExperiment = {
                     'keydown(b)': 'blue',
                     'keydown(y)': '#ffe32a',
                   },
-                  messageHandlers: {
+                  hooks: {
                     run: function anonymous(this: core.Component) {
                       this.parameters.callbackForEEG(
                         this.parameters.congruent === 'yes' ? 1 : 2
@@ -679,7 +679,7 @@ export const stroopExperiment = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {
+                  hooks: {
                     'before:prepare': initStroopTrial,
                   },
                   viewport: [800, 600],
@@ -692,7 +692,7 @@ export const stroopExperiment = {
           },
         },
         {
-          messageHandlers: {},
+          hooks: {},
           type: 'lab.html.Screen',
           responses: {
             'keypress(Space)': 'end',
