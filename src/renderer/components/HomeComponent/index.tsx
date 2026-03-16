@@ -325,7 +325,9 @@ export default class Home extends Component<Props, State> {
                 disabled={!this.props.isWorkerReady}
                 onClick={() => this.props.PyodideActions.LoadTopo()}
               >
-                {this.props.isWorkerReady ? 'Generate Plot' : 'Loading libraries…'}
+                {this.props.isWorkerReady
+                  ? 'Generate Plot'
+                  : 'Loading libraries…'}
               </Button>
             </div>
             <div>

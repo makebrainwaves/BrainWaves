@@ -43,16 +43,36 @@ export const loadCSV = async (worker: Worker, csvArray: Array<unknown>) => {
 // ---------------------------
 // MNE-Related Data Processing
 
-export const loadCleanedEpochs = async (
+export const loadCleanedEpochs = (
   worker: Worker,
-  epochsArray: string[]
+  memfsPaths: string[],
+  fsFiles: Array<{ path: string; bytes: Uint8Array }>
 ) => {
-  await worker.postMessage({
+  worker.postMessage({
+    fsFiles,
     data: [
-      `clean_epochs = concatenate_epochs([read_epochs(file) for file in ${epochsArray}])`,
+      `clean_epochs = concatenate_epochs([read_epochs(file) for file in ${JSON.stringify(memfsPaths)}])`,
       `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
     ].join('\n'),
   });
+};
+
+export const writeEpochsToMemfs = async (
+  filePaths: string[]
+): Promise<{
+  memfsPaths: string[];
+  fsFiles: Array<{ path: string; bytes: Uint8Array }>;
+}> => {
+  const memfsPaths: string[] = [];
+  const fsFiles: Array<{ path: string; bytes: Uint8Array }> = [];
+  for (const filePath of filePaths) {
+    const bytes: Uint8Array =
+      await window.electronAPI.readFileAsBytes(filePath);
+    const memfsPath = `/tmp/${path.basename(filePath)}`;
+    memfsPaths.push(memfsPath);
+    fsFiles.push({ path: memfsPath, bytes });
+  }
+  return { memfsPaths, fsFiles };
 };
 
 // NOTE: this command includes a ';' to prevent returning data
@@ -88,20 +108,19 @@ export const epochEvents = async (
     ].join('\n'),
   });
 
-export const requestEpochsInfo = async (
-  worker: Worker,
-  variableName: string
-) => {
-  const pyodideReturn = await worker.postMessage({
+export const requestEpochsInfo = (worker: Worker, variableName: string) => {
+  worker.postMessage({
     data: `get_epochs_info(${variableName})`,
+    dataKey: 'epochsInfo',
   });
-  return pyodideReturn;
 };
 
-export const requestChannelInfo = async (worker: Worker) =>
+export const requestChannelInfo = (worker: Worker) => {
   worker.postMessage({
     data: `[ch for ch in clean_epochs.ch_names if ch != 'Marker']`,
+    dataKey: 'channelInfo',
   });
+};
 
 // -----------------------------
 // Plot functions
@@ -117,7 +136,7 @@ export const plotPSD = async (worker: Worker) => {
     plotKey: 'psd',
     data: [
       'import io',
-      '_fig = raw.plot_psd(fmin=1, fmax=30, show=False)',
+      '_fig = raw.compute_psd(fmin=1, fmax=30).plot(show=False)',
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
@@ -186,5 +205,5 @@ export const saveEpochs = (
         'EEG',
         `${subject}-cleaned-epo.fif`
       )
-    )}`,
+    )})`,
   });
