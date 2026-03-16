@@ -227,7 +227,7 @@ export const facesHousesExperiment = {
                 timeout:
                   "${parameters.selfPaced ? '3600000' : parameters.presentationTime}",
                 content:
-                  '\u003Cmain class="content-horizontal-center content-vertical-center"\u003E\n  \u003Cdiv\u003E\n    \u003Cimg src=${ this.files[this.parameters.image] } height=${ this.parameters.imageHeight } \u002F\u003E\n  \u003C\u002Fdiv\u003E\n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    ${this.parameters.taskHelp} \n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
+                  '<main class="content-horizontal-center content-vertical-center">\n  <div>\n    <img src="${ this.files[this.parameters.image] }" style="max-height: ${ this.parameters.imageHeight }; max-width: 100%; object-fit: contain;" />\n  </div>\n</main>\n\n<footer class="content-vertical-center content-horizontal-center">\n  <p>\n    ${this.parameters.taskHelp} \n  </p>\n</footer>',
               },
               {
                 type: 'lab.canvas.Screen',
@@ -477,7 +477,7 @@ export const facesHousesExperiment = {
                 timeout:
                   "${parameters.selfPaced ? '3600000' : parameters.presentationTime}",
                 content:
-                  '\u003Cmain class="content-horizontal-center content-vertical-center"\u003E\n  \u003Cdiv\u003E\n    \u003Cimg src=${ this.files[this.parameters.image] } height=${ this.parameters.imageHeight } \u002F\u003E\n  \u003C\u002Fdiv\u003E\n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    ${this.parameters.taskHelp} \n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
+                  '<main class="content-horizontal-center content-vertical-center">\n  <div>\n    <img src="${ this.files[this.parameters.image] }" style="max-height: ${ this.parameters.imageHeight }; max-width: 100%; object-fit: contain;" />\n  </div>\n</main>\n\n<footer class="content-vertical-center content-horizontal-center">\n  <p>\n    ${this.parameters.taskHelp} \n  </p>\n</footer>',
               },
               {
                 type: 'lab.canvas.Screen',
