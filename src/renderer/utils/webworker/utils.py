@@ -1,21 +1,15 @@
-from glob import glob
-import os
-from time import time, strftime, gmtime
 from collections import OrderedDict
 
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd  # maybe we can remove this dependency
-# import seaborn as sns
 
-from mne import (Epochs, concatenate_raws, concatenate_epochs, create_info,
-                 find_events, read_epochs, set_eeg_reference, viz)
+from mne import (concatenate_raws, create_info, viz)
 from mne.io import RawArray
 from io import StringIO
 
-
+# import seaborn as sns
 # plt.style.use(fivethirtyeight)
-
 # sns.set_context('talk')
 # sns.set_style('white')
 

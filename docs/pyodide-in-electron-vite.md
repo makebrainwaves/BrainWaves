@@ -10,43 +10,51 @@ Vite's dev server runs a `historyApiFallback` middleware that returns `index.htm
 
 This is not an obvious failure — Pyodide may partially initialise and then hang or throw cryptic errors when it tries to load packages.
 
-### Solution: Serve Pyodide Assets Out-of-Band
+### Solution: Electron Custom Protocol Scheme (`pyodide://`)
 
-We use two complementary mechanisms:
+We register a privileged custom Electron protocol scheme that serves Pyodide assets directly from the filesystem — no network socket, no Vite interception, works identically in dev and production.
 
-**1. Custom Vite middleware (dev only)**
-
-In `vite.config.ts`, a plugin intercepts requests to `/pyodide/` and `/packages/` before the SPA fallback runs and streams the files directly from `src/renderer/utils/webworker/src/`:
+**Registration in `src/main/index.ts` — must happen before `app.whenReady()`:**
 
 ```ts
-server.middlewares.use((req, res, next) => {
-  const url = req.url ?? '';
-  if (url.startsWith('/pyodide/') || url.startsWith('/packages/')) {
-    const filePath = path.join(staticDir, url.split('?')[0]);
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      res.setHeader('Content-Type', contentTypes[ext] ?? 'application/octet-stream');
-      fs.createReadStream(filePath).pipe(res);
-      return;
-    }
-  }
-  next();
+protocol.registerSchemesAsPrivileged([{
+  scheme: 'pyodide',
+  privileges: {
+    standard: true,       // treat like http for URL parsing / resolution
+    secure: true,         // counts as a secure origin (needed for WASM, SAB)
+    supportFetchAPI: true, // allow fetch() from renderer and worker contexts
+    corsEnabled: true,    // no CORS errors when Pyodide fetches its own assets
+  },
+}]);
+```
+
+**Handler registered in `app.whenReady()`:**
+
+```ts
+const pyodideRoot = is.dev
+  ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
+  : path.join(process.resourcesPath, 'webworker/src');
+
+protocol.handle('pyodide', (request) => {
+  const { pathname } = new URL(request.url);
+  const filePath = path.join(pyodideRoot, pathname);
+  return net.fetch(pathToFileURL(filePath).href);
 });
 ```
 
-**2. Electron local HTTP server on port 17173 (dev + prod)**
-
-Web workers cannot use Vite's dev server at all — `fetch()` from a worker always hits the SPA fallback. The main process (`src/main/index.ts`) starts a plain Node.js `http` server at `http://127.0.0.1:17173` that serves `src/renderer/utils/webworker/src/` (dev) or `resources/webworker/src/` (prod).
-
-The web worker (`webworker.js`) uses this as its `PYODIDE_ASSET_BASE`:
+The web worker uses `pyodide://host` as its asset base:
 
 ```js
-const PYODIDE_ASSET_BASE = 'http://127.0.0.1:17173';
+const PYODIDE_ASSET_BASE = 'pyodide://host';
 ```
 
-Port 17173 is hardcoded in three places that must stay in sync:
-- `src/main/index.ts` — server listen port
-- `src/renderer/utils/webworker/webworker.js` — `PYODIDE_ASSET_BASE`
-- `src/renderer/index.html` — CSP `connect-src` directive
+**CSP in `src/renderer/index.html`** includes `pyodide:` in `connect-src`:
+
+```html
+connect-src 'self' ws: wss: webpack: pyodide:
+```
+
+> **Previous approach (removed):** We previously ran a plain Node.js HTTP server on port 17173 in the main process and a custom Vite middleware that intercepted `/pyodide/` and `/packages/` requests. Both were replaced by the `pyodide://` protocol — cleaner, no open port, no hardcoded port numbers to keep in sync, and no dev-only code path.
 
 ---
 
@@ -73,7 +81,7 @@ worker: {
 },
 ```
 
-And workers must be created with `type: 'module'`:
+Workers must be created with `type: 'module'`:
 
 ```ts
 new Worker(new URL('./webworker.js', import.meta.url), { type: 'module' });
@@ -103,7 +111,12 @@ These are easy to confuse:
 | Option | Purpose |
 |--------|---------|
 | `indexURL` | Where Pyodide looks for its **runtime** files (WASM, stdlib). Already resolved from `node_modules` via `import.meta.url`. Do not override. |
-| `packageBaseUrl` | Where `loadPackage()` fetches **package `.whl` files**. Set this to `http://127.0.0.1:17173/pyodide/`. |
+| `packageBaseUrl` | Where `loadPackage()` fetches **package `.whl` files**. Set this to `pyodide://host/pyodide/`. |
+
+```js
+const packageBaseUrl = `${PYODIDE_ASSET_BASE}/pyodide/`;
+const pyodide = await loadPyodide({ lockFileURL, packageBaseUrl });
+```
 
 ---
 
@@ -117,16 +130,31 @@ await pyodide.loadPackage(['numpy', 'scipy', ...], { checkIntegrity: false });
 
 ---
 
-## micropip.install() from JavaScript
+## micropip and the `pyodide://` URL Limitation
 
-`micropip` is a Python object loaded via `pyodide.pyimport()`. Passing a JavaScript array directly works fine in Pyodide 0.29.x — micropip handles the `JsProxy` conversion internally:
+`micropip.install()` only accepts `http://`, `https://`, and `emfs://` URLs — it rejects custom schemes like `pyodide://`. This means we cannot install pure-Python `.whl` files (MNE and its deps) directly from the protocol.
+
+**Workaround: fetch via JS → write to emscripten FS → install via `emfs://`**
 
 ```js
+const manifest = await fetch(`${PYODIDE_ASSET_BASE}/packages/manifest.json`)
+  .then(r => r.json());
+
+for (const { filename } of Object.values(manifest)) {
+  const buffer = await fetch(`${PYODIDE_ASSET_BASE}/packages/${filename}`)
+    .then(r => r.arrayBuffer());
+  pyodide.FS.writeFile(`/tmp/${filename}`, new Uint8Array(buffer));
+}
+
 const micropip = pyodide.pyimport('micropip');
-await micropip.install(whlUrls);  // JS array works directly
+await micropip.install(
+  Object.values(manifest).map(({ filename }) => `emfs:///tmp/${filename}`)
+);
 ```
 
-> Note: older guidance suggested wrapping with `pyodide.toPy(whlUrls)` — this is not necessary as of 0.29.x.
+The `fetch()` calls here use the `pyodide://` protocol directly (which Electron's protocol handler supports) and write the bytes into Pyodide's virtual emscripten filesystem. `micropip` then installs from `emfs://` paths, which it does accept.
+
+> Note: In Pyodide 0.29.x, passing a JS array directly to `micropip.install()` works — no `pyodide.toPy()` wrapper needed.
 
 ---
 
@@ -304,8 +332,7 @@ The resulting `ArrayBuffer` is passed through the IPC chain (`preload → main`)
 | Web worker entry point | `src/renderer/utils/webworker/webworker.js` |
 | JS wrappers for Python calls | `src/renderer/utils/webworker/index.ts` |
 | Install script | `internals/scripts/InstallMNE.mjs` |
-| Electron asset server | `src/main/index.ts` → `startPyodideAssetServer()` |
-| Vite middleware | `vite.config.ts` → `serve-pyodide-assets` plugin |
+| Electron protocol handler | `src/main/index.ts` → `protocol.handle('pyodide', ...)` |
 | Plot widget component | `src/renderer/components/PyodidePlotWidget.tsx` |
 | Plot epics (Redux-Observable) | `src/renderer/epics/pyodideEpics.ts` |
 | Pyodide Redux state | `src/renderer/reducers/pyodideReducer.ts` |
