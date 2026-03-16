@@ -34,7 +34,7 @@ export const openWorkspaceDir = (title: string): Promise<void> =>
 // Storing
 
 export const storeExperimentState = (
-  state: ExperimentStateType
+  state: Omit<ExperimentStateType, 'experimentObject'>
 ): Promise<void> => api().storeExperimentState(state);
 
 export const restoreExperimentState = (

@@ -60,6 +60,28 @@ The CDN version is derived from `node_modules/pyodide/package.json` — **not** 
 
 **Plot result routing pattern** — `worker.postMessage()` is fire-and-forget (returns `undefined`). Plot epics should use `tap()` to fire the worker message and `mergeMap(() => EMPTY)` to emit nothing. Results come back asynchronously on the worker `message` event. Add a `plotKey` field to each worker message; the worker echoes it back; `pyodideMessageEpic` switches on `plotKey` to dispatch `SetTopoPlot`/`SetPSDPlot`/`SetERPPlot` with a `{ 'image/png': base64string }` MIME bundle. `PyodidePlotWidget` renders this via `@nteract/transforms`.
 
+## Lab.js 23.x API: `hooks` replaces `messageHandlers`
+
+Lab.js 23.x renamed the event-handler registration option from `messageHandlers` to `hooks`. The experiment JSON files (e.g. `experiment.ts` in each experiment folder) must use `hooks:` not `messageHandlers:` for before:prepare/run/end callbacks. If `messageHandlers` is used, the handlers are silently ignored — loops won't initialize their `templateParameters`, causing "Empty or invalid parameter set for loop, no content generated".
+
+Affected files: `src/renderer/experiments/*/experiment.ts` (and `custom/experiment.js`). The format is identical — just the key name changed:
+```js
+// Old (lab.js < 22): messageHandlers: { 'before:prepare': initLoopWithStimuli }
+// New (lab.js 23.x): hooks: { 'before:prepare': initLoopWithStimuli }
+```
+
+## Lab.js stimulus `filepath` must be a browser URL, not a filesystem path
+
+`balanceStimuliByCondition` (in `src/renderer/utils/labjs/functions.ts`) generates a `filepath` field used by lab.js HTML templates (`<img src="${ this.parameters.filepath }">`). This must be a browser-loadable URL, not a raw filesystem path like `/Users/.../Face1.jpg`.
+
+In dev: use `/@fs<absPath>` (Vite's `/@fs/` serving). In prod: use `file://<absPath>`. The helper `absPathToUrl` in `functions.ts` handles this. Same pattern as `ExperimentWindow.tsx` for `options.media.images`.
+
+## Lab.js: `this.id` vs `this.options.id` for loop-cloned components
+
+`prepareNested` (in `flow/util/nested.js`) sets IDs on cloned loop components via `c.id = [parent.id, i].join('_')` — this sets the **component's own property**, NOT `c.options.id`. The options proxy reads through `rawOptions`, which never has an `id` for template-cloned components (the JSON template has no explicit `id` field).
+
+Any hook function (e.g. `initResponseHandlers` in `src/renderer/utils/labjs/functions.ts`) that needs the component ID must use `this.id`, not `this.options.id`. Using `this.options.id` will always be `undefined` for loop-cloned components, causing silent early returns and broken behavior (e.g. keydown handlers never installed).
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch

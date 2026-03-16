@@ -12,6 +12,10 @@ import stroopExperiment from '../../experiments/stroop';
 import searchExperiment from '../../experiments/search';
 import multitaskingExperiment from '../../experiments/multitasking';
 
+function absPathToUrl(absPath: string): string {
+  return import.meta.env.DEV ? `/@fs${absPath}` : `file://${absPath}`;
+}
+
 /**
  * Returns  all data necessary to fully describe an experiment from the experiment type
  * Used in order to instantiate experiment state in redux when creating a new workspace,
@@ -123,7 +127,7 @@ function balanceStimuliByCondition(
     if (stimulus.dir && stimulus.filename) {
       return {
         ...stimulus,
-        filepath: path.join(stimulus.dir, stimulus.filename),
+        filepath: absPathToUrl(path.join(stimulus.dir, stimulus.filename)),
       };
     }
     return stimulus;
@@ -139,10 +143,11 @@ function balanceStimuliByCondition(
  * the pressed key with the correct response which is defined inside the Experiment loop).
  */
 export function initResponseHandlers(this: lab.core.Component) {
-  const {
-    options: { id },
-    parameters: { response },
-  }: { parameters: Stimulus; options: lab.core.ComponentOptions } = this;
+  // this.id is assigned by prepareNested (e.g. "0_1_0_1"), but this.options.id
+  // is undefined for loop-cloned components because rawOptions never has an id.
+  // Use this.id directly.
+  const id = this.id;
+  const { response } = this.parameters as unknown as Stimulus;
   if (!id) return;
 
   this.data.trial_number =
