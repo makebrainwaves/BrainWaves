@@ -29,7 +29,7 @@ export const multitaskingExperimentObject = {
       files: {},
       parameters: {},
       responses: {},
-      messageHandlers: {},
+      hooks: {},
       title: 'Multi-tasking',
       content: [
         {
@@ -39,7 +39,7 @@ export const multitaskingExperimentObject = {
           responses: {
             'keypress(Space)': 'continue',
           },
-          messageHandlers: {},
+          hooks: {},
           title: 'Intro',
           content:
             '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe multi-tasking test\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n  ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
@@ -87,7 +87,7 @@ export const multitaskingExperimentObject = {
           responses: {
             'keypress(Space)': 'continue',
           },
-          messageHandlers: {
+          hooks: {
             'before:prepare': initMultitaskingResponseHandlers,
           },
           title: 'Instructions',
@@ -102,7 +102,7 @@ export const multitaskingExperimentObject = {
           files: {},
           parameters: {},
           responses: {},
-          messageHandlers: {},
+          hooks: {},
           title: 'Frame',
           content: {
             type: 'lab.flow.Loop',
@@ -151,7 +151,7 @@ export const multitaskingExperimentObject = {
               n: '6',
             },
             responses: {},
-            messageHandlers: {},
+            hooks: {},
             title: 'Block loop',
             tardy: true,
             shuffleGroups: [],
@@ -160,7 +160,7 @@ export const multitaskingExperimentObject = {
               files: {},
               parameters: {},
               responses: {},
-              messageHandlers: {},
+              hooks: {},
               title: 'Block sequence',
               skip: "${this.parameters.task === 'training' && this.state.skipTraining === true}",
               content: [
@@ -317,7 +317,7 @@ export const multitaskingExperimentObject = {
                   responses: {
                     'keypress(Space)': 'continue',
                   },
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: 'Ready',
                 },
@@ -813,7 +813,7 @@ export const multitaskingExperimentObject = {
                   responses: {
                     'keypress(Space)': 'continue',
                   },
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: 'Block description',
                 },
@@ -872,7 +872,7 @@ export const multitaskingExperimentObject = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: 'Concentrate',
                   timeout: '1000',
@@ -970,7 +970,7 @@ export const multitaskingExperimentObject = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: '3',
                   timeout: '1000',
@@ -1068,7 +1068,7 @@ export const multitaskingExperimentObject = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: '2',
                   timeout: '1000',
@@ -1166,7 +1166,7 @@ export const multitaskingExperimentObject = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  messageHandlers: {},
+                  hooks: {},
                   viewport: [800, 600],
                   title: '1',
                   timeout: '1000',
@@ -1181,7 +1181,7 @@ export const multitaskingExperimentObject = {
                     n: '',
                   },
                   responses: {},
-                  messageHandlers: {
+                  hooks: {
                     'before:prepare': initTasks,
                   },
                   title: 'Trial loop',
@@ -1191,7 +1191,7 @@ export const multitaskingExperimentObject = {
                     files: {},
                     parameters: {},
                     responses: {},
-                    messageHandlers: {},
+                    hooks: {},
                     title: 'Trial sequence',
                     content: [
                       {
@@ -1564,7 +1564,7 @@ export const multitaskingExperimentObject = {
                           'keypress(b)': 'b',
                           'keypress(n)': 'n',
                         },
-                        messageHandlers: {
+                        hooks: {
                           run: triggerEEGCallback,
                         },
                         viewport: [800, 600],
@@ -1847,7 +1847,7 @@ export const multitaskingExperimentObject = {
                         files: {},
                         parameters: {},
                         responses: {},
-                        messageHandlers: {
+                        hooks: {
                           'before:prepare': initTaskScreen,
                         },
                         viewport: [800, 600],
@@ -2490,7 +2490,7 @@ export const multitaskingExperimentObject = {
                         files: {},
                         parameters: {},
                         responses: {},
-                        messageHandlers: {},
+                        hooks: {},
                         viewport: [800, 600],
                         title: 'Pause',
                         skip: '${this.state.correct === true}',
@@ -2511,7 +2511,7 @@ export const multitaskingExperimentObject = {
           responses: {
             'keypress(Space)': 'end',
           },
-          messageHandlers: {},
+          hooks: {},
           title: 'End',
           content:
             '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',

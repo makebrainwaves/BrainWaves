@@ -18,6 +18,13 @@ export interface ExperimentWindowProps {
   onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
 }
 
+// Converts an absolute filesystem path to a URL the renderer can load.
+// In Vite dev mode, /@fs/<path> serves files outside publicDir.
+// In production the renderer has a file:// origin so file:// URLs work directly.
+function absPathToUrl(absPath: string): string {
+  return import.meta.env.DEV ? `/@fs${absPath}` : `file://${absPath}`;
+}
+
 export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
   title,
   experimentObject,
@@ -27,6 +34,11 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
   onFinish,
 }) => {
   useEffect(() => {
+    // experimentObject starts as {} in Redux initial state — bail out until a
+    // real experiment is loaded, otherwise lab.core.deserialize crashes on
+    // the missing `type` field.
+    if (!experimentObject?.type) return;
+
     // TODO: move this study mutation into Redux?
     const experimentClone = clonedeep(experimentObject);
     const paramsClone = clonedeep(params);
@@ -38,7 +50,7 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
       experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
         (images, stimulus) => {
           if (stimulus.dir && stimulus.filename) {
-            return [...images, path.join(stimulus.dir, stimulus.filename)];
+            return [...images, absPathToUrl(path.join(stimulus.dir, stimulus.filename))];
           }
           return images;
         },

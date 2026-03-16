@@ -132,6 +132,7 @@ export default class Home extends Component<Props, State> {
   }
 
   handleLoadCustomExperiment(title: string) {
+    title = title.replace(/ /g, '_');
     this.setState({ isNewExperimentModalOpen: false });
     if (this.state.recentWorkspaces.includes(title)) {
       toast.error(`Experiment already exists`);
