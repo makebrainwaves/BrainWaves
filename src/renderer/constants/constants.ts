@@ -1,9 +1,9 @@
 export enum EXPERIMENTS {
   NONE = 'NONE',
-  N170 = 'Faces and Houses',
-  STROOP = 'Stroop Task',
+  N170 = 'Faces_and_Houses',
+  STROOP = 'Stroop_Task',
   MULTI = 'Multi-tasking',
-  SEARCH = 'Visual Search',
+  SEARCH = 'Visual_Search',
   CUSTOM = 'Custom',
   // P300 = 'Visual Oddball',
   // SSVEP = 'Steady-state Visual Evoked Potential',

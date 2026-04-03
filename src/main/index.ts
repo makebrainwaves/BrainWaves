@@ -142,8 +142,10 @@ ipcMain.handle('fs:readAndParseState', (_event, dir) => {
 ipcMain.handle(
   'fs:storeExperimentState',
   (_event, state: Record<string, unknown>) => {
+    const dir = getWorkspaceDir(state.title as string);
+    if (!fs.existsSync(dir)) return;
     fs.writeFileSync(
-      path.join(getWorkspaceDir(state.title as string), 'appState.json'),
+      path.join(dir, 'appState.json'),
       JSON.stringify(state)
     );
   }

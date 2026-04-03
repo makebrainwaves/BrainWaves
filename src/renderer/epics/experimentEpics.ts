@@ -46,10 +46,6 @@ const createNewWorkspaceEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
     map((action) => action.payload as WorkSpaceInfo),
-    mergeMap(async (workspaceInfo) => {
-      await createWorkspaceDir(workspaceInfo.title);
-      return workspaceInfo;
-    }),
     mergeMap((workspaceInfo) => {
       const experiment = getExperimentFromType(workspaceInfo.type);
       return of(
@@ -66,6 +62,7 @@ const startEpic = (action$, state$) =>
     filter(isActionOf(ExperimentActions.Start)),
     filter(() => !state$.value.experiment.isRunning),
     mergeMap(async () => {
+      await createWorkspaceDir(state$.value.experiment.title);
       if (
         state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
       ) {
@@ -193,10 +190,12 @@ const saveWorkspaceEpic: Epic<
     ),
     mergeMap(async () => {
       const now = Date.now();
-      await storeExperimentState({
-        ...state$.value.experiment,
-        dateModified: now,
-      });
+      // experimentObject contains function references (hooks) that cannot be
+      // serialized via IPC structured clone. It is always re-derived from
+      // `type` on load (see handleLoadRecentWorkspace), so omit it here.
+      const { experimentObject: _omit, ...serializableState } =
+        state$.value.experiment;
+      await storeExperimentState({ ...serializableState, dateModified: now });
       return now;
     }),
     map(ExperimentActions.SetDateModified)
