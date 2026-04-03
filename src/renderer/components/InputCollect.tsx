@@ -99,7 +99,9 @@ export default class InputCollect extends Component<Props, State> {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label htmlFor="input-subject" className="block text-sm mb-1">Enter Subject ID</label>
+              <label htmlFor="input-subject" className="block text-sm mb-1">
+                Enter Subject ID
+              </label>
               <input
                 id="input-subject"
                 className={[
@@ -127,7 +129,9 @@ export default class InputCollect extends Component<Props, State> {
               />
             </div>
             <div>
-              <label htmlFor="input-session" className="block text-sm mb-1">Enter session number</label>
+              <label htmlFor="input-session" className="block text-sm mb-1">
+                Enter session number
+              </label>
               <input
                 id="input-session"
                 className={[
