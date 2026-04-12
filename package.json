@@ -131,7 +131,6 @@
     "redux",
     "redux-observable",
     "muse",
-    "emotiv",
     "pyodide",
     "wasm",
     "lab.js"

@@ -29,27 +29,3 @@ export const parseMuseSignalQuality = () =>
       ),
     }))
   );
-
-export const parseEmotivSignalQuality = () =>
-  pipe(
-    map((epoch: PipesEpoch) => ({
-      ...epoch,
-      signalQuality: Object.assign(
-        {},
-        ...Object.entries(epoch.signalQuality).map(
-          ([channelName, signalQuality]) => {
-            if (signalQuality === 0) {
-              return { [channelName]: SIGNAL_QUALITY.DISCONNECTED };
-            }
-            if (signalQuality === 3) {
-              return { [channelName]: SIGNAL_QUALITY.OK };
-            }
-            if (signalQuality === 4) {
-              return { [channelName]: SIGNAL_QUALITY.GREAT };
-            }
-            return { [channelName]: SIGNAL_QUALITY.BAD };
-          }
-        )
-      ),
-    }))
-  );

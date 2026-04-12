@@ -4,7 +4,6 @@ import { isNil, debounce } from 'lodash';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import {
-  DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
   SCREENS,
@@ -17,7 +16,6 @@ interface Props {
   onClose: () => void;
   connectedDevice: Record<string, unknown>;
   signalQualityObservable?: Observable<SignalQualityData>;
-  deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;

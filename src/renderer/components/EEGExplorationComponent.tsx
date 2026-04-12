@@ -85,7 +85,6 @@ export default class Home extends Component<Props, State> {
                 </div>
                 <ViewerComponent
                   signalQualityObservable={this.props.signalQualityObservable}
-                  deviceType={this.props.deviceType}
                   plottingInterval={PLOTTING_INTERVAL}
                 />
               </div>
@@ -111,7 +110,6 @@ export default class Home extends Component<Props, State> {
               onClose={this.handleConnectModalClose}
               connectedDevice={this.props.connectedDevice}
               signalQualityObservable={this.props.signalQualityObservable}
-              deviceType={this.props.deviceType}
               deviceAvailability={this.props.deviceAvailability}
               connectionStatus={this.props.connectionStatus}
               DeviceActions={this.props.DeviceActions}

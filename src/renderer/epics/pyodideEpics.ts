@@ -25,7 +25,6 @@ import {
   loadUtils,
 } from '../utils/webworker';
 import {
-  EMOTIV_CHANNELS,
   DEVICES,
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES,
@@ -251,20 +250,15 @@ const loadERPEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     filter(isActionOf(PyodideActions.LoadERP)),
     pluck('payload'),
     map((channelName: string) => {
-      let index: number | null = null;
-      if (MUSE_CHANNELS.includes(channelName)) {
-        index = MUSE_CHANNELS.indexOf(channelName);
+      const index = MUSE_CHANNELS.includes(channelName)
+        ? MUSE_CHANNELS.indexOf(channelName)
+        : 0;
+      if (!MUSE_CHANNELS.includes(channelName)) {
+        console.warn(
+          'channel name supplied to loadERPEpic does not belong to a known Muse channel'
+        );
       }
-      if (EMOTIV_CHANNELS.includes(channelName)) {
-        index = EMOTIV_CHANNELS.indexOf(channelName);
-      }
-      if (index) {
-        return index;
-      }
-      console.warn(
-        'channel name supplied to loadERPEpic does not belong to either device'
-      );
-      return parseInt(EMOTIV_CHANNELS[0], 10);
+      return index;
     }),
     tap((chanIndex) => plotERP(state$.value.pyodide.worker!, chanIndex)),
     mergeMap(() => EMPTY)

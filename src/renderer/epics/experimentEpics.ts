@@ -12,9 +12,7 @@ import { isActionOf } from '../utils/redux';
 import { ExperimentActions, ExperimentActionType } from '../actions';
 import { RouterActions } from '../actions/routerActions';
 import {
-  DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS,
   CONNECTION_STATUS,
 } from '../constants/constants';
 import {
@@ -30,7 +28,6 @@ import {
   readWorkspaceBehaviorData,
   getWorkspaceDir,
 } from '../utils/filesystem/storage';
-import { createEmotivRecord, stopEmotivRecord } from '../utils/eeg/emotiv';
 import { RootState } from '../reducers';
 import { WorkSpaceInfo } from '../constants/interfaces';
 import { getExperimentFromType } from '../utils/labjs/functions';
@@ -79,19 +76,7 @@ const startEpic = (action$, state$) =>
         if (!streamId) {
           return true;
         }
-        writeHeader(
-          streamId,
-          state$.value.device.deviceType === DEVICES.EMOTIV
-            ? EMOTIV_CHANNELS
-            : MUSE_CHANNELS
-        );
-
-        if (state$.value.device.deviceType === DEVICES.EMOTIV) {
-          createEmotivRecord(
-            state$.value.experiment.subject,
-            state$.value.experiment.session
-          );
-        }
+        writeHeader(streamId, MUSE_CHANNELS);
 
         state$.value.device.rawObservable
           .pipe(
@@ -131,12 +116,6 @@ const experimentStopEpic: Epic<
         state$.value.experiment.group,
         state$.value.experiment.session
       );
-      if (
-        state$.value.experiment.isEEGEnabled &&
-        state$.value.device.deviceType === DEVICES.EMOTIV
-      ) {
-        stopEmotivRecord();
-      }
     }),
     mergeMap(() => of(ExperimentActions.SetIsRunning(false)))
   );
