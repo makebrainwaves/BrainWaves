@@ -48,6 +48,12 @@
     "productName": "BrainWaves",
     "appId": "com.electron.brainwaves",
     "asar": true,
+    "protocols": [
+      {
+        "name": "BrainWaves",
+        "schemes": ["brainwaves"]
+      }
+    ],
     "files": [
       "out/**/*",
       "node_modules/**/*",
