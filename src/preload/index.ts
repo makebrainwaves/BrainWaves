@@ -153,4 +153,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getResourcePath: (): Promise<string> => ipcRenderer.invoke('getResourcePath'),
 
   getViewerUrl: (): Promise<string> => ipcRenderer.invoke('getViewerUrl'),
+
+  // ------------------------------------------------------------------
+  // OAuth deep-link callback
+  // ------------------------------------------------------------------
+  onOAuthCallback: (callback: (url: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, url: string) =>
+      callback(url);
+    ipcRenderer.on('oauth:callback', handler);
+    return () => ipcRenderer.removeListener('oauth:callback', handler);
+  },
 });

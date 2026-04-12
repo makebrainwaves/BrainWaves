@@ -24,6 +24,45 @@ app.commandLine.appendSwitch(
   'true'
 );
 
+// Enforce a single app instance — required so the second-instance event fires
+// on Windows/Linux when the OS re-launches the app to deliver an OAuth callback.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+
+// Register brainwaves:// as the OS-level deep-link scheme.
+// Redirect URI for OAuth: brainwaves://oauth/callback
+app.setAsDefaultProtocolClient('brainwaves');
+
+// Buffer an OAuth callback URL that arrives before the window is ready
+// (e.g. the app is cold-launched by the OS to handle the redirect).
+let pendingOAuthUrl: string | null = null;
+
+const handleOAuthCallback = (url: string) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('oauth:callback', url);
+  } else {
+    pendingOAuthUrl = url;
+  }
+};
+
+// macOS: OS fires open-url when a brainwaves:// link is opened.
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleOAuthCallback(url);
+});
+
+// Windows / Linux: OS relaunches the app with the URL as a CLI argument.
+// requestSingleInstanceLock() above ensures the existing instance gets this event.
+app.on('second-instance', (_event, argv) => {
+  const url = argv.find((arg) => arg.startsWith('brainwaves://'));
+  if (url) handleOAuthCallback(url);
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
 // Register pyodide:// as a privileged custom scheme so web workers can
 // fetch() package .whl files from it. Must be called before app.whenReady().
 protocol.registerSchemesAsPrivileged([
@@ -459,6 +498,10 @@ const createWindow = async () => {
     }
     if (is.dev || process.env.DEBUG_PROD === 'true') {
       mainWindow.webContents.openDevTools();
+    }
+    if (pendingOAuthUrl) {
+      mainWindow.webContents.send('oauth:callback', pendingOAuthUrl);
+      pendingOAuthUrl = null;
     }
   });
 
