@@ -17,6 +17,9 @@ const resourcePath = resourcePathArg
 
 contextBridge.exposeInMainWorld('__ELECTRON_RESOURCE_PATH__', resourcePath);
 
+// Node `process` is not available in the isolated renderer; expose OS for feature gates.
+contextBridge.exposeInMainWorld('__ELECTRON_PLATFORM__', process.platform);
+
 contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
   // Dialogs
@@ -163,4 +166,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('oauth:callback', handler);
     return () => ipcRenderer.removeListener('oauth:callback', handler);
   },
+
+  // ------------------------------------------------------------------
+  // Bluetooth — search cancellation
+  // ------------------------------------------------------------------
+  cancelBluetoothSearch: (): Promise<void> =>
+    ipcRenderer.invoke('bluetooth:cancelSearch'),
 });

@@ -11,6 +11,7 @@ import {
   createRawMuseObservable,
   createMuseSignalQualityObservable,
   disconnectFromMuse,
+  cancelMuseScan,
 } from '../utils/eeg/muse';
 import {
   CONNECTION_STATUS,
@@ -83,6 +84,9 @@ const searchTimerEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
       () =>
         state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
     ),
+    // Cancel the pending requestDevice() promise in the main process so it
+    // doesn't hang after the search window closes.
+    tap(() => cancelMuseScan()),
     map(() => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
