@@ -48,6 +48,11 @@ export default class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
+// Holds the pending Bluetooth device-picker callback from select-bluetooth-device.
+// Electron 22+ fires this event instead of showing a native picker — we must
+// call it with a deviceId to resolve requestDevice(), or '' to reject.
+let pendingBluetoothCallback: ((deviceId: string) => void) | null = null;
+
 // ------------------------------------------------------------------
 // Filesystem helpers (mirroring renderer's storage.ts / write.ts)
 // ------------------------------------------------------------------
@@ -396,6 +401,14 @@ ipcMain.handle('eeg:closeStream', (_event, streamId) => {
   });
 });
 
+// Bluetooth — called by renderer's search timer when scan times out with no result
+ipcMain.handle('bluetooth:cancelSearch', () => {
+  if (pendingBluetoothCallback) {
+    pendingBluetoothCallback('');
+    pendingBluetoothCallback = null;
+  }
+});
+
 // Resource path (for experiment file loading)
 ipcMain.handle('getResourcePath', () => {
   return is.dev
@@ -438,6 +451,24 @@ const createWindow = async () => {
   });
 
   mainWindow.setMinimumSize(1075, 708);
+
+  // Electron 22+ does not show a native Bluetooth picker automatically.
+  // We intercept select-bluetooth-device and auto-select the first Muse device
+  // found. The event fires multiple times as BLE discovery progresses — each
+  // call carries the full cumulative deviceList seen so far.
+  mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
+    event.preventDefault();
+    pendingBluetoothCallback = callback;
+
+    const muse = deviceList.find((d) => d.deviceName?.startsWith('Muse'));
+    if (muse) {
+      pendingBluetoothCallback(muse.deviceId);
+      pendingBluetoothCallback = null;
+    }
+    // No Muse visible yet — keep scanning. The event will fire again as more
+    // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
+    // after SEARCH_TIMER ms if nothing is found.
+  });
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
