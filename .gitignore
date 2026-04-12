@@ -28,3 +28,6 @@ dist
 .idea
 keys.js
 src/renderer/utils/webworker/src
+
+# Pyodide runtime + package wheels (downloaded or extracted locally; see docs/pyodide-in-electron-vite.md)
+src/renderer/utils/pyodide/src
