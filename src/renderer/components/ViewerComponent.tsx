@@ -3,8 +3,6 @@ import { Subscription, Observable } from 'rxjs';
 import { isNil } from 'lodash';
 import {
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS,
-  DEVICES,
   VIEWER_DEFAULTS,
 } from '../constants/constants';
 
@@ -18,7 +16,6 @@ import Mousetrap from 'mousetrap';
 
 interface Props {
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
-  deviceType: DEVICES;
   plottingInterval: number;
 }
 
@@ -38,8 +35,7 @@ class ViewerComponent extends Component<Props, State> {
     super(props);
     this.state = {
       ...VIEWER_DEFAULTS,
-      channels:
-        props.deviceType === DEVICES.EMOTIV ? EMOTIV_CHANNELS : MUSE_CHANNELS,
+      channels: MUSE_CHANNELS,
       viewerUrl: '',
     };
     this.graphView = null;
@@ -72,14 +68,6 @@ class ViewerComponent extends Component<Props, State> {
       signalQualityObservable != null
     ) {
       this.subscribeToObservable(signalQualityObservable);
-    }
-    if (this.props.deviceType !== prevProps.deviceType) {
-      this.setState({
-        channels:
-          this.props.deviceType === DEVICES.MUSE
-            ? MUSE_CHANNELS
-            : EMOTIV_CHANNELS,
-      });
     }
     if (!this.graphView) {
       return;

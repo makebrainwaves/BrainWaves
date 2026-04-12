@@ -2,7 +2,6 @@ import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import {
   EXPERIMENTS,
-  DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
 } from '../../constants/constants';
@@ -20,7 +19,6 @@ import { ExperimentActions, DeviceActions } from '../../actions';
 export interface Props {
   ExperimentActions: typeof ExperimentActions;
   connectedDevice: Record<string, unknown>;
-  deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
@@ -103,7 +101,6 @@ export default class Collect extends Component<Props, State> {
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
           signalQualityObservable={this.props.signalQualityObservable ?? undefined}
-          deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
           DeviceActions={this.props.DeviceActions}
@@ -112,7 +109,6 @@ export default class Collect extends Component<Props, State> {
         <PreTestComponent
           connectedDevice={this.props.connectedDevice}
           signalQualityObservable={this.props.signalQualityObservable}
-          deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
           DeviceActions={this.props.DeviceActions}

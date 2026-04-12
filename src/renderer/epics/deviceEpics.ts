@@ -6,13 +6,6 @@ import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import { DeviceActions, DeviceActionType, ExperimentActions } from '../actions';
 import {
-  getEmotiv,
-  connectToEmotiv,
-  createRawEmotivObservable,
-  createEmotivSignalQualityObservable,
-  disconnectFromEmotiv,
-} from '../utils/eeg/emotiv';
-import {
   getMuse,
   connectToMuse,
   createRawMuseObservable,
@@ -51,36 +44,6 @@ const searchMuseEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
       )
     ),
     filter((devices) => !isNil(devices) && devices.length >= 1),
-    map(DeviceActions.DeviceFound)
-  );
-
-const searchEmotivEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
-  action$
-) =>
-  action$.pipe(
-    filter(isActionOf(DeviceActions.SetDeviceAvailability)),
-    pluck('payload'),
-    filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
-    filter(() => process.platform === 'darwin' || process.platform === 'win32'),
-    map(getEmotiv),
-    mergeMap((promise) =>
-      promise.then(
-        (devices) => devices,
-        (error) => {
-          if (error.message.includes('client.queryHeadsets')) {
-            toast.error(
-              'Could not connect to Cortex Service. Please connect to the internet and install Cortex to use Emotiv EEG',
-              { autoClose: 7000 }
-            );
-          } else {
-            toast.error(`"Device Error: " ${error.toString()}`);
-          }
-          console.error('searchEpic: ', error.toString());
-          return [];
-        }
-      )
-    ),
-    filter((devices) => devices.length >= 1),
     map(DeviceActions.DeviceFound)
   );
 
@@ -129,11 +92,7 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
-    map((device) =>
-      (isNil(device.name)
-        ? connectToEmotiv(device)
-        : connectToMuse(device)) as Promise<DeviceInfo | null>
-    ),
+    map((device) => connectToMuse(device) as Promise<DeviceInfo | null>),
     mergeMap((promise) => promise.then((deviceInfo) => deviceInfo)),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<DeviceInfo | null, ObservableInput<any>>((deviceInfo) => {
@@ -141,9 +100,7 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
       if (deviceInfo != null && deviceInfo.samplingRate != null) {
         console.log(deviceInfo);
         return of(
-          DeviceActions.SetDeviceType(
-            deviceInfo.name.includes('Muse') ? DEVICES.MUSE : DEVICES.EMOTIV
-          ),
+          DeviceActions.SetDeviceType(DEVICES.MUSE),
           DeviceActions.SetDeviceInfo(deviceInfo),
           DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
         );
@@ -170,12 +127,7 @@ const setRawObservableEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.SetDeviceInfo)),
-    mergeMap(() => {
-      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
-        return from(createRawEmotivObservable());
-      }
-      return from(createRawMuseObservable());
-    }),
+    mergeMap(() => from(createRawMuseObservable())),
     map(DeviceActions.SetRawObservable)
   );
 
@@ -187,15 +139,12 @@ const setSignalQualityObservableEpic: Epic<
   action$.pipe(
     filter(isActionOf(DeviceActions.SetRawObservable)),
     pluck('payload'),
-    map((rawObservable) => {
-      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
-        return createEmotivSignalQualityObservable(rawObservable);
-      }
-      return createMuseSignalQualityObservable(
+    map((rawObservable) =>
+      createMuseSignalQualityObservable(
         rawObservable,
         state$.value.device.connectedDevice
-      );
-    }),
+      )
+    ),
     map(DeviceActions.SetSignalQualityObservable)
   );
 
@@ -211,9 +160,6 @@ const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
         CONNECTION_STATUS.NOT_YET_CONNECTED
     ),
     map(() => {
-      if (state$.value.device.deviceType === DEVICES.EMOTIV) {
-        disconnectFromEmotiv();
-      }
       disconnectFromMuse();
     }),
     map(DeviceActions.Cleanup)
@@ -221,7 +167,6 @@ const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
 
 export default combineEpics(
   searchMuseEpic,
-  searchEmotivEpic,
   deviceFoundEpic,
   searchTimerEpic,
   connectEpic,

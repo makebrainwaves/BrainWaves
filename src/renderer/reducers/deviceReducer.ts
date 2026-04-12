@@ -32,7 +32,7 @@ const initialState: DeviceStateType = {
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
   signalQualityObservable: null,
-  deviceType: DEVICES.EMOTIV,
+  deviceType: DEVICES.MUSE,
 };
 
 export default createReducer(initialState, (builder) =>

@@ -9,7 +9,6 @@ import { HelpSidebar, HelpButton } from './HelpSidebar';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
 import {
-  DEVICES,
   DEVICE_AVAILABILITY,
   EXPERIMENTS,
   PLOTTING_INTERVAL,
@@ -26,7 +25,6 @@ interface Props {
   ExperimentActions: typeof ExperimentActions;
   connectedDevice: Record<string, unknown>;
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
-  deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
@@ -163,7 +161,6 @@ export default class PreTestComponent extends Component<Props, State> {
             <div className="w-1/2">
               <ViewerComponent
                 signalQualityObservable={this.props.signalQualityObservable}
-                deviceType={this.props.deviceType}
                 plottingInterval={PLOTTING_INTERVAL}
               />
               {this.renderHelpButton()}
