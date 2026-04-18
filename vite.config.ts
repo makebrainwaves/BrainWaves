@@ -29,6 +29,7 @@ export default defineConfig({
       alias: {
         '@main': path.resolve(__dirname, 'src/main'),
         '@renderer': path.resolve(__dirname, 'src/renderer'),
+        '@shared': path.resolve(__dirname, 'src/shared'),
       },
     },
   },
@@ -68,6 +69,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': path.resolve(__dirname, 'src/renderer'),
+        '@shared': path.resolve(__dirname, 'src/shared'),
         // Browser-compatible path utilities (pathe = modern drop-in for Node's path)
         path: 'pathe',
         events: 'events',

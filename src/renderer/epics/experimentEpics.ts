@@ -73,7 +73,10 @@ const startEpic = (action$, state$) =>
         if (!streamId) {
           return true;
         }
-        writeHeader(streamId, MUSE_CHANNELS);
+        writeHeader(
+          streamId,
+          state$.value.device.connectedDevice?.channels ?? MUSE_CHANNELS
+        );
 
         state$.value.device.rawObservable
           .pipe(

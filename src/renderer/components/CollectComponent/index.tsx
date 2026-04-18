@@ -4,6 +4,7 @@ import {
   EXPERIMENTS,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
+  DEVICES,
 } from '../../constants/constants';
 import {
   ExperimentParameters,
@@ -11,6 +12,7 @@ import {
   Device,
   ExperimentObject,
 } from '../../constants/interfaces';
+import type { DiscoveredStream } from '../../../shared/lslTypes';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
 import RunComponent from './RunComponent';
@@ -21,8 +23,10 @@ export interface Props {
   connectedDevice: Record<string, unknown>;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
+  deviceType: DEVICES;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<Device>;
+  availableLSLStreams: Array<DiscoveredStream>;
   type: EXPERIMENTS;
   experimentObject: ExperimentObject;
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
@@ -103,8 +107,10 @@ export default class Collect extends Component<Props, State> {
           signalQualityObservable={this.props.signalQualityObservable ?? undefined}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
+          deviceType={this.props.deviceType}
           DeviceActions={this.props.DeviceActions}
           availableDevices={this.props.availableDevices}
+          availableLSLStreams={this.props.availableLSLStreams}
         />
         <PreTestComponent
           connectedDevice={this.props.connectedDevice}

@@ -73,6 +73,10 @@ const Run: React.FC<Props> = ({
     (event: string, time: number) => {
       if (isEEGEnabled) {
         injectMuseMarker(event, time);
+        window.electronAPI.sendLSLMarker({
+          label: event,
+          rendererTimestamp: performance.now(),
+        });
       }
     },
     [isEEGEnabled]
