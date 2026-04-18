@@ -1,6 +1,14 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { of, from, timer, ObservableInput } from 'rxjs';
-import { map, pluck, mergeMap, tap, filter, catchError } from 'rxjs/operators';
+import { of, from, timer, ObservableInput, EMPTY } from 'rxjs';
+import {
+  map,
+  pluck,
+  mergeMap,
+  tap,
+  filter,
+  catchError,
+  takeUntil,
+} from 'rxjs/operators';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
@@ -13,6 +21,20 @@ import {
   disconnectFromMuse,
   cancelMuseScan,
 } from '../utils/eeg/muse';
+import {
+  getNeurosity,
+  connectToNeurosity,
+  createRawNeurosityObservable,
+  disconnectFromNeurosity,
+  cancelNeurosityScan,
+} from '../utils/eeg/neurosity';
+import {
+  discoverLSLStreams,
+  connectToLSLInlet,
+  createRawLSLInletObservable,
+  disconnectFromLSLInlet,
+} from '../utils/eeg/lslInlet';
+import { batchSamplesToEpoch, sendEpoch } from '../utils/eeg/lslBridge';
 import {
   CONNECTION_STATUS,
   DEVICES,
@@ -27,17 +49,22 @@ import { RootState } from '../reducers';
 
 // NOTE: Uses a Promise "then" inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
 const searchMuseEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
-  action$
+  action$,
+  state$
 ) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
-    map(getMuse),
+    map(() =>
+      state$.value.device.deviceType === DEVICES.NEUROSITY
+        ? getNeurosity()
+        : getMuse()
+    ),
     mergeMap((promise) =>
       promise.then(
         (devices) => devices,
-        (error) => {
+        () => {
           // This error will fire a bit too promiscuously until we fix windows web bluetooth
           // toast.error(`"Device Error: " ${error.toString()}`);
           return [];
@@ -86,25 +113,37 @@ const searchTimerEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     ),
     // Cancel the pending requestDevice() promise in the main process so it
     // doesn't hang after the search window closes.
-    tap(() => cancelMuseScan()),
+    tap(() => {
+      if (state$.value.device.deviceType === DEVICES.NEUROSITY) {
+        cancelNeurosityScan();
+      } else {
+        cancelMuseScan();
+      }
+    }),
     map(() => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
 const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
-  action$
+  action$,
+  state$
 ) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
-    map((device) => connectToMuse(device) as Promise<DeviceInfo | null>),
+    map((device) =>
+      state$.value.device.deviceType === DEVICES.NEUROSITY
+        ? (connectToNeurosity(device) as Promise<DeviceInfo | null>)
+        : (connectToMuse(device) as Promise<DeviceInfo | null>)
+    ),
     mergeMap((promise) => promise.then((deviceInfo) => deviceInfo)),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<DeviceInfo | null, ObservableInput<any>>((deviceInfo) => {
       // returns union of several action types
       if (deviceInfo != null && deviceInfo.samplingRate != null) {
         console.log(deviceInfo);
+        // Preserve the currently-selected deviceType; do not hardcode MUSE.
         return of(
-          DeviceActions.SetDeviceType(DEVICES.MUSE),
+          DeviceActions.SetDeviceType(state$.value.device.deviceType),
           DeviceActions.SetDeviceInfo(deviceInfo),
           DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
         );
@@ -131,7 +170,13 @@ const setRawObservableEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.SetDeviceInfo)),
-    mergeMap(() => from(createRawMuseObservable())),
+    mergeMap(() =>
+      from(
+        state$.value.device.deviceType === DEVICES.NEUROSITY
+          ? createRawNeurosityObservable()
+          : createRawMuseObservable()
+      )
+    ),
     map(DeviceActions.SetRawObservable)
   );
 
@@ -164,9 +209,87 @@ const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
         CONNECTION_STATUS.NOT_YET_CONNECTED
     ),
     map(() => {
-      disconnectFromMuse();
+      const dt = state$.value.device.deviceType;
+      if (dt === DEVICES.NEUROSITY) {
+        void disconnectFromNeurosity();
+      } else if (dt === DEVICES.LSL) {
+        disconnectFromLSLInlet();
+      } else {
+        disconnectFromMuse();
+      }
     }),
     map(DeviceActions.Cleanup)
+  );
+
+// External LSL inlet — discovery and connection have a separate flow from
+// BLE (no requestDevice gesture), so they get their own epics.
+const discoverLSLStreamsEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = (action$) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.DiscoverLSLStreams)),
+    mergeMap(() => from(discoverLSLStreams())),
+    map(DeviceActions.SetAvailableLSLStreams)
+  );
+
+const connectToLSLStreamEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = (action$) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.ConnectToLSLStream)),
+    pluck('payload'),
+    mergeMap((stream) => {
+      const deviceInfo = connectToLSLInlet(stream);
+      return from(createRawLSLInletObservable(stream)).pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mergeMap<unknown, ObservableInput<any>>((rawObservable) =>
+          of(
+            DeviceActions.SetDeviceType(DEVICES.LSL),
+            DeviceActions.SetDeviceInfo(deviceInfo),
+            DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED),
+            DeviceActions.SetRawObservable(rawObservable)
+          )
+        )
+      );
+    })
+  );
+
+// Forwards each raw EEG sample over IPC to the main-process LSL outlet.
+// Runs in parallel with setSignalQualityObservableEpic — does not modify
+// the observable that feeds the signal-quality / viewer pipelines.
+const lslForwardEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
+  action$,
+  state$
+) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetRawObservable)),
+    pluck('payload'),
+    mergeMap((rawObservable) => {
+      const device = state$.value.device.connectedDevice;
+      const deviceType = state$.value.device.deviceType;
+      if (!device || !rawObservable) return EMPTY;
+      // Skip the outlet for LSL inlet sources — re-broadcasting a stream we
+      // just received from LSL would create a feedback loop in LabRecorder.
+      if (deviceType === DEVICES.LSL) return EMPTY;
+      const lslDeviceType: 'muse' | 'neurosity' =
+        deviceType === DEVICES.MUSE ? 'muse' : 'neurosity';
+      return batchSamplesToEpoch(
+        rawObservable,
+        device.name || lslDeviceType,
+        lslDeviceType,
+        device.channels,
+        device.samplingRate
+      ).pipe(
+        tap(sendEpoch),
+        takeUntil(action$.pipe(filter(isActionOf(DeviceActions.Cleanup))))
+      );
+    }),
+    // This epic is a side-effect sink — emit nothing back into the action stream.
+    mergeMap(() => EMPTY)
   );
 
 export default combineEpics(
@@ -177,5 +300,8 @@ export default combineEpics(
   isConnectingEpic,
   setRawObservableEpic,
   setSignalQualityObservableEpic,
+  lslForwardEpic,
+  discoverLSLStreamsEpic,
+  connectToLSLStreamEpic,
   deviceCleanupEpic
 );

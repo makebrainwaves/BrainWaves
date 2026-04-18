@@ -17,6 +17,9 @@ import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
+import { lslOutlets } from './lsl/outlets';
+import { lslInlets } from './lsl/inlets';
+import type { LSLEpoch, LSLMarker } from '../shared/lslTypes';
 
 // Needed for WASM/SharedArrayBuffer support (pyodide)
 app.commandLine.appendSwitch(
@@ -409,6 +412,49 @@ ipcMain.handle('bluetooth:cancelSearch', () => {
   }
 });
 
+// ------------------------------------------------------------------
+// LSL — outlets push to the LSL network, markers are an event stream
+// ------------------------------------------------------------------
+ipcMain.on('lsl:sendEpoch', (_event, epoch: LSLEpoch) => {
+  try {
+    lslOutlets.pushEpoch(epoch);
+  } catch (err) {
+    log.error('[lsl] pushEpoch failed', err);
+  }
+});
+
+ipcMain.on('lsl:sendMarker', (_event, marker: LSLMarker) => {
+  try {
+    lslOutlets.pushMarker(marker.label);
+  } catch (err) {
+    log.error('[lsl] pushMarker failed', err);
+  }
+});
+
+ipcMain.handle('lsl:discoverStreams', () => {
+  try {
+    return lslInlets.discoverStreams(1.0);
+  } catch (err) {
+    log.error('[lsl] discoverStreams failed', err);
+    return [];
+  }
+});
+
+ipcMain.on('lsl:subscribeStream', (_event, payload: { uid: string }) => {
+  lslInlets.subscribeStream(
+    payload.uid,
+    (epoch) => mainWindow?.webContents.send('lsl:inletData', epoch),
+    () =>
+      mainWindow?.webContents.send('lsl:inletDisconnected', {
+        uid: payload.uid,
+      })
+  );
+});
+
+ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {
+  lslInlets.unsubscribeStream(payload.uid);
+});
+
 // Resource path (for experiment file loading)
 ipcMain.handle('getResourcePath', () => {
   return is.dev
@@ -509,6 +555,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+app.on('before-quit', () => {
+  lslOutlets.destroyAll();
+  lslInlets.destroyAll();
 });
 
 app.whenReady().then(async () => {

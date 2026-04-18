@@ -13,6 +13,7 @@ import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import { DeviceActions } from '../actions';
 import { Device, SignalQualityData } from '../constants/interfaces';
+import type { DiscoveredStream } from '../../shared/lslTypes';
 
 interface Props {
   connectedDevice: Record<string, unknown>;
@@ -22,6 +23,7 @@ interface Props {
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<Device>;
+  availableLSLStreams?: Array<DiscoveredStream>;
 }
 
 interface State {
@@ -112,8 +114,10 @@ export default class Home extends Component<Props, State> {
               signalQualityObservable={this.props.signalQualityObservable}
               deviceAvailability={this.props.deviceAvailability}
               connectionStatus={this.props.connectionStatus}
+              deviceType={this.props.deviceType}
               DeviceActions={this.props.DeviceActions}
               availableDevices={this.props.availableDevices}
+              availableLSLStreams={this.props.availableLSLStreams}
             />
           </div>
         )}

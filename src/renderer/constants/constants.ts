@@ -23,6 +23,8 @@ export const SCREENS = {
 export enum DEVICES {
   NONE = 'NONE',
   MUSE = 'MUSE',
+  NEUROSITY = 'NEUROSITY',
+  LSL = 'LSL', // external LSL inlet stream
   GANGLION = 'GANGLION', // One day ;)
 }
 
@@ -73,6 +75,21 @@ export const CHANNELS = {
 } as const;
 
 export const MUSE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10'];
+
+// Neurosity Crown 8-channel montage. Channel order is determined at runtime
+// by the `info.channelNames` field of each Epoch emitted by the SDK; this is
+// only a fallback for connect-time metadata.
+export const NEUROSITY_CHANNELS = [
+  'CP3',
+  'C3',
+  'F5',
+  'PO3',
+  'PO4',
+  'F6',
+  'C4',
+  'CP4',
+];
+export const NEUROSITY_SAMPLING_RATE = 256;
 
 export const ZOOM_SCALAR = 1.5;
 export const MUSE_SAMPLING_RATE = 256;
