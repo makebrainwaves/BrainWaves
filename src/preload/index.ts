@@ -10,6 +10,7 @@ import type {
   LSLEpoch,
   LSLInletEpoch,
   LSLMarker,
+  LSLStatus,
 } from '../shared/lslTypes';
 
 // Inject the resource path synchronously so renderer module-level code can use it
@@ -202,5 +203,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       handler(payload);
     ipcRenderer.on('lsl:inletDisconnected', listener);
     return () => ipcRenderer.removeListener('lsl:inletDisconnected', listener);
+  },
+
+  onLSLStatus: (handler: (status: LSLStatus) => void): (() => void) => {
+    const listener = (_event: unknown, status: LSLStatus) => handler(status);
+    ipcRenderer.on('lsl:status', listener);
+    return () => ipcRenderer.removeListener('lsl:status', listener);
   },
 });

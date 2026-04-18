@@ -8,7 +8,7 @@
  */
 import { Neurosity } from '@neurosity/sdk';
 import { Observable, Subject } from 'rxjs';
-import { share } from 'rxjs/operators';
+import { filter as rxFilter, map as rxMap, share } from 'rxjs/operators';
 import {
   NEUROSITY_CHANNELS,
   NEUROSITY_SAMPLING_RATE,
@@ -76,6 +76,20 @@ export const disconnectFromNeurosity = async (): Promise<void> => {
 
 export const cancelNeurosityScan = (): void => {
   window.electronAPI?.cancelBluetoothSearch?.();
+};
+
+/**
+ * Emits when the Crown transitions to OFFLINE. Used by deviceEpics to dispatch
+ * DeviceLost so Redux state and the UI can react to an unexpected disconnect.
+ */
+export const neurosityDisconnect$ = (): Observable<void> => {
+  const client = getClient();
+  return (
+    client.status() as unknown as Observable<{ state: string }>
+  ).pipe(
+    rxFilter((s) => s?.state === 'offline'),
+    rxMap(() => undefined)
+  );
 };
 
 /**

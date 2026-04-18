@@ -39,6 +39,7 @@ export const DeviceActions = {
     'SET_SIGNAL_OBSERVABLE'
   ),
   Cleanup: createAction<void, 'CLEANUP'>('CLEANUP'),
+  DeviceLost: createAction<void, 'DEVICE_LOST'>('DEVICE_LOST'),
 
   // External LSL inlet streams (Phase 3)
   DiscoverLSLStreams: createAction<void, 'DISCOVER_LSL_STREAMS'>(

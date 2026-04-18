@@ -9,6 +9,7 @@ import type {
   LSLEpoch,
   LSLInletEpoch,
   LSLMarker,
+  LSLStatus,
 } from '../../shared/lslTypes';
 
 export {};
@@ -109,6 +110,7 @@ declare global {
     onLSLInletDisconnected: (
       handler: (payload: { uid: string }) => void
     ) => () => void;
+    onLSLStatus: (handler: (status: LSLStatus) => void) => () => void;
   }
 
   interface Window {

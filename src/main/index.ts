@@ -19,7 +19,12 @@ import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
 import { lslOutlets } from './lsl/outlets';
 import { lslInlets } from './lsl/inlets';
-import type { LSLEpoch, LSLMarker } from '../shared/lslTypes';
+import type {
+  LSLEpoch,
+  LSLMarker,
+  LSLStatus,
+  LSLStatusKind,
+} from '../shared/lslTypes';
 
 // Needed for WASM/SharedArrayBuffer support (pyodide)
 app.commandLine.appendSwitch(
@@ -415,11 +420,28 @@ ipcMain.handle('bluetooth:cancelSearch', () => {
 // ------------------------------------------------------------------
 // LSL — outlets push to the LSL network, markers are an event stream
 // ------------------------------------------------------------------
+
+// Only surface one toast per kind per 5s so a flurry of FFI errors can't spam
+// the user. LSL network loss typically shows up as bursts of pushChunk errors.
+const lslStatusThrottle = new Map<LSLStatusKind, number>();
+const LSL_STATUS_THROTTLE_MS = 5000;
+const emitLSLStatus = (status: LSLStatus) => {
+  const now = Date.now();
+  const last = lslStatusThrottle.get(status.kind) ?? 0;
+  if (now - last < LSL_STATUS_THROTTLE_MS) return;
+  lslStatusThrottle.set(status.kind, now);
+  mainWindow?.webContents.send('lsl:status', status);
+};
+
 ipcMain.on('lsl:sendEpoch', (_event, epoch: LSLEpoch) => {
   try {
     lslOutlets.pushEpoch(epoch);
   } catch (err) {
     log.error('[lsl] pushEpoch failed', err);
+    emitLSLStatus({
+      kind: 'outlet-error',
+      message: `LSL outlet push failed: ${(err as Error).message ?? err}`,
+    });
   }
 });
 
@@ -428,6 +450,10 @@ ipcMain.on('lsl:sendMarker', (_event, marker: LSLMarker) => {
     lslOutlets.pushMarker(marker.label);
   } catch (err) {
     log.error('[lsl] pushMarker failed', err);
+    emitLSLStatus({
+      kind: 'marker-error',
+      message: `LSL marker push failed: ${(err as Error).message ?? err}`,
+    });
   }
 });
 
@@ -436,19 +462,34 @@ ipcMain.handle('lsl:discoverStreams', () => {
     return lslInlets.discoverStreams(1.0);
   } catch (err) {
     log.error('[lsl] discoverStreams failed', err);
+    emitLSLStatus({
+      kind: 'discovery-error',
+      message: `LSL stream discovery failed: ${(err as Error).message ?? err}`,
+    });
     return [];
   }
 });
 
 ipcMain.on('lsl:subscribeStream', (_event, payload: { uid: string }) => {
-  lslInlets.subscribeStream(
+  const ok = lslInlets.subscribeStream(
     payload.uid,
     (epoch) => mainWindow?.webContents.send('lsl:inletData', epoch),
-    () =>
+    () => {
       mainWindow?.webContents.send('lsl:inletDisconnected', {
         uid: payload.uid,
-      })
+      });
+      emitLSLStatus({
+        kind: 'inlet-error',
+        message: 'LSL inlet disconnected',
+      });
+    }
   );
+  if (!ok) {
+    emitLSLStatus({
+      kind: 'inlet-error',
+      message: 'Failed to open LSL inlet — try rescanning',
+    });
+  }
 });
 
 ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {

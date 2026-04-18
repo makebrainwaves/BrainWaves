@@ -16,6 +16,18 @@ import type { DiscoveredStream, LSLInletEpoch } from '../../shared/lslTypes';
 
 const POLL_INTERVAL_MS = 16; // ~60Hz poll
 
+// Renderer preview rate cap. Above this, we stride-sample before forwarding
+// over IPC so the renderer isn't overwhelmed. The full-rate data still goes
+// to the LSL network for LabRecorder — decimation is viz-only.
+const RENDERER_MAX_SAMPLES_PER_SEC = 16384;
+
+const computeStride = (channelCount: number, sampleRate: number): number => {
+  if (sampleRate <= 0 || channelCount <= 0) return 1;
+  const load = channelCount * sampleRate;
+  if (load <= RENDERER_MAX_SAMPLES_PER_SEC) return 1;
+  return Math.ceil(load / RENDERER_MAX_SAMPLES_PER_SEC);
+};
+
 class LSLInletManager {
   private inlets = new Map<
     string,
@@ -71,11 +83,35 @@ class LSLInletManager {
       return false;
     }
 
+    const stride = computeStride(info.channelCount(), info.nominalSrate());
+    if (stride > 1) {
+      log.info(
+        `[lsl] inlet ${info.name()} (${info.channelCount()}ch @ ${info.nominalSrate()}Hz) — decimating to renderer by ${stride}x`
+      );
+    }
+    let strideOffset = 0;
+
     const timer = setInterval(() => {
       try {
         const [samples, timestamps] = inlet.pullChunk(0);
-        if (samples && samples.length > 0 && timestamps.length > 0) {
+        if (!samples || samples.length === 0 || timestamps.length === 0) {
+          return;
+        }
+        if (stride === 1) {
           onData({ uid, samples, timestamps });
+          return;
+        }
+        const outSamples: number[][] = [];
+        const outTimestamps: number[] = [];
+        for (let i = 0; i < samples.length; i++) {
+          if (strideOffset === 0) {
+            outSamples.push(samples[i]);
+            outTimestamps.push(timestamps[i]);
+          }
+          strideOffset = (strideOffset + 1) % stride;
+        }
+        if (outSamples.length > 0) {
+          onData({ uid, samples: outSamples, timestamps: outTimestamps });
         }
       } catch (err) {
         log.error(`[lsl] inlet ${uid} poll failed`, err);

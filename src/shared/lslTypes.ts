@@ -35,3 +35,19 @@ export interface LSLInletEpoch {
   samples: number[][];
   timestamps: number[];
 }
+
+export type LSLStatusKind =
+  | 'outlet-error'
+  | 'marker-error'
+  | 'discovery-error'
+  | 'inlet-error';
+
+/**
+ * Emitted from the main process when an LSL operation fails. The renderer
+ * surfaces these as user-visible toasts so silent failures in the native FFI
+ * layer don't go unnoticed during an experiment.
+ */
+export interface LSLStatus {
+  kind: LSLStatusKind;
+  message: string;
+}
