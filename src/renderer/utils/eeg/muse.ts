@@ -69,6 +69,25 @@ export const disconnectFromMuse = () => {
   client.disconnect();
 };
 
+// Emits when the BLE connection drops after having been up. Intentionally
+// ignores the initial `false` from BehaviorSubject — we only care about
+// transitions from connected → disconnected.
+// muse-js bundles its own rxjs; bridge into this app's rxjs via a thin wrapper.
+export const museDisconnect$: Observable<void> = new Observable<void>(
+  (subscriber) => {
+    const sub = (
+      client.connectionStatus as unknown as { subscribe: (n: (v: boolean) => void) => { unsubscribe: () => void } }
+    ).subscribe((() => {
+      let prev: boolean | undefined;
+      return (curr: boolean) => {
+        if (prev === true && curr === false) subscriber.next();
+        prev = curr;
+      };
+    })());
+    return () => sub.unsubscribe();
+  }
+);
+
 // Cancels any in-progress BLE scan by telling the main process to reject the
 // pending requestDevice() call. Called when the search timer expires.
 export const cancelMuseScan = (): void => {

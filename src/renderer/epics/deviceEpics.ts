@@ -20,6 +20,7 @@ import {
   createMuseSignalQualityObservable,
   disconnectFromMuse,
   cancelMuseScan,
+  museDisconnect$,
 } from '../utils/eeg/muse';
 import {
   getNeurosity,
@@ -27,6 +28,7 @@ import {
   createRawNeurosityObservable,
   disconnectFromNeurosity,
   cancelNeurosityScan,
+  neurosityDisconnect$,
 } from '../utils/eeg/neurosity';
 import {
   discoverLSLStreams,
@@ -221,6 +223,45 @@ const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     map(DeviceActions.Cleanup)
   );
 
+// Watches for unexpected BLE disconnects and dispatches DeviceLost so the UI
+// can clear its "connected" state and surface a toast. Only runs while a BLE
+// device is active — LSL inlets have their own disconnect path.
+const deviceDisconnectWatchEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.SetConnectionStatus)),
+    pluck('payload'),
+    filter((status) => status === CONNECTION_STATUS.CONNECTED),
+    mergeMap(() => {
+      const dt = state$.value.device.deviceType;
+      if (dt === DEVICES.MUSE) return museDisconnect$;
+      if (dt === DEVICES.NEUROSITY) return neurosityDisconnect$();
+      return EMPTY;
+    }),
+    tap(() => toast.error('EEG device disconnected')),
+    map(() => DeviceActions.DeviceLost()),
+    takeUntil(action$.pipe(filter(isActionOf(DeviceActions.Cleanup))))
+  );
+
+// Responds to DeviceLost by tearing down driver state and resetting redux.
+const deviceLostCleanupEpic: Epic<
+  DeviceActionType,
+  DeviceActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.DeviceLost)),
+    tap(() => {
+      const dt = state$.value.device.deviceType;
+      if (dt === DEVICES.MUSE) disconnectFromMuse();
+      else if (dt === DEVICES.NEUROSITY) void disconnectFromNeurosity();
+    }),
+    map(DeviceActions.Cleanup)
+  );
+
 // External LSL inlet — discovery and connection have a separate flow from
 // BLE (no requestDevice gesture), so they get their own epics.
 const discoverLSLStreamsEpic: Epic<
@@ -303,5 +344,7 @@ export default combineEpics(
   lslForwardEpic,
   discoverLSLStreamsEpic,
   connectToLSLStreamEpic,
-  deviceCleanupEpic
+  deviceCleanupEpic,
+  deviceDisconnectWatchEpic,
+  deviceLostCleanupEpic
 );
