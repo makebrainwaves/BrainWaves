@@ -81,6 +81,13 @@ In dev: use `/@fs<absPath>` (Vite's `/@fs/` serving). In prod: use `file://<absP
 `prepareNested` (in `flow/util/nested.js`) sets IDs on cloned loop components via `c.id = [parent.id, i].join('_')` — this sets the **component's own property**, NOT `c.options.id`. The options proxy reads through `rawOptions`, which never has an `id` for template-cloned components (the JSON template has no explicit `id` field).
 
 Any hook function (e.g. `initResponseHandlers` in `src/renderer/utils/labjs/functions.ts`) that needs the component ID must use `this.id`, not `this.options.id`. Using `this.options.id` will always be `undefined` for loop-cloned components, causing silent early returns and broken behavior (e.g. keydown handlers never installed).
+## liblsl on Apple Silicon
+
+`node-labstreaminglayer@0.3.0` ships only an **x86_64** `liblsl.dylib` in its `prebuild/` directory — the package has no arm64 build and was last updated 2025-08. Loading it on Apple Silicon throws `Failed to load shared library: ... (mach-o file, but is an incompatible architecture)`.
+
+**Fix**: install liblsl via Homebrew (`brew install labstreaminglayer/tap/lsl`), then `internals/scripts/patchDeps.mjs` symlinks `/opt/homebrew/Cellar/lsl/<version>/Frameworks/lsl.framework/Versions/A/lsl` over the bundled x86_64 dylib on every install/dev run. The patch is a no-op on x86_64 macs and on Linux/Windows (which ship usable `.so`/`.dll` in the same prebuild dir).
+
+Alternatives evaluated and rejected: `@neurodevs/node-lsl` and `@neurodevs/ndx-native` both require the same Homebrew install (they hard-code `/opt/homebrew/Cellar/lsl/...` paths) and have a much different async/worker-thread API that would force a substantial rewrite.
 
 ## Pre-existing TypeScript errors (do not treat as regressions)
 

@@ -8,9 +8,19 @@
  * still wired into `postinstall` and `dev` npm scripts.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import {
+  existsSync,
+  lstatSync,
+  readFileSync,
+  readlinkSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs';
+import { execSync } from 'child_process';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { arch, platform } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '../..');
@@ -33,5 +43,60 @@ function fixElectronPathTxt() {
   }
 }
 
+/**
+ * node-labstreaminglayer 0.3.0 ships only an x86_64 liblsl.dylib in its
+ * prebuild/ directory. On Apple Silicon it fails to load with an "incompatible
+ * architecture" error. Replace it with a symlink to the Homebrew-installed
+ * arm64 build (`brew install labstreaminglayer/tap/lsl`).
+ */
+function fixLiblslArm64() {
+  if (platform() !== 'darwin' || arch() !== 'arm64') return;
+
+  const bundled = join(
+    root,
+    'node_modules/node-labstreaminglayer/prebuild/liblsl.dylib'
+  );
+  if (!existsSync(bundled)) return;
+
+  let brewLib;
+  try {
+    const cellar = execSync('brew --cellar lsl', {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const versionDir = execSync(`ls "${cellar}"`, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .sort()
+      .pop();
+    if (!versionDir) return;
+    brewLib = join(
+      cellar,
+      versionDir,
+      'Frameworks/lsl.framework/Versions/A/lsl'
+    );
+  } catch {
+    console.warn(
+      '[patchDeps] Apple Silicon detected but liblsl is not installed.\n' +
+        '           Run: brew install labstreaminglayer/tap/lsl'
+    );
+    return;
+  }
+
+  if (!existsSync(brewLib)) return;
+
+  const stat = lstatSync(bundled);
+  if (stat.isSymbolicLink() && readlinkSync(bundled) === brewLib) return;
+
+  unlinkSync(bundled);
+  symlinkSync(brewLib, bundled);
+  console.log('[patchDeps] Symlinked arm64 liblsl.dylib →', brewLib);
+}
+
 fixElectronPathTxt();
+fixLiblslArm64();
 console.log('[patchDeps] Done.');
