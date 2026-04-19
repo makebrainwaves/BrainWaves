@@ -607,10 +607,10 @@ app.whenReady().then(async () => {
   // Serve pyodide:// assets (whl files, manifest.json, etc.) directly from the
   // filesystem via Electron's protocol API — no network socket required.
   // In dev:  files are in src/renderer/utils/webworker/src/
-  // In prod: files are in resources/webworker/src/ (via extraResources)
+  // In prod: files are copied to resources/pyodide/ by extraResources (package.json)
   const pyodideRoot = is.dev
     ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
-    : path.join(process.resourcesPath, 'webworker/src');
+    : path.join(process.resourcesPath, 'pyodide');
 
   protocol.handle('pyodide', (request) => {
     const { pathname } = new URL(request.url);
