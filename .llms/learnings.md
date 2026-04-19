@@ -60,6 +60,14 @@ The CDN version is derived from `node_modules/pyodide/package.json` — **not** 
 
 **Plot result routing pattern** — `worker.postMessage()` is fire-and-forget (returns `undefined`). Plot epics should use `tap()` to fire the worker message and `mergeMap(() => EMPTY)` to emit nothing. Results come back asynchronously on the worker `message` event. Add a `plotKey` field to each worker message; the worker echoes it back; `pyodideMessageEpic` switches on `plotKey` to dispatch `SetTopoPlot`/`SetPSDPlot`/`SetERPPlot` with a `{ 'image/png': base64string }` MIME bundle. `PyodidePlotWidget` renders this via `@nteract/transforms`.
 
+## liblsl on Apple Silicon
+
+`node-labstreaminglayer@0.3.0` ships only an **x86_64** `liblsl.dylib` in its `prebuild/` directory — the package has no arm64 build and was last updated 2025-08. Loading it on Apple Silicon throws `Failed to load shared library: ... (mach-o file, but is an incompatible architecture)`.
+
+**Fix**: install liblsl via Homebrew (`brew install labstreaminglayer/tap/lsl`), then `internals/scripts/patchDeps.mjs` symlinks `/opt/homebrew/Cellar/lsl/<version>/Frameworks/lsl.framework/Versions/A/lsl` over the bundled x86_64 dylib on every install/dev run. The patch is a no-op on x86_64 macs and on Linux/Windows (which ship usable `.so`/`.dll` in the same prebuild dir).
+
+Alternatives evaluated and rejected: `@neurodevs/node-lsl` and `@neurodevs/ndx-native` both require the same Homebrew install (they hard-code `/opt/homebrew/Cellar/lsl/...` paths) and have a much different async/worker-thread API that would force a substantial rewrite.
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch
