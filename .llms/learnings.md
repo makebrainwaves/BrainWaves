@@ -21,23 +21,23 @@ The app uses shadcn/ui + Tailwind CSS. CSS modules have been fully removed. Key 
 - **Background gradient** used on all main screens: `bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]`
 - **`@radix-ui/react-select`** is installed for the shadcn Select component
 
-## Pyodide Asset Serving — Vite SPA Fallback Problem
+## Pyodide Asset Serving — Custom `pyodide://` Protocol
 
-Vite's `historyApiFallback` returns `index.html` for **all** `fetch()` requests from web workers, including `/@fs/` and `publicDir` paths. This breaks Pyodide's package loading entirely.
+Vite's `historyApiFallback` returns `index.html` for **all** `fetch()` requests from web workers, breaking Pyodide's package loading. We solved this with a custom Electron protocol scheme registered in `src/main/index.ts` (`protocol.handle('pyodide', ...)`). The web worker uses `pyodide://host` as `PYODIDE_ASSET_BASE` and the handler resolves paths against the local filesystem — no HTTP socket required, works identically in dev and prod.
 
-**Solution (two-part):**
-1. A custom Vite middleware in `vite.config.ts` intercepts `/pyodide/` and `/packages/` requests before the SPA fallback and serves them directly from `src/renderer/utils/webworker/src/`.
-2. An Electron `http` server on **port 17173** (started in `src/main/index.ts`) serves the same directory. Web workers use `http://127.0.0.1:17173` as `PYODIDE_ASSET_BASE`. This is the authoritative path — web worker `fetch()` calls bypass Vite entirely.
+**Filesystem roots resolved by the handler:**
+- Dev: `src/renderer/utils/webworker/src/`
+- Prod: `process.resourcesPath/pyodide/` — `package.json` `extraResources` copies `webworker/src/` to a folder named `pyodide`. The protocol handler must match this destination name (mismatched once and broke prod entirely).
 
-Port 17173 is hardcoded in both `src/main/index.ts` and `src/renderer/utils/webworker/webworker.js` and in the CSP (`src/renderer/index.html`).
+**`indexURL` is required in prod, not just `packageBaseUrl`.** In dev, `pyodide.mjs` is imported via Vite's `?url` from `node_modules/pyodide/`, and the runtime files (`pyodide.asm.wasm`, `python_stdlib.zip`) load via `import.meta.url`-relative fetch — siblings live alongside it in node_modules. In prod, Vite bundles `pyodide.mjs` into `out/renderer/assets/` *without* its siblings, so `import.meta.url` resolution fails. Setting `indexURL: '${PYODIDE_ASSET_BASE}/pyodide/'` routes runtime fetches through the protocol handler. Set both `packageBaseUrl` (for `.whl` files via `loadPackage`) and `indexURL` (for the runtime).
 
 **Other Pyodide loading gotchas:**
 - `pyodide.mjs` must be loaded via dynamic `import()` (not `fetch()`), using a `?url` Vite import — `import()` bypasses the SPA fallback, `fetch()` does not
 - The lock file is embedded via `?raw` and wrapped in a `Blob` + `createObjectURL` to avoid an HTTP fetch
-- Use `packageBaseUrl` (not `indexURL`) to tell Pyodide where to find `.whl` files; `indexURL` is for WASM/stdlib
 - `checkIntegrity: false` is required — SHA256 hashes in the npm lock file don't match CDN-downloaded wheels
 - Workers must be created with `type: 'module'` (Pyodide 0.26+ ships `pyodide.mjs` as ESM)
 - `optimizeDeps.exclude: ['pyodide']` in `vite.config.ts` prevents Vite from pre-bundling it
+- `micropip.install()` only accepts `http://`, `https://`, `emfs://`, and relative paths — it rejects custom schemes like `pyodide://`. Workaround: JS-fetch each `.whl` via the protocol handler, write into Pyodide's emscripten FS at `/tmp/`, then install via `emfs:///tmp/...`.
 
 ## Pyodide Offline Package Installation (InstallMNE.mjs)
 
@@ -59,6 +59,14 @@ The CDN version is derived from `node_modules/pyodide/package.json` — **not** 
 **WebAgg backend does not work in web workers** — WebAgg tries to access `js.document` to inject CSS/JS into the DOM on first import, which throws `ImportError: cannot import name 'document' from 'js'` in a worker context. Use `agg` instead. Set it via `os.environ["MPLBACKEND"] = "agg"` before any matplotlib import. `fig.savefig()` works with `agg` and is the correct way to get plot images back to the renderer.
 
 **Plot result routing pattern** — `worker.postMessage()` is fire-and-forget (returns `undefined`). Plot epics should use `tap()` to fire the worker message and `mergeMap(() => EMPTY)` to emit nothing. Results come back asynchronously on the worker `message` event. Add a `plotKey` field to each worker message; the worker echoes it back; `pyodideMessageEpic` switches on `plotKey` to dispatch `SetTopoPlot`/`SetPSDPlot`/`SetERPPlot` with a `{ 'image/png': base64string }` MIME bundle. `PyodidePlotWidget` renders this via `@nteract/transforms`.
+
+## liblsl on Apple Silicon
+
+`node-labstreaminglayer@0.3.0` ships only an **x86_64** `liblsl.dylib` in its `prebuild/` directory — the package has no arm64 build and was last updated 2025-08. Loading it on Apple Silicon throws `Failed to load shared library: ... (mach-o file, but is an incompatible architecture)`.
+
+**Fix**: install liblsl via Homebrew (`brew install labstreaminglayer/tap/lsl`), then `internals/scripts/patchDeps.mjs` symlinks `/opt/homebrew/Cellar/lsl/<version>/Frameworks/lsl.framework/Versions/A/lsl` over the bundled x86_64 dylib on every install/dev run. The patch is a no-op on x86_64 macs and on Linux/Windows (which ship usable `.so`/`.dll` in the same prebuild dir).
+
+Alternatives evaluated and rejected: `@neurodevs/node-lsl` and `@neurodevs/ndx-native` both require the same Homebrew install (they hard-code `/opt/homebrew/Cellar/lsl/...` paths) and have a much different async/worker-thread API that would force a substantial rewrite.
 
 ## Pre-existing TypeScript errors (do not treat as regressions)
 

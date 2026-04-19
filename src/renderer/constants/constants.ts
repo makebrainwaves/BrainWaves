@@ -23,7 +23,8 @@ export const SCREENS = {
 export enum DEVICES {
   NONE = 'NONE',
   MUSE = 'MUSE',
-  EMOTIV = 'EMOTIV',
+  NEUROSITY = 'NEUROSITY',
+  LSL = 'LSL', // external LSL inlet stream
   GANGLION = 'GANGLION', // One day ;)
 }
 
@@ -65,21 +66,6 @@ export enum EVENTS {
 }
 
 export const CHANNELS = {
-  // Epoc channels
-  AF3: { index: 0, color: '#9B6ABC' },
-  F7: { index: 1, color: '#7EA0C5' },
-  F3: { index: 2, color: '#8BD6E9' },
-  FC5: { index: 3, color: '#66B0A9' },
-  T7: { index: 4, color: '#E7789E' },
-  P7: { index: 5, color: '#F1A766' },
-  O1: { index: 6, color: '#FFDA6A' },
-  O2: { index: 7, color: '#F8F8F8' },
-  P8: { index: 8, color: '#F8F8F8' },
-  T8: { index: 9, color: '#F8F8F8' },
-  FC6: { index: 10, color: '#F8F8F8' },
-  F4: { index: 11, color: '#F8F8F8' },
-  F8: { index: 12, color: '#F8F8F8' },
-  AF4: { index: 13, color: '#F8F8F8' },
   // Muse channels
   TP9: { index: 0, color: '#9B6ABC' },
   AF7: { index: 1, color: '#7EA0C5' },
@@ -88,24 +74,22 @@ export const CHANNELS = {
   AUX: { index: 4, color: '#E7789E' },
 } as const;
 
-export const EMOTIV_CHANNELS = [
-  'AF3',
-  'F7',
-  'F3',
-  'FC5',
-  'T7',
-  'P7',
-  'O1',
-  'O2',
-  'P8',
-  'T8',
-  'FC6',
-  'F4',
-  'F8',
-  'AF4',
-];
-
 export const MUSE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10'];
+
+// Neurosity Crown 8-channel montage. Channel order is determined at runtime
+// by the `info.channelNames` field of each Epoch emitted by the SDK; this is
+// only a fallback for connect-time metadata.
+export const NEUROSITY_CHANNELS = [
+  'CP3',
+  'C3',
+  'F5',
+  'PO3',
+  'PO4',
+  'F6',
+  'C4',
+  'CP4',
+];
+export const NEUROSITY_SAMPLING_RATE = 256;
 
 export const ZOOM_SCALAR = 1.5;
 export const MUSE_SAMPLING_RATE = 256;
@@ -142,3 +126,8 @@ export enum FILE_TYPES {
 export const RESOURCE_PATH: string =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__ELECTRON_RESOURCE_PATH__ || ''; // Injected by Electron preload additionalArguments — not typed
+
+/** Node `process.platform` from preload; empty outside Electron. */
+export const ELECTRON_PLATFORM: string =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).__ELECTRON_PLATFORM__ || '';

@@ -2,6 +2,7 @@ import { createAction } from '@reduxjs/toolkit';
 import { ActionType } from 'typesafe-actions';
 import { DEVICES, DEVICE_AVAILABILITY, CONNECTION_STATUS } from '../constants/constants';
 import { Device, DeviceInfo } from '../constants/interfaces';
+import type { DiscoveredStream } from '../../shared/lslTypes';
 
 // -------------------------------------------------------------------------
 // Actions
@@ -38,6 +39,19 @@ export const DeviceActions = {
     'SET_SIGNAL_OBSERVABLE'
   ),
   Cleanup: createAction<void, 'CLEANUP'>('CLEANUP'),
+  DeviceLost: createAction<void, 'DEVICE_LOST'>('DEVICE_LOST'),
+
+  // External LSL inlet streams (Phase 3)
+  DiscoverLSLStreams: createAction<void, 'DISCOVER_LSL_STREAMS'>(
+    'DISCOVER_LSL_STREAMS'
+  ),
+  SetAvailableLSLStreams: createAction<
+    DiscoveredStream[],
+    'SET_AVAILABLE_LSL_STREAMS'
+  >('SET_AVAILABLE_LSL_STREAMS'),
+  ConnectToLSLStream: createAction<DiscoveredStream, 'CONNECT_TO_LSL_STREAM'>(
+    'CONNECT_TO_LSL_STREAM'
+  ),
 } as const;
 
 export type DeviceActionType = ActionType<

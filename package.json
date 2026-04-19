@@ -48,6 +48,11 @@
     "productName": "BrainWaves",
     "appId": "com.electron.brainwaves",
     "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/node-labstreaminglayer/prebuild/**",
+      "node_modules/koffi/**/*.node"
+    ],
     "files": [
       "out/**/*",
       "node_modules/**/*",
@@ -131,7 +136,6 @@
     "redux",
     "redux-observable",
     "muse",
-    "emotiv",
     "pyodide",
     "wasm",
     "lab.js"
@@ -186,6 +190,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@neurosity/pipes": "^5.2.1",
+    "@neurosity/sdk": "^7.1.0",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-dropdown-menu": "^2.1.0",
     "@radix-ui/react-select": "^2.2.6",
@@ -205,6 +210,7 @@
     "mkdirp": "^1.0.4",
     "mousetrap": "^1.6.5",
     "muse-js": "^3.1.0",
+    "node-labstreaminglayer": "^0.3.0",
     "papaparse": "^5.5.3",
     "pathe": "^2.0.3",
     "plotly.js": "^3.4.0",

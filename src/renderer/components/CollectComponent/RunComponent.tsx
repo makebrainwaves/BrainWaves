@@ -2,9 +2,8 @@ import React, { useCallback, useState } from 'react';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
-import { injectEmotivMarker } from '../../utils/eeg/emotiv';
 import { injectMuseMarker } from '../../utils/eeg/muse';
-import { EXPERIMENTS, DEVICES } from '../../constants/constants';
+import { EXPERIMENTS } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
@@ -22,7 +21,6 @@ interface Props {
   experimentObject: ExperimentObject;
   group: string;
   session: number;
-  deviceType: DEVICES;
   isEEGEnabled: boolean;
   ExperimentActions: typeof globalExperimentActions;
 }
@@ -36,7 +34,6 @@ const Run: React.FC<Props> = ({
   experimentObject,
   group,
   session,
-  deviceType,
   isEEGEnabled,
   ExperimentActions,
 }) => {
@@ -75,14 +72,14 @@ const Run: React.FC<Props> = ({
   const eventCallback = useCallback(
     (event: string, time: number) => {
       if (isEEGEnabled) {
-        if (deviceType === 'MUSE') {
-          injectMuseMarker(event, time);
-        } else {
-          injectEmotivMarker(event, time);
-        }
+        injectMuseMarker(event, time);
+        window.electronAPI.sendLSLMarker({
+          label: event,
+          rendererTimestamp: performance.now(),
+        });
       }
     },
-    [isEEGEnabled, deviceType]
+    [isEEGEnabled]
   );
 
   const onFinish = useCallback(

@@ -6,7 +6,6 @@ import type { Data as PlotlyData } from 'plotly.js';
 import {
   DEVICES,
   MUSE_CHANNELS,
-  EMOTIV_CHANNELS,
   EXPERIMENTS,
 } from '../constants/constants';
 import {
@@ -98,9 +97,7 @@ export default class Analyze extends Component<Props, State> {
       selectedBehaviorFilePaths: [],
       selectedSubjects: [],
       selectedChannel:
-        props.deviceType === DEVICES.EMOTIV
-          ? EMOTIV_CHANNELS[0]
-          : MUSE_CHANNELS[0],
+        MUSE_CHANNELS[0],
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);

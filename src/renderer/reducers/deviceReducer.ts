@@ -13,9 +13,11 @@ import {
   SignalQualityData,
 } from '../constants/interfaces';
 import { DeviceActions } from '../actions';
+import type { DiscoveredStream } from '../../shared/lslTypes';
 
 export interface DeviceStateType {
   readonly availableDevices: Array<Device>;
+  readonly availableLSLStreams: Array<DiscoveredStream>;
   readonly connectedDevice: DeviceInfo | null | undefined;
   readonly connectionStatus: CONNECTION_STATUS;
   readonly deviceAvailability: DEVICE_AVAILABILITY;
@@ -27,12 +29,13 @@ export interface DeviceStateType {
 
 const initialState: DeviceStateType = {
   availableDevices: [],
+  availableLSLStreams: [],
   connectedDevice: { name: 'disconnected', samplingRate: 0, channels: [] },
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
   deviceAvailability: DEVICE_AVAILABILITY.NONE,
   rawObservable: null,
   signalQualityObservable: null,
-  deviceType: DEVICES.EMOTIV,
+  deviceType: DEVICES.MUSE,
 };
 
 export default createReducer(initialState, (builder) =>
@@ -88,4 +91,8 @@ export default createReducer(initialState, (builder) =>
     .addCase(DeviceActions.Cleanup, (state, action) => {
       return initialState;
     })
+    .addCase(DeviceActions.SetAvailableLSLStreams, (state, action) => ({
+      ...state,
+      availableLSLStreams: action.payload,
+    }))
 );

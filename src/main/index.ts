@@ -17,6 +17,14 @@ import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
+import { lslOutlets } from './lsl/outlets';
+import { lslInlets } from './lsl/inlets';
+import type {
+  LSLEpoch,
+  LSLMarker,
+  LSLStatus,
+  LSLStatusKind,
+} from '../shared/lslTypes';
 
 // Needed for WASM/SharedArrayBuffer support (pyodide)
 app.commandLine.appendSwitch(
@@ -47,6 +55,11 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+// Holds the pending Bluetooth device-picker callback from select-bluetooth-device.
+// Electron 22+ fires this event instead of showing a native picker — we must
+// call it with a deviceId to resolve requestDevice(), or '' to reject.
+let pendingBluetoothCallback: ((deviceId: string) => void) | null = null;
 
 // ------------------------------------------------------------------
 // Filesystem helpers (mirroring renderer's storage.ts / write.ts)
@@ -396,6 +409,93 @@ ipcMain.handle('eeg:closeStream', (_event, streamId) => {
   });
 });
 
+// Bluetooth — called by renderer's search timer when scan times out with no result
+ipcMain.handle('bluetooth:cancelSearch', () => {
+  if (pendingBluetoothCallback) {
+    pendingBluetoothCallback('');
+    pendingBluetoothCallback = null;
+  }
+});
+
+// ------------------------------------------------------------------
+// LSL — outlets push to the LSL network, markers are an event stream
+// ------------------------------------------------------------------
+
+// Only surface one toast per kind per 5s so a flurry of FFI errors can't spam
+// the user. LSL network loss typically shows up as bursts of pushChunk errors.
+const lslStatusThrottle = new Map<LSLStatusKind, number>();
+const LSL_STATUS_THROTTLE_MS = 5000;
+const emitLSLStatus = (status: LSLStatus) => {
+  const now = Date.now();
+  const last = lslStatusThrottle.get(status.kind) ?? 0;
+  if (now - last < LSL_STATUS_THROTTLE_MS) return;
+  lslStatusThrottle.set(status.kind, now);
+  mainWindow?.webContents.send('lsl:status', status);
+};
+
+ipcMain.on('lsl:sendEpoch', (_event, epoch: LSLEpoch) => {
+  try {
+    lslOutlets.pushEpoch(epoch);
+  } catch (err) {
+    log.error('[lsl] pushEpoch failed', err);
+    emitLSLStatus({
+      kind: 'outlet-error',
+      message: `LSL outlet push failed: ${(err as Error).message ?? err}`,
+    });
+  }
+});
+
+ipcMain.on('lsl:sendMarker', (_event, marker: LSLMarker) => {
+  try {
+    lslOutlets.pushMarker(marker.label);
+  } catch (err) {
+    log.error('[lsl] pushMarker failed', err);
+    emitLSLStatus({
+      kind: 'marker-error',
+      message: `LSL marker push failed: ${(err as Error).message ?? err}`,
+    });
+  }
+});
+
+ipcMain.handle('lsl:discoverStreams', () => {
+  try {
+    return lslInlets.discoverStreams(1.0);
+  } catch (err) {
+    log.error('[lsl] discoverStreams failed', err);
+    emitLSLStatus({
+      kind: 'discovery-error',
+      message: `LSL stream discovery failed: ${(err as Error).message ?? err}`,
+    });
+    return [];
+  }
+});
+
+ipcMain.on('lsl:subscribeStream', (_event, payload: { uid: string }) => {
+  const ok = lslInlets.subscribeStream(
+    payload.uid,
+    (epoch) => mainWindow?.webContents.send('lsl:inletData', epoch),
+    () => {
+      mainWindow?.webContents.send('lsl:inletDisconnected', {
+        uid: payload.uid,
+      });
+      emitLSLStatus({
+        kind: 'inlet-error',
+        message: 'LSL inlet disconnected',
+      });
+    }
+  );
+  if (!ok) {
+    emitLSLStatus({
+      kind: 'inlet-error',
+      message: 'Failed to open LSL inlet — try rescanning',
+    });
+  }
+});
+
+ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {
+  lslInlets.unsubscribeStream(payload.uid);
+});
+
 // Resource path (for experiment file loading)
 ipcMain.handle('getResourcePath', () => {
   return is.dev
@@ -439,6 +539,24 @@ const createWindow = async () => {
 
   mainWindow.setMinimumSize(1075, 708);
 
+  // Electron 22+ does not show a native Bluetooth picker automatically.
+  // We intercept select-bluetooth-device and auto-select the first Muse device
+  // found. The event fires multiple times as BLE discovery progresses — each
+  // call carries the full cumulative deviceList seen so far.
+  mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
+    event.preventDefault();
+    pendingBluetoothCallback = callback;
+
+    const muse = deviceList.find((d) => d.deviceName?.startsWith('Muse'));
+    if (muse) {
+      pendingBluetoothCallback(muse.deviceId);
+      pendingBluetoothCallback = null;
+    }
+    // No Muse visible yet — keep scanning. The event will fire again as more
+    // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
+    // after SEARCH_TIMER ms if nothing is found.
+  });
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
@@ -480,14 +598,19 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', () => {
+  lslOutlets.destroyAll();
+  lslInlets.destroyAll();
+});
+
 app.whenReady().then(async () => {
   // Serve pyodide:// assets (whl files, manifest.json, etc.) directly from the
   // filesystem via Electron's protocol API — no network socket required.
   // In dev:  files are in src/renderer/utils/webworker/src/
-  // In prod: files are in resources/webworker/src/ (via extraResources)
+  // In prod: files are copied to resources/pyodide/ by extraResources (package.json)
   const pyodideRoot = is.dev
     ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
-    : path.join(process.resourcesPath, 'webworker/src');
+    : path.join(process.resourcesPath, 'pyodide');
 
   protocol.handle('pyodide', (request) => {
     const { pathname } = new URL(request.url);

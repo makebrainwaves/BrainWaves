@@ -4,24 +4,26 @@ import { isNil, debounce } from 'lodash';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import {
-  DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
+  DEVICES,
   SCREENS,
 } from '../../constants/constants';
 import { Device, SignalQualityData } from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
+import type { DiscoveredStream } from '../../../shared/lslTypes';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   connectedDevice: Record<string, unknown>;
   signalQualityObservable?: Observable<SignalQualityData>;
-  deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
+  deviceType: DEVICES;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<Device>;
+  availableLSLStreams?: Array<DiscoveredStream>;
 }
 
 interface State {
@@ -88,10 +90,56 @@ export default class ConnectModal extends Component<Props, State> {
     }
   }
 
+  handleDiscoverLSLStreams = () => {
+    this.props.DeviceActions.DiscoverLSLStreams();
+  };
+
+  handleConnectLSLStream = (stream: DiscoveredStream) => {
+    this.props.DeviceActions.ConnectToLSLStream(stream);
+  };
+
   handleinstructionProgress(progress: INSTRUCTION_PROGRESS) {
     if (progress !== 0) {
       this.setState({ instructionProgress: progress });
     }
+  }
+
+  renderLSLDiscovery() {
+    const streams = this.props.availableLSLStreams ?? [];
+    const eegStreams = streams.filter((s) => s.type === 'EEG');
+    return (
+      <div className="mb-3 text-left">
+        <Button
+          variant="secondary"
+          className="w-full mb-2"
+          onClick={this.handleDiscoverLSLStreams}
+        >
+          Scan for LSL streams
+        </Button>
+        {eegStreams.length === 0 ? (
+          <p className="text-sm text-gray-500">No LSL EEG streams found yet.</p>
+        ) : (
+          <ul className="divide-y divide-gray-200 text-sm">
+            {eegStreams.map((stream) => (
+              <li
+                key={stream.uid}
+                className="flex justify-between items-center py-2"
+              >
+                <span>
+                  {stream.name} — {stream.channelCount}ch @ {stream.sampleRate}Hz
+                </span>
+                <Button
+                  variant="default"
+                  onClick={() => this.handleConnectLSLStream(stream)}
+                >
+                  Connect
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
   }
 
   renderAvailableDeviceList() {
@@ -133,6 +181,25 @@ export default class ConnectModal extends Component<Props, State> {
       return (
         <>
           <h2>Turn your headset on</h2>
+          <div className="mb-3 text-left">
+            <label className="block text-sm font-medium mb-1">
+              Device type
+            </label>
+            <select
+              value={this.props.deviceType}
+              onChange={(e) =>
+                this.props.DeviceActions.SetDeviceType(
+                  e.target.value as DEVICES
+                )
+              }
+              className="w-full rounded border px-2 py-1"
+            >
+              <option value={DEVICES.MUSE}>Muse</option>
+              <option value={DEVICES.NEUROSITY}>Neurosity Crown</option>
+              <option value={DEVICES.LSL}>External LSL stream</option>
+            </select>
+          </div>
+          {this.props.deviceType === DEVICES.LSL && this.renderLSLDiscovery()}
           <p>Make sure your headset is on and fully charged.</p>
           <p>
             If the headset needs charging, set the power switch to off and plug
