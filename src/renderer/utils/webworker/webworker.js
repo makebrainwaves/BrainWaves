@@ -40,11 +40,15 @@ const pyodideReadyPromise = (async () => {
   const lockFileURL = URL.createObjectURL(lockBlob);
 
   // packageBaseUrl tells pyodide's PackageManager where to fetch .whl files.
-  // This is the correct option — NOT indexURL, which is for the runtime files
-  // (WASM, stdlib) that are already loaded via import.meta.url from node_modules.
+  // indexURL is where pyodide loads its runtime files (pyodide.asm.wasm,
+  // python_stdlib.zip). In dev, pyodide.mjs is imported from /@fs/.../node_modules
+  // and its sibling assets are served by Vite middleware. In prod the bundled
+  // .mjs lives in out/renderer/assets/ without its siblings, so import.meta.url
+  // resolution fails — we route both through our pyodide:// protocol handler.
   const packageBaseUrl = `${PYODIDE_ASSET_BASE}/pyodide/`;
+  const indexURL = `${PYODIDE_ASSET_BASE}/pyodide/`;
 
-  const pyodide = await loadPyodide({ lockFileURL, packageBaseUrl });
+  const pyodide = await loadPyodide({ lockFileURL, packageBaseUrl, indexURL });
   URL.revokeObjectURL(lockFileURL);
 
   // Load scientific packages from local whl files via the asset server.
