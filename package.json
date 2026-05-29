@@ -230,7 +230,7 @@
     "simplify-js": "^1.2.4",
     "tailwind-merge": "^2.3.0",
     "typesafe-actions": "^5.1.0",
-    "ws": "^8.19.0"
+    "ws": "^8.21.0"
   },
   "overrides": {
     "react": "^18.x",
