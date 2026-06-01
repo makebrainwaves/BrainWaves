@@ -56,7 +56,15 @@ function fixLiblslArm64() {
     root,
     'node_modules/node-labstreaminglayer/prebuild/liblsl.dylib'
   );
-  if (!existsSync(bundled)) return;
+  // Use lstatSync (not existsSync) so a *dangling* symlink — e.g. one left
+  // pointing at a Homebrew Cellar version that has since been upgraded — is
+  // still detected and re-pointed below, rather than skipped. existsSync
+  // follows the link and would return false for a dangling link.
+  try {
+    lstatSync(bundled);
+  } catch {
+    return;
+  }
 
   let brewLib;
   try {
