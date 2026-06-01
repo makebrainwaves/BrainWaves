@@ -7,12 +7,9 @@
  * pylsl, etc.).
  */
 import log from 'electron-log';
-import {
-  resolveStreams,
-  StreamInfo,
-  StreamInlet,
-} from 'node-labstreaminglayer';
+import type { StreamInfo, StreamInlet } from 'node-labstreaminglayer';
 import type { DiscoveredStream, LSLInletEpoch } from '../../shared/lslTypes';
+import { loadLSL } from './native';
 
 const POLL_INTERVAL_MS = 16; // ~60Hz poll
 
@@ -38,6 +35,9 @@ class LSLInletManager {
   private discoveredInfos = new Map<string, StreamInfo>();
 
   discoverStreams(waitTime: number = 1.0): DiscoveredStream[] {
+    const lsl = loadLSL();
+    if (!lsl) return [];
+
     // Free any StreamInfos we cached but never subscribed to on the previous
     // scan so we don't leak their C handles.
     for (const [uid, info] of this.discoveredInfos) {
@@ -45,7 +45,7 @@ class LSLInletManager {
     }
     this.discoveredInfos.clear();
 
-    const streams = resolveStreams(waitTime);
+    const streams = lsl.resolveStreams(waitTime);
     const results: DiscoveredStream[] = [];
     for (const info of streams) {
       const uid = info.uid();
@@ -68,13 +68,15 @@ class LSLInletManager {
     onDisconnected?: () => void
   ): boolean {
     if (this.inlets.has(uid)) return true;
+    const lsl = loadLSL();
+    if (!lsl) return false;
     const info = this.discoveredInfos.get(uid);
     if (!info) {
       log.warn(`[lsl] subscribeStream: unknown uid ${uid} — discover first`);
       return false;
     }
 
-    const inlet = new StreamInlet(info);
+    const inlet = new lsl.StreamInlet(info);
     try {
       inlet.openStream(5);
     } catch (err) {

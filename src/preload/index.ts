@@ -183,6 +183,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
   // LSL — main-process outlets push to the LSL network, inlets pull from it
   // ------------------------------------------------------------------
+  // True only when the native liblsl bindings loaded. Renderer feature-gates
+  // all LSL UI/forwarding on this so the app works without liblsl installed.
+  isLSLAvailable: (): Promise<boolean> => ipcRenderer.invoke('lsl:isAvailable'),
+
   sendLSLEpoch: (epoch: LSLEpoch): void =>
     ipcRenderer.send('lsl:sendEpoch', epoch),
 

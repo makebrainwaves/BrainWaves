@@ -99,6 +99,7 @@ declare global {
     cancelBluetoothSearch: () => Promise<void>;
 
     // LSL
+    isLSLAvailable: () => Promise<boolean>;
     sendLSLEpoch: (epoch: LSLEpoch) => void;
     sendLSLMarker: (marker: LSLMarker) => void;
     discoverLSLStreams: () => Promise<DiscoveredStream[]>;

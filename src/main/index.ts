@@ -19,6 +19,7 @@ import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
 import { lslOutlets } from './lsl/outlets';
 import { lslInlets } from './lsl/inlets';
+import { isLSLAvailable } from './lsl/native';
 import type {
   LSLEpoch,
   LSLMarker,
@@ -473,6 +474,11 @@ const emitLSLStatus = (status: LSLStatus) => {
   lslStatusThrottle.set(status.kind, now);
   mainWindow?.webContents.send('lsl:status', status);
 };
+
+// Feature-detection probe: the renderer uses this to show/hide LSL UI. When
+// liblsl can't be loaded, LSL is silently unavailable and the app falls back
+// to first-party devices (Muse/Neurosity) only.
+ipcMain.handle('lsl:isAvailable', () => isLSLAvailable());
 
 ipcMain.on('lsl:sendEpoch', (_event, epoch: LSLEpoch) => {
   try {

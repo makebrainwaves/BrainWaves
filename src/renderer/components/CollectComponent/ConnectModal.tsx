@@ -29,6 +29,9 @@ interface Props {
 interface State {
   selectedDevice: Device | null;
   instructionProgress: INSTRUCTION_PROGRESS;
+  // True only when native liblsl loaded in the main process. The "External LSL
+  // stream" device option is hidden otherwise so the app works without liblsl.
+  lslAvailable: boolean;
 }
 
 enum INSTRUCTION_PROGRESS {
@@ -50,6 +53,7 @@ export default class ConnectModal extends Component<Props, State> {
     this.state = {
       selectedDevice: null,
       instructionProgress: INSTRUCTION_PROGRESS.SEARCHING,
+      lslAvailable: false,
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
@@ -60,6 +64,13 @@ export default class ConnectModal extends Component<Props, State> {
       trailing: false,
     });
     this.handleinstructionProgress = this.handleinstructionProgress.bind(this);
+  }
+
+  componentDidMount() {
+    window.electronAPI
+      ?.isLSLAvailable?.()
+      .then((ok) => this.setState({ lslAvailable: ok }))
+      .catch(() => this.setState({ lslAvailable: false }));
   }
 
   UNSAFE_componentWillUpdate(nextProps: Props) {
@@ -196,7 +207,9 @@ export default class ConnectModal extends Component<Props, State> {
             >
               <option value={DEVICES.MUSE}>Muse</option>
               <option value={DEVICES.NEUROSITY}>Neurosity Crown</option>
-              <option value={DEVICES.LSL}>External LSL stream</option>
+              {this.state.lslAvailable && (
+                <option value={DEVICES.LSL}>External LSL stream</option>
+              )}
             </select>
           </div>
           {this.props.deviceType === DEVICES.LSL && this.renderLSLDiscovery()}

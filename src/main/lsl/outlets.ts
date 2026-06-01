@@ -6,12 +6,9 @@
  * LSL network where they can be recorded by LabRecorder or any LSL inlet.
  */
 import log from 'electron-log';
-import {
-  StreamInfo,
-  StreamOutlet,
-  IRREGULAR_RATE,
-} from 'node-labstreaminglayer';
+import type { StreamOutlet } from 'node-labstreaminglayer';
 import type { LSLEpoch } from '../../shared/lslTypes';
+import { loadLSL } from './native';
 
 const MARKER_STREAM_NAME = 'BrainWavesMarkers';
 
@@ -29,10 +26,13 @@ class LSLOutletManager {
     channelNames: string[],
     sampleRate: number
   ): void {
+    const lsl = loadLSL();
+    if (!lsl) return;
+
     this.destroyDeviceOutlet(deviceId);
 
     const streamName = `BrainWaves-${deviceType}-${deviceId}`;
-    const info = new StreamInfo(
+    const info = new lsl.StreamInfo(
       streamName,
       'EEG',
       channelNames.length,
@@ -44,7 +44,7 @@ class LSLOutletManager {
     info.setChannelTypes('EEG');
     info.setChannelUnits('microvolts');
 
-    const outlet = new StreamOutlet(info);
+    const outlet = new lsl.StreamOutlet(info);
     this.outlets.set(deviceId, outlet);
     log.info(
       `[lsl] created EEG outlet ${streamName} (${channelNames.length}ch @ ${sampleRate}Hz)`
@@ -88,15 +88,17 @@ class LSLOutletManager {
    */
   createMarkerOutlet(): void {
     if (this.markerOutlet) return;
-    const info = new StreamInfo(
+    const lsl = loadLSL();
+    if (!lsl) return;
+    const info = new lsl.StreamInfo(
       MARKER_STREAM_NAME,
       'Markers',
       1,
-      IRREGULAR_RATE,
+      lsl.IRREGULAR_RATE,
       'string',
       'brainwaves-markers'
     );
-    this.markerOutlet = new StreamOutlet(info);
+    this.markerOutlet = new lsl.StreamOutlet(info);
     log.info(`[lsl] created marker outlet ${MARKER_STREAM_NAME}`);
   }
 

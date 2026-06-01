@@ -11,6 +11,15 @@ import { EEGData } from '../../constants/interfaces';
 
 const DEFAULT_BATCH_SIZE = 32;
 
+// Cache the main-process LSL availability so the hot epoch/marker paths don't
+// flood IPC when liblsl isn't loaded. Probed once; defaults to false until the
+// async check resolves (a few early samples may be dropped — harmless, and the
+// main process no-ops them anyway).
+let lslAvailable = false;
+void window.electronAPI?.isLSLAvailable?.().then((ok) => {
+  lslAvailable = ok;
+});
+
 /**
  * Transforms a raw EEG observable (per-sample EEGData) into an observable of
  * batched LSLEpoch objects ready to be forwarded over IPC.
@@ -37,9 +46,11 @@ export const batchSamplesToEpoch = (
   );
 
 export const sendEpoch = (epoch: LSLEpoch): void => {
+  if (!lslAvailable) return;
   window.electronAPI?.sendLSLEpoch?.(epoch);
 };
 
 export const sendMarker = (marker: LSLMarker): void => {
+  if (!lslAvailable) return;
   window.electronAPI?.sendLSLMarker?.(marker);
 };

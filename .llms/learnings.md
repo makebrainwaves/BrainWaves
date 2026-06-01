@@ -89,6 +89,16 @@ Any hook function (e.g. `initResponseHandlers` in `src/renderer/utils/labjs/func
 
 Alternatives evaluated and rejected: `@neurodevs/node-lsl` and `@neurodevs/ndx-native` both require the same Homebrew install (they hard-code `/opt/homebrew/Cellar/lsl/...` paths) and have a much different async/worker-thread API that would force a substantial rewrite.
 
+## LSL is optional — load the native module lazily, never statically
+
+`node-labstreaminglayer` `dlopen`s liblsl via koffi **at require time**. A static `import … from 'node-labstreaminglayer'` in the main process therefore runs that dlopen during module evaluation at startup — so a missing/incompatible liblsl (e.g. Apple Silicon without the Homebrew build) crashes the *entire app* on launch, even for Muse-only users who don't need LSL at all.
+
+LSL is an advanced, opt-in capability: Muse and Neurosity connect via Web Bluetooth and record to CSV without it. So the native module must load lazily and fail soft:
+- `src/main/lsl/native.ts` does a guarded `require('node-labstreaminglayer')` in try/catch (memoized), exposing `loadLSL()` (module | null) and `isLSLAvailable()`. `outlets.ts`/`inlets.ts` use **type-only** imports + `loadLSL()` at call time, no-opping when null.
+- Feature-detect in the renderer via the `lsl:isAvailable` IPC: `ConnectModal` hides the "External LSL stream" option and `lslBridge` no-ops `sendEpoch`/`sendMarker` when unavailable (avoids IPC spam from first-party devices).
+
+Build note: with `module: ESNext` source but CommonJS main output, a guarded `require(...)` of an externalized dep type-checks (global `require` from `@types/node`) and stays a `require` in `out/main/index.js` (electron-vite externalizes it) — confirmed lazy, not bundled. Do **not** revert to a static import.
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch
