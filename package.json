@@ -220,7 +220,7 @@
     "react-dom": "^18.x",
     "react-plotly.js": "^2.6.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^6.26.0",
+    "react-router-dom": "^6.30.4",
     "react-toastify": "^11.x",
     "redux": "^5.x",
     "redux-observable": "^2.0.0-rc.2",
