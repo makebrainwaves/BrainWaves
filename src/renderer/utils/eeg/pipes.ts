@@ -12,7 +12,11 @@ export const parseMuseSignalQuality = () =>
       ...epoch,
       signalQuality: Object.assign(
         {},
-        ...Object.entries(epoch.signalQuality).map(
+        // @neurosity/pipes >=5 puts addSignalQuality()'s output under
+        // info.signalQuality (older versions used a top-level field). Reading the
+        // old top-level path yielded undefined → Object.entries() threw, which
+        // killed the whole signal-quality/EEG stream to the viewer.
+        ...Object.entries(epoch.info.signalQuality).map(
           ([channelName, signalQuality]) => {
             if (signalQuality >= SIGNAL_QUALITY_THRESHOLDS.BAD) {
               return { [channelName]: SIGNAL_QUALITY.BAD };

@@ -5,6 +5,7 @@
   "description": "EEG Experiment Desktop Application",
   "main": "./out/main/index.js",
   "scripts": {
+    "predev": "node internals/scripts/BuildViewers.mjs",
     "dev": "node internals/scripts/patchDeps.mjs && electron-vite dev",
     "build": "electron-vite build",
     "postbuild": "node internals/scripts/BuildViewers.mjs",

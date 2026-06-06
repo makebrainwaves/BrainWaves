@@ -586,6 +586,20 @@ const createWindow = async () => {
 
   mainWindow.setMinimumSize(1075, 708);
 
+  // The EEG viewer <webview> (ViewerComponent) loads viewer.html, which needs
+  // its own preload to expose `viewerAPI`. A <webview> does NOT inherit the host
+  // window's preload, and without one the guest's viewer.ts throws on
+  // `window.viewerAPI` and the D3 graph never initialises. Attach the viewer
+  // preload to every webview the host spawns (the EEG viewer is the only one).
+  // out/viewer/viewer.js is compiled by internals/scripts/BuildViewers.mjs; it
+  // lives outside out/preload/ because electron-vite empties that dir on every
+  // build. __dirname is out/main at runtime.
+  mainWindow.webContents.on('will-attach-webview', (_event, webPreferences) => {
+    webPreferences.preload = path.join(__dirname, '../viewer/viewer.js');
+    webPreferences.nodeIntegration = false;
+    webPreferences.contextIsolation = true;
+  });
+
   // Electron 22+ does not show a native Bluetooth picker automatically.
   // We intercept select-bluetooth-device and auto-select the first Muse device
   // found. The event fires multiple times as BLE discovery progresses — each

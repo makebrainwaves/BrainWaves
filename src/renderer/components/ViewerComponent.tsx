@@ -105,12 +105,17 @@ class ViewerComponent extends Component<Props, State> {
 
   subscribeToObservable(observable: Observable<SignalQualityData>) {
     this.signalQualitySubscription?.unsubscribe();
-    this.signalQualitySubscription = observable.subscribe(
-      (chunk) => {
+    this.signalQualitySubscription = observable.subscribe({
+      next: (chunk) => {
         this.graphView?.send('newData', chunk);
       },
-      (error) => new Error(`Error in epochSubscription ${error}`)
-    );
+      // A thrown error here terminates the stream, so all EEG / signal-quality
+      // data silently stops reaching the viewer. The previous handler built an
+      // Error object and discarded it, hiding pipeline failures entirely — log
+      // it so the failure is diagnosable.
+      error: (error) =>
+        console.error('[viewer] signal quality observable error:', error),
+    });
   }
 
   render() {
