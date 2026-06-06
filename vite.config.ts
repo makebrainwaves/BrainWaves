@@ -34,8 +34,14 @@ export default defineConfig({
   },
 
   // ------------------------------------------------------------------
-  // Preload scripts — main window only; viewer preload is built by
-  // internals/scripts/BuildViewers.js (postbuild npm hook)
+  // Preload scripts — electron-vite only builds the single main-window preload
+  // (src/preload/index.ts). The EEG viewer <webview> needs its OWN preload
+  // (src/preload/viewer.ts, which exposes `viewerAPI`). That one is compiled by
+  // internals/scripts/BuildViewers.mjs to out/viewer/viewer.js — run via the
+  // `predev` hook for dev and the `postbuild` hook for prod. It lives in
+  // out/viewer/ (not out/preload/) because electron-vite empties out/preload on
+  // every build, which would delete it; out/viewer/ is untouched and is still
+  // packaged by electron-builder's "out/**/*" files glob.
   // ------------------------------------------------------------------
   preload: {},
 

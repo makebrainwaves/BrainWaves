@@ -480,6 +480,20 @@ const createWindow = async () => {
 
   mainWindow.setMinimumSize(1075, 708);
 
+  // The EEG viewer <webview> (ViewerComponent) loads viewer.html, which needs
+  // its own preload to expose `viewerAPI`. A <webview> does NOT inherit the host
+  // window's preload, and without one the guest's viewer.ts throws on
+  // `window.viewerAPI` and the D3 graph never initialises. Attach the viewer
+  // preload to every webview the host spawns (the EEG viewer is the only one).
+  mainWindow.webContents.on('will-attach-webview', (_event, webPreferences) => {
+    // out/viewer/viewer.js is compiled by internals/scripts/BuildViewers.mjs.
+    // It lives outside out/preload/ because electron-vite empties that dir on
+    // every build (see BuildViewers.mjs). __dirname is out/main at runtime.
+    webPreferences.preload = path.join(__dirname, '../viewer/viewer.js');
+    webPreferences.nodeIntegration = false;
+    webPreferences.contextIsolation = true;
+  });
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {

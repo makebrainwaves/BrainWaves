@@ -126,11 +126,16 @@ export interface DeviceInfo {
 
 export interface PipesEpoch {
   data: number[][];
+  // Top-level signal quality is the Emotiv/Cortex path's shape.
   signalQuality: { [channelName: string]: number };
   info: {
     samplingRate: number;
     startTime: number;
     channelNames?: string[];
+    // @neurosity/pipes >=5 nests the raw per-channel signal-quality (stddev)
+    // values produced by addSignalQuality() under `info`, not at the top level
+    // (the Muse path). Older versions used the top-level field above.
+    signalQuality: { [channelName: string]: number };
   };
 }
 

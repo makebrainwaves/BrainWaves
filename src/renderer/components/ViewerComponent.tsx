@@ -48,24 +48,33 @@ class ViewerComponent extends Component<Props, State> {
 
   async componentDidMount() {
     const viewerUrl = await window.electronAPI.getViewerUrl();
+    // setState schedules a re-render — the <webview> element does not exist in
+    // the DOM until that render commits. Querying for it here returns null, so
+    // the dom-ready listener (and therefore initGraph + the data subscription)
+    // would never attach. Webview setup is deferred to componentDidUpdate, which
+    // runs after React commits the new viewerUrl and the <webview> is present.
     this.setState({ viewerUrl });
-    this.graphView = document.querySelector('webview');
-    this.graphView?.addEventListener('dom-ready', () => {
-      this.graphView?.send('initGraph', {
-        plottingInterval: this.props.plottingInterval,
-        channels: this.state.channels,
-        domain: this.state.domain,
-        channelColours: this.state.channels.map(() => '#66B0A9'),
-      });
-      this.setKeyListeners();
-      const { signalQualityObservable } = this.props;
-      if (signalQualityObservable != null) {
-        this.subscribeToObservable(signalQualityObservable);
-      }
-    });
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
+    // The <webview> enters the DOM when viewerUrl first becomes non-empty.
+    if (this.state.viewerUrl && !prevState.viewerUrl) {
+      this.graphView = document.querySelector('webview');
+      this.graphView?.addEventListener('dom-ready', () => {
+        this.graphView?.send('initGraph', {
+          plottingInterval: this.props.plottingInterval,
+          channels: this.state.channels,
+          domain: this.state.domain,
+          channelColours: this.state.channels.map(() => '#66B0A9'),
+        });
+        this.setKeyListeners();
+        const { signalQualityObservable } = this.props;
+        if (signalQualityObservable != null) {
+          this.subscribeToObservable(signalQualityObservable);
+        }
+      });
+    }
+
     const { signalQualityObservable } = this.props;
     if (
       signalQualityObservable !== prevProps.signalQualityObservable &&
@@ -90,9 +99,6 @@ class ViewerComponent extends Component<Props, State> {
     if (this.state.domain !== prevState.domain) {
       this.graphView.send('updateDomain', this.state.domain);
     }
-    if (this.state.channels !== prevState.channels) {
-      this.graphView.send('updateChannels', this.state.channels);
-    }
     if (this.state.autoScale !== prevState.autoScale) {
       this.graphView.send('autoScale');
     }
@@ -111,12 +117,17 @@ class ViewerComponent extends Component<Props, State> {
 
   subscribeToObservable(observable: Observable<SignalQualityData>) {
     this.signalQualitySubscription?.unsubscribe();
-    this.signalQualitySubscription = observable.subscribe(
-      (chunk) => {
+    this.signalQualitySubscription = observable.subscribe({
+      next: (chunk) => {
         this.graphView?.send('newData', chunk);
       },
-      (error) => new Error(`Error in epochSubscription ${error}`)
-    );
+      // A thrown error here terminates the stream, so all EEG / signal-quality
+      // data silently stops reaching the viewer. The previous handler built an
+      // Error object and discarded it, hiding pipeline failures entirely — log
+      // it so the failure is diagnosable.
+      error: (error) =>
+        console.error('[viewer] signal quality observable error:', error),
+    });
   }
 
   render() {
