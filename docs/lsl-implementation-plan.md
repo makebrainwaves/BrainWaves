@@ -465,3 +465,13 @@ writeHeader(streamId, state$.value.device.connectedDevice?.channels ?? MUSE_CHAN
 | `src/renderer/epics/index.ts` | Register `lslForwardEpic` in `combineEpics` |
 | `src/renderer/epics/experimentEpics.ts` | Fix `MUSE_CHANNELS` hardcoding (line 79) |
 | `src/renderer/components/CollectComponent/RunComponent.tsx` | Add `sendLSLMarker` call alongside `injectMuseMarker` (Phase 4) |
+
+Test plan
+
+ - x Connect a real Muse; confirm stream appears in LabRecorder with correct channel names and sample rate (still could interrogatee file for correctness. path is '/Users/dano/Documents/CurrentStudy/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-Default_run-001_eeg.xdf')
+ - Connect a Neurosity Crown; confirm stream appears in LabRecorder
+ - Run lab.js experiment; confirm markers are recorded synchronized with EEG
+ - Discover and subscribe to an external LSL stream; confirm live visualization
+ - Disconnect Muse mid-session; confirm toast + clean teardown
+ - npm run package on macOS arm64, macOS x64, Windows x64; confirm liblsl loads from the packaged build
+ - Ubuntu smoke test for Web Bluetooth (--enable-experimental-web-platform-features is already set)
