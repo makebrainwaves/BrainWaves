@@ -9,14 +9,18 @@ import {
   DEVICES,
   SCREENS,
 } from '../../constants/constants';
-import { Device, SignalQualityData } from '../../constants/interfaces';
+import {
+  Device,
+  DeviceInfo,
+  SignalQualityData,
+} from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
 import type { DiscoveredStream } from '../../../shared/lslTypes';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
@@ -137,7 +141,8 @@ export default class ConnectModal extends Component<Props, State> {
                 className="flex justify-between items-center py-2"
               >
                 <span>
-                  {stream.name} — {stream.channelCount}ch @ {stream.sampleRate}Hz
+                  {stream.name} — {stream.channelCount}ch @ {stream.sampleRate}
+                  Hz
                 </span>
                 <Button
                   variant="default"
@@ -164,7 +169,9 @@ export default class ConnectModal extends Component<Props, State> {
             tabIndex={0}
             className="flex items-center gap-2 py-2 cursor-pointer text-lg"
             onClick={() => this.setState({ selectedDevice: device })}
-            onKeyDown={(e) => e.key === 'Enter' && this.setState({ selectedDevice: device })}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && this.setState({ selectedDevice: device })
+            }
           >
             <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
             <span>{ConnectModal.getDeviceName(device)}</span>

@@ -17,6 +17,10 @@ import Mousetrap from 'mousetrap';
 interface Props {
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   plottingInterval: number;
+  // Channel labels of the connected device. Drives the viewer's traces and must
+  // match the keys of the signal-quality chunks. Defaults to MUSE_CHANNELS so a
+  // Muse renders correctly even before connectedDevice metadata is populated.
+  channels?: Array<string>;
 }
 
 interface State {
@@ -35,7 +39,7 @@ class ViewerComponent extends Component<Props, State> {
     super(props);
     this.state = {
       ...VIEWER_DEFAULTS,
-      channels: MUSE_CHANNELS,
+      channels: props.channels ?? MUSE_CHANNELS,
       viewerUrl: '',
     };
     this.graphView = null;
@@ -69,6 +73,12 @@ class ViewerComponent extends Component<Props, State> {
           this.subscribeToObservable(signalQualityObservable);
         }
       });
+    }
+
+    // Adopt the connected device's channels when they arrive/change. The block
+    // below forwards the new set to the guest via 'updateChannels'.
+    if (this.props.channels && this.props.channels !== prevProps.channels) {
+      this.setState({ channels: this.props.channels });
     }
 
     const { signalQualityObservable } = this.props;

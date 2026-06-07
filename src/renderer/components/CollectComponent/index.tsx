@@ -10,6 +10,7 @@ import {
   ExperimentParameters,
   SignalQualityData,
   Device,
+  DeviceInfo,
   ExperimentObject,
 } from '../../constants/interfaces';
 import type { DiscoveredStream } from '../../../shared/lslTypes';
@@ -20,7 +21,7 @@ import { ExperimentActions, DeviceActions } from '../../actions';
 
 export interface Props {
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   deviceType: DEVICES;
@@ -104,7 +105,9 @@ export default class Collect extends Component<Props, State> {
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
-          signalQualityObservable={this.props.signalQualityObservable ?? undefined}
+          signalQualityObservable={
+            this.props.signalQualityObservable ?? undefined
+          }
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
           deviceType={this.props.deviceType}

@@ -172,6 +172,11 @@ const setRawObservableEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.SetDeviceInfo)),
+    // LSL inlets supply their own raw observable via connectToLSLStreamEpic —
+    // they must not fall through to the BLE drivers here, or connecting an LSL
+    // stream would erroneously start the Muse client and clobber the inlet's
+    // observable with a second SetRawObservable.
+    filter(() => state$.value.device.deviceType !== DEVICES.LSL),
     mergeMap(() =>
       from(
         state$.value.device.deviceType === DEVICES.NEUROSITY

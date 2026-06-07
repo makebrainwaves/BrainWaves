@@ -601,19 +601,23 @@ const createWindow = async () => {
   });
 
   // Electron 22+ does not show a native Bluetooth picker automatically.
-  // We intercept select-bluetooth-device and auto-select the first Muse device
-  // found. The event fires multiple times as BLE discovery progresses — each
-  // call carries the full cumulative deviceList seen so far.
+  // We intercept select-bluetooth-device and auto-select the first advertised
+  // device. The renderer's requestDevice() call has already scoped the scan by
+  // GATT service UUID (Muse vs Neurosity Crown), so the first device in the
+  // list is the one the user is searching for — we must NOT hardcode a single
+  // vendor name here or only Muse would ever connect. The event fires multiple
+  // times as BLE discovery progresses; each call carries the full cumulative
+  // deviceList seen so far.
   mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
     event.preventDefault();
     pendingBluetoothCallback = callback;
 
-    const muse = deviceList.find((d) => d.deviceName?.startsWith('Muse'));
-    if (muse) {
-      pendingBluetoothCallback(muse.deviceId);
+    const [device] = deviceList;
+    if (device) {
+      pendingBluetoothCallback(device.deviceId);
       pendingBluetoothCallback = null;
     }
-    // No Muse visible yet — keep scanning. The event will fire again as more
+    // Nothing visible yet — keep scanning. The event will fire again as more
     // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
     // after SEARCH_TIMER ms if nothing is found.
   });

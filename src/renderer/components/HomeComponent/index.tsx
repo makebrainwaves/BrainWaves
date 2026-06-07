@@ -37,7 +37,11 @@ import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import OverviewComponent from './OverviewComponent';
 import EEGExplorationComponent from '../EEGExplorationComponent';
-import { Device, SignalQualityData } from '../../constants/interfaces';
+import {
+  Device,
+  DeviceInfo,
+  SignalQualityData,
+} from '../../constants/interfaces';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import PyodidePlotWidget from '../PyodidePlotWidget';
 
@@ -51,7 +55,7 @@ const HOME_STEPS = {
 export interface Props {
   activeStep?: string;
   availableDevices: Array<Device>;
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
   deviceAvailability: DEVICE_AVAILABILITY;
@@ -326,7 +330,9 @@ export default class Home extends Component<Props, State> {
                 disabled={!this.props.isWorkerReady}
                 onClick={() => this.props.PyodideActions.LoadTopo()}
               >
-                {this.props.isWorkerReady ? 'Generate Plot' : 'Loading libraries…'}
+                {this.props.isWorkerReady
+                  ? 'Generate Plot'
+                  : 'Loading libraries…'}
               </Button>
             </div>
             <div>

@@ -17,13 +17,14 @@ import {
 import {
   ExperimentParameters,
   Device,
+  DeviceInfo,
   SignalQualityData,
 } from '../../constants/interfaces';
 import { Observable } from 'rxjs';
 
 interface Props {
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
@@ -161,6 +162,7 @@ export default class PreTestComponent extends Component<Props, State> {
             <div className="w-1/2">
               <ViewerComponent
                 signalQualityObservable={this.props.signalQualityObservable}
+                channels={this.props.connectedDevice?.channels}
                 plottingInterval={PLOTTING_INTERVAL}
               />
               {this.renderHelpButton()}

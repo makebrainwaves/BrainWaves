@@ -9,7 +9,7 @@ function mapStateToProps(state: RootState) {
   return {
     ...state.device,
     ...state.experiment,
-    connectedDevice: state.device.connectedDevice ?? {},
+    connectedDevice: state.device.connectedDevice,
     signalQualityObservable: state.device.signalQualityObservable ?? undefined,
     params: state.experiment.params as ExperimentParameters,
   };

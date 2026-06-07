@@ -12,11 +12,11 @@ import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import { DeviceActions } from '../actions';
-import { Device, SignalQualityData } from '../constants/interfaces';
+import { Device, DeviceInfo, SignalQualityData } from '../constants/interfaces';
 import type { DiscoveredStream } from '../../shared/lslTypes';
 
 interface Props {
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
@@ -87,6 +87,7 @@ export default class Home extends Component<Props, State> {
                 </div>
                 <ViewerComponent
                   signalQualityObservable={this.props.signalQualityObservable}
+                  channels={this.props.connectedDevice?.channels}
                   plottingInterval={PLOTTING_INTERVAL}
                 />
               </div>

@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
 import { injectMuseMarker } from '../../utils/eeg/muse';
+import { sendMarker } from '../../utils/eeg/lslBridge';
 import { EXPERIMENTS } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
@@ -73,10 +74,8 @@ const Run: React.FC<Props> = ({
     (event: string, time: number) => {
       if (isEEGEnabled) {
         injectMuseMarker(event, time);
-        window.electronAPI.sendLSLMarker({
-          label: event,
-          rendererTimestamp: performance.now(),
-        });
+        // Goes through lslBridge so it no-ops (no IPC) when liblsl is unavailable.
+        sendMarker({ label: event, rendererTimestamp: performance.now() });
       }
     },
     [isEEGEnabled]
