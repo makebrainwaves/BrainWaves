@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { isNil, debounce } from 'lodash';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
+import { Spinner } from '../ui/spinner';
 import {
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
@@ -184,15 +185,21 @@ export default class ConnectModal extends Component<Props, State> {
   renderContent() {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
-        <p className="text-center">Searching for available headset(s)...</p>
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Spinner size={32} />
+          <p className="text-center">Searching for available headset(s)...</p>
+        </div>
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
-        <p className="text-center">
-          Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}
-          ...
-        </p>
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Spinner size={32} />
+          <p className="text-center">
+            Connecting to{' '}
+            {ConnectModal.getDeviceName(this.state.selectedDevice)}...
+          </p>
+        </div>
       );
     }
     if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {

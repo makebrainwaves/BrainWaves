@@ -108,7 +108,15 @@ const searchTimerEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
-    mergeMap(() => timer(SEARCH_TIMER)),
+    // Cancel the timeout as soon as a device is found. Without this, a device
+    // discovered right around SEARCH_TIMER races the timer: DeviceFound sets
+    // AVAILABLE, then the timer's late NONE clobbers it, leaving a found device
+    // the connect modal can't show (it only renders the list when AVAILABLE).
+    mergeMap(() =>
+      timer(SEARCH_TIMER).pipe(
+        takeUntil(action$.pipe(filter(isActionOf(DeviceActions.DeviceFound))))
+      )
+    ),
     filter(
       () =>
         state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
