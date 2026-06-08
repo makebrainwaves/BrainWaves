@@ -9,6 +9,15 @@ Format: brief heading + explanation + (optional) relevant file paths.
 
 <!-- Add entries below this line -->
 
+## Testing device + LSL connectivity without native deps
+
+Device/LSL connectivity is integration-tested with the native layers fully mocked, so the tests run anywhere (incl. CI on all OSes) with **no liblsl / koffi / SDK installed**:
+- `src/main/lsl/__tests__/fakeLslNetwork.ts` — an in-memory fake of `node-labstreaminglayer`: creating a `StreamOutlet` registers its `StreamInfo` on a shared broker; `resolveStreams()` lists live outlets; a `StreamInlet`'s `pullChunk()` reads what its outlet pushed since the last pull. This lets `outlets.ts` → `inlets.ts` be tested as a real round trip. Inject it by `vi.mock('../native')` then `vi.mocked(loadLSL).mockReturnValue(fake.module as unknown as ...)`. `outlets.ts`/`inlets.ts` also import `electron-log`, so `vi.mock('electron-log', () => ({ default: { info/warn/error: vi.fn() } }))` is required. The inlet poll loop is a `setInterval`, so use `vi.useFakeTimers()` + `vi.advanceTimersByTime()`.
+- Renderer drivers mock `window.electronAPI` (capture the `onLSLInletData`/`onLSLInletDisconnected` handlers to "push" inlet epochs) and `@neurosity/sdk`. The Neurosity mock's `Neurosity` must be `new`-able — `neurosity.ts` does `new Neurosity(...)` — so define a plain `function Neurosity(){ return client }` inside `vi.hoisted` (arrow fns aren't constructable) and `vi.mock('@neurosity/sdk', () => ({ Neurosity: h.Neurosity }))`.
+- `lslBridge.ts` probes availability at module load via a top-level `isLSLAvailable()` promise; to test the gate, set `window.electronAPI.isLSLAvailable` before `vi.resetModules()` + dynamic `await import('../lslBridge')`, then flush a microtask.
+
+**CI**: `npm run device-integration` (script targets `src/main/lsl src/renderer/utils/eeg`) runs as its own `.github/workflows/integration.yml` job with `npm ci --ignore-scripts` — since every native module is mocked, it skips the slow Pyodide/MNE postinstall and needs no liblsl. The full cross-OS suite still runs these too via `npm test` in `test.yml` (whose `Test` step runs before the lint step).
+
 ## Styling System (post Phase 4 migration)
 
 The app uses shadcn/ui + Tailwind CSS. CSS modules have been fully removed. Key conventions:

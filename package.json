@@ -25,6 +25,7 @@
     "postlint-fix": "prettier --single-quote --write '**/*.{ts,tsx,js,jsx,json,html,css,less,scss,yml}'",
     "postlint-styles-fix": "prettier --single-quote --write '**/*.{css,scss}'",
     "test": "vitest run",
+    "device-integration": "vitest run src/main/lsl src/renderer/utils/eeg",
     "test:watch": "vitest",
     "test-all": "npm run lint && npm run lint-styles && npm run typecheck && npm run build && npm test",
     "tsc": "tsc --noEmit",
