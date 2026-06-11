@@ -11,15 +11,14 @@ import {
 import { isActionOf } from '../utils/redux';
 import { ExperimentActions, ExperimentActionType } from '../actions';
 import { RouterActions } from '../actions/routerActions';
-import {
-  MUSE_CHANNELS,
-  CONNECTION_STATUS,
-} from '../constants/constants';
+import { MUSE_CHANNELS, CONNECTION_STATUS } from '../constants/constants';
 import {
   createEEGWriteStream,
   writeHeader,
   writeEEGData,
+  writeEEGEvents,
 } from '../utils/filesystem/write';
+import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   storeExperimentState,
   restoreExperimentState,
@@ -76,6 +75,20 @@ const startEpic = (action$, state$) =>
         writeHeader(
           streamId,
           state$.value.device.connectedDevice?.channels ?? MUSE_CHANNELS
+        );
+
+        // Persist the code->label event map next to the CSV so the numeric
+        // Marker codes are self-describing. Same registry the analysis uses,
+        // so the recording and its interpretation can never drift apart.
+        const { codeToLabel } = buildMarkerRegistry(
+          state$.value.experiment.params?.stimuli
+        );
+        void writeEEGEvents(
+          state$.value.experiment.title,
+          state$.value.experiment.subject,
+          state$.value.experiment.group,
+          state$.value.experiment.session,
+          codeToLabel
         );
 
         state$.value.device.rawObservable

@@ -90,6 +90,13 @@ declare global {
     writeEEGHeader: (streamId: string, channels: string[]) => void;
     writeEEGData: (streamId: string, data: unknown) => void;
     closeEEGStream: (streamId: string) => Promise<void>;
+    writeEEGEvents: (
+      title: string,
+      subject: string,
+      group: string,
+      session: number,
+      events: Record<number, string>
+    ) => Promise<void>;
 
     // Misc
     getResourcePath: () => Promise<string>;
@@ -105,9 +112,7 @@ declare global {
     discoverLSLStreams: () => Promise<DiscoveredStream[]>;
     subscribeLSLStream: (uid: string) => void;
     unsubscribeLSLStream: (uid: string) => void;
-    onLSLInletData: (
-      handler: (epoch: LSLInletEpoch) => void
-    ) => () => void;
+    onLSLInletData: (handler: (epoch: LSLInletEpoch) => void) => () => void;
     onLSLInletDisconnected: (
       handler: (payload: { uid: string }) => void
     ) => () => void;

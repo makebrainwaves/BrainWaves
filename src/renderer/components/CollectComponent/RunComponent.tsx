@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
-import { injectMuseMarker } from '../../utils/eeg/muse';
+import { injectMarker } from '../../utils/eeg';
 import { sendMarker } from '../../utils/eeg/lslBridge';
 import { EXPERIMENTS } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
@@ -71,11 +71,16 @@ const Run: React.FC<Props> = ({
   );
 
   const eventCallback = useCallback(
-    (event: string, time: number) => {
+    (event: number, time: number) => {
       if (isEEGEnabled) {
-        injectMuseMarker(event, time);
+        // Device-agnostic: dispatches to whichever driver is connected (Muse or
+        // Neurosity), so markers reach the recorded CSV regardless of device.
+        injectMarker(event, time);
         // Goes through lslBridge so it no-ops (no IPC) when liblsl is unavailable.
-        sendMarker({ label: event, rendererTimestamp: performance.now() });
+        sendMarker({
+          label: String(event),
+          rendererTimestamp: performance.now(),
+        });
       }
     },
     [isEEGEnabled]

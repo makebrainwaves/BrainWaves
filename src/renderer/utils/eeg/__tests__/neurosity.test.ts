@@ -54,6 +54,7 @@ import {
   createRawNeurosityObservable,
   disconnectFromNeurosity,
   neurosityDisconnect$,
+  injectNeurosityMarker,
 } from '../neurosity';
 import { NEUROSITY_CHANNELS } from '../../../constants/constants';
 
@@ -100,6 +101,42 @@ describe('createRawNeurosityObservable', () => {
     ]);
     expect(result[0].timestamp).toBe(1000);
     expect(result[1].timestamp).toBeCloseTo(1000 + 1000 / 256, 5);
+  });
+
+  // REGRESSION: Neurosity recordings previously had an all-zero Marker column
+  // because eventCallback only called injectMuseMarker — so no Neurosity dataset
+  // could yield an ERP. injectNeurosityMarker must attach the code to a sample.
+  it('attaches an injected marker to the next emitted sample, once', async () => {
+    const observable = await createRawNeurosityObservable();
+    const seen: EEGData[] = [];
+    const sub = observable.subscribe((d) => seen.push(d));
+
+    injectNeurosityMarker(2, Date.now());
+    h.holder.observer?.next({
+      data: [
+        [10, 11],
+        [20, 21],
+      ],
+      info: { samplingRate: 256, startTime: 1000 },
+    });
+
+    // Only the first sample after injection carries the code; the rest are clean.
+    expect(seen[0].marker).toBe(2);
+    expect(seen[1].marker).toBeUndefined();
+
+    // A subsequent epoch with no new marker carries no code (not sticky).
+    h.holder.observer?.next({
+      data: [[12], [22]],
+      info: { samplingRate: 256, startTime: 2000 },
+    });
+    expect(seen[2].marker).toBeUndefined();
+    sub.unsubscribe();
+  });
+
+  it('drops a marker injected before any stream is active', async () => {
+    await disconnectFromNeurosity();
+    // No active markerSubject → injection is a no-op (matches Muse behaviour).
+    expect(() => injectNeurosityMarker(1, Date.now())).not.toThrow();
   });
 
   it('skips empty epochs without emitting', async () => {

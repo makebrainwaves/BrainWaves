@@ -13,23 +13,8 @@ import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import { DeviceActions, DeviceActionType, ExperimentActions } from '../actions';
-import {
-  getMuse,
-  connectToMuse,
-  createRawMuseObservable,
-  createMuseSignalQualityObservable,
-  disconnectFromMuse,
-  cancelMuseScan,
-  museDisconnect$,
-} from '../utils/eeg/muse';
-import {
-  getNeurosity,
-  connectToNeurosity,
-  createRawNeurosityObservable,
-  disconnectFromNeurosity,
-  cancelNeurosityScan,
-  neurosityDisconnect$,
-} from '../utils/eeg/neurosity';
+import { getDriver, setActiveDriver } from '../utils/eeg';
+import { createMuseSignalQualityObservable } from '../utils/eeg/muse';
 import {
   discoverLSLStreams,
   connectToLSLInlet,
@@ -58,11 +43,7 @@ const searchMuseEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
-    map(() =>
-      state$.value.device.deviceType === DEVICES.NEUROSITY
-        ? getNeurosity()
-        : getMuse()
-    ),
+    map(() => getDriver(state$.value.device.deviceType).scan()),
     mergeMap((promise) =>
       promise.then(
         (devices) => devices,
@@ -124,11 +105,7 @@ const searchTimerEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     // Cancel the pending requestDevice() promise in the main process so it
     // doesn't hang after the search window closes.
     tap(() => {
-      if (state$.value.device.deviceType === DEVICES.NEUROSITY) {
-        cancelNeurosityScan();
-      } else {
-        cancelMuseScan();
-      }
+      getDriver(state$.value.device.deviceType).cancelScan();
     }),
     map(() => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
@@ -140,17 +117,15 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
-    map((device) =>
-      state$.value.device.deviceType === DEVICES.NEUROSITY
-        ? (connectToNeurosity(device) as Promise<DeviceInfo | null>)
-        : (connectToMuse(device) as Promise<DeviceInfo | null>)
-    ),
+    map((device) => getDriver(state$.value.device.deviceType).connect(device)),
     mergeMap((promise) => promise.then((deviceInfo) => deviceInfo)),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<DeviceInfo | null, ObservableInput<any>>((deviceInfo) => {
       // returns union of several action types
       if (deviceInfo != null && deviceInfo.samplingRate != null) {
-        console.log(deviceInfo);
+        // Mark this device's driver active so the marker dispatcher and the
+        // raw-observable epic resolve to the right backend.
+        setActiveDriver(state$.value.device.deviceType);
         // Preserve the currently-selected deviceType; do not hardcode MUSE.
         return of(
           DeviceActions.SetDeviceType(state$.value.device.deviceType),
@@ -186,11 +161,7 @@ const setRawObservableEpic: Epic<
     // observable with a second SetRawObservable.
     filter(() => state$.value.device.deviceType !== DEVICES.LSL),
     mergeMap(() =>
-      from(
-        state$.value.device.deviceType === DEVICES.NEUROSITY
-          ? createRawNeurosityObservable()
-          : createRawMuseObservable()
-      )
+      from(getDriver(state$.value.device.deviceType).createRawObservable())
     ),
     map(DeviceActions.SetRawObservable)
   );
@@ -225,13 +196,12 @@ const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     ),
     map(() => {
       const dt = state$.value.device.deviceType;
-      if (dt === DEVICES.NEUROSITY) {
-        void disconnectFromNeurosity();
-      } else if (dt === DEVICES.LSL) {
+      if (dt === DEVICES.LSL) {
         disconnectFromLSLInlet();
       } else {
-        disconnectFromMuse();
+        void getDriver(dt).disconnect();
       }
+      setActiveDriver(null);
     }),
     map(DeviceActions.Cleanup)
   );
@@ -250,9 +220,9 @@ const deviceDisconnectWatchEpic: Epic<
     filter((status) => status === CONNECTION_STATUS.CONNECTED),
     mergeMap(() => {
       const dt = state$.value.device.deviceType;
-      if (dt === DEVICES.MUSE) return museDisconnect$;
-      if (dt === DEVICES.NEUROSITY) return neurosityDisconnect$();
-      return EMPTY;
+      // LSL inlets have their own disconnect path; only BLE drivers report here.
+      if (dt === DEVICES.LSL) return EMPTY;
+      return getDriver(dt).disconnect$();
     }),
     tap(() => toast.error('EEG device disconnected')),
     map(() => DeviceActions.DeviceLost()),
@@ -269,8 +239,8 @@ const deviceLostCleanupEpic: Epic<
     filter(isActionOf(DeviceActions.DeviceLost)),
     tap(() => {
       const dt = state$.value.device.deviceType;
-      if (dt === DEVICES.MUSE) disconnectFromMuse();
-      else if (dt === DEVICES.NEUROSITY) void disconnectFromNeurosity();
+      if (dt !== DEVICES.LSL) void getDriver(dt).disconnect();
+      setActiveDriver(null);
     }),
     map(DeviceActions.Cleanup)
   );
@@ -298,6 +268,9 @@ const connectToLSLStreamEpic: Epic<
     pluck('payload'),
     mergeMap((stream) => {
       const deviceInfo = connectToLSLInlet(stream);
+      // LSL recording is an external-recorder mode — no first-party driver owns
+      // markers, so clear any previously-active BLE driver (injectMarker no-ops).
+      setActiveDriver(null);
       return from(createRawLSLInletObservable(stream)).pipe(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mergeMap<unknown, ObservableInput<any>>((rawObservable) =>

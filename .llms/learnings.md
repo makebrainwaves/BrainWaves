@@ -9,6 +9,49 @@ Format: brief heading + explanation + (optional) relevant file paths.
 
 <!-- Add entries below this line -->
 
+## Markers: device-agnostic injection via the EEGDriver interface
+
+Marker injection used to be Muse-only and lived in the UI (`RunComponent.eventCallback`
+called `injectMuseMarker` directly). Neurosity recordings therefore had an all-zero
+Marker column and could not yield ERPs. Now every first-party backend implements a
+shared `EEGDriver` interface (`src/renderer/utils/eeg/types.ts`) with `injectMarker`,
+registered in `src/renderer/utils/eeg/index.ts`. `deviceEpics` resolves drivers via
+`getDriver(deviceType)` instead of branching on MUSE/NEUROSITY, and the UI calls the
+device-agnostic `injectMarker()` dispatcher (delegates to the active driver, set on
+connect via `setActiveDriver`). A new device cannot ship without a marker path — the
+interface won't compile without it. LSL inlet is intentionally NOT in the registry
+(separate external-recorder mode; `injectMarker` no-ops for it). Neurosity has no
+native marker stream, so its `injectMarker` attaches the code to the next emitted
+sample (one epoch of latency); Muse merges via muse-js eventMarkers + `synchronizeTimestamp`.
+
+## Marker codes are numeric, and the analysis event_id must match them
+
+Markers passed to `callbackForEEG` (and into the CSV) are **numeric** EVENTS codes
+(`stimulus.type`, e.g. STIMULUS_1 = 1), not strings — see the experiment files'
+`callbackForEEG(this.parameters.congruent === 'yes' ? 1 : 2)` etc. The CSV Marker
+column carries these codes; MNE `find_events` reads them off the last (`stim`) channel.
+The bug: `pyodideEpics.loadEpochsEpic` built the MNE `event_id` map as
+`{stimulus.title: arrayIndex}` (0-based), which did not match the 1-based codes in the
+data — so code-2 epochs matched no event_id and MNE raised "No matching events". Fixed
+by `buildMarkerRegistry` (`src/renderer/utils/eeg/markerRegistry.ts`), the single source
+of truth used by BOTH collection (CSV codes + `-events.json` sidecar) and analysis
+(event_id). Also a latent bug: `epochEvents` interpolated an undefined `reject` as
+`reject = undefined` (Python NameError) — now coerced to `None`.
+
+## Testing the analysis pipeline against native MNE (no Pyodide)
+
+`webworker/utils.py` is testable outside Pyodide: `load_data(csv_strings=...)` skips the
+`js.csvArray` global, and epoching is factored into `get_raw_epochs(raw, event_id,
+tmin, tmax, ...)` which `webworker/index.ts` `epochEvents` also calls — so the in-app
+analysis and the tests share one implementation (no drift). `tests/analysis/` runs the
+real `utils.py` against native MNE via pytest (`conftest.py` puts the webworker dir on
+`sys.path`; `MPLBACKEND=agg` because utils.py imports pyplot at module load). The golden
+test (`test_erp_roundtrip.py` + `synthetic.py`) plants a P300-like bump on one condition
+and asserts it's recovered after `load_data → filter(1,30,'iir') → get_raw_epochs →
+average`, plus sfreq-under-jitter and dropped-sample cases. CI: `.github/workflows/
+analysis.yml` (Python job, `pip install -r tests/analysis/requirements.txt`). The app
+runs the same Python under Pyodide/WASM — a Pyodide-fidelity smoke job is still a TODO.
+
 ## Testing device + LSL connectivity without native deps
 
 Device/LSL connectivity is integration-tested with the native layers fully mocked, so the tests run anywhere (incl. CI on all OSes) with **no liblsl / koffi / SDK installed**:

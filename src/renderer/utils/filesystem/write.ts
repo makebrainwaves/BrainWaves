@@ -26,3 +26,15 @@ export const writeEEGData = (streamId: string, eegData: EEGData): void =>
 // Closes the write stream
 export const closeEEGStream = (streamId: string): Promise<void> =>
   window.electronAPI.closeEEGStream(streamId);
+
+// Writes the code->label event sidecar JSON alongside the raw CSV so the
+// numeric Marker codes are interpretable without the app (and by validation
+// tests that read recordings back).
+export const writeEEGEvents = (
+  title: string,
+  subject: string,
+  group: string,
+  session: number,
+  events: Record<number, string>
+): Promise<void> =>
+  window.electronAPI.writeEEGEvents(title, subject, group, session, events);

@@ -5,7 +5,16 @@
  * All Node.js / filesystem / shell operations the renderer needs
  * are handled here via ipcMain handlers and exposed via the preload.
  */
-import { app, BrowserWindow, ipcMain, dialog, shell, session, protocol, net } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  shell,
+  session,
+  protocol,
+  net,
+} from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
@@ -78,8 +87,8 @@ protocol.registerSchemesAsPrivileged([
   {
     scheme: 'pyodide',
     privileges: {
-      standard: true,    // treat like http for URL parsing / resolution
-      secure: true,      // counts as a secure origin (needed for WASM, SAB)
+      standard: true, // treat like http for URL parsing / resolution
+      secure: true, // counts as a secure origin (needed for WASM, SAB)
       supportFetchAPI: true, // allow fetch() from renderer and worker contexts
       corsEnabled: true, // no CORS errors when Pyodide fetches its own assets
     },
@@ -166,7 +175,9 @@ ipcMain.handle('fs:readWorkspaces', () => {
   try {
     return fs
       .readdirSync(workspaces)
-      .filter((workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot');
+      .filter(
+        (workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot'
+      );
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       mkdirPathSync(workspaces);
@@ -197,10 +208,7 @@ ipcMain.handle(
   (_event, state: Record<string, unknown>) => {
     const dir = getWorkspaceDir(state.title as string);
     if (!fs.existsSync(dir)) return;
-    fs.writeFileSync(
-      path.join(dir, 'appState.json'),
-      JSON.stringify(state)
-    );
+    fs.writeFileSync(path.join(dir, 'appState.json'), JSON.stringify(state));
   }
 );
 
@@ -290,10 +298,15 @@ ipcMain.handle(
     const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
     mkdirPathSync(dir);
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(path.join(dir, `${imageTitle}.svg`), svgContent, 'utf8', (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
+      fs.writeFile(
+        path.join(dir, `${imageTitle}.svg`),
+        svgContent,
+        'utf8',
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
   }
 );
@@ -434,6 +447,19 @@ ipcMain.on(
     } else {
       stream.write(`0\n`);
     }
+  }
+);
+
+// Writes the event-code sidecar (<subject>-<group>-<session>-events.json) next
+// to the raw CSV. Maps the numeric codes in the CSV Marker column to labels so
+// the recording is self-describing for external/downstream analysis.
+ipcMain.handle(
+  'eeg:writeEvents',
+  (_event, title, subject, group, session, events: Record<number, string>) => {
+    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
+    const filename = `${subject}-${group}-${session}-events.json`;
+    mkdirPathSync(dir);
+    fs.writeFileSync(path.join(dir, filename), JSON.stringify(events, null, 2));
   }
 );
 
@@ -608,19 +634,22 @@ const createWindow = async () => {
   // vendor name here or only Muse would ever connect. The event fires multiple
   // times as BLE discovery progresses; each call carries the full cumulative
   // deviceList seen so far.
-  mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
-    event.preventDefault();
-    pendingBluetoothCallback = callback;
+  mainWindow.webContents.on(
+    'select-bluetooth-device',
+    (event, deviceList, callback) => {
+      event.preventDefault();
+      pendingBluetoothCallback = callback;
 
-    const [device] = deviceList;
-    if (device) {
-      pendingBluetoothCallback(device.deviceId);
-      pendingBluetoothCallback = null;
+      const [device] = deviceList;
+      if (device) {
+        pendingBluetoothCallback(device.deviceId);
+        pendingBluetoothCallback = null;
+      }
+      // Nothing visible yet — keep scanning. The event will fire again as more
+      // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
+      // after SEARCH_TIMER ms if nothing is found.
     }
-    // Nothing visible yet — keep scanning. The event will fire again as more
-    // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
-    // after SEARCH_TIMER ms if nothing is found.
-  });
+  );
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);

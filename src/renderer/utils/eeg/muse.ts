@@ -21,7 +21,8 @@ import {
   MUSE_CHANNELS,
   PLOTTING_INTERVAL,
 } from '../../constants/constants';
-import { Device, EEGData } from '../../constants/interfaces';
+import { Device, DeviceInfo, EEGData } from '../../constants/interfaces';
+import { EEGDriver } from './types';
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
@@ -145,9 +146,26 @@ export const createMuseSignalQualityObservable = (
   );
 };
 
-// Injects an event marker that will be included in muse-js's data stream through
-export const injectMuseMarker = (value: string, time: number) => {
-  client.injectMarker(value, time);
+// Injects an event marker that will be included in muse-js's data stream.
+// muse-js merges this into its eventMarkers stream, which createRawMuseObservable
+// joins onto the EEG samples via synchronizeTimestamp (see below).
+export const injectMuseMarker = (code: number, time: number) => {
+  // muse-js types injectMarker's value as string; the marker is a numeric event
+  // code (see EVENTS). Pass through as-is — it round-trips to the CSV numerically.
+  client.injectMarker(code as unknown as string, time);
+};
+
+// The Muse implementation of the shared device-driver contract. deviceEpics
+// resolves this via the registry in ./index rather than branching on deviceType.
+export const museDriver: EEGDriver = {
+  scan: getMuse,
+  connect: (device: Device) =>
+    connectToMuse(device) as Promise<DeviceInfo | null>,
+  disconnect: disconnectFromMuse,
+  cancelScan: cancelMuseScan,
+  createRawObservable: createRawMuseObservable,
+  injectMarker: injectMuseMarker,
+  disconnect$: () => museDisconnect$,
 };
 
 // ---------------------------------------------------------------------

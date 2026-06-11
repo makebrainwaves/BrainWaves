@@ -6,6 +6,7 @@ import { isActionOf } from '../utils/redux';
 import { PyodideActions, PyodideActionType } from '../actions';
 import { RootState } from '../reducers';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
+import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   loadCSV,
   loadCleanedEpochs,
@@ -98,11 +99,16 @@ const pyodideMessageEpic: Epic<
       // results is a base64-encoded PNG string returned from Python.
       const mimeBundle = results ? { 'image/svg+xml': results } : null;
       switch (plotKey) {
-        case 'ready': return of(PyodideActions.SetWorkerReady());
-        case 'topo': return of(PyodideActions.SetTopoPlot(mimeBundle));
-        case 'psd':  return of(PyodideActions.SetPSDPlot(mimeBundle));
-        case 'erp':  return of(PyodideActions.SetERPPlot(mimeBundle));
-        default:     return of(PyodideActions.ReceiveMessage(e.data));
+        case 'ready':
+          return of(PyodideActions.SetWorkerReady());
+        case 'topo':
+          return of(PyodideActions.SetTopoPlot(mimeBundle));
+        case 'psd':
+          return of(PyodideActions.SetPSDPlot(mimeBundle));
+        case 'erp':
+          return of(PyodideActions.SetERPPlot(mimeBundle));
+        default:
+          return of(PyodideActions.ReceiveMessage(e.data));
       }
     })
   );
@@ -123,17 +129,15 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
         return {};
       }
 
-      return epochEvents(
-        state$.value.pyodide.worker!,
-        Object.fromEntries(
-          state$.value.experiment.params?.stimuli.map((stimulus, i) => [
-            stimulus.title,
-            i,
-          ])
-        ),
-        -0.1,
-        0.8
+      // event_id VALUES must equal the numeric codes written to the CSV Marker
+      // column (stimulus.type). Deriving the map from the shared MarkerRegistry
+      // keeps it in lockstep with collection — using array indices here silently
+      // dropped any epoch whose code didn't happen to match an index.
+      const { eventId } = buildMarkerRegistry(
+        state$.value.experiment.params.stimuli
       );
+
+      return epochEvents(state$.value.pyodide.worker!, eventId, -0.1, 0.8);
     }),
     tap((e) => {
       console.log('epoched events: ', e);

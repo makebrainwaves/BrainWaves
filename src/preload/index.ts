@@ -103,7 +103,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     imageTitle: string,
     svgContent: string
   ): Promise<void> =>
-    ipcRenderer.invoke('fs:storePyodideImageSvg', title, imageTitle, svgContent),
+    ipcRenderer.invoke(
+      'fs:storePyodideImageSvg',
+      title,
+      imageTitle,
+      svgContent
+    ),
 
   storePyodideImagePng: (
     title: string,
@@ -157,6 +162,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeEEGStream: (streamId: string): Promise<void> =>
     ipcRenderer.invoke('eeg:closeStream', streamId),
 
+  // Writes the code->label event sidecar JSON next to the raw CSV so the
+  // numeric Marker codes are interpretable by downstream/external tools.
+  writeEEGEvents: (
+    title: string,
+    subject: string,
+    group: string,
+    session: number,
+    events: Record<number, string>
+  ): Promise<void> =>
+    ipcRenderer.invoke(
+      'eeg:writeEvents',
+      title,
+      subject,
+      group,
+      session,
+      events
+    ),
+
   // ------------------------------------------------------------------
   // Misc
   // ------------------------------------------------------------------
@@ -202,9 +225,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   unsubscribeLSLStream: (uid: string): void =>
     ipcRenderer.send('lsl:unsubscribeStream', { uid }),
 
-  onLSLInletData: (
-    handler: (epoch: LSLInletEpoch) => void
-  ): (() => void) => {
+  onLSLInletData: (handler: (epoch: LSLInletEpoch) => void): (() => void) => {
     const listener = (_event: unknown, epoch: LSLInletEpoch) => handler(epoch);
     ipcRenderer.on('lsl:inletData', listener);
     return () => ipcRenderer.removeListener('lsl:inletData', listener);
