@@ -105,7 +105,9 @@ export default class ConnectModal extends Component<Props, State> {
             tabIndex={0}
             className="flex items-center gap-2 py-2 cursor-pointer text-lg"
             onClick={() => this.setState({ selectedDevice: device })}
-            onKeyDown={(e) => e.key === 'Enter' && this.setState({ selectedDevice: device })}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && this.setState({ selectedDevice: device })
+            }
           >
             <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
             <span>{ConnectModal.getDeviceName(device)}</span>

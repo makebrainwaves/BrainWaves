@@ -102,7 +102,9 @@ export default class Collect extends Component<Props, State> {
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
-          signalQualityObservable={this.props.signalQualityObservable ?? undefined}
+          signalQualityObservable={
+            this.props.signalQualityObservable ?? undefined
+          }
           deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}

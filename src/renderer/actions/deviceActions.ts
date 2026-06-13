@@ -1,6 +1,10 @@
 import { createAction } from '@reduxjs/toolkit';
 import { ActionType } from 'typesafe-actions';
-import { DEVICES, DEVICE_AVAILABILITY, CONNECTION_STATUS } from '../constants/constants';
+import {
+  DEVICES,
+  DEVICE_AVAILABILITY,
+  CONNECTION_STATUS,
+} from '../constants/constants';
 import { Device, DeviceInfo } from '../constants/interfaces';
 
 // -------------------------------------------------------------------------

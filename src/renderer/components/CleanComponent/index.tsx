@@ -123,18 +123,12 @@ export default class Clean extends Component<Props, State> {
 
   renderAnalyzeButton() {
     const { epochsInfo } = this.props;
-    if (!isNil(epochsInfo)) {
-      const drop = epochsInfo.find(
-        (infoObj) => infoObj.name === 'Drop Percentage'
-      )?.value;
-
-      if (drop && typeof drop === 'number' && drop >= 2) {
-        return (
-          <Link to="/analyze">
-            <Button variant="default">Analyze Dataset</Button>
-          </Link>
-        );
-      }
+    if (!isNil(epochsInfo) && epochsInfo.length > 0) {
+      return (
+        <Link to="/analyze">
+          <Button variant="default">Analyze Dataset</Button>
+        </Link>
+      );
     }
     return null;
   }

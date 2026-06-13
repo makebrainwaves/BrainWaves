@@ -93,7 +93,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     imageTitle: string,
     svgContent: string
   ): Promise<void> =>
-    ipcRenderer.invoke('fs:storePyodideImageSvg', title, imageTitle, svgContent),
+    ipcRenderer.invoke(
+      'fs:storePyodideImageSvg',
+      title,
+      imageTitle,
+      svgContent
+    ),
 
   storePyodideImagePng: (
     title: string,
@@ -126,6 +131,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   readFiles: (filePathsArray: string[]): Promise<string[]> =>
     ipcRenderer.invoke('fs:readFiles', filePathsArray),
+
+  readFileAsBytes: (filePath: string): Promise<Uint8Array> =>
+    ipcRenderer.invoke('fs:readFileAsBytes', filePath),
 
   // ------------------------------------------------------------------
   // EEG streaming — main process holds the write stream for performance
