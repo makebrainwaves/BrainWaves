@@ -20,7 +20,6 @@ import fs from 'fs';
 import { pathToFileURL } from 'url';
 import os from 'os';
 import Papa from 'papaparse';
-import mkdirp from 'mkdirp';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
@@ -118,7 +117,8 @@ const workspaces = path.join(os.homedir(), 'BrainWaves_Workspaces');
 
 const getWorkspaceDir = (title: string) => path.join(workspaces, title);
 
-const mkdirPathSync = (dirPath: string) => mkdirp.sync(dirPath);
+const mkdirPathSync = (dirPath: string) =>
+  fs.mkdirSync(dirPath, { recursive: true });
 
 // Active EEG write streams keyed by a UUID-like id
 const activeStreams = new Map<string, fs.WriteStream>();
