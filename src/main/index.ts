@@ -5,18 +5,35 @@
  * All Node.js / filesystem / shell operations the renderer needs
  * are handled here via ipcMain handlers and exposed via the preload.
  */
-import { app, BrowserWindow, ipcMain, dialog, shell, session, protocol, net } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  shell,
+  session,
+  protocol,
+  net,
+} from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
 import os from 'os';
 import Papa from 'papaparse';
-import mkdirp from 'mkdirp';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
+import { lslOutlets } from './lsl/outlets';
+import { lslInlets } from './lsl/inlets';
+import { isLSLAvailable } from './lsl/native';
+import type {
+  LSLEpoch,
+  LSLMarker,
+  LSLStatus,
+  LSLStatusKind,
+} from '../shared/lslTypes';
 
 // Needed for WASM/SharedArrayBuffer support (pyodide)
 app.commandLine.appendSwitch(
@@ -69,8 +86,8 @@ protocol.registerSchemesAsPrivileged([
   {
     scheme: 'pyodide',
     privileges: {
-      standard: true,    // treat like http for URL parsing / resolution
-      secure: true,      // counts as a secure origin (needed for WASM, SAB)
+      standard: true, // treat like http for URL parsing / resolution
+      secure: true, // counts as a secure origin (needed for WASM, SAB)
       supportFetchAPI: true, // allow fetch() from renderer and worker contexts
       corsEnabled: true, // no CORS errors when Pyodide fetches its own assets
     },
@@ -87,6 +104,11 @@ export default class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
+// Holds the pending Bluetooth device-picker callback from select-bluetooth-device.
+// Electron 22+ fires this event instead of showing a native picker — we must
+// call it with a deviceId to resolve requestDevice(), or '' to reject.
+let pendingBluetoothCallback: ((deviceId: string) => void) | null = null;
+
 // ------------------------------------------------------------------
 // Filesystem helpers (mirroring renderer's storage.ts / write.ts)
 // ------------------------------------------------------------------
@@ -95,7 +117,8 @@ const workspaces = path.join(os.homedir(), 'BrainWaves_Workspaces');
 
 const getWorkspaceDir = (title: string) => path.join(workspaces, title);
 
-const mkdirPathSync = (dirPath: string) => mkdirp.sync(dirPath);
+const mkdirPathSync = (dirPath: string) =>
+  fs.mkdirSync(dirPath, { recursive: true });
 
 // Active EEG write streams keyed by a UUID-like id
 const activeStreams = new Map<string, fs.WriteStream>();
@@ -152,7 +175,9 @@ ipcMain.handle('fs:readWorkspaces', () => {
   try {
     return fs
       .readdirSync(workspaces)
-      .filter((workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot');
+      .filter(
+        (workspace) => workspace !== '.DS_Store' && workspace !== 'Test_Plot'
+      );
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
       mkdirPathSync(workspaces);
@@ -183,10 +208,7 @@ ipcMain.handle(
   (_event, state: Record<string, unknown>) => {
     const dir = getWorkspaceDir(state.title as string);
     if (!fs.existsSync(dir)) return;
-    fs.writeFileSync(
-      path.join(dir, 'appState.json'),
-      JSON.stringify(state)
-    );
+    fs.writeFileSync(path.join(dir, 'appState.json'), JSON.stringify(state));
   }
 );
 
@@ -276,10 +298,15 @@ ipcMain.handle(
     const dir = path.join(getWorkspaceDir(title), 'Results', 'Images');
     mkdirPathSync(dir);
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(path.join(dir, `${imageTitle}.svg`), svgContent, 'utf8', (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
+      fs.writeFile(
+        path.join(dir, `${imageTitle}.svg`),
+        svgContent,
+        'utf8',
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
   }
 );
@@ -423,6 +450,19 @@ ipcMain.on(
   }
 );
 
+// Writes the event-code sidecar (<subject>-<group>-<session>-events.json) next
+// to the raw CSV. Maps the numeric codes in the CSV Marker column to labels so
+// the recording is self-describing for external/downstream analysis.
+ipcMain.handle(
+  'eeg:writeEvents',
+  (_event, title, subject, group, session, events: Record<number, string>) => {
+    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
+    const filename = `${subject}-${group}-${session}-events.json`;
+    mkdirPathSync(dir);
+    fs.writeFileSync(path.join(dir, filename), JSON.stringify(events, null, 2));
+  }
+);
+
 ipcMain.handle('eeg:closeStream', (_event, streamId) => {
   return new Promise<void>((resolve) => {
     const stream = activeStreams.get(streamId);
@@ -435,6 +475,98 @@ ipcMain.handle('eeg:closeStream', (_event, streamId) => {
       resolve();
     }
   });
+});
+
+// Bluetooth — called by renderer's search timer when scan times out with no result
+ipcMain.handle('bluetooth:cancelSearch', () => {
+  if (pendingBluetoothCallback) {
+    pendingBluetoothCallback('');
+    pendingBluetoothCallback = null;
+  }
+});
+
+// ------------------------------------------------------------------
+// LSL — outlets push to the LSL network, markers are an event stream
+// ------------------------------------------------------------------
+
+// Only surface one toast per kind per 5s so a flurry of FFI errors can't spam
+// the user. LSL network loss typically shows up as bursts of pushChunk errors.
+const lslStatusThrottle = new Map<LSLStatusKind, number>();
+const LSL_STATUS_THROTTLE_MS = 5000;
+const emitLSLStatus = (status: LSLStatus) => {
+  const now = Date.now();
+  const last = lslStatusThrottle.get(status.kind) ?? 0;
+  if (now - last < LSL_STATUS_THROTTLE_MS) return;
+  lslStatusThrottle.set(status.kind, now);
+  mainWindow?.webContents.send('lsl:status', status);
+};
+
+// Feature-detection probe: the renderer uses this to show/hide LSL UI. When
+// liblsl can't be loaded, LSL is silently unavailable and the app falls back
+// to first-party devices (Muse/Neurosity) only.
+ipcMain.handle('lsl:isAvailable', () => isLSLAvailable());
+
+ipcMain.on('lsl:sendEpoch', (_event, epoch: LSLEpoch) => {
+  try {
+    lslOutlets.pushEpoch(epoch);
+  } catch (err) {
+    log.error('[lsl] pushEpoch failed', err);
+    emitLSLStatus({
+      kind: 'outlet-error',
+      message: `LSL outlet push failed: ${(err as Error).message ?? err}`,
+    });
+  }
+});
+
+ipcMain.on('lsl:sendMarker', (_event, marker: LSLMarker) => {
+  try {
+    lslOutlets.pushMarker(marker.label);
+  } catch (err) {
+    log.error('[lsl] pushMarker failed', err);
+    emitLSLStatus({
+      kind: 'marker-error',
+      message: `LSL marker push failed: ${(err as Error).message ?? err}`,
+    });
+  }
+});
+
+ipcMain.handle('lsl:discoverStreams', () => {
+  try {
+    return lslInlets.discoverStreams(1.0);
+  } catch (err) {
+    log.error('[lsl] discoverStreams failed', err);
+    emitLSLStatus({
+      kind: 'discovery-error',
+      message: `LSL stream discovery failed: ${(err as Error).message ?? err}`,
+    });
+    return [];
+  }
+});
+
+ipcMain.on('lsl:subscribeStream', (_event, payload: { uid: string }) => {
+  const ok = lslInlets.subscribeStream(
+    payload.uid,
+    (epoch) => mainWindow?.webContents.send('lsl:inletData', epoch),
+    () => {
+      mainWindow?.webContents.send('lsl:inletDisconnected', {
+        uid: payload.uid,
+      });
+      emitLSLStatus({
+        kind: 'inlet-error',
+        message: 'LSL inlet disconnected',
+      });
+    }
+  );
+  if (!ok) {
+    emitLSLStatus({
+      kind: 'inlet-error',
+      message: 'Failed to open LSL inlet — try rescanning',
+    });
+  }
+});
+
+ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {
+  lslInlets.unsubscribeStream(payload.uid);
 });
 
 // Resource path (for experiment file loading)
@@ -479,6 +611,45 @@ const createWindow = async () => {
   });
 
   mainWindow.setMinimumSize(1075, 708);
+
+  // The EEG viewer <webview> (ViewerComponent) loads viewer.html, which needs
+  // its own preload to expose `viewerAPI`. A <webview> does NOT inherit the host
+  // window's preload, and without one the guest's viewer.ts throws on
+  // `window.viewerAPI` and the D3 graph never initialises. Attach the viewer
+  // preload to every webview the host spawns (the EEG viewer is the only one).
+  // out/viewer/viewer.js is compiled by internals/scripts/BuildViewers.mjs; it
+  // lives outside out/preload/ because electron-vite empties that dir on every
+  // build. __dirname is out/main at runtime.
+  mainWindow.webContents.on('will-attach-webview', (_event, webPreferences) => {
+    webPreferences.preload = path.join(__dirname, '../viewer/viewer.js');
+    webPreferences.nodeIntegration = false;
+    webPreferences.contextIsolation = true;
+  });
+
+  // Electron 22+ does not show a native Bluetooth picker automatically.
+  // We intercept select-bluetooth-device and auto-select the first advertised
+  // device. The renderer's requestDevice() call has already scoped the scan by
+  // GATT service UUID (Muse vs Neurosity Crown), so the first device in the
+  // list is the one the user is searching for — we must NOT hardcode a single
+  // vendor name here or only Muse would ever connect. The event fires multiple
+  // times as BLE discovery progresses; each call carries the full cumulative
+  // deviceList seen so far.
+  mainWindow.webContents.on(
+    'select-bluetooth-device',
+    (event, deviceList, callback) => {
+      event.preventDefault();
+      pendingBluetoothCallback = callback;
+
+      const [device] = deviceList;
+      if (device) {
+        pendingBluetoothCallback(device.deviceId);
+        pendingBluetoothCallback = null;
+      }
+      // Nothing visible yet — keep scanning. The event will fire again as more
+      // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
+      // after SEARCH_TIMER ms if nothing is found.
+    }
+  );
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
@@ -525,14 +696,19 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', () => {
+  lslOutlets.destroyAll();
+  lslInlets.destroyAll();
+});
+
 app.whenReady().then(async () => {
   // Serve pyodide:// assets (whl files, manifest.json, etc.) directly from the
   // filesystem via Electron's protocol API — no network socket required.
   // In dev:  files are in src/renderer/utils/webworker/src/
-  // In prod: files are in resources/webworker/src/ (via extraResources)
+  // In prod: files are copied to resources/pyodide/ by extraResources (package.json)
   const pyodideRoot = is.dev
     ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
-    : path.join(process.resourcesPath, 'webworker/src');
+    : path.join(process.resourcesPath, 'pyodide');
 
   protocol.handle('pyodide', (request) => {
     const { pathname } = new URL(request.url);

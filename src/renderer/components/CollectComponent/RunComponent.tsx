@@ -2,9 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
-import { injectEmotivMarker } from '../../utils/eeg/emotiv';
-import { injectMuseMarker } from '../../utils/eeg/muse';
-import { EXPERIMENTS, DEVICES } from '../../constants/constants';
+import { injectMarker } from '../../utils/eeg';
+import { sendMarker } from '../../utils/eeg/lslBridge';
+import { EXPERIMENTS } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
@@ -22,7 +22,6 @@ interface Props {
   experimentObject: ExperimentObject;
   group: string;
   session: number;
-  deviceType: DEVICES;
   isEEGEnabled: boolean;
   ExperimentActions: typeof globalExperimentActions;
 }
@@ -36,7 +35,6 @@ const Run: React.FC<Props> = ({
   experimentObject,
   group,
   session,
-  deviceType,
   isEEGEnabled,
   ExperimentActions,
 }) => {
@@ -73,16 +71,19 @@ const Run: React.FC<Props> = ({
   );
 
   const eventCallback = useCallback(
-    (event: string, time: number) => {
+    (event: number, time: number) => {
       if (isEEGEnabled) {
-        if (deviceType === 'MUSE') {
-          injectMuseMarker(event, time);
-        } else {
-          injectEmotivMarker(event, time);
-        }
+        // Device-agnostic: dispatches to whichever driver is connected (Muse or
+        // Neurosity), so markers reach the recorded CSV regardless of device.
+        injectMarker(event, time);
+        // Goes through lslBridge so it no-ops (no IPC) when liblsl is unavailable.
+        sendMarker({
+          label: String(event),
+          rendererTimestamp: performance.now(),
+        });
       }
     },
-    [isEEGEnabled, deviceType]
+    [isEEGEnabled]
   );
 
   const onFinish = useCallback(

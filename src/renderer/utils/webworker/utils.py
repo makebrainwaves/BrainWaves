@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd  # maybe we can remove this dependency
 
-from mne import (concatenate_raws, create_info, viz)
+from mne import (concatenate_raws, create_info, viz, find_events, Epochs)
 from mne.io import RawArray
 from io import StringIO
 
@@ -14,8 +14,8 @@ from io import StringIO
 # sns.set_style('white')
 
 
-def load_data(sfreq=128., replace_ch_names=None):
-    """Load CSV files from the /data directory into a RawArray object.
+def load_data(sfreq=128., replace_ch_names=None, csv_strings=None):
+    """Load CSV files into a RawArray object.
 
     Parameters
     ----------
@@ -25,6 +25,11 @@ def load_data(sfreq=128., replace_ch_names=None):
     replace_ch_names : dict | None
         A dict containing a mapping to rename channels.
         Useful when an external electrode was used during recording.
+    csv_strings : list[str] | None
+        The recorded CSVs as strings. Defaults to the Pyodide `js.csvArray`
+        global injected by the worker. Passing it explicitly lets this run
+        outside Pyodide (e.g. native-MNE validation tests) without touching
+        `js`, so the same loader code is exercised in CI and in the app.
 
     Returns
     -------
@@ -33,8 +38,10 @@ def load_data(sfreq=128., replace_ch_names=None):
     """
     ## js is loaded in loadPackages
     ## TODO: Received attached variable name
+    if csv_strings is None:
+        csv_strings = js.csvArray
     raw = []
-    for csv in js.csvArray:
+    for csv in csv_strings:
         string_io = StringIO(csv)
         # read the file
         data = pd.read_csv(string_io, index_col=0)
@@ -74,6 +81,43 @@ def load_data(sfreq=128., replace_ch_names=None):
     raws = concatenate_raws(raw)
 
     return raws
+
+
+def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
+                   picks=None):
+    """Find stimulus events on the Marker (stim) channel and epoch around them.
+
+    This is the single epoching implementation shared by the in-app analysis
+    (webworker/index.ts builds `event_id` from the MarkerRegistry and calls this)
+    and the native-MNE validation tests. Keeping it in one place is what stops
+    the recorded event codes and the analysis event_id map from drifting apart —
+    the bug where event_id was keyed by stimulus array index instead of the
+    1-based codes actually written to the CSV silently dropped epochs.
+
+    Parameters
+    ----------
+    raw : mne.io.RawArray
+        Loaded recording whose last channel is the numeric 'stim' (Marker).
+    event_id : dict[str, int]
+        Label -> code. VALUES must equal the codes in the Marker column.
+    tmin, tmax : float
+        Epoch window relative to each event onset, in seconds.
+    baseline : tuple | None
+        Baseline correction window (defaults to (tmin, tmax)).
+    reject : dict | None
+        Peak-to-peak rejection thresholds passed to mne.Epochs.
+
+    Returns
+    -------
+    epochs : mne.Epochs
+        The epoched data (preload=True).
+    """
+    if baseline is None:
+        baseline = (tmin, tmax)
+    events = find_events(raw)
+    return Epochs(raw, events=events, event_id=event_id, tmin=tmin, tmax=tmax,
+                  baseline=baseline, reject=reject, preload=True,
+                  verbose=False, picks=picks)
 
 
 def plot_topo(epochs, conditions=OrderedDict()):
@@ -207,7 +251,8 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
 
 def get_epochs_info(epochs):
     print('Get Epochs Info:')
+    # drop_log_stats() ignores IGNORED/NO_DATA entries, so the percentage is
+    # taken over candidate epochs rather than every drop_log entry.
     return [*[{x: len(epochs[x])} for x in epochs.event_id],
-            {"Drop Percentage": round((1 - len(epochs.events) /
-                                       len(epochs.drop_log)) * 100, 2)},
+            {"Drop Percentage": round(epochs.drop_log_stats(), 2)},
             {"Total Epochs": len(epochs.events)}]

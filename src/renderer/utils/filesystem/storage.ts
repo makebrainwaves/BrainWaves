@@ -4,7 +4,6 @@
  * via window.electronAPI (defined in src/preload/index.ts).
  */
 import path from 'pathe';
-import Papa from 'papaparse';
 import { ExperimentStateType } from '../../reducers/experimentReducer';
 import { ExperimentParameters } from '../../constants/interfaces';
 
@@ -97,10 +96,6 @@ export const storeAggregatedBehaviorData = (
 // -----------------------------------------------------------------------------------------------
 // Util
 
-export const mkdirPathSync = (_dirPath: string): void => {
-  // Directory creation is handled in the main process; this is a no-op in the renderer
-};
-
 export const getSubjectNamesFromFiles = (filePaths: string[]): string[] =>
   filePaths
     .map((filePath) => path.basename(filePath))
@@ -114,7 +109,3 @@ export const checkFileExists = (
   subject: string,
   filename: string
 ): Promise<boolean> => api().checkFileExists(title, subject, filename);
-
-// Kept for backward compatibility — converts CSV string to parsed object using PapaParse
-export const convertCSVToObject = (csv: string) =>
-  Papa.parse(csv, { header: true });

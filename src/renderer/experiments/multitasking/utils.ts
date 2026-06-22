@@ -82,7 +82,11 @@ export function initTasks(this: lab.flow.Loop<Record<string, unknown>>) {
     };
   }
 
-  const numberBlocks = Math.ceil(this.parameters.num_trials / 4);
+  // Each numberBlocks iteration emits blocks.length * 4 trials, so divide by
+  // both factors to avoid generating ~2x num_trials before truncation.
+  const numberBlocks = Math.ceil(
+    this.parameters.num_trials / (blocks.length * 4)
+  );
 
   for (let i = 1; i <= numberBlocks; i++) {
     for (const block of blocks) {

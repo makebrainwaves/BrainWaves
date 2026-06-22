@@ -77,13 +77,13 @@ export const epochEvents = async (
       `event_id = ${JSON.stringify(eventIDs)}`,
       `tmin=${tmin}`,
       `tmax=${tmax}`,
-      `baseline= (tmin, tmax)`,
-      `picks = None`,
-      `reject = ${reject}`,
-      'events = find_events(raw)',
-      `raw_epochs = Epochs(raw, events=events, event_id=event_id,
-                      tmin=tmin, tmax=tmax, baseline=baseline, reject=reject, preload=True,
-                      verbose=False, picks=picks)`,
+      // Emit a valid Python literal: a reject dict, or None. Interpolating an
+      // undefined `reject` directly produced `reject = undefined` (a NameError
+      // that silently broke epoching whenever no reject was passed).
+      `reject = ${reject && reject !== 'None' ? JSON.stringify(reject) : 'None'}`,
+      // Epoching lives in get_raw_epochs() (webworker/utils.py) so the in-app
+      // analysis and the native-MNE validation tests share one implementation.
+      `raw_epochs = get_raw_epochs(raw, event_id, tmin, tmax, reject=reject)`,
       `conditions = OrderedDict({key: [value] for (key, value) in raw_epochs.event_id.items()})`,
     ].join('\n'),
   });

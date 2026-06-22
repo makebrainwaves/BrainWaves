@@ -1,0 +1,35 @@
+name: Device & LSL Integration
+
+# Fast, focused gate for the EEG device + Lab Streaming Layer connectivity
+# tests. These mock the native liblsl/Neurosity layers with an in-memory "LSL
+# network" (see src/main/lsl/__tests__/fakeLslNetwork.ts), so the job needs no
+# liblsl on the runner and can skip the heavy Pyodide postinstall entirely via
+# --ignore-scripts. The full cross-OS suite still runs separately in test.yml.
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      # --ignore-scripts skips electron-builder app-deps + Pyodide/MNE downloads;
+      # the connectivity tests mock every native module, so none are required.
+      - name: Install dependencies (no native/postinstall steps)
+        run: npm ci --ignore-scripts
+
+      - name: Device & LSL integration tests
+        run: npm run device-integration

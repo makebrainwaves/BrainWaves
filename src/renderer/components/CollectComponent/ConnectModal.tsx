@@ -3,30 +3,40 @@ import React, { Component } from 'react';
 import { isNil, debounce } from 'lodash';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
+import { Spinner } from '../ui/spinner';
 import {
-  DEVICES,
   DEVICE_AVAILABILITY,
   CONNECTION_STATUS,
+  DEVICES,
   SCREENS,
 } from '../../constants/constants';
-import { Device, SignalQualityData } from '../../constants/interfaces';
+import {
+  Device,
+  DeviceInfo,
+  SignalQualityData,
+} from '../../constants/interfaces';
 import { DeviceActions } from '../../actions';
+import type { DiscoveredStream } from '../../../shared/lslTypes';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   signalQualityObservable?: Observable<SignalQualityData>;
-  deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
+  deviceType: DEVICES;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<Device>;
+  availableLSLStreams?: Array<DiscoveredStream>;
 }
 
 interface State {
   selectedDevice: Device | null;
   instructionProgress: INSTRUCTION_PROGRESS;
+  // True only when native liblsl loaded in the main process. The "External LSL
+  // stream" device option is hidden otherwise so the app works without liblsl.
+  lslAvailable: boolean;
 }
 
 enum INSTRUCTION_PROGRESS {
@@ -48,6 +58,7 @@ export default class ConnectModal extends Component<Props, State> {
     this.state = {
       selectedDevice: null,
       instructionProgress: INSTRUCTION_PROGRESS.SEARCHING,
+      lslAvailable: false,
     };
     this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
       leading: true,
@@ -58,6 +69,13 @@ export default class ConnectModal extends Component<Props, State> {
       trailing: false,
     });
     this.handleinstructionProgress = this.handleinstructionProgress.bind(this);
+  }
+
+  componentDidMount() {
+    window.electronAPI
+      ?.isLSLAvailable?.()
+      .then((ok) => this.setState({ lslAvailable: ok }))
+      .catch(() => this.setState({ lslAvailable: false }));
   }
 
   UNSAFE_componentWillUpdate(nextProps: Props) {
@@ -88,10 +106,57 @@ export default class ConnectModal extends Component<Props, State> {
     }
   }
 
+  handleDiscoverLSLStreams = () => {
+    this.props.DeviceActions.DiscoverLSLStreams();
+  };
+
+  handleConnectLSLStream = (stream: DiscoveredStream) => {
+    this.props.DeviceActions.ConnectToLSLStream(stream);
+  };
+
   handleinstructionProgress(progress: INSTRUCTION_PROGRESS) {
     if (progress !== 0) {
       this.setState({ instructionProgress: progress });
     }
+  }
+
+  renderLSLDiscovery() {
+    const streams = this.props.availableLSLStreams ?? [];
+    const eegStreams = streams.filter((s) => s.type === 'EEG');
+    return (
+      <div className="mb-3 text-left">
+        <Button
+          variant="secondary"
+          className="w-full mb-2"
+          onClick={this.handleDiscoverLSLStreams}
+        >
+          Scan for LSL streams
+        </Button>
+        {eegStreams.length === 0 ? (
+          <p className="text-sm text-gray-500">No LSL EEG streams found yet.</p>
+        ) : (
+          <ul className="divide-y divide-gray-200 text-sm">
+            {eegStreams.map((stream) => (
+              <li
+                key={stream.uid}
+                className="flex justify-between items-center py-2"
+              >
+                <span>
+                  {stream.name} — {stream.channelCount}ch @ {stream.sampleRate}
+                  Hz
+                </span>
+                <Button
+                  variant="default"
+                  onClick={() => this.handleConnectLSLStream(stream)}
+                >
+                  Connect
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
   }
 
   renderAvailableDeviceList() {
@@ -105,7 +170,9 @@ export default class ConnectModal extends Component<Props, State> {
             tabIndex={0}
             className="flex items-center gap-2 py-2 cursor-pointer text-lg"
             onClick={() => this.setState({ selectedDevice: device })}
-            onKeyDown={(e) => e.key === 'Enter' && this.setState({ selectedDevice: device })}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && this.setState({ selectedDevice: device })
+            }
           >
             <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
             <span>{ConnectModal.getDeviceName(device)}</span>
@@ -118,21 +185,48 @@ export default class ConnectModal extends Component<Props, State> {
   renderContent() {
     if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
-        <p className="text-center">Searching for available headset(s)...</p>
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Spinner size={32} />
+          <p className="text-center">Searching for available headset(s)...</p>
+        </div>
       );
     }
     if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
-        <p className="text-center">
-          Connecting to {ConnectModal.getDeviceName(this.state.selectedDevice)}
-          ...
-        </p>
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Spinner size={32} />
+          <p className="text-center">
+            Connecting to{' '}
+            {ConnectModal.getDeviceName(this.state.selectedDevice)}...
+          </p>
+        </div>
       );
     }
     if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
       return (
         <>
           <h2>Turn your headset on</h2>
+          <div className="mb-3 text-left">
+            <label className="block text-sm font-medium mb-1">
+              Device type
+            </label>
+            <select
+              value={this.props.deviceType}
+              onChange={(e) =>
+                this.props.DeviceActions.SetDeviceType(
+                  e.target.value as DEVICES
+                )
+              }
+              className="w-full rounded border px-2 py-1"
+            >
+              <option value={DEVICES.MUSE}>Muse</option>
+              <option value={DEVICES.NEUROSITY}>Neurosity Crown</option>
+              {this.state.lslAvailable && (
+                <option value={DEVICES.LSL}>External LSL stream</option>
+              )}
+            </select>
+          </div>
+          {this.props.deviceType === DEVICES.LSL && this.renderLSLDiscovery()}
           <p>Make sure your headset is on and fully charged.</p>
           <p>
             If the headset needs charging, set the power switch to off and plug

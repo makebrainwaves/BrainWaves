@@ -24,8 +24,8 @@ export const ParamSlider: React.FC<Props> = ({
           <Slider
             dots
             marks={marks}
-            min={Math.min(...Object.keys(marks).map(parseInt))}
-            max={Math.max(...Object.keys(marks).map(parseInt))}
+            min={Math.min(...Object.keys(marks).map(Number))}
+            max={Math.max(...Object.keys(marks).map(Number))}
             value={value / parseInt(msConversion, 10)}
             onChange={(val) => onChange(val * parseInt(msConversion, 10))}
             defaultValue={1}
