@@ -13,7 +13,7 @@ export interface ExperimentWindowProps {
   experimentObject: ExperimentObject;
   params: ExperimentParameters;
   fullScreen?: boolean;
-  eventCallback: (value: string, time: number) => void;
+  eventCallback: (value: number, time: number) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
 }

@@ -12,16 +12,18 @@ import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
 import { DeviceActions } from '../actions';
-import { Device, SignalQualityData } from '../constants/interfaces';
+import { Device, DeviceInfo, SignalQualityData } from '../constants/interfaces';
+import type { DiscoveredStream } from '../../shared/lslTypes';
 
 interface Props {
-  connectedDevice: Record<string, unknown>;
+  connectedDevice: DeviceInfo | null | undefined;
   signalQualityObservable?: Observable<SignalQualityData>;
   deviceType: DEVICES;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<Device>;
+  availableLSLStreams?: Array<DiscoveredStream>;
 }
 
 interface State {
@@ -85,7 +87,7 @@ export default class Home extends Component<Props, State> {
                 </div>
                 <ViewerComponent
                   signalQualityObservable={this.props.signalQualityObservable}
-                  deviceType={this.props.deviceType}
+                  channels={this.props.connectedDevice?.channels}
                   plottingInterval={PLOTTING_INTERVAL}
                 />
               </div>
@@ -111,11 +113,12 @@ export default class Home extends Component<Props, State> {
               onClose={this.handleConnectModalClose}
               connectedDevice={this.props.connectedDevice}
               signalQualityObservable={this.props.signalQualityObservable}
-              deviceType={this.props.deviceType}
               deviceAvailability={this.props.deviceAvailability}
               connectionStatus={this.props.connectionStatus}
+              deviceType={this.props.deviceType}
               DeviceActions={this.props.DeviceActions}
               availableDevices={this.props.availableDevices}
+              availableLSLStreams={this.props.availableLSLStreams}
             />
           </div>
         )}

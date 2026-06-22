@@ -21,7 +21,8 @@ import {
   MUSE_CHANNELS,
   PLOTTING_INTERVAL,
 } from '../../constants/constants';
-import { Device, EEGData } from '../../constants/interfaces';
+import { Device, DeviceInfo, EEGData } from '../../constants/interfaces';
+import { EEGDriver } from './types';
 
 const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 
@@ -30,20 +31,31 @@ const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
 const client = new MuseClient();
 client.enableAux = false;
 
-// Gets an available Muse device
+// Cached BluetoothDevice from the last getMuse() scan so that connectToMuse()
+// can reuse it without triggering a second requestDevice() call (which would
+// fire another select-bluetooth-device event in the main process).
+let cachedDevice: BluetoothDevice | null = null;
+
+// Gets an available Muse device. In Electron, requestDevice() triggers the
+// select-bluetooth-device IPC event in the main process, which auto-selects
+// the first Muse headset found via BLE.
 // TODO: is being able to request only one Muse at a time a problem in a classroom scenario?
 export const getMuse = async () => {
   const deviceInstance = await navigator.bluetooth.requestDevice({
     filters: [{ services: [MUSE_SERVICE] }],
   });
+  cachedDevice = deviceInstance;
   return [{ id: deviceInstance.id, name: deviceInstance.name }];
 };
 
-// Attempts to connect to a muse device. If successful, returns a device info object
+// Attempts to connect to a muse device. If successful, returns a device info object.
+// Reuses the BluetoothDevice cached by getMuse() to avoid a redundant requestDevice() call.
 export const connectToMuse = async (device: Device) => {
-  const deviceInstance = await navigator.bluetooth.requestDevice({
-    filters: [{ services: [MUSE_SERVICE], name: device.name }],
-  });
+  const deviceInstance =
+    cachedDevice ?? (await navigator.bluetooth.requestDevice({
+      filters: [{ services: [MUSE_SERVICE], name: device.name }],
+    }));
+  cachedDevice = null;
   const gatt = await deviceInstance.gatt?.connect();
   await client.connect(gatt);
   return {
@@ -53,7 +65,36 @@ export const connectToMuse = async (device: Device) => {
   };
 };
 
-export const disconnectFromMuse = () => client.disconnect();
+export const disconnectFromMuse = () => {
+  cachedDevice = null;
+  client.disconnect();
+};
+
+// Emits when the BLE connection drops after having been up. Intentionally
+// ignores the initial `false` from BehaviorSubject — we only care about
+// transitions from connected → disconnected.
+// muse-js bundles its own rxjs; bridge into this app's rxjs via a thin wrapper.
+export const museDisconnect$: Observable<void> = new Observable<void>(
+  (subscriber) => {
+    const sub = (
+      client.connectionStatus as unknown as { subscribe: (n: (v: boolean) => void) => { unsubscribe: () => void } }
+    ).subscribe((() => {
+      let prev: boolean | undefined;
+      return (curr: boolean) => {
+        if (prev === true && curr === false) subscriber.next();
+        prev = curr;
+      };
+    })());
+    return () => sub.unsubscribe();
+  }
+);
+
+// Cancels any in-progress BLE scan by telling the main process to reject the
+// pending requestDevice() call. Called when the search timer expires.
+export const cancelMuseScan = (): void => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).electronAPI?.cancelBluetoothSearch();
+};
 
 // Awaits Muse connectivity before sending an observable rep. EEG stream
 export const createRawMuseObservable = async () => {
@@ -105,9 +146,26 @@ export const createMuseSignalQualityObservable = (
   );
 };
 
-// Injects an event marker that will be included in muse-js's data stream through
-export const injectMuseMarker = (value: string, time: number) => {
-  client.injectMarker(value, time);
+// Injects an event marker that will be included in muse-js's data stream.
+// muse-js merges this into its eventMarkers stream, which createRawMuseObservable
+// joins onto the EEG samples via synchronizeTimestamp (see below).
+export const injectMuseMarker = (code: number, time: number) => {
+  // muse-js types injectMarker's value as string; the marker is a numeric event
+  // code (see EVENTS). Pass through as-is — it round-trips to the CSV numerically.
+  client.injectMarker(code as unknown as string, time);
+};
+
+// The Muse implementation of the shared device-driver contract. deviceEpics
+// resolves this via the registry in ./index rather than branching on deviceType.
+export const museDriver: EEGDriver = {
+  scan: getMuse,
+  connect: (device: Device) =>
+    connectToMuse(device) as Promise<DeviceInfo | null>,
+  disconnect: disconnectFromMuse,
+  cancelScan: cancelMuseScan,
+  createRawObservable: createRawMuseObservable,
+  injectMarker: injectMuseMarker,
+  disconnect$: () => museDisconnect$,
 };
 
 // ---------------------------------------------------------------------
