@@ -25,11 +25,11 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
         .map((row) => row.reaction_time)
         .map((value) => parseFloat(value));
       rtMean[condition] = Math.round(ss.mean(rt));
+      // Accuracy counts every correct trial, including correct no-go/withhold
+      // trials (response_given === 'no'). Do not require response_given here.
       const accuracy = e.filter(
         (row) =>
-          row.condition === condition &&
-          row.correct_response === 'true' &&
-          row.response_given === 'yes'
+          row.condition === condition && row.correct_response === 'true'
       );
       accuracyPercent[condition] = accuracy.length
         ? Math.round(
@@ -319,9 +319,7 @@ const computeAccuracy = (
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.accuracy);
             }
-            const c = d.filter(
-              (e) => e.response_given === 'yes' && e.correct_response === 'true'
-            );
+            const c = d.filter((e) => e.correct_response === 'true');
             return Math.round((c.length / d.length) * 100);
           })
           // TODO: Remove these useless reduce steps, but confirm it doesn't break anything
@@ -368,9 +366,7 @@ const computeAccuracy = (
                 subject: l.subject,
               }));
             }
-            const c = d.filter(
-              (e) => e.response_given === 'yes' && e.correct_response === 'true'
-            );
+            const c = d.filter((e) => e.correct_response === 'true');
             return {
               accuracy: Math.round((c.length / d.length) * 100),
               subject: d.map((r) => r.subject)[0],
@@ -415,9 +411,7 @@ const computeAccuracy = (
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.accuracy);
             }
-            const c = d.filter(
-              (e) => e.response_given === 'yes' && e.correct_response === 'true'
-            );
+            const c = d.filter((e) => e.correct_response === 'true');
             return Math.round((c.length / d.length) * 100);
           })
           .reduce((acc, item) => acc.concat(item), []);

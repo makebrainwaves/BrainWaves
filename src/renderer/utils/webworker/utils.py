@@ -251,7 +251,8 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
 
 def get_epochs_info(epochs):
     print('Get Epochs Info:')
+    # drop_log_stats() ignores IGNORED/NO_DATA entries, so the percentage is
+    # taken over candidate epochs rather than every drop_log entry.
     return [*[{x: len(epochs[x])} for x in epochs.event_id],
-            {"Drop Percentage": round((1 - len(epochs.events) /
-                                       len(epochs.drop_log)) * 100, 2)},
+            {"Drop Percentage": round(epochs.drop_log_stats(), 2)},
             {"Total Epochs": len(epochs.events)}]

@@ -258,12 +258,12 @@ class EEGViewer {
   }
 
   static findExtreme(data, comparison) {
-    return data
-      .slice(data.slice(data.length / 2))
-      .reduce(
-        (acc, curr) => (comparison(curr.y, acc) ? curr.y : acc),
-        data[0].y
-      );
+    // Scale to the most recent half of the buffer.
+    const recent = data.slice(data.length / 2);
+    return recent.reduce(
+      (acc, curr) => (comparison(curr.y, acc) ? curr.y : acc),
+      recent[0].y
+    );
   }
 
   static getLineRange(index, nbChannels, height) {
