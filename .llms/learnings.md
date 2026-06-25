@@ -82,6 +82,12 @@ In dev: use `/@fs<absPath>` (Vite's `/@fs/` serving). In prod: use `file://<absP
 
 Any hook function (e.g. `initResponseHandlers` in `src/renderer/utils/labjs/functions.ts`) that needs the component ID must use `this.id`, not `this.options.id`. Using `this.options.id` will always be `undefined` for loop-cloned components, causing silent early returns and broken behavior (e.g. keydown handlers never installed).
 
+## Behavior data: booleans become strings after the CSV round-trip
+
+Experiments emit `this.data.correct_response` as a real boolean (`true`/`false`) and `response_given` as `'yes'`/`'no'` (see `src/renderer/utils/labjs/functions.ts`). But all consumers in `src/renderer/utils/behavior/compute.js` read data **after** it's been written to CSV and re-parsed, so every value is a **string**. That's why existing code gates on `row.correct_response === 'true'` and `row.response_given === 'yes'`, and parses numbers with `parseFloat`.
+
+Trap: a new metric written naively (`row.correct_response === true`, or arithmetic on an unparsed string) will silently return `false`/`0`/`NaN` for post-CSV data — and may *work* on pre-CSV in-memory data, so it passes a quick test and fails in production. Always compare against the string `'true'`/`'yes'` and `parseFloat` before doing math.
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch

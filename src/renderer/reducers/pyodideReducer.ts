@@ -83,7 +83,9 @@ export default createReducer(initialState, (builder) =>
       return {
         ...state,
         epochsInfo: [],
+        channelInfo: [],
         psdPlot: null,
+        topoPlot: null,
         erpPlot: null,
       };
     })

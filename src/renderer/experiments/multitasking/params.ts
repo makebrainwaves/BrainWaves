@@ -4,7 +4,6 @@ export const params = {
   trialDuration: 1000,
   nbTrials: 150,
   iti: 1000,
-  jitter: 200,
   sampleType: 'with-replacement',
   intro: `In this task you will learn about multitasking difficulties using a
   task mixing and switching paradigm. You will go through several instruction
