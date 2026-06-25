@@ -39,7 +39,6 @@ export const params = {
   iti: 500,
   presentationTime: 1000,
   selfPaced: true,
-  jitter: 200,
   sampleType: 'with-replacement',
   intro: `You will view a series of faces and houses. Press 1 when a face appears
   and 9 for a house. Press the the space bar on your keyboard to start doing the

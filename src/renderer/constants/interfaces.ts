@@ -24,7 +24,6 @@ export type ExperimentParameters = {
   description?: ExperimentDescription;
   intro: string;
   iti: number;
-  jitter: number;
   nbPracticeTrials?: number;
   nbTrials: number;
   presentationTime?: number;

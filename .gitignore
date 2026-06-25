@@ -28,3 +28,10 @@ dist
 .idea
 keys.js
 src/renderer/utils/webworker/src
+
+# Generated Pyodide runtime payload (downloaded by install scripts, not source)
+src/renderer/utils/pyodide/src
+
+# Python bytecode cache
+__pycache__/
+*.pyc

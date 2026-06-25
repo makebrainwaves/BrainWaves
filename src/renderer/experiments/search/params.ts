@@ -4,7 +4,6 @@ export const params = {
   trialDuration: 1000,
   nbTrials: 150,
   iti: 500,
-  jitter: 200,
   sampleType: 'with-replacement',
   intro: `You know how difficult it is to find your keys in a messy room. We
   want to know how good you are in quickly finding your keys. Instead of keys,

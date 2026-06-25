@@ -9,7 +9,11 @@ import {
   tap,
 } from 'rxjs/operators';
 import { isActionOf } from '../utils/redux';
-import { ExperimentActions, ExperimentActionType } from '../actions';
+import {
+  DeviceActions,
+  ExperimentActions,
+  ExperimentActionType,
+} from '../actions';
 import { RouterActions } from '../actions/routerActions';
 import {
   DEVICES,
@@ -214,6 +218,18 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
     map(() => ExperimentActions.ExperimentCleanup())
   );
 
+// Disconnecting a device tears down the experiment too: this triggers the BLE
+// disconnect (deviceCleanupEpic) and resets experiment + pyodide state.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const disconnectFromDeviceEpic: Epic<any, ExperimentActionType, RootState> = (
+  // DeviceActions input action is outside this slice's action union
+  action$
+) =>
+  action$.pipe(
+    filter(isActionOf(DeviceActions.DisconnectFromDevice)),
+    map(() => ExperimentActions.ExperimentCleanup())
+  );
+
 export default combineEpics(
   createNewWorkspaceEpic,
   startEpic,
@@ -221,5 +237,6 @@ export default combineEpics(
   updateSessionEpic,
   autoSaveEpic,
   saveWorkspaceEpic,
-  navigationCleanupEpic
+  navigationCleanupEpic,
+  disconnectFromDeviceEpic
 );

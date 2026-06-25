@@ -13,7 +13,6 @@ import { ExperimentStateType } from '../reducers/experimentReducer';
 
 export const ExperimentActions = {
   Start: createAction('START'),
-  Pause: createAction('PAUSE'),
   Stop: createAction<{ data: string }, 'STOP'>('STOP'),
   SetType: createAction<EXPERIMENTS, 'SET_TYPE'>('SET_TYPE'),
   SetExperimentObject: createAction<ExperimentObject, 'SET_EXPERIMENT_OBJECT'>(
