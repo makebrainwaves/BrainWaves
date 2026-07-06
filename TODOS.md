@@ -6,7 +6,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 
 - [ ] **Lesson content from Steve Azeka** — owner: Dano. Set a date for the first sample lesson. Fallback: if no lesson by that date, Dano authors one throwaway stub to unblock the lesson surface.
 - [ ] **In-app lesson surface v1** — static markdown render only (no editing, no interactivity). Build against a dummy lesson; tune to real content once a sample lands. Confirm markdown is a rich-enough format with Azeka before building.
-- [ ] **Land LSL** — merge `device-lsl` to `main` and QA it. Muse-first, Mac + Windows.
+- [ ] **Cross-platform LSL packaging verification** — `macOS arm64` is done + self-contained (see Done recently). Still needs each build machine: **macOS x64** (`patchDeps` only symlinks on arm64, so an Intel build uses node-labstreaminglayer's original x86_64 dylib — `otool -L` the packaged liblsl to confirm self-contained; the `afterPack` hook bundles whatever external deps it finds, arch-agnostic), **Windows x64** (bundled `lsl_amd64.dll` is a self-contained PE — confirm koffi loads it from the packaged app), **Linux/Ubuntu** (bundled `.so` is x86_64 ELF — `ldd` it + Web-Bluetooth smoke test, `--enable-experimental-web-platform-features` already set).
 
 ## Deferred (post-launch)
 
@@ -26,4 +26,5 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 
 <!-- Move finished items here with a date, then prune periodically. -->
 
+- **Land LSL** (2026-07-06) — `device-lsl` merged (PR #204), Muse-first. macOS arm64 packaging made self-contained (PR #221): the Homebrew liblsl links `/opt/homebrew/.../libpugixml.1.dylib` (breaks on clean Macs); the `afterPack` hook bundles external deps and rewrites load paths to `@loader_path`. Remaining per-platform packaging checks broken out under "Now".
 - **Cut Emotiv SDK** (2026-07-06) — SDK was already gone from source; corrected the README device claim ("Emotiv Epoc+" → "Muse and Neurosity").

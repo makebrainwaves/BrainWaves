@@ -31,6 +31,7 @@
   "build": {
     "productName": "BrainWaves",
     "appId": "com.electron.brainwaves",
+    "afterPack": "./internals/scripts/afterPack.mjs",
     "asar": true,
     "protocols": [
       {
