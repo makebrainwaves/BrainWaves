@@ -121,7 +121,10 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     filter(isActionOf(PyodideActions.LoadEpochs)),
     pluck('payload'),
     filter((filePathsArray: string[]) => filePathsArray.length >= 1),
-    map((filePathsArray) => readFiles(filePathsArray)),
+    // readFiles is async — mergeMap (not map) so the resolved CSV strings flow
+    // downstream. With map, the unresolved Promise reached worker.postMessage
+    // and threw DataCloneError ("Promise could not be cloned").
+    mergeMap((filePathsArray) => readFiles(filePathsArray) as Promise<string[]>),
     mergeMap((csvArray) => loadCSV(state$.value.pyodide.worker!, csvArray)),
     mergeMap(() => filterIIR(state$.value.pyodide.worker!, 1, 30)),
     map(() => {

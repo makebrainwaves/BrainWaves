@@ -59,7 +59,10 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
     }
 
     experimentToRun.on('end', () => {
-      const csv = experimentToRun.options.datastore.exportCsv();
+      // lab.js 23.x moved the datastore from `options.datastore` to
+      // `global.datastore` (controller.global). The old path is undefined and
+      // throws inside the end handler, aborting lab.js's end sequence.
+      const csv = experimentToRun.global.datastore.exportCsv();
       onFinish(csv);
     });
 

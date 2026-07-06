@@ -158,9 +158,15 @@ export default class Home extends Component<Props, State> {
   async handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = await readAndParseState(dir);
     if (recentWorkspaceState == null) {
-      toast.error(
-        'Workspace data is corrupted or missing. Please delete and create it again.'
-      );
+      // Workspace state is unreadable (missing/corrupt appState.json). Trash the
+      // dead workspace automatically rather than making the user notice and
+      // hand-delete it — deleteWorkspaceDir uses shell.trashItem, so it's
+      // recoverable if the dir held recorded data.
+      await deleteWorkspaceDir(dir);
+      const recentWorkspaces = await readWorkspaces();
+      this.setState({ recentWorkspaces });
+      await this.loadWorkspaceStates(recentWorkspaces);
+      toast(`Removed unreadable experiment "${dir}"`);
       return;
     }
     const deserializedWorkspaceState = {
