@@ -7,7 +7,6 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 - [ ] **Lesson content from Steve Azeka** — owner: Dano. Set a date for the first sample lesson. Fallback: if no lesson by that date, Dano authors one throwaway stub to unblock the lesson surface.
 - [ ] **In-app lesson surface v1** — static markdown render only (no editing, no interactivity). Build against a dummy lesson; tune to real content once a sample lands. Confirm markdown is a rich-enough format with Azeka before building.
 - [ ] **Land LSL** — merge `device-lsl` to `main` and QA it. Muse-first, Mac + Windows.
-- [ ] **Cut Emotiv SDK** — remove it and fix the README device claims in the same PR (README still says "Supports Emotiv Epoc+").
 
 ## Deferred (post-launch)
 
@@ -24,3 +23,5 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 ## Done recently
 
 <!-- Move finished items here with a date, then prune periodically. -->
+
+- **Cut Emotiv SDK** (2026-07-06) — SDK was already gone from source; corrected the README device claim ("Emotiv Epoc+" → "Muse and Neurosity").

@@ -10,7 +10,7 @@
 - Design, run, and analyze an experiment using real EEG data all in one desktop
   app
 - Investigate visual event-related brain waves (ERPs)
-- Supports Emotiv Epoc+ and Muse devices
+- Supports Muse and Neurosity EEG devices
 
 ## Screenshots
 
