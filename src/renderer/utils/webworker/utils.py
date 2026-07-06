@@ -36,9 +36,14 @@ def load_data(sfreq=128., replace_ch_names=None, csv_strings=None):
     raw : an instance of mne.io.RawArray
         The loaded data.
     """
-    ## js is loaded in loadPackages
-    ## TODO: Received attached variable name
+    ## TODO: Receive attached variable name instead of the fixed js.csvArray
     if csv_strings is None:
+        # `js` is Pyodide's proxy for the worker's global scope; webworker.js sets
+        # self.csvArray before running load_data(). Import it locally (not at module
+        # top) so the native-MNE tests, which pass csv_strings, never touch the
+        # Pyodide-only `js` module. A prior worker refactor dropped the global import
+        # that used to make `js` available here, causing NameError: name 'js'.
+        import js
         csv_strings = js.csvArray
     raw = []
     for csv in csv_strings:
