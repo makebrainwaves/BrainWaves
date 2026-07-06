@@ -122,6 +122,21 @@ Affected files: `src/renderer/experiments/*/experiment.ts` (and `custom/experime
 // New (lab.js 23.x): hooks: { 'before:prepare': initLoopWithStimuli }
 ```
 
+## Lab.js 23.x: datastore moved to `global.datastore` (not `options.datastore`)
+
+Reading the experiment's recorded data at flow end must use
+`study.global.datastore` (a getter → `controller.global.datastore`, used
+throughout lab.js internals: `base/component.ts` set/commit/update). Lab.js
+23.x removed `study.options.datastore` — it's `undefined`. The old path in
+`ExperimentWindow.tsx`'s `on('end')` handler (`options.datastore.exportCsv()`)
+threw *inside* lab.js's end sequence: `stopOutgoing` (`flipIterable.ts`) logs
+`console.error('Error ending', c)` and **re-throws**, so a throw in our end
+handler aborts the whole end/commit — the surfaced error is misleadingly the
+component dump, not the real TypeError. Side effect: the aborted end left
+`appState.json` half-written, which then read back as a "corrupted workspace".
+Same 23.x major-bump breakage class as `hooks`/`this.id` — audit any other
+`study.options.*` access.
+
 ## Lab.js stimulus `filepath` must be a browser URL, not a filesystem path
 
 `balanceStimuliByCondition` (in `src/renderer/utils/labjs/functions.ts`) generates a `filepath` field used by lab.js HTML templates (`<img src="${ this.parameters.filepath }">`). This must be a browser-loadable URL, not a raw filesystem path like `/Users/.../Face1.jpg`.

@@ -407,6 +407,12 @@ ipcMain.handle('fs:readFiles', (_event, filePathsArray: string[]) => {
   });
 });
 
+ipcMain.handle('fs:readFileAsBytes', (_event, filePath: string) => {
+  // Returns a Uint8Array (Buffer extends Uint8Array) for binary files like .fif.
+  // Crosses IPC via structured clone — arrives as a Uint8Array in the renderer.
+  return fs.readFileSync(filePath);
+});
+
 // EEG streaming — main process holds write streams for performance
 ipcMain.handle(
   'eeg:createWriteStream',
