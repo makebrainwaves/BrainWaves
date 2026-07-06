@@ -6,7 +6,7 @@ Summer 2026: Brainwaves revival for High School
 
 ## LSL
 
-- [ ] Cut out emotiv SDK garbage
+- [x] Cut out emotiv SDK garbage
 - [ ] Update existing muse-js Muse connectivity. Emit connected devices on LSL stream 
 - [ ] Add Neurosity SDK to app. Emit connected devices on LSL stream
 - [ ] Add option for users to connect external LSL streams, providing support for any theoretical EEG device

@@ -156,7 +156,7 @@ export default [
     },
   },
 
-  // --- Root-level Node.js scripts (e.g. keys.js) ---
+  // --- Root-level Node.js scripts (e.g. *.config.js) ---
   {
     files: ['*.js', '*.mjs'],
     languageOptions: {

@@ -2,16 +2,18 @@ import { Observable } from 'rxjs';
 import React, { Component } from 'react';
 import {
   EXPERIMENTS,
-  DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
+  DEVICES,
 } from '../../constants/constants';
 import {
   ExperimentParameters,
   SignalQualityData,
   Device,
+  DeviceInfo,
   ExperimentObject,
 } from '../../constants/interfaces';
+import type { DiscoveredStream } from '../../../shared/lslTypes';
 import PreTestComponent from './PreTestComponent';
 import ConnectModal from './ConnectModal';
 import RunComponent from './RunComponent';
@@ -19,12 +21,13 @@ import { ExperimentActions, DeviceActions } from '../../actions';
 
 export interface Props {
   ExperimentActions: typeof ExperimentActions;
-  connectedDevice: Record<string, unknown>;
-  deviceType: DEVICES;
+  connectedDevice: DeviceInfo | null | undefined;
   deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
+  deviceType: DEVICES;
   DeviceActions: typeof DeviceActions;
   availableDevices: Array<Device>;
+  availableLSLStreams: Array<DiscoveredStream>;
   type: EXPERIMENTS;
   experimentObject: ExperimentObject;
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
@@ -102,17 +105,19 @@ export default class Collect extends Component<Props, State> {
           open={this.state.isConnectModalOpen}
           onClose={this.handleConnectModalClose}
           connectedDevice={this.props.connectedDevice}
-          signalQualityObservable={this.props.signalQualityObservable ?? undefined}
-          deviceType={this.props.deviceType}
+          signalQualityObservable={
+            this.props.signalQualityObservable ?? undefined
+          }
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
+          deviceType={this.props.deviceType}
           DeviceActions={this.props.DeviceActions}
           availableDevices={this.props.availableDevices}
+          availableLSLStreams={this.props.availableLSLStreams}
         />
         <PreTestComponent
           connectedDevice={this.props.connectedDevice}
           signalQualityObservable={this.props.signalQualityObservable}
-          deviceType={this.props.deviceType}
           deviceAvailability={this.props.deviceAvailability}
           connectionStatus={this.props.connectionStatus}
           DeviceActions={this.props.DeviceActions}

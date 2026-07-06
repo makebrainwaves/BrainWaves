@@ -10,7 +10,7 @@ function mapStateToProps(state: RootState) {
   return {
     ...state.device,
     ...state.pyodide,
-    connectedDevice: state.device.connectedDevice ?? {},
+    connectedDevice: state.device.connectedDevice,
     topoPlot: state.pyodide.topoPlot ?? {},
     signalQualityObservable: state.device.signalQualityObservable ?? undefined,
   };

@@ -125,11 +125,13 @@ export interface DeviceInfo {
 
 export interface PipesEpoch {
   data: number[][];
-  signalQuality: { [channelName: string]: number };
   info: {
     samplingRate: number;
     startTime: number;
     channelNames?: string[];
+    // @neurosity/pipes >=5 nests the raw per-channel signal-quality (stddev)
+    // values produced by addSignalQuality() under `info`, not at the top level.
+    signalQuality: { [channelName: string]: number };
   };
 }
 

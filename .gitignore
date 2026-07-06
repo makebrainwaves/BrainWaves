@@ -26,11 +26,18 @@ out
 dist
 
 .idea
-keys.js
 src/renderer/utils/webworker/src
 
-# Generated Pyodide runtime payload (downloaded by install scripts, not source)
+# Pyodide runtime + package wheels (downloaded or extracted locally; see docs/pyodide-in-electron-vite.md)
 src/renderer/utils/pyodide/src
+
+# Local git worktrees (not part of the repo tree)
+.worktrees/
+
+# Python venv for native analysis tests (tests/analysis)
+.venv-test/
+.venv/
+
 
 # Python bytecode cache
 __pycache__/

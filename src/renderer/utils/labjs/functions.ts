@@ -108,17 +108,14 @@ function balanceStimuliByCondition(
     nbTrials / Object.keys(conditionsParameters).length
   );
 
-  // balance design across conditions
+  // balance design across conditions. Iterate the bucket keys (stimuli with no
+  // condition land in the 'default' bucket) so a missing condition doesn't bail
+  // out of the whole function and yield an empty experiment.
   const balancedStimuli: Stimulus[] = [];
-  for (const condition of conditions) {
-    if (!condition) return;
-
+  for (const condition of Object.keys(conditionsParameters)) {
+    const bucket = conditionsParameters[condition];
     for (let i = 0; i < nbTrialsPerCondition; i++) {
-      balancedStimuli.push(
-        conditionsParameters[condition][
-          i % conditionsParameters[condition].length
-        ]
-      );
+      balancedStimuli.push(bucket[i % bucket.length]);
     }
   }
 

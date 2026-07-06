@@ -1,7 +1,6 @@
-import { configureStore, Action } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import { createEpicMiddleware } from 'redux-observable';
 import { createLogger } from 'redux-logger';
-import { ThunkAction } from 'redux-thunk';
 import rootReducer from './reducers';
 import rootEpic from './epics';
 
@@ -37,4 +36,3 @@ export const configuredStore = (initialState?: RootState) => {
 };
 
 export type Store = ReturnType<typeof configuredStore>;
-export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;

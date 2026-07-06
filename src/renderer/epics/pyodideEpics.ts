@@ -6,6 +6,7 @@ import { isActionOf } from '../utils/redux';
 import { PyodideActions, PyodideActionType } from '../actions';
 import { RootState } from '../reducers';
 import { getWorkspaceDir } from '../utils/filesystem/storage';
+import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   loadCSV,
   loadCleanedEpochs,
@@ -25,7 +26,6 @@ import {
   loadUtils,
 } from '../utils/webworker';
 import {
-  EMOTIV_CHANNELS,
   DEVICES,
   MUSE_CHANNELS,
   PYODIDE_VARIABLE_NAMES,
@@ -99,11 +99,16 @@ const pyodideMessageEpic: Epic<
       // results is a base64-encoded PNG string returned from Python.
       const mimeBundle = results ? { 'image/svg+xml': results } : null;
       switch (plotKey) {
-        case 'ready': return of(PyodideActions.SetWorkerReady());
-        case 'topo': return of(PyodideActions.SetTopoPlot(mimeBundle));
-        case 'psd':  return of(PyodideActions.SetPSDPlot(mimeBundle));
-        case 'erp':  return of(PyodideActions.SetERPPlot(mimeBundle));
-        default:     return of(PyodideActions.ReceiveMessage(e.data));
+        case 'ready':
+          return of(PyodideActions.SetWorkerReady());
+        case 'topo':
+          return of(PyodideActions.SetTopoPlot(mimeBundle));
+        case 'psd':
+          return of(PyodideActions.SetPSDPlot(mimeBundle));
+        case 'erp':
+          return of(PyodideActions.SetERPPlot(mimeBundle));
+        default:
+          return of(PyodideActions.ReceiveMessage(e.data));
       }
     })
   );
@@ -116,7 +121,10 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     filter(isActionOf(PyodideActions.LoadEpochs)),
     pluck('payload'),
     filter((filePathsArray: string[]) => filePathsArray.length >= 1),
-    map((filePathsArray) => readFiles(filePathsArray)),
+    // readFiles is async — mergeMap (not map) so the resolved CSV strings flow
+    // downstream. With map, the unresolved Promise reached worker.postMessage
+    // and threw DataCloneError ("Promise could not be cloned").
+    mergeMap((filePathsArray) => readFiles(filePathsArray) as Promise<string[]>),
     mergeMap((csvArray) => loadCSV(state$.value.pyodide.worker!, csvArray)),
     mergeMap(() => filterIIR(state$.value.pyodide.worker!, 1, 30)),
     map(() => {
@@ -124,17 +132,15 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
         return {};
       }
 
-      return epochEvents(
-        state$.value.pyodide.worker!,
-        Object.fromEntries(
-          state$.value.experiment.params?.stimuli.map((stimulus, i) => [
-            stimulus.title,
-            i,
-          ])
-        ),
-        -0.1,
-        0.8
+      // event_id VALUES must equal the numeric codes written to the CSV Marker
+      // column (stimulus.type). Deriving the map from the shared MarkerRegistry
+      // keeps it in lockstep with collection — using array indices here silently
+      // dropped any epoch whose code didn't happen to match an index.
+      const { eventId } = buildMarkerRegistry(
+        state$.value.experiment.params.stimuli
       );
+
+      return epochEvents(state$.value.pyodide.worker!, eventId, -0.1, 0.8);
     }),
     tap((e) => {
       console.log('epoched events: ', e);
@@ -251,20 +257,15 @@ const loadERPEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     filter(isActionOf(PyodideActions.LoadERP)),
     pluck('payload'),
     map((channelName: string) => {
-      let index: number | null = null;
-      if (MUSE_CHANNELS.includes(channelName)) {
-        index = MUSE_CHANNELS.indexOf(channelName);
+      const index = MUSE_CHANNELS.includes(channelName)
+        ? MUSE_CHANNELS.indexOf(channelName)
+        : 0;
+      if (!MUSE_CHANNELS.includes(channelName)) {
+        console.warn(
+          'channel name supplied to loadERPEpic does not belong to a known Muse channel'
+        );
       }
-      if (EMOTIV_CHANNELS.includes(channelName)) {
-        index = EMOTIV_CHANNELS.indexOf(channelName);
-      }
-      if (index) {
-        return index;
-      }
-      console.warn(
-        'channel name supplied to loadERPEpic does not belong to either device'
-      );
-      return parseInt(EMOTIV_CHANNELS[0], 10);
+      return index;
     }),
     tap((chanIndex) => plotERP(state$.value.pyodide.worker!, chanIndex)),
     mergeMap(() => EMPTY)

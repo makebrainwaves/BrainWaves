@@ -10,7 +10,7 @@
 - Design, run, and analyze an experiment using real EEG data all in one desktop
   app
 - Investigate visual event-related brain waves (ERPs)
-- Supports Emotiv Epoc+ and Muse devices
+- Supports Muse and Neurosity EEG devices
 
 ## Screenshots
 
@@ -25,6 +25,16 @@
 - No Python installation required — EEG analysis runs via [Pyodide](https://pyodide.org) (Python compiled to WebAssembly), which is downloaded automatically on first `npm install`.
 
 > **Note:** `npm install` downloads ~300 MB of Pyodide WASM files on first run. This is expected and only happens once.
+
+### macOS (Apple Silicon) — install liblsl
+
+The `node-labstreaminglayer` npm package only ships an x86_64 `liblsl.dylib`, so arm64 Macs (M1/M2/M3/M4) need an arm64 build of liblsl from Homebrew. The dev script automatically symlinks the Homebrew binary into `node_modules/` on every install.
+
+```bash
+brew install labstreaminglayer/tap/lsl
+```
+
+If you skip this step, `npm run dev` will fail at startup with `Failed to load shared library: ... incompatible architecture`. Intel Macs, Linux, and Windows do not need this step — the bundled binaries work as-is.
 
 ## Installing from Source (for developers)
 

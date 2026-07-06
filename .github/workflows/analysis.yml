@@ -1,0 +1,39 @@
+name: Analysis (ERP round-trip)
+
+# Validates that a CSV recorded by the app yields a correct ERP, end to end.
+# Runs the app's real analysis code (src/renderer/utils/webworker/utils.py)
+# against NATIVE MNE — no Pyodide boot — so it's fast and pins down the
+# data-integrity contract: event_id values must equal the numeric codes in the
+# CSV Marker column, and the sfreq heuristic must survive timestamp jitter.
+#
+# Note: the app runs this same Python under Pyodide/WASM. A slower
+# Pyodide-fidelity smoke job (TODO) will guard against native/WASM divergence.
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tests/analysis/requirements.txt
+
+      - name: Install native MNE + test deps
+        run: pip install -r tests/analysis/requirements.txt
+
+      - name: ERP round-trip validation tests
+        env:
+          MPLBACKEND: agg
+        run: python -m pytest tests/analysis -v

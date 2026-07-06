@@ -1,0 +1,11 @@
+# Native-MNE dependencies for the analysis validation tests (tests/analysis).
+# These run the app's real analysis code (webworker/utils.py) against native
+# MNE in CI — fast, no Pyodide boot. Kept loosely pinned; the in-app Pyodide
+# build pins its own MNE via internals/scripts/InstallMNE.mjs. A separate
+# Pyodide-fidelity smoke job (TODO) guards against WASM/native divergence.
+mne>=1.6
+numpy>=1.26
+scipy>=1.11
+pandas>=2.0
+matplotlib>=3.7
+pytest>=7.4

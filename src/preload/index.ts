@@ -5,6 +5,13 @@
  * All Node.js / Electron API access that the renderer needs must go through here.
  */
 import { contextBridge, ipcRenderer } from 'electron';
+import type {
+  DiscoveredStream,
+  LSLEpoch,
+  LSLInletEpoch,
+  LSLMarker,
+  LSLStatus,
+} from '../shared/lslTypes';
 
 // Inject the resource path synchronously so renderer module-level code can use it
 // (The main process passes it as --resource-path in additionalArguments)
@@ -16,6 +23,9 @@ const resourcePath = resourcePathArg
   : '';
 
 contextBridge.exposeInMainWorld('__ELECTRON_RESOURCE_PATH__', resourcePath);
+
+// Node `process` is not available in the isolated renderer; expose OS for feature gates.
+contextBridge.exposeInMainWorld('__ELECTRON_PLATFORM__', process.platform);
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
@@ -93,7 +103,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     imageTitle: string,
     svgContent: string
   ): Promise<void> =>
-    ipcRenderer.invoke('fs:storePyodideImageSvg', title, imageTitle, svgContent),
+    ipcRenderer.invoke(
+      'fs:storePyodideImageSvg',
+      title,
+      imageTitle,
+      svgContent
+    ),
 
   storePyodideImagePng: (
     title: string,
@@ -147,6 +162,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeEEGStream: (streamId: string): Promise<void> =>
     ipcRenderer.invoke('eeg:closeStream', streamId),
 
+  // Writes the code->label event sidecar JSON next to the raw CSV so the
+  // numeric Marker codes are interpretable by downstream/external tools.
+  writeEEGEvents: (
+    title: string,
+    subject: string,
+    group: string,
+    session: number,
+    events: Record<number, string>
+  ): Promise<void> =>
+    ipcRenderer.invoke(
+      'eeg:writeEvents',
+      title,
+      subject,
+      group,
+      session,
+      events
+    ),
+
   // ------------------------------------------------------------------
   // Misc
   // ------------------------------------------------------------------
@@ -162,5 +195,54 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback(url);
     ipcRenderer.on('oauth:callback', handler);
     return () => ipcRenderer.removeListener('oauth:callback', handler);
+  },
+
+  // ------------------------------------------------------------------
+  // Bluetooth — search cancellation
+  // ------------------------------------------------------------------
+  cancelBluetoothSearch: (): Promise<void> =>
+    ipcRenderer.invoke('bluetooth:cancelSearch'),
+
+  // ------------------------------------------------------------------
+  // LSL — main-process outlets push to the LSL network, inlets pull from it
+  // ------------------------------------------------------------------
+  // True only when the native liblsl bindings loaded. Renderer feature-gates
+  // all LSL UI/forwarding on this so the app works without liblsl installed.
+  isLSLAvailable: (): Promise<boolean> => ipcRenderer.invoke('lsl:isAvailable'),
+
+  sendLSLEpoch: (epoch: LSLEpoch): void =>
+    ipcRenderer.send('lsl:sendEpoch', epoch),
+
+  sendLSLMarker: (marker: LSLMarker): void =>
+    ipcRenderer.send('lsl:sendMarker', marker),
+
+  discoverLSLStreams: (): Promise<DiscoveredStream[]> =>
+    ipcRenderer.invoke('lsl:discoverStreams'),
+
+  subscribeLSLStream: (uid: string): void =>
+    ipcRenderer.send('lsl:subscribeStream', { uid }),
+
+  unsubscribeLSLStream: (uid: string): void =>
+    ipcRenderer.send('lsl:unsubscribeStream', { uid }),
+
+  onLSLInletData: (handler: (epoch: LSLInletEpoch) => void): (() => void) => {
+    const listener = (_event: unknown, epoch: LSLInletEpoch) => handler(epoch);
+    ipcRenderer.on('lsl:inletData', listener);
+    return () => ipcRenderer.removeListener('lsl:inletData', listener);
+  },
+
+  onLSLInletDisconnected: (
+    handler: (payload: { uid: string }) => void
+  ): (() => void) => {
+    const listener = (_event: unknown, payload: { uid: string }) =>
+      handler(payload);
+    ipcRenderer.on('lsl:inletDisconnected', listener);
+    return () => ipcRenderer.removeListener('lsl:inletDisconnected', listener);
+  },
+
+  onLSLStatus: (handler: (status: LSLStatus) => void): (() => void) => {
+    const listener = (_event: unknown, status: LSLStatus) => handler(status);
+    ipcRenderer.on('lsl:status', listener);
+    return () => ipcRenderer.removeListener('lsl:status', listener);
   },
 });
