@@ -132,7 +132,14 @@ export const requestChannelInfo = (worker: Worker) => {
 
 export const cleanEpochsPlot = async (worker: Worker) => {
   await worker.postMessage({
-    data: `raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=None)`,
+    // MNE 1.x validates `events` as bool|ndarray — events=None raises TypeError;
+    // False is the "no events overlaid" default. Also close the returned Figure
+    // so the worker doesn't try to structuredClone a PyProxy back (this plot is
+    // not routed to the UI; wiring it to a plotKey would be a separate feature).
+    data: [
+      `_fig = raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=False)`,
+      `plt.close(_fig)`,
+    ].join('\n'),
   });
 };
 
