@@ -186,5 +186,5 @@ export const saveEpochs = (
         'EEG',
         `${subject}-cleaned-epo.fif`
       )
-    )}`,
+    )})`,
   });

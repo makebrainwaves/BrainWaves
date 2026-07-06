@@ -54,7 +54,6 @@ export const buildCustomTimeline = () => ({
     iti: 500,
     presentationTime: 1000,
     selfPaced: true,
-    jitter: 200,
     sampleType: 'with-replacement',
     intro: '',
     taskHelp: '',

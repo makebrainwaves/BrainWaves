@@ -10,8 +10,8 @@ import type { DiscoveredStream } from '../../shared/lslTypes';
 export const DeviceActions = {
   // TODO: write type for devices
   ConnectToDevice: createAction<Device>('CONNECT_TO_DEVICE'),
-  DisconnectFromDevice: createAction<void, 'EXPERIMENT_CLEANUP'>(
-    'EXPERIMENT_CLEANUP'
+  DisconnectFromDevice: createAction<void, 'DISCONNECT_FROM_DEVICE'>(
+    'DISCONNECT_FROM_DEVICE'
   ),
   SetConnectionStatus: createAction<CONNECTION_STATUS, 'SET_CONNECTION_STATUS'>(
     'SET_CONNECTION_STATUS'

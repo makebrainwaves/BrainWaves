@@ -37,4 +37,8 @@ src/renderer/utils/pyodide/src
 # Python venv for native analysis tests (tests/analysis)
 .venv-test/
 .venv/
+
+
+# Python bytecode cache
 __pycache__/
+*.pyc

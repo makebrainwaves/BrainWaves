@@ -10,7 +10,6 @@ export const params = {
   trialDuration: 1000,
   nbTrials: 150,
   iti: 500,
-  jitter: 200,
   sampleType: 'with-replacement',
   intro: `In this experiment, your task will be to identify the color of the
   word shown on the screen. The word itself is immaterial - you can safely

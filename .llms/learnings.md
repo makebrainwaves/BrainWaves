@@ -151,6 +151,12 @@ LSL is an advanced, opt-in capability: Muse and Neurosity connect via Web Blueto
 
 Build note: with `module: ESNext` source but CommonJS main output, a guarded `require(...)` of an externalized dep type-checks (global `require` from `@types/node`) and stays a `require` in `out/main/index.js` (electron-vite externalizes it) — confirmed lazy, not bundled. Do **not** revert to a static import.
 
+## Behavior data: booleans become strings after the CSV round-trip
+
+Experiments emit `this.data.correct_response` as a real boolean (`true`/`false`) and `response_given` as `'yes'`/`'no'` (see `src/renderer/utils/labjs/functions.ts`). But all consumers in `src/renderer/utils/behavior/compute.js` read data **after** it's been written to CSV and re-parsed, so every value is a **string**. That's why existing code gates on `row.correct_response === 'true'` and `row.response_given === 'yes'`, and parses numbers with `parseFloat`.
+
+Trap: a new metric written naively (`row.correct_response === true`, or arithmetic on an unparsed string) will silently return `false`/`0`/`NaN` for post-CSV data — and may *work* on pre-CSV in-memory data, so it passes a quick test and fails in production. Always compare against the string `'true'`/`'yes'` and `parseFloat` before doing math.
+
 ## Pre-existing TypeScript errors (do not treat as regressions)
 
 - `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch
