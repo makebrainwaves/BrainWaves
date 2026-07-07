@@ -276,8 +276,6 @@ const getSuggestedRejectionsEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.GetSuggestedRejections)),
     pluck('payload'),
-    // Fire-and-forget: result returns via pyodideMessageEpic →
-    // SetSuggestedRejections (dataKey 'suggestedRejections').
     tap((threshold) =>
       requestSuggestRejections(
         state$.value.pyodide.worker!,

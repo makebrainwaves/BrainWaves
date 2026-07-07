@@ -8,32 +8,10 @@ import {
   epochChannelSeries,
 } from './epochArrays';
 
-// ---------------------------------------------------------------------------
-// Canvas layout (matches MNE's epochs.plot): epochs run ACROSS (x), channels
-// are STACKED vertically (y). One trace per (epoch, channel) cell.
-//
-//   [◀ Prev] [Next ▶]              [amp －] [amp ＋]
-//            epoch 0        epoch 1        epoch 2      ...
-//          ┌────────────┬────────────┬────────────┐
-//   ch 0   │  ~~~~~~~~   │ ░░grey░░✕░░ │  ~~~~~~~~   │  channel lane
-//          ├────────────┼────────────┼────────────┤    (rejected column
-//   ch 1   │  ~~~~~~~~   │ ░░░░░░░░░░ │  ~~~~~~~~   │     is greyed out)
-//          ├────────────┼────────────┼────────────┤
-//   ch 2   │  ~~~~~~~~   │ ░░░░░░░░░░ │  ~~~~~~~~   │
-//          └────────────┴────────────┴────────────┘
-//             epoch 0       epoch 1       epoch 2      (bottom index labels)
-//
-// Interactive (Phase 1): a transparent DOM overlay div per visible column makes
-// each epoch click-to-reject (rejected epochs grey out); Prev/Next page through
-// all epochs; amp ＋/－ scale trace amplitude. Rendering stays Canvas 2D + a DOM
-// overlay for labels/hit-targets (no canvas hit-testing).
-//
-// Interactive (Phase 2): channel labels in the left gutter are click-to-flag
-// bad-channel toggles — a flagged channel's LANE is washed translucent red
-// across ALL epoch columns (and its label renders struck-through/red) so bad
-// channels read at a glance. An optional condition legend maps numeric event
-// codes to human-readable labels via `codeToLabel`.
-// ---------------------------------------------------------------------------
+// Interactive epoch reviewer: epochs run across (x), channels stacked (y).
+// Click an epoch column to reject it; click a channel label to flag it bad
+// (its lane washes red across all epochs). Prev/Next paginate, amp +/- scales
+// traces. Canvas 2D for traces, a DOM overlay for labels/click targets.
 
 interface Props {
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
@@ -68,7 +46,6 @@ const GAIN_MAX = 20;
 
 const REJECTED_TRACE_COLOR = 'rgba(120, 120, 120, 0.5)';
 const REJECTED_FILL_COLOR = 'rgba(120, 120, 120, 0.15)';
-// Translucent wash over a flagged bad channel's lane (drawn across all epochs).
 const BAD_CHANNEL_FILL_COLOR = 'rgba(200, 60, 60, 0.10)';
 
 export default function EpochReviewer({
@@ -283,8 +260,6 @@ export default function EpochReviewer({
   const firstShown = clampedStart + 1;
   const lastShown = clampedStart + visibleCount;
 
-  // Unique condition codes (sorted) for the legend — mirrors the canvas draw's
-  // deterministic per-condition coloring.
   const uniqueSortedCodes = [...new Set(meta.event_codes)].sort(
     (a, b) => a - b
   );

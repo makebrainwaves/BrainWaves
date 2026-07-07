@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import path from 'pathe';
 import { Link } from 'react-router-dom';
-import { isNil, isString } from 'lodash';
+import { isNil, isString, memoize } from 'lodash';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -13,7 +13,6 @@ import {
 import {
   EXPERIMENTS,
   DEVICES,
-  AUTO_FLAG_EXPERIMENTS,
   DEFAULT_PTP_THRESHOLD_UV,
 } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
@@ -28,6 +27,12 @@ import {
   EpochArraysMeta,
   SuggestedRejection,
 } from '../../actions';
+
+// Memoized by stimuli reference so we don't rebuild the registry every render.
+const codeToLabelFor = memoize(
+  (stimuli: ExperimentParameters['stimuli']) =>
+    buildMarkerRegistry(stimuli).codeToLabel
+);
 
 export interface Props {
   type?: EXPERIMENTS;
@@ -248,12 +253,8 @@ export default class Clean extends Component<Props, State> {
       return this.state.selectedSubject === subjectFromFilepath;
     });
 
-    const codeToLabel = buildMarkerRegistry(
-      this.props.params?.stimuli ?? []
-    ).codeToLabel;
-    const showAutoFlag = AUTO_FLAG_EXPERIMENTS.has(
-      this.props.type as EXPERIMENTS
-    );
+    const codeToLabel = codeToLabelFor(this.props.params?.stimuli);
+    const showAutoFlag = !this.props.params?.hideAutoFlagEpochs;
     const { suggestedRejections } = this.props;
 
     return (

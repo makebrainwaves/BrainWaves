@@ -9,6 +9,16 @@ Format: brief heading + explanation + (optional) relevant file paths.
 
 <!-- Add entries below this line -->
 
+## Comment style: keep them on definitions, not inside logic
+
+This repo prefers minimal comments. Write them on **function, prop, or data-structure
+definitions** (docstrings / JSDoc, a one-liner over a type field, an interface member) —
+they describe intent and behavior that outlives the implementation. Avoid comments
+*inside* function bodies that narrate the process step-by-step, restate the code, or
+tag "Phase N"/PR history; that knowledge belongs in the definition's summary, the
+relevant skill (e.g. the pyodide skill), or git history. A component's top-of-file
+comment should concisely state what it is and does — not a diagram of every branch.
+
 ## Markers: device-agnostic injection via the EEGDriver interface
 
 Marker injection used to be Muse-only and lived in the UI (`RunComponent.eventCallback`

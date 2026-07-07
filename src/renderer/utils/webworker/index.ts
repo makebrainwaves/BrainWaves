@@ -139,8 +139,6 @@ export const requestEpochArrays = (worker: Worker, variableName: string) => {
   });
 };
 
-// Auto-flag: ask Python which epochs look like artifacts (peak-to-peak >
-// thresholdUv). Fire-and-forget; result returns on dataKey 'suggestedRejections'.
 export const requestSuggestRejections = (
   worker: Worker,
   variableName: string,

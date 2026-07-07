@@ -65,7 +65,6 @@ export const PyodideActions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ReceiveError: createAction<any, 'RECEIVE_ERROR'>('RECEIVE_ERROR'), // Worker error event — shape is dynamic
   SetWorkerReady: createAction('SET_WORKER_READY'),
-  // Auto-flag: request suggestions (payload = peak-to-peak threshold in µV).
   GetSuggestedRejections: createAction<number, 'GET_SUGGESTED_REJECTIONS'>(
     'GET_SUGGESTED_REJECTIONS'
   ),

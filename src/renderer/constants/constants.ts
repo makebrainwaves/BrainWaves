@@ -9,16 +9,6 @@ export enum EXPERIMENTS {
   // SSVEP = 'Steady-state Visual Evoked Potential',
 }
 
-// Experiments where the "Auto-flag artifacts" button is offered on the Clean
-// screen. Dev-configurable — add/remove experiments here to opt them in/out.
-export const AUTO_FLAG_EXPERIMENTS = new Set<EXPERIMENTS>([
-  EXPERIMENTS.N170,
-  EXPERIMENTS.STROOP,
-  EXPERIMENTS.MULTI,
-  EXPERIMENTS.SEARCH,
-]);
-
-// Default peak-to-peak artifact threshold (microvolts) for auto-flag.
 export const DEFAULT_PTP_THRESHOLD_UV = 100;
 
 export const SCREENS = {
