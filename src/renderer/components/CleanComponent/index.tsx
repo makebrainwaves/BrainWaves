@@ -6,7 +6,12 @@ import { Button } from '../ui/button';
 import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
-import { PyodideActions, ExperimentActions } from '../../actions';
+import EpochReviewer from './EpochReviewer';
+import {
+  PyodideActions,
+  ExperimentActions,
+  EpochArraysMeta,
+} from '../../actions';
 
 export interface Props {
   type?: EXPERIMENTS;
@@ -15,6 +20,7 @@ export interface Props {
   epochsInfo: Array<{
     [key: string]: number | string;
   }>;
+  epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
   PyodideActions: typeof PyodideActions;
   ExperimentActions: typeof ExperimentActions;
   subject: string;
@@ -209,6 +215,9 @@ export default class Clean extends Component<Props, State> {
               {this.renderEpochLabels()}
               {this.renderAnalyzeButton()}
             </div>
+          </div>
+          <div className="mt-4">
+            <EpochReviewer epochArrays={this.props.epochArrays} />
           </div>
         </div>
       </div>
