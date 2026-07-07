@@ -117,6 +117,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ): Promise<void> =>
     ipcRenderer.invoke('fs:storePyodideImagePng', title, imageTitle, rawData),
 
+  writeCleanedEpochs: (
+    title: string,
+    subject: string,
+    rawData: ArrayBuffer
+  ): Promise<void> =>
+    ipcRenderer.invoke('fs:writeCleanedEpochs', title, subject, rawData),
+
   deleteWorkspaceDir: (title: string): Promise<void> =>
     ipcRenderer.invoke('fs:deleteWorkspaceDir', title),
 

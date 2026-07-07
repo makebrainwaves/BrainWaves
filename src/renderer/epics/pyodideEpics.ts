@@ -1,11 +1,10 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { EMPTY, fromEvent, Observable, of } from 'rxjs';
-import { map, mergeMap, tap, pluck, filter } from 'rxjs/operators';
+import { EMPTY, from, fromEvent, Observable, of } from 'rxjs';
+import { map, mergeMap, tap, pluck, filter, catchError } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import { PyodideActions, PyodideActionType } from '../actions';
 import { RootState } from '../reducers';
-import { getWorkspaceDir } from '../utils/filesystem/storage';
 import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   loadCSV,
@@ -77,7 +76,7 @@ const pyodideMessageEpic: Epic<
   PyodideActionType,
   PyodideActionType,
   RootState
-> = (action$) =>
+> = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
     pluck('payload'),
@@ -106,6 +105,24 @@ const pyodideMessageEpic: Epic<
       if (dataKey === 'channelInfo') {
         // results is an array of channel-name strings
         return of(PyodideActions.SetChannelInfo(results as string[]));
+      }
+      if (dataKey === 'savedEpochs') {
+        const savedEpochsBuffer = e.data.savedEpochsBuffer as ArrayBuffer;
+        const { title, subject } = state$.value.experiment;
+        return from(
+          window.electronAPI.writeCleanedEpochs(
+            title,
+            subject,
+            savedEpochsBuffer
+          )
+        ).pipe(
+          tap(() => toast.success('Cleaned data saved')),
+          mergeMap(() => EMPTY),
+          catchError((err) => {
+            toast.error(`Failed to save cleaned data: ${err?.message ?? err}`);
+            return EMPTY;
+          })
+        );
       }
 
       // Route plot results to the appropriate Redux state slot.
@@ -189,10 +206,8 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     filter(isActionOf(PyodideActions.CleanEpochs)),
     mergeMap(async () => {
       await cleanEpochsPlot(state$.value.pyodide.worker!);
-      const dir = await getWorkspaceDir(state$.value.experiment.title);
       return saveEpochs(
         state$.value.pyodide.worker!,
-        dir,
         state$.value.experiment.subject
       );
     }),

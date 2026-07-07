@@ -1,4 +1,3 @@
-import { formatFilePath } from './functions';
 import path from 'pathe';
 import patchesPy from './patches.py?raw';
 import utilsPy from './utils.py?raw';
@@ -203,19 +202,14 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
   });
 };
 
-export const saveEpochs = (
-  worker: Worker,
-  workspaceDir: string,
-  subject: string
-) =>
+// Cleaned epochs are saved into the worker's in-memory MEMFS, then read back and
+// shipped to the renderer (dataKey 'savedEpochs') which writes them to host disk
+// via the fs:writeCleanedEpochs IPC bridge — Pyodide's FS can't reach host paths.
+export const saveEpochs = (worker: Worker, subject: string) => {
+  const memfsPath = `/tmp/${subject}-cleaned-epo.fif`;
   worker.postMessage({
-    data: `raw_epochs.save(${formatFilePath(
-      path.join(
-        workspaceDir,
-        'Data',
-        subject,
-        'EEG',
-        `${subject}-cleaned-epo.fif`
-      )
-    )})`,
+    data: `raw_epochs.save("${memfsPath}", overwrite=True)`,
+    dataKey: 'savedEpochs',
+    readFileAfter: memfsPath,
   });
+};
