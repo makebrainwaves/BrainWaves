@@ -3,7 +3,7 @@ import { EMPTY, from, fromEvent, Observable, of } from 'rxjs';
 import { map, mergeMap, tap, pluck, filter, catchError } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
-import { PyodideActions, PyodideActionType } from '../actions';
+import { PyodideActions, PyodideActionType, EpochArraysMeta } from '../actions';
 import { RootState } from '../reducers';
 import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
@@ -14,6 +14,7 @@ import {
   epochEvents,
   requestEpochsInfo,
   requestChannelInfo,
+  requestEpochArrays,
   cleanEpochsPlot,
   plotPSD,
   plotERP,
@@ -106,8 +107,16 @@ const pyodideMessageEpic: Epic<
         // results is an array of channel-name strings
         return of(PyodideActions.SetChannelInfo(results as string[]));
       }
+      if (dataKey === 'epochArrays') {
+        return of(
+          PyodideActions.SetEpochArrays({
+            buffer: e.data.buffer as ArrayBuffer,
+            meta: results as EpochArraysMeta,
+          })
+        );
+      }
       if (dataKey === 'savedEpochs') {
-        const savedEpochsBuffer = e.data.savedEpochsBuffer as ArrayBuffer;
+        const savedEpochsBuffer = e.data.buffer as ArrayBuffer;
         const { title, subject } = state$.value.experiment;
         return from(
           window.electronAPI.writeCleanedEpochs(
@@ -170,6 +179,8 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       }
       // Result returns asynchronously via pyodideMessageEpic → SetEpochInfo.
       requestEpochsInfo(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
+      // Fetch epoch arrays for the interactive reviewer (dataKey 'epochArrays').
+      requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
     mergeMap(() => EMPTY)
   );

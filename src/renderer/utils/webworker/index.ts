@@ -1,6 +1,7 @@
 import path from 'pathe';
 import patchesPy from './patches.py?raw';
 import utilsPy from './utils.py?raw';
+import { CONDITION_PALETTE_RGB } from '../eeg/conditionPalette';
 
 // ---------------------------------
 // This file contains the JS functions that allow the app to access python-wasm through pyodide
@@ -126,6 +127,18 @@ export const requestChannelInfo = (worker: Worker) => {
   });
 };
 
+// Fetch epoch data arrays for the interactive reviewer. get_epochs_arrays writes
+// a float32 buffer to a MEMFS path and returns metadata; the worker reads the
+// buffer back (readFileAfter) and posts it zero-copy on dataKey 'epochArrays'.
+export const requestEpochArrays = (worker: Worker, variableName: string) => {
+  const outPath = '/tmp/epoch_arrays.f32';
+  worker.postMessage({
+    data: `get_epochs_arrays(${variableName}, "${outPath}")`,
+    dataKey: 'epochArrays',
+    readFileAfter: outPath,
+  });
+};
+
 // -----------------------------
 // Plot functions
 
@@ -161,7 +174,7 @@ export const plotTopoMap = async (worker: Worker) => {
     plotKey: 'topo',
     data: [
       'import io',
-      '_fig = plot_topo(clean_epochs, conditions)',
+      `_fig = plot_topo(clean_epochs, conditions, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
@@ -193,7 +206,7 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
     plotKey: 'erp',
     data: [
       'import io',
-      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
+      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
