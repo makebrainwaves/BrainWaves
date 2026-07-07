@@ -139,6 +139,22 @@ export const requestEpochArrays = (worker: Worker, variableName: string) => {
   });
 };
 
+// Apply the user's rejection to raw_epochs in Python: drop the marked epoch
+// indices + set bad channels, mutating in place. Trailing ';' suppresses the
+// return value — apply_rejection returns the Epochs object, which cannot cross
+// postMessage (PyProxy is not structured-cloneable). Fire-and-forget; the epic
+// then triggers saveEpochs + requestEpochArrays, which the worker runs in order.
+export const applyRejection = (
+  worker: Worker,
+  variableName: string,
+  dropIndices: number[],
+  badChannels: string[]
+) => {
+  worker.postMessage({
+    data: `apply_rejection(${variableName}, ${JSON.stringify(dropIndices)}, ${JSON.stringify(badChannels)});`,
+  });
+};
+
 // -----------------------------
 // Plot functions
 
