@@ -29,7 +29,10 @@ export const PyodideActions = {
   LoadPSD: createAction('LOAD_PSD'),
   LoadERP: createAction<string, 'LOAD_ERP'>('LOAD_ERP'),
   LoadTopo: createAction('LOAD_TOPO'),
-  CleanEpochs: createAction('CLEAN_EPOCHS'),
+  CleanEpochs: createAction<
+    { dropIndices: number[]; badChannels: string[] },
+    'CLEAN_EPOCHS'
+  >('CLEAN_EPOCHS'),
   GetEpochsInfo: createAction<PYODIDE_VARIABLE_NAMES, 'GET_EPOCHS_INFO'>(
     'GET_EPOCHS_INFO'
   ),

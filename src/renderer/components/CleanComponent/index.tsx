@@ -7,6 +7,7 @@ import { EXPERIMENTS, DEVICES } from '../../constants/constants';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import CleanSidebar from './CleanSidebar';
 import EpochReviewer from './EpochReviewer';
+import LiveErpPane from './LiveErpPane';
 import {
   PyodideActions,
   ExperimentActions,
@@ -39,6 +40,8 @@ interface State {
   selectedSubject: string;
   selectedFilePaths: Array<string>;
   isSidebarVisible: boolean;
+  // ABSOLUTE epoch indices the student has marked for rejection.
+  rejectedEpochs: Set<number>;
 }
 
 export default class Clean extends Component<Props, State> {
@@ -52,11 +55,13 @@ export default class Clean extends Component<Props, State> {
       selectedFilePaths: [],
       selectedSubject: props.subject,
       isSidebarVisible: false,
+      rejectedEpochs: new Set(),
     };
     this.handleRecordingChange = this.handleRecordingChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
     this.handleSubjectChange = this.handleSubjectChange.bind(this);
+    this.handleToggleEpoch = this.handleToggleEpoch.bind(this);
     this.icons =
       props.type === EXPERIMENTS.N170
         ? ['😊', '🏠', '✕', '📖']
@@ -102,6 +107,20 @@ export default class Clean extends Component<Props, State> {
   handleLoadData() {
     this.props.ExperimentActions.SetSubject(this.state.selectedSubject);
     this.props.PyodideActions.LoadEpochs(this.state.selectedFilePaths);
+    // A fresh dataset invalidates any previously selected epoch indices.
+    this.setState({ rejectedEpochs: new Set() });
+  }
+
+  handleToggleEpoch(index: number) {
+    this.setState((prev) => {
+      const next = new Set(prev.rejectedEpochs);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return { rejectedEpochs: next };
+    });
   }
 
   handleSidebarToggle() {
@@ -205,7 +224,15 @@ export default class Clean extends Component<Props, State> {
                   variant="default"
                   className="w-full"
                   disabled={isNil(this.props.epochsInfo)}
-                  onClick={() => this.props.PyodideActions.CleanEpochs()}
+                  onClick={() => {
+                    this.props.PyodideActions.CleanEpochs({
+                      dropIndices: Array.from(this.state.rejectedEpochs),
+                      badChannels: [],
+                    });
+                    // After Clean, raw_epochs is re-fetched with fewer epochs,
+                    // so the old absolute indices no longer apply.
+                    this.setState({ rejectedEpochs: new Set() });
+                  }}
                 >
                   Clean Data
                 </Button>
@@ -216,8 +243,16 @@ export default class Clean extends Component<Props, State> {
               {this.renderAnalyzeButton()}
             </div>
           </div>
-          <div className="mt-4">
-            <EpochReviewer epochArrays={this.props.epochArrays} />
+          <div className="mt-4 flex flex-wrap gap-6">
+            <EpochReviewer
+              epochArrays={this.props.epochArrays}
+              rejected={this.state.rejectedEpochs}
+              onToggleEpoch={this.handleToggleEpoch}
+            />
+            <LiveErpPane
+              epochArrays={this.props.epochArrays}
+              rejected={this.state.rejectedEpochs}
+            />
           </div>
         </div>
       </div>

@@ -69,3 +69,31 @@ export function conditionIndexForCode(
   const i = uniqueSortedCodes.indexOf(code);
   return i < 0 ? 0 : i;
 }
+
+// Mean waveform for one channel, averaged over the given epoch indices — the
+// client-side ERP primitive for the live preview (recomputed on every reject
+// toggle; equivalent to np.mean over those epochs for that channel). The epochs
+// are already baseline-corrected + filtered at epoching time, so a plain mean
+// matches MNE's evoked average to float32 display precision. Empty selection
+// returns a zero-filled trace (length n_times) so the pane renders a flat line.
+export function meanTrace(
+  buffer: ArrayBuffer,
+  meta: EpochArraysMeta,
+  epochIndices: number[],
+  channel: number
+): Float32Array {
+  const out = new Float32Array(meta.n_times);
+  if (epochIndices.length === 0) {
+    return out;
+  }
+  for (const e of epochIndices) {
+    const series = epochChannelSeries(buffer, meta, e, channel);
+    for (let t = 0; t < meta.n_times; t += 1) {
+      out[t] += series[t];
+    }
+  }
+  for (let t = 0; t < meta.n_times; t += 1) {
+    out[t] /= epochIndices.length;
+  }
+  return out;
+}
