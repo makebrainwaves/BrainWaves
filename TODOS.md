@@ -19,7 +19,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 ## Known issues / tech debt
 
 - [ ] **(Optional) Full Pyodide worker RPC** — the analysis/Clean pipeline crash is now **fixed** (harvested from PR #194): a `dataKey` routing pattern parallel to `plotKey` — the worker echoes `dataKey` + PyProxy-converted results, and `pyodideMessageEpic` routes `epochsInfo`→`SetEpochInfo` / `channelInfo`→`SetChannelInfo`; the info epics are fire-and-forget. This unblocks the pipeline without the bigger refactor. The deeper latent issue remains, though: `worker.postMessage` returns `undefined` on *post*, so the `await`s in `webworker/index.ts` are no-ops and cross-message sequencing still relies on worker FIFO. A true `runPython(worker, code, ctx?)` RPC — `Map<id,{resolve,reject}>` + one `message` listener, worker echoes `id` — would let epics `await` real results and delete the `plotKey`/`dataKey` switch entirely. Only worth doing if the FIFO sequencing ever actually bites; not urgent now.
-- [ ] Pyodide-fidelity smoke test — analysis pipeline is tested against native MNE, not yet under Pyodide/WASM (see `.llms/learnings.md`).
+- [ ] Pyodide-fidelity smoke test — analysis pipeline is tested against native MNE, not yet under Pyodide/WASM (see `.llms/learnings.md`). **In progress:** the epoch-review Phase 0 (see `docs/epoch-review-ui-plan.md` §0) adds a *narrow* Pyodide test for the `get_epochs_arrays` float32 buffer path (byteLength, decode-vs-native, transfer detaches source); the full-pipeline Pyodide job remains deferred.
 - [ ] Pre-existing TypeScript errors (not regressions): `experimentEpics.ts` (RxJS operator types), `routes.tsx` (Redux container prop types).
 
 ## Done recently
