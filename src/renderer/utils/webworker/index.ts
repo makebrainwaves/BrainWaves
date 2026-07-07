@@ -139,6 +139,19 @@ export const requestEpochArrays = (worker: Worker, variableName: string) => {
   });
 };
 
+// Auto-flag: ask Python which epochs look like artifacts (peak-to-peak >
+// thresholdUv). Fire-and-forget; result returns on dataKey 'suggestedRejections'.
+export const requestSuggestRejections = (
+  worker: Worker,
+  variableName: string,
+  thresholdUv: number
+) => {
+  worker.postMessage({
+    data: `suggest_rejections(${variableName}, ${thresholdUv})`,
+    dataKey: 'suggestedRejections',
+  });
+};
+
 // Apply the user's rejection to raw_epochs in Python: drop the marked epoch
 // indices + set bad channels, mutating in place. Trailing ';' suppresses the
 // return value — apply_rejection returns the Epochs object, which cannot cross

@@ -330,3 +330,39 @@ def apply_rejection(epochs, drop_indices, bad_channels):
     if drop_indices:
         epochs.drop(list(drop_indices))
     return epochs
+
+
+def suggest_rejections(epochs, threshold_uv):
+    """Suggest artifact epochs by peak-to-peak amplitude (does NOT drop anything).
+
+    For each epoch, compute the per-channel peak-to-peak (max-min over time) on the
+    EEG channels only (Marker/stim excluded), take the worst channel, and if it
+    exceeds threshold_uv microvolts, suggest that epoch. Advisory only — the UI
+    pre-marks these but the user can override; the real drop goes through
+    apply_rejection so the saved data stays MNE-exact.
+
+    Returns list[dict] with keys: index (int), channel (str), peak_uv (float,
+    rounded 1dp), reason (str). MNE data is in volts; threshold_uv is microvolts.
+    """
+    # NOTE: peak_uv is in microvolts; index is 0-based into the CURRENT epochs
+    # (same order as get_epochs_arrays produced).
+    picks = pick_types(epochs.info, eeg=True)
+    data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times), volts
+    ch_names = [epochs.ch_names[i] for i in picks]
+    ptp = data.max(axis=2) - data.min(axis=2)  # (n_epochs, n_channels), volts
+    thresh_v = threshold_uv * 1e-6
+    suggestions = []
+    for e in range(ptp.shape[0]):
+        worst = int(ptp[e].argmax())
+        peak_v = float(ptp[e, worst])
+        if peak_v > thresh_v:
+            peak_uv = round(peak_v * 1e6, 1)
+            suggestions.append({
+                "index": int(e),
+                "channel": ch_names[worst],
+                "peak_uv": peak_uv,
+                "reason": "peak-to-peak {}µV on {}".format(
+                    round(peak_v * 1e6), ch_names[worst]
+                ),
+            })
+    return suggestions
