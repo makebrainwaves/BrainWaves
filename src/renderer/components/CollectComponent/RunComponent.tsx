@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Button } from '../ui/button';
+import { Card, CardHeader, CardContent } from '../ui/card';
 import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
 import { injectMarker } from '../../utils/eeg';
@@ -156,36 +157,38 @@ const Run: React.FC<Props> = ({
         )}
 
         {!isRunning && !hasFinished && (
-          <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
-            <div className="text-left">
-              <h1>{title}</h1>
-              <button
-                className="flex justify-end w-full"
-                onClick={() => setIsInputCollectOpen(true)}
-                aria-label="Edit"
-              >
-                ✏
-              </button>
-              <div>
-                Subject ID: <b>{subject}</b>
-              </div>
-              <div>
-                Group Name: <b>{group}</b>
-              </div>
-              <div>
-                Session Number: <b>{session}</b>
-              </div>
-              <div className="mt-6">
-                <Button
-                  variant="default"
-                  className="w-full"
-                  onClick={handleStartExperiment}
-                  disabled={!subject}
-                >
-                  Run Experiment
-                </Button>
-              </div>
-            </div>
+          <div className="flex items-center justify-center h-full">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <h2 className="m-0 text-lg font-semibold">Ready to run</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Edit subject details"
+                    onClick={() => setIsInputCollectOpen(true)}
+                  >
+                    ✏
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <div>
+                  Subject ID: <b>{subject}</b>
+                </div>
+                <div>
+                  Group Name: <b>{group}</b>
+                </div>
+                <div>
+                  Session Number: <b>{session}</b>
+                </div>
+                <div className="mt-6">
+                  <Button onClick={handleStartExperiment} disabled={!subject}>
+                    Run Experiment
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
