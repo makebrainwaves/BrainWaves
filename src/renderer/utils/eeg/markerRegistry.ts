@@ -42,21 +42,42 @@ export interface MarkerRegistry {
  * Build the registry for an experiment from the distinct numeric event codes
  * present in its stimuli. Multiple stimuli may share a code (e.g. every "Face"
  * image is STIMULUS_1) — they collapse to one condition entry, which is exactly
- * what MNE wants. Unknown codes fall back to an `EVENT_<n>` label so nothing is
- * silently lost.
+ * what MNE wants.
+ *
+ * The display label prefers the experiment's own condition name
+ * (`stimulus.condition`, e.g. "Face"/"House") so the Clean counts, legend, and
+ * ERP read the real conditions instead of the generic STIMULUS_n. It falls back
+ * to the neutral STIMULUS_n label, then `EVENT_<n>`, so nothing is silently
+ * lost. Labels are display-only — the numeric codes still drive the CSV and
+ * MNE's event_id (eventId VALUES are the codes). A condition name is only used
+ * if it's unique across codes; two codes are never collapsed under one label
+ * (that would silently merge conditions in analysis).
  */
 export const buildMarkerRegistry = (
   stimuli: Stimulus[] = []
 ): MarkerRegistry => {
-  const codes = new Set<number>();
+  // First distinct condition name seen for each code (codes may repeat across
+  // many stimuli that all share the same condition).
+  const conditionForCode = new Map<number, string>();
   for (const stimulus of stimuli) {
-    if (typeof stimulus.type === 'number') codes.add(stimulus.type);
+    if (typeof stimulus.type !== 'number') continue;
+    if (!conditionForCode.has(stimulus.type) && stimulus.condition) {
+      conditionForCode.set(stimulus.type, stimulus.condition);
+    } else if (!conditionForCode.has(stimulus.type)) {
+      conditionForCode.set(stimulus.type, '');
+    }
   }
 
   const codeToLabel: Record<number, string> = {};
   const eventId: Record<string, number> = {};
-  for (const code of codes) {
-    const label = CODE_TO_LABEL[code] ?? `EVENT_${code}`;
+  const usedLabels = new Set<string>();
+  for (const [code, condition] of conditionForCode) {
+    const neutral = CODE_TO_LABEL[code] ?? `EVENT_${code}`;
+    // Use the condition name only if it's non-empty and not already claimed by
+    // another code; otherwise fall back to the guaranteed-unique neutral label.
+    const label =
+      condition && !usedLabels.has(condition) ? condition : neutral;
+    usedLabels.add(label);
     codeToLabel[code] = label;
     eventId[label] = code;
   }
