@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
 import { injectMarker } from '../../utils/eeg';
 import { sendMarker } from '../../utils/eeg/lslBridge';
-import { EXPERIMENTS } from '../../constants/constants';
+import { EXPERIMENTS, CONNECTION_STATUS } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
@@ -23,6 +23,7 @@ interface Props {
   group: string;
   session: number;
   isEEGEnabled: boolean;
+  connectionStatus: CONNECTION_STATUS;
   ExperimentActions: typeof globalExperimentActions;
 }
 
@@ -36,6 +37,7 @@ const Run: React.FC<Props> = ({
   group,
   session,
   isEEGEnabled,
+  connectionStatus,
   ExperimentActions,
 }) => {
   const [isInputCollectOpen, setIsInputCollectOpen] = useState(
@@ -43,6 +45,23 @@ const Run: React.FC<Props> = ({
   );
 
   const handleStartExperiment = useCallback(async () => {
+    // Warn before a run that won't capture brain data: EEG turned off, or on
+    // but no device connected. Either way it silently records behavior only.
+    const eegConnected =
+      isEEGEnabled && connectionStatus === CONNECTION_STATUS.CONNECTED;
+    if (!eegConnected) {
+      const message = isEEGEnabled
+        ? 'No EEG device is connected. This run will record responses but no brain data. Continue anyway?'
+        : 'EEG is disabled. This run will record responses but no brain data. Continue anyway?';
+      const response = await window.electronAPI.showMessageBox({
+        buttons: ['No', 'Yes'],
+        message,
+      });
+      if (response.response !== 1) {
+        return;
+      }
+    }
+
     const filename = `${subject}-${group}-${session}-behavior.csv`;
     const fileExists = await checkFileExists(title, subject, filename);
     if (fileExists) {
@@ -58,7 +77,15 @@ const Run: React.FC<Props> = ({
     } else {
       ExperimentActions.Start();
     }
-  }, [subject, group, session, title, ExperimentActions]);
+  }, [
+    subject,
+    group,
+    session,
+    title,
+    isEEGEnabled,
+    connectionStatus,
+    ExperimentActions,
+  ]);
 
   const handleCloseInputCollect = useCallback(
     (newSubject: string, newGroup: string, newSession: number) => {
