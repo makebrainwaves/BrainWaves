@@ -57,6 +57,8 @@ interface DropdownOption {
 }
 
 interface State {
+  // Which screen is showing: dataset picker vs. the interactive editor.
+  view: 'select' | 'review';
   subjects: Array<DropdownOption>;
   eegFilePaths: Array<DropdownOption>;
   selectedSubject: string;
@@ -80,6 +82,7 @@ export default class Clean extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
+      view: 'select',
       subjects: [],
       eegFilePaths: [{ key: '', text: '', value: '' }],
       selectedFilePaths: [],
@@ -98,6 +101,7 @@ export default class Clean extends Component<Props, State> {
     this.handleToggleEpoch = this.handleToggleEpoch.bind(this);
     this.handleToggleChannel = this.handleToggleChannel.bind(this);
     this.handleAutoFlag = this.handleAutoFlag.bind(this);
+    this.handleCleanData = this.handleCleanData.bind(this);
     this.handleThresholdChange = this.handleThresholdChange.bind(this);
     this.icons =
       props.type === EXPERIMENTS.N170
@@ -144,9 +148,13 @@ export default class Clean extends Component<Props, State> {
   handleLoadData() {
     this.props.ExperimentActions.SetSubject(this.state.selectedSubject);
     this.props.PyodideActions.LoadEpochs(this.state.selectedFilePaths);
-    // A fresh dataset invalidates any previously selected epoch indices and
-    // bad-channel selections.
-    this.setState({ rejectedEpochs: new Set(), badChannels: new Set() });
+    // Launch the editor; a fresh dataset invalidates any previously selected
+    // epoch indices and bad-channel selections.
+    this.setState({
+      view: 'review',
+      rejectedEpochs: new Set(),
+      badChannels: new Set(),
+    });
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -200,6 +208,32 @@ export default class Clean extends Component<Props, State> {
     );
   }
 
+  async handleCleanData() {
+    const total = this.props.epochArrays?.meta.n_epochs ?? 0;
+    const nDropped = this.state.rejectedEpochs.size;
+    // Rejecting every epoch produces an empty dataset that can't be analyzed
+    // (and previously wrote a degenerate .fif with no error). Warn first.
+    if (total > 0 && nDropped >= total) {
+      const response = await window.electronAPI.showMessageBox({
+        buttons: ['Cancel', 'Reject all anyway'],
+        message: `This will reject all ${total} epochs, leaving nothing to analyze. Are you sure?`,
+      });
+      if (response.response !== 1) {
+        return;
+      }
+    }
+    this.props.PyodideActions.CleanEpochs({
+      dropIndices: Array.from(this.state.rejectedEpochs),
+      badChannels: Array.from(this.state.badChannels),
+    });
+    // After Clean, raw_epochs is re-fetched with fewer epochs, so the old
+    // absolute indices no longer apply.
+    this.setState({
+      rejectedEpochs: new Set(),
+      badChannels: new Set(),
+    });
+  }
+
   handleThresholdChange(e: React.ChangeEvent<HTMLInputElement>) {
     const parsed = parseFloat(e.target.value);
     if (!Number.isNaN(parsed)) {
@@ -211,23 +245,22 @@ export default class Clean extends Component<Props, State> {
     this.setState({ isSidebarVisible: !this.state.isSidebarVisible });
   }
 
-  renderEpochLabels() {
-    if (
-      !isNil(this.props.epochsInfo) &&
-      this.state.selectedFilePaths.length >= 1
-    ) {
-      return (
-        <div className="text-left">
-          {this.props.epochsInfo.map((infoObj, index) => (
-            <div key={String(infoObj.name)} className="mb-2">
-              <span>{this.icons[index]}</span> {infoObj.name}
-              <p>{infoObj.value}</p>
-            </div>
-          ))}
-        </div>
-      );
+  renderStats() {
+    const { epochsInfo } = this.props;
+    if (isNil(epochsInfo) || epochsInfo.length === 0) {
+      return null;
     }
-    return <div />;
+    return (
+      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+        {epochsInfo.map((infoObj, index) => (
+          <span key={String(infoObj.name)} className="whitespace-nowrap">
+            <span className="mr-1">{this.icons[index]}</span>
+            <span className="text-gray-500">{infoObj.name}:</span>{' '}
+            <span className="font-medium">{infoObj.value}</span>
+          </span>
+        ))}
+      </div>
+    );
   }
 
   renderAnalyzeButton() {
@@ -242,6 +275,166 @@ export default class Clean extends Component<Props, State> {
       );
     }
     return null;
+  }
+
+  renderSelect(filteredFilePaths: DropdownOption[]) {
+    return (
+      <div className="max-w-2xl text-left">
+        <h1>Clean</h1>
+        <h4 className="mt-2">Select &amp; Clean</h4>
+        <p>
+          Ready to clean some data? Pick a subject and one or more EEG
+          recordings, then launch the editor.
+        </p>
+        <h4 className="mt-4">Select Subject</h4>
+        <select
+          className="w-full border border-gray-300 rounded p-1 mb-2"
+          value={this.state.selectedSubject}
+          onChange={this.handleSubjectChange}
+        >
+          {this.state.subjects.map((s) => (
+            <option key={s.key} value={s.value}>
+              {s.text}
+            </option>
+          ))}
+        </select>
+        <h4>Select Recordings</h4>
+        <select
+          multiple
+          className="w-full border border-gray-300 rounded p-1"
+          value={this.state.selectedFilePaths}
+          onChange={this.handleRecordingChange}
+        >
+          {filteredFilePaths.map((fp) => (
+            <option key={fp.key} value={fp.value}>
+              {fp.text}
+            </option>
+          ))}
+        </select>
+        <Button
+          variant="default"
+          className="mt-4 w-full"
+          disabled={this.state.selectedFilePaths.length === 0}
+          onClick={this.handleLoadData}
+        >
+          Load Dataset →
+        </Button>
+      </div>
+    );
+  }
+
+  renderReview(
+    codeToLabel: Record<number, string>,
+    showAutoFlag: boolean,
+    suggestedRejections: SuggestedRejection[]
+  ) {
+    const hasEpochs = !isNil(this.props.epochArrays);
+    const nRecordings = this.state.selectedFilePaths.length;
+    return (
+      <>
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => this.setState({ view: 'select' })}
+          >
+            ← Datasets
+          </Button>
+          <h1 className="m-0">Clean</h1>
+          <span className="text-sm text-gray-500">
+            {this.state.selectedSubject} · {nRecordings} recording
+            {nRecordings === 1 ? '' : 's'}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <Button
+            variant="default"
+            disabled={isNil(this.props.epochsInfo)}
+            onClick={this.handleCleanData}
+          >
+            Clean Data
+          </Button>
+          {showAutoFlag && (
+            <>
+              <Button
+                variant="secondary"
+                disabled={isNil(this.props.epochsInfo)}
+                onClick={this.handleAutoFlag}
+              >
+                Auto-flag artifacts
+              </Button>
+              <Button
+                variant="ghost"
+                aria-label="Auto-flag settings"
+                onClick={() =>
+                  this.setState((prev) => ({
+                    showAutoFlagSettings: !prev.showAutoFlagSettings,
+                  }))
+                }
+              >
+                ⚙︎
+              </Button>
+            </>
+          )}
+          <div className="ml-auto">{this.renderAnalyzeButton()}</div>
+        </div>
+
+        {showAutoFlag && this.state.showAutoFlagSettings && (
+          <div className="mb-3 text-left">
+            <label className="text-sm font-medium">
+              Peak-to-peak threshold (µV)
+              <input
+                type="number"
+                className="ml-2 w-24 border border-gray-300 rounded p-1"
+                value={this.state.autoFlagThreshold}
+                onChange={this.handleThresholdChange}
+              />
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              Flag epochs whose peak-to-peak amplitude exceeds this. Higher =
+              fewer flags.
+            </p>
+          </div>
+        )}
+        {suggestedRejections.length > 0 && (
+          <div className="mb-3 text-left text-sm text-brand">
+            <p className="font-medium">
+              Flagged {suggestedRejections.length}{' '}
+              {suggestedRejections.length === 1 ? 'epoch' : 'epochs'}
+            </p>
+            <ul className="text-xs text-gray-600 list-disc list-inside">
+              {suggestedRejections.slice(0, 3).map((s, i) => (
+                <li key={`${s.index}-${s.channel}-${i}`}>{s.reason}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mb-4">{this.renderStats()}</div>
+
+        {hasEpochs ? (
+          <div className="flex flex-wrap gap-6">
+            <EpochReviewer
+              epochArrays={this.props.epochArrays}
+              rejected={this.state.rejectedEpochs}
+              onToggleEpoch={this.handleToggleEpoch}
+              badChannels={this.state.badChannels}
+              onToggleChannel={this.handleToggleChannel}
+              codeToLabel={codeToLabel}
+            />
+            <LiveErpPane
+              epochArrays={this.props.epochArrays}
+              rejected={this.state.rejectedEpochs}
+              codeToLabel={codeToLabel}
+            />
+          </div>
+        ) : (
+          <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-brand/40 bg-white/50 text-brand">
+            Loading your epochs… 🧠
+          </div>
+        )}
+      </>
+    );
   }
 
   render() {
@@ -264,147 +457,10 @@ export default class Clean extends Component<Props, State> {
             <CleanSidebar handleClose={this.handleSidebarToggle} />
           </div>
         )}
-        <div className="flex-1 p-[3%]">
-          <div className="flex items-center mb-4">
-            <h1>Clean</h1>
-          </div>
-          <div className="flex gap-4">
-            <div className="w-6/12 text-left">
-              <h1>Select & Clean</h1>
-              <p>
-                Ready to clean some data? Select a subject and one or more EEG
-                recordings, then launch the editor
-              </p>
-              <h4>Select Subject</h4>
-              <select
-                className="w-full border border-gray-300 rounded p-1 mb-2"
-                value={this.state.selectedSubject}
-                onChange={this.handleSubjectChange}
-              >
-                {this.state.subjects.map((s) => (
-                  <option key={s.key} value={s.value}>
-                    {s.text}
-                  </option>
-                ))}
-              </select>
-              <h4>Select Recordings</h4>
-              <select
-                multiple
-                className="w-full border border-gray-300 rounded p-1"
-                value={this.state.selectedFilePaths}
-                onChange={this.handleRecordingChange}
-              >
-                {filteredFilePaths.map((fp) => (
-                  <option key={fp.key} value={fp.value}>
-                    {fp.text}
-                  </option>
-                ))}
-              </select>
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={this.handleLoadData}
-                >
-                  Load Dataset
-                </Button>
-                <Button
-                  variant="default"
-                  className="w-full"
-                  disabled={isNil(this.props.epochsInfo)}
-                  onClick={() => {
-                    this.props.PyodideActions.CleanEpochs({
-                      dropIndices: Array.from(this.state.rejectedEpochs),
-                      badChannels: Array.from(this.state.badChannels),
-                    });
-                    // After Clean, raw_epochs is re-fetched with fewer epochs,
-                    // so the old absolute indices no longer apply.
-                    this.setState({
-                      rejectedEpochs: new Set(),
-                      badChannels: new Set(),
-                    });
-                  }}
-                >
-                  Clean Data
-                </Button>
-              </div>
-              {showAutoFlag && (
-                <div className="mt-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="secondary"
-                      disabled={isNil(this.props.epochsInfo)}
-                      onClick={this.handleAutoFlag}
-                    >
-                      Auto-flag artifacts
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      aria-label="Auto-flag settings"
-                      onClick={() =>
-                        this.setState((prev) => ({
-                          showAutoFlagSettings: !prev.showAutoFlagSettings,
-                        }))
-                      }
-                    >
-                      ⚙︎
-                    </Button>
-                  </div>
-                  {this.state.showAutoFlagSettings && (
-                    <div className="mt-2 text-left">
-                      <label className="text-sm font-medium">
-                        Peak-to-peak threshold (µV)
-                        <input
-                          type="number"
-                          className="ml-2 w-24 border border-gray-300 rounded p-1"
-                          value={this.state.autoFlagThreshold}
-                          onChange={this.handleThresholdChange}
-                        />
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Flag epochs whose peak-to-peak amplitude exceeds this.
-                        Higher = fewer flags.
-                      </p>
-                    </div>
-                  )}
-                  {suggestedRejections.length > 0 && (
-                    <div className="mt-2 text-left text-sm text-brand">
-                      <p className="font-medium">
-                        Flagged {suggestedRejections.length}{' '}
-                        {suggestedRejections.length === 1 ? 'epoch' : 'epochs'}
-                      </p>
-                      <ul className="text-xs text-gray-600 list-disc list-inside">
-                        {suggestedRejections.slice(0, 3).map((s, i) => (
-                          <li key={`${s.index}-${s.channel}-${i}`}>
-                            {s.reason}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="w-4/12">
-              {this.renderEpochLabels()}
-              {this.renderAnalyzeButton()}
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-6">
-            <EpochReviewer
-              epochArrays={this.props.epochArrays}
-              rejected={this.state.rejectedEpochs}
-              onToggleEpoch={this.handleToggleEpoch}
-              badChannels={this.state.badChannels}
-              onToggleChannel={this.handleToggleChannel}
-              codeToLabel={codeToLabel}
-            />
-            <LiveErpPane
-              epochArrays={this.props.epochArrays}
-              rejected={this.state.rejectedEpochs}
-              codeToLabel={codeToLabel}
-            />
-          </div>
+        <div className="flex-1 p-[3%] overflow-y-auto">
+          {this.state.view === 'select'
+            ? this.renderSelect(filteredFilePaths)
+            : this.renderReview(codeToLabel, showAutoFlag, suggestedRejections)}
         </div>
         <Dialog
           open={this.state.showChannelWarning}
