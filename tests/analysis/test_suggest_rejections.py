@@ -49,9 +49,11 @@ def test_detects_injected_artifact():
 
     ep = epochs.copy()
     k = 2
-    # 5 mV = 5000 µV peak-to-peak bump on one EEG channel of one epoch.
+    # A single-sample 5 mV (5000 µV) spike on one EEG channel of one epoch.
+    # It must be a spike, not a DC offset added to every sample — offsetting
+    # the whole trace leaves peak-to-peak unchanged and nothing gets flagged.
     data = ep._data
-    data[k, 0, :] += 5e-3
+    data[k, 0, data.shape[2] // 2] += 5e-3
 
     # Threshold between the normal ptp and the artifact.
     suggestions = utils.suggest_rejections(ep, 1000)
@@ -60,6 +62,23 @@ def test_detects_injected_artifact():
     assert k in indices
     flagged = next(s for s in suggestions if s["index"] == k)
     assert flagged["peak_uv"] > 1000
+
+
+def test_ptp_in_physiological_range():
+    """Regression guard for the µV→V units bug (QA plan 6e).
+
+    load_data must scale Muse µV amplitudes into MNE volts. If it doesn't,
+    peak-to-peak comes back inflated ~1e6× (tens of millions of "µV"), which
+    made auto-flag reject every epoch. Assert normal-recording ptp lands in a
+    physiological band so that regression can't return silently.
+    """
+    epochs = _build_epochs()
+    # threshold 0 → one suggestion per epoch, each carrying its worst ptp.
+    peaks = [s["peak_uv"] for s in utils.suggest_rejections(epochs, 0)]
+    assert peaks, "expected at least one epoch"
+    # Synthetic noise is a few µV; real Muse is tens. A correct scale keeps
+    # every epoch well under 1000 µV — the units bug put these at ~1e7.
+    assert all(1.0 < p < 1000.0 for p in peaks), f"ptp out of range: {peaks}"
 
 
 def test_marker_channel_excluded():

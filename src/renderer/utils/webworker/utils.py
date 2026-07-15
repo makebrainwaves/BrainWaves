@@ -89,6 +89,13 @@ def load_data(sfreq=128., replace_ch_names=None, csv_strings=None):
         # get data and exclude Aux channel
         data = data.values[:, ch_ind].T
 
+        # Muse CSV amplitudes are in microvolts, but MNE treats eeg channel
+        # data as volts. Scale eeg rows uV -> V so peak-to-peak lands in the
+        # real ~tens-of-uV range; leave the stim/Marker row (numeric event
+        # codes) untouched.
+        eeg_mask = np.array([t == 'eeg' for t in ch_types])
+        data[eeg_mask] = data[eeg_mask] * 1e-6
+
         # create MNE object
         info = create_info(ch_names=ch_names, ch_types=ch_types,
                            sfreq=sfreq)
@@ -209,7 +216,9 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     if palette is None:
         palette = _DEFAULT_CONDITION_PALETTE
 
-    X = epochs.get_data()
+    # get_data() is volts (load_data scales eeg uV -> V); the y-axis is labeled
+    # uV, so convert back to microvolts for display.
+    X = epochs.get_data() * 1e6
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots()
@@ -284,7 +293,9 @@ def get_epochs_arrays(epochs, out_path):
     # EEG only — the Marker channel is type 'stim' (set in load_data), so
     # pick_types(eeg=True) drops it while keeping the EEG channels in order.
     picks = pick_types(epochs.info, eeg=True)
-    data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times)
+    # get_data() is volts (load_data scales eeg uV -> V). This buffer drives the
+    # epoch viewer, which works in microvolts, so convert back to uV here.
+    data = epochs.get_data(picks=picks) * 1e6  # (n_epochs, n_channels, n_times)
     data = np.ascontiguousarray(data.astype(np.float32))
 
     with open(out_path, 'wb') as f:
