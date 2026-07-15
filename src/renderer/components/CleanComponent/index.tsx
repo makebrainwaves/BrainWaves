@@ -13,7 +13,7 @@ import {
 import {
   EXPERIMENTS,
   DEVICES,
-  DEFAULT_PTP_THRESHOLD_UV,
+  getPtpThresholdPreset,
 } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
@@ -90,7 +90,7 @@ export default class Clean extends Component<Props, State> {
       isSidebarVisible: false,
       rejectedEpochs: new Set(),
       badChannels: new Set(),
-      autoFlagThreshold: DEFAULT_PTP_THRESHOLD_UV,
+      autoFlagThreshold: getPtpThresholdPreset(props.deviceType).default,
       showAutoFlagSettings: false,
       showChannelWarning: false,
     };
@@ -365,6 +365,7 @@ export default class Clean extends Component<Props, State> {
               </Button>
               <Button
                 variant="ghost"
+                size="icon"
                 aria-label="Auto-flag settings"
                 onClick={() =>
                   this.setState((prev) => ({
@@ -379,23 +380,43 @@ export default class Clean extends Component<Props, State> {
           <div className="ml-auto">{this.renderAnalyzeButton()}</div>
         </div>
 
-        {showAutoFlag && this.state.showAutoFlagSettings && (
-          <div className="mb-3 text-left">
-            <label className="text-sm font-medium">
-              Peak-to-peak threshold (µV)
-              <input
-                type="number"
-                className="ml-2 w-24 border border-gray-300 rounded p-1"
-                value={this.state.autoFlagThreshold}
-                onChange={this.handleThresholdChange}
-              />
-            </label>
-            <p className="text-xs text-gray-500 mt-1">
-              Flag epochs whose peak-to-peak amplitude exceeds this. Higher =
-              fewer flags.
-            </p>
-          </div>
-        )}
+        {showAutoFlag &&
+          this.state.showAutoFlagSettings &&
+          (() => {
+            const preset = getPtpThresholdPreset(this.props.deviceType);
+            return (
+              <div className="mb-3 text-left">
+                <label
+                  className="text-sm font-medium block"
+                  htmlFor="autoflag-sensitivity"
+                >
+                  Auto-flag threshold
+                </label>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-gray-500">More flags</span>
+                  <input
+                    id="autoflag-sensitivity"
+                    type="range"
+                    min={preset.min}
+                    max={preset.max}
+                    step={preset.step}
+                    value={this.state.autoFlagThreshold}
+                    aria-valuetext={`${this.state.autoFlagThreshold} µV peak-to-peak`}
+                    onChange={this.handleThresholdChange}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-gray-500">Fewer flags</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Flag epochs whose peak-to-peak amplitude exceeds{' '}
+                  <span className="font-medium">
+                    {this.state.autoFlagThreshold} µV
+                  </span>
+                  .
+                </p>
+              </div>
+            );
+          })()}
         {suggestedRejections.length > 0 && (
           <div className="mb-3 text-left text-sm text-brand">
             <p className="font-medium">

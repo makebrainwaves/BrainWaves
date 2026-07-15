@@ -11,6 +11,29 @@ export enum EXPERIMENTS {
 
 export const DEFAULT_PTP_THRESHOLD_UV = 100;
 
+/**
+ * Slider bounds for the Clean auto-flag peak-to-peak threshold, in microvolts.
+ * Students set sensitivity on a slider instead of typing a raw µV number. The
+ * range is deliberately generous around real Muse ptp (tens of µV; artifacts
+ * well over 100). Per-device tuning plugs in via getPtpThresholdPreset — today
+ * every device shares one validated range (no fabricated per-hardware ceilings).
+ */
+export interface PtpThresholdPreset {
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+}
+
+export const getPtpThresholdPreset = (
+  _device: DEVICES
+): PtpThresholdPreset => ({
+  min: 20,
+  max: 400,
+  step: 10,
+  default: DEFAULT_PTP_THRESHOLD_UV,
+});
+
 export const SCREENS = {
   HOME: { route: '/', title: 'HOME', order: 0 },
   BANK: { route: '/home', title: 'HOME', order: 0 },
