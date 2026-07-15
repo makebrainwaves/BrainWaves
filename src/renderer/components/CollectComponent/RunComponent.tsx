@@ -4,7 +4,11 @@ import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
 import { injectMarker } from '../../utils/eeg';
 import { sendMarker } from '../../utils/eeg/lslBridge';
-import { EXPERIMENTS, CONNECTION_STATUS } from '../../constants/constants';
+import {
+  EXPERIMENTS,
+  CONNECTION_STATUS,
+  SCREENS,
+} from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
@@ -43,6 +47,9 @@ const Run: React.FC<Props> = ({
   const [isInputCollectOpen, setIsInputCollectOpen] = useState(
     subject.length === 0
   );
+  // A run finished this session — show a completion panel that points forward to
+  // Clean, instead of silently dropping back to the identical pre-run landing.
+  const [hasFinished, setHasFinished] = useState(false);
 
   const handleStartExperiment = useCallback(async () => {
     // Warn before a run that won't capture brain data: EEG turned off, or on
@@ -116,9 +123,14 @@ const Run: React.FC<Props> = ({
   const onFinish = useCallback(
     (csv) => {
       ExperimentActions.Stop({ data: csv });
+      setHasFinished(true);
     },
     [ExperimentActions]
   );
+
+  const handleRunAgain = useCallback(() => {
+    setHasFinished(false);
+  }, []);
 
   return (
     <div
@@ -126,7 +138,24 @@ const Run: React.FC<Props> = ({
       data-tid="container"
     >
       <div className="h-full">
-        {!isRunning && (
+        {!isRunning && hasFinished && (
+          <div className="flex flex-col items-center justify-center h-full text-center gap-4">
+            <h1 className="m-0">Recording complete 🎉</h1>
+            <p className="text-gray-600">
+              Saved <b>{subject}</b>&apos;s data. Ready to clean and analyze it?
+            </p>
+            <div className="flex gap-3 mt-2">
+              <Button asChild variant="default">
+                <Link to={SCREENS.CLEAN.route}>Clean your data →</Link>
+              </Button>
+              <Button variant="secondary" onClick={handleRunAgain}>
+                Run again
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isRunning && !hasFinished && (
           <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
             <div className="text-left">
               <h1>{title}</h1>
