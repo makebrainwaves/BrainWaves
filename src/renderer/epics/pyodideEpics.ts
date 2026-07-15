@@ -127,7 +127,15 @@ const pyodideMessageEpic: Epic<
         );
       }
       if (dataKey === 'savedEpochs') {
-        const savedEpochsBuffer = e.data.buffer as ArrayBuffer;
+        const savedEpochsBuffer = e.data.buffer as ArrayBuffer | undefined;
+        // Surface a dropped/empty save instead of writing nothing silently —
+        // that path left the Analyze picker mysteriously empty with no error.
+        if (!savedEpochsBuffer || savedEpochsBuffer.byteLength === 0) {
+          toast.error(
+            'Could not save cleaned data — the recording came back empty. Nothing was written.'
+          );
+          return EMPTY;
+        }
         const { title, subject } = state$.value.experiment;
         return from(
           window.electronAPI.writeCleanedEpochs(
