@@ -11,6 +11,11 @@ import { EVENTS } from '../../../constants/constants';
 import type { Stimulus } from '../../../constants/interfaces';
 
 const stim = (title: string, type: EVENTS): Stimulus => ({ title, type });
+const stimC = (title: string, type: EVENTS, condition: string): Stimulus => ({
+  title,
+  type,
+  condition,
+});
 
 describe('buildMarkerRegistry', () => {
   it('maps event_id values to the numeric codes written to the CSV', () => {
@@ -41,6 +46,27 @@ describe('buildMarkerRegistry', () => {
     for (const [label, code] of Object.entries(eventId)) {
       expect(codeToLabel[code]).toBe(label);
     }
+  });
+
+  it('uses the experiment condition name as the display label when present', () => {
+    const { eventId, codeToLabel } = buildMarkerRegistry([
+      stimC('Face1', EVENTS.STIMULUS_1, 'Face'),
+      stimC('Face2', EVENTS.STIMULUS_1, 'Face'),
+      stimC('House1', EVENTS.STIMULUS_2, 'House'),
+    ]);
+    // Codes are unchanged (they still drive CSV + MNE); only labels are human.
+    expect(eventId).toEqual({ Face: 1, House: 2 });
+    expect(codeToLabel).toEqual({ 1: 'Face', 2: 'House' });
+  });
+
+  it('falls back to the neutral label if two codes share a condition name', () => {
+    const { codeToLabel } = buildMarkerRegistry([
+      stimC('A', EVENTS.STIMULUS_1, 'Same'),
+      stimC('B', EVENTS.STIMULUS_2, 'Same'),
+    ]);
+    // Never collapse two codes under one label — the second gets STIMULUS_2.
+    expect(codeToLabel[1]).toBe('Same');
+    expect(codeToLabel[2]).toBe('STIMULUS_2');
   });
 
   it('returns empty maps when there are no stimuli', () => {

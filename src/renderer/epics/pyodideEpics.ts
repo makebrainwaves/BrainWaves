@@ -3,7 +3,12 @@ import { EMPTY, from, fromEvent, Observable, of } from 'rxjs';
 import { map, mergeMap, tap, pluck, filter, catchError } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
-import { PyodideActions, PyodideActionType, EpochArraysMeta } from '../actions';
+import {
+  PyodideActions,
+  PyodideActionType,
+  EpochArraysMeta,
+  SuggestedRejection,
+} from '../actions';
 import { RootState } from '../reducers';
 import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
@@ -15,6 +20,7 @@ import {
   requestEpochsInfo,
   requestChannelInfo,
   requestEpochArrays,
+  requestSuggestRejections,
   applyRejection,
   plotPSD,
   plotERP,
@@ -115,8 +121,21 @@ const pyodideMessageEpic: Epic<
           })
         );
       }
+      if (dataKey === 'suggestedRejections') {
+        return of(
+          PyodideActions.SetSuggestedRejections(results as SuggestedRejection[])
+        );
+      }
       if (dataKey === 'savedEpochs') {
-        const savedEpochsBuffer = e.data.buffer as ArrayBuffer;
+        const savedEpochsBuffer = e.data.buffer as ArrayBuffer | undefined;
+        // Surface a dropped/empty save instead of writing nothing silently —
+        // that path left the Analyze picker mysteriously empty with no error.
+        if (!savedEpochsBuffer || savedEpochsBuffer.byteLength === 0) {
+          toast.error(
+            'Could not save cleaned data — the recording came back empty. Nothing was written.'
+          );
+          return EMPTY;
+        }
         const { title, subject } = state$.value.experiment;
         return from(
           window.electronAPI.writeCleanedEpochs(
@@ -257,6 +276,24 @@ const getChannelInfoEpic: Epic<
     mergeMap(() => EMPTY)
   );
 
+const getSuggestedRejectionsEpic: Epic<
+  PyodideActionType,
+  PyodideActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(PyodideActions.GetSuggestedRejections)),
+    pluck('payload'),
+    tap((threshold) =>
+      requestSuggestRejections(
+        state$.value.pyodide.worker!,
+        PYODIDE_VARIABLE_NAMES.RAW_EPOCHS,
+        threshold
+      )
+    ),
+    mergeMap(() => EMPTY)
+  );
+
 const loadPSDEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
   action$,
   state$
@@ -308,6 +345,7 @@ export default combineEpics(
   cleanEpochsEpic,
   getEpochsInfoEpic,
   getChannelInfoEpic,
+  getSuggestedRejectionsEpic,
   loadPSDEpic,
   loadTopoEpic,
   loadERPEpic

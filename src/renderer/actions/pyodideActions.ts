@@ -14,6 +14,15 @@ export interface EpochArraysMeta {
   drop_log: string[][];
 }
 
+// Auto-flag: a single artifact suggestion returned by Python's
+// suggest_rejections(epochs, threshold_uv) — one epoch/channel over threshold.
+export interface SuggestedRejection {
+  index: number;
+  channel: string;
+  peak_uv: number;
+  reason: string;
+}
+
 // -------------------------------------------------------------------------
 // Actions
 
@@ -56,6 +65,13 @@ export const PyodideActions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ReceiveError: createAction<any, 'RECEIVE_ERROR'>('RECEIVE_ERROR'), // Worker error event — shape is dynamic
   SetWorkerReady: createAction('SET_WORKER_READY'),
+  GetSuggestedRejections: createAction<number, 'GET_SUGGESTED_REJECTIONS'>(
+    'GET_SUGGESTED_REJECTIONS'
+  ),
+  SetSuggestedRejections: createAction<
+    SuggestedRejection[],
+    'SET_SUGGESTED_REJECTIONS'
+  >('SET_SUGGESTED_REJECTIONS'),
 } as const;
 
 export type PyodideActionType = ActionType<

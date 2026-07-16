@@ -35,7 +35,8 @@ const initialState: ExperimentStateType = {
   group: '',
   session: 1,
   isRunning: false,
-  isEEGEnabled: false,
+  // EEG-on is the app's whole point; opt out for behavior-only runs, not in.
+  isEEGEnabled: true,
   dateModified: null,
 };
 

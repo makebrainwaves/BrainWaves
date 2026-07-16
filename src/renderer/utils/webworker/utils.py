@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd  # maybe we can remove this dependency
 
-from mne import (concatenate_raws, create_info, viz, find_events, Epochs,
-                 pick_types)
+from mne import (concatenate_raws, concatenate_epochs, create_info, viz,
+                 find_events, Epochs, pick_types, read_epochs)
 from mne.io import RawArray
 from io import StringIO
 
@@ -89,6 +89,13 @@ def load_data(sfreq=128., replace_ch_names=None, csv_strings=None):
         # get data and exclude Aux channel
         data = data.values[:, ch_ind].T
 
+        # Muse CSV amplitudes are in microvolts, but MNE treats eeg channel
+        # data as volts. Scale eeg rows uV -> V so peak-to-peak lands in the
+        # real ~tens-of-uV range; leave the stim/Marker row (numeric event
+        # codes) untouched.
+        eeg_mask = np.array([t == 'eeg' for t in ch_types])
+        data[eeg_mask] = data[eeg_mask] * 1e-6
+
         # create MNE object
         info = create_info(ch_names=ch_names, ch_types=ch_types,
                            sfreq=sfreq)
@@ -135,6 +142,20 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
     return Epochs(raw, events=events, event_id=event_id, tmin=tmin, tmax=tmax,
                   baseline=baseline, reject=reject, preload=True,
                   verbose=False, picks=picks)
+
+
+def load_clean_epochs(file_paths):
+    """Load cleaned .fif epoch files from MEMFS paths into one Epochs object.
+
+    Analyze stages host .fif bytes at /tmp/... in the worker MEMFS before calling
+    this. A single file is returned as-is; multiple recordings are concatenated.
+    """
+    epochs_list = [
+        read_epochs(path, preload=True, verbose=False) for path in file_paths
+    ]
+    if len(epochs_list) == 1:
+        return epochs_list[0]
+    return concatenate_epochs(epochs_list, verbose=False)
 
 
 def plot_topo(epochs, conditions=OrderedDict(), palette=None):
@@ -209,7 +230,9 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     if palette is None:
         palette = _DEFAULT_CONDITION_PALETTE
 
-    X = epochs.get_data()
+    # get_data() is volts (load_data scales eeg uV -> V); the y-axis is labeled
+    # uV, so convert back to microvolts for display.
+    X = epochs.get_data() * 1e6
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots()
@@ -284,7 +307,9 @@ def get_epochs_arrays(epochs, out_path):
     # EEG only — the Marker channel is type 'stim' (set in load_data), so
     # pick_types(eeg=True) drops it while keeping the EEG channels in order.
     picks = pick_types(epochs.info, eeg=True)
-    data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times)
+    # get_data() is volts (load_data scales eeg uV -> V). This buffer drives the
+    # epoch viewer, which works in microvolts, so convert back to uV here.
+    data = epochs.get_data(picks=picks) * 1e6  # (n_epochs, n_channels, n_times)
     data = np.ascontiguousarray(data.astype(np.float32))
 
     with open(out_path, 'wb') as f:
@@ -330,3 +355,39 @@ def apply_rejection(epochs, drop_indices, bad_channels):
     if drop_indices:
         epochs.drop(list(drop_indices))
     return epochs
+
+
+def suggest_rejections(epochs, threshold_uv):
+    """Suggest artifact epochs by peak-to-peak amplitude (does NOT drop anything).
+
+    For each epoch, compute the per-channel peak-to-peak (max-min over time) on the
+    EEG channels only (Marker/stim excluded), take the worst channel, and if it
+    exceeds threshold_uv microvolts, suggest that epoch. Advisory only — the UI
+    pre-marks these but the user can override; the real drop goes through
+    apply_rejection so the saved data stays MNE-exact.
+
+    Returns list[dict] with keys: index (int), channel (str), peak_uv (float,
+    rounded 1dp), reason (str). MNE data is in volts; threshold_uv is microvolts.
+    """
+    # NOTE: peak_uv is in microvolts; index is 0-based into the CURRENT epochs
+    # (same order as get_epochs_arrays produced).
+    picks = pick_types(epochs.info, eeg=True)
+    data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times), volts
+    ch_names = [epochs.ch_names[i] for i in picks]
+    ptp = data.max(axis=2) - data.min(axis=2)  # (n_epochs, n_channels), volts
+    thresh_v = threshold_uv * 1e-6
+    suggestions = []
+    for e in range(ptp.shape[0]):
+        worst = int(ptp[e].argmax())
+        peak_v = float(ptp[e, worst])
+        if peak_v > thresh_v:
+            peak_uv = round(peak_v * 1e6, 1)
+            suggestions.append({
+                "index": int(e),
+                "channel": ch_names[worst],
+                "peak_uv": peak_uv,
+                "reason": "peak-to-peak {}µV on {}".format(
+                    round(peak_v * 1e6), ch_names[worst]
+                ),
+            })
+    return suggestions
