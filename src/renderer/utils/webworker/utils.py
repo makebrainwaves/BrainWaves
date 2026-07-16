@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd  # maybe we can remove this dependency
 
-from mne import (concatenate_raws, create_info, viz, find_events, Epochs,
-                 pick_types)
+from mne import (concatenate_raws, concatenate_epochs, create_info, viz,
+                 find_events, Epochs, pick_types, read_epochs)
 from mne.io import RawArray
 from io import StringIO
 
@@ -142,6 +142,20 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
     return Epochs(raw, events=events, event_id=event_id, tmin=tmin, tmax=tmax,
                   baseline=baseline, reject=reject, preload=True,
                   verbose=False, picks=picks)
+
+
+def load_clean_epochs(file_paths):
+    """Load cleaned .fif epoch files from MEMFS paths into one Epochs object.
+
+    Analyze stages host .fif bytes at /tmp/... in the worker MEMFS before calling
+    this. A single file is returned as-is; multiple recordings are concatenated.
+    """
+    epochs_list = [
+        read_epochs(path, preload=True, verbose=False) for path in file_paths
+    ]
+    if len(epochs_list) == 1:
+        return epochs_list[0]
+    return concatenate_epochs(epochs_list, verbose=False)
 
 
 def plot_topo(epochs, conditions=OrderedDict(), palette=None):

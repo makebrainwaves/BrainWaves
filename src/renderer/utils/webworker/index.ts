@@ -51,7 +51,7 @@ export const loadCleanedEpochs = (
   worker.postMessage({
     fsFiles,
     data: [
-      `clean_epochs = concatenate_epochs([read_epochs(file) for file in ${JSON.stringify(memfsPaths)}])`,
+      `clean_epochs = load_clean_epochs(${JSON.stringify(memfsPaths)})`,
       `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
     ].join('\n'),
   });
@@ -162,7 +162,10 @@ export const applyRejection = (
   badChannels: string[]
 ) => {
   worker.postMessage({
-    data: `apply_rejection(${variableName}, ${JSON.stringify(dropIndices)}, ${JSON.stringify(badChannels)});`,
+    data: [
+      `apply_rejection(${variableName}, ${JSON.stringify(dropIndices)}, ${JSON.stringify(badChannels)})`,
+      'None',
+    ].join('\n'),
   });
 };
 
@@ -248,7 +251,9 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
 export const saveEpochs = (worker: Worker, subject: string) => {
   const memfsPath = `/tmp/${subject}-cleaned-epo.fif`;
   worker.postMessage({
-    data: `raw_epochs.save("${memfsPath}", overwrite=True)`,
+    // save() returns the Epochs/filename object — append None so only the MEMFS
+    // bytes (readFileAfter) cross postMessage, not the Python return value.
+    data: [`raw_epochs.save("${memfsPath}", overwrite=True)`, 'None'].join('\n'),
     dataKey: 'savedEpochs',
     readFileAfter: memfsPath,
   });
