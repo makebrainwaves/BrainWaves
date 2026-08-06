@@ -130,9 +130,10 @@ self.onmessage = async (event) => {
     // can be written to host disk. Pyodide's MEMFS can't reach the host FS itself.
     if (readFileAfter) {
       const fileBytes = pyodide.FS.readFile(readFileAfter); // Uint8Array
-      self.postMessage({ savedEpochsBuffer: fileBytes.buffer, dataKey }, [
-        fileBytes.buffer,
-      ]);
+      self.postMessage(
+        { buffer: fileBytes.buffer, results, plotKey, dataKey },
+        [fileBytes.buffer]
+      );
       return;
     }
     self.postMessage({ results, plotKey, dataKey });

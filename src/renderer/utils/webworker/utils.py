@@ -4,7 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd  # maybe we can remove this dependency
 
-from mne import (concatenate_raws, create_info, viz, find_events, Epochs)
+from mne import (concatenate_raws, create_info, viz, find_events, Epochs,
+                 pick_types)
 from mne.io import RawArray
 from io import StringIO
 
@@ -12,6 +13,17 @@ from io import StringIO
 # plt.style.use(fivethirtyeight)
 # sns.set_context('talk')
 # sns.set_style('white')
+
+# Condition color fallback used only when the caller does NOT inject a palette
+# (in-app, the worker always injects it from the canonical source
+# src/renderer/utils/eeg/conditionPalette.ts — keep these values in sync with
+# that file). RGB components are 0..1 floats (matplotlib convention).
+_DEFAULT_CONDITION_PALETTE = [
+    (0.86, 0.37, 0.34),
+    (0.34, 0.86, 0.37),
+    (0.37, 0.34, 0.86),
+    (0.86, 0.72, 0.34),
+]
 
 
 def load_data(sfreq=128., replace_ch_names=None, csv_strings=None):
@@ -125,12 +137,9 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
                   verbose=False, picks=picks)
 
 
-def plot_topo(epochs, conditions=OrderedDict()):
-    # palette = sns.color_palette("hls", len(conditions) + 1)
-    # temp hack, just pull in the color palette from seaborn
-    palette = [(0.85999999999999999, 0.37119999999999997, 0.33999999999999997),
-               (0.33999999999999997, 0.85999999999999999, 0.37119999999999997),
-               (0.37119999999999997, 0.33999999999999997, 0.85999999999999999)]
+def plot_topo(epochs, conditions=OrderedDict(), palette=None):
+    if palette is None:
+        palette = _DEFAULT_CONDITION_PALETTE
     evokeds = [epochs[name].average() for name in (conditions)]
 
     evoked_topo = viz.plot_evoked_topo(
@@ -198,12 +207,7 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
         conditions = OrderedDict(conditions)
 
     if palette is None:
-        palette = [
-            (0.86, 0.37, 0.34),
-            (0.34, 0.86, 0.37),
-            (0.37, 0.34, 0.86),
-            (0.86, 0.72, 0.34),
-        ]
+        palette = _DEFAULT_CONDITION_PALETTE
 
     X = epochs.get_data()
     times = epochs.times
@@ -253,6 +257,53 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     fig.set_size_inches(10, 8)
 
     return fig, ax
+
+def get_epochs_arrays(epochs, out_path):
+    """Serialize epoch data to a float32 buffer file plus a metadata dict.
+
+    Writes the raw EEG epoch samples (Marker/stim channel excluded) as a flat
+    little-endian float32 buffer to `out_path` and returns metadata describing
+    the buffer's shape and per-epoch/per-channel labels. `out_path` is a Pyodide
+    MEMFS path in-app and a real filesystem path in the native tests.
+
+    # buffer (float32, C-order):  epoch0[ch0[t0..tN] ch1[..] ..] epoch1[..] ..
+    # byte length == n_epochs * n_channels * n_times * 4
+
+    Parameters
+    ----------
+    epochs : mne.Epochs
+        The epoched data. The Marker channel (type 'stim') is excluded.
+    out_path : str
+        Destination path for the raw float32 buffer.
+
+    Returns
+    -------
+    meta : dict
+        Buffer metadata (see keys below).
+    """
+    # EEG only — the Marker channel is type 'stim' (set in load_data), so
+    # pick_types(eeg=True) drops it while keeping the EEG channels in order.
+    picks = pick_types(epochs.info, eeg=True)
+    data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times)
+    data = np.ascontiguousarray(data.astype(np.float32))
+
+    with open(out_path, 'wb') as f:
+        f.write(data.tobytes())
+
+    n_epochs, n_channels, n_times = data.shape
+    ch_names = [epochs.ch_names[i] for i in picks]
+
+    return {
+        "n_epochs": int(n_epochs),
+        "n_channels": int(n_channels),
+        "n_times": int(n_times),
+        "ch_names": ch_names,
+        "sfreq": float(epochs.info["sfreq"]),
+        "times": epochs.times.tolist(),
+        "event_codes": epochs.events[:, -1].tolist(),
+        "drop_log": [list(x) for x in epochs.drop_log],
+    }
+
 
 def get_epochs_info(epochs):
     print('Get Epochs Info:')

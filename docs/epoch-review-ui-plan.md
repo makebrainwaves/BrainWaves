@@ -4,7 +4,50 @@
 context first, deep technical decisions deliberately left open (flagged as Open
 Questions). Not yet an implementation spec.
 
-**Owner:** Dano · **Drafted:** 2026-07-06
+**Owner:** Dano · **Drafted:** 2026-07-06 · **Locked:** 2026-07-07 (plan-eng-review)
+
+---
+
+## 0. Locked decisions (plan-eng-review, 2026-07-07)
+
+The forge-blocking open questions are now resolved. Phases 0–1 are ready for
+temper→forge; Phases 2–4 remain roadmap.
+
+- **OQ1 (rendering) → Canvas 2D + DOM/SVG overlay.** Traces on `<canvas>` behind a
+  thin `drawEpochs(ctx, viewport)` boundary; interaction (epoch columns, channel
+  labels, selection, tooltips) on a DOM/SVG overlay. Viewport windowing from day 1
+  (draw only the visible epoch window, like MNE's `n_epochs`); max/min-per-pixel
+  downsampling. WebGL is a later *swap* of `drawEpochs`, not a rewrite — justified
+  only at millions of points (all epochs × 32–64ch simultaneously).
+- **OQ2 (transport) → extend the `dataKey` pattern; defer the `runPython` RPC.**
+  Add `epochArrays` (Phase 0) and `applyRejection` (Phase 1) dataKeys alongside the
+  proven `epochsInfo`/`channelInfo`/`savedEpochs` round-trips. No new sequencing
+  risk beyond what ships today. Matches `TODOS.md` ("RPC not urgent").
+- **OQ6 (live ERP preview) → IN SCOPE for v1 (Phase 1), computed client-side.**
+  Flavor 1 (live ERP *while cleaning*, not real-time-during-experiment — that's a
+  separate future effort, and won't be a Python/MNE path). Recompute the average in
+  the **renderer** over the epoch buffer Phase 0 already ships — a pure
+  `computeErp(buffer, selectedIndices, conditionCodes)` mean — on every reject
+  toggle. **Zero** new worker round-trips (instant UX, no race), which is *why* OQ2
+  stays deferred. Python is authoritative only at final apply/save; the existing
+  matplotlib `plotERP` SVG remains the CI-banded "final" view.
+- **OQ8 (persistence) → DONE.** MEMFS→host write-back bridge shipped in PR #222.
+- **Color source (raised in review) → build the shared palette in Phase 0.** Promote
+  the hardcoded `utils.py` palette into one module both the Python plots and the
+  React reviewer read; Phase 0's static render uses it for condition coloring from
+  the start (so it isn't dead code). Resolves the §6a "registry gives labels, not
+  colors" gap and keeps the reviewer/topo/ERP legends agreeing.
+- **Fidelity test (raised in review) → add a narrow Pyodide buffer smoke test in
+  Phase 0.** Native pytest can't exercise the Python→JS float32 buffer encode; add
+  one Pyodide test (byteLength, Float32 decode vs native, transfer detaches source)
+  to catch the silent blank-canvas failure. Starts the standing Pyodide-fidelity
+  TODO, scoped to just this path.
+- **Delivery → two sequential PRs:** Phase 0 (transport + static render), then
+  Phase 1 (interaction + apply + live ERP).
+
+Remaining open (not forge-blocking; decide when their phase comes): OQ3 (onboarding
+depth), OQ4 (auto-reject UX/thresholds), OQ5 (bad channels on 4-ch Muse), OQ7
+(static fallback).
 
 ---
 
@@ -293,19 +336,19 @@ Traced end to end against `webworker/`, `src/main/index.ts`, `src/preload/index.
 
 ## 8. Open questions (for the planning loop)
 
-1. **Rendering tech** — Canvas 2D now, or WebGL up front for future high-channel
-   devices?
-2. **RPC first?** — Do we build the `runPython` request/response RPC as a
-   prerequisite (cleaner data fetch), or bolt this onto the current fire-and-forget
-   `dataKey` pattern?
+1. **Rendering tech — RESOLVED (§0): Canvas 2D + DOM/SVG overlay**, thin
+   `drawEpochs` boundary, viewport windowing. WebGL deferred to a later swap.
+2. **RPC first? — RESOLVED (§0): no.** Extend the `dataKey` pattern; defer the
+   `runPython` RPC (reinforced by OQ6's client-side live ERP needing no round-trip).
 3. **Onboarding depth** — Is guided mode the default? How much curriculum
    (tooltips only vs. a real walkthrough)?
 4. **Auto-rejection** — Expose peak-to-peak thresholds to the user, or keep them
    as invisible "suggestions"? What defaults?
 5. **Bad channels on Muse** — dropping 1 of 4 channels is drastic; do we support
    channel rejection for low-channel devices, or epochs-only there?
-6. **Live ERP preview** — in-scope for v1 (big teaching win, more compute) or a
-   fast-follow?
+6. **Live ERP preview — RESOLVED (§0): in scope for v1 (Phase 1), computed
+   client-side** over the Phase-0 buffer (Flavor 1 only; real-time-during-experiment
+   is a separate future non-Python effort).
 7. **Static fallback** — keep a read-only SVG epochs view for environments where
    the interactive UI can't run, or all-in on the React UI?
 8. **Save persistence — resolved (see §6d), not really open.** The Clean→Analyze
@@ -319,25 +362,40 @@ Traced end to end against `webworker/`, `src/main/index.ts`, `src/preload/index.
 
 ## 9. Rough phases (to be firmed up in planning)
 
-- **Phase 0 — Transport & read-only render.** Extend the worker message contract
-  to return an `ArrayBuffer` on a new `dataKey` with a real transfer list (see
-  6a); add the `get_epochs_arrays` Python helper; ship epoch arrays + metadata
-  across the worker boundary; render static traces in React. Proves the data path
-  and rendering choice. **Prerequisite input:** the rendering-tech decision (Open
-  Question 1, Canvas 2D vs WebGL) must be made *before* the "render static traces"
-  step — it determines the component's core. **Also (cheap, do it first):** the
-  one-line runtime confirmation of the broken Clean→Analyze round-trip (Open
-  Question 8) — now a sanity check, not a research task, since §6d resolves it
-  statically.
-- **Phase 1 — Core interaction.** Click-to-reject epochs, scroll/scale/zoom, apply
-  → `epochs.drop` → save `-cleaned-epo.fif` **via the new MEMFS→host write-back
-  bridge (see §6d)**. Reaches functional parity with the *essential* MNE workflow.
-  - **Sequencing note:** the write-back bridge is *not* intrinsically a Phase-1
-    dependency. It reuses the same worker-message-contract extension as Phase 0
-    (§6a) and independently fixes a live bug (§6d), so it can land early and
-    standalone — make the existing `Clean Data` button actually persist alongside
-    the Phase-0 transport work, de-risking the apply path before the reject flow
-    exists. Phase 1 then just points the apply action at a bridge that works.
+- **Phase 0 — Transport & read-only render (PR 1). LOCKED.**
+  - **Python:** add `get_epochs_arrays(epochs)` to `utils.py` → returns a Float32
+    buffer (`get_data()` cast to float32, C-contiguous) + metadata `{ch_names
+    (EEG-only, Marker excluded via `picks='eeg'`/explicit filter — one authority,
+    §Code-quality), sfreq, times, event_codes = epochs.events[:,-1], drop_log}`.
+    Native-testable (`tests/analysis/`): shape, Marker excluded, dtype, codes match.
+  - **Worker:** post the buffer on a new `epochArrays` dataKey with a real transfer
+    list (reuses the PR #222 transferable mechanism); metadata rides as JSON.
+  - **Epic/redux:** `pyodideMessageEpic` routes `epochArrays` → `SetEpochArrays`;
+    reducer stores buffer + metadata.
+  - **Shared palette module** (built now, §0): condition→color, imported by both
+    `utils.py` plots and the reviewer.
+  - **React:** `EpochReviewer` component — `<canvas>` traces behind
+    `drawEpochs(ctx, viewport)`, DOM/SVG overlay for labels, viewport windowing,
+    max/min downsampling, **condition coloring** from the shared palette. Wired into
+    `CleanComponent` after `Load Dataset`. Static (read-only) this phase.
+  - **Fidelity test (§0):** narrow Pyodide buffer smoke test.
+  - Proves the data path + rendering choice end to end.
+- **Phase 1 — Core interaction + live ERP (PR 2). LOCKED.**
+  - **Interaction:** click/tap epoch column → toggle into a local
+    `Set<rejectedIndices>` (renderer state) with clear visual state; scroll/scrub,
+    amplitude scaling, horizontal zoom.
+  - **Live ERP preview (OQ6, client-side):** pure `computeErp(buffer,
+    selectedIndices, conditionCodes)` → per-channel/timepoint mean over
+    *non-rejected* epochs, redrawn on every toggle. Zero worker traffic; unit-tested
+    against `np.mean` (float32) + empty-selection guard.
+  - **Apply (once, at Clean Data):** add `apply_rejection(epochs, drop_indices,
+    bad_channels)` to `utils.py` (`epochs.drop` + `info['bads']`), posted on an
+    `applyRejection` dataKey → save `-cleaned-epo.fif` **via the write-back bridge
+    already shipped (§6d, PR #222)**. Native test asserts the result is
+    **bit-identical** to a manual MNE `drop`/`bads` on the same inputs (design goal 3).
+  - Reaches functional parity-plus with the *essential* MNE workflow.
+  - **Note:** the write-back bridge (§6d) already landed standalone in PR #222, so
+    Phase 1 just points the apply action at a bridge that works.
 - **Phase 2 — Full parity.** Bad-channel flagging, condition coloring/legend,
   auto-flag suggestions from `drop_log`/peak-to-peak.
 - **Phase 3 — Onboarding layer.** Explanations, guided mode, artifact tutorials,
