@@ -41,7 +41,7 @@ export const DeviceActions = {
   Cleanup: createAction<void, 'CLEANUP'>('CLEANUP'),
   DeviceLost: createAction<void, 'DEVICE_LOST'>('DEVICE_LOST'),
 
-  // External LSL inlet streams (Phase 3)
+  // External LSL inlet streams
   DiscoverLSLStreams: createAction<void, 'DISCOVER_LSL_STREAMS'>(
     'DISCOVER_LSL_STREAMS'
   ),

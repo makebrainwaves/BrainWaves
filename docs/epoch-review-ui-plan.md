@@ -1,10 +1,14 @@
-# Interactive Epoch Review UI — Preliminary Plan
+# Interactive Epoch Review UI — Plan
 
-**Status:** Preliminary / discussion. Written to seed a planning loop — vision and
-context first, deep technical decisions deliberately left open (flagged as Open
-Questions). Not yet an implementation spec.
+**Status:** Phases 0–2 are **implemented and merged** (PRs #223, #224, #225) —
+Canvas epoch renderer, interactive rejection, live ERP, apply/save, bad-channel
+flagging, auto-flag suggestions, condition labels. Phases 3 (onboarding layer) and
+4 (polish/generalize) remain roadmap; see `TODOS.md` for the Phase 2 polish
+follow-ups from the #225 review. Sections 1–5 below are retained as the design
+rationale behind what shipped.
 
 **Owner:** Dano · **Drafted:** 2026-07-06 · **Locked:** 2026-07-07 (plan-eng-review)
+· **Phases 0–2 landed:** 2026-08-06
 
 ---
 

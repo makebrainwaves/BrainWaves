@@ -172,19 +172,6 @@ export const applyRejection = (
 // -----------------------------
 // Plot functions
 
-export const cleanEpochsPlot = async (worker: Worker) => {
-  await worker.postMessage({
-    // MNE 1.x validates `events` as bool|ndarray — events=None raises TypeError;
-    // False is the "no events overlaid" default. Also close the returned Figure
-    // so the worker doesn't try to structuredClone a PyProxy back (this plot is
-    // not routed to the UI; wiring it to a plotKey would be a separate feature).
-    data: [
-      `_fig = raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=False)`,
-      `plt.close(_fig)`,
-    ].join('\n'),
-  });
-};
-
 export const plotPSD = async (worker: Worker) => {
   worker.postMessage({
     plotKey: 'psd',
@@ -205,24 +192,6 @@ export const plotTopoMap = async (worker: Worker) => {
     data: [
       'import io',
       `_fig = plot_topo(clean_epochs, conditions, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
-      '_buf = io.BytesIO()',
-      '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
-      'plt.close(_fig)',
-      '_buf.getvalue().decode()',
-    ].join('\n'),
-  });
-};
-
-export const plotTestPlot = async (worker: Worker | null) => {
-  if (!worker) return;
-  worker.postMessage({
-    plotKey: 'topo',
-    data: [
-      'import io',
-      'import matplotlib.pyplot as plt',
-      '_fig, _ax = plt.subplots()',
-      '_ax.plot([1, 2, 3, 4], [1, 4, 2, 3])',
-      '_ax.set_title("Test Plot")',
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
