@@ -45,9 +45,32 @@ temper→forge; Phases 2–4 remain roadmap.
 - **Delivery → two sequential PRs:** Phase 0 (transport + static render), then
   Phase 1 (interaction + apply + live ERP).
 
+### Phase 2 decisions (2026-07-07)
+
+- **OQ4 (auto-flag UX) → one-click button + expandable settings, dev-gated.** An
+  "Auto-flag artifacts" button a newcomer can just press; an expandable settings
+  panel exposes the peak-to-peak threshold(s) for users who want to control/learn
+  more. The button is **dev-configurable per experiment** (a constant set keyed by
+  the `EXPERIMENTS` enum, gated on `CleanComponent`'s `type` prop) so devs opt
+  experiments in/out.
+- **New-A (where auto-flag runs) → Python/MNE.** A worker round-trip
+  `suggest_rejections(epochs, threshold)` computes peak-to-peak per epoch in Python
+  and returns suggested indices + reasons (new `suggestedRejections` dataKey,
+  extends the OQ2 pattern). Suggestions **pre-mark** epochs in the reviewer and are
+  fully **overridable**; the actual drop still goes through the Phase-1
+  `apply_rejection` path so the saved `.fif` stays MNE-exact.
+- **OQ5 (bad channels on low-channel devices) → enabled everywhere, with a guard.**
+  Click a channel label to toggle it bad; bad channels flow to `apply_rejection`'s
+  `bad_channels` param (already built in Phase 1). On a 4-channel dataset, a
+  **warning Dialog** appears when the user marks a 2nd bad channel, nudging them to
+  re-collect if signal quality is that poor (informational — they can proceed).
+- **New-B (condition legend) → human-readable labels via `codeToLabel`.** Plumb the
+  marker registry's `codeToLabel` (built from `state.experiment.params.stimuli`)
+  into the reviewer + Live ERP legends instead of raw numeric codes.
+- **Delivery → one PR (Phase 2)**, stacked on Phase 1.
+
 Remaining open (not forge-blocking; decide when their phase comes): OQ3 (onboarding
-depth), OQ4 (auto-reject UX/thresholds), OQ5 (bad channels on 4-ch Muse), OQ7
-(static fallback).
+depth, Phase 3), OQ7 (static fallback).
 
 ---
 
@@ -342,10 +365,11 @@ Traced end to end against `webworker/`, `src/main/index.ts`, `src/preload/index.
    `runPython` RPC (reinforced by OQ6's client-side live ERP needing no round-trip).
 3. **Onboarding depth** — Is guided mode the default? How much curriculum
    (tooltips only vs. a real walkthrough)?
-4. **Auto-rejection** — Expose peak-to-peak thresholds to the user, or keep them
-   as invisible "suggestions"? What defaults?
-5. **Bad channels on Muse** — dropping 1 of 4 channels is drastic; do we support
-   channel rejection for low-channel devices, or epochs-only there?
+4. **Auto-rejection — RESOLVED (§0, Phase 2): one-click "Auto-flag" button +
+   expandable threshold settings, dev-gated per experiment; suggestions computed in
+   Python (peak-to-peak) and pre-marked but overridable.**
+5. **Bad channels on Muse — RESOLVED (§0, Phase 2): enabled on all devices; a
+   warning Dialog fires when marking a 2nd bad channel on a 4-channel dataset.**
 6. **Live ERP preview — RESOLVED (§0): in scope for v1 (Phase 1), computed
    client-side** over the Phase-0 buffer (Flavor 1 only; real-time-during-experiment
    is a separate future non-Python effort).
@@ -396,8 +420,15 @@ Traced end to end against `webworker/`, `src/main/index.ts`, `src/preload/index.
   - Reaches functional parity-plus with the *essential* MNE workflow.
   - **Note:** the write-back bridge (§6d) already landed standalone in PR #222, so
     Phase 1 just points the apply action at a bridge that works.
-- **Phase 2 — Full parity.** Bad-channel flagging, condition coloring/legend,
-  auto-flag suggestions from `drop_log`/peak-to-peak.
+- **Phase 2 — Full parity (PR 4). LOCKED (§0 Phase 2 decisions).**
+  - **Bad-channel flagging:** click a channel label → toggle bad; bad channels flow
+    to the existing `apply_rejection` `bad_channels` param. Warning Dialog on the 2nd
+    bad channel of a 4-ch dataset (OQ5).
+  - **Auto-flag (OQ4 + New-A):** dev-gated "Auto-flag artifacts" button + expandable
+    threshold settings → `suggest_rejections(epochs, threshold)` in Python (peak-to-
+    peak, native-testable) → `suggestedRejections` dataKey → pre-marks epochs in the
+    reviewer (overridable) with reasons shown.
+  - **Condition legend (New-B):** real labels via `codeToLabel`.
 - **Phase 3 — Onboarding layer.** Explanations, guided mode, artifact tutorials,
   live ERP preview.
 - **Phase 4 — Polish & generalize.** N-channel devices (Neurosity/LSL),

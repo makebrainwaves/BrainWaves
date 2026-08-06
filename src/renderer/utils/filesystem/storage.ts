@@ -27,7 +27,7 @@ export const createWorkspaceDir = (title: string): Promise<void> =>
   api().createWorkspaceDir(title);
 
 export const openWorkspaceDir = (title: string): Promise<void> =>
-  api().showItemInFolder(path.join('BrainWaves_Workspaces', title));
+  api().openWorkspaceDir(title);
 
 // -----------------------------------------------------------------------------------------------
 // Storing

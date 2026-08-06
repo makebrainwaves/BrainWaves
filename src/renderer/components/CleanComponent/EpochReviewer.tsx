@@ -8,26 +8,10 @@ import {
   epochChannelSeries,
 } from './epochArrays';
 
-// ---------------------------------------------------------------------------
-// Canvas layout (matches MNE's epochs.plot): epochs run ACROSS (x), channels
-// are STACKED vertically (y). One trace per (epoch, channel) cell.
-//
-//   [◀ Prev] [Next ▶]              [amp －] [amp ＋]
-//            epoch 0        epoch 1        epoch 2      ...
-//          ┌────────────┬────────────┬────────────┐
-//   ch 0   │  ~~~~~~~~   │ ░░grey░░✕░░ │  ~~~~~~~~   │  channel lane
-//          ├────────────┼────────────┼────────────┤    (rejected column
-//   ch 1   │  ~~~~~~~~   │ ░░░░░░░░░░ │  ~~~~~~~~   │     is greyed out)
-//          ├────────────┼────────────┼────────────┤
-//   ch 2   │  ~~~~~~~~   │ ░░░░░░░░░░ │  ~~~~~~~~   │
-//          └────────────┴────────────┴────────────┘
-//             epoch 0       epoch 1       epoch 2      (bottom index labels)
-//
-// Interactive (Phase 1): a transparent DOM overlay div per visible column makes
-// each epoch click-to-reject (rejected epochs grey out); Prev/Next page through
-// all epochs; amp ＋/－ scale trace amplitude. Rendering stays Canvas 2D + a DOM
-// overlay for labels/hit-targets (no canvas hit-testing).
-// ---------------------------------------------------------------------------
+// Interactive epoch reviewer: epochs run across (x), channels stacked (y).
+// Click an epoch column to reject it; click a channel label to flag it bad
+// (its lane washes red across all epochs). Prev/Next paginate, amp +/- scales
+// traces. Canvas 2D for traces, a DOM overlay for labels/click targets.
 
 interface Props {
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
@@ -35,6 +19,12 @@ interface Props {
   rejected: Set<number>;
   // Toggle a single ABSOLUTE epoch index in/out of the rejected set.
   onToggleEpoch: (index: number) => void;
+  // Channel names the student has flagged as "bad" (controlled by the parent).
+  badChannels: Set<string>;
+  // Toggle a single channel name in/out of the bad-channel set.
+  onToggleChannel: (name: string) => void;
+  // Optional map from numeric event code to a human-readable condition label.
+  codeToLabel?: Record<number, string>;
 }
 
 // Logical canvas size (scaled up for devicePixelRatio at draw time).
@@ -56,11 +46,15 @@ const GAIN_MAX = 20;
 
 const REJECTED_TRACE_COLOR = 'rgba(120, 120, 120, 0.5)';
 const REJECTED_FILL_COLOR = 'rgba(120, 120, 120, 0.15)';
+const BAD_CHANNEL_FILL_COLOR = 'rgba(200, 60, 60, 0.10)';
 
 export default function EpochReviewer({
   epochArrays,
   rejected,
   onToggleEpoch,
+  badChannels,
+  onToggleChannel,
+  codeToLabel,
 }: Props): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // First epoch of the current page (absolute index).
@@ -100,7 +94,7 @@ export default function EpochReviewer({
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     const { buffer } = epochArrays;
-    const { n_epochs, n_channels, n_times, event_codes } = meta;
+    const { n_epochs, n_channels, n_times, event_codes, ch_names } = meta;
 
     const plotWidth = CANVAS_WIDTH - LABEL_GUTTER;
     const plotHeight = CANVAS_HEIGHT - BOTTOM_GUTTER;
@@ -117,6 +111,20 @@ export default function EpochReviewer({
       if (rejected.has(absolute)) {
         ctx.fillStyle = REJECTED_FILL_COLOR;
         ctx.fillRect(LABEL_GUTTER + c * colWidth, 0, colWidth, plotHeight);
+      }
+    }
+
+    // Translucent red wash over flagged bad-channel lanes — spans every epoch
+    // column (drawn under traces) so bad channels read at a glance.
+    for (let ch = 0; ch < n_channels; ch += 1) {
+      if (badChannels.has(ch_names[ch])) {
+        ctx.fillStyle = BAD_CHANNEL_FILL_COLOR;
+        ctx.fillRect(
+          LABEL_GUTTER,
+          ch * laneHeight,
+          CANVAS_WIDTH - LABEL_GUTTER,
+          laneHeight
+        );
       }
     }
 
@@ -235,7 +243,7 @@ export default function EpochReviewer({
         ctx.stroke();
       }
     }
-  }, [epochArrays, meta, rejected, clampedStart, perPage, gain]);
+  }, [epochArrays, meta, rejected, clampedStart, perPage, gain, badChannels]);
 
   // Empty state — friendly, brand-styled, student-facing.
   if (!epochArrays || !meta || meta.n_epochs === 0) {
@@ -251,6 +259,10 @@ export default function EpochReviewer({
   const plotHeight = CANVAS_HEIGHT - BOTTOM_GUTTER;
   const firstShown = clampedStart + 1;
   const lastShown = clampedStart + visibleCount;
+
+  const uniqueSortedCodes = [...new Set(meta.event_codes)].sort(
+    (a, b) => a - b
+  );
 
   return (
     <div className="text-left">
@@ -306,22 +318,41 @@ export default function EpochReviewer({
           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
         />
 
-        {/* Channel labels (left gutter). */}
-        {meta.ch_names.map((name, ch) => (
-          <div
-            key={name}
-            className="absolute truncate pr-1 text-right text-[10px] text-gray-500"
-            style={{
-              left: 0,
-              width: LABEL_GUTTER,
-              top: ch * laneHeight,
-              height: laneHeight,
-              lineHeight: `${laneHeight}px`,
-            }}
-          >
-            {name}
-          </div>
-        ))}
+        {/* Channel labels (left gutter) double as click-to-flag bad-channel
+            toggles. A flagged channel renders struck-through + red and its lane
+            is washed red across every epoch column (see canvas draw). */}
+        {meta.ch_names.map((name, ch) => {
+          const isBad = badChannels.has(name);
+          return (
+            <div
+              key={name}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isBad}
+              aria-label={`${isBad ? 'Unflag' : 'Flag'} channel ${name} as bad`}
+              title={`${isBad ? 'Unflag' : 'Flag'} channel ${name} as bad`}
+              className={`absolute cursor-pointer truncate pr-1 text-right text-[10px] ${
+                isBad ? 'text-red-500 line-through' : 'text-gray-500'
+              }`}
+              style={{
+                left: 0,
+                width: LABEL_GUTTER,
+                top: ch * laneHeight,
+                height: laneHeight,
+                lineHeight: `${laneHeight}px`,
+              }}
+              onClick={() => onToggleChannel(name)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggleChannel(name);
+                }
+              }}
+            >
+              {name}
+            </div>
+          );
+        })}
 
         {/* Transparent click targets — one per visible epoch column. Clicking
             toggles that ABSOLUTE epoch index in/out of the rejected set. */}
@@ -374,6 +405,28 @@ export default function EpochReviewer({
           );
         })}
       </div>
+
+      {/* Condition legend: one swatch + human-readable label per unique code. */}
+      {uniqueSortedCodes.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-3">
+          {uniqueSortedCodes.map((code) => (
+            <span
+              key={code}
+              className="flex items-center gap-1 text-xs text-gray-600"
+            >
+              <span
+                className="inline-block h-3 w-3 rounded-sm"
+                style={{
+                  backgroundColor: cssColorForIndex(
+                    conditionIndexForCode(code, uniqueSortedCodes)
+                  ),
+                }}
+              />
+              {codeToLabel?.[code] ?? `Condition ${code}`}
+            </span>
+          ))}
+        </div>
+      )}
 
       <p className="mt-1 text-xs text-gray-500">
         showing {firstShown}–{lastShown} of {meta.n_epochs} epochs

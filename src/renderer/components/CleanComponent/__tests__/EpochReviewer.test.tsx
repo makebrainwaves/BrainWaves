@@ -43,6 +43,8 @@ describe('EpochReviewer', () => {
         epochArrays={makeEpochArrays()}
         rejected={new Set()}
         onToggleEpoch={onToggleEpoch}
+        badChannels={new Set()}
+        onToggleChannel={vi.fn()}
       />
     );
 
@@ -61,6 +63,8 @@ describe('EpochReviewer', () => {
         epochArrays={makeEpochArrays()}
         rejected={new Set([0])}
         onToggleEpoch={onToggleEpoch}
+        badChannels={new Set()}
+        onToggleChannel={vi.fn()}
       />
     );
 

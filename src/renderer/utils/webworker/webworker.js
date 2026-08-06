@@ -90,7 +90,11 @@ const pyodideReadyPromise = (async () => {
   return pyodide;
 })();
 
-self.onmessage = async (event) => {
+// Async onmessage handlers can overlap; chain work so Python globals like
+// clean_epochs exist before follow-up commands (GetEpochsInfo, LoadTopo, etc.).
+let workChain = Promise.resolve();
+
+async function processMessage(event) {
   // Propagate init failures back to the main thread rather than hanging silently.
   let pyodide;
   try {
@@ -130,14 +134,24 @@ self.onmessage = async (event) => {
     // can be written to host disk. Pyodide's MEMFS can't reach the host FS itself.
     if (readFileAfter) {
       const fileBytes = pyodide.FS.readFile(readFileAfter); // Uint8Array
-      self.postMessage(
-        { buffer: fileBytes.buffer, results, plotKey, dataKey },
-        [fileBytes.buffer]
-      );
+      const payload = { buffer: fileBytes.buffer, plotKey, dataKey };
+      // epochArrays needs metadata alongside the buffer; savedEpochs only needs bytes.
+      if (dataKey === 'epochArrays') {
+        payload.results = results;
+      }
+      self.postMessage(payload, [fileBytes.buffer]);
       return;
     }
-    self.postMessage({ results, plotKey, dataKey });
+    // Fire-and-forget commands (no plotKey/dataKey/readFileAfter) must not post
+    // MNE objects back — they aren't structured-cloneable even after toJs.
+    if (plotKey || dataKey) {
+      self.postMessage({ results, plotKey, dataKey });
+    }
   } catch (error) {
     self.postMessage({ error: error.message, plotKey, dataKey });
   }
+}
+
+self.onmessage = (event) => {
+  workChain = workChain.then(() => processMessage(event));
 };

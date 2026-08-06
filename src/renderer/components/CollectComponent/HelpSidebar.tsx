@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 enum HELP_STEP {
   MENU,
   SIGNAL_EXPLANATION,
-  SIGNAL_SALINE,
+  SIGNAL_SETTLING,
   SIGNAL_CONTACT,
   SIGNAL_MOVEMENT,
   LEARN_BRAIN,
@@ -123,10 +123,10 @@ export class HelpSidebar extends Component<Props, State> {
           'Improve the signal quality',
           'In order to collect quality data, you want to make sure that all electrodes have  a strong connection'
         );
-      case HELP_STEP.SIGNAL_SALINE:
+      case HELP_STEP.SIGNAL_SETTLING:
         return this.renderHelp(
-          'Tip #1: Saturate the sensors in saline',
-          'Make sure the sensors are thoroughly soaked with saline solution. They should be wet to the touch'
+          'Tip #1: Good skin contact (and give it a minute)',
+          "The sensors read best against clean, bare skin — sweep hair out from under them and wipe away any makeup or lotion. When you first put the headset on the signal often looks red and jumpy: that's normal while the sensors settle into contact. Sit still and it should calm down and turn green within a minute."
         );
       case HELP_STEP.SIGNAL_CONTACT:
         return this.renderHelp(

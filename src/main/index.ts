@@ -160,6 +160,13 @@ ipcMain.handle('shell:showItemInFolder', (_event, fullPath) =>
   shell.showItemInFolder(fullPath)
 );
 
+// Open a workspace folder. Resolve the absolute path here — shell.openPath (and
+// showItemInFolder) silently no-op on a relative path, which is why the old
+// renderer-side path.join('BrainWaves_Workspaces', title) did nothing.
+ipcMain.handle('shell:openWorkspaceDir', (_event, title: string) =>
+  shell.openPath(getWorkspaceDir(title))
+);
+
 ipcMain.handle('shell:moveItemToTrash', (_event, fullPath) =>
   shell.trashItem(fullPath)
 );

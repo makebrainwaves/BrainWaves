@@ -24,6 +24,8 @@ interface Props {
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
   // ABSOLUTE epoch indices marked for rejection (excluded from the average).
   rejected: Set<number>;
+  // Optional map from numeric event code to a human-readable condition label.
+  codeToLabel?: Record<number, string>;
 }
 
 const CANVAS_WIDTH = 640;
@@ -36,6 +38,7 @@ const PAD_BOTTOM = 12;
 export default function LiveErpPane({
   epochArrays,
   rejected,
+  codeToLabel,
 }: Props): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [channel, setChannel] = useState(0);
@@ -249,7 +252,7 @@ export default function LiveErpPane({
                   ),
                 }}
               />
-              Condition {code} ({count})
+              {codeToLabel?.[code] ?? `Condition ${code}`} ({count})
             </span>
           );
         })}

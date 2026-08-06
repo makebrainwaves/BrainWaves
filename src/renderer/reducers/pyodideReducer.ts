@@ -1,5 +1,10 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { PyodideActions, ExperimentActions, EpochArraysMeta } from '../actions';
+import {
+  PyodideActions,
+  ExperimentActions,
+  EpochArraysMeta,
+  SuggestedRejection,
+} from '../actions';
 
 export interface PyodideStateType {
   readonly epochsInfo: Array<{
@@ -25,6 +30,7 @@ export interface PyodideStateType {
     | null
     | undefined;
   readonly epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
+  readonly suggestedRejections: SuggestedRejection[];
   readonly worker: Worker | null;
   readonly isWorkerReady: boolean;
 }
@@ -36,6 +42,7 @@ const initialState: PyodideStateType = {
   topoPlot: null,
   erpPlot: null,
   epochArrays: null,
+  suggestedRejections: [],
   worker: null,
   isWorkerReady: false,
 };
@@ -79,8 +86,13 @@ export default createReducer(initialState, (builder) =>
       };
     })
     .addCase(PyodideActions.SetEpochArrays, (state, action) => {
-      return { ...state, epochArrays: action.payload };
+      // New epoch arrays → any prior auto-flag suggestions are stale.
+      return { ...state, epochArrays: action.payload, suggestedRejections: [] };
     })
+    .addCase(PyodideActions.SetSuggestedRejections, (state, action) => ({
+      ...state,
+      suggestedRejections: action.payload,
+    }))
     .addCase(PyodideActions.SetWorkerReady, (state) => {
       return { ...state, isWorkerReady: true };
     })
@@ -90,6 +102,7 @@ export default createReducer(initialState, (builder) =>
         epochsInfo: [],
         channelInfo: [],
         epochArrays: null,
+        suggestedRejections: [],
         psdPlot: null,
         topoPlot: null,
         erpPlot: null,

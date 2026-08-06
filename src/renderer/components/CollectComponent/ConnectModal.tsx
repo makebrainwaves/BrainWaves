@@ -42,7 +42,6 @@ interface State {
 enum INSTRUCTION_PROGRESS {
   SEARCHING,
   TURN_ON,
-  COMPUTER_CONNECTABILITY,
 }
 
 export default class ConnectModal extends Component<Props, State> {
@@ -242,44 +241,6 @@ export default class ConnectModal extends Component<Props, State> {
                 Back
               </Button>
             )}
-            <Button
-              variant="default"
-              className="w-full"
-              onClick={() =>
-                this.handleinstructionProgress(
-                  INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
-                )
-              }
-            >
-              Next
-            </Button>
-          </div>
-        </>
-      );
-    }
-    if (
-      this.state.instructionProgress ===
-      INSTRUCTION_PROGRESS.COMPUTER_CONNECTABILITY
-    ) {
-      return (
-        <>
-          <h2>Insert the USB Receiver</h2>
-          <p>
-            Insert the USB receiver into a USB port on your computer. Ensure
-            that the LED on the receiver is continously lit or flickering
-            rapidly. If it is blinking slowly or not illuminated, remove and
-            reinsert the receiver
-          </p>
-          <div className="flex gap-2 mt-4">
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() =>
-                this.handleinstructionProgress(INSTRUCTION_PROGRESS.TURN_ON)
-              }
-            >
-              Back
-            </Button>
             <Button
               variant="default"
               className="w-full"

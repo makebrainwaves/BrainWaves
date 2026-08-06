@@ -52,6 +52,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   moveItemToTrash: (fullPath: string) =>
     ipcRenderer.invoke('shell:moveItemToTrash', fullPath),
 
+  openWorkspaceDir: (title: string): Promise<string> =>
+    ipcRenderer.invoke('shell:openWorkspaceDir', title),
+
   // ------------------------------------------------------------------
   // Filesystem — workspace management
   // ------------------------------------------------------------------

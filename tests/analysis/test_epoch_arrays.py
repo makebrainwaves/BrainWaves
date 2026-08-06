@@ -45,10 +45,11 @@ def test_buffer_matches_epoch_data(tmp_path):
         meta["n_epochs"], meta["n_channels"], meta["n_times"]
     )
 
-    expected = epochs.get_data(
+    # get_epochs_arrays emits microvolts (volts * 1e6) for the epoch viewer.
+    expected = (epochs.get_data(
         picks=mne.pick_types(epochs.info, eeg=True)
-    ).astype(np.float32)
-    assert np.allclose(arr, expected, atol=1e-5)
+    ) * 1e6).astype(np.float32)
+    assert np.allclose(arr, expected, rtol=1e-5, atol=1e-3)
 
 
 def test_metadata_lengths_and_event_codes(tmp_path):
