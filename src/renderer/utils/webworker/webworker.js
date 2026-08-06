@@ -100,7 +100,8 @@ self.onmessage = async (event) => {
     return;
   }
 
-  const { data, plotKey, dataKey, fsFiles, ...context } = event.data;
+  const { data, plotKey, dataKey, fsFiles, readFileAfter, ...context } =
+    event.data;
 
   // Write any files to Pyodide's MEMFS before running Python code, so host OS
   // paths (e.g. .fif epoch files) can be staged in the WASM virtual filesystem.
@@ -123,6 +124,16 @@ self.onmessage = async (event) => {
       const proxy = results;
       results = results.toJs({ dict_converter: Object.fromEntries });
       proxy.destroy();
+    }
+    // Read-back path: after running Python (e.g. epochs.save() to a MEMFS path),
+    // return the file's bytes to the renderer as a transferable ArrayBuffer so it
+    // can be written to host disk. Pyodide's MEMFS can't reach the host FS itself.
+    if (readFileAfter) {
+      const fileBytes = pyodide.FS.readFile(readFileAfter); // Uint8Array
+      self.postMessage({ savedEpochsBuffer: fileBytes.buffer, dataKey }, [
+        fileBytes.buffer,
+      ]);
+      return;
     }
     self.postMessage({ results, plotKey, dataKey });
   } catch (error) {
