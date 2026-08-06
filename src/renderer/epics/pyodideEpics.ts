@@ -1,5 +1,5 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { EMPTY, fromEvent, Observable, ObservableInput, of } from 'rxjs';
+import { EMPTY, fromEvent, Observable, of } from 'rxjs';
 import { map, mergeMap, tap, pluck, filter } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
@@ -10,6 +10,7 @@ import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   loadCSV,
   loadCleanedEpochs,
+  writeEpochsToMemfs,
   filterIIR,
   epochEvents,
   requestEpochsInfo,
@@ -18,19 +19,13 @@ import {
   plotPSD,
   plotERP,
   plotTopoMap,
-  plotTestPlot,
   saveEpochs,
   loadPyodide,
   loadPatches,
   applyPatches,
   loadUtils,
 } from '../utils/webworker';
-import {
-  DEVICES,
-  MUSE_CHANNELS,
-  PYODIDE_VARIABLE_NAMES,
-} from '../constants/constants';
-import { parseSingleQuoteJSON } from '../utils/webworker/functions';
+import { MUSE_CHANNELS, PYODIDE_VARIABLE_NAMES } from '../constants/constants';
 
 import { readFiles } from '../utils/filesystem/read';
 
@@ -90,13 +85,31 @@ const pyodideMessageEpic: Epic<
     mergeMap<Worker, Observable<any>>((worker) => fromEvent(worker, 'message')),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mergeMap<any, Observable<any>>((e) => {
-      const { results, error, plotKey } = e.data;
+      const { results, error, plotKey, dataKey } = e.data;
       if (error) {
         toast.error(`Pyodide: ${error}`);
         return of(PyodideActions.ReceiveError(error));
       }
+
+      // Route data results (tagged with dataKey, not plotKey). These come back
+      // as plain JS (the worker converts the PyProxy before postMessage).
+      if (dataKey === 'epochsInfo') {
+        // results is an array of single-key objects, e.g. [{Condition1: 10}, {'Drop Percentage': 5}]
+        const epochInfoArray = (
+          results as Array<Record<string, string | number>>
+        ).map((infoObj) => ({
+          name: Object.keys(infoObj)[0],
+          value: infoObj[Object.keys(infoObj)[0]],
+        }));
+        return of(PyodideActions.SetEpochInfo(epochInfoArray));
+      }
+      if (dataKey === 'channelInfo') {
+        // results is an array of channel-name strings
+        return of(PyodideActions.SetChannelInfo(results as string[]));
+      }
+
       // Route plot results to the appropriate Redux state slot.
-      // results is a base64-encoded PNG string returned from Python.
+      // results is an SVG string returned from Python.
       const mimeBundle = results ? { 'image/svg+xml': results } : null;
       switch (plotKey) {
         case 'ready':
@@ -121,31 +134,27 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     filter(isActionOf(PyodideActions.LoadEpochs)),
     pluck('payload'),
     filter((filePathsArray: string[]) => filePathsArray.length >= 1),
-    // readFiles is async — mergeMap (not map) so the resolved CSV strings flow
-    // downstream. With map, the unresolved Promise reached worker.postMessage
-    // and threw DataCloneError ("Promise could not be cloned").
-    mergeMap((filePathsArray) => readFiles(filePathsArray) as Promise<string[]>),
-    mergeMap((csvArray) => loadCSV(state$.value.pyodide.worker!, csvArray)),
-    mergeMap(() => filterIIR(state$.value.pyodide.worker!, 1, 30)),
-    map(() => {
-      if (!state$.value.experiment.params?.stimuli) {
-        return {};
+    mergeMap(async (filePathsArray) => {
+      const worker = state$.value.pyodide.worker!;
+      // readFiles is async — await before posting csvArray to the worker.
+      // (An unresolved Promise into postMessage throws DataCloneError.)
+      const csvArray = await readFiles(filePathsArray);
+      // Queue processing messages in order; the worker runs them sequentially.
+      loadCSV(worker, csvArray);
+      filterIIR(worker, 1, 30);
+      if (state$.value.experiment.params?.stimuli) {
+        // event_id VALUES must equal the numeric codes written to the CSV Marker
+        // column (stimulus.type). buildMarkerRegistry keeps this in lockstep with
+        // collection — array indices silently dropped codes that didn't match.
+        const { eventId } = buildMarkerRegistry(
+          state$.value.experiment.params.stimuli
+        );
+        epochEvents(worker, eventId, -0.1, 0.8);
       }
-
-      // event_id VALUES must equal the numeric codes written to the CSV Marker
-      // column (stimulus.type). Deriving the map from the shared MarkerRegistry
-      // keeps it in lockstep with collection — using array indices here silently
-      // dropped any epoch whose code didn't happen to match an index.
-      const { eventId } = buildMarkerRegistry(
-        state$.value.experiment.params.stimuli
-      );
-
-      return epochEvents(state$.value.pyodide.worker!, eventId, -0.1, 0.8);
+      // Result returns asynchronously via pyodideMessageEpic → SetEpochInfo.
+      requestEpochsInfo(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
-    tap((e) => {
-      console.log('epoched events: ', e);
-    }),
-    map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
+    mergeMap(() => EMPTY)
   );
 
 const loadCleanedEpochsEpic: Epic<
@@ -157,9 +166,12 @@ const loadCleanedEpochsEpic: Epic<
     filter(isActionOf(PyodideActions.LoadCleanedEpochs)),
     pluck('payload'),
     filter((filePathsArray) => filePathsArray.length >= 1),
-    map((epochsArray) =>
-      loadCleanedEpochs(state$.value.pyodide.worker!, epochsArray)
-    ),
+    mergeMap(async (epochsArray) => {
+      // .fif epochs live on the host OS; stage them in Pyodide's MEMFS first
+      // (the WASM filesystem can't reach host paths).
+      const { memfsPaths, fsFiles } = await writeEpochsToMemfs(epochsArray);
+      loadCleanedEpochs(state$.value.pyodide.worker!, memfsPaths, fsFiles);
+    }),
     mergeMap(() =>
       of(
         PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
@@ -195,20 +207,9 @@ const getEpochsInfoEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.GetEpochsInfo)),
     pluck('payload'),
-    mergeMap(
-      (varName) =>
-        requestEpochsInfo(
-          state$.value.pyodide.worker!,
-          varName
-        ) as unknown as Promise<Record<string, string | number>[]>
-    ),
-    map((epochInfoArray) =>
-      epochInfoArray.map((infoObj) => ({
-        name: Object.keys(infoObj)[0],
-        value: infoObj[Object.keys(infoObj)[0]],
-      }))
-    ),
-    map(PyodideActions.SetEpochInfo)
+    // Fire-and-forget: result returns via pyodideMessageEpic → SetEpochInfo.
+    tap((varName) => requestEpochsInfo(state$.value.pyodide.worker!, varName)),
+    mergeMap(() => EMPTY)
   );
 
 const getChannelInfoEpic: Epic<
@@ -218,15 +219,9 @@ const getChannelInfoEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.GetChannelInfo)),
-    mergeMap(
-      () =>
-        requestChannelInfo(
-          state$.value.pyodide.worker!
-        ) as unknown as Promise<string>
-    ),
-    map((channelInfoString) =>
-      PyodideActions.SetChannelInfo(parseSingleQuoteJSON(channelInfoString))
-    )
+    // Fire-and-forget: result returns via pyodideMessageEpic → SetChannelInfo.
+    tap(() => requestChannelInfo(state$.value.pyodide.worker!)),
+    mergeMap(() => EMPTY)
   );
 
 const loadPSDEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
@@ -245,7 +240,7 @@ const loadTopoEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadTopo)),
-    tap(() => plotTestPlot(state$.value.pyodide.worker!)),
+    tap(() => plotTopoMap(state$.value.pyodide.worker!)),
     mergeMap(() => EMPTY)
   );
 

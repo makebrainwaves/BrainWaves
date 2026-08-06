@@ -62,9 +62,7 @@ const pyodideReadyPromise = (async () => {
   // Set matplotlib backend before any imports so it takes effect on first import.
   // Must be 'agg' (non-interactive, buffer-based) — web workers have no DOM,
   // so WebAgg fails with "cannot import name 'document' from 'js'".
-  await pyodide.runPythonAsync(
-    'import os; os.environ["MPLBACKEND"] = "agg"'
-  );
+  await pyodide.runPythonAsync('import os; os.environ["MPLBACKEND"] = "agg"');
 
   // Load micropip so we can install MNE and its pure-Python deps.
   await pyodide.loadPackage('micropip', { checkIntegrity: false });
@@ -74,12 +72,14 @@ const pyodideReadyPromise = (async () => {
   // and relative paths — it rejects the pyodide:// custom scheme.
   // Workaround: JS-fetch each .whl via the protocol handler (which supports it),
   // write the bytes into Pyodide's emscripten virtual FS, then install via emfs://.
-  const manifest = await fetch(`${PYODIDE_ASSET_BASE}/packages/manifest.json`)
-    .then((r) => r.json());
+  const manifest = await fetch(
+    `${PYODIDE_ASSET_BASE}/packages/manifest.json`
+  ).then((r) => r.json());
 
   for (const { filename } of Object.values(manifest)) {
-    const buffer = await fetch(`${PYODIDE_ASSET_BASE}/packages/${filename}`)
-      .then((r) => r.arrayBuffer());
+    const buffer = await fetch(
+      `${PYODIDE_ASSET_BASE}/packages/${filename}`
+    ).then((r) => r.arrayBuffer());
     pyodide.FS.writeFile(`/tmp/${filename}`, new Uint8Array(buffer));
   }
 
@@ -100,7 +100,15 @@ self.onmessage = async (event) => {
     return;
   }
 
-  const { data, plotKey, ...context } = event.data;
+  const { data, plotKey, dataKey, fsFiles, ...context } = event.data;
+
+  // Write any files to Pyodide's MEMFS before running Python code, so host OS
+  // paths (e.g. .fif epoch files) can be staged in the WASM virtual filesystem.
+  if (fsFiles && Array.isArray(fsFiles)) {
+    for (const { path: filePath, bytes } of fsFiles) {
+      pyodide.FS.writeFile(filePath, bytes);
+    }
+  }
 
   // Expose context values as globals so Python can access them via the js module.
   for (const [key, value] of Object.entries(context)) {
@@ -108,8 +116,16 @@ self.onmessage = async (event) => {
   }
 
   try {
-    self.postMessage({ results: await pyodide.runPythonAsync(data), plotKey });
+    let results = await pyodide.runPythonAsync(data);
+    // Convert PyProxy objects (Python lists/dicts) to plain JS before postMessage,
+    // which uses structuredClone — a PyProxy is not serializable and would throw.
+    if (results && typeof results.toJs === 'function') {
+      const proxy = results;
+      results = results.toJs({ dict_converter: Object.fromEntries });
+      proxy.destroy();
+    }
+    self.postMessage({ results, plotKey, dataKey });
   } catch (error) {
-    self.postMessage({ error: error.message, plotKey });
+    self.postMessage({ error: error.message, plotKey, dataKey });
   }
 };

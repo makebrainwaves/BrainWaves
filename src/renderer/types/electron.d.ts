@@ -79,6 +79,7 @@ declare global {
       filename: string
     ) => Promise<boolean>;
     readFiles: (filePathsArray: string[]) => Promise<string[]>;
+    readFileAsBytes: (filePath: string) => Promise<Uint8Array>;
 
     // EEG streaming
     createEEGWriteStream: (
