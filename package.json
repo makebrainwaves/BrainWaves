@@ -22,9 +22,10 @@
     "lint-fix": "npm run lint -- --fix",
     "postlint-fix": "prettier --single-quote --write '**/*.{ts,tsx,js,jsx,json,html,css,less,scss,yml}'",
     "test": "vitest run",
+    "test:build": "vitest run --config vitest.build.config.ts",
     "device-integration": "vitest run src/main/lsl src/renderer/utils/eeg",
     "test:watch": "vitest",
-    "test-all": "npm run lint && npm run typecheck && npm run build && npm test",
+    "test-all": "npm run lint && npm run typecheck && npm run build && npm test && npm run test:build",
     "tsc": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
@@ -85,7 +86,8 @@
       "provider": "github",
       "owner": "makebrainwaves",
       "repo": "brainwaves",
-      "private": false
+      "private": false,
+      "releaseType": "draft"
     },
     "extraResources": [
       {

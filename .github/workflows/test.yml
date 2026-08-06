@@ -24,8 +24,10 @@ jobs:
           node-version: 22
           cache: 'npm'
 
+      # npm ci, not npm install: installs exactly the locked tree, so the commit
+      # CI passes on is the commit that gets packaged.
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Test
         run: npm test
@@ -38,3 +40,8 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Must follow Build — asserts out/ and the Pyodide payload are actually
+      # on disk where the packaged app's protocol handler will look for them.
+      - name: Verify build artifacts
+        run: npm run test:build
