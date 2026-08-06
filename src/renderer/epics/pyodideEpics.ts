@@ -15,7 +15,7 @@ import {
   requestEpochsInfo,
   requestChannelInfo,
   requestEpochArrays,
-  cleanEpochsPlot,
+  applyRejection,
   plotPSD,
   plotERP,
   plotTopoMap,
@@ -215,14 +215,21 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.CleanEpochs)),
-    mergeMap(async () => {
-      await cleanEpochsPlot(state$.value.pyodide.worker!);
-      return saveEpochs(
-        state$.value.pyodide.worker!,
-        state$.value.experiment.subject
+    pluck('payload'),
+    mergeMap(async ({ dropIndices, badChannels }) => {
+      const worker = state$.value.pyodide.worker!;
+      // Worker runs these FIFO: drop/flag -> save cleaned .fif -> re-fetch arrays.
+      applyRejection(
+        worker,
+        PYODIDE_VARIABLE_NAMES.RAW_EPOCHS,
+        dropIndices,
+        badChannels
       );
+      saveEpochs(worker, state$.value.experiment.subject);
+      requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
+      return PYODIDE_VARIABLE_NAMES.RAW_EPOCHS;
     }),
-    map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
+    map((varName) => PyodideActions.GetEpochsInfo(varName))
   );
 
 const getEpochsInfoEpic: Epic<

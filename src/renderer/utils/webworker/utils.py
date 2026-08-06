@@ -312,3 +312,21 @@ def get_epochs_info(epochs):
     return [*[{x: len(epochs[x])} for x in epochs.event_id],
             {"Drop Percentage": round(epochs.drop_log_stats(), 2)},
             {"Total Epochs": len(epochs.events)}]
+
+
+def apply_rejection(epochs, drop_indices, bad_channels):
+    """Drop the given epoch indices and mark bad channels, mutating epochs in place.
+
+    drop_indices : list[int]  -- 0-based indices into the CURRENT epochs (same
+        order as get_epochs_arrays produced), the epochs the user marked bad.
+    bad_channels : list[str]  -- channel names to add to info['bads'].
+
+    The result is exactly what MNE produces from epochs.drop(...) / info['bads'] —
+    the science is unchanged; only the UI that chooses the indices is new.
+    Returns epochs (the same, mutated object).
+    """
+    if bad_channels:
+        epochs.info['bads'] = list(bad_channels)
+    if drop_indices:
+        epochs.drop(list(drop_indices))
+    return epochs
