@@ -65,6 +65,11 @@ declare global {
       imageTitle: string,
       rawData: ArrayBuffer
     ) => Promise<void>;
+    writeCleanedEpochs: (
+      title: string,
+      subject: string,
+      rawData: ArrayBuffer
+    ) => Promise<void>;
     deleteWorkspaceDir: (title: string) => Promise<void>;
     readImages: (dir: string) => Promise<string[]>;
     getImages: (params: unknown) => Promise<string[]>;

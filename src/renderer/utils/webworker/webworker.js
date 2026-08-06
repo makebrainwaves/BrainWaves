@@ -90,7 +90,11 @@ const pyodideReadyPromise = (async () => {
   return pyodide;
 })();
 
-self.onmessage = async (event) => {
+// Async onmessage handlers can overlap; chain work so Python globals like
+// clean_epochs exist before follow-up commands (GetEpochsInfo, LoadTopo, etc.).
+let workChain = Promise.resolve();
+
+async function processMessage(event) {
   // Propagate init failures back to the main thread rather than hanging silently.
   let pyodide;
   try {
@@ -100,7 +104,8 @@ self.onmessage = async (event) => {
     return;
   }
 
-  const { data, plotKey, dataKey, fsFiles, ...context } = event.data;
+  const { data, plotKey, dataKey, fsFiles, readFileAfter, ...context } =
+    event.data;
 
   // Write any files to Pyodide's MEMFS before running Python code, so host OS
   // paths (e.g. .fif epoch files) can be staged in the WASM virtual filesystem.
@@ -124,8 +129,29 @@ self.onmessage = async (event) => {
       results = results.toJs({ dict_converter: Object.fromEntries });
       proxy.destroy();
     }
-    self.postMessage({ results, plotKey, dataKey });
+    // Read-back path: after running Python (e.g. epochs.save() to a MEMFS path),
+    // return the file's bytes to the renderer as a transferable ArrayBuffer so it
+    // can be written to host disk. Pyodide's MEMFS can't reach the host FS itself.
+    if (readFileAfter) {
+      const fileBytes = pyodide.FS.readFile(readFileAfter); // Uint8Array
+      const payload = { buffer: fileBytes.buffer, plotKey, dataKey };
+      // epochArrays needs metadata alongside the buffer; savedEpochs only needs bytes.
+      if (dataKey === 'epochArrays') {
+        payload.results = results;
+      }
+      self.postMessage(payload, [fileBytes.buffer]);
+      return;
+    }
+    // Fire-and-forget commands (no plotKey/dataKey/readFileAfter) must not post
+    // MNE objects back — they aren't structured-cloneable even after toJs.
+    if (plotKey || dataKey) {
+      self.postMessage({ results, plotKey, dataKey });
+    }
   } catch (error) {
     self.postMessage({ error: error.message, plotKey, dataKey });
   }
+}
+
+self.onmessage = (event) => {
+  workChain = workChain.then(() => processMessage(event));
 };

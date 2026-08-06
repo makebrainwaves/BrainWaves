@@ -11,6 +11,7 @@ function mapStateToProps(state: RootState) {
     subject: state.experiment.subject,
     group: state.experiment.group,
     session: state.experiment.session,
+    params: state.experiment.params,
     deviceType: state.device.deviceType,
     ...state.pyodide,
   };

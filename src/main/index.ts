@@ -160,6 +160,13 @@ ipcMain.handle('shell:showItemInFolder', (_event, fullPath) =>
   shell.showItemInFolder(fullPath)
 );
 
+// Open a workspace folder. Resolve the absolute path here — shell.openPath (and
+// showItemInFolder) silently no-op on a relative path, which is why the old
+// renderer-side path.join('BrainWaves_Workspaces', title) did nothing.
+ipcMain.handle('shell:openWorkspaceDir', (_event, title: string) =>
+  shell.openPath(getWorkspaceDir(title))
+);
+
 ipcMain.handle('shell:moveItemToTrash', (_event, fullPath) =>
   shell.trashItem(fullPath)
 );
@@ -322,6 +329,28 @@ ipcMain.handle(
         if (err) reject(err);
         else resolve();
       });
+    });
+  }
+);
+
+// Writes the cleaned epochs .fif from the Pyodide worker's in-memory MEMFS to
+// host disk (the worker filesystem cannot reach host paths on its own). Analyze's
+// `readWorkspaceCleanedEEGData` scans for the `epo.fif` suffix this produces.
+ipcMain.handle(
+  'fs:writeCleanedEpochs',
+  (_event, title: string, subject: string, rawData: ArrayBuffer) => {
+    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
+    mkdirPathSync(dir);
+    const buffer = Buffer.from(rawData);
+    return new Promise<void>((resolve, reject) => {
+      fs.writeFile(
+        path.join(dir, `${subject}-cleaned-epo.fif`),
+        buffer,
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
   }
 );
