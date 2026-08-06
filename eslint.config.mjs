@@ -24,6 +24,7 @@ export default [
       'coverage/**',
       '.worktrees/**',
       'src/renderer/utils/webworker/src/**',
+      'src/renderer/utils/pyodide/**',
       '**/*.css.d.ts',
       '**/*.scss.d.ts',
     ],

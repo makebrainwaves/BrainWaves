@@ -160,7 +160,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^25.0.0",
-    "postcss": "^8.5.14",
+    "postcss": "^8.5.25",
     "prettier": "^3.8.1",
     "redux-logger": "^3.0.6",
     "rimraf": "^6.1.3",
