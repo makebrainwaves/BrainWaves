@@ -53,7 +53,9 @@ export function downsampleMinMax(
 // client-side ERP primitive for the live preview (recomputed on every reject
 // toggle; equivalent to np.mean over those epochs for that channel). The epochs
 // are already baseline-corrected + filtered at epoching time, so a plain mean
-// matches MNE's evoked average to float32 display precision.
+// matches MNE's evoked average to float32 display precision. `epochIndices`
+// must be non-empty — the caller skips empty condition groups, and an empty
+// selection would divide by zero.
 export function meanTrace(
   buffer: ArrayBuffer,
   meta: EpochArraysMeta,

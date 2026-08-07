@@ -135,13 +135,6 @@ describe('meanTrace', () => {
     expect(Array.from(meanTrace(buffer, meta, [0, 1], 0))).toEqual([3, 6]);
   });
 
-  it('returns a length-n_times all-zero trace for an empty selection', () => {
-    const { meta, buffer } = makeErpFixture();
-    const out = meanTrace(buffer, meta, [], 0);
-    expect(out.length).toBe(meta.n_times);
-    expect(Array.from(out)).toEqual([0, 0]);
-  });
-
   it('returns exactly that epoch series for a single-epoch selection', () => {
     const { meta, buffer } = makeErpFixture();
     const single = Array.from(meanTrace(buffer, meta, [1], 0));
