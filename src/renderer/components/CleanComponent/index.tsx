@@ -65,7 +65,6 @@ interface State {
   autoFlagThreshold: number;
   // Whether the auto-flag threshold settings panel is open.
   showAutoFlagSettings: boolean;
-  // Whether the "too many bad channels" warning dialog is open.
 }
 
 export default class Clean extends Component<Props, State> {
@@ -409,7 +408,7 @@ export default class Clean extends Component<Props, State> {
             </p>
             <ul className="text-xs text-gray-600 list-disc list-inside">
               {suggestedRejections.slice(0, 3).map((s, i) => (
-                <li key={`${s.index}-${s.channel}-${i}`}>{s.reason}</li>
+                <li key={`${s.index}-${i}`}>{s.reason}</li>
               ))}
             </ul>
           </div>

@@ -53,7 +53,6 @@ export default function EpochReviewer({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // First epoch of the current page (absolute index).
   const [startEpoch, setStartEpoch] = useState(0);
-  // Amplitude magnification applied around each lane's mean.
 
   const meta = epochArrays?.meta ?? null;
 
@@ -135,7 +134,7 @@ export default function EpochReviewer({
 
     // Vertical dividers between epochs.
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-    for (let e = 0; e <= count; e += 1) {
+    for (let e = 0; e <= visibleCount; e += 1) {
       const x = Math.round(LABEL_GUTTER + e * colWidth) + 0.5;
       ctx.beginPath();
       ctx.moveTo(x, 0);
