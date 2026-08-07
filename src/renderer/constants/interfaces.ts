@@ -31,7 +31,6 @@ export type ExperimentParameters = {
   sampleType: string;
   selfPaced?: boolean;
   showProgressBar: boolean;
-  hideAutoFlagEpochs?: boolean;
   stimuli?: Stimulus[];
   taskHelp?: string;
   trialDuration: number;

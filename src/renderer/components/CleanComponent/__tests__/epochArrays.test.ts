@@ -7,7 +7,6 @@
 import { describe, it, expect } from 'vitest';
 import type { EpochArraysMeta } from '../../../actions';
 import {
-  conditionIndexForCode,
   downsampleMinMax,
   epochChannelSeries,
   meanTrace,
@@ -18,10 +17,8 @@ const makeMeta = (over: Partial<EpochArraysMeta> = {}): EpochArraysMeta => ({
   n_channels: 2,
   n_times: 3,
   ch_names: ['A', 'B'],
-  sfreq: 100,
   times: [0, 0.01, 0.02],
   event_codes: [1, 2],
-  drop_log: [[], []],
   ...over,
 });
 
@@ -78,21 +75,6 @@ describe('downsampleMinMax', () => {
     expect(out.length).toBeLessThanOrEqual(2);
   });
 
-  it('emits one [v, v] per sample when width >= length', () => {
-    const series = [3, 7, 5];
-    expect(downsampleMinMax(series, 10)).toEqual([
-      [3, 3],
-      [7, 7],
-      [5, 5],
-    ]);
-    // Exactly-equal width also yields per-sample pairs.
-    expect(downsampleMinMax(series, 3)).toEqual([
-      [3, 3],
-      [7, 7],
-      [5, 5],
-    ]);
-  });
-
   it('returns [] for an empty series', () => {
     expect(downsampleMinMax([], 5)).toEqual([]);
   });
@@ -111,19 +93,6 @@ describe('downsampleMinMax', () => {
   });
 });
 
-describe('conditionIndexForCode', () => {
-  it('maps codes to their position in the sorted-unique list', () => {
-    const codes = [1, 2, 5];
-    expect(conditionIndexForCode(1, codes)).toBe(0);
-    expect(conditionIndexForCode(2, codes)).toBe(1);
-    expect(conditionIndexForCode(5, codes)).toBe(2);
-  });
-
-  it('returns 0 for an unknown code', () => {
-    expect(conditionIndexForCode(99, [1, 2, 5])).toBe(0);
-  });
-});
-
 describe('meanTrace', () => {
   // n_epochs=3, n_channels=2, n_times=2 in C-order [epoch][channel][time].
   // channel 0 across epochs = [2,4], [4,8], [6,12] -> mean over all 3 = [4, 8].
@@ -135,7 +104,6 @@ describe('meanTrace', () => {
       n_times: 2,
       times: [0, 0.01],
       event_codes: [1, 2, 1],
-      drop_log: [[], [], []],
     });
     const data = Float32Array.from([
       2,

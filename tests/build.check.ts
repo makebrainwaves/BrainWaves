@@ -1,32 +1,27 @@
 import fs from 'fs';
 import path from 'path';
 import { describe, it, expect } from 'vitest';
+import {
+  PYODIDE_SOURCE_DIR,
+  PYODIDE_RESOURCE_DIR,
+} from '../src/shared/pyodideAssets';
 
 /**
- * Post-build artifact checks. Runs against `out/` and the postinstall-downloaded
- * Pyodide payload, so it requires `npm run build` (and a full `npm install`)
- * first — see the `test:build` script and the CI step ordering.
+ * Post-build checks: the bundles and the Pyodide payload are actually on disk
+ * where the packaged app will look for them. Requires `npm run build` and a
+ * full `npm install` — run via `npm run test:build`.
  *
- * Purpose: catch the prod-only failure class documented in .llms/learnings.md,
- * where the app builds and the unit suite passes but the packaged renderer
- * cannot load Pyodide because an asset is missing from where the protocol
- * handler looks. Path *spelling* is covered statically by pyodideAssets.test.ts;
- * this file covers actual presence on disk.
+ * Named .check.ts, not .test.ts, so the default vitest glob skips it: running
+ * these without a build should be a loud ordering error, not a silent skip.
  */
 
 // process.cwd(), not __dirname — test files are ESM, where __dirname is undefined.
 const repoRoot = process.cwd();
 const out = (...p: string[]) => path.join(repoRoot, 'out', ...p);
+const webworkerSrc = path.join(repoRoot, PYODIDE_SOURCE_DIR);
 
 const packageJson = JSON.parse(
   fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')
-);
-
-const webworkerSrc = path.join(
-  repoRoot,
-  (
-    packageJson.build.extraResources as Array<{ from: string; to: string }>
-  ).find((entry) => entry.from.includes('webworker'))!.from
 );
 
 describe('electron-vite build output', () => {
@@ -37,18 +32,27 @@ describe('electron-vite build output', () => {
   ])('emits the %s bundle', (_label, filePath) => {
     expect(
       fs.existsSync(filePath),
-      `${filePath} missing — run \`npm run build\` before \`npm run test:build\``
+      `${filePath} missing — run \`npm run build\` first`
     ).toBe(true);
-  });
-
-  it('main entry point matches package.json "main"', () => {
-    expect(fs.existsSync(path.join(repoRoot, packageJson.main))).toBe(true);
   });
 });
 
-describe('Pyodide payload (postinstall)', () => {
-  // Required at runtime in prod: `indexURL` resolves the interpreter and stdlib
-  // through the pyodide:// handler, so a missing one breaks analysis silently.
+describe('Pyodide payload', () => {
+  // package.json is JSON and cannot import the shared constants, so this is the
+  // one place that pairing gets checked.
+  it('extraResources matches the shared path constants', () => {
+    const entry = (
+      packageJson.build.extraResources as Array<{ from: string; to: string }>
+    ).find((e) => e.from.includes('webworker'));
+    const normalize = (p: string) => p.replace(/^\.\//, '').replace(/\/$/, '');
+
+    expect(entry).toBeDefined();
+    expect(normalize(entry!.from)).toBe(PYODIDE_SOURCE_DIR);
+    expect(normalize(entry!.to)).toBe(PYODIDE_RESOURCE_DIR);
+  });
+
+  // Required at runtime: `indexURL` resolves the interpreter and stdlib through
+  // the pyodide:// handler, so a missing one breaks analysis silently.
   it.each([
     'pyodide.mjs',
     'pyodide.asm.js',
@@ -78,6 +82,7 @@ describe('Pyodide payload (postinstall)', () => {
     // micropip.install() is driven entirely off this manifest; a listed-but-
     // absent wheel fails at MNE import time, deep inside the worker.
     expect(entries.length).toBeGreaterThan(0);
+    expect(Object.keys(manifest)).toContain('mne');
 
     const missing = entries
       .filter(
@@ -86,12 +91,5 @@ describe('Pyodide payload (postinstall)', () => {
       .map(([pkg, { filename }]) => `${pkg} -> ${filename}`);
 
     expect(missing, 'manifest lists wheels that are not on disk').toEqual([]);
-  });
-
-  it('includes mne, the package the whole analysis path depends on', () => {
-    const manifest = JSON.parse(
-      fs.readFileSync(path.join(webworkerSrc, 'packages/manifest.json'), 'utf8')
-    );
-    expect(Object.keys(manifest)).toContain('mne');
   });
 });

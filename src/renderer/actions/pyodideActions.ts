@@ -8,18 +8,14 @@ export interface EpochArraysMeta {
   n_channels: number;
   n_times: number;
   ch_names: string[];
-  sfreq: number;
   times: number[];
   event_codes: number[];
-  drop_log: string[][];
 }
 
 // Auto-flag: a single artifact suggestion returned by Python's
 // suggest_rejections(epochs, threshold_uv) — one epoch/channel over threshold.
 export interface SuggestedRejection {
   index: number;
-  channel: string;
-  peak_uv: number;
   reason: string;
 }
 

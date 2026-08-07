@@ -25,6 +25,10 @@ import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
 import { FILE_TYPES } from '../renderer/constants/constants';
+import {
+  PYODIDE_SOURCE_DIR,
+  PYODIDE_RESOURCE_DIR,
+} from '../shared/pyodideAssets';
 import { lslOutlets } from './lsl/outlets';
 import { lslInlets } from './lsl/inlets';
 import { isLSLAvailable } from './lsl/native';
@@ -739,11 +743,9 @@ app.on('before-quit', () => {
 app.whenReady().then(async () => {
   // Serve pyodide:// assets (whl files, manifest.json, etc.) directly from the
   // filesystem via Electron's protocol API — no network socket required.
-  // In dev:  files are in src/renderer/utils/webworker/src/
-  // In prod: files are copied to resources/pyodide/ by extraResources (package.json)
   const pyodideRoot = is.dev
-    ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
-    : path.join(process.resourcesPath, 'pyodide');
+    ? path.join(app.getAppPath(), PYODIDE_SOURCE_DIR)
+    : path.join(process.resourcesPath, PYODIDE_RESOURCE_DIR);
 
   protocol.handle('pyodide', (request) => {
     const { pathname } = new URL(request.url);

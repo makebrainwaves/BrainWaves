@@ -4,16 +4,9 @@ import { Link } from 'react-router-dom';
 import { isNil, isString, memoize } from 'lodash';
 import { Button } from '../ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '../ui/dialog';
-import {
   EXPERIMENTS,
   DEVICES,
-  getPtpThresholdPreset,
+  PTP_THRESHOLD,
 } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
@@ -73,7 +66,6 @@ interface State {
   // Whether the auto-flag threshold settings panel is open.
   showAutoFlagSettings: boolean;
   // Whether the "too many bad channels" warning dialog is open.
-  showChannelWarning: boolean;
 }
 
 export default class Clean extends Component<Props, State> {
@@ -90,9 +82,8 @@ export default class Clean extends Component<Props, State> {
       isSidebarVisible: false,
       rejectedEpochs: new Set(),
       badChannels: new Set(),
-      autoFlagThreshold: getPtpThresholdPreset(props.deviceType).default,
+      autoFlagThreshold: PTP_THRESHOLD.default,
       showAutoFlagSettings: false,
-      showChannelWarning: false,
     };
     this.handleRecordingChange = this.handleRecordingChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
@@ -183,23 +174,26 @@ export default class Clean extends Component<Props, State> {
   }
 
   handleToggleChannel(name: string) {
-    this.setState((prev) => {
-      const next = new Set(prev.badChannels);
-      const adding = !next.has(name);
-      if (adding) {
-        next.add(name);
-      } else {
-        next.delete(name);
-      }
-      const nCh = this.props.epochArrays?.meta.n_channels ?? 0;
-      // Dropping >1 of a 4-channel (Muse) recording loses a lot of signal —
-      // warn (informational; they can still proceed).
-      const warn = adding && next.size > 1 && nCh === 4;
-      return {
-        badChannels: next,
-        showChannelWarning: warn || prev.showChannelWarning,
-      };
-    });
+    const next = new Set(this.state.badChannels);
+    const adding = !next.has(name);
+    if (adding) {
+      next.add(name);
+    } else {
+      next.delete(name);
+    }
+    this.setState({ badChannels: next });
+
+    // Dropping >1 of a 4-channel (Muse) recording loses a lot of signal —
+    // informational only; they can still proceed.
+    if (adding && next.size > 1 && this.props.epochArrays?.meta.n_channels === 4) {
+      window.electronAPI.showMessageBox({
+        buttons: ['Got it'],
+        message:
+          "You've marked more than one bad channel on a 4-channel recording. " +
+          'That removes a big chunk of your data — if the signal is really this ' +
+          'noisy, consider collecting another dataset.',
+      });
+    }
   }
 
   handleAutoFlag() {
@@ -325,7 +319,6 @@ export default class Clean extends Component<Props, State> {
 
   renderReview(
     codeToLabel: Record<number, string>,
-    showAutoFlag: boolean,
     suggestedRejections: SuggestedRejection[]
   ) {
     const hasEpochs = !isNil(this.props.epochArrays);
@@ -354,69 +347,60 @@ export default class Clean extends Component<Props, State> {
           >
             Clean Data
           </Button>
-          {showAutoFlag && (
-            <>
-              <Button
-                variant="secondary"
-                disabled={isNil(this.props.epochsInfo)}
-                onClick={this.handleAutoFlag}
-              >
-                Auto-flag artifacts
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Auto-flag settings"
-                onClick={() =>
-                  this.setState((prev) => ({
-                    showAutoFlagSettings: !prev.showAutoFlagSettings,
-                  }))
-                }
-              >
-                ⚙︎
-              </Button>
-            </>
-          )}
+          <Button
+            variant="secondary"
+            disabled={isNil(this.props.epochsInfo)}
+            onClick={this.handleAutoFlag}
+          >
+            Auto-flag artifacts
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Auto-flag settings"
+            onClick={() =>
+              this.setState((prev) => ({
+                showAutoFlagSettings: !prev.showAutoFlagSettings,
+              }))
+            }
+          >
+            ⚙︎
+          </Button>
           <div className="ml-auto">{this.renderAnalyzeButton()}</div>
         </div>
 
-        {showAutoFlag &&
-          this.state.showAutoFlagSettings &&
-          (() => {
-            const preset = getPtpThresholdPreset(this.props.deviceType);
-            return (
-              <div className="mb-3 text-left">
-                <label
-                  className="text-sm font-medium block"
-                  htmlFor="autoflag-sensitivity"
-                >
-                  Auto-flag threshold
-                </label>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-gray-500">More flags</span>
-                  <input
-                    id="autoflag-sensitivity"
-                    type="range"
-                    min={preset.min}
-                    max={preset.max}
-                    step={preset.step}
-                    value={this.state.autoFlagThreshold}
-                    aria-valuetext={`${this.state.autoFlagThreshold} µV peak-to-peak`}
-                    onChange={this.handleThresholdChange}
-                    className="flex-1"
-                  />
-                  <span className="text-xs text-gray-500">Fewer flags</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Flag epochs whose peak-to-peak amplitude exceeds{' '}
-                  <span className="font-medium">
-                    {this.state.autoFlagThreshold} µV
-                  </span>
-                  .
-                </p>
-              </div>
-            );
-          })()}
+        {this.state.showAutoFlagSettings && (
+          <div className="mb-3 text-left">
+            <label
+              className="text-sm font-medium block"
+              htmlFor="autoflag-sensitivity"
+            >
+              Auto-flag threshold
+            </label>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-500">More flags</span>
+              <input
+                id="autoflag-sensitivity"
+                type="range"
+                min={PTP_THRESHOLD.min}
+                max={PTP_THRESHOLD.max}
+                step={PTP_THRESHOLD.step}
+                value={this.state.autoFlagThreshold}
+                aria-valuetext={`${this.state.autoFlagThreshold} µV peak-to-peak`}
+                onChange={this.handleThresholdChange}
+                className="flex-1"
+              />
+              <span className="text-xs text-gray-500">Fewer flags</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Flag epochs whose peak-to-peak amplitude exceeds{' '}
+              <span className="font-medium">
+                {this.state.autoFlagThreshold} µV
+              </span>
+              .
+            </p>
+          </div>
+        )}
         {suggestedRejections.length > 0 && (
           <div className="mb-3 text-left text-sm text-brand">
             <p className="font-medium">
@@ -468,7 +452,6 @@ export default class Clean extends Component<Props, State> {
     });
 
     const codeToLabel = codeToLabelFor(this.props.params?.stimuli);
-    const showAutoFlag = !this.props.params?.hideAutoFlagEpochs;
     const { suggestedRejections } = this.props;
 
     return (
@@ -481,31 +464,8 @@ export default class Clean extends Component<Props, State> {
         <div className="flex-1 p-[3%] overflow-y-auto">
           {this.state.view === 'select'
             ? this.renderSelect(filteredFilePaths)
-            : this.renderReview(codeToLabel, showAutoFlag, suggestedRejections)}
+            : this.renderReview(codeToLabel, suggestedRejections)}
         </div>
-        <Dialog
-          open={this.state.showChannelWarning}
-          onOpenChange={(o) => this.setState({ showChannelWarning: o })}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>That&apos;s a lot of channels to drop</DialogTitle>
-              <DialogDescription>
-                You&apos;ve marked more than one bad channel on a 4-channel
-                recording. That removes a big chunk of your data — if the signal
-                is really this noisy, consider collecting another dataset.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="default"
-                onClick={() => this.setState({ showChannelWarning: false })}
-              >
-                Got it
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     );
   }

@@ -27,10 +27,8 @@ function makeEpochArrays(): { buffer: ArrayBuffer; meta: EpochArraysMeta } {
     n_channels: nChannels,
     n_times: nTimes,
     ch_names: ['Fp1', 'Fp2'],
-    sfreq: 256,
     times: [-0.1, 0, 0.1, 0.2],
     event_codes: [1, 2, 1],
-    drop_log: [[], [], []],
   };
   return { buffer: data.buffer, meta };
 }

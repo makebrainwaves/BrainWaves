@@ -9,30 +9,18 @@ export enum EXPERIMENTS {
   // SSVEP = 'Steady-state Visual Evoked Potential',
 }
 
-export const DEFAULT_PTP_THRESHOLD_UV = 100;
-
 /**
  * Slider bounds for the Clean auto-flag peak-to-peak threshold, in microvolts.
  * Students set sensitivity on a slider instead of typing a raw µV number. The
  * range is deliberately generous around real Muse ptp (tens of µV; artifacts
- * well over 100). Per-device tuning plugs in via getPtpThresholdPreset — today
- * every device shares one validated range (no fabricated per-hardware ceilings).
+ * well over 100), and is shared by every device.
  */
-export interface PtpThresholdPreset {
-  min: number;
-  max: number;
-  step: number;
-  default: number;
-}
-
-export const getPtpThresholdPreset = (
-  _device: DEVICES
-): PtpThresholdPreset => ({
+export const PTP_THRESHOLD = {
   min: 20,
   max: 400,
   step: 10,
-  default: DEFAULT_PTP_THRESHOLD_UV,
-});
+  default: 100,
+};
 
 export const SCREENS = {
   HOME: { route: '/', title: 'HOME', order: 0 },

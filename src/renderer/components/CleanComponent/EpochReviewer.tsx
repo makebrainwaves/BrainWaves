@@ -1,17 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EpochArraysMeta } from '../../actions';
 import { Button } from '../ui/button';
 import { cssColorForIndex } from '../../utils/eeg/conditionPalette';
 import {
-  conditionIndexForCode,
   downsampleMinMax,
   epochChannelSeries,
 } from './epochArrays';
 
 // Interactive epoch reviewer: epochs run across (x), channels stacked (y).
 // Click an epoch column to reject it; click a channel label to flag it bad
-// (its lane washes red across all epochs). Prev/Next paginate, amp +/- scales
-// traces. Canvas 2D for traces, a DOM overlay for labels/click targets.
+// (its lane washes red across all epochs). Prev/Next paginate; each channel
+// lane autoscales. Canvas 2D for traces, a DOM overlay for labels/click targets.
 
 interface Props {
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
@@ -39,11 +38,6 @@ const LABEL_GUTTER = 64;
 // Gutter reserved at the bottom for epoch index labels (logical px).
 const BOTTOM_GUTTER = 20;
 
-// Amplitude gain bounds and step (buttons multiply/divide by GAIN_STEP).
-const GAIN_STEP = 1.5;
-const GAIN_MIN = 0.1;
-const GAIN_MAX = 20;
-
 const REJECTED_TRACE_COLOR = 'rgba(120, 120, 120, 0.5)';
 const REJECTED_FILL_COLOR = 'rgba(120, 120, 120, 0.15)';
 const BAD_CHANNEL_FILL_COLOR = 'rgba(200, 60, 60, 0.10)';
@@ -60,7 +54,6 @@ export default function EpochReviewer({
   // First epoch of the current page (absolute index).
   const [startEpoch, setStartEpoch] = useState(0);
   // Amplitude magnification applied around each lane's mean.
-  const [gain, setGain] = useState(1);
 
   const meta = epochArrays?.meta ?? null;
 
@@ -73,6 +66,11 @@ export default function EpochReviewer({
   const visibleCount = meta
     ? Math.min(perPage, meta.n_epochs - clampedStart)
     : 0;
+  // Deterministic per-condition coloring: position in the sorted unique codes.
+  const uniqueSortedCodes = useMemo(
+    () => [...new Set(meta?.event_codes ?? [])].sort((a, b) => a - b),
+    [meta]
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -100,13 +98,9 @@ export default function EpochReviewer({
     const plotHeight = CANVAS_HEIGHT - BOTTOM_GUTTER;
     const colWidth = plotWidth / perPage;
     const laneHeight = plotHeight / n_channels;
-    const count = Math.min(perPage, n_epochs - clampedStart);
-
-    // Deterministic per-condition coloring: position in the sorted unique codes.
-    const uniqueSortedCodes = [...new Set(event_codes)].sort((a, b) => a - b);
 
     // Translucent grey wash over rejected columns (drawn first, under traces).
-    for (let c = 0; c < count; c += 1) {
+    for (let c = 0; c < visibleCount; c += 1) {
       const absolute = clampedStart + c;
       if (rejected.has(absolute)) {
         ctx.fillStyle = REJECTED_FILL_COLOR;
@@ -151,14 +145,14 @@ export default function EpochReviewer({
 
     const cols = Math.max(1, Math.floor(colWidth));
 
-    for (let c = 0; c < count; c += 1) {
+    for (let c = 0; c < visibleCount; c += 1) {
       const absolute = clampedStart + c;
       const colLeft = LABEL_GUTTER + c * colWidth;
       const isRejected = rejected.has(absolute);
       const code = event_codes[absolute];
       const traceColor = isRejected
         ? REJECTED_TRACE_COLOR
-        : cssColorForIndex(conditionIndexForCode(code, uniqueSortedCodes));
+        : cssColorForIndex(Math.max(0, uniqueSortedCodes.indexOf(code)));
       ctx.strokeStyle = traceColor;
       ctx.lineWidth = 1;
 
@@ -167,8 +161,8 @@ export default function EpochReviewer({
         const laneCenter = laneTop + laneHeight / 2;
         const series = epochChannelSeries(buffer, meta, absolute, ch);
 
-        // Per-lane scaling centered on the trace's mean: at gain=1 the full
-        // [min, max] range fills the lane; gain>1 magnifies the deviation from
+        // Per-lane autoscaling centered on the trace's mean: the full
+        // [min, max] range fills the lane, i.e. deviation from
         // the mean. y is clamped to the lane so magnified traces don't bleed
         // into neighboring channels.
         let min = Infinity;
@@ -188,7 +182,7 @@ export default function EpochReviewer({
         const pad = laneHeight * 0.1;
         const usableHeight = laneHeight - 2 * pad;
         const range = max - min || 1;
-        const scale = (usableHeight / range) * gain;
+        const scale = usableHeight / range;
         const laneLo = laneTop + pad;
         const laneHi = laneTop + laneHeight - pad;
         const toY = (v: number): number => {
@@ -225,25 +219,8 @@ export default function EpochReviewer({
           ctx.stroke();
         }
       }
-
-      // Bold ✕ over rejected columns so the rejection reads at a glance.
-      if (isRejected) {
-        ctx.strokeStyle = 'rgba(90, 90, 90, 0.8)';
-        ctx.lineWidth = 2;
-        const inset = Math.min(colWidth, plotHeight) * 0.18;
-        const x0 = colLeft + inset;
-        const x1 = colLeft + colWidth - inset;
-        const y0 = inset;
-        const y1 = plotHeight - inset;
-        ctx.beginPath();
-        ctx.moveTo(x0, y0);
-        ctx.lineTo(x1, y1);
-        ctx.moveTo(x1, y0);
-        ctx.lineTo(x0, y1);
-        ctx.stroke();
-      }
     }
-  }, [epochArrays, meta, rejected, clampedStart, perPage, gain, badChannels]);
+  }, [epochArrays, meta, rejected, clampedStart, perPage, badChannels, visibleCount, uniqueSortedCodes]);
 
   // Empty state — friendly, brand-styled, student-facing.
   if (!epochArrays || !meta || meta.n_epochs === 0) {
@@ -259,10 +236,6 @@ export default function EpochReviewer({
   const plotHeight = CANVAS_HEIGHT - BOTTOM_GUTTER;
   const firstShown = clampedStart + 1;
   const lastShown = clampedStart + visibleCount;
-
-  const uniqueSortedCodes = [...new Set(meta.event_codes)].sort(
-    (a, b) => a - b
-  );
 
   return (
     <div className="text-left">
@@ -287,25 +260,6 @@ export default function EpochReviewer({
           >
             Next ▶
           </Button>
-          <span className="mx-1 h-4 w-px bg-gray-300" />
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label="Decrease amplitude"
-            disabled={gain <= GAIN_MIN}
-            onClick={() => setGain((g) => Math.max(GAIN_MIN, g / GAIN_STEP))}
-          >
-            amp －
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label="Increase amplitude"
-            disabled={gain >= GAIN_MAX}
-            onClick={() => setGain((g) => Math.min(GAIN_MAX, g * GAIN_STEP))}
-          >
-            amp ＋
-          </Button>
         </div>
       </div>
 
@@ -324,10 +278,9 @@ export default function EpochReviewer({
         {meta.ch_names.map((name, ch) => {
           const isBad = badChannels.has(name);
           return (
-            <div
+            <button
               key={name}
-              role="button"
-              tabIndex={0}
+              type="button"
               aria-pressed={isBad}
               aria-label={`${isBad ? 'Unflag' : 'Flag'} channel ${name} as bad`}
               title={`${isBad ? 'Unflag' : 'Flag'} channel ${name} as bad`}
@@ -342,15 +295,9 @@ export default function EpochReviewer({
                 lineHeight: `${laneHeight}px`,
               }}
               onClick={() => onToggleChannel(name)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onToggleChannel(name);
-                }
-              }}
             >
               {name}
-            </div>
+            </button>
           );
         })}
 
@@ -360,10 +307,9 @@ export default function EpochReviewer({
           const absolute = clampedStart + c;
           const isRejected = rejected.has(absolute);
           return (
-            <div
+            <button
               key={absolute}
-              role="button"
-              tabIndex={0}
+              type="button"
               aria-pressed={isRejected}
               aria-label={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
               title={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
@@ -375,12 +321,6 @@ export default function EpochReviewer({
                 height: plotHeight,
               }}
               onClick={() => onToggleEpoch(absolute)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onToggleEpoch(absolute);
-                }
-              }}
             />
           );
         })}
@@ -418,7 +358,7 @@ export default function EpochReviewer({
                 className="inline-block h-3 w-3 rounded-sm"
                 style={{
                   backgroundColor: cssColorForIndex(
-                    conditionIndexForCode(code, uniqueSortedCodes)
+                    Math.max(0, uniqueSortedCodes.indexOf(code))
                   ),
                 }}
               />

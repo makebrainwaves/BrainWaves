@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EpochArraysMeta } from '../../actions';
 import { cssColorForIndex } from '../../utils/eeg/conditionPalette';
-import { conditionIndexForCode, meanTrace } from './epochArrays';
+import { meanTrace } from './epochArrays';
 
 // ---------------------------------------------------------------------------
 // Live ERP pane — the "watch it clean up" payoff. Averages the INCLUDED epochs
@@ -47,21 +47,18 @@ export default function LiveErpPane({
 
   // Included epoch indices grouped by condition code. Recomputed whenever the
   // dataset or the rejected set changes.
-  const { groups, uniqueSortedCodes, includedCount } = useMemo(() => {
+  const { groups, uniqueSortedCodes } = useMemo(() => {
     if (!meta || meta.n_epochs === 0) {
       return {
         groups: new Map<number, number[]>(),
         uniqueSortedCodes: [] as number[],
-        includedCount: 0,
       };
     }
     const byCode = new Map<number, number[]>();
-    let included = 0;
     for (let i = 0; i < meta.n_epochs; i += 1) {
       if (rejected.has(i)) {
         continue;
       }
-      included += 1;
       const code = meta.event_codes[i];
       const list = byCode.get(code);
       if (list) {
@@ -73,9 +70,10 @@ export default function LiveErpPane({
     return {
       groups: byCode,
       uniqueSortedCodes: [...new Set(meta.event_codes)].sort((a, b) => a - b),
-      includedCount: included,
     };
   }, [meta, rejected]);
+
+  const includedCount = [...groups.values()].reduce((n, g) => n + g.length, 0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -154,13 +152,7 @@ export default function LiveErpPane({
 
     // Vertical stimulus-onset line at t = 0 (where times crosses zero).
     if (times.length === n_times && n_times > 1) {
-      let zeroIdx = -1;
-      for (let i = 0; i < times.length; i += 1) {
-        if (times[i] >= 0) {
-          zeroIdx = i;
-          break;
-        }
-      }
+      const zeroIdx = times.findIndex((t) => t >= 0);
       if (zeroIdx >= 0) {
         const x = Math.round(toX(zeroIdx)) + 0.5;
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
@@ -177,7 +169,7 @@ export default function LiveErpPane({
     ctx.lineWidth = 2;
     for (const { code, series } of traces) {
       ctx.strokeStyle = cssColorForIndex(
-        conditionIndexForCode(code, uniqueSortedCodes)
+        Math.max(0, uniqueSortedCodes.indexOf(code))
       );
       ctx.beginPath();
       for (let i = 0; i < series.length; i += 1) {
@@ -248,7 +240,7 @@ export default function LiveErpPane({
                 className="inline-block h-3 w-3 rounded-sm"
                 style={{
                   backgroundColor: cssColorForIndex(
-                    conditionIndexForCode(code, uniqueSortedCodes)
+                    Math.max(0, uniqueSortedCodes.indexOf(code))
                   ),
                 }}
               />

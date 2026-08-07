@@ -14,16 +14,6 @@ from io import StringIO
 # sns.set_context('talk')
 # sns.set_style('white')
 
-# Condition color fallback used only when the caller does NOT inject a palette
-# (in-app, the worker always injects it from the canonical source
-# src/renderer/utils/eeg/conditionPalette.ts — keep these values in sync with
-# that file). RGB components are 0..1 floats (matplotlib convention).
-_DEFAULT_CONDITION_PALETTE = [
-    (0.86, 0.37, 0.34),
-    (0.34, 0.86, 0.37),
-    (0.37, 0.34, 0.86),
-    (0.86, 0.72, 0.34),
-]
 
 
 def load_data(sfreq=128., replace_ch_names=None, csv_strings=None):
@@ -148,19 +138,15 @@ def load_clean_epochs(file_paths):
     """Load cleaned .fif epoch files from MEMFS paths into one Epochs object.
 
     Analyze stages host .fif bytes at /tmp/... in the worker MEMFS before calling
-    this. A single file is returned as-is; multiple recordings are concatenated.
+    this.
     """
-    epochs_list = [
-        read_epochs(path, preload=True, verbose=False) for path in file_paths
-    ]
-    if len(epochs_list) == 1:
-        return epochs_list[0]
-    return concatenate_epochs(epochs_list, verbose=False)
+    return concatenate_epochs(
+        [read_epochs(path, preload=True, verbose=False) for path in file_paths],
+        verbose=False,
+    )
 
 
-def plot_topo(epochs, conditions=OrderedDict(), palette=None):
-    if palette is None:
-        palette = _DEFAULT_CONDITION_PALETTE
+def plot_topo(epochs, conditions, palette):
     evokeds = [epochs[name].average() for name in (conditions)]
 
     evoked_topo = viz.plot_evoked_topo(
@@ -181,8 +167,8 @@ def plot_topo(epochs, conditions=OrderedDict(), palette=None):
     return evoked_topo
 
 
-def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
-                    n_boot=1000, title='', palette=None, diff_waveform=(4, 3)):
+def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
+                    ci=97.5, n_boot=1000, title='', diff_waveform=(4, 3)):
     """Plot Averaged Epochs with ERP conditions.
 
     Parameters
@@ -227,8 +213,6 @@ def plot_conditions(epochs, ch_ind=0, conditions=OrderedDict(), ci=97.5,
     if isinstance(conditions, dict):
         conditions = OrderedDict(conditions)
 
-    if palette is None:
-        palette = _DEFAULT_CONDITION_PALETTE
 
     # get_data() is volts (load_data scales eeg uV -> V); the y-axis is labeled
     # uV, so convert back to microvolts for display.
@@ -323,10 +307,8 @@ def get_epochs_arrays(epochs, out_path):
         "n_channels": int(n_channels),
         "n_times": int(n_times),
         "ch_names": ch_names,
-        "sfreq": float(epochs.info["sfreq"]),
         "times": epochs.times.tolist(),
         "event_codes": epochs.events[:, -1].tolist(),
-        "drop_log": [list(x) for x in epochs.drop_log],
     }
 
 
@@ -366,11 +348,10 @@ def suggest_rejections(epochs, threshold_uv):
     pre-marks these but the user can override; the real drop goes through
     apply_rejection so the saved data stays MNE-exact.
 
-    Returns list[dict] with keys: index (int), channel (str), peak_uv (float,
-    rounded 1dp), reason (str). MNE data is in volts; threshold_uv is microvolts.
+    Returns list[dict] with keys: index (int, 0-based into the CURRENT epochs,
+    same order get_epochs_arrays produced) and reason (str). MNE data is in
+    volts; threshold_uv is microvolts.
     """
-    # NOTE: peak_uv is in microvolts; index is 0-based into the CURRENT epochs
-    # (same order as get_epochs_arrays produced).
     picks = pick_types(epochs.info, eeg=True)
     data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times), volts
     ch_names = [epochs.ch_names[i] for i in picks]
@@ -381,11 +362,8 @@ def suggest_rejections(epochs, threshold_uv):
         worst = int(ptp[e].argmax())
         peak_v = float(ptp[e, worst])
         if peak_v > thresh_v:
-            peak_uv = round(peak_v * 1e6, 1)
             suggestions.append({
                 "index": int(e),
-                "channel": ch_names[worst],
-                "peak_uv": peak_uv,
                 "reason": "peak-to-peak {}µV on {}".format(
                     round(peak_v * 1e6), ch_names[worst]
                 ),
