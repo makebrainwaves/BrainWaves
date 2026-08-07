@@ -1,6 +1,10 @@
 # Device Connectivity
 
-How BrainWaves discovers and connects to EEG devices (currently: Muse only).
+How BrainWaves discovers and connects to EEG devices. Supported devices are Muse
+and Neurosity (first-party drivers) plus external LSL inlet streams; the flow
+diagrams below trace the **Muse** path specifically, since it is the most involved
+(Web Bluetooth device selection). The driver interface itself is device-agnostic —
+see the `redux-observable-epochs` skill for the `EEGDriver` contract.
 
 ---
 
@@ -12,7 +16,7 @@ Device connectivity spans three layers:
 |---|---|---|
 | **UI** | `CollectComponent/`, `EEGExplorationComponent` | Trigger search, display state, handle user selection |
 | **Epics** | `epics/deviceEpics.ts` | Orchestrate async device lifecycle via RxJS |
-| **Driver** | `utils/eeg/muse.ts` | Web Bluetooth API calls via `muse-js` |
+| **Driver** | `utils/eeg/index.ts` (registry) → `muse.ts`, `neurosity.ts`, `lslInlet.ts` | Per-device acquisition behind the shared `EEGDriver` interface (`utils/eeg/types.ts`) |
 
 All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to dispatched actions and fire new actions as side effects.
 

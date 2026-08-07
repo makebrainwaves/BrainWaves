@@ -11,6 +11,7 @@ import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
+import { HelpSidebar, HelpButton } from './CollectComponent/HelpSidebar';
 import { DeviceActions } from '../actions';
 import { Device, DeviceInfo, SignalQualityData } from '../constants/interfaces';
 import type { DiscoveredStream } from '../../shared/lslTypes';
@@ -28,6 +29,7 @@ interface Props {
 
 interface State {
   isConnectModalOpen: boolean;
+  isHelpVisible: boolean;
 }
 
 export default class Home extends Component<Props, State> {
@@ -35,13 +37,14 @@ export default class Home extends Component<Props, State> {
     super(props);
     this.state = {
       isConnectModalOpen: false,
+      isHelpVisible: false,
     };
     this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
     this.handleStartConnect = this.handleStartConnect.bind(this);
     this.handleStopConnect = this.handleStopConnect.bind(this);
   }
 
-  componentDidUpdate = (prevProps: Props, prevState: State) => {
+  componentDidUpdate = (_prevProps: Props, prevState: State) => {
     if (
       this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
       prevState.isConnectModalOpen
@@ -119,6 +122,19 @@ export default class Home extends Component<Props, State> {
               DeviceActions={this.props.DeviceActions}
               availableDevices={this.props.availableDevices}
               availableLSLStreams={this.props.availableLSLStreams}
+            />
+          </div>
+        )}
+        {this.state.isHelpVisible ? (
+          <div className="fixed top-0 right-0 z-50 h-full w-80 shadow-lg">
+            <HelpSidebar
+              handleClose={() => this.setState({ isHelpVisible: false })}
+            />
+          </div>
+        ) : (
+          <div className="fixed bottom-6 right-6 z-40">
+            <HelpButton
+              onClick={() => this.setState({ isHelpVisible: true })}
             />
           </div>
         )}

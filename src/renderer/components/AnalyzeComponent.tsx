@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
@@ -7,6 +8,7 @@ import {
   DEVICES,
   MUSE_CHANNELS,
   EXPERIMENTS,
+  SCREENS,
 } from '../constants/constants';
 import {
   readWorkspaceCleanedEEGData,
@@ -376,22 +378,36 @@ export default class Analyze extends Component<Props, State> {
                 EEG differs between electrodes
               </p>
               <h4>Select Clean Datasets</h4>
-              <select
-                multiple
-                className="w-full border border-gray-300 rounded p-1"
-                value={this.state.selectedFilePaths}
-                onChange={this.handleDatasetChange}
-              >
-                {this.state.eegFilePaths.map((eegFilePath) => (
-                  <option
-                    key={eegFilePath.key}
-                    value={String(eegFilePath.value)}
+              {this.state.eegFilePaths.some((f) => f.key !== '') ? (
+                <>
+                  <select
+                    multiple
+                    className="w-full border border-gray-300 rounded p-1"
+                    value={this.state.selectedFilePaths}
+                    onChange={this.handleDatasetChange}
                   >
-                    {eegFilePath.text}
-                  </option>
-                ))}
-              </select>
-              {this.renderEpochLabels()}
+                    {this.state.eegFilePaths.map((eegFilePath) => (
+                      <option
+                        key={eegFilePath.key}
+                        value={String(eegFilePath.value)}
+                      >
+                        {eegFilePath.text}
+                      </option>
+                    ))}
+                  </select>
+                  {this.renderEpochLabels()}
+                </>
+              ) : (
+                <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
+                  <p className="mb-2">
+                    No cleaned data yet — clean a recording first, then it&apos;ll
+                    show up here to analyze.
+                  </p>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="w-2/3 p-2">
               <PyodidePlotWidget

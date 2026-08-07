@@ -1,0 +1,376 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { EpochArraysMeta } from '../../actions';
+import { Button } from '../ui/button';
+import { cssColorForIndex } from '../../utils/eeg/conditionPalette';
+import {
+  downsampleMinMax,
+  epochChannelSeries,
+} from './epochArrays';
+
+// Interactive epoch reviewer: epochs run across (x), channels stacked (y).
+// Click an epoch column to reject it; click a channel label to flag it bad
+// (its lane washes red across all epochs). Prev/Next paginate; each channel
+// lane autoscales. Canvas 2D for traces, a DOM overlay for labels/click targets.
+
+interface Props {
+  epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
+  // ABSOLUTE epoch indices the student has marked for rejection.
+  rejected: Set<number>;
+  // Toggle a single ABSOLUTE epoch index in/out of the rejected set.
+  onToggleEpoch: (index: number) => void;
+  // Channel names the student has flagged as "bad" (controlled by the parent).
+  badChannels: Set<string>;
+  // Toggle a single channel name in/out of the bad-channel set.
+  onToggleChannel: (name: string) => void;
+  // Optional map from numeric event code to a human-readable condition label.
+  codeToLabel?: Record<number, string>;
+}
+
+// Logical canvas size (scaled up for devicePixelRatio at draw time).
+const CANVAS_WIDTH = 640;
+const CANVAS_HEIGHT = 320;
+
+// How many epochs we draw per page. Prev/Next pages by this amount.
+const VISIBLE_EPOCHS = 8;
+
+// Gutter reserved on the left for channel labels (logical px).
+const LABEL_GUTTER = 64;
+// Gutter reserved at the bottom for epoch index labels (logical px).
+const BOTTOM_GUTTER = 20;
+
+const REJECTED_TRACE_COLOR = 'rgba(120, 120, 120, 0.5)';
+const REJECTED_FILL_COLOR = 'rgba(120, 120, 120, 0.15)';
+const BAD_CHANNEL_FILL_COLOR = 'rgba(200, 60, 60, 0.10)';
+
+export default function EpochReviewer({
+  epochArrays,
+  rejected,
+  onToggleEpoch,
+  badChannels,
+  onToggleChannel,
+  codeToLabel,
+}: Props): JSX.Element {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // First epoch of the current page (absolute index).
+  const [startEpoch, setStartEpoch] = useState(0);
+
+  const meta = epochArrays?.meta ?? null;
+
+  // Page size is constant so column widths stay stable across pages.
+  const perPage = meta
+    ? Math.min(meta.n_epochs, VISIBLE_EPOCHS)
+    : VISIBLE_EPOCHS;
+  const maxStart = meta ? Math.max(0, meta.n_epochs - perPage) : 0;
+  const clampedStart = Math.min(startEpoch, maxStart);
+  const visibleCount = meta
+    ? Math.min(perPage, meta.n_epochs - clampedStart)
+    : 0;
+  // Deterministic per-condition coloring: position in the sorted unique codes.
+  const uniqueSortedCodes = useMemo(
+    () => [...new Set(meta?.event_codes ?? [])].sort((a, b) => a - b),
+    [meta]
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !epochArrays || !meta || meta.n_epochs === 0) {
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    // Scale the backing store for crisp lines on HiDPI displays, but keep
+    // drawing in logical coordinates.
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = CANVAS_WIDTH * dpr;
+    canvas.height = CANVAS_HEIGHT * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    const { buffer } = epochArrays;
+    const { n_epochs, n_channels, n_times, event_codes, ch_names } = meta;
+
+    const plotWidth = CANVAS_WIDTH - LABEL_GUTTER;
+    const plotHeight = CANVAS_HEIGHT - BOTTOM_GUTTER;
+    const colWidth = plotWidth / perPage;
+    const laneHeight = plotHeight / n_channels;
+
+    // Translucent grey wash over rejected columns (drawn first, under traces).
+    for (let c = 0; c < visibleCount; c += 1) {
+      const absolute = clampedStart + c;
+      if (rejected.has(absolute)) {
+        ctx.fillStyle = REJECTED_FILL_COLOR;
+        ctx.fillRect(LABEL_GUTTER + c * colWidth, 0, colWidth, plotHeight);
+      }
+    }
+
+    // Translucent red wash over flagged bad-channel lanes — spans every epoch
+    // column (drawn under traces) so bad channels read at a glance.
+    for (let ch = 0; ch < n_channels; ch += 1) {
+      if (badChannels.has(ch_names[ch])) {
+        ctx.fillStyle = BAD_CHANNEL_FILL_COLOR;
+        ctx.fillRect(
+          LABEL_GUTTER,
+          ch * laneHeight,
+          CANVAS_WIDTH - LABEL_GUTTER,
+          laneHeight
+        );
+      }
+    }
+
+    // Faint lane dividers (channels).
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.lineWidth = 1;
+    for (let ch = 1; ch < n_channels; ch += 1) {
+      const y = Math.round(ch * laneHeight) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(LABEL_GUTTER, y);
+      ctx.lineTo(CANVAS_WIDTH, y);
+      ctx.stroke();
+    }
+
+    // Vertical dividers between epochs.
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+    for (let e = 0; e <= visibleCount; e += 1) {
+      const x = Math.round(LABEL_GUTTER + e * colWidth) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, plotHeight);
+      ctx.stroke();
+    }
+
+    const cols = Math.max(1, Math.floor(colWidth));
+
+    for (let c = 0; c < visibleCount; c += 1) {
+      const absolute = clampedStart + c;
+      const colLeft = LABEL_GUTTER + c * colWidth;
+      const isRejected = rejected.has(absolute);
+      const code = event_codes[absolute];
+      const traceColor = isRejected
+        ? REJECTED_TRACE_COLOR
+        : cssColorForIndex(Math.max(0, uniqueSortedCodes.indexOf(code)));
+      ctx.strokeStyle = traceColor;
+      ctx.lineWidth = 1;
+
+      for (let ch = 0; ch < n_channels; ch += 1) {
+        const laneTop = ch * laneHeight;
+        const laneCenter = laneTop + laneHeight / 2;
+        const series = epochChannelSeries(buffer, meta, absolute, ch);
+
+        // Per-lane autoscaling centered on the trace's mean: the full
+        // [min, max] range fills the lane, i.e. deviation from
+        // the mean. y is clamped to the lane so magnified traces don't bleed
+        // into neighboring channels.
+        let min = Infinity;
+        let max = -Infinity;
+        let sum = 0;
+        for (let i = 0; i < series.length; i += 1) {
+          const v = series[i];
+          if (v < min) {
+            min = v;
+          }
+          if (v > max) {
+            max = v;
+          }
+          sum += v;
+        }
+        const mean = series.length > 0 ? sum / series.length : 0;
+        const pad = laneHeight * 0.1;
+        const usableHeight = laneHeight - 2 * pad;
+        const range = max - min || 1;
+        const scale = usableHeight / range;
+        const laneLo = laneTop + pad;
+        const laneHi = laneTop + laneHeight - pad;
+        const toY = (v: number): number => {
+          const y = laneCenter - (v - mean) * scale;
+          return y < laneLo ? laneLo : y > laneHi ? laneHi : y;
+        };
+
+        if (n_times > cols) {
+          // More samples than pixels: draw a vertical min→max line per column
+          // so sharp transients survive downsampling.
+          const buckets = downsampleMinMax(series, cols);
+          ctx.beginPath();
+          for (let col = 0; col < buckets.length; col += 1) {
+            const x = colLeft + (col * colWidth) / buckets.length;
+            const [lo, hi] = buckets[col];
+            ctx.moveTo(x, toY(hi));
+            ctx.lineTo(x, toY(lo));
+          }
+          ctx.stroke();
+        } else {
+          // Fewer samples than pixels: a normal polyline reads best.
+          ctx.beginPath();
+          for (let i = 0; i < series.length; i += 1) {
+            const x =
+              colLeft +
+              (series.length <= 1 ? 0 : (i / (series.length - 1)) * colWidth);
+            const y = toY(series[i]);
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+        }
+      }
+    }
+  }, [epochArrays, meta, rejected, clampedStart, perPage, badChannels, visibleCount, uniqueSortedCodes]);
+
+  // Empty state — friendly, brand-styled, student-facing.
+  if (!epochArrays || !meta || meta.n_epochs === 0) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-brand/40 bg-white/50 p-4 text-center text-brand">
+        Load a dataset to see your epochs here 🧠
+      </div>
+    );
+  }
+
+  const laneHeight = (CANVAS_HEIGHT - BOTTOM_GUTTER) / meta.n_channels;
+  const colWidth = (CANVAS_WIDTH - LABEL_GUTTER) / perPage;
+  const plotHeight = CANVAS_HEIGHT - BOTTOM_GUTTER;
+  const firstShown = clampedStart + 1;
+  const lastShown = clampedStart + visibleCount;
+
+  return (
+    <div className="text-left">
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="text-brand">Epochs</h4>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={clampedStart <= 0}
+            onClick={() => setStartEpoch(Math.max(0, clampedStart - perPage))}
+          >
+            ◀ Prev
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={clampedStart >= maxStart}
+            onClick={() =>
+              setStartEpoch(Math.min(maxStart, clampedStart + perPage))
+            }
+          >
+            Next ▶
+          </Button>
+        </div>
+      </div>
+
+      <div
+        className="relative rounded-lg border border-gray-200 bg-white"
+        style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+      >
+        <canvas
+          ref={canvasRef}
+          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+        />
+
+        {/* Channel labels (left gutter) double as click-to-flag bad-channel
+            toggles. A flagged channel renders struck-through + red and its lane
+            is washed red across every epoch column (see canvas draw). */}
+        {meta.ch_names.map((name, ch) => {
+          const isBad = badChannels.has(name);
+          return (
+            <button
+              key={name}
+              type="button"
+              aria-pressed={isBad}
+              aria-label={`${isBad ? 'Unflag' : 'Flag'} channel ${name} as bad`}
+              title={`${isBad ? 'Unflag' : 'Flag'} channel ${name} as bad`}
+              className={`absolute cursor-pointer truncate pr-1 text-right text-[10px] ${
+                isBad ? 'text-red-500 line-through' : 'text-gray-500'
+              }`}
+              style={{
+                left: 0,
+                width: LABEL_GUTTER,
+                top: ch * laneHeight,
+                height: laneHeight,
+                lineHeight: `${laneHeight}px`,
+              }}
+              onClick={() => onToggleChannel(name)}
+            >
+              {name}
+            </button>
+          );
+        })}
+
+        {/* Transparent click targets — one per visible epoch column. Clicking
+            toggles that ABSOLUTE epoch index in/out of the rejected set. */}
+        {Array.from({ length: visibleCount }, (_, c) => {
+          const absolute = clampedStart + c;
+          const isRejected = rejected.has(absolute);
+          return (
+            <button
+              key={absolute}
+              type="button"
+              aria-pressed={isRejected}
+              aria-label={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
+              title={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
+              className="absolute cursor-pointer"
+              style={{
+                left: LABEL_GUTTER + c * colWidth,
+                width: colWidth,
+                top: 0,
+                height: plotHeight,
+              }}
+              onClick={() => onToggleEpoch(absolute)}
+            />
+          );
+        })}
+
+        {/* Epoch index labels (bottom gutter) — ABSOLUTE indices. */}
+        {Array.from({ length: visibleCount }, (_, c) => {
+          const absolute = clampedStart + c;
+          return (
+            <div
+              key={absolute}
+              className="absolute text-center text-[10px] text-gray-500"
+              style={{
+                left: LABEL_GUTTER + c * colWidth,
+                width: colWidth,
+                top: CANVAS_HEIGHT - BOTTOM_GUTTER,
+                height: BOTTOM_GUTTER,
+                lineHeight: `${BOTTOM_GUTTER}px`,
+              }}
+            >
+              {absolute}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Condition legend: one swatch + human-readable label per unique code. */}
+      {uniqueSortedCodes.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-3">
+          {uniqueSortedCodes.map((code) => (
+            <span
+              key={code}
+              className="flex items-center gap-1 text-xs text-gray-600"
+            >
+              <span
+                className="inline-block h-3 w-3 rounded-sm"
+                style={{
+                  backgroundColor: cssColorForIndex(
+                    Math.max(0, uniqueSortedCodes.indexOf(code))
+                  ),
+                }}
+              />
+              {codeToLabel?.[code] ?? `Condition ${code}`}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <p className="mt-1 text-xs text-gray-500">
+        showing {firstShown}–{lastShown} of {meta.n_epochs} epochs
+        {rejected.size > 0 && ` · ${rejected.size} marked for rejection`}
+      </p>
+    </div>
+  );
+}

@@ -9,6 +9,16 @@ Format: brief heading + explanation + (optional) relevant file paths.
 
 <!-- Add entries below this line -->
 
+## Comment style: keep them on definitions, not inside logic
+
+This repo prefers minimal comments. Write them on **function, prop, or data-structure
+definitions** (docstrings / JSDoc, a one-liner over a type field, an interface member) —
+they describe intent and behavior that outlives the implementation. Avoid comments
+*inside* function bodies that narrate the process step-by-step, restate the code, or
+tag "Phase N"/PR history; that knowledge belongs in the definition's summary, the
+relevant skill (e.g. the pyodide skill), or git history. A component's top-of-file
+comment should concisely state what it is and does — not a diagram of every branch.
+
 ## Markers: device-agnostic injection via the EEGDriver interface
 
 Marker injection used to be Muse-only and lived in the UI (`RunComponent.eventCallback`
@@ -173,8 +183,3 @@ Build note: with `module: ESNext` source but CommonJS main output, a guarded `re
 Experiments emit `this.data.correct_response` as a real boolean (`true`/`false`) and `response_given` as `'yes'`/`'no'` (see `src/renderer/utils/labjs/functions.ts`). But all consumers in `src/renderer/utils/behavior/compute.js` read data **after** it's been written to CSV and re-parsed, so every value is a **string**. That's why existing code gates on `row.correct_response === 'true'` and `row.response_given === 'yes'`, and parses numbers with `parseFloat`.
 
 Trap: a new metric written naively (`row.correct_response === true`, or arithmetic on an unparsed string) will silently return `false`/`0`/`NaN` for post-CSV data — and may *work* on pre-CSV in-memory data, so it passes a quick test and fails in production. Always compare against the string `'true'`/`'yes'` and `parseFloat` before doing math.
-
-## Pre-existing TypeScript errors (do not treat as regressions)
-
-- `src/renderer/epics/experimentEpics.ts` (lines 170, 205) — RxJS operator type mismatch
-- `src/renderer/routes.tsx` (lines 15-17) — Redux container component prop types

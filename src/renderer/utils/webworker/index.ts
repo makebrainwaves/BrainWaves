@@ -1,7 +1,7 @@
-import { formatFilePath } from './functions';
 import path from 'pathe';
 import patchesPy from './patches.py?raw';
 import utilsPy from './utils.py?raw';
+import { CONDITION_PALETTE_RGB } from '../eeg/conditionPalette';
 
 // ---------------------------------
 // This file contains the JS functions that allow the app to access python-wasm through pyodide
@@ -51,7 +51,7 @@ export const loadCleanedEpochs = (
   worker.postMessage({
     fsFiles,
     data: [
-      `clean_epochs = concatenate_epochs([read_epochs(file) for file in ${JSON.stringify(memfsPaths)}])`,
+      `clean_epochs = load_clean_epochs(${JSON.stringify(memfsPaths)})`,
       `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
     ].join('\n'),
   });
@@ -127,21 +127,50 @@ export const requestChannelInfo = (worker: Worker) => {
   });
 };
 
-// -----------------------------
-// Plot functions
+// Fetch epoch data arrays for the interactive reviewer. get_epochs_arrays writes
+// a float32 buffer to a MEMFS path and returns metadata; the worker reads the
+// buffer back (readFileAfter) and posts it zero-copy on dataKey 'epochArrays'.
+export const requestEpochArrays = (worker: Worker, variableName: string) => {
+  const outPath = '/tmp/epoch_arrays.f32';
+  worker.postMessage({
+    data: `get_epochs_arrays(${variableName}, "${outPath}")`,
+    dataKey: 'epochArrays',
+    readFileAfter: outPath,
+  });
+};
 
-export const cleanEpochsPlot = async (worker: Worker) => {
-  await worker.postMessage({
-    // MNE 1.x validates `events` as bool|ndarray — events=None raises TypeError;
-    // False is the "no events overlaid" default. Also close the returned Figure
-    // so the worker doesn't try to structuredClone a PyProxy back (this plot is
-    // not routed to the UI; wiring it to a plotKey would be a separate feature).
+export const requestSuggestRejections = (
+  worker: Worker,
+  variableName: string,
+  thresholdUv: number
+) => {
+  worker.postMessage({
+    data: `suggest_rejections(${variableName}, ${thresholdUv})`,
+    dataKey: 'suggestedRejections',
+  });
+};
+
+// Apply the user's rejection to raw_epochs in Python: drop the marked epoch
+// indices + set bad channels, mutating in place. Trailing ';' suppresses the
+// return value — apply_rejection returns the Epochs object, which cannot cross
+// postMessage (PyProxy is not structured-cloneable). Fire-and-forget; the epic
+// then triggers saveEpochs + requestEpochArrays, which the worker runs in order.
+export const applyRejection = (
+  worker: Worker,
+  variableName: string,
+  dropIndices: number[],
+  badChannels: string[]
+) => {
+  worker.postMessage({
     data: [
-      `_fig = raw_epochs.plot(scalings='auto', n_epochs=6, title="Clean Data", events=False)`,
-      `plt.close(_fig)`,
+      `apply_rejection(${variableName}, ${JSON.stringify(dropIndices)}, ${JSON.stringify(badChannels)})`,
+      'None',
     ].join('\n'),
   });
 };
+
+// -----------------------------
+// Plot functions
 
 export const plotPSD = async (worker: Worker) => {
   worker.postMessage({
@@ -162,25 +191,7 @@ export const plotTopoMap = async (worker: Worker) => {
     plotKey: 'topo',
     data: [
       'import io',
-      '_fig = plot_topo(clean_epochs, conditions)',
-      '_buf = io.BytesIO()',
-      '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
-      'plt.close(_fig)',
-      '_buf.getvalue().decode()',
-    ].join('\n'),
-  });
-};
-
-export const plotTestPlot = async (worker: Worker | null) => {
-  if (!worker) return;
-  worker.postMessage({
-    plotKey: 'topo',
-    data: [
-      'import io',
-      'import matplotlib.pyplot as plt',
-      '_fig, _ax = plt.subplots()',
-      '_ax.plot([1, 2, 3, 4], [1, 4, 2, 3])',
-      '_ax.set_title("Test Plot")',
+      `_fig = plot_topo(clean_epochs, conditions, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
@@ -194,7 +205,7 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
     plotKey: 'erp',
     data: [
       'import io',
-      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None)`,
+      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
@@ -203,19 +214,16 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
   });
 };
 
-export const saveEpochs = (
-  worker: Worker,
-  workspaceDir: string,
-  subject: string
-) =>
+// Cleaned epochs are saved into the worker's in-memory MEMFS, then read back and
+// shipped to the renderer (dataKey 'savedEpochs') which writes them to host disk
+// via the fs:writeCleanedEpochs IPC bridge — Pyodide's FS can't reach host paths.
+export const saveEpochs = (worker: Worker, subject: string) => {
+  const memfsPath = `/tmp/${subject}-cleaned-epo.fif`;
   worker.postMessage({
-    data: `raw_epochs.save(${formatFilePath(
-      path.join(
-        workspaceDir,
-        'Data',
-        subject,
-        'EEG',
-        `${subject}-cleaned-epo.fif`
-      )
-    )})`,
+    // save() returns the Epochs/filename object — append None so only the MEMFS
+    // bytes (readFileAfter) cross postMessage, not the Python return value.
+    data: [`raw_epochs.save("${memfsPath}", overwrite=True)`, 'None'].join('\n'),
+    dataKey: 'savedEpochs',
+    readFileAfter: memfsPath,
   });
+};

@@ -52,6 +52,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   moveItemToTrash: (fullPath: string) =>
     ipcRenderer.invoke('shell:moveItemToTrash', fullPath),
 
+  openWorkspaceDir: (title: string): Promise<string> =>
+    ipcRenderer.invoke('shell:openWorkspaceDir', title),
+
   // ------------------------------------------------------------------
   // Filesystem — workspace management
   // ------------------------------------------------------------------
@@ -116,6 +119,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     rawData: ArrayBuffer
   ): Promise<void> =>
     ipcRenderer.invoke('fs:storePyodideImagePng', title, imageTitle, rawData),
+
+  writeCleanedEpochs: (
+    title: string,
+    subject: string,
+    rawData: ArrayBuffer
+  ): Promise<void> =>
+    ipcRenderer.invoke('fs:writeCleanedEpochs', title, subject, rawData),
 
   deleteWorkspaceDir: (title: string): Promise<void> =>
     ipcRenderer.invoke('fs:deleteWorkspaceDir', title),

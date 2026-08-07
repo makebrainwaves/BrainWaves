@@ -2,6 +2,23 @@ import { createAction } from '@reduxjs/toolkit';
 import { ActionType } from 'typesafe-actions';
 import { PYODIDE_VARIABLE_NAMES } from '../constants/constants';
 
+// Metadata shipped alongside the raw epoch buffer (dataKey 'epochArrays').
+export interface EpochArraysMeta {
+  n_epochs: number;
+  n_channels: number;
+  n_times: number;
+  ch_names: string[];
+  times: number[];
+  event_codes: number[];
+}
+
+// Auto-flag: a single artifact suggestion returned by Python's
+// suggest_rejections(epochs, threshold_uv) — one epoch/channel over threshold.
+export interface SuggestedRejection {
+  index: number;
+  reason: string;
+}
+
 // -------------------------------------------------------------------------
 // Actions
 
@@ -17,7 +34,10 @@ export const PyodideActions = {
   LoadPSD: createAction('LOAD_PSD'),
   LoadERP: createAction<string, 'LOAD_ERP'>('LOAD_ERP'),
   LoadTopo: createAction('LOAD_TOPO'),
-  CleanEpochs: createAction('CLEAN_EPOCHS'),
+  CleanEpochs: createAction<
+    { dropIndices: number[]; badChannels: string[] },
+    'CLEAN_EPOCHS'
+  >('CLEAN_EPOCHS'),
   GetEpochsInfo: createAction<PYODIDE_VARIABLE_NAMES, 'GET_EPOCHS_INFO'>(
     'GET_EPOCHS_INFO'
   ),
@@ -26,6 +46,10 @@ export const PyodideActions = {
   SetEpochInfo: createAction<any, 'SET_EPOCH_INFO'>('SET_EPOCH_INFO'), // Pyodide WASM runtime result — shape is dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetChannelInfo: createAction<any, 'SET_CHANNEL_INFO'>('SET_CHANNEL_INFO'), // Pyodide WASM runtime result — shape is dynamic
+  SetEpochArrays: createAction<
+    { buffer: ArrayBuffer; meta: EpochArraysMeta },
+    'SET_EPOCH_ARRAYS'
+  >('SET_EPOCH_ARRAYS'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetPSDPlot: createAction<any, 'SET_PSD_PLOT'>('SET_PSD_PLOT'), // Pyodide WASM runtime result — shape is dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,6 +61,13 @@ export const PyodideActions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ReceiveError: createAction<any, 'RECEIVE_ERROR'>('RECEIVE_ERROR'), // Worker error event — shape is dynamic
   SetWorkerReady: createAction('SET_WORKER_READY'),
+  GetSuggestedRejections: createAction<number, 'GET_SUGGESTED_REJECTIONS'>(
+    'GET_SUGGESTED_REJECTIONS'
+  ),
+  SetSuggestedRejections: createAction<
+    SuggestedRejection[],
+    'SET_SUGGESTED_REJECTIONS'
+  >('SET_SUGGESTED_REJECTIONS'),
 } as const;
 
 export type PyodideActionType = ActionType<

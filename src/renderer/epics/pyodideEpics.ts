@@ -1,11 +1,15 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { EMPTY, fromEvent, Observable, of } from 'rxjs';
-import { map, mergeMap, tap, pluck, filter } from 'rxjs/operators';
+import { EMPTY, from, fromEvent, Observable, of } from 'rxjs';
+import { map, mergeMap, tap, pluck, filter, catchError } from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
-import { PyodideActions, PyodideActionType } from '../actions';
+import {
+  PyodideActions,
+  PyodideActionType,
+  EpochArraysMeta,
+  SuggestedRejection,
+} from '../actions';
 import { RootState } from '../reducers';
-import { getWorkspaceDir } from '../utils/filesystem/storage';
 import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   loadCSV,
@@ -15,7 +19,9 @@ import {
   epochEvents,
   requestEpochsInfo,
   requestChannelInfo,
-  cleanEpochsPlot,
+  requestEpochArrays,
+  requestSuggestRejections,
+  applyRejection,
   plotPSD,
   plotERP,
   plotTopoMap,
@@ -77,7 +83,7 @@ const pyodideMessageEpic: Epic<
   PyodideActionType,
   PyodideActionType,
   RootState
-> = (action$) =>
+> = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.SetPyodideWorker)),
     pluck('payload'),
@@ -106,6 +112,45 @@ const pyodideMessageEpic: Epic<
       if (dataKey === 'channelInfo') {
         // results is an array of channel-name strings
         return of(PyodideActions.SetChannelInfo(results as string[]));
+      }
+      if (dataKey === 'epochArrays') {
+        return of(
+          PyodideActions.SetEpochArrays({
+            buffer: e.data.buffer as ArrayBuffer,
+            meta: results as EpochArraysMeta,
+          })
+        );
+      }
+      if (dataKey === 'suggestedRejections') {
+        return of(
+          PyodideActions.SetSuggestedRejections(results as SuggestedRejection[])
+        );
+      }
+      if (dataKey === 'savedEpochs') {
+        const savedEpochsBuffer = e.data.buffer as ArrayBuffer | undefined;
+        // Surface a dropped/empty save instead of writing nothing silently —
+        // that path left the Analyze picker mysteriously empty with no error.
+        if (!savedEpochsBuffer || savedEpochsBuffer.byteLength === 0) {
+          toast.error(
+            'Could not save cleaned data — the recording came back empty. Nothing was written.'
+          );
+          return EMPTY;
+        }
+        const { title, subject } = state$.value.experiment;
+        return from(
+          window.electronAPI.writeCleanedEpochs(
+            title,
+            subject,
+            savedEpochsBuffer
+          )
+        ).pipe(
+          tap(() => toast.success('Cleaned data saved')),
+          mergeMap(() => EMPTY),
+          catchError((err) => {
+            toast.error(`Failed to save cleaned data: ${err?.message ?? err}`);
+            return EMPTY;
+          })
+        );
       }
 
       // Route plot results to the appropriate Redux state slot.
@@ -153,6 +198,8 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       }
       // Result returns asynchronously via pyodideMessageEpic → SetEpochInfo.
       requestEpochsInfo(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
+      // Fetch epoch arrays for the interactive reviewer (dataKey 'epochArrays').
+      requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
     mergeMap(() => EMPTY)
   );
@@ -187,16 +234,22 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
 ) =>
   action$.pipe(
     filter(isActionOf(PyodideActions.CleanEpochs)),
-    mergeMap(async () => {
-      await cleanEpochsPlot(state$.value.pyodide.worker!);
-      const dir = await getWorkspaceDir(state$.value.experiment.title);
-      return saveEpochs(
-        state$.value.pyodide.worker!,
-        dir,
-        state$.value.experiment.subject
+    pluck('payload'),
+    // Worker runs these FIFO: drop/flag -> save cleaned .fif -> re-fetch arrays.
+    tap(({ dropIndices, badChannels }) => {
+      const worker = state$.value.pyodide.worker!;
+      applyRejection(
+        worker,
+        PYODIDE_VARIABLE_NAMES.RAW_EPOCHS,
+        dropIndices,
+        badChannels
       );
+      saveEpochs(worker, state$.value.experiment.subject);
+      requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
-    map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
+    map(() =>
+      PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS)
+    )
   );
 
 const getEpochsInfoEpic: Epic<
@@ -221,6 +274,24 @@ const getChannelInfoEpic: Epic<
     filter(isActionOf(PyodideActions.GetChannelInfo)),
     // Fire-and-forget: result returns via pyodideMessageEpic → SetChannelInfo.
     tap(() => requestChannelInfo(state$.value.pyodide.worker!)),
+    mergeMap(() => EMPTY)
+  );
+
+const getSuggestedRejectionsEpic: Epic<
+  PyodideActionType,
+  PyodideActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(PyodideActions.GetSuggestedRejections)),
+    pluck('payload'),
+    tap((threshold) =>
+      requestSuggestRejections(
+        state$.value.pyodide.worker!,
+        PYODIDE_VARIABLE_NAMES.RAW_EPOCHS,
+        threshold
+      )
+    ),
     mergeMap(() => EMPTY)
   );
 
@@ -275,6 +346,7 @@ export default combineEpics(
   cleanEpochsEpic,
   getEpochsInfoEpic,
   getChannelInfoEpic,
+  getSuggestedRejectionsEpic,
   loadPSDEpic,
   loadTopoEpic,
   loadERPEpic

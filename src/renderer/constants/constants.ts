@@ -9,6 +9,19 @@ export enum EXPERIMENTS {
   // SSVEP = 'Steady-state Visual Evoked Potential',
 }
 
+/**
+ * Slider bounds for the Clean auto-flag peak-to-peak threshold, in microvolts.
+ * Students set sensitivity on a slider instead of typing a raw µV number. The
+ * range is deliberately generous around real Muse ptp (tens of µV; artifacts
+ * well over 100), and is shared by every device.
+ */
+export const PTP_THRESHOLD = {
+  min: 20,
+  max: 400,
+  step: 10,
+  default: 100,
+};
+
 export const SCREENS = {
   HOME: { route: '/', title: 'HOME', order: 0 },
   BANK: { route: '/home', title: 'HOME', order: 0 },
