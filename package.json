@@ -87,7 +87,7 @@
       "owner": "makebrainwaves",
       "repo": "brainwaves",
       "private": false,
-      "releaseType": "draft"
+      "releaseType": "release"
     },
     "extraResources": [
       {

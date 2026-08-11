@@ -178,6 +178,32 @@ LSL is an advanced, opt-in capability: Muse and Neurosity connect via Web Blueto
 
 Build note: with `module: ESNext` source but CommonJS main output, a guarded `require(...)` of an externalized dep type-checks (global `require` from `@types/node`) and stays a `require` in `out/main/index.js` (electron-vite externalizes it) — confirmed lazy, not bundled. Do **not** revert to a static import.
 
+## electron-builder skips publishing (exit 0) when releaseType ≠ the existing release
+
+`build.publish.releaseType` must match what already exists at the tag. With
+`releaseType: "draft"` and an already-**published** GitHub release at that tag,
+electron-builder logs `GitHub release not created reason=existing type not compatible
+with publishing type … existingType=release publishingType=draft`, then `skipped
+publishing` for every artifact — and **exits 0**, so the Release workflow goes green
+while uploading nothing. Users keep downloading whatever binaries were attached before.
+
+That is how issue #239 happened: v1.0.0's assets were a March build, five months older
+than the tag, so they predated `2197925 fix: pyodide asset resolution in packaged
+builds`. Symptom was a Pyodide error, cause was the release pipeline. Set to
+`"release"` so re-tagging over a published release is compatible. When a release
+looks wrong, check asset `created_at` against the tag date before debugging the app:
+`gh api repos/OWNER/REPO/releases/tags/TAG --jq '.assets[] | "\(.name) \(.created_at)"'`
+
+## Pyodide `indexURL` is what stops the fallback to `calculateDirname()`
+
+If `loadPyodide()` is called without `indexURL`, pyodide derives one by throwing an
+Error and parsing the stack for `pyodide.mjs`'s own location. In a packaged build that
+resolves to `out/renderer/assets/`, so it then imports
+`file:///…/app.asar/out/renderer/assets/pyodide.asm.js` and fails with "Failed to fetch
+dynamically imported module". That exact URL shape is the fingerprint of a missing
+`indexURL` — not of missing `extraResources`. A genuinely missing `resources/pyodide/`
+fails on a `pyodide://` URL instead.
+
 ## Behavior data: booleans become strings after the CSV round-trip
 
 Experiments emit `this.data.correct_response` as a real boolean (`true`/`false`) and `response_given` as `'yes'`/`'no'` (see `src/renderer/utils/labjs/functions.ts`). But all consumers in `src/renderer/utils/behavior/compute.js` read data **after** it's been written to CSV and re-parsed, so every value is a **string**. That's why existing code gates on `row.correct_response === 'true'` and `row.response_given === 'yes'`, and parses numbers with `parseFloat`.
