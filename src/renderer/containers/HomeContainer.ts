@@ -11,7 +11,6 @@ function mapStateToProps(state: RootState) {
     ...state.device,
     ...state.pyodide,
     connectedDevice: state.device.connectedDevice,
-    topoPlot: state.pyodide.topoPlot ?? {},
     signalQualityObservable: state.device.signalQualityObservable ?? undefined,
   };
 }

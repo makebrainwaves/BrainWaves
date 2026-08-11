@@ -44,13 +44,11 @@ import {
 } from '../../constants/interfaces';
 import type { DiscoveredStream } from '../../../shared/lslTypes';
 import { getExperimentFromType } from '../../utils/labjs/functions';
-import PyodidePlotWidget from '../PyodidePlotWidget';
 
 const HOME_STEPS = {
   RECENT: 'MY EXPERIMENTS',
   NEW: 'EXPERIMENT BANK',
   EXPLORE: 'EXPLORE EEG DATA',
-  PYODIDE_TEST: 'PYODIDE_TEST',
 };
 
 export interface Props {
@@ -66,10 +64,6 @@ export interface Props {
   navigate: (path: string) => void;
   PyodideActions: typeof PyodideActions;
   signalQualityObservable?: Observable<SignalQualityData>;
-  topoPlot: {
-    [key: string]: string;
-  };
-  isWorkerReady: boolean;
 }
 
 interface State {
@@ -329,29 +323,6 @@ export default class Home extends Component<Props, State> {
             availableLSLStreams={this.props.availableLSLStreams}
             DeviceActions={this.props.DeviceActions}
           />
-        );
-      case HOME_STEPS.PYODIDE_TEST:
-        return (
-          <div className="grid grid-cols-2 gap-4 p-4">
-            <div>
-              <Button
-                variant="default"
-                disabled={!this.props.isWorkerReady}
-                onClick={() => this.props.PyodideActions.LoadTopo()}
-              >
-                {this.props.isWorkerReady
-                  ? 'Generate Plot'
-                  : 'Loading libraries…'}
-              </Button>
-            </div>
-            <div>
-              <PyodidePlotWidget
-                title={'Test_Plot'}
-                imageTitle={`Test-Topoplot`}
-                plotMIMEBundle={this.props.topoPlot}
-              />
-            </div>
-          </div>
         );
     }
   }
