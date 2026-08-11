@@ -1,5 +1,6 @@
 /**
- * electron-builder afterPack hook — make the bundled macOS liblsl self-contained.
+ * electron-builder afterPack hook — make the bundled macOS liblsl self-contained,
+ * then re-seal the app bundle with an ad-hoc signature.
  *
  * Why this exists
  * ---------------
@@ -27,6 +28,18 @@
  * Homebrew symlink and the packaged dylib has no external paths to rewrite —
  * confirm with `otool -L` showing only @loader_path/@rpath + /usr/lib, then
  * delete this hook and its `build.afterPack` wiring in package.json.
+ *
+ * The ad-hoc re-seal
+ * ------------------
+ * Release CI has no "Developer ID Application" identity, so electron-builder
+ * logs `skipped macOS application code signing` and ships the bundle as-is —
+ * with a seal that packaging (and the liblsl rewrite above) already invalidated.
+ * arm64 enforces code signing at exec time, so such a bundle can be killed on
+ * launch even after the user strips quarantine. Ad-hoc signing fixes *that*; it
+ * does NOT satisfy Gatekeeper, which still reports "damaged" for any quarantined
+ * bundle that isn't Developer-ID-signed and notarized (see README, macOS
+ * install). Once a real identity exists, electron-builder's own signing step
+ * runs after this hook and supersedes the ad-hoc signature — no change needed.
  */
 import { execFileSync } from 'child_process';
 import { copyFileSync, chmodSync, existsSync, realpathSync } from 'fs';
@@ -84,9 +97,12 @@ function makeSelfContained(dylib, destDir, visited = new Set()) {
 export default async function afterPack(context) {
   if (context.electronPlatformName !== 'darwin') return;
 
-  const prebuild = join(
+  const app = join(
     context.appOutDir,
-    `${context.packager.appInfo.productFilename}.app`,
+    `${context.packager.appInfo.productFilename}.app`
+  );
+  const prebuild = join(
+    app,
     'Contents/Resources/app.asar.unpacked/node_modules/node-labstreaminglayer/prebuild'
   );
   const liblsl = join(prebuild, 'liblsl.dylib');
@@ -100,4 +116,10 @@ export default async function afterPack(context) {
   console.log('[afterPack] Making liblsl.dylib self-contained:', liblsl);
   makeSelfContained(liblsl, prebuild);
   console.log('[afterPack] liblsl external deps bundled + re-signed.');
+
+  console.log('[afterPack] Ad-hoc signing bundle:', app);
+  execFileSync('codesign', ['--force', '--deep', '--sign', '-', app]);
+  // Fail the build rather than ship a bundle arm64 will refuse to exec.
+  execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
+  console.log('[afterPack] Bundle ad-hoc signed and verified.');
 }
