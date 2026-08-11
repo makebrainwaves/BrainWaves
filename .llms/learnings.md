@@ -194,6 +194,28 @@ builds`. Symptom was a Pyodide error, cause was the release pipeline. Set to
 looks wrong, check asset `created_at` against the tag date before debugging the app:
 `gh api repos/OWNER/REPO/releases/tags/TAG --jq '.assets[] | "\(.name) \(.created_at)"'`
 
+## macOS "BrainWaves is damaged" = unsigned bundle + quarantine, not a build bug
+
+Release CI has no Apple signing cert, so the macOS job logs `skipped macOS
+application code signing reason=cannot find valid "Developer ID Application"
+identity … 0 identities found` and ships an unsigned `.app`. Downloaded via a
+browser it carries `com.apple.quarantine`, and Gatekeeper's message for a
+quarantined bundle that is neither Developer-ID-signed nor notarized is
+**"is damaged and can't be opened"** — misleading, since nothing is corrupt.
+Right-click → Open does not bypass it; only `xattr -dr com.apple.quarantine`
+does (documented in README "Installing"). Signed-but-not-notarized would instead
+say "developer cannot be verified", so the wording tells you which state you're in.
+
+Separately, arm64 enforces code signing at *exec* time, so an unsigned bundle can
+die on launch even after quarantine is stripped. `afterPack.mjs` therefore ad-hoc
+signs (`codesign --force --deep --sign -`) and verifies the whole `.app` after the
+liblsl rewrite — that ordering matters, since `app.asar.unpacked` is inside the
+seal. Ad-hoc signing does *not* appease Gatekeeper; only Developer ID + notarization
+removes the xattr step. When a real identity is added, electron-builder's signing
+step runs after this hook and supersedes the ad-hoc signature.
+
+Check the CI log before debugging the app: `gh run view <id> --log | grep -i sign`.
+
 ## Pyodide `indexURL` is what stops the fallback to `calculateDirname()`
 
 If `loadPyodide()` is called without `indexURL`, pyodide derives one by throwing an

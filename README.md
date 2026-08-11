@@ -18,7 +18,33 @@
   <img src="app_home.png" width="600">
 </p>
 
+## Installing
+
+Download the installer for your platform from the
+[latest release](https://github.com/makebrainwaves/BrainWaves/releases/latest).
+
+### macOS — "BrainWaves is damaged and can't be opened"
+
+BrainWaves is not yet signed with an Apple Developer ID, so macOS refuses to open
+it after download. The app is fine; macOS just can't verify who built it. Remove
+the download quarantine flag to open it:
+
+```bash
+xattr -dr com.apple.quarantine ~/Downloads/BrainWaves-*-arm64.dmg
+```
+
+Then open the `.dmg`, drag BrainWaves to Applications, and:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/BrainWaves.app
+```
+
+Right-click → Open does **not** work for this dialog — the quarantine flag has to
+go. This step disappears once the project is signed and notarized.
+
 ## Prerequisites
+
+The rest of this README is for developers building from source.
 
 - **Node.js** >= 18
 - **npm** >= 9
