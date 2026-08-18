@@ -27,7 +27,10 @@ import {
   emptyConditionSlot,
   rebuildStimuliFromSlots,
 } from '../../utils/labjs/customStimuli';
-import { params as defaultCustomParams } from '../../experiments/custom/params';
+import {
+  mergeCustomParams,
+  params as defaultCustomParams,
+} from '../../experiments/custom/params';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
@@ -57,31 +60,16 @@ interface State {
 }
 
 export default class CustomDesign extends Component<DesignProps, State> {
+  private conditionParams: ExperimentParameters;
+  private conditionRevision = 0;
   constructor(props: DesignProps) {
     super(props);
+    const customParams = mergeCustomParams(props.params);
+    this.conditionParams = customParams;
     this.state = {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: true,
-      params: {
-        ...defaultCustomParams,
-        ...props.params,
-        stimulus1: {
-          ...defaultCustomParams.stimulus1,
-          ...props.params?.stimulus1,
-        },
-        stimulus2: {
-          ...defaultCustomParams.stimulus2,
-          ...props.params?.stimulus2,
-        },
-        stimulus3: {
-          ...defaultCustomParams.stimulus3,
-          ...props.params?.stimulus3,
-        },
-        stimulus4: {
-          ...defaultCustomParams.stimulus4,
-          ...props.params?.stimulus4,
-        },
-      },
+      params: customParams,
       saved: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
@@ -94,7 +82,8 @@ export default class CustomDesign extends Component<DesignProps, State> {
   }
 
   componentWillUnmount() {
-    this.handleSaveParams();
+    this.props.ExperimentActions.SetParams(this.conditionParams);
+    this.props.ExperimentActions.SaveWorkspace();
   }
 
   endPreview() {
@@ -126,7 +115,8 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
-  handleSaveParams(params: ExperimentParameters = this.state.params) {
+  handleSaveParams(params: ExperimentParameters = this.conditionParams) {
+    this.conditionParams = params;
     this.props.ExperimentActions.SetParams(params);
     this.props.ExperimentActions.SaveWorkspace();
     this.setState({ saved: true, params });
@@ -134,8 +124,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
 
   handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
     const params: ExperimentParameters = {
-      ...this.state.params,
-      description: { ...this.state.params.description, [section]: text },
+      ...this.conditionParams,
+      description: {
+        ...defaultCustomParams.description,
+        ...this.conditionParams.description,
+        [section]: text,
+      },
     };
     this.setState({ params, saved: false });
     this.handleSaveParams(params);
@@ -147,27 +141,55 @@ export default class CustomDesign extends Component<DesignProps, State> {
     changedName: string
   ) => {
     const slotName = changedName as ConditionSlotName;
-    const slotMeta = CONDITION_SLOTS.find((s) => s.name === slotName);
+    const slotMeta = CONDITION_SLOTS.find((slot) => slot.name === slotName);
     if (!slotMeta) return;
-    const prev =
-      this.state.params[slotName] ??
+
+    const previousSlot =
+      this.conditionParams[slotName] ??
       emptyConditionSlot(slotMeta.type, '');
-    const nextParams: ExperimentParameters = {
-      ...this.state.params,
-      [slotName]: { ...prev, [key]: data },
+    let nextParams: ExperimentParameters = {
+      ...this.conditionParams,
+      [slotName]: { ...previousSlot, [key]: data },
     };
-    const stimuli = await rebuildStimuliFromSlots(nextParams, readImages);
+    this.conditionParams = nextParams;
+
+    if (key !== 'dir') {
+      const changedSlot = nextParams[slotName]!;
+      const stimuli = (nextParams.stimuli ?? []).map((stimulus) =>
+        stimulus.type === slotMeta.type
+          ? {
+              ...stimulus,
+              condition: changedSlot.title,
+              response: changedSlot.response,
+            }
+          : stimulus
+      );
+      nextParams = { ...nextParams, stimuli };
+      this.setState({ params: nextParams, saved: false });
+      this.handleSaveParams(nextParams);
+      return;
+    }
+
+    const revision = ++this.conditionRevision;
+    const rebuiltStimuli = await rebuildStimuliFromSlots(nextParams, readImages);
+    if (revision !== this.conditionRevision) return;
+
+    const latestParams = this.conditionParams;
+    const stimuli = rebuiltStimuli.map((stimulus) => {
+      const slot = CONDITION_SLOTS.find(({ type }) => type === stimulus.type);
+      const condition = slot ? latestParams[slot.name] : undefined;
+      return condition
+        ? {
+            ...stimulus,
+            condition: condition.title,
+            response: condition.response,
+          }
+        : stimulus;
+    });
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    this.setState({
-      params: { ...nextParams, stimuli, nbTrials, nbPracticeTrials },
-      saved: false,
-    });
-    this.handleSaveParams({
-      ...nextParams,
-      stimuli,
-      nbTrials,
-      nbPracticeTrials,
-    });
+    const params = { ...latestParams, stimuli, nbTrials, nbPracticeTrials };
+    this.setState({ params, saved: false });
+    this.handleSaveParams(params);
   };
 
   handleDeleteTrial = (deletedNum: number) => {

@@ -28,13 +28,12 @@ import { lslOutlets } from './lsl/outlets';
 import { lslInlets } from './lsl/inlets';
 import { isLSLAvailable } from './lsl/native';
 import { persistExperimentState } from './workspaceState';
+import { StimulusFileAccess } from './stimulusFileAccess';
 import {
   PYODIDE_SOURCE_DIR,
   PYODIDE_RESOURCE_DIR,
 } from '../shared/pyodideAssets';
 import { FILE_TYPES } from '../renderer/constants/constants';
-
-
 import type {
   LSLEpoch,
   LSLMarker,
@@ -103,13 +102,10 @@ protocol.registerSchemesAsPrivileged([
     privileges: {
       standard: true,
       secure: true,
-      supportFetchAPI: true,
-      corsEnabled: true,
       stream: true,
     },
   },
 ]);
-
 
 export default class AppUpdater {
   constructor() {
@@ -131,6 +127,14 @@ let pendingBluetoothCallback: ((deviceId: string) => void) | null = null;
 // ------------------------------------------------------------------
 
 const workspaces = path.join(os.homedir(), 'BrainWaves_Workspaces');
+let stimulusFileAccess: StimulusFileAccess | undefined;
+
+const getStimulusFileAccess = () => {
+  stimulusFileAccess ??= new StimulusFileAccess(
+    path.join(app.getPath('userData'), 'stimulus-directories.json')
+  );
+  return stimulusFileAccess;
+};
 
 const getWorkspaceDir = (title: string) => path.join(workspaces, title);
 
@@ -163,7 +167,10 @@ ipcMain.handle('loadDialog', async (_event, fileType) => {
       title: 'Select a folder of images',
       properties: ['openDirectory'],
     });
-    return result.canceled ? '' : result.filePaths[0];
+    if (result.canceled) return '';
+    const directory = result.filePaths[0];
+    getStimulusFileAccess().authorizeDirectory(directory);
+    return directory;
   }
   const result = await dialog.showOpenDialog(mainWindow!, {
     title: 'Select a jsPsych timeline file',
@@ -375,10 +382,10 @@ ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
 );
 
 ipcMain.handle('fs:readImages', (_event, dir) => {
-  return fs.readdirSync(dir).filter((filename) => {
-    const ext = filename.slice(-3).toLowerCase();
-    return ext === 'png' || ext === 'jpg' || ext === 'gif' || ext === 'peg';
-  });
+  const imageExtensions = new Set(['.gif', '.jpeg', '.jpg', '.png', '.webp']);
+  return fs
+    .readdirSync(dir)
+    .filter((filename) => imageExtensions.has(path.extname(filename).toLowerCase()));
 });
 
 ipcMain.handle(
@@ -765,8 +772,8 @@ app.whenReady().then(async () => {
   });
 
   protocol.handle('bwfile', (request) => {
-    const { pathname } = new URL(request.url);
-    return net.fetch(pathToFileURL(decodeURIComponent(pathname)).href);
+    const filePath = getStimulusFileAccess().resolveUrl(request.url);
+    return net.fetch(pathToFileURL(filePath).href);
   });
 
 

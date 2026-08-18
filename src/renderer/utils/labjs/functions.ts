@@ -11,11 +11,7 @@ import stroopExperiment from '../../experiments/stroop';
 import customExperiment from '../../experiments/custom';
 import searchExperiment from '../../experiments/search';
 import multitaskingExperiment from '../../experiments/multitasking';
-
-function absPathToUrl(absPath: string): string {
-  return `bwfile://host${absPath}`;
-}
-
+import { toStimulusFileUrl } from '../../../shared/stimulusUrl';
 
 /**
  * Returns  all data necessary to fully describe an experiment from the experiment type
@@ -120,7 +116,9 @@ function balanceStimuliByCondition(
     if (stimulus.dir && stimulus.filename) {
       return {
         ...stimulus,
-        filepath: absPathToUrl(path.join(stimulus.dir, stimulus.filename)),
+        filepath: toStimulusFileUrl(
+          path.join(stimulus.dir, stimulus.filename)
+        ),
       };
     }
     return stimulus;

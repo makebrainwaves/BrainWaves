@@ -7,6 +7,7 @@ import {
   ExperimentParameters,
   Stimulus,
 } from '../constants/interfaces';
+import { toStimulusFileUrl } from '../../shared/stimulusUrl';
 
 export interface ExperimentWindowProps {
   title: string;
@@ -17,14 +18,6 @@ export interface ExperimentWindowProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
 }
-
-// Custom experiments load user-chosen images from outside the repo.
-// Vite /@fs 403s those paths (electron-vite drops server.fs.allow).
-// Main serves them over bwfile:// in both dev and prod.
-function absPathToUrl(absPath: string): string {
-  return `bwfile://host${absPath}`;
-}
-
 
 export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
   title,
@@ -51,7 +44,10 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
       experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
         (images, stimulus) => {
           if (stimulus.dir && stimulus.filename) {
-            return [...images, absPathToUrl(path.join(stimulus.dir, stimulus.filename))];
+            return [
+              ...images,
+              toStimulusFileUrl(path.join(stimulus.dir, stimulus.filename)),
+            ];
           }
           return images;
         },

@@ -176,26 +176,22 @@ const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
     map(() => ExperimentActions.SaveWorkspace())
   );
 
-const saveWorkspaceEpic: Epic<
+export const saveWorkspaceEpic: Epic<
   ExperimentActionType,
   ExperimentActionType,
   RootState
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.SaveWorkspace)),
+    map(() => state$.value.experiment),
     debounceTime(400),
-    filter(() =>
-      state$.value.experiment.title
-        ? state$.value.experiment.title.length > 1
-        : false
-    ),
-    mergeMap(async () => {
+    filter(({ title }) => title.length > 1),
+    mergeMap(async (experiment) => {
       const now = Date.now();
       // experimentObject contains function references (hooks) that cannot be
       // serialized via IPC structured clone. It is always re-derived from
       // `type` on load (see handleLoadRecentWorkspace), so omit it here.
-      const { experimentObject: _omit, ...serializableState } =
-        state$.value.experiment;
+      const { experimentObject: _omit, ...serializableState } = experiment;
       await storeExperimentState({ ...serializableState, dateModified: now });
       return now;
     }),

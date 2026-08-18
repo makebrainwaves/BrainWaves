@@ -59,7 +59,7 @@ export interface Stimulus {
   filename?: string;
 }
 
-interface ExperimentDescription {
+export interface ExperimentDescription {
   question: string;
   hypothesis: string;
   methods: string;
