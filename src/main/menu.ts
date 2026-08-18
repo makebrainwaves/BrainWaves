@@ -25,6 +25,8 @@ export default class MenuBuilder {
       process.env.DEBUG_PROD === 'true'
     ) {
       this.setupDevelopmentEnvironment();
+    } else {
+      this.setupEditableContextMenu();
     }
 
     const template =
@@ -42,7 +44,12 @@ export default class MenuBuilder {
     this.mainWindow.webContents.on('context-menu', (_, props) => {
       const { x, y } = props;
 
+      const editItems = MenuBuilder.editableContextItems(props);
       Menu.buildFromTemplate([
+        ...editItems,
+        ...(editItems.length > 0
+          ? [{ type: 'separator' } as MenuItemConstructorOptions]
+          : []),
         {
           label: 'Inspect element',
           click: () => {
@@ -51,6 +58,28 @@ export default class MenuBuilder {
         },
       ]).popup({ window: this.mainWindow });
     });
+  }
+
+  /** Right-click Cut/Copy/Paste for text fields (prod has no other context menu). */
+  setupEditableContextMenu() {
+    this.mainWindow.webContents.on('context-menu', (_, props) => {
+      const items = MenuBuilder.editableContextItems(props);
+      if (items.length > 0) {
+        Menu.buildFromTemplate(items).popup({ window: this.mainWindow });
+      }
+    });
+  }
+
+  static editableContextItems(
+    props: Electron.ContextMenuParams
+  ): MenuItemConstructorOptions[] {
+    if (!props.isEditable) return [];
+    return [
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' },
+    ];
   }
 
   buildDarwinTemplate() {
@@ -80,6 +109,9 @@ export default class MenuBuilder {
         },
       ],
     };
+    // Standard Edit menu (undo/redo/cut/copy/paste/selectAll). Without it,
+    // ⌘V and friends do nothing in any text field on macOS.
+    const subMenuEdit: MenuItemConstructorOptions = { role: 'editMenu' };
     const subMenuViewDev: MenuItemConstructorOptions = {
       label: 'View',
       submenu: [
@@ -171,11 +203,12 @@ export default class MenuBuilder {
         ? subMenuViewDev
         : subMenuViewProd;
 
-    return [subMenuAbout, subMenuView, subMenuWindow, subMenuHelp];
+    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
   }
 
   buildDefaultTemplate() {
-    const templateDefault = [
+    const templateDefault: MenuItemConstructorOptions[] = [
+      { role: 'editMenu' },
       {
         label: '&View',
         submenu: [
