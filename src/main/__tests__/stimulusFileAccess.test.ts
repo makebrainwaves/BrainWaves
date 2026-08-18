@@ -26,7 +26,10 @@ describe('StimulusFileAccess', () => {
   });
 
   it('resolves encoded files beneath a selected directory', () => {
-    const file = path.join(selected, 'face #1?.jpeg');
+    // '#' and '&' are URL-reserved but legal in filenames on every OS;
+    // '?' is illegal on Windows, so it's only exercised in the pure
+    // string round-trip test below.
+    const file = path.join(selected, 'face #1 & 2.jpeg');
     fs.writeFileSync(file, 'image');
     expect(access.resolveUrl(toStimulusFileUrl(file))).toBe(
       fs.realpathSync(file)
