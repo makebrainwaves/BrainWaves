@@ -1,6 +1,6 @@
 # TODOS
 
-Deferred and in-flight work. Keep this current — when something ships, delete it or move it under "Done recently". See `ROADMAP.md` for the strategic frame and `.gstack/` CEO plan (2026-07-02 summer-revival-reframe) for the reasoning behind the priorities below.
+Deferred and in-flight work. Keep this current — when something ships, delete it or move it under "Done recently". See `ROADMAP.md` for the strategic frame and CEO plan (2026-07-02 summer-revival-reframe) for the reasoning behind the priorities below.
 
 ## Now (Summer 2026 critical path)
 
