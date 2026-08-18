@@ -133,6 +133,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readImages: (dir: string): Promise<string[]> =>
     ipcRenderer.invoke('fs:readImages', dir),
 
+  readAudioFiles: (dir: string): Promise<string[]> =>
+    ipcRenderer.invoke('fs:readAudioFiles', dir),
+
   getImages: (params: unknown): Promise<string[]> =>
     ipcRenderer.invoke('fs:getImages', params),
 

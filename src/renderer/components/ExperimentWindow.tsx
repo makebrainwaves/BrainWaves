@@ -41,7 +41,7 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
 
     experimentToRun.parameters.title = title;
     if (params.stimuli) {
-      experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
+      experimentToRun.options.media.images = params.stimuli.reduce<string[]>(
         (images, stimulus) => {
           if (stimulus.dir && stimulus.filename) {
             return [
@@ -50,6 +50,20 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
             ];
           }
           return images;
+        },
+        []
+      );
+      experimentToRun.options.media.audio = params.stimuli.reduce<string[]>(
+        (audio, stimulus) => {
+          if (stimulus.audioDir && stimulus.audioFilename) {
+            return [
+              ...audio,
+              toStimulusFileUrl(
+                path.join(stimulus.audioDir, stimulus.audioFilename)
+              ),
+            ];
+          }
+          return audio;
         },
         []
       );

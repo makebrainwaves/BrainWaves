@@ -15,6 +15,7 @@ import {
 interface Props {
   name: string;
   num: number;
+  audioFilename?: string;
   response: string;
   dir: string;
   condition: string;
@@ -32,6 +33,7 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
 export const StimuliRow: React.FC<Props> = ({
   name,
   num,
+  audioFilename,
   response,
   dir,
   condition,
@@ -46,6 +48,10 @@ export const StimuliRow: React.FC<Props> = ({
           <span>{num + 1}.</span>
           <span>{name}</span>
         </div>
+      </TableCell>
+
+      <TableCell className="pl-6 pr-2.5">
+        <div>{audioFilename ? `🔊 ${audioFilename}` : '—'}</div>
       </TableCell>
 
       <TableCell className="pl-6 pr-2.5">

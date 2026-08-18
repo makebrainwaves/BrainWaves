@@ -111,18 +111,24 @@ function balanceStimuliByCondition(
     }
   }
 
-  // Add filepath parameter for lab.js usage convenience
-  const balancedStimuliWithFilePath = balancedStimuli.map((stimulus) => {
-    if (stimulus.dir && stimulus.filename) {
-      return {
-        ...stimulus,
-        filepath: toStimulusFileUrl(
-          path.join(stimulus.dir, stimulus.filename)
-        ),
-      };
-    }
-    return stimulus;
-  });
+  // Add filepath/audiopath parameters for lab.js usage convenience
+  const balancedStimuliWithFilePath = balancedStimuli.map((stimulus) => ({
+    ...stimulus,
+    ...(stimulus.dir && stimulus.filename
+      ? {
+          filepath: toStimulusFileUrl(
+            path.join(stimulus.dir, stimulus.filename)
+          ),
+        }
+      : {}),
+    ...(stimulus.audioDir && stimulus.audioFilename
+      ? {
+          audiopath: toStimulusFileUrl(
+            path.join(stimulus.audioDir, stimulus.audioFilename)
+          ),
+        }
+      : {}),
+  }));
 
   return balancedStimuliWithFilePath;
 }

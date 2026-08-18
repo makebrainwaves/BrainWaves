@@ -1,4 +1,4 @@
-import { facesHousesExperiment as experimentObject } from '../faces_houses/experiment';
+import { customExperiment as experimentObject } from './experiment';
 import { params } from './params';
 import { background } from './content_background';
 import { protocol } from './content_protocol';

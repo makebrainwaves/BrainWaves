@@ -162,9 +162,15 @@ ipcMain.handle('dialog:showSave', (_event, options) =>
 );
 
 ipcMain.handle('loadDialog', async (_event, fileType) => {
-  if (fileType === FILE_TYPES.STIMULUS_DIR) {
+  if (
+    fileType === FILE_TYPES.STIMULUS_DIR ||
+    fileType === FILE_TYPES.AUDIO_DIR
+  ) {
     const result = await dialog.showOpenDialog(mainWindow!, {
-      title: 'Select a folder of images',
+      title:
+        fileType === FILE_TYPES.AUDIO_DIR
+          ? 'Select a folder of sounds'
+          : 'Select a folder of images',
       properties: ['openDirectory'],
     });
     if (result.canceled) return '';
@@ -381,12 +387,22 @@ ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
   shell.trashItem(path.join(workspaces, title))
 );
 
-ipcMain.handle('fs:readImages', (_event, dir) => {
-  const imageExtensions = new Set(['.gif', '.jpeg', '.jpg', '.png', '.webp']);
-  return fs
+const readFilesWithExtensions = (dir: string, extensions: Set<string>) =>
+  fs
     .readdirSync(dir)
-    .filter((filename) => imageExtensions.has(path.extname(filename).toLowerCase()));
-});
+    .filter((filename) => extensions.has(path.extname(filename).toLowerCase()))
+    .sort();
+
+ipcMain.handle('fs:readImages', (_event, dir) =>
+  readFilesWithExtensions(
+    dir,
+    new Set(['.gif', '.jpeg', '.jpg', '.png', '.webp'])
+  )
+);
+
+ipcMain.handle('fs:readAudioFiles', (_event, dir) =>
+  readFilesWithExtensions(dir, new Set(['.mp3', '.wav', '.m4a', '.ogg']))
+);
 
 ipcMain.handle(
   'fs:getImages',

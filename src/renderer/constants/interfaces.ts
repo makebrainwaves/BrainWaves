@@ -21,6 +21,9 @@ export interface WorkSpaceInfo {
 // All mutable aspects of an experiment that can be updated by the DesignComponent
 export type StimulusCondition = {
   dir?: string;
+  // Optional folder of sounds (.mp3/.wav/...) played at trial onset.
+  // A condition can be visual (dir), auditory (audioDir), or both.
+  audioDir?: string;
   title: string;
   type: EVENTS;
   response: string;
@@ -57,6 +60,9 @@ export interface Stimulus {
   dir?: string;
   title: string;
   filename?: string;
+  // Sound played at trial onset. A trial can carry an image, a sound, or both.
+  audioDir?: string;
+  audioFilename?: string;
 }
 
 export interface ExperimentDescription {

@@ -16,6 +16,7 @@ describe('mergeCustomParams', () => {
     });
     expect(merged.stimulus1).toEqual({
       dir: '',
+      audioDir: '',
       title: 'Faces',
       type: EVENTS.STIMULUS_1,
       response: '',
