@@ -255,3 +255,17 @@ is a separate mode: the external recorder owns markers, so `injectMarker()`
 no-ops. First-party runs still `sendMarker()` to the LSL *outlet* from
 `RunComponent`. Do not "fix" the inlet no-op.
 
+
+## Lab.js content templates are lodash `template` — full JS, `this` = parameter context
+
+`lab.core.deserialize` parses `${...}` placeholders in `content`/`timeout`/etc.
+via lodash `template` (see `lab.js/dist/es2022/base/util/options.js`: `template(raw,
+{ escape: '', evaluate: '' }).call(that, context)` where the context/`that` carry
+`parameters`, `state`, `files`, `random`). So arbitrary JS expressions work —
+ternaries, string concat, `this.parameters.x` — and an expression can emit whole
+HTML tags (screens insert content via innerHTML). The custom experiment template
+(`experiments/custom/experiment.ts`) uses this to render `<img>`/`<audio autoplay>`
+conditionally per trial. When authoring these in TS template literals, escape the
+placeholders as `\${`, or TS will evaluate them at module load. Sounds for stimuli
+need `media-src bwfile:` in the CSP (and `connect-src` for lab.js's fetch-based
+audio preload into `options.media.audio`).
