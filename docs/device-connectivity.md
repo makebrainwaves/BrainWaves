@@ -16,7 +16,7 @@ Device connectivity spans three layers:
 |---|---|---|
 | **UI** | `CollectComponent/`, `EEGExplorationComponent` | Trigger search, display state, handle user selection |
 | **Epics** | `epics/deviceEpics.ts` | Orchestrate async device lifecycle via RxJS |
-| **Driver** | `utils/eeg/index.ts` (registry) → `muse.ts`, `neurosity.ts`, `lslInlet.ts` | Per-device acquisition behind the shared `EEGDriver` interface (`utils/eeg/types.ts`) |
+| **Driver** | `utils/eeg/index.ts` (registry) → `muse.ts`, `neurosity.ts`. `lslInlet.ts` is a **parallel mode**, not in the registry |
 
 All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to dispatched actions and fire new actions as side effects.
 
@@ -71,8 +71,7 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 │    │      SetConnectionStatus(CONNECTING)                                     │
 │    │                                                                          │
 │    └──► connectEpic                                                           │
-│           connectToMuse(device)                                               │
-│             │  navigator.bluetooth.requestDevice() [again, with name filter] │
+│             │  reuses BluetoothDevice cached by getMuse()                     │
 │             │  deviceInstance.gatt.connect()                                  │
 │             │  client.connect(gatt)       [muse-js MuseClient]               │
 │             │                                                                 │
@@ -114,62 +113,53 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 ## Redux State (`deviceReducer`)
 
 ```
-deviceType:               DEVICES.MUSE (only supported device)
+deviceType:               DEVICES.MUSE | NEUROSITY | LSL
 deviceAvailability:       NONE | SEARCHING | AVAILABLE
 connectionStatus:         NOT_YET_CONNECTED | CONNECTING | CONNECTED | DISCONNECTED
-availableDevices:         Device[]         — list from getMuse()
+availableDevices:         Device[]         — BLE scan results (Muse / Neurosity)
+availableLSLStreams:      DiscoveredStream[] — inlet discovery (when liblsl loaded)
 connectedDevice:          DeviceInfo | null — { name, samplingRate, channels }
 rawObservable:            Observable<EEGData> | null
 signalQualityObservable:  Observable<SignalQualityData> | null
 ```
 
+`DEVICES.GANGLION` exists in the enum only ("One day") and has no driver.
+
 ---
 
-## Known Issues & Bug Analysis
+## Known Issues
 
-### Bug: No devices found despite nearby Muse
+### Fixed: `select-bluetooth-device` handler
 
-**Symptom:** `SetDeviceAvailability(SEARCHING)` fires, 3-second timer elapses, state returns to NONE. No devices listed, no error shown.
+Electron 22+ does not show a native Web Bluetooth picker. The renderer
+`requestDevice()` hangs unless main handles `select-bluetooth-device`.
 
-**Root cause: Missing `select-bluetooth-device` handler in Electron main process.**
+**Shipped** in `src/main/index.ts` (~line 676): auto-selects the first advertised
+device. The renderer's `requestDevice()` filters already scoped the scan by GATT
+UUID (Muse vs Neurosity), so the first hit is the intended headset. A timeout
+calls `bluetooth:cancelSearch` (`callback('')`) if nothing appears.
 
-Electron 22+ changed how Web Bluetooth works. When `navigator.bluetooth.requestDevice()` is called in the renderer, Electron fires a `select-bluetooth-device` event on `webContents` instead of showing the browser's built-in Bluetooth picker. If no handler is registered in the main process, the Promise **hangs indefinitely** (or rejects silently in some Electron versions), and the epic's error handler catches it and returns `[]`.
+Do not re-add this handler. The file table below used to claim it was missing.
 
-**The app is running Electron 39 — this handler is mandatory.**
+### Fixed: `connectToMuse` second `requestDevice`
 
-The fix requires registering a handler in `src/main/index.ts` before the window is created:
+`getMuse()` caches the `BluetoothDevice` and `connectToMuse()` reuses it, so
+the picker event does not fire twice. Same pattern in `neurosity.ts`.
 
-```ts
-mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
-  event.preventDefault();
-  // Store callback and deviceList in state, send to renderer via IPC
-  // so the user can pick from the ConnectModal UI.
-  // OR: auto-select first matching Muse device:
-  const muse = deviceList.find(d => d.deviceName.startsWith('Muse'));
-  if (muse) {
-    callback(muse.deviceId);
-  } else {
-    callback(''); // reject — no Muse found
-  }
-});
-```
+### Still open: silent search failure
 
-There are two approaches for the UX:
+In `searchMuseEpic` (name is historical — it calls `getDriver().scan()`), the
+error path returns `[]` and nothing is dispatched. The user leaves "Searching..."
+only when `searchTimerEpic` fires. The toast is silenced because Windows Web
+Bluetooth rejects promiscuously. Worth revisiting once classroom QA has a
+reliable Windows path.
 
-- **Auto-select** (simpler): in the handler, filter `deviceList` for any device whose name starts with `'Muse'` and immediately call `callback(deviceId)`. The user never sees a picker — it just connects.
-- **Show picker in app UI** (better): send the `deviceList` to the renderer via IPC, display them in `ConnectModal`, and invoke the callback with the user's selection. Requires storing the callback reference in main process state between IPC calls.
+### LSL inlet markers are a no-op (intentional)
 
-### Bug: `connectToMuse` calls `requestDevice` a second time
-
-`getMuse()` calls `requestDevice()` to scan, returns `[{ id, name }]`. Then when the user clicks Connect, `connectToMuse()` calls `requestDevice()` **again** with a name filter. This means the Bluetooth picker (or `select-bluetooth-device` event) fires twice for a single connection. Once the `select-bluetooth-device` handler is in place, both calls need to be handled.
-
-The cleaner fix is to cache the `BluetoothDevice` instance returned by the first `requestDevice()` call inside `getMuse()` and reuse it in `connectToMuse()`, skipping the second scan entirely.
-
-### Bug: Silent failure, no user feedback on search errors
-
-In `searchMuseEpic`, the error handler returns `[]` and the filter `devices.length >= 1` blocks it from dispatching anything. The user only escapes the "Searching..." state when the 3-second `searchTimerEpic` fires. There is no error message, no indication of what went wrong.
-
-The comment in the code acknowledges this: `"This error will fire a bit too promiscuously until we fix windows web bluetooth"` — the toast was intentionally silenced. Once the `select-bluetooth-device` handler is in place, errors will be more meaningful and the toast can be re-enabled.
+LSL inlet is **not** in the `EEGDriver` registry. `injectMarker()` no-ops when
+the active connection is an external stream — that recorder owns markers.
+First-party Muse/Neurosity still inject locally (CSV + ERP) and, when liblsl
+is loaded, `RunComponent` also `sendMarker()`s to the LSL outlet.
 
 ---
 
@@ -214,4 +204,4 @@ rawObservable  (SetRawObservable → Redux)
 | `components/CollectComponent/ConnectModal.tsx` | Search/connect UI |
 | `components/CollectComponent/index.tsx` | Auto-triggers search on mount |
 | `components/EEGExplorationComponent.tsx` | Standalone explore-mode connect UI |
-| `main/index.ts` | **Missing: `select-bluetooth-device` handler** |
+| `main/index.ts` | `select-bluetooth-device` auto-pick, `bluetooth:cancelSearch`, LSL IPC, `pyodide://` |

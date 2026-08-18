@@ -19,6 +19,19 @@ A priority for this codebase is extensibility modularity and hackability. There 
 - **Testing**: Vitest
 - **Linting**: ESLint + Prettier (single quotes, ES5 trailing commas)
 
+
+## Domain skills
+
+Read these before touching the matching seams (also listed in root `CLAUDE.md`):
+
+- `.claude/skills/electron-ipc-architecture/` + `electron-ipc-channel/` — process boundary, IPC
+- `.claude/skills/pyodide-mne/` — analysis worker, `pyodide://`, InstallMNE
+- `.claude/skills/redux-observable-epochs/` — epics, markers, empty ERPs
+
+## Playtest
+
+This is an Electron app. `http://localhost:5173` is the Vite renderer **without** preload. Do not `/qa` or `/browse` it — `electronAPI` and `pyodide://` only exist in the Electron window. See root `CLAUDE.md`.
+
 ## Key Directories
 - `src/main/` — Electron main process
 - `src/renderer/` — React renderer process
@@ -39,7 +52,7 @@ npm run package      # Build + package for current platform
 
 ## Conventions
 - Use TypeScript; avoid `any` unless strictly necessary
-- Redux state changes go through RTK slices or typed actions via `typesafe-actions`
+- Redux state changes go through RTK `createAction` / `createReducer`. `typesafe-actions` remains only for `ActionType` unions — do not add more of it.
 - Side effects belong in RxJS epics (`redux-observable`)
 - Do not commit secrets or device credentials
 - Keep Electron main/renderer separation strict — use preload IPC bridges

@@ -46,8 +46,8 @@ go. This step disappears once the project is signed and notarized.
 
 The rest of this README is for developers building from source.
 
-- **Node.js** >= 18
-- **npm** >= 9
+- **Node.js** `^20.19.0 || >=22.12.0` (see `package.json` `engines`)
+- **npm** >= 8
 - No Python installation required — EEG analysis runs via [Pyodide](https://pyodide.org) (Python compiled to WebAssembly), which is downloaded automatically on first `npm install`.
 
 > **Note:** `npm install` downloads ~300 MB of Pyodide WASM files on first run. This is expected and only happens once.

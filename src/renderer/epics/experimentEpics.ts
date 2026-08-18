@@ -5,7 +5,7 @@ import {
   mergeMap,
   filter,
   takeUntil,
-  throttleTime,
+  debounceTime,
   tap,
 } from 'rxjs/operators';
 import { isActionOf } from '../utils/redux';
@@ -46,15 +46,17 @@ const createNewWorkspaceEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
     map((action) => action.payload as WorkSpaceInfo),
-    mergeMap((workspaceInfo) => {
+    mergeMap(async (workspaceInfo) => {
+      await createWorkspaceDir(workspaceInfo.title);
       const experiment = getExperimentFromType(workspaceInfo.type);
-      return of(
+      return [
         ExperimentActions.SetTitle(workspaceInfo.title),
         ExperimentActions.SetType(workspaceInfo.type),
         ExperimentActions.SetExperimentObject(experiment?.experimentObject),
-        ExperimentActions.SetParams(experiment?.params)
-      );
-    })
+        ExperimentActions.SetParams(experiment?.params),
+      ];
+    }),
+    mergeMap((actions) => of(...actions))
   );
 
 const startEpic = (action$, state$) =>
@@ -181,7 +183,7 @@ const saveWorkspaceEpic: Epic<
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.SaveWorkspace)),
-    throttleTime(1000),
+    debounceTime(400),
     filter(() =>
       state$.value.experiment.title
         ? state$.value.experiment.title.length > 1

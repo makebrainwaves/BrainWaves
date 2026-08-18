@@ -23,4 +23,4 @@ If you find a bug, or have a suggestion on how to improve the project, just fill
 
 If you're interested in using BrainWaves as a basis for your own work to streamline EEG experimentation or psychological data collection, we'd love to hear from you. Send an email to [dano@neurotechx.com](mailto:dano@neurotechx.com) or create an issue and we'll be in touch.
 
-All project management for BrainWaves occurs through issues on Github (via Zenhub). If you want to see what we need help with, or what is on our [roadmap](ROADMAP.md), check out the issues on this repository.
+Current work lives in [`TODOS.md`](TODOS.md) and the strategic layer in [`ROADMAP.md`](ROADMAP.md). Agent/developer conventions are in [`CLAUDE.md`](CLAUDE.md) and [`.llms/`](.llms/). GitHub issues are still welcome.

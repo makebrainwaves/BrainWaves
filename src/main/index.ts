@@ -24,14 +24,17 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
-import { FILE_TYPES } from '../renderer/constants/constants';
+import { lslOutlets } from './lsl/outlets';
+import { lslInlets } from './lsl/inlets';
+import { isLSLAvailable } from './lsl/native';
+import { persistExperimentState } from './workspaceState';
 import {
   PYODIDE_SOURCE_DIR,
   PYODIDE_RESOURCE_DIR,
 } from '../shared/pyodideAssets';
-import { lslOutlets } from './lsl/outlets';
-import { lslInlets } from './lsl/inlets';
-import { isLSLAvailable } from './lsl/native';
+import { FILE_TYPES } from '../renderer/constants/constants';
+
+
 import type {
   LSLEpoch,
   LSLMarker,
@@ -84,8 +87,7 @@ app.on('second-instance', (_event, argv) => {
   }
 });
 
-// Register pyodide:// as a privileged custom scheme so web workers can
-// fetch() package .whl files from it. Must be called before app.whenReady().
+// Register privileged custom schemes before app.whenReady().
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'pyodide',
@@ -96,7 +98,18 @@ protocol.registerSchemesAsPrivileged([
       corsEnabled: true, // no CORS errors when Pyodide fetches its own assets
     },
   },
+  {
+    scheme: 'bwfile',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+    },
+  },
 ]);
+
 
 export default class AppUpdater {
   constructor() {
@@ -217,9 +230,7 @@ ipcMain.handle('fs:readAndParseState', (_event, dir) => {
 ipcMain.handle(
   'fs:storeExperimentState',
   (_event, state: Record<string, unknown>) => {
-    const dir = getWorkspaceDir(state.title as string);
-    if (!fs.existsSync(dir)) return;
-    fs.writeFileSync(path.join(dir, 'appState.json'), JSON.stringify(state));
+    persistExperimentState(workspaces, state);
   }
 );
 
@@ -752,6 +763,12 @@ app.whenReady().then(async () => {
     const filePath = path.join(pyodideRoot, pathname);
     return net.fetch(pathToFileURL(filePath).href);
   });
+
+  protocol.handle('bwfile', (request) => {
+    const { pathname } = new URL(request.url);
+    return net.fetch(pathToFileURL(decodeURIComponent(pathname)).href);
+  });
+
 
   // Enable F12 devtools shortcut and Ctrl+R reload in dev, disable in prod
   app.on('browser-window-created', (_, window) => {

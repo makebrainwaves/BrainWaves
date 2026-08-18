@@ -18,12 +18,13 @@ export interface ExperimentWindowProps {
   onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
 }
 
-// Converts an absolute filesystem path to a URL the renderer can load.
-// In Vite dev mode, /@fs/<path> serves files outside publicDir.
-// In production the renderer has a file:// origin so file:// URLs work directly.
+// Custom experiments load user-chosen images from outside the repo.
+// Vite /@fs 403s those paths (electron-vite drops server.fs.allow).
+// Main serves them over bwfile:// in both dev and prod.
 function absPathToUrl(absPath: string): string {
-  return import.meta.env.DEV ? `/@fs${absPath}` : `file://${absPath}`;
+  return `bwfile://host${absPath}`;
 }
+
 
 export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
   title,

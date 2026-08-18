@@ -1,122 +1,112 @@
 # BrainWaves User Flow
 
-This document describes the user flow through the BrainWaves application — an Electron desktop app for conducting EEG neuroscience experiments.
+User flow through the BrainWaves Electron app. If this disagrees with the running code, the code wins — update this file.
 
 ## Flow Diagram
 
 ```mermaid
 flowchart TD
-    HOME["🏠 HOME"]
+    HOME["HOME"]
     HOME --> MY_EXP["MY EXPERIMENTS\n(saved workspaces)"]
-    HOME --> EXP_BANK["EXPERIMENT BANK\n(built-in cards)"]
+    HOME --> EXP_BANK["EXPERIMENT BANK\n(4 built-in cards)"]
     HOME --> EXPLORE["EXPLORE EEG DATA\n(raw streaming)"]
 
     MY_EXP -->|"Open Experiment"| DESIGN
-    EXP_BANK -->|"Pick card → Overview → Start"| DESIGN
+    EXP_BANK -->|"Pick card → Design"| DESIGN
 
-    EXPLORE --> CONNECT_MODAL_EXP["ConnectModal\n(find & connect device)"]
+    EXPLORE --> CONNECT_MODAL_EXP["ConnectModal\n(Muse / Neurosity / LSL)"]
     CONNECT_MODAL_EXP --> EEG_EXPLORE["Live EEG Viewer\n(signal quality + waveform)"]
 
-    subgraph DESIGN ["📋 DESIGN  /design"]
+    subgraph DESIGN ["DESIGN  /design"]
         direction TB
-        D_OV["OVERVIEW\n(title, description)"]
-        D_BG["BACKGROUND\n(framing questions, resources)"]
-        D_PR["PROTOCOL\n(step-by-step, condition images)"]
-        D_PV["PREVIEW\n(live experiment iframe)"]
+        D_OV["OVERVIEW"]
+        D_BG["BACKGROUND"]
+        D_PR["PROTOCOL"]
+        D_PV["PREVIEW\n(lab.js)"]
         D_OV --> D_BG --> D_PR --> D_PV
-        EEG_TOGGLE["Enable/Disable EEG toggle"]
+        EEG_TOGGLE["Enable/Disable EEG"]
     end
 
     DESIGN -->|"Top nav: Collect"| COLLECT
 
-    subgraph COLLECT ["🎧 COLLECT  /collect"]
+    subgraph COLLECT ["COLLECT  /collect"]
         direction TB
         PRE_TEST["PRE-TEST\n(signal quality + EEG viewer)"]
-        CONNECT_MODAL["ConnectModal\n① power on headset\n② plug in USB receiver\n③ select device → connect"]
+        CONNECT_MODAL["ConnectModal\n① power on headset\n② pick Muse / Neurosity / LSL\n③ select device → connect"]
         PRE_TEST -->|"EEG enabled & not connected"| CONNECT_MODAL
         CONNECT_MODAL -->|"Connected"| PRE_TEST
         PRE_TEST -->|"Run & Record"| RUN
         RUN["RUN\n(subject ID / group / session)"]
-        EXP_WINDOW["ExperimentWindow\n(full-screen lab.js iframe\n+ EEG timing markers)"]
+        EXP_WINDOW["ExperimentWindow\n(lab.js + EEG markers)"]
         RUN -->|"Run Experiment"| EXP_WINDOW
-        EXP_WINDOW -->|"Experiment complete\n(behavioral CSV saved)"| DONE_COLLECT["Recording saved ✓"]
+        EXP_WINDOW -->|"complete"| DONE_COLLECT["Recording saved"]
     end
 
     DONE_COLLECT -->|"EEG enabled\nTop nav: Clean"| CLEAN
     DONE_COLLECT -->|"Behavior only\nTop nav: Analyze"| ANALYZE
 
-    subgraph CLEAN ["🧹 CLEAN  /clean\n(EEG only)"]
+    subgraph CLEAN ["CLEAN  /clean\n(EEG only)"]
         direction TB
-        CL_SEL["Select subject\n+ select recording(s)"]
-        CL_LOAD["Load Dataset\n(Pyodide → epoch stats)"]
-        CL_CLEAN["Clean Data\n(artifact rejection in Pyodide)"]
+        CL_SEL["Select subject + recording(s)"]
+        CL_LOAD["Load Dataset\n(Pyodide epochs + reviewer)"]
+        CL_CLEAN["Clean Data\n(reject artifacts → .fif)"]
         CL_SEL --> CL_LOAD --> CL_CLEAN
     end
 
-    CLEAN -->|"Analyze Dataset →"| ANALYZE
+    CLEAN -->|"Analyze Dataset"| ANALYZE
 
-    subgraph ANALYZE ["📊 ANALYZE  /analyze"]
+    subgraph ANALYZE ["ANALYZE  /analyze"]
         direction TB
-        AN_OV["OVERVIEW\n(topoplot — scalp map)"]
-        AN_ERP["ERP\n(waveform by electrode)"]
-        AN_BEH["BEHAVIOR\n(RT / Accuracy charts\nbar · box · scatter)"]
-        AN_EXP["Export aggregated data"]
-        AN_OV --> AN_ERP
-        AN_ERP --> AN_BEH
-        AN_BEH --> AN_EXP
+        AN_OV["OVERVIEW\n(topoplot)"]
+        AN_ERP["ERP"]
+        AN_BEH["BEHAVIOR"]
+        AN_EXP["Export"]
+        AN_OV --> AN_ERP --> AN_BEH --> AN_EXP
     end
 
-    DESIGN -->|"Home button"| HOME
-    COLLECT -->|"Home button"| HOME
-    CLEAN -->|"Home button"| HOME
-    ANALYZE -->|"Home button"| HOME
-
-    style HOME fill:#4A90D9,color:#fff
-    style DESIGN fill:#7B68EE,color:#fff
-    style COLLECT fill:#E8763A,color:#fff
-    style CLEAN fill:#3BAF7A,color:#fff
-    style ANALYZE fill:#D95B5B,color:#fff
+    DESIGN -->|"Home"| HOME
+    COLLECT -->|"Home"| HOME
+    CLEAN -->|"Home"| HOME
+    ANALYZE -->|"Home"| HOME
 ```
 
 ## Stage Descriptions
 
 ### 1. Home (`/` and `/home`)
 
-Entry point with three tabs:
+Three tabs:
 
-- **My Experiments** — table of previously saved workspaces; each row has Delete, Go to Folder, and Open Experiment actions.
-- **Experiment Bank** — card grid of four built-in EEG paradigms: Faces/Houses (N170), Stroop Task, Multi-tasking, and Visual Search. Clicking a card opens an Overview panel before starting.
-- **Explore EEG Data** — connects directly to a headset and streams live EEG without running a formal experiment.
+- **My Experiments** — saved workspaces; Delete, Go to Folder, Open Experiment.
+- **Experiment Bank** — five cards: Faces/Houses (N170), Stroop, Multi-tasking, Visual Search, and **Custom**. Built-in cards start a workspace and go to Design. Custom opens a title prompt, then Design with extra authoring tabs.
+- **Explore EEG Data** — connect a headset and stream live EEG with no experiment.
 
 ### 2. Design (`/design`)
-
-Four review tabs walk the researcher through the experiment before data collection:
 
 | Tab | Content |
 |---|---|
 | **Overview** | Title and experiment description |
-| **Background** | Framing questions and external reading resources |
+| **Background** | Framing questions and external reading |
 | **Protocol** | Step-by-step instructions with condition images |
-| **Preview** | Live experiment iframe (lab.js) |
+| **Preview** | Live lab.js preview |
 
-An **Enable EEG** toggle controls whether the Clean step appears downstream. Custom experiments have additional tabs for configuring conditions, trials, timing parameters, and instructions.
+**Enable EEG** (gear / toggle) controls whether Clean appears downstream.
+
+Custom experiments add Conditions / Trials / Parameters / Instructions. Pick 1–4 image folders and key responses; the first image of each condition is a practice trial. Runtime is the Faces/Houses lab.js template parameterized by those stimuli (`filepath` URLs). `experiments/custom/experiment.js` is kept on disk but is not the runtime (it still uses the pre-Vite `this.files[dir/filename]` lookup).
 
 ### 3. Collect (`/collect`)
 
-Two sub-views:
-
-- **Pre-Test** — walks the user through `ConnectModal` (power on headset → plug in USB receiver → select device → connect), then shows live signal quality and a real-time EEG waveform.
-- **Run** — collects subject ID, group name, and session number, then launches the experiment in a full-screen iframe. EEG timing markers are injected during the task. On completion, the behavioral CSV is saved automatically.
+- **Pre-Test** — `ConnectModal` (headset on → pick **Muse**, **Neurosity Crown**, or **External LSL stream** if liblsl loaded → connect), then signal quality + live waveform. Muse/Neurosity are Web Bluetooth. There is no USB receiver (that was Emotiv).
+- **Run** — subject ID, group, session → full-screen lab.js. Markers go through `injectMarker()` (active BLE driver) and, when LSL is available, `sendMarker()` to the outlet. Behavioral CSV is saved on end.
 
 ### 4. Clean (`/clean`) — EEG only
 
-Shown only when EEG is enabled.
+Shown when EEG is enabled.
 
 1. Select a subject and one or more recordings.
-2. **Load Dataset** — loads epochs into Pyodide (Python-in-browser) and returns epoch statistics.
-3. **Clean Data** — runs artifact rejection via Pyodide. Once the drop percentage reaches a threshold, the *Analyze Dataset* button becomes available.
+2. **Load Dataset** — Pyodide epochs + interactive `EpochReviewer` / `LiveErpPane`.
+3. **Clean Data** — reject artifacts, write `.fif`. **Analyze Dataset** is available once `epochsInfo` exists; it is not gated on a drop-percentage threshold.
 
 ### 5. Analyze (`/analyze`)
 
-- **EEG mode** — three tabs: topoplot (scalp map overview), ERP waveforms per electrode, and behavioral analysis.
-- **Behavior-only mode** — one tab: interactive bar, box, or scatter plots for response time or accuracy, with an outlier-removal option and an export button.
+- **EEG mode** — topoplot (Pyodide/matplotlib SVG), ERP waveforms, behavioral plots (Plotly).
+- **Behavior-only mode** — RT / accuracy (bar, box, scatter), outlier removal, export.
