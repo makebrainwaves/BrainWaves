@@ -69,7 +69,7 @@ Device/LSL connectivity is integration-tested with the native layers fully mocke
 - Renderer drivers mock `window.electronAPI` (capture the `onLSLInletData`/`onLSLInletDisconnected` handlers to "push" inlet epochs) and `@neurosity/sdk`. The Neurosity mock's `Neurosity` must be `new`-able — `neurosity.ts` does `new Neurosity(...)` — so define a plain `function Neurosity(){ return client }` inside `vi.hoisted` (arrow fns aren't constructable) and `vi.mock('@neurosity/sdk', () => ({ Neurosity: h.Neurosity }))`.
 - `lslBridge.ts` probes availability at module load via a top-level `isLSLAvailable()` promise; to test the gate, set `window.electronAPI.isLSLAvailable` before `vi.resetModules()` + dynamic `await import('../lslBridge')`, then flush a microtask.
 
-**CI**: `npm run device-integration` (script targets `src/main/lsl src/renderer/utils/eeg`) runs as its own `.github/workflows/integration.yml` job with `npm ci --ignore-scripts` — since every native module is mocked, it skips the slow Pyodide/MNE postinstall and needs no liblsl. The full cross-OS suite still runs these too via `npm test` in `test.yml` (whose `Test` step runs before the lint step).
+**CI**: `npm run device-integration` (script targets `src/main/lsl src/renderer/utils/eeg`) runs as its own `.github/workflows/device.yml` job with `npm ci --ignore-scripts` — since every native module is mocked, it skips the slow Pyodide/MNE postinstall and needs no liblsl. The full cross-OS suite still runs these too via `npm test` in `test.yml` (whose `Test` step runs before the lint step).
 
 ## Styling System (post Phase 4 migration)
 
@@ -120,7 +120,7 @@ The CDN version is derived from `node_modules/pyodide/package.json` — **not** 
 
 **WebAgg backend does not work in web workers** — WebAgg tries to access `js.document` to inject CSS/JS into the DOM on first import, which throws `ImportError: cannot import name 'document' from 'js'` in a worker context. Use `agg` instead. Set it via `os.environ["MPLBACKEND"] = "agg"` before any matplotlib import. `fig.savefig()` works with `agg` and is the correct way to get plot images back to the renderer.
 
-**Plot result routing pattern** — `worker.postMessage()` is fire-and-forget (returns `undefined`). Plot epics should use `tap()` to fire the worker message and `mergeMap(() => EMPTY)` to emit nothing. Results come back asynchronously on the worker `message` event. Add a `plotKey` field to each worker message; the worker echoes it back; `pyodideMessageEpic` switches on `plotKey` to dispatch `SetTopoPlot`/`SetPSDPlot`/`SetERPPlot` with a `{ 'image/png': base64string }` MIME bundle. `PyodidePlotWidget` renders this via `@nteract/transforms`.
+**Plot result routing pattern** — `worker.postMessage()` is fire-and-forget (returns `undefined`). Plot epics should use `tap()` to fire the worker message and `mergeMap(() => EMPTY)` to emit nothing. Results come back asynchronously on the worker `message` event. Add a `plotKey` field to each worker message; the worker echoes it back; `pyodideMessageEpic` switches on `plotKey` to dispatch `SetTopoPlot`/`SetPSDPlot`/`SetERPPlot` with an SVG string wrapped as `{ 'image/svg+xml': svg }`. `PyodidePlotWidget` renders that as a data-URI `<img>` (no `@nteract/transforms`).
 
 ## Lab.js 23.x API: `hooks` replaces `messageHandlers`
 
@@ -231,3 +231,27 @@ fails on a `pyodide://` URL instead.
 Experiments emit `this.data.correct_response` as a real boolean (`true`/`false`) and `response_given` as `'yes'`/`'no'` (see `src/renderer/utils/labjs/functions.ts`). But all consumers in `src/renderer/utils/behavior/compute.js` read data **after** it's been written to CSV and re-parsed, so every value is a **string**. That's why existing code gates on `row.correct_response === 'true'` and `row.response_given === 'yes'`, and parses numbers with `parseFloat`.
 
 Trap: a new metric written naively (`row.correct_response === true`, or arithmetic on an unparsed string) will silently return `false`/`0`/`NaN` for post-CSV data — and may *work* on pre-CSV in-memory data, so it passes a quick test and fails in production. Always compare against the string `'true'`/`'yes'` and `parseFloat` before doing math.
+
+## Playtest the Electron window, never Vite `:5173`
+
+`npm run dev` serves the renderer at `http://localhost:5173` *and* opens Electron.
+Chrome / gstack `/browse` / `/qa` against that URL has no preload: `LSLStatusListener`
+throws and Pyodide cannot fetch `pyodide://host/...`. Evidence:
+`.gstack/browse-console.log` (2026-07-14). Drive the Electron window (planned:
+`--remote-debugging-port` + OMP CDP). Root `CLAUDE.md` bans `/qa` on Vite.
+
+## Custom experiments are a V1 P0 restore, not a delete
+
+The 2017–2020 app had a working custom-experiment builder (CHANGELOG 0.11–0.13).
+HEAD still has the files (`CustomDesignComponent`, `StimuliRow`/`StimuliDesignColumn`,
+`experiments/custom/`) but the bank has no Custom card, `getExperimentFromType`
+falls through to Faces/Houses, and CONDITIONS/TRIALS are stubbed. Recover from
+git history; do not delete the stub. See `TODOS.md`.
+
+## LSL inlet `injectMarker` is intentional
+
+`EEGDriver.injectMarker` is required for Muse/Neurosity (CSV + ERP). LSL inlet
+is a separate mode: the external recorder owns markers, so `injectMarker()`
+no-ops. First-party runs still `sendMarker()` to the LSL *outlet* from
+`RunComponent`. Do not "fix" the inlet no-op.
+

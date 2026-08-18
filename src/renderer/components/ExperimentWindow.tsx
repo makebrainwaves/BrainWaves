@@ -7,6 +7,7 @@ import {
   ExperimentParameters,
   Stimulus,
 } from '../constants/interfaces';
+import { toStimulusFileUrl } from '../../shared/stimulusUrl';
 
 export interface ExperimentWindowProps {
   title: string;
@@ -16,13 +17,6 @@ export interface ExperimentWindowProps {
   eventCallback: (value: number, time: number) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
-}
-
-// Converts an absolute filesystem path to a URL the renderer can load.
-// In Vite dev mode, /@fs/<path> serves files outside publicDir.
-// In production the renderer has a file:// origin so file:// URLs work directly.
-function absPathToUrl(absPath: string): string {
-  return import.meta.env.DEV ? `/@fs${absPath}` : `file://${absPath}`;
 }
 
 export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
@@ -50,7 +44,10 @@ export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
       experimentToRun.options.media.images = params.stimuli?.reduce<string[]>(
         (images, stimulus) => {
           if (stimulus.dir && stimulus.filename) {
-            return [...images, absPathToUrl(path.join(stimulus.dir, stimulus.filename))];
+            return [
+              ...images,
+              toStimulusFileUrl(path.join(stimulus.dir, stimulus.filename)),
+            ];
           }
           return images;
         },

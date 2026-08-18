@@ -19,6 +19,13 @@ export interface WorkSpaceInfo {
 }
 
 // All mutable aspects of an experiment that can be updated by the DesignComponent
+export type StimulusCondition = {
+  dir?: string;
+  title: string;
+  type: EVENTS;
+  response: string;
+};
+
 export type ExperimentParameters = {
   // TODO: consider refactoring to expose lab.js sample.mode
   description?: ExperimentDescription;
@@ -34,6 +41,12 @@ export type ExperimentParameters = {
   stimuli?: Stimulus[];
   taskHelp?: string;
   trialDuration: number;
+  imageHeight?: string;
+  // Custom-experiment condition folders (2020 builder). Absent on built-ins.
+  stimulus1?: StimulusCondition;
+  stimulus2?: StimulusCondition;
+  stimulus3?: StimulusCondition;
+  stimulus4?: StimulusCondition;
 };
 
 export interface Stimulus {
@@ -46,7 +59,7 @@ export interface Stimulus {
   filename?: string;
 }
 
-interface ExperimentDescription {
+export interface ExperimentDescription {
   question: string;
   hypothesis: string;
   methods: string;

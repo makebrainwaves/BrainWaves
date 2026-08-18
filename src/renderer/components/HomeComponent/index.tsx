@@ -18,6 +18,7 @@ import faceHouseIcon from '../../experiments/faces_houses/icon.png';
 import stroopIcon from '../../experiments/stroop/icon.png';
 import multitaskingIcon from '../../experiments/multitasking/icon.png';
 import searchIcon from '../../experiments/search/icon.png';
+import customIcon from '../../experiments/custom/icon.png';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';
 import {
@@ -308,6 +309,13 @@ export default class Home extends Component<Props, State> {
               title="Visual Search"
               description={`Examine why it is difficult to find your keys in a
                         messy room.`}
+            />
+            <ExperimentCard
+              onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+              icon={customIcon}
+              title="Custom"
+              description={`Design your own image experiment. Choose
+                        condition folders and key responses.`}
             />
           </div>
         );

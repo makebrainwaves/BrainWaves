@@ -11,12 +11,26 @@ import {
 import { isString } from 'lodash';
 
 import { SCREENS } from '../../constants/constants';
-import { ExperimentParameters } from '../../constants/interfaces';
+import { ExperimentParameters, Stimulus } from '../../constants/interfaces';
 import { DesignProps } from './index';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import { ParamSlider } from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
+import StimuliDesignColumn from './StimuliDesignColumn';
+import { StimuliRow } from './StimuliRow';
+import { readImages } from '../../utils/filesystem/storage';
+import {
+  CONDITION_SLOTS,
+  ConditionSlotName,
+  countPhases,
+  emptyConditionSlot,
+  rebuildStimuliFromSlots,
+} from '../../utils/labjs/customStimuli';
+import {
+  mergeCustomParams,
+  params as defaultCustomParams,
+} from '../../experiments/custom/params';
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
@@ -46,12 +60,16 @@ interface State {
 }
 
 export default class CustomDesign extends Component<DesignProps, State> {
+  private conditionParams: ExperimentParameters;
+  private conditionRevision = 0;
   constructor(props: DesignProps) {
     super(props);
+    const customParams = mergeCustomParams(props.params);
+    this.conditionParams = customParams;
     this.state = {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: true,
-      params: props.params,
+      params: customParams,
       saved: false,
     };
     this.handleStepClick = this.handleStepClick.bind(this);
@@ -61,6 +79,11 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.handleProgressBar = this.handleProgressBar.bind(this);
     this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
     this.endPreview = this.endPreview.bind(this);
+  }
+
+  componentWillUnmount() {
+    this.props.ExperimentActions.SetParams(this.conditionParams);
+    this.props.ExperimentActions.SaveWorkspace();
   }
 
   endPreview() {
@@ -92,30 +115,104 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
-  handleSaveParams() {
-    this.props.ExperimentActions.SetParams(this.state.params);
+  handleSaveParams(params: ExperimentParameters = this.conditionParams) {
+    this.conditionParams = params;
+    this.props.ExperimentActions.SetParams(params);
     this.props.ExperimentActions.SaveWorkspace();
-    this.setState({ saved: true });
+    this.setState({ saved: true, params });
   }
 
   handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
-    // @ts-expect-error
-    this.setState((prevState) => ({
-      params: {
-        ...prevState.params,
-        description: { ...prevState.params.description, [section]: text },
+    const params: ExperimentParameters = {
+      ...this.conditionParams,
+      description: {
+        ...defaultCustomParams.description,
+        ...this.conditionParams.description,
+        [section]: text,
       },
-      saved: false,
-    }));
+    };
+    this.setState({ params, saved: false });
+    this.handleSaveParams(params);
   }
 
+  handleConditionChange = async (
+    key: string,
+    data: string,
+    changedName: string
+  ) => {
+    const slotName = changedName as ConditionSlotName;
+    const slotMeta = CONDITION_SLOTS.find((slot) => slot.name === slotName);
+    if (!slotMeta) return;
+
+    const previousSlot =
+      this.conditionParams[slotName] ??
+      emptyConditionSlot(slotMeta.type, '');
+    let nextParams: ExperimentParameters = {
+      ...this.conditionParams,
+      [slotName]: { ...previousSlot, [key]: data },
+    };
+    this.conditionParams = nextParams;
+
+    if (key !== 'dir') {
+      const changedSlot = nextParams[slotName]!;
+      const stimuli = (nextParams.stimuli ?? []).map((stimulus) =>
+        stimulus.type === slotMeta.type
+          ? {
+              ...stimulus,
+              condition: changedSlot.title,
+              response: changedSlot.response,
+            }
+          : stimulus
+      );
+      nextParams = { ...nextParams, stimuli };
+      this.setState({ params: nextParams, saved: false });
+      this.handleSaveParams(nextParams);
+      return;
+    }
+
+    const revision = ++this.conditionRevision;
+    const rebuiltStimuli = await rebuildStimuliFromSlots(nextParams, readImages);
+    if (revision !== this.conditionRevision) return;
+
+    const latestParams = this.conditionParams;
+    const stimuli = rebuiltStimuli.map((stimulus) => {
+      const slot = CONDITION_SLOTS.find(({ type }) => type === stimulus.type);
+      const condition = slot ? latestParams[slot.name] : undefined;
+      return condition
+        ? {
+            ...stimulus,
+            condition: condition.title,
+            response: condition.response,
+          }
+        : stimulus;
+    });
+    const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
+    const params = { ...latestParams, stimuli, nbTrials, nbPracticeTrials };
+    this.setState({ params, saved: false });
+    this.handleSaveParams(params);
+  };
+
+  handleDeleteTrial = (deletedNum: number) => {
+    const stimuli = [...(this.state.params.stimuli ?? [])];
+    stimuli.splice(deletedNum, 1);
+    const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
+    const params = { ...this.state.params, stimuli, nbTrials, nbPracticeTrials };
+    this.setState({ params, saved: false });
+    this.handleSaveParams(params);
+  };
+
+  handleChangeTrial = (changedNum: number, key: string, data: string) => {
+    const stimuli: Stimulus[] = [...(this.state.params.stimuli ?? [])];
+    const current = stimuli[changedNum];
+    if (!current) return;
+    stimuli[changedNum] = { ...current, [key]: data };
+    const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
+    const params = { ...this.state.params, stimuli, nbTrials, nbPracticeTrials };
+    this.setState({ params, saved: false });
+    this.handleSaveParams(params);
+  };
+
   renderSectionContent() {
-    const stimi = [
-      { name: 'stimulus1', number: 1 },
-      { name: 'stimulus2', number: 2 },
-      { name: 'stimulus3', number: 3 },
-      { name: 'stimulus4', number: 4 },
-    ];
     switch (this.state.activeStep) {
       case CUSTOM_STEPS.OVERVIEW:
       default:
@@ -204,18 +301,25 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    Stimulus customization is currently unavailable
-                  </TableCell>
-                </TableRow>
-                {stimi.map(({ name, number }) => (
-                  <TableRow key={name}>
-                    <TableCell
-                      colSpan={3}
-                    >{`Stimulus name: ${name}, number: ${number}`}</TableCell>
-                  </TableRow>
-                ))}
+                {CONDITION_SLOTS.map(({ name, number, type }) => {
+                  const slot =
+                    this.state.params[name] ?? emptyConditionSlot(type, '');
+                  return (
+                    <StimuliDesignColumn
+                      key={name}
+                      num={number}
+                      title={slot.title}
+                      response={slot.response}
+                      dir={slot.dir ?? ''}
+                      numberImages={
+                        this.state.params.stimuli?.filter(
+                          (trial) => trial.type === number
+                        ).length
+                      }
+                      onChange={this.handleConditionChange}
+                    />
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -302,11 +406,19 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 </TableRow>
               </TableHeader>
               <TableBody className="overflow-y-scroll max-h-[50vh] block">
-                <TableRow>
-                  <TableCell colSpan={4}>
-                    Stimulus customization is currently unavailable
-                  </TableCell>
-                </TableRow>
+                {(this.state.params.stimuli ?? []).map((trial, num) => (
+                  <StimuliRow
+                    key={`${trial.filename ?? trial.title}-${num}`}
+                    num={num}
+                    name={trial.filename ?? trial.title}
+                    response={trial.response ?? ''}
+                    dir={trial.dir ?? ''}
+                    condition={trial.condition ?? ''}
+                    phase={trial.phase ?? 'main'}
+                    onDelete={this.handleDeleteTrial}
+                    onChange={this.handleChangeTrial}
+                  />
+                ))}
               </TableBody>
             </Table>
           </div>

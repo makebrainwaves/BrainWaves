@@ -5,7 +5,7 @@ import {
   mergeMap,
   filter,
   takeUntil,
-  throttleTime,
+  debounceTime,
   tap,
 } from 'rxjs/operators';
 import { isActionOf } from '../utils/redux';
@@ -46,15 +46,17 @@ const createNewWorkspaceEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.CreateNewWorkspace)),
     map((action) => action.payload as WorkSpaceInfo),
-    mergeMap((workspaceInfo) => {
+    mergeMap(async (workspaceInfo) => {
+      await createWorkspaceDir(workspaceInfo.title);
       const experiment = getExperimentFromType(workspaceInfo.type);
-      return of(
+      return [
         ExperimentActions.SetTitle(workspaceInfo.title),
         ExperimentActions.SetType(workspaceInfo.type),
         ExperimentActions.SetExperimentObject(experiment?.experimentObject),
-        ExperimentActions.SetParams(experiment?.params)
-      );
-    })
+        ExperimentActions.SetParams(experiment?.params),
+      ];
+    }),
+    mergeMap((actions) => of(...actions))
   );
 
 const startEpic = (action$, state$) =>
@@ -174,26 +176,22 @@ const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
     map(() => ExperimentActions.SaveWorkspace())
   );
 
-const saveWorkspaceEpic: Epic<
+export const saveWorkspaceEpic: Epic<
   ExperimentActionType,
   ExperimentActionType,
   RootState
 > = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.SaveWorkspace)),
-    throttleTime(1000),
-    filter(() =>
-      state$.value.experiment.title
-        ? state$.value.experiment.title.length > 1
-        : false
-    ),
-    mergeMap(async () => {
+    map(() => state$.value.experiment),
+    debounceTime(400),
+    filter(({ title }) => title.length > 1),
+    mergeMap(async (experiment) => {
       const now = Date.now();
       // experimentObject contains function references (hooks) that cannot be
       // serialized via IPC structured clone. It is always re-derived from
       // `type` on load (see handleLoadRecentWorkspace), so omit it here.
-      const { experimentObject: _omit, ...serializableState } =
-        state$.value.experiment;
+      const { experimentObject: _omit, ...serializableState } = experiment;
       await storeExperimentState({ ...serializableState, dateModified: now });
       return now;
     }),

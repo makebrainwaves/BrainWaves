@@ -31,9 +31,11 @@ protocol.registerSchemesAsPrivileged([{
 **Handler registered in `app.whenReady()`:**
 
 ```ts
+// Dest name MUST be `pyodide` — it is `PYODIDE_RESOURCE_DIR` in
+// src/shared/pyodideAssets.ts and package.json extraResources.to.
 const pyodideRoot = is.dev
   ? path.join(app.getAppPath(), 'src/renderer/utils/webworker/src')
-  : path.join(process.resourcesPath, 'webworker/src');
+  : path.join(process.resourcesPath, 'pyodide');
 
 protocol.handle('pyodide', (request) => {
   const { pathname } = new URL(request.url);
@@ -110,12 +112,16 @@ These are easy to confuse:
 
 | Option | Purpose |
 |--------|---------|
-| `indexURL` | Where Pyodide looks for its **runtime** files (WASM, stdlib). Already resolved from `node_modules` via `import.meta.url`. Do not override. |
+| `indexURL` | Where Pyodide looks for its **runtime** files (WASM, stdlib). In **dev**, `import.meta.url` next to `node_modules/pyodide/` is enough. In **prod**, Vite bundles `pyodide.mjs` away from those siblings — you **must** set `indexURL` to `${PYODIDE_ASSET_BASE}/pyodide/` or it falls back to `calculateDirname()` and fetches `file:///…/app.asar/out/renderer/assets/pyodide.asm.js`. |
 | `packageBaseUrl` | Where `loadPackage()` fetches **package `.whl` files**. Set this to `pyodide://host/pyodide/`. |
 
 ```js
 const packageBaseUrl = `${PYODIDE_ASSET_BASE}/pyodide/`;
-const pyodide = await loadPyodide({ lockFileURL, packageBaseUrl });
+const pyodide = await loadPyodide({
+  lockFileURL,
+  packageBaseUrl,
+  indexURL: `${PYODIDE_ASSET_BASE}/pyodide/`, // required in packaged builds
+});
 ```
 
 ---
@@ -321,13 +327,11 @@ function svgToPngArrayBuffer(svg: string): Promise<ArrayBuffer> {
 
 The resulting `ArrayBuffer` is passed through the IPC chain (`preload → main`) for file write. Electron's `contextBridge` serialises `ArrayBuffer` correctly without any additional conversion.
 
----
-
 ## Summary of File Locations
 
 | What | Where |
 |------|-------|
-| Pyodide runtime + binary wheels | `src/renderer/utils/webworker/src/pyodide/` |
+| Pyodide runtime + binary wheels | `src/renderer/utils/webworker/src/pyodide/` (packaged dest: `resources/pyodide/`) |
 | Pure-Python wheels + manifest | `src/renderer/utils/webworker/src/packages/` |
 | Web worker entry point | `src/renderer/utils/webworker/webworker.js` |
 | JS wrappers for Python calls | `src/renderer/utils/webworker/index.ts` |

@@ -24,14 +24,16 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { is, optimizer } from '@electron-toolkit/utils';
 import MenuBuilder from './menu';
-import { FILE_TYPES } from '../renderer/constants/constants';
+import { lslOutlets } from './lsl/outlets';
+import { lslInlets } from './lsl/inlets';
+import { isLSLAvailable } from './lsl/native';
+import { persistExperimentState } from './workspaceState';
+import { StimulusFileAccess } from './stimulusFileAccess';
 import {
   PYODIDE_SOURCE_DIR,
   PYODIDE_RESOURCE_DIR,
 } from '../shared/pyodideAssets';
-import { lslOutlets } from './lsl/outlets';
-import { lslInlets } from './lsl/inlets';
-import { isLSLAvailable } from './lsl/native';
+import { FILE_TYPES } from '../renderer/constants/constants';
 import type {
   LSLEpoch,
   LSLMarker,
@@ -84,8 +86,7 @@ app.on('second-instance', (_event, argv) => {
   }
 });
 
-// Register pyodide:// as a privileged custom scheme so web workers can
-// fetch() package .whl files from it. Must be called before app.whenReady().
+// Register privileged custom schemes before app.whenReady().
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'pyodide',
@@ -94,6 +95,14 @@ protocol.registerSchemesAsPrivileged([
       secure: true, // counts as a secure origin (needed for WASM, SAB)
       supportFetchAPI: true, // allow fetch() from renderer and worker contexts
       corsEnabled: true, // no CORS errors when Pyodide fetches its own assets
+    },
+  },
+  {
+    scheme: 'bwfile',
+    privileges: {
+      standard: true,
+      secure: true,
+      stream: true,
     },
   },
 ]);
@@ -118,6 +127,14 @@ let pendingBluetoothCallback: ((deviceId: string) => void) | null = null;
 // ------------------------------------------------------------------
 
 const workspaces = path.join(os.homedir(), 'BrainWaves_Workspaces');
+let stimulusFileAccess: StimulusFileAccess | undefined;
+
+const getStimulusFileAccess = () => {
+  stimulusFileAccess ??= new StimulusFileAccess(
+    path.join(app.getPath('userData'), 'stimulus-directories.json')
+  );
+  return stimulusFileAccess;
+};
 
 const getWorkspaceDir = (title: string) => path.join(workspaces, title);
 
@@ -150,7 +167,10 @@ ipcMain.handle('loadDialog', async (_event, fileType) => {
       title: 'Select a folder of images',
       properties: ['openDirectory'],
     });
-    return result.canceled ? '' : result.filePaths[0];
+    if (result.canceled) return '';
+    const directory = result.filePaths[0];
+    getStimulusFileAccess().authorizeDirectory(directory);
+    return directory;
   }
   const result = await dialog.showOpenDialog(mainWindow!, {
     title: 'Select a jsPsych timeline file',
@@ -217,9 +237,7 @@ ipcMain.handle('fs:readAndParseState', (_event, dir) => {
 ipcMain.handle(
   'fs:storeExperimentState',
   (_event, state: Record<string, unknown>) => {
-    const dir = getWorkspaceDir(state.title as string);
-    if (!fs.existsSync(dir)) return;
-    fs.writeFileSync(path.join(dir, 'appState.json'), JSON.stringify(state));
+    persistExperimentState(workspaces, state);
   }
 );
 
@@ -364,10 +382,10 @@ ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
 );
 
 ipcMain.handle('fs:readImages', (_event, dir) => {
-  return fs.readdirSync(dir).filter((filename) => {
-    const ext = filename.slice(-3).toLowerCase();
-    return ext === 'png' || ext === 'jpg' || ext === 'gif' || ext === 'peg';
-  });
+  const imageExtensions = new Set(['.gif', '.jpeg', '.jpg', '.png', '.webp']);
+  return fs
+    .readdirSync(dir)
+    .filter((filename) => imageExtensions.has(path.extname(filename).toLowerCase()));
 });
 
 ipcMain.handle(
@@ -752,6 +770,12 @@ app.whenReady().then(async () => {
     const filePath = path.join(pyodideRoot, pathname);
     return net.fetch(pathToFileURL(filePath).href);
   });
+
+  protocol.handle('bwfile', (request) => {
+    const filePath = getStimulusFileAccess().resolveUrl(request.url);
+    return net.fetch(pathToFileURL(filePath).href);
+  });
+
 
   // Enable F12 devtools shortcut and Ctrl+R reload in dev, disable in prod
   app.on('browser-window-created', (_, window) => {

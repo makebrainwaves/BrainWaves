@@ -1,0 +1,4 @@
+{"ts":"2026-07-14T21:39:03.322Z","cmd":"status","args":"","origin":"about:blank","durationMs":2,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-07-14T21:44:12.653Z","cmd":"goto","args":"http://localhost:5173/","origin":"http://localhost:5173/","durationMs":714,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-07-14T21:44:14.724Z","cmd":"console","args":"--errors","origin":"http://localhost:5173/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-07-14T21:44:14.780Z","cmd":"snapshot","args":"-i -o /Users/dano/work/BrainWaves/.gstack/qa-reports/screenshots/initial.png","origin":"http://localhost:5173/","durationMs":17,"status":"ok","hasCookies":false,"mode":"launched"}
