@@ -51,12 +51,12 @@ export default class StimuliDesignColumn extends Component<Props, State> {
     // away and back; re-derive the sound count from the folder on mount.
     // (The image count survives remounts via the numberImages prop, which
     // the parent derives from the trial list.)
-    this.refreshSoundCount(this.props.audioDir);
+    void this.refreshSoundCount(this.props.audioDir);
   }
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.audioDir !== this.props.audioDir) {
-      this.refreshSoundCount(this.props.audioDir);
+      void this.refreshSoundCount(this.props.audioDir);
     }
   }
 
