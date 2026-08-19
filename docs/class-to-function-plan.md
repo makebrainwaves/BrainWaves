@@ -1,145 +1,505 @@
 # Plan: class components → function components
 
-## What's actually broken
+Rip sheet. Conversion only. One branch, one PR.
 
-The stated pain is *"wasting too much time reading through every piece of this app."*
-That is not caused by `class` — it's caused by file size and prop indirection:
+**Non-goals:** no component splitting, no container edits, no file moves, no prop-shape changes, no `useCallback` / `useMemo` (except the two cases named below), no new hooks, no renaming the `Home` class in `EEGExplorationComponent.tsx`.
 
-| Symptom | Cause | Fixed by |
-|---|---|---|
-| 644-line `CustomDesignComponent.tsx` | `renderSectionContent()` is a 400-line method | splitting render methods into sibling files |
-| "where does `deviceType` come from?" | `connect()` container → 15 spread props | `useSelector` at point of use |
-| "will this break?" | 20 components, ~4200 lines, ~3 renderer component tests | one characterization test per conversion |
+Do not touch `src/renderer/containers/*` (already functions). Do not touch `src/renderer/components/d3Classes/EEGViewer.js` (not a React component). Leave `SettingsDropdown` and `HelpButton` — they are already functions.
 
-Class→function is the **vehicle** for those three, not the goal. Converting a class to a
-function and leaving a 644-line file behind buys nothing.
+---
 
-## What already exists (don't rebuild it)
+## Rip rules
 
-Testing "fixtures" are already installed and working — **nothing to add here**:
+Apply in every file. Same diff shape everywhere.
 
-- `vitest` + `jsdom` + `globals: true` (`vitest.config.ts`)
-- `@testing-library/react` v16, `@testing-library/dom`, `@testing-library/jest-dom`
-- `src/test-setup.ts` wired as `setupFiles`
-- `eslint-plugin-react-hooks` `recommended-latest` already on (`eslint.config.mjs:47`) —
-  the exhaustive-deps safety net for hooks is live from day one
-- Good precedent test to copy: `src/renderer/components/CleanComponent/__tests__/EpochReviewer.test.tsx`
+| Class | Function |
+|---|---|
+| `export default class X extends Component<Props, State>` | `export default function X(props: Props)` |
+| `class X … export default X` | `export default function X(props: Props)` |
+| `export class HelpSidebar` | `export function HelpSidebar` — keep the named export |
+| `extends PureComponent` | plain function. Do not add `React.memo` |
+| `constructor` state init | **one `useState` per field** |
+| `this.state.foo` | `foo` |
+| `this.setState({ foo })` | `setFoo(foo)` |
+| `this.setState({ foo, bar })` | `setFoo(foo); setBar(bar);` — React 18 batches |
+| `this.setState(prev => ({ foo: … }))` | `setFoo(prev => …)` — drop the object wrapper |
+| `this.setState(prev => ({ …prev, foo }))` | `setFoo(…)` only; other fields are other hooks |
+| `this.props.foo` | `props.foo` — **do not destructure** `props` in the signature |
+| `handleX() {}` / `handleX = () => {}` | `function handleX() {}` in the body |
+| `renderX() {}` | `function renderX() {}` in the body, same file |
+| `static foo()` | module-level `function foo()` above the component |
+| `componentDidMount` | `useEffect(() => {…}, [])` |
+| async `componentDidMount` | same; `void` the promise or use an inner async fn. Guard `setState` after unmount with a `cancelled` flag |
+| `componentWillUnmount` | cleanup return of that same `[]` effect |
+| `componentDidUpdate` guarded on one prop | `useEffect(() => {…}, [thatProp])` |
+| instance field that is a constant from initial props | `useState(() => …)` and never set it |
+| instance field that is mutable across renders (`conditionParams`, subscriptions, DOM nodes) | `useRef` |
+| `debounce(this.handleX.bind(this), n)` in the constructor | `useMemo(() => debounce(function handleX() {…}, n, opts), [])` plus `useEffect(() => () => handleX.cancel(), [handleX])` |
 
-The only new test helper worth writing is **one** file (see step 0).
+**Do not** keep a single `useState<State>` object. Class `setState` merges; hook `setState` replaces. Per-field setters cannot wipe sibling fields.
 
-## Inventory
+**Do not** add `useCallback` / `useMemo` / `React.memo` except:
 
-20 classes, 4255 lines. Grouped by difficulty:
+1. Debounced handlers (above) — `useMemo` holds the lodash instance so it is not recreated every render.
+2. `StimuliDesignColumn` — `React.memo` with a compare that matches the existing `shouldComponentUpdate`. The file exists for that skip. See its card.
 
-**Tier A — trivial (`setState` + render only, no lifecycle).** Mechanical, ~15 min each.
-`PreviewButtonComponent` (24), `PreviewExperimentComponent` (49), `InputModal` (84),
-`PyodidePlotWidget` (87), `SecondaryNavComponent` (116), `CollectComponent/index` (138),
-`HelpSidebar` (191), `CleanSidebar` (172), `PreTestComponent` (175), `InputCollect` (155)
+Keep `Props` / `State` interfaces. `State` documents the `useState` group.
 
-**Tier B — has `componentDidMount`/`componentDidUpdate`, still simple state.**
-`ConnectModal` (306), `StimuliDesignColumn` (203), `EEGExplorationComponent` (144),
-`DesignComponent/index` (319)
+Keep the default-vs-named export style of the file you are in. Keep the function name equal to the class name (`Analyze`, `Home`, `Clean`, `Collect`, `Design`, `CustomDesign`, `PreviewButton`, …). Default-export local name does not matter to importers; don't rename.
 
-**Tier C — RxJS subscription lifecycle.** The only genuinely interesting ones.
-`SignalQualityIndicatorComponent` (70), `ViewerComponent` (148)
+Import `useState` / `useEffect` / `useRef` / `useMemo` from `'react'` as needed. Drop `Component` / `PureComponent`.
 
-**Tier D — big, must be split, not just converted.**
-`HomeComponent/index` (379), `CleanComponent/index` (471), `AnalyzeComponent` (560),
-`CustomDesignComponent` (644)
+---
 
-## Step 0 — the one new fixture (~30 lines, do this first)
+## Conversion order
 
-`src/renderer/test-utils.tsx`:
+Do not skip ahead. Tests land first so a silent behavior change fails the file you are about to touch.
 
-```tsx
-// renderWithStore: mounts a component against a real store built from the app's
-// reducers, so tests exercise selectors/actions instead of hand-mocked props.
-export function renderWithStore(ui, { preloadedState } = {}) {
-  const store = configureStore({ reducer: rootReducer, preloadedState });
-  return { store, ...render(<Provider store={store}>{ui}</Provider>) };
-}
+### A. Tests (against the current classes)
+
+Write these before converting the matching file. If the test needs edits after conversion, behavior changed — stop and fix the component, not the test.
+
+Style: `src/renderer/components/CleanComponent/__tests__/EpochReviewer.test.tsx`. `render(<X {...props} />)`, 2–4 behavioral assertions, no snapshots, no `Provider`.
+
+**A1. Rewrite `CustomDesignComponent.test.ts` first.**
+
+It currently does `new CustomDesign(makeProps())` and assigns `design.setState`. That dies the moment the class is gone. Replace with RTL before converting the component.
+
+The contract to keep: an older `handleConditionChange('dir', …)` must not overwrite a newer `handleConditionChange('title', …)`. Drive it through the UI (change the folder, then the title, then resolve the deferred `readImages`). Assert `stimulus1.title` is still the newer title. Same mocks (`finishRead` deferred `readImages`) stay.
+
+**A2. `SignalQualityIndicatorComponent`** — new test file.
+
+- `Subject` as `signalQualityObservable`. After mount, `subject.observed === true`.
+- `unmount()` → `subject.observed === false`.
+- `rerender` with a new `Subject` → old unsubscribed, new observed.
+- Do **not** assert `setSignalQuality` — there is no React state. The subscribe body paints D3 on `#${channelId}`.
+
+**A3. `CollectComponent/index`** — new test file.
+
+- `isEEGEnabled` + not `CONNECTED` → connect modal opens on mount (`handleStartConnect`).
+- `rerender` with `connectionStatus={CONNECTION_STATUS.CONNECTED}` → modal closes.
+- Need dummy `DeviceActions` / `ExperimentActions` / device props; look at `Props` in the file.
+
+**A4. `CleanComponent/index`** — new test file.
+
+- Render with `suggestedRejections={[]}`.
+- `rerender` with `suggestedRejections={[{ index: 2 }, { index: 5 }]}`.
+- Those indices appear in whatever the review UI uses to mark rejected epochs (the `rejected` set passed to `EpochReviewer`). Stub `readWorkspaceRawEEGData` so mount does not hit the filesystem.
+
+**A5. `StimuliDesignColumn.test.tsx`** — extend, do not replace.
+
+Existing test: mount with `audioDir="/tones"` shows `( 2 sounds )`.
+Add: `rerender` with a different `audioDir`; `readAudioFiles` resolves a different list; the label updates.
+
+**A6. `ViewerComponent`** — new test file. jsdom cannot exercise `<webview>` IPC or `dom-ready`. Do not pretend.
+
+- Mock `window.electronAPI.getViewerUrl` → resolve `'http://viewer.local'`.
+- First paint: `container` is empty (`viewerUrl === ''` → `return null`).
+- After the promise: a `webview` with that `src`.
+- Playtest of channels / domain / autoScale / signal-quality IPC is Electron-only (`npm run dev`, desktop window, not `:5173`).
+
+Skipped: Storybook, MSW, snapshots, coverage target, tests for the other 14 files. `npm run typecheck` is the net for those.
+
+---
+
+### B. Easy files — table rules only
+
+Convert top to bottom. After each file: it must typecheck in isolation (no leftover `this.`, no `Component` import).
+
+| # | File | Lines | State fields | Notes |
+|---|---|---|---|---|
+| 1 | `PreviewButtonComponent.tsx` | 24 | none | `PureComponent` → function. Drop `Pure`. |
+| 2 | `PreviewExperimentComponent.tsx` | 49 | none | `static insertPreviewLabJsCallback` → module-level function. `handleImages` is unused in render except… it is **never called**. Leave the function in the body; do not delete. |
+| 3 | `PyodidePlotWidget.tsx` | 87 | none | Constructor only binds. Two handlers + render. |
+| 4 | `InputCollect.tsx` | 155 | `subject`, `group`, `session`, `isSubjectError`, `isSessionError` | `this.setState({ [field]: … })` is already a `switch` — each branch calls the matching setter. |
+| 5 | `CleanComponent/CleanSidebar.tsx` | 172 | `helpStep` | Menu / next / back. |
+| 6 | `CollectComponent/HelpSidebar.tsx` | 191 | `helpStep` | **Named export.** `HelpButton` below it stays. Updater form: `setHelpStep(prev => prev + 1)` / `prev - 1`. |
+| 7 | `CollectComponent/PreTestComponent.tsx` | 175 | `isPreviewing`, `isSidebarVisible` | `componentDidMount`/`WillUnmount` bind/unbind Mousetrap `esc`. Updater form on preview + sidebar toggle. |
+| 8 | `SecondaryNavComponent/index.tsx` | 116 | none | **Drop `shouldComponentUpdate`.** Do not wrap in `memo`. The SCU only compared `activeStep`, so title / `saveButton` / `enableEEGToggle` already could not update — that is a latent skip, not a behavior we keep. `SettingsDropdown` stays. |
+| 9 | `DesignComponent/index.tsx` | 319 | `activeStep`, `isPreviewing`, `isNewExperimentModalOpen`, `recentWorkspaces` | async mount: `setRecentWorkspaces(await readWorkspaces())`. One updater on preview toggle. |
+| 10 | `HomeComponent/index.tsx` | 379 | `activeStep`, `recentWorkspaces`, `workspaceStates`, `isNewExperimentModalOpen`, `isOverviewComponentOpen`, `overviewExperimentType` | async mount launches Pyodide then reads workspaces. `loadWorkspaceStates` stays a function in the body. |
+| 11 | `AnalyzeComponent.tsx` | 560 | 16 fields — see constructor | Biggest mechanical file. Several handlers set 2–3 fields at once; emit 2–3 setters. async mount reads cleaned EEG + behavior. |
+| 12 | `CleanComponent/index.tsx` | 471 | 10 fields + `icons` | `icons` is a constructor-only instance field from `props.type`. `const [icons] = useState(() => props.type === EXPERIMENTS.N170 ? ['😊', '🏠', '✕', '📖'] : ['★', '☆', '✕', '📖']);` — never set. `componentDidUpdate` on `suggestedRejections` → `useEffect` that `setRejectedEpochs(prev => { const next = new Set(prev); for (const s of suggested) next.add(s.index); return next; })`. |
+
+---
+
+### C. Judgement files — do these by hand, in this order
+
+#### C1. `InputModal.tsx` (84) — debounce
+
+Constructor:
+
+```ts
+this.handleTextEntry = debounce(this.handleTextEntry, 100).bind(this);
 ```
 
-Plus a `MemoryRouter` wrapper for the four components that touch `navigate`.
-That's it. **Skipped: MSW, storybook, snapshot testing, a component-props factory
-library.** Add MSW when there's an HTTP call to mock (there isn't — it's all IPC).
+Target:
 
-## Step 1 — the per-component loop
+```tsx
+const handleTextEntry = useMemo(
+  () =>
+    debounce((event: React.ChangeEvent<HTMLInputElement>) => {
+      setEnteredText(event.target.value);
+    }, 100),
+  []
+);
+useEffect(() => () => handleTextEntry.cancel(), [handleTextEntry]);
+```
 
-For each component, in Tier order (A → B → C → D):
+Default lodash trailing debounce. Do not change the 100ms. Other handlers are plain functions.
 
-1. **Characterization test first, against the class.** 2–4 assertions: renders without
-   crashing given realistic props, and the one interaction that matters (click → callback
-   fired with expected args). Do NOT assert on markup details; assert on behavior.
-2. **Convert.** `this.state.x` → `useState`; `componentDidMount` → `useEffect(…, [])`;
-   `componentDidUpdate(prev)` → `useEffect(…, [dep])`; handler methods → plain functions
-   in the body (no `useCallback` unless a profiler says so).
-3. **Test stays green, unmodified.** If the test needed edits, behavior changed — that's
-   the whole point of writing it first.
-4. `npm run typecheck && npm run lint` — `react-hooks/exhaustive-deps` catches the
-   classic `componentDidUpdate` → `useEffect` dependency mistakes.
+#### C2. `ConnectModal.tsx` (306) — debounce + `UNSAFE_componentWillUpdate`
 
-One PR per tier, not per component. Tier D gets one PR per component.
+Two constructor debounces (preserve timings and `{ leading: true, trailing: false }`):
 
-## Step 2 — Tier C: the subscription pattern
+```tsx
+const propsRef = useRef(props);
+propsRef.current = props;
 
-`SignalQualityIndicatorComponent` and `ViewerComponent` both do: subscribe in
-`componentDidMount`, re-subscribe in `componentDidUpdate` when the observable prop
-changes, unsubscribe in `componentWillUnmount`. That is exactly one `useEffect`:
+const handleSearch = useMemo(
+  () =>
+    debounce(function handleSearch() {
+      setInstructionProgress(0);
+      propsRef.current.DeviceActions.SetDeviceAvailability(
+        DEVICE_AVAILABILITY.SEARCHING
+      );
+    }, 300, { leading: true, trailing: false }),
+  []
+);
+const handleConnect = useMemo(
+  () =>
+    debounce(function handleConnect() {
+      /* body of handleConnect, read props via propsRef.current */
+    }, 1000, { leading: true, trailing: false }),
+  []
+);
+useEffect(
+  () => () => {
+    handleSearch.cancel();
+    handleConnect.cancel();
+  },
+  [handleSearch, handleConnect]
+);
+```
+
+`static getDeviceName` → module-level `function getDeviceName`. Call sites currently `ConnectModal.getDeviceName(…)` become `getDeviceName(…)`.
+
+`UNSAFE_componentWillUpdate` runs **before** the render that sees the new `deviceAvailability`, so `instructionProgress` updates in the same paint. `useEffect` runs after; one extra frame. Accept that.
 
 ```tsx
 useEffect(() => {
-  if (!observable) return;
-  const sub = observable.subscribe(setSignalQuality);
-  return () => sub.unsubscribe();
-}, [observable]);
+  if (props.deviceAvailability === DEVICE_AVAILABILITY.NONE) {
+    setInstructionProgress(INSTRUCTION_PROGRESS.TURN_ON); // 1
+  }
+}, [props.deviceAvailability]);
 ```
 
-The class version has a latent bug worth checking while you're in there: it unsubscribes
-in *both* `componentWillUnmount` and the re-subscribe path with no guard against a null
-observable arriving mid-flight. The effect form makes that unrepresentable.
+**Stop. That is not equivalent.** The class only fires on the *transition*:
 
-Extract it as `useObservable(observable)` **only after both call sites exist and are
-identical** — not before.
+- `SEARCHING → NONE` → `instructionProgress = 1` (`TURN_ON`)
+- `NONE → AVAILABLE` → `instructionProgress = 0` (`SEARCHING`)
 
-## Step 3 — Tier D: split, don't just convert
+`handleSearch` also sets progress to `0` independently, so progress is not a pure function of `deviceAvailability`. Use a ref for the previous value:
 
-The four big ones. Convert *and* split in the same PR, because converting alone leaves
-the file just as unreadable:
+```tsx
+const prevAvailability = useRef(props.deviceAvailability);
+useEffect(() => {
+  const prev = prevAvailability.current;
+  const next = props.deviceAvailability;
+  prevAvailability.current = next;
+  if (next === DEVICE_AVAILABILITY.NONE && prev === DEVICE_AVAILABILITY.SEARCHING) {
+    setInstructionProgress(INSTRUCTION_PROGRESS.TURN_ON);
+  }
+  if (next === DEVICE_AVAILABILITY.AVAILABLE && prev === DEVICE_AVAILABILITY.NONE) {
+    setInstructionProgress(INSTRUCTION_PROGRESS.SEARCHING);
+  }
+}, [props.deviceAvailability]);
+```
 
-- `AnalyzeComponent` (560): `renderEpochLabels`, `renderHelpContent`, `renderHelp`,
-  `renderSectionContent` → 4 sibling components in `components/AnalyzeComponent/`.
-- `CustomDesignComponent` (644): `renderSectionContent` is ~395 lines and is really
-  three screens (question/hypothesis/methods vs. conditions vs. preview). Split by screen.
-- `CleanComponent/index` (471): `renderStats`, `renderAnalyzeButton`, `renderSelect`,
-  `renderReview` → siblings. `renderReview` (125 lines) probably wants its own test.
-- `HomeComponent/index` (379): already has `ExperimentCard`/`OverviewComponent` siblings;
-  continue that pattern for the workspace list.
+`componentDidMount` LSL probe stays a `[]` effect.
 
-Target: **no component file over ~250 lines** when done. That's the metric that actually
-answers the original complaint.
+#### C3. `SignalQualityIndicatorComponent.tsx` (70)
 
-## Step 4 — delete the container layer
+There is **no React state**. The first-draft snippet `subscribe(setSignalQuality)` is wrong. The subscribe body paints D3:
 
-`src/renderer/containers/*Container.ts` exist only to wire `connect()` + inject
-`navigate`. Once the component is a function, that indirection is pure cost — it's why
-reading `HomeComponent` means opening `HomeContainer` to find out what `deviceType` is.
+```ts
+d3.select(`#${key}`)
+  .transition()
+  .duration(this.props.plottingInterval) // live `this.props` at fire time
+```
 
-Per component: replace the `connect()` HOC with `useSelector`/`useDispatch` inside the
-component, drop `navigate` prop for `useNavigate()`, delete the container, point the route
-at the component directly. Deletes 5 files (`Home`, `Analyze`, `Clean`, `Collect`,
-`ExperimentDesign`, `TopNavBar` containers) and shrinks every `Props` interface.
+Class also does **not** unsubscribe when the observable becomes `null` — `didUpdate` only resubscribes when the new value is non-null. Preserve that (skip the effect body when null; do not add a cleanup that runs on the null transition unless you also skip registering an effect). Simplest faithful form:
 
-Do this **after** the conversion, per component, not as a big bang — a converted component
-still taking props works fine; that's the safe intermediate state.
+```tsx
+export default function SignalQualityIndicatorComponent(props: Props) {
+  const propsRef = useRef(props);
+  propsRef.current = props;
+  const subRef = useRef<Subscription | null>(null);
 
-## Step 5 — cleanup (5 minutes, satisfying)
+  useEffect(() => {
+    const observable = props.signalQualityObservable;
+    if (observable == null) return;
+    subRef.current?.unsubscribe();
+    subRef.current = observable.subscribe(
+      (epoch) => {
+        Object.keys(epoch.signalQuality).forEach((key) => {
+          d3.select(`#${key}`)
+            .attr('visibility', 'show')
+            .attr('stroke', '#000')
+            .transition()
+            .duration(propsRef.current.plottingInterval)
+            .ease(d3.easeLinear)
+            .attr('fill', epoch.signalQuality[key]);
+        });
+      },
+      (error) => new Error(`Error in signalQualitySubscription ${error}`)
+    );
+  }, [props.signalQualityObservable]);
 
-`vitest.config.ts` loads `@babel/plugin-proposal-decorators` and
-`@babel/plugin-proposal-class-properties`. There are **zero decorators** in the codebase
-and class properties are native in every supported target. Once the classes are gone,
-delete both plugins from the config and both devDependencies. Faster test startup, two
-fewer deps.
+  useEffect(() => () => {
+    subRef.current?.unsubscribe();
+  }, []);
+
+  return (
+    <div>
+      <SignalQualityIndicatorSVG />
+    </div>
+  );
+}
+```
+
+Do **not** extract a shared `useObservable` hook for this and Viewer.
+
+#### C4. `CollectComponent/index.tsx` (138) and `EEGExplorationComponent.tsx` (144)
+
+Same modal-close pattern. Class compares **previous state**:
+
+```ts
+if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTED && prevState.isConnectModalOpen) {
+  this.setState({ isConnectModalOpen: false });
+}
+```
+
+```tsx
+useEffect(() => {
+  if (props.connectionStatus === CONNECTION_STATUS.CONNECTED) {
+    setIsConnectModalOpen(false);
+  }
+}, [props.connectionStatus]);
+```
+
+Equivalent: the guard only skipped a redundant `setState(false)`. Setting state to the current value is a React no-op.
+
+Collect also auto-opens the modal on mount when EEG is on and not connected — that stays a `[]` effect calling `handleStartConnect`.
+
+EEGExploration's class name is `Home`. Keep `export default function Home`.
+
+#### C5. `StimuliDesignColumn.tsx` (203) — the memo exception
+
+File comment: extracted so text input is not slow. `shouldComponentUpdate` skips unless `title` / `response` / `dir` / `audioDir` / `numberImages` / `numberSounds` change. **Preserve that skip.**
+
+```tsx
+function StimuliDesignColumn(props: Props) {
+  const [numberImages, setNumberImages] = useState<number | undefined>(undefined);
+  const [numberSounds, setNumberSounds] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    void refreshSoundCount(props.audioDir);
+  }, [props.audioDir]); // covers mount + audioDir change
+
+  async function refreshSoundCount(audioDir: string) {
+    if (!audioDir) return;
+    const sounds = await readAudioFiles(audioDir);
+    setNumberSounds(sounds.length);
+  }
+  // …handlers, render
+}
+
+export default React.memo(StimuliDesignColumn, (prev, next) => {
+  return (
+    prev.title === next.title &&
+    prev.response === next.response &&
+    prev.dir === next.dir &&
+    prev.audioDir === next.audioDir &&
+    prev.num === next.num &&
+    prev.numberImages === next.numberImages
+  );
+});
+```
+
+Note: class SCU also compared **state** `numberImages` / `numberSounds`. `React.memo` only sees props; state changes still re-render the memoized component, which is what we want. `onChange` identity is ignored (same as the class — SCU did not compare `onChange`). Include `num` so a reused column with a new index still updates.
+
+`refreshSoundCount` on mount and on `audioDir` change collapses into one `[props.audioDir]` effect.
+
+#### C6. `CustomDesignComponent.tsx` (651)
+
+Two instance fields, not state:
+
+```ts
+private conditionParams: ExperimentParameters; // latest saved-or-in-flight params
+private conditionRevision = 0;                 // stale-folder-scan guard
+```
+
+```tsx
+const conditionParamsRef = useRef(mergeCustomParams(props.params));
+const conditionRevisionRef = useRef(0);
+```
+
+Every `this.conditionParams` → `conditionParamsRef.current`. Every `++this.conditionRevision` / `this.conditionRevision` → `conditionRevisionRef`.
+
+`componentWillUnmount` writes the ref back to Redux:
+
+```tsx
+useEffect(() => {
+  return () => {
+    props.ExperimentActions.SetParams(conditionParamsRef.current);
+    props.ExperimentActions.SaveWorkspace();
+  };
+}, [props.ExperimentActions]);
+```
+
+`handleSaveParams` default arg `params = this.conditionParams` becomes `params = conditionParamsRef.current`.
+
+This is the largest file. Convert in place. Do not split.
+
+The A1 RTL test must already be green before you start this file.
+
+#### C7. `ViewerComponent.tsx` (148) — last, alone
+
+Genuinely risky. Playtest in the Electron window after this file.
+
+What the class does:
+
+1. Mount: `getViewerUrl()` then `setState({ viewerUrl })`. `<webview>` is **not** in the DOM yet.
+2. `didUpdate` when `viewerUrl` goes `'' → non-empty`: `querySelector('webview')`, attach `dom-ready`. That handler reads `this.props.plottingInterval` and `this.state.channels/domain` **at fire time**, then `setKeyListeners`, then maybe subscribe.
+3. `props.channels` change → `setState({ channels })`.
+4. `props.signalQualityObservable` identity change + non-null → resubscribe (same null-skip as SignalQuality).
+5. If `this.graphView` is still null, return. Else IPC: `channels` / `domain` / `autoScale` state changes.
+6. Unmount: unsubscribe + `Mousetrap.unbind('up'|'down')`.
+
+`componentDidUpdate` does not run on mount; `useEffect` does. The `if (!graphViewRef.current) return` early-out on the IPC effects is what prevents a mount-time `send` into a missing webview.
+
+Target shape:
+
+```tsx
+export default function ViewerComponent(props: Props) {
+  const [channels, setChannels] = useState(() => props.channels ?? MUSE_CHANNELS);
+  const [domain] = useState(VIEWER_DEFAULTS.domain);
+  const [autoScale] = useState(VIEWER_DEFAULTS.autoScale);
+  const [viewerUrl, setViewerUrl] = useState('');
+
+  const graphViewRef = useRef<WebviewTag | null>(null);
+  const subRef = useRef<Subscription | null>(null);
+  const propsRef = useRef(props);
+  propsRef.current = props;
+  const channelsRef = useRef(channels);
+  channelsRef.current = channels;
+
+  function subscribeToObservable(observable: Observable<SignalQualityData>) {
+    subRef.current?.unsubscribe();
+    subRef.current = observable.subscribe({
+      next: (chunk) => {
+        graphViewRef.current?.send('newData', chunk);
+      },
+      error: (error) =>
+        console.error('[viewer] signal quality observable error:', error),
+    });
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    window.electronAPI.getViewerUrl().then((url) => {
+      if (!cancelled) setViewerUrl(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Attach once viewerUrl makes <webview> exist. Class did this in didUpdate
+  // keyed on prevState.viewerUrl being empty — equivalent to [viewerUrl] plus
+  // "only when non-empty".
+  useEffect(() => {
+    if (!viewerUrl) return;
+    const el = document.querySelector('webview') as WebviewTag | null;
+    graphViewRef.current = el;
+    const onDomReady = () => {
+      const p = propsRef.current;
+      el?.send('initGraph', {
+        plottingInterval: p.plottingInterval,
+        channels: channelsRef.current,
+        domain,
+        channelColours: channelsRef.current.map(() => '#66B0A9'),
+      });
+      Mousetrap.bind('up', () => graphViewRef.current?.send('zoomIn'));
+      Mousetrap.bind('down', () => graphViewRef.current?.send('zoomOut'));
+      if (p.signalQualityObservable != null) {
+        subscribeToObservable(p.signalQualityObservable);
+      }
+    };
+    el?.addEventListener('dom-ready', onDomReady);
+    // Class never removed this listener. No StrictMode in the tree, so do not
+    // invent a removeEventListener unless you also need it for correctness.
+  }, [viewerUrl, domain]);
+
+  useEffect(() => {
+    if (props.channels) setChannels(props.channels);
+  }, [props.channels]);
+
+  useEffect(() => {
+    if (props.signalQualityObservable == null) return;
+    subscribeToObservable(props.signalQualityObservable);
+  }, [props.signalQualityObservable]);
+
+  useEffect(() => {
+    if (!graphViewRef.current) return;
+    graphViewRef.current.send('updateChannels', channels);
+  }, [channels]);
+
+  useEffect(() => {
+    if (!graphViewRef.current) return;
+    graphViewRef.current.send('updateDomain', domain);
+  }, [domain]);
+
+  useEffect(() => {
+    if (!graphViewRef.current) return;
+    graphViewRef.current.send('autoScale');
+  }, [autoScale]);
+
+  useEffect(() => {
+    return () => {
+      subRef.current?.unsubscribe();
+      Mousetrap.unbind('up');
+      Mousetrap.unbind('down');
+    };
+  }, []);
+
+  if (!viewerUrl) return null;
+  const trueAsString = 'true' as any;
+  return (
+    <webview
+      id="eegView"
+      src={viewerUrl}
+      autosize={trueAsString}
+      plugins={trueAsString}
+    />
+  );
+}
+```
+
+`domain` / `autoScale` are never written after init (`VIEWER_DEFAULTS`). Keep the IPC effects anyway — they match the class. They no-op on mount because `graphViewRef` is still null when those effects first run (webview is not in the tree until `viewerUrl` is set, which is a later paint).
+
+---
+
+## Cleanup (after every class is gone)
+
+Babel plugins are in **two** configs, not one. First draft missed `vite.config.ts`.
+
+1. Delete the `babel.plugins` array from `vitest.config.ts` and from `vite.config.ts` (the comment "Legacy decorator support (used throughout the codebase)" is false — zero decorators in `src/`).
+2. Remove `@babel/plugin-proposal-decorators` and `@babel/plugin-proposal-class-properties` from `package.json` `devDependencies`.
+3. `npm install` to refresh the lockfile.
+
+---
 
 ## What I'm deliberately not doing
 
@@ -155,17 +515,55 @@ fewer deps.
 
 ## Sequencing / effort
 
-| Step | Scope | Est. |
-|---|---|---|
-| 0 | `test-utils.tsx` | 0.5h |
-| 1 | Tier A (10 components) | 1 day |
-| 1 | Tier B (4 components) | 0.5 day |
-| 2 | Tier C (2 components) | 0.5 day |
-| 3 | Tier D (4 components, split + test) | 2–3 days |
-| 4 | delete containers | 0.5 day |
-| 5 | babel plugin cleanup | 0.1h |
+`react-hooks/exhaustive-deps` (`eslint.config.mjs:47`, `recommended-latest`) is the signal to check by hand, not to silence.
 
-Tiers A–C are safe to do in any order and are individually shippable. Step 3 is where the
-actual reading-time win lands — if time is short, **do step 3 first on
-`CustomDesignComponent` and `AnalyzeComponent`** and leave Tier A as classes indefinitely.
-A 24-line class component costs nobody anything.
+Playtest `npm run dev` — the **desktop window**, not `localhost:5173` — Home → Design → Collect → Clean → Analyze. Device connected for Viewer + SignalQuality. Type in a StimuliDesignColumn title field and confirm it is not janky (the memo). Open ConnectModal and watch the SEARCHING → none-found → TURN_ON copy.
+
+---
+
+## Inventory (20 classes, 4442 lines)
+
+| File | Lines | Bucket |
+|---|---|---|
+| `PreviewButtonComponent.tsx` | 24 | easy |
+| `PreviewExperimentComponent.tsx` | 49 | easy |
+| `PyodidePlotWidget.tsx` | 87 | easy |
+| `InputCollect.tsx` | 155 | easy |
+| `CleanComponent/CleanSidebar.tsx` | 172 | easy |
+| `CollectComponent/HelpSidebar.tsx` | 191 | easy (named export) |
+| `CollectComponent/PreTestComponent.tsx` | 175 | easy |
+| `SecondaryNavComponent/index.tsx` | 116 | easy (drop SCU) |
+| `DesignComponent/index.tsx` | 319 | easy |
+| `HomeComponent/index.tsx` | 379 | easy |
+| `AnalyzeComponent.tsx` | 560 | easy, large |
+| `CleanComponent/index.tsx` | 471 | easy + `icons` lazy state |
+| `InputModal.tsx` | 84 | judgement — debounce |
+| `CollectComponent/ConnectModal.tsx` | 306 | judgement — debounce + willUpdate |
+| `SignalQualityIndicatorComponent.tsx` | 70 | judgement — D3 + live props |
+| `CollectComponent/index.tsx` | 138 | judgement — prevState modal |
+| `EEGExplorationComponent.tsx` | 144 | judgement — same modal |
+| `DesignComponent/StimuliDesignColumn.tsx` | 203 | judgement — `React.memo` |
+| `DesignComponent/CustomDesignComponent.tsx` | 651 | judgement — refs + test rewrite |
+| `ViewerComponent.tsx` | 148 | judgement — last |
+
+---
+
+## Audit of the first draft
+
+Keep these corrections; do not re-introduce the original claims.
+
+- **Not true:** "no `shouldComponentUpdate` / legacy `componentWill*`." Actual: `SecondaryNavComponent` and `StimuliDesignColumn` have `shouldComponentUpdate`. `ConnectModal` has `UNSAFE_componentWillUpdate`.
+- **Not true:** SignalQuality "state" + `subscribe(setSignalQuality)`. It has zero React state; it mutates D3. `plottingInterval` is read live inside the subscriber — needs `propsRef`, same trap as Viewer.
+- **Not true:** only Viewer needs a ref for live props. SignalQuality does too.
+- **Not true:** cleanup is only `vitest.config.ts`. Plugins also live in `vite.config.ts`.
+- **Not true:** 4255 lines. `wc -l` is 4442.
+- **Missed:** `InputModal` constructor debounce (100ms). Two debounce files, not one.
+- **Missed:** `ConnectModal` constructor debounces (300 / 1000, leading). Recreating them every render resets the timer and breaks leading-edge.
+- **Missed:** `CustomDesign.conditionParams` + `conditionRevision` instance fields. These are the stale-scan guard the existing test covers.
+- **Missed:** `CustomDesignComponent.test.ts` instantiates the class. Rewrite to RTL before converting that file or CI goes red mid-pass.
+- **Missed:** `Clean.icons` constructor field derived from `props.type`.
+- **Missed:** `ConnectModal.getDeviceName` and `PreviewExperimentComponent.insertPreviewLabJsCallback` statics → module functions.
+- **Missed:** HelpSidebar is a named export.
+- **Wrong judgement count:** four files. Real judgement list is C1–C7 above.
+- **Still true:** no `defaultProps`, no `createRef` / `this.refs`, no `forceUpdate`, no `setState(partial, callback)`, no `getDerivedStateFromProps`. Nine updater-form `setState` sites (Clean ×3, HelpSidebar ×2, PreTest ×2, CustomDesign ×1, Design ×1). No maintained TS class-component codemod worth adding.
+- **Still true:** existing function components (`RunComponent`, `ExperimentWindow`) destructure props. We still keep `props.` on converted files so the diff is `this.props.` → `props.`. Do not "fix" that to match `RunComponent` in this PR.

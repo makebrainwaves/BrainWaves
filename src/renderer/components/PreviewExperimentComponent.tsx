@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { ExperimentWindow } from './ExperimentWindow';
 import { getImages } from '../utils/filesystem/storage';
 import {
@@ -16,34 +16,32 @@ interface Props {
   onEnd: () => void;
 }
 
-export default class PreviewExperimentComponent extends Component<Props> {
-  static insertPreviewLabJsCallback(e) {
-    console.log('EEG marker', e);
+function insertPreviewLabJsCallback(e) {
+  console.log('EEG marker', e);
+}
+
+export default function PreviewExperimentComponent(props: Props) {
+  function handleImages() {
+    return getImages(props.params);
   }
 
-  handleImages() {
-    return getImages(this.props.params);
-  }
-
-  render() {
-    if (!this.props.isPreviewing) {
-      return (
-        <div className="grid items-center justify-center h-full">
-          <div className="p-2">The experiment will be shown in the window</div>
-        </div>
-      );
-    }
+  if (!props.isPreviewing) {
     return (
-      <div className="h-full w-full flex">
-        <ExperimentWindow
-          title={this.props.title}
-          experimentObject={this.props.experimentObject}
-          params={this.props.params}
-          eventCallback={PreviewExperimentComponent.insertPreviewLabJsCallback}
-          fullScreen={false}
-          onFinish={this.props.onEnd}
-        />
+      <div className="grid items-center justify-center h-full">
+        <div className="p-2">The experiment will be shown in the window</div>
       </div>
     );
   }
+  return (
+    <div className="h-full w-full flex">
+      <ExperimentWindow
+        title={props.title}
+        experimentObject={props.experimentObject}
+        params={props.params}
+        eventCallback={insertPreviewLabJsCallback}
+        fullScreen={false}
+        onFinish={props.onEnd}
+      />
+    </div>
+  );
 }

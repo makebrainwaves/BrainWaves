@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import SecondaryNavSegment from './SecondaryNavSegment';
 import { SCREENS } from '../../constants/constants';
@@ -22,23 +22,24 @@ function SettingsDropdown({
 }: SettingsDropdownProps) {
   return (
     <div className="flex items-center gap-2 pr-4">
-      {saveButton}
+      {saveButton && saveButton}
       <DropdownMenu>
-        <DropdownMenuTrigger className="text-2xl text-[#666] focus:outline-none px-2">
-          ⚙
+        <DropdownMenuTrigger asChild>
+          <button className="text-2xl text-[#666] focus:outline-none px-2">
+            ⚙
+          </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[240px]">
-          <DropdownMenuItem
-            onSelect={(e) => e.preventDefault()}
-            className="flex items-center justify-between"
-          >
-            <span>Enable EEG</span>
-            {enableEEGToggle}
+        <DropdownMenuContent>
+          <DropdownMenuItem asChild>
+            <NavLink to={homeRoute}>
+              <span>Home</span>
+            </NavLink>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <NavLink to={homeRoute} className="w-full">
-              Exit Experiment
-            </NavLink>
+            <label className="flex items-center cursor-pointer gap-2 px-2 py-1.5">
+              {enableEEGToggle}
+              <span>EEG enabled</span>
+            </label>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -57,60 +58,54 @@ interface Props {
   enableEEGToggle?: JSX.Element;
 }
 
-export default class SecondaryNavComponent extends Component<Props> {
-  shouldComponentUpdate(nextProps: Props) {
-    return nextProps.activeStep !== this.props.activeStep;
-  }
-
-  renderTitle() {
-    if (typeof this.props.title === 'string') {
+export default function SecondaryNavComponent(props: Props) {
+  function renderTitle() {
+    if (typeof props.title === 'string') {
       return (
         <span className="font-normal text-2xl leading-[29px] tracking-[-0.2px] text-[#1a1a1a]">
-          {this.props.title}
+          {props.title}
         </span>
       );
     }
-    return this.props.title;
+    return props.title;
   }
 
-  renderSteps() {
+  function renderSteps() {
     return (
       <>
-        {Object.values(this.props.steps).map((stepTitle) => (
+        {Object.values(props.steps).map((stepTitle) => (
           <SecondaryNavSegment
             key={stepTitle}
             title={stepTitle}
-            active={this.props.activeStep === stepTitle}
-            onClick={() => this.props.onStepClick(stepTitle)}
+            active={props.activeStep === stepTitle}
+            onClick={() => props.onStepClick(stepTitle)}
           />
         ))}
       </>
     );
   }
 
-  render() {
-    return (
-      <div className="flex items-center">
-        <div className="w-1/4 flex items-end px-4 py-2">
-          {this.renderTitle()}
-        </div>
-
-        {this.renderSteps()}
-
-        {this.props.enableEEGToggle && (
-          <div className="ml-auto">
-            <SettingsDropdown
-              enableEEGToggle={this.props.enableEEGToggle}
-              saveButton={this.props.saveButton}
-              homeRoute={SCREENS.HOME.route}
-            />
-          </div>
-        )}
-
-        {!this.props.enableEEGToggle && this.props.saveButton && (
-          <div className="ml-auto pr-4">{this.props.saveButton}</div>
-        )}
+  return (
+    <div className="flex items-center">
+      <div className="w-1/4 flex items-end px-4 py-2">
+        {renderTitle()}
       </div>
-    );
-  }
+
+      {renderSteps()}
+
+      {props.enableEEGToggle && (
+        <div className="ml-auto">
+          <SettingsDropdown
+            enableEEGToggle={props.enableEEGToggle}
+            saveButton={props.saveButton}
+            homeRoute={SCREENS.HOME.route}
+          />
+        </div>
+      )}
+
+      {!props.enableEEGToggle && props.saveButton && (
+        <div className="ml-auto pr-4">{props.saveButton}</div>
+      )}
+    </div>
+  );
 }

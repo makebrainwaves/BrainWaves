@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { Button } from './ui/button';
 
 interface Props {
@@ -6,19 +6,17 @@ interface Props {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export default class PreviewButton extends PureComponent<Props> {
-  render() {
-    if (!this.props.isPreviewing) {
-      return (
-        <Button variant="secondary" onClick={this.props.onClick}>
-          Preview Experiment
-        </Button>
-      );
-    }
+export default function PreviewButton(props: Props) {
+  if (!props.isPreviewing) {
     return (
-      <Button variant="destructive" onClick={this.props.onClick}>
-        Stop Preview
+      <Button variant="secondary" onClick={props.onClick}>
+        Preview Experiment
       </Button>
     );
   }
+  return (
+    <Button variant="destructive" onClick={props.onClick}>
+      Stop Preview
+    </Button>
+  );
 }

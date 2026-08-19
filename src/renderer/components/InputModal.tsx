@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { debounce } from 'lodash';
 import { sanitizeTextInput } from '../utils/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
@@ -11,74 +11,66 @@ interface Props {
   header: string;
 }
 
-interface State {
-  enteredText: string;
-  isError: boolean;
-}
+export default function InputModal(props: Props) {
+  const [enteredText, setEnteredText] = useState('');
+  const [isError, setIsError] = useState(false);
 
-export default class InputModal extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      enteredText: '',
-      isError: false,
-    };
-    this.handleTextEntry = debounce(this.handleTextEntry, 100).bind(this);
-    this.handleClose = this.handleClose.bind(this);
-    this.handleEnterSubmit = this.handleEnterSubmit.bind(this);
-    this.handleExit = this.handleExit.bind(this);
-  }
+  const handleTextEntry = useMemo(
+    () =>
+      debounce((event: React.ChangeEvent<HTMLInputElement>) => {
+        setEnteredText(event.target.value);
+      }, 100),
+    []
+  );
 
-  handleTextEntry(event: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ enteredText: event.target.value });
-  }
+  useEffect(() => () => {
+    handleTextEntry.cancel();
+  }, [handleTextEntry]);
 
-  handleClose() {
-    if (this.state.enteredText.length >= 1) {
-      this.props.onClose(sanitizeTextInput(this.state.enteredText));
+  function handleClose() {
+    if (enteredText.length >= 1) {
+      props.onClose(sanitizeTextInput(enteredText));
     } else {
-      this.setState({ isError: true });
+      setIsError(true);
     }
   }
 
-  handleExit() {
-    this.props.onExit();
+  function handleExit() {
+    props.onExit();
   }
 
-  handleEnterSubmit(event: React.KeyboardEvent<HTMLInputElement>) {
+  function handleEnterSubmit(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
-      this.handleClose();
+      handleClose();
     }
   }
 
-  render() {
-    return (
-      <Dialog
-        open={this.props.open}
-        onOpenChange={(open) => {
-          if (!open) this.handleExit();
-        }}
-      >
-        <DialogContent className="max-w-sm text-center">
-          <DialogHeader>
-            <DialogTitle>{this.props.header}</DialogTitle>
-          </DialogHeader>
-          <input
-            className={[
-              'w-full border rounded px-3 py-2',
-              this.state.isError ? 'border-red-500' : 'border-gray-300',
-            ].join(' ')}
-            onChange={this.handleTextEntry}
-            onKeyDown={this.handleEnterSubmit}
-            autoFocus
-          />
-          <div className="flex justify-end mt-4">
-            <Button variant="default" onClick={this.handleClose}>
-              OK
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  return (
+    <Dialog
+      open={props.open}
+      onOpenChange={(open) => {
+        if (!open) handleExit();
+      }}
+    >
+      <DialogContent className="max-w-sm text-center">
+        <DialogHeader>
+          <DialogTitle>{props.header}</DialogTitle>
+        </DialogHeader>
+        <input
+          className={[
+            'w-full border rounded px-3 py-2',
+            isError ? 'border-red-500' : 'border-gray-300',
+          ].join(' ')}
+          onChange={handleTextEntry}
+          onKeyDown={handleEnterSubmit}
+          autoFocus
+        />
+        <div className="flex justify-end mt-4">
+          <Button variant="default" onClick={handleClose}>
+            OK
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }

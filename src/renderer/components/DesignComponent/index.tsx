@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
@@ -49,51 +49,79 @@ export interface DesignProps {
   isEEGEnabled: boolean;
 }
 
-interface State {
-  activeStep: string;
-  isPreviewing: boolean;
-  isNewExperimentModalOpen: boolean;
-  recentWorkspaces: Array<string>;
+function renderConditionIcon(condition) {
+  switch (condition) {
+    case 'conditionCongruent':
+      return conditionCongruent;
+    case 'conditionIncongruent':
+      return conditionIncongruent;
+    case 'conditionOrangeT':
+      return conditionOrangeT;
+    case 'conditionNoOrangeT':
+      return conditionNoOrangeT;
+    case 'conditionFace':
+      return conditionFace;
+    case 'conditionHouse':
+      return conditionHouse;
+    case 'multiConditionShape':
+      return multiConditionShape;
+    case 'multiConditionDots':
+    default:
+      return multiConditionDots;
+  }
 }
 
-export default class Design extends Component<DesignProps, State> {
-  constructor(props: DesignProps) {
-    super(props);
-    this.state = {
-      activeStep: DESIGN_STEPS.OVERVIEW,
-      isPreviewing: false,
-      isNewExperimentModalOpen: false,
-      recentWorkspaces: [],
+function renderOverviewIcon(type: EXPERIMENTS) {
+  switch (type) {
+    case EXPERIMENTS.N170:
+      return facesHousesOverview;
+    case EXPERIMENTS.STROOP:
+      return stroopOverview;
+    case EXPERIMENTS.MULTI:
+      return multitaskingOverview;
+    case EXPERIMENTS.SEARCH:
+      return searchOverview;
+    case EXPERIMENTS.CUSTOM:
+    default:
+      return customOverview;
+  }
+}
+
+export default function Design(props: DesignProps) {
+  const [activeStep, setActiveStep] = useState(DESIGN_STEPS.OVERVIEW);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isNewExperimentModalOpen, setIsNewExperimentModalOpen] = useState(false);
+  const [recentWorkspaces, setRecentWorkspaces] = useState<Array<string>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    readWorkspaces().then((workspaces) => {
+      if (!cancelled) setRecentWorkspaces(workspaces);
+    });
+    return () => {
+      cancelled = true;
     };
-    this.handleStepClick = this.handleStepClick.bind(this);
-    this.handleStartExperiment = this.handleStartExperiment.bind(this);
-    this.handleCustomizeExperiment = this.handleCustomizeExperiment.bind(this);
-    this.handleLoadCustomExperiment =
-      this.handleLoadCustomExperiment.bind(this);
-    this.handlePreview = this.handlePreview.bind(this);
-    this.endPreview = this.endPreview.bind(this);
-    this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
+  }, []);
+
+  if (props.type === EXPERIMENTS.CUSTOM) {
+    return <CustomDesign {...props} />;
   }
 
-  async componentDidMount() {
-    this.setState({ recentWorkspaces: await readWorkspaces() });
+  function handleStepClick(step: string) {
+    setActiveStep(step);
   }
 
-  handleStepClick(step: string) {
-    this.setState({ activeStep: step });
+  function handleStartExperiment() {
+    props.navigate(SCREENS.COLLECT.route);
   }
 
-  handleStartExperiment() {
-    this.props.navigate(SCREENS.COLLECT.route);
+  function handleCustomizeExperiment() {
+    setIsNewExperimentModalOpen(true);
   }
 
-  handleCustomizeExperiment() {
-    this.setState({ isNewExperimentModalOpen: true });
-  }
-
-  handleLoadCustomExperiment(title: string) {
-    this.setState({ isNewExperimentModalOpen: false });
-    if (this.state.recentWorkspaces.includes(title)) {
+  function handleLoadCustomExperiment(title: string) {
+    setIsNewExperimentModalOpen(false);
+    if (recentWorkspaces.includes(title)) {
       toast.error(`Experiment already exists`);
       return;
     }
@@ -101,80 +129,40 @@ export default class Design extends Component<DesignProps, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    this.props.ExperimentActions.CreateNewWorkspace({
+    props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
     });
-    this.props.ExperimentActions.SaveWorkspace();
+    props.ExperimentActions.SaveWorkspace();
   }
 
-  handlePreview(e) {
+  function handlePreview(e) {
     e.target.blur();
-    this.setState((prevState) => ({
-      isPreviewing: !prevState.isPreviewing,
-    }));
+    setIsPreviewing((prev) => !prev);
   }
 
-  endPreview() {
-    this.setState({ isPreviewing: false });
+  function endPreview() {
+    setIsPreviewing(false);
   }
 
-  handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
-    this.props.ExperimentActions.SetEEGEnabled(e.target.checked);
-    this.props.ExperimentActions.SaveWorkspace();
+  function handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
+    props.ExperimentActions.SetEEGEnabled(e.target.checked);
+    props.ExperimentActions.SaveWorkspace();
   }
 
-  static renderConditionIcon(condition) {
-    switch (condition) {
-      case 'conditionCongruent':
-        return conditionCongruent;
-      case 'conditionIncongruent':
-        return conditionIncongruent;
-      case 'conditionOrangeT':
-        return conditionOrangeT;
-      case 'conditionNoOrangeT':
-        return conditionNoOrangeT;
-      case 'conditionFace':
-        return conditionFace;
-      case 'conditionHouse':
-        return conditionHouse;
-      case 'multiConditionShape':
-        return multiConditionShape;
-      case 'multiConditionDots':
-      default:
-        return multiConditionDots;
-    }
-  }
-
-  static renderOverviewIcon(type: EXPERIMENTS) {
-    switch (type) {
-      case EXPERIMENTS.N170:
-        return facesHousesOverview;
-      case EXPERIMENTS.STROOP:
-        return stroopOverview;
-      case EXPERIMENTS.MULTI:
-        return multitaskingOverview;
-      case EXPERIMENTS.SEARCH:
-        return searchOverview;
-      case EXPERIMENTS.CUSTOM:
-      default:
-        return customOverview;
-    }
-  }
-
-  renderSectionContent() {
+  function renderSectionContent() {
     const {
       text: { overview, protocol, background },
-    } = getExperimentFromType(this.props.type);
+    } = getExperimentFromType(props.type);
 
-    switch (this.state.activeStep) {
+    switch (activeStep) {
       case DESIGN_STEPS.OVERVIEW:
       default:
         return (
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-5/12 p-2">
               <img
-                src={Design.renderOverviewIcon(this.props.type)}
+                src={renderOverviewIcon(props.type)}
                 alt={overview.title}
               />
             </div>
@@ -190,7 +178,7 @@ export default class Design extends Component<DesignProps, State> {
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-1/4 p-2">
               <img
-                src={Design.renderOverviewIcon(this.props.type)}
+                src={renderOverviewIcon(props.type)}
                 alt="overview"
               />
             </div>
@@ -235,7 +223,7 @@ export default class Design extends Component<DesignProps, State> {
               <div className="flex gap-2 items-center">
                 <img
                   className="w-1/3"
-                  src={Design.renderConditionIcon(
+                  src={renderConditionIcon(
                     protocol?.condition_first_img
                   )}
                   alt={protocol?.condition_first_title}
@@ -248,7 +236,7 @@ export default class Design extends Component<DesignProps, State> {
               <div className="flex gap-2 items-center">
                 <img
                   className="w-1/3"
-                  src={Design.renderConditionIcon(
+                  src={renderConditionIcon(
                     protocol?.condition_second_img
                   )}
                   alt={protocol?.condition_second_title}
@@ -267,18 +255,18 @@ export default class Design extends Component<DesignProps, State> {
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-3/4 h-full border border-brand rounded">
               <PreviewExperimentComponent
-                title={this.props.title}
-                params={this.props.params}
-                experimentObject={this.props.experimentObject}
-                isPreviewing={this.state.isPreviewing}
-                onEnd={this.endPreview}
-                type={this.props.type}
+                title={props.title}
+                params={props.params}
+                experimentObject={props.experimentObject}
+                isPreviewing={isPreviewing}
+                onEnd={endPreview}
+                type={props.type}
               />
             </div>
             <div className="w-1/4 flex justify-center">
               <PreviewButton
-                isPreviewing={this.state.isPreviewing}
-                onClick={this.handlePreview}
+                isPreviewing={isPreviewing}
+                onClick={handlePreview}
               />
             </div>
           </div>
@@ -286,34 +274,29 @@ export default class Design extends Component<DesignProps, State> {
     }
   }
 
-  render() {
-    if (this.props.type === EXPERIMENTS.CUSTOM) {
-      return <CustomDesign {...this.props} />;
-    }
-    return (
-      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
-        <SecondaryNavComponent
-          title="Experiment Design"
-          steps={DESIGN_STEPS}
-          activeStep={this.state.activeStep}
-          onStepClick={this.handleStepClick}
-          enableEEGToggle={
-            <input
-              type="checkbox"
-              defaultChecked={this.props.isEEGEnabled}
-              onChange={this.handleEEGEnabled}
-              className="scale-75"
-            />
-          }
-        />
-        {this.renderSectionContent()}
-        <InputModal
-          open={this.state.isNewExperimentModalOpen}
-          onClose={this.handleLoadCustomExperiment}
-          onExit={() => this.setState({ isNewExperimentModalOpen: false })}
-          header="Enter a title for this experiment"
-        />
-      </div>
-    );
-  }
+  return (
+    <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+      <SecondaryNavComponent
+        title="Experiment Design"
+        steps={DESIGN_STEPS}
+        activeStep={activeStep}
+        onStepClick={handleStepClick}
+        enableEEGToggle={
+          <input
+            type="checkbox"
+            defaultChecked={props.isEEGEnabled}
+            onChange={handleEEGEnabled}
+            className="scale-75"
+          />
+        }
+      />
+      {renderSectionContent()}
+      <InputModal
+        open={isNewExperimentModalOpen}
+        onClose={handleLoadCustomExperiment}
+        onExit={() => setIsNewExperimentModalOpen(false)}
+        header="Enter a title for this experiment"
+      />
+    </div>
+  );
 }
