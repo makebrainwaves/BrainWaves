@@ -103,6 +103,10 @@ protocol.registerSchemesAsPrivileged([
       standard: true,
       secure: true,
       stream: true,
+      // lab.js preloads options.media.audio via fetch(); without this flag
+      // the renderer rejects with 'URL scheme "bwfile" is not supported'.
+      supportFetchAPI: true,
+      corsEnabled: true,
     },
   },
 ]);
@@ -791,7 +795,6 @@ app.whenReady().then(async () => {
     const filePath = getStimulusFileAccess().resolveUrl(request.url);
     return net.fetch(pathToFileURL(filePath).href);
   });
-
 
   // Enable F12 devtools shortcut and Ctrl+R reload in dev, disable in prod
   app.on('browser-window-created', (_, window) => {

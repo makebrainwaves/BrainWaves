@@ -46,12 +46,34 @@ export default class StimuliDesignColumn extends Component<Props, State> {
     };
   }
 
-  shouldComponentUpdate(nextProps) {
+  componentDidMount() {
+    // Counts live in component state and are lost when the user navigates
+    // away and back; re-derive the sound count from the folder on mount.
+    // (The image count survives remounts via the numberImages prop, which
+    // the parent derives from the trial list.)
+    this.refreshSoundCount(this.props.audioDir);
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.audioDir !== this.props.audioDir) {
+      this.refreshSoundCount(this.props.audioDir);
+    }
+  }
+
+  async refreshSoundCount(audioDir: string) {
+    if (!audioDir) return;
+    const sounds = await readAudioFiles(audioDir);
+    this.setState({ numberSounds: sounds.length });
+  }
+
+  shouldComponentUpdate(nextProps: Props, nextState: State) {
     if (
       nextProps.title !== this.props.title ||
       nextProps.response !== this.props.response ||
       nextProps.dir !== this.props.dir ||
-      nextProps.audioDir !== this.props.audioDir
+      nextProps.audioDir !== this.props.audioDir ||
+      nextState.numberImages !== this.state.numberImages ||
+      nextState.numberSounds !== this.state.numberSounds
     ) {
       return true;
     }
