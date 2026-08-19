@@ -289,18 +289,25 @@ export default class CustomDesign extends Component<DesignProps, State> {
               <h1>Conditions</h1>
               <p>
                 {`Select the folder with images for each condition and choose
-                the correct response. You can upload image files with the
-                following extensions: ".png", ".jpg", ".jpeg", ".gif",
-                ".webp". Make sure when you preview your experiment that the
-                resolution is high enough. You can resize or compress your
-                images in an image editing program or on one of the websites
-                online. You can also add an optional folder of sounds
-                (".mp3", ".wav", ".m4a", ".ogg") — each trial's sound plays
-                the moment the trial appears. A condition can be visual,
-                auditory, or both; with both, sounds are matched to images in
-                alphabetical order (repeating if there are fewer sounds than
-                images).`}
+                the correct response. Accepted image extensions: ".png",
+                ".jpg", ".jpeg", ".gif", ".webp". You can also add an
+                optional folder of sounds (".mp3", ".wav", ".m4a", ".ogg") —
+                each trial's sound plays the moment the trial appears.`}
               </p>
+              <div className="mt-2 text-sm text-gray-600 border border-gray-200 rounded p-2 bg-gray-50">
+                Tip: make sure your images are high enough resolution before
+                previewing your experiment. You can resize or compress them in
+                an image editor or with{' '}
+                <a
+                  href="https://imageresizer.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand underline"
+                >
+                  imageresizer.com
+                </a>
+                .
+              </div>
             </div>
             <Table>
               <TableHeader>

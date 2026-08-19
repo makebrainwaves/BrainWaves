@@ -178,6 +178,7 @@ ipcMain.handle('loadDialog', async (_event, fileType) => {
       properties: ['openDirectory'],
     });
     if (result.canceled) return '';
+    // eslint-disable-next-line prefer-destructuring -- index access is clearer than array destructuring for a single element
     const directory = result.filePaths[0];
     getStimulusFileAccess().authorizeDirectory(directory);
     return directory;
@@ -701,6 +702,16 @@ const createWindow = async () => {
     webPreferences.preload = path.join(__dirname, '../viewer/viewer.js');
     webPreferences.nodeIntegration = false;
     webPreferences.contextIsolation = true;
+  });
+
+  // Electron denies window.open by default with no way to fall through to the
+  // OS browser — target="_blank" links (e.g. the imageresizer.com tip) would
+  // otherwise silently do nothing.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      void shell.openExternal(url);
+    }
+    return { action: 'deny' };
   });
 
   // Electron 22+ does not show a native Bluetooth picker automatically.
