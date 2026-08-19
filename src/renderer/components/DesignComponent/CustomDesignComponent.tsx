@@ -19,7 +19,7 @@ import { ParamSlider } from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
 import { StimuliRow } from './StimuliRow';
-import { readImages } from '../../utils/filesystem/storage';
+import { readImages, readAudioFiles } from '../../utils/filesystem/storage';
 import {
   CONDITION_SLOTS,
   ConditionSlotName,
@@ -153,7 +153,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
     };
     this.conditionParams = nextParams;
 
-    if (key !== 'dir') {
+    if (key !== 'dir' && key !== 'audioDir') {
       const changedSlot = nextParams[slotName]!;
       const stimuli = (nextParams.stimuli ?? []).map((stimulus) =>
         stimulus.type === slotMeta.type
@@ -171,7 +171,11 @@ export default class CustomDesign extends Component<DesignProps, State> {
     }
 
     const revision = ++this.conditionRevision;
-    const rebuiltStimuli = await rebuildStimuliFromSlots(nextParams, readImages);
+    const rebuiltStimuli = await rebuildStimuliFromSlots(
+      nextParams,
+      readImages,
+      readAudioFiles
+    );
     if (revision !== this.conditionRevision) return;
 
     const latestParams = this.conditionParams;
@@ -285,19 +289,33 @@ export default class CustomDesign extends Component<DesignProps, State> {
               <h1>Conditions</h1>
               <p>
                 {`Select the folder with images for each condition and choose
-                the correct response. You can upload image files with the
-                following extensions: ".png", ".jpg", ".jpeg". Make sure when
-                you preview your experiment that the resolution is high enough.
-                You can resize or compress your images in an image editing
-                program or on one of the websites online.`}
+                the correct response. Accepted image extensions: ".png",
+                ".jpg", ".jpeg", ".gif", ".webp". You can also add an
+                optional folder of sounds (".mp3", ".wav", ".m4a", ".ogg") —
+                each trial's sound plays the moment the trial appears.`}
               </p>
+              <div className="mt-2 text-sm text-gray-600 border border-gray-200 rounded p-2 bg-gray-50">
+                Tip: make sure your images are high enough resolution before
+                previewing your experiment. You can resize or compress them in
+                an image editor or with{' '}
+                <a
+                  href="https://imageresizer.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand underline"
+                >
+                  imageresizer.com
+                </a>
+                .
+              </div>
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="pl-[60px]">Condition</TableHead>
                   <TableHead>Default Key Response</TableHead>
-                  <TableHead>Condition Folder</TableHead>
+                  <TableHead>Image Folder</TableHead>
+                  <TableHead>Sound Folder (optional)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -311,6 +329,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                       title={slot.title}
                       response={slot.response}
                       dir={slot.dir ?? ''}
+                      audioDir={slot.audioDir ?? ''}
                       numberImages={
                         this.state.params.stimuli?.filter(
                           (trial) => trial.type === number
@@ -400,6 +419,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               <TableHeader>
                 <TableRow>
                   <TableHead className="pl-[60px]">Name</TableHead>
+                  <TableHead>Sound</TableHead>
                   <TableHead>Condition</TableHead>
                   <TableHead>Correct Key Response</TableHead>
                   <TableHead>Trial Type</TableHead>
@@ -411,6 +431,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     key={`${trial.filename ?? trial.title}-${num}`}
                     num={num}
                     name={trial.filename ?? trial.title}
+                    audioFilename={trial.audioFilename}
                     response={trial.response ?? ''}
                     dir={trial.dir ?? ''}
                     condition={trial.condition ?? ''}

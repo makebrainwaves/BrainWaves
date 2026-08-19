@@ -103,6 +103,10 @@ protocol.registerSchemesAsPrivileged([
       standard: true,
       secure: true,
       stream: true,
+      // lab.js preloads options.media.audio via fetch(); without this flag
+      // the renderer rejects with 'URL scheme "bwfile" is not supported'.
+      supportFetchAPI: true,
+      corsEnabled: true,
     },
   },
 ]);
@@ -162,12 +166,19 @@ ipcMain.handle('dialog:showSave', (_event, options) =>
 );
 
 ipcMain.handle('loadDialog', async (_event, fileType) => {
-  if (fileType === FILE_TYPES.STIMULUS_DIR) {
+  if (
+    fileType === FILE_TYPES.STIMULUS_DIR ||
+    fileType === FILE_TYPES.AUDIO_DIR
+  ) {
     const result = await dialog.showOpenDialog(mainWindow!, {
-      title: 'Select a folder of images',
+      title:
+        fileType === FILE_TYPES.AUDIO_DIR
+          ? 'Select a folder of sounds'
+          : 'Select a folder of images',
       properties: ['openDirectory'],
     });
     if (result.canceled) return '';
+    // eslint-disable-next-line prefer-destructuring -- index access is clearer than array destructuring for a single element
     const directory = result.filePaths[0];
     getStimulusFileAccess().authorizeDirectory(directory);
     return directory;
@@ -381,12 +392,22 @@ ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
   shell.trashItem(path.join(workspaces, title))
 );
 
-ipcMain.handle('fs:readImages', (_event, dir) => {
-  const imageExtensions = new Set(['.gif', '.jpeg', '.jpg', '.png', '.webp']);
-  return fs
+const readFilesWithExtensions = (dir: string, extensions: Set<string>) =>
+  fs
     .readdirSync(dir)
-    .filter((filename) => imageExtensions.has(path.extname(filename).toLowerCase()));
-});
+    .filter((filename) => extensions.has(path.extname(filename).toLowerCase()))
+    .sort();
+
+ipcMain.handle('fs:readImages', (_event, dir) =>
+  readFilesWithExtensions(
+    dir,
+    new Set(['.gif', '.jpeg', '.jpg', '.png', '.webp'])
+  )
+);
+
+ipcMain.handle('fs:readAudioFiles', (_event, dir) =>
+  readFilesWithExtensions(dir, new Set(['.mp3', '.wav', '.m4a', '.ogg']))
+);
 
 ipcMain.handle(
   'fs:getImages',
@@ -683,6 +704,16 @@ const createWindow = async () => {
     webPreferences.contextIsolation = true;
   });
 
+  // Electron denies window.open by default with no way to fall through to the
+  // OS browser — target="_blank" links (e.g. the imageresizer.com tip) would
+  // otherwise silently do nothing.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      void shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
   // Electron 22+ does not show a native Bluetooth picker automatically.
   // We intercept select-bluetooth-device and auto-select the first advertised
   // device. The renderer's requestDevice() call has already scoped the scan by
@@ -775,7 +806,6 @@ app.whenReady().then(async () => {
     const filePath = getStimulusFileAccess().resolveUrl(request.url);
     return net.fetch(pathToFileURL(filePath).href);
   });
-
 
   // Enable F12 devtools shortcut and Ctrl+R reload in dev, disable in prod
   app.on('browser-window-created', (_, window) => {

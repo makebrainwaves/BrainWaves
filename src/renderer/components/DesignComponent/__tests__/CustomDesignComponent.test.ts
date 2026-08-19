@@ -15,6 +15,7 @@ vi.mock('../../../utils/filesystem/storage', () => ({
         finishRead = resolve;
       })
   ),
+  readAudioFiles: vi.fn(async () => []),
 }));
 
 const makeProps = (): DesignProps =>

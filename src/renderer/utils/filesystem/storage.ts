@@ -82,6 +82,9 @@ export const readAndParseState = (
 export const readImages = (dir: string): Promise<string[]> =>
   api().readImages(dir);
 
+export const readAudioFiles = (dir: string): Promise<string[]> =>
+  api().readAudioFiles(dir);
+
 export const getImages = (params: ExperimentParameters): Promise<string[]> =>
   api().getImages(params);
 

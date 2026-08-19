@@ -72,6 +72,7 @@ declare global {
     ) => Promise<void>;
     deleteWorkspaceDir: (title: string) => Promise<void>;
     readImages: (dir: string) => Promise<string[]>;
+    readAudioFiles: (dir: string) => Promise<string[]>;
     getImages: (params: unknown) => Promise<string[]>;
     readBehaviorData: (files: string[]) => Promise<unknown>;
     storeAggregatedBehaviorData: (

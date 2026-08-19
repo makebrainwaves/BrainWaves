@@ -16,6 +16,7 @@ describe('stimuliFromImageLists', () => {
         response: '1',
         type: EVENTS.STIMULUS_1,
         images: ['Face1.jpg', 'Face2.jpg'],
+        sounds: [],
       },
       {
         dir: '/houses',
@@ -23,6 +24,7 @@ describe('stimuliFromImageLists', () => {
         response: '9',
         type: EVENTS.STIMULUS_2,
         images: ['House1.jpg'],
+        sounds: [],
       },
     ]);
 
@@ -66,6 +68,7 @@ describe('stimuliFromImageLists', () => {
           response: '1',
           type: EVENTS.STIMULUS_1,
           images: ['x.jpg'],
+          sounds: [],
         },
         {
           dir: '/cats',
@@ -73,9 +76,66 @@ describe('stimuliFromImageLists', () => {
           response: '2',
           type: EVENTS.STIMULUS_2,
           images: [],
+          sounds: [],
         },
       ])
     ).toEqual([]);
+  });
+
+  it('pairs sounds with images index-wise, cycling shorter sound lists', () => {
+    const stimuli = stimuliFromImageLists([
+      {
+        dir: '/faces',
+        audioDir: '/tones',
+        title: 'Face',
+        response: '1',
+        type: EVENTS.STIMULUS_1,
+        images: ['Face1.jpg', 'Face2.jpg', 'Face3.jpg'],
+        sounds: ['beep.mp3', 'boop.wav'],
+      },
+    ]);
+
+    expect(stimuli.map((s) => [s.filename, s.audioFilename, s.phase])).toEqual([
+      ['Face1.jpg', 'beep.mp3', 'practice'],
+      ['Face2.jpg', 'boop.wav', 'main'],
+      ['Face3.jpg', 'beep.mp3', 'main'],
+    ]);
+    expect(stimuli[0].audioDir).toBe('/tones');
+  });
+
+  it('builds audio-only trials when a condition has only a sound folder', () => {
+    const stimuli = stimuliFromImageLists([
+      {
+        dir: '',
+        audioDir: '/tones',
+        title: 'Tone',
+        response: '1',
+        type: EVENTS.STIMULUS_1,
+        images: [],
+        sounds: ['low.wav', 'high.wav'],
+      },
+    ]);
+
+    expect(stimuli).toEqual([
+      {
+        audioDir: '/tones',
+        audioFilename: 'low.wav',
+        title: 'low.wav',
+        condition: 'Tone',
+        response: '1',
+        phase: 'practice',
+        type: EVENTS.STIMULUS_1,
+      },
+      {
+        audioDir: '/tones',
+        audioFilename: 'high.wav',
+        title: 'high.wav',
+        condition: 'Tone',
+        response: '1',
+        phase: 'main',
+        type: EVENTS.STIMULUS_1,
+      },
+    ]);
   });
 });
 
@@ -102,6 +162,31 @@ describe('rebuildStimuliFromSlots', () => {
       ['Face', 'practice', 'Face1.jpg'],
       ['Face', 'main', 'Face2.jpg'],
       ['House', 'practice', 'House1.jpg'],
+    ]);
+  });
+
+  it('reads sounds per condition audioDir and pairs them with images', async () => {
+    const params = {
+      stimulus1: {
+        ...emptyConditionSlot(EVENTS.STIMULUS_1, 'Face'),
+        dir: '/faces',
+        audioDir: '/tones',
+        response: '1',
+      },
+    } as ExperimentParameters;
+
+    const readImages = async () => ['Face1.jpg', 'Face2.jpg'];
+    const readAudioFiles = async (dir: string) =>
+      dir === '/tones' ? ['beep.mp3'] : [];
+
+    const stimuli = await rebuildStimuliFromSlots(
+      params,
+      readImages,
+      readAudioFiles
+    );
+    expect(stimuli.map((s) => [s.filename, s.audioFilename])).toEqual([
+      ['Face1.jpg', 'beep.mp3'],
+      ['Face2.jpg', 'beep.mp3'],
     ]);
   });
 });

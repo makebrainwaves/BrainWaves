@@ -118,6 +118,28 @@ export default [
     },
   },
 
+  // --- Type-aware rules (src TS only — internals/ isn't in tsconfig.json) ---
+  // no-floating-promises catches fire-and-forget async calls (e.g. the
+  // unawaited deleteWorkspaceDir that left deleted workspaces on the Home
+  // screen). Needs type information, hence projectService. warn for gradual
+  // adoption (~25 pre-existing hits); prefix `void` to mark intentional
+  // fire-and-forget.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: __dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': [
+        'warn',
+        { ignoreVoid: true },
+      ],
+    },
+  },
+
   // --- Web Worker file — add worker globals so importScripts/self/etc. are known ---
   {
     files: ['src/**/webworker.js'],

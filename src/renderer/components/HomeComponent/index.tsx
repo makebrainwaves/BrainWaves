@@ -192,7 +192,7 @@ export default class Home extends Component<Props, State> {
     };
     const response = await window.electronAPI.showMessageBox(options);
     if (response.response === 1) {
-      deleteWorkspaceDir(dir);
+      await deleteWorkspaceDir(dir);
       const recentWorkspaces = await readWorkspaces();
       this.setState({ recentWorkspaces });
       await this.loadWorkspaceStates(recentWorkspaces);

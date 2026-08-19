@@ -6,7 +6,7 @@ import { TableRow, TableCell } from '../ui/table';
 import { toast } from 'react-toastify';
 import path from 'pathe';
 import { isString } from 'lodash';
-import { readImages } from '../../utils/filesystem/storage';
+import { readImages, readAudioFiles } from '../../utils/filesystem/storage';
 import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
 
@@ -15,12 +15,14 @@ interface Props {
   title: string;
   response: string;
   dir: string;
+  audioDir: string;
   numberImages?: number;
   onChange: (arg0: string, arg1: string, arg2: string) => void;
 }
 
 interface State {
   numberImages?: number;
+  numberSounds?: number;
 }
 
 const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
@@ -29,21 +31,49 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
   value: i.toString(),
 }));
 
+const lastSegment = (dir: string) => dir.split(path.sep).slice(-1).join(' / ');
+
 export default class StimuliDesignColumn extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.handleSelectFolder = this.handleSelectFolder.bind(this);
     this.handleRemoveFolder = this.handleRemoveFolder.bind(this);
+    this.handleSelectAudioFolder = this.handleSelectAudioFolder.bind(this);
+    this.handleRemoveAudioFolder = this.handleRemoveAudioFolder.bind(this);
     this.state = {
       numberImages: undefined,
+      numberSounds: undefined,
     };
   }
 
-  shouldComponentUpdate(nextProps) {
+  componentDidMount() {
+    // Counts live in component state and are lost when the user navigates
+    // away and back; re-derive the sound count from the folder on mount.
+    // (The image count survives remounts via the numberImages prop, which
+    // the parent derives from the trial list.)
+    void this.refreshSoundCount(this.props.audioDir);
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.audioDir !== this.props.audioDir) {
+      void this.refreshSoundCount(this.props.audioDir);
+    }
+  }
+
+  async refreshSoundCount(audioDir: string) {
+    if (!audioDir) return;
+    const sounds = await readAudioFiles(audioDir);
+    this.setState({ numberSounds: sounds.length });
+  }
+
+  shouldComponentUpdate(nextProps: Props, nextState: State) {
     if (
       nextProps.title !== this.props.title ||
       nextProps.response !== this.props.response ||
-      nextProps.dir !== this.props.dir
+      nextProps.dir !== this.props.dir ||
+      nextProps.audioDir !== this.props.audioDir ||
+      nextState.numberImages !== this.state.numberImages ||
+      nextState.numberSounds !== this.state.numberSounds
     ) {
       return true;
     }
@@ -65,6 +95,23 @@ export default class StimuliDesignColumn extends Component<Props, State> {
   handleRemoveFolder() {
     this.setState({ numberImages: 0 });
     this.props.onChange('dir', '', `stimulus${this.props.num}`);
+  }
+
+  async handleSelectAudioFolder() {
+    const dir = await loadFromSystemDialog(FILE_TYPES.AUDIO_DIR);
+    if (dir && isString(dir)) {
+      const sounds = await readAudioFiles(dir);
+      if (sounds.length < 1) {
+        toast.error('No sounds in folder!');
+      }
+      this.setState({ numberSounds: sounds.length });
+      this.props.onChange('audioDir', dir, `stimulus${this.props.num}`);
+    }
+  }
+
+  handleRemoveAudioFolder() {
+    this.setState({ numberSounds: 0 });
+    this.props.onChange('audioDir', '', `stimulus${this.props.num}`);
   }
 
   render() {
@@ -115,11 +162,7 @@ export default class StimuliDesignColumn extends Component<Props, State> {
         <TableCell className="pl-6 pr-2.5">
           {this.props.dir ? (
             <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
-              <div>
-                Folder{' '}
-                {this.props.dir &&
-                  this.props.dir.split(path.sep).slice(-1).join(' / ')}
-              </div>
+              <div>Folder {lastSegment(this.props.dir)}</div>
               <div>
                 ( {this.state.numberImages || this.props.numberImages} images )
               </div>
@@ -130,6 +173,27 @@ export default class StimuliDesignColumn extends Component<Props, State> {
           ) : (
             <Button variant="secondary" onClick={this.handleSelectFolder}>
               Select folder
+            </Button>
+          )}
+        </TableCell>
+
+        <TableCell className="pl-6 pr-2.5">
+          {this.props.audioDir ? (
+            <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
+              <div>🔊 {lastSegment(this.props.audioDir)}</div>
+              {this.state.numberSounds !== undefined && (
+                <div>( {this.state.numberSounds} sounds )</div>
+              )}
+              <button
+                onClick={this.handleRemoveAudioFolder}
+                aria-label="Remove sounds"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <Button variant="secondary" onClick={this.handleSelectAudioFolder}>
+              Select sound folder
             </Button>
           )}
         </TableCell>
