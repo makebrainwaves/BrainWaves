@@ -44,12 +44,6 @@ const CUSTOM_STEPS = {
   PREVIEW: 'PREVIEW',
 };
 
-const FIELDS = {
-  hypothesis: 'hypothesis',
-  methods: 'methods',
-  question: 'question',
-};
-
 export default function CustomDesign(props: DesignProps) {
   const [activeStep, setActiveStep] = useState(CUSTOM_STEPS.OVERVIEW);
   const [isPreviewing, setIsPreviewing] = useState(true);
@@ -125,6 +119,7 @@ export default function CustomDesign(props: DesignProps) {
     conditionParamsRef.current = newParams;
     setParams(newParams);
     setSaved(false);
+    handleSaveParams(newParams);
   }
 
   const handleConditionChange = async (

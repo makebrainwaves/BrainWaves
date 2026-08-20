@@ -567,3 +567,66 @@ Keep these corrections; do not re-introduce the original claims.
 - **Wrong judgement count:** four files. Real judgement list is C1–C7 above.
 - **Still true:** no `defaultProps`, no `createRef` / `this.refs`, no `forceUpdate`, no `setState(partial, callback)`, no `getDerivedStateFromProps`. Nine updater-form `setState` sites (Clean ×3, HelpSidebar ×2, PreTest ×2, CustomDesign ×1, Design ×1). No maintained TS class-component codemod worth adding.
 - **Still true:** existing function components (`RunComponent`, `ExperimentWindow`) destructure props. We still keep `props.` on converted files so the diff is `this.props.` → `props.`. Do not "fix" that to match `RunComponent` in this PR.
+
+---
+
+## Post-review notes (ponytail-review of PR #245)
+
+These are non-cosmetic findings that need fixing before merge. Address in order; each is a silent behavior change or a latent bug.
+
+### 1. `InputModal.tsx` — debounced event handler is unsafe
+**Location:** `handleTextEntry` in the converted file.
+**Problem:** The debounced callback receives the raw `React.ChangeEvent<HTMLInputElement>`. React 16 pools synthetic events; after the 100 ms debounce delay, `event.target.value` may read from a recycled event object and return `null`/`undefined`.
+**Fix:** Change the `onChange` prop to extract `event.target.value` synchronously and pass the string into the debounce:
+```tsx
+onChange={(e) => handleTextEntry(e.target.value)}
+const handleTextEntry = useMemo(
+  () => debounce((value: string) => setEnteredText(value), 100),
+  []
+);
+```
+
+### 2. `AnalyzeComponent.tsx` — `setHelpMode` dropped from two handlers
+**Location:** `handleRemoveOutliers` and `handleDisplayModeChange`.
+**Problem:** The class version did `this.setState({ helpMode: 'outliers' })` inside `handleRemoveOutliers` and `this.setState({ helpMode: displayMode })` inside `handleDisplayModeChange`. The conversion initializes `helpMode` to `'errorbars'` and never updates it, so the help sidebar content is permanently stale.
+**Fix:** Restore `setHelpMode('outliers')` / `setHelpMode(displayMode)` in those two handlers.
+
+### 3. `ViewerComponent.tsx` — two dead `useEffect` hooks
+**Location:** Effects keyed on `[channels, domain]` and `[autoScale]`.
+**Problem:** `domain` and `autoScale` are `useState` constants initialized from `VIEWER_DEFAULTS` and never written after mount. The class `componentDidUpdate` never reached these branches on a real transition because the state never changed. The effects fire once on mount but `graphViewRef.current` is still `null` at that point, so they silently no-op every time.
+**Fix:** Delete the two effects. Keep `domain` / `autoScale` as local constants for the `initGraph` call only.
+
+### 4. `CustomDesignComponent.tsx` — `handleSetText` no longer persists to Redux
+**Location:** `handleSetText` body.
+**Problem:** The class called `this.handleSaveParams(params)` at the end of `handleSetText`, which dispatched `SetParams` + `SaveWorkspace` to Redux on every keystroke. The conversion only updates local `params` state and `saved` flag, deferring persistence to `handleStepClick` or unmount. If the user refreshes or crashes before changing steps, the text edits are lost.
+**Fix:** Decide if fewer Redux writes is intentional. If not, restore `handleSaveParams(newParams)` at the end of `handleSetText`.
+
+### 5. `SignalQualityIndicatorComponent.tsx` — swallowed error handler
+**Location:** Observable subscribe error callback.
+**Problem:** `(error) => new Error(...)` builds an `Error` instance and immediately discards it. The class version had the same bug; the `ViewerComponent` conversion in this PR already fixed the equivalent site to `console.error`.
+**Fix:** Replace with `console.error('[signal-quality] subscription error:', error)`.
+
+### 6. `StimuliDesignColumn.test.tsx` — invalid React import
+**Location:** Line 2.
+**Problem:** `import { act } from 'react';` is invalid in the classic JSX runtime (React 16). The file already imports `act` from `@testing-library/react` on the next line, so this import is redundant and will fail at build time.
+**Fix:** Delete the line.
+
+### 7. `CleanComponent/index.tsx` — unused import
+**Location:** Top of file.
+**Problem:** `useCallback` was added to the React import during conversion but is never referenced.
+**Fix:** Remove `useCallback` from the import.
+
+### 8. `SecondaryNavComponent/index.tsx` — redundant JSX guard
+**Location:** `SettingsDropdown` render.
+**Problem:** `{saveButton && saveButton}` is equivalent to `{saveButton}`; JSX already renders `undefined` / `null` as nothing.
+**Fix:** Simplify to `{saveButton}`.
+
+### 9. `ViewerComponent.tsx` — unnecessary double cast
+**Location:** `const trueAsString = 'true' as unknown as boolean;`
+**Problem:** The original class used `'true' as any`. The double cast is longer with no added type safety (the webview attribute still expects a string literal at runtime).
+**Fix:** Revert to `'true' as any` or `'true' as string`.
+
+### 10. `CustomDesignComponent.tsx` / `DesignComponent/index.tsx` — dead `FIELDS` / `static` helpers
+**Location:** `CustomDesignComponent.tsx` top-level `FIELDS` object; `DesignComponent/index.tsx` moved `renderConditionIcon` and `renderOverviewIcon` to module-level.
+**Problem:** `FIELDS` is no longer referenced after the conversion inlined the labels. The `DesignComponent` static-to-module-level move is correct, but verify no remaining `Design.renderX` call sites exist in other files.
+**Fix:** Delete `FIELDS` if nothing imports it.

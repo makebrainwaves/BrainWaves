@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import path from 'pathe';
 import { Link } from 'react-router-dom';
 import { isNil, isString, memoize } from 'lodash';
