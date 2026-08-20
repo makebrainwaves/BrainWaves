@@ -25,8 +25,7 @@ interface Props {
 
 export default function ViewerComponent(props: Props) {
   const [channels, setChannels] = useState(() => props.channels ?? MUSE_CHANNELS);
-  const [domain] = useState(VIEWER_DEFAULTS.domain);
-  const [autoScale] = useState(VIEWER_DEFAULTS.autoScale);
+  const domain = VIEWER_DEFAULTS.domain;
   const [viewerUrl, setViewerUrl] = useState('');
 
   const graphViewRef = useRef<WebviewTag | null>(null);
@@ -98,16 +97,6 @@ export default function ViewerComponent(props: Props) {
     graphViewRef.current.send('updateChannels', channels);
   }, [channels]);
 
-  useEffect(() => {
-    if (!graphViewRef.current) return;
-    graphViewRef.current.send('updateDomain', domain);
-  }, [domain]);
-
-  useEffect(() => {
-    if (!graphViewRef.current) return;
-    graphViewRef.current.send('autoScale');
-  }, [autoScale]);
-
   // Unmount cleanup
   useEffect(() => {
     return () => {
@@ -118,7 +107,7 @@ export default function ViewerComponent(props: Props) {
   }, []);
 
   if (!viewerUrl) return null;
-  const trueAsString = 'true' as unknown as boolean;
+  const trueAsString = 'true' as any;
   return (
     <webview
       id="eegView"

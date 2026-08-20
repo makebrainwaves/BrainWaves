@@ -31,7 +31,11 @@ export default function SignalQualityIndicatorComponent(props: Props) {
             .attr('fill', epoch.signalQuality[key]);
         });
       },
-      (error) => new Error(`Error in signalQualitySubscription ${error}`)
+      (error) =>
+        console.error(
+          '[signal-quality] subscription error:',
+          error
+        )
     );
   }, [props.signalQualityObservable]);
 

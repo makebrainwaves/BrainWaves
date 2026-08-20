@@ -17,8 +17,8 @@ export default function InputModal(props: Props) {
 
   const handleTextEntry = useMemo(
     () =>
-      debounce((event: React.ChangeEvent<HTMLInputElement>) => {
-        setEnteredText(event.target.value);
+      debounce((value: string) => {
+        setEnteredText(value);
       }, 100),
     []
   );
@@ -61,7 +61,7 @@ export default function InputModal(props: Props) {
             'w-full border rounded px-3 py-2',
             isError ? 'border-red-500' : 'border-gray-300',
           ].join(' ')}
-          onChange={handleTextEntry}
+          onChange={(e) => handleTextEntry(e.target.value)}
           onKeyDown={handleEnterSubmit}
           autoFocus
         />

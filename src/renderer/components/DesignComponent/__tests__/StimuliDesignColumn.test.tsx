@@ -1,7 +1,6 @@
 import React from 'react';
-import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import StimuliDesignColumn from '../StimuliDesignColumn';
 
 // vi.mock factory is hoisted to top of file; use vi.hoisted to create a

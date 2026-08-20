@@ -22,7 +22,7 @@ function SettingsDropdown({
 }: SettingsDropdownProps) {
   return (
     <div className="flex items-center gap-2 pr-4">
-      {saveButton && saveButton}
+      {saveButton}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="text-2xl text-[#666] focus:outline-none px-2">

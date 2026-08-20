@@ -185,6 +185,7 @@ export default function Analyze(props: Props) {
     setRemoveOutliers(!removeOutliers);
     setDataToPlot(data);
     setLayout(lay);
+    setHelpMode('outliers');
   }
 
   function handleDisplayModeChange(value: string) {
@@ -200,6 +201,7 @@ export default function Analyze(props: Props) {
     setDisplayMode(value);
     setDataToPlot(data);
     setLayout(lay);
+    setHelpMode(value);
   }
 
   function handleDataPoints() {
