@@ -221,7 +221,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots()
 
-    for cond, color in zip(conditions.values(), palette):
+    for (cond_name, cond), color in zip(conditions.items(), palette):
         cond_data = X[y.isin(cond), ch_ind]
         mean = np.nanmean(cond_data, axis=0)
         n_samples = cond_data.shape[0]
@@ -234,13 +234,14 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
         alpha = (100 - ci) / 2
         low = np.percentile(boot_means, alpha, axis=0)
         high = np.percentile(boot_means, 100 - alpha, axis=0)
-        ax.plot(times, mean, color=color)
+        ax.plot(times, mean, color=color, label=cond_name)
         ax.fill_between(times, low, high, color=color, alpha=0.3)
 
     if diff_waveform:
         diff = (np.nanmean(X[y == diff_waveform[1], ch_ind], axis=0) -
                 np.nanmean(X[y == diff_waveform[0], ch_ind], axis=0))
-        ax.plot(times, diff, color='k', lw=1)
+        ax.plot(times, diff, color='k', lw=1,
+                label='{} - {}'.format(diff_waveform[1], diff_waveform[0]))
 
     ax.set_title(epochs.ch_names[ch_ind])
     ax.axvline(x=0, color='k', lw=1, label='_nolegend_')
@@ -248,12 +249,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     ax.set_xlabel('Time (s)')
     ax.set_ylabel('Amplitude (uV)')
 
-    if diff_waveform:
-        legend = (['{} - {}'.format(diff_waveform[1], diff_waveform[0])] +
-                  list(conditions.keys()))
-    else:
-        legend = conditions.keys()
-    ax.legend(legend)
+    ax.legend()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.tight_layout()

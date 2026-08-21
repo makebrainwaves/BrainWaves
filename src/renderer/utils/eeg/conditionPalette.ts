@@ -7,8 +7,8 @@
 export const CONDITION_PALETTE_RGB: ReadonlyArray<
   readonly [number, number, number]
 > = [
-  [0.86, 0.37, 0.34],
-  [0.34, 0.86, 0.37],
+  [0.25, 0.45, 0.85],
+  [0.95, 0.55, 0.15],
   [0.37, 0.34, 0.86],
   [0.86, 0.72, 0.34],
 ];

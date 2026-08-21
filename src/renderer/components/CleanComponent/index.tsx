@@ -239,30 +239,56 @@ export default class Clean extends Component<Props, State> {
   }
 
   renderStats() {
-    const { epochsInfo } = this.props;
+    const { epochsInfo, epochArrays } = this.props;
     if (isNil(epochsInfo) || epochsInfo.length === 0) {
       return null;
     }
+    const total = epochArrays?.meta.n_epochs ?? 0;
+    const pendingDrop =
+      total > 0
+        ? Math.round((this.state.rejectedEpochs.size / total) * 10000) / 100
+        : 0;
     return (
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-        {epochsInfo.map((infoObj, index) => (
-          <span key={String(infoObj.name)} className="whitespace-nowrap">
-            <span className="mr-1">{this.icons[index]}</span>
-            <span className="text-gray-500">{infoObj.name}:</span>{' '}
-            <span className="font-medium">{infoObj.value}</span>
-          </span>
-        ))}
+        {epochsInfo.map((infoObj, index) => {
+          const name = String(infoObj.name);
+          const value =
+            name === 'Drop Percentage' ? pendingDrop : infoObj.value;
+          return (
+            <span key={name} className="whitespace-nowrap">
+              <span className="mr-1">{this.icons[index]}</span>
+              <span className="text-gray-500">{name}:</span>{' '}
+              <span className="font-medium">{value}</span>
+            </span>
+          );
+        })}
       </div>
     );
   }
 
+  async handleAnalyzeClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    const pending =
+      this.state.rejectedEpochs.size + this.state.badChannels.size;
+    if (pending === 0) return;
+    event.preventDefault();
+    const nEpochs = this.state.rejectedEpochs.size;
+    const response = await window.electronAPI.showMessageBox({
+      buttons: ['Cancel', 'Remove selected and analyze'],
+      message:
+        nEpochs > 0
+          ? `This will remove ${nEpochs} selected epoch${nEpochs === 1 ? '' : 's'} before analysis. Continue?`
+          : 'This will apply flagged bad channels before analysis. Continue?',
+    });
+    if (response.response !== 1) return;
+    await this.handleCleanData();
+    window.location.hash = '#/analyze';
+  }
+
   renderAnalyzeButton() {
     const { epochsInfo } = this.props;
-    // Show whenever epoch stats exist — let the user decide from the numbers,
-    // instead of only surfacing the button when the data looked bad (drop >= 2).
     if (!isNil(epochsInfo) && epochsInfo.length > 0) {
       return (
-        <Link to="/analyze">
+        <Link to="/analyze" onClick={(e) => void this.handleAnalyzeClick(e)}>
           <Button variant="default">Analyze Dataset</Button>
         </Link>
       );

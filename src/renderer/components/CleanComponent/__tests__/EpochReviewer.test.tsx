@@ -68,4 +68,19 @@ describe('EpochReviewer', () => {
 
     expect(screen.getByLabelText('Restore epoch 0')).toBeInTheDocument();
   });
+
+  it('keeps epoch click targets visually transparent', () => {
+    render(
+      <EpochReviewer
+        epochArrays={makeEpochArrays()}
+        rejected={new Set([1])}
+        onToggleEpoch={vi.fn()}
+        badChannels={new Set()}
+        onToggleChannel={vi.fn()}
+      />
+    );
+
+    const overlay = screen.getByLabelText('Restore epoch 1');
+    expect(overlay.className).toMatch(/bg-transparent/);
+  });
 });

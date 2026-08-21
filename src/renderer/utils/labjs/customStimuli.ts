@@ -34,6 +34,57 @@ export const emptyConditionSlot = (
   response: '',
 });
 
+const DEFAULT_CONDITION_TITLE = /^Condition \d+$/;
+
+/** Folder basename when the slot still has the placeholder "Condition N" title. */
+export function titleFromFolder(dir: string, currentTitle: string): string {
+  const trimmed = currentTitle.trim();
+  const isDefault = trimmed === '' || DEFAULT_CONDITION_TITLE.test(trimmed);
+  if (!isDefault) return currentTitle;
+  const base = dir.split(/[/\\]/).filter(Boolean).pop() ?? '';
+  return base || currentTitle;
+}
+
+/** Farthest-spaced number keys for 1–4 active conditions. */
+export const DEFAULT_RESPONSE_KEYS: Record<1 | 2 | 3 | 4, readonly string[]> = {
+  1: ['1'],
+  2: ['1', '9'],
+  3: ['1', '5', '9'],
+  4: ['1', '4', '6', '9'],
+};
+
+const isActiveSlot = (slot: ConditionSlot | undefined) =>
+  Boolean(slot && (slot.dir || slot.audioDir));
+
+/** Assign farthest-spaced keys to active slots in order. Remaps when N changes. */
+export function assignDefaultResponses(
+  params: ExperimentParameters
+): ExperimentParameters {
+  const active = CONDITION_SLOTS.filter(({ name }) =>
+    isActiveSlot(params[name])
+  );
+  const n = active.length;
+  if (n < 1 || n > 4) return params;
+  const keys = DEFAULT_RESPONSE_KEYS[n as 1 | 2 | 3 | 4];
+  const next: ExperimentParameters = { ...params };
+  for (let i = 0; i < active.length; i += 1) {
+    const { name } = active[i];
+    const slot = next[name];
+    if (!slot) continue;
+    next[name] = { ...slot, response: keys[i] };
+  }
+  if (next.stimuli) {
+    next.stimuli = next.stimuli.map((stimulus) => {
+      const slot = CONDITION_SLOTS.find(({ type }) => type === stimulus.type);
+      const response = slot ? next[slot.name]?.response : undefined;
+      return response && response !== stimulus.response
+        ? { ...stimulus, response }
+        : stimulus;
+    });
+  }
+  return next;
+}
+
 export type ConditionImageList = ConditionSlot & {
   images: string[];
   sounds: string[];
@@ -56,7 +107,7 @@ export function stimuliFromImageLists(slots: ConditionImageList[]): Stimulus[] {
     const images = slot.dir ? slot.images : [];
     const sounds = slot.audioDir ? slot.sounds : [];
     if (images.length === 0 && sounds.length === 0) continue;
-    const title = slot.title || `Condition ${slot.type}`;
+    const title = titleFromFolder(slot.dir ?? '', slot.title || '');
     const trialCount = images.length > 0 ? images.length : sounds.length;
     for (let index = 0; index < trialCount; index++) {
       const filename = images[index];
@@ -75,7 +126,6 @@ export function stimuliFromImageLists(slots: ConditionImageList[]): Stimulus[] {
   }
   return stimuli;
 }
-
 export function countPhases(stimuli: Stimulus[]): {
   nbTrials: number;
   nbPracticeTrials: number;
@@ -99,7 +149,7 @@ export async function rebuildStimuliFromSlots(
     lists.push({
       dir: cond?.dir ?? '',
       audioDir: cond?.audioDir ?? '',
-      title: cond?.title ?? '',
+      title: titleFromFolder(cond?.dir ?? '', cond?.title ?? ''),
       type: cond?.type ?? slot.type,
       response: cond?.response ?? '',
       images,

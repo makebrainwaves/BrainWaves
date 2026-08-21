@@ -81,7 +81,7 @@ function balanceStimuliByCondition(
   stimuli: Stimulus[] | undefined,
   nbTrials: number
 ) {
-  if (!stimuli || stimuli.length === 0 || nbTrials === 0) {
+  if (!stimuli || stimuli.length === 0 || !Number.isFinite(nbTrials) || nbTrials <= 0) {
     return [];
   }
 
@@ -144,7 +144,6 @@ export function initResponseHandlers(this: lab.core.Component) {
   // is undefined for loop-cloned components because rawOptions never has an id.
   // Use this.id directly.
   const id = this.id;
-  const { response } = this.parameters as unknown as Stimulus;
   if (!id) return;
 
   this.data.trial_number =
@@ -152,17 +151,20 @@ export function initResponseHandlers(this: lab.core.Component) {
   this.data.response_given = 'no';
 
   this.options.events = {
-    // @ts-expect-error
-    keydown: (event: { key: number }) => {
+    // @ts-expect-error lab.js event map is untyped
+    keydown: (event: { key: string }) => {
+      // Read at press time. Loop templateParameters land on the parent
+      // sequence; closing over `response` in before:prepare can see ''.
+      const expected = String(
+        (this.parameters as unknown as Stimulus).response ?? '',
+      );
       const keyPressed = String(event.key);
+      const isCorrect = expected !== '' && keyPressed === expected;
       this.data.reaction_time = this.timer;
       this.data.response_given = 'yes';
       this.data.response = keyPressed;
-      if (this.data.response === response) {
-        this.data.correct_response = true;
-      } else {
-        this.data.correct_response = false;
-      }
+      this.data.correct_response = isCorrect;
+      this.data.correct = isCorrect;
       this.end();
     },
   };

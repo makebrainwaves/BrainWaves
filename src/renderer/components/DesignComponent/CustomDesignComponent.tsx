@@ -23,9 +23,11 @@ import { readImages, readAudioFiles } from '../../utils/filesystem/storage';
 import {
   CONDITION_SLOTS,
   ConditionSlotName,
+  assignDefaultResponses,
   countPhases,
   emptyConditionSlot,
   rebuildStimuliFromSlots,
+  titleFromFolder,
 } from '../../utils/labjs/customStimuli';
 import {
   mergeCustomParams,
@@ -82,7 +84,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
   }
 
   componentWillUnmount() {
-    this.props.ExperimentActions.SetParams(this.conditionParams);
+    this.props.ExperimentActions.SetParams(this.state.params);
     this.props.ExperimentActions.SaveWorkspace();
   }
 
@@ -115,12 +117,23 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
-  handleSaveParams(params: ExperimentParameters = this.conditionParams) {
+  handleSaveParams(params: ExperimentParameters = this.state.params) {
     this.conditionParams = params;
     this.props.ExperimentActions.SetParams(params);
     this.props.ExperimentActions.SaveWorkspace();
     this.setState({ saved: true, params });
   }
+
+  handleTrialCountChange =
+    (field: 'nbTrials' | 'nbPracticeTrials') =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = event.target.value;
+      const parsed = raw === '' ? 0 : parseInt(raw, 10);
+      const value = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      const params = { ...this.state.params, [field]: value };
+      this.conditionParams = { ...this.conditionParams, [field]: value };
+      this.setState({ params, saved: false });
+    };
 
   handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
     const params: ExperimentParameters = {
@@ -147,10 +160,18 @@ export default class CustomDesign extends Component<DesignProps, State> {
     const previousSlot =
       this.conditionParams[slotName] ??
       emptyConditionSlot(slotMeta.type, '');
+    const nextSlot = {
+      ...previousSlot,
+      [key]: data,
+      ...(key === 'dir' ? { title: titleFromFolder(data, previousSlot.title) } : {}),
+    };
     let nextParams: ExperimentParameters = {
       ...this.conditionParams,
-      [slotName]: { ...previousSlot, [key]: data },
+      [slotName]: nextSlot,
     };
+    if (key === 'dir' || key === 'audioDir') {
+      nextParams = assignDefaultResponses(nextParams);
+    }
     this.conditionParams = nextParams;
 
     if (key !== 'dir' && key !== 'audioDir') {
@@ -381,16 +402,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     id="nb-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={this.state.params.nbTrials}
-                    onChange={(event) =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          nbTrials: parseInt(event.target.value, 10),
-                        },
-                        saved: false,
-                      })
+                    value={
+                      Number.isFinite(this.state.params.nbTrials)
+                        ? this.state.params.nbTrials
+                        : 0
                     }
+                    onChange={this.handleTrialCountChange('nbTrials')}
                   />
                 </div>
                 <div>
@@ -401,16 +418,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     id="nb-practice-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={this.state.params.nbPracticeTrials}
-                    onChange={(event) =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          nbPracticeTrials: parseInt(event.target.value, 10),
-                        },
-                        saved: false,
-                      })
+                    value={
+                      Number.isFinite(this.state.params.nbPracticeTrials)
+                        ? this.state.params.nbPracticeTrials
+                        : 0
                     }
+                    onChange={this.handleTrialCountChange('nbPracticeTrials')}
                   />
                 </div>
               </div>
@@ -561,6 +574,10 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 onChange={(event) => {
                   const val = event.target.value;
                   if (!isString(val)) return;
+                  this.conditionParams = {
+                    ...this.conditionParams,
+                    intro: val,
+                  };
                   this.setState({
                     params: { ...this.state.params, intro: val },
                     saved: false,
@@ -582,6 +599,10 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 onChange={(event) => {
                   const val = event.target.value;
                   if (!isString(val)) return;
+                  this.conditionParams = {
+                    ...this.conditionParams,
+                    taskHelp: val,
+                  };
                   this.setState({
                     params: { ...this.state.params, taskHelp: val },
                     saved: false,

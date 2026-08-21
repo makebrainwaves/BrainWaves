@@ -2,9 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { EVENTS } from '../../../constants/constants';
 import { ExperimentParameters } from '../../../constants/interfaces';
 import {
+  assignDefaultResponses,
   emptyConditionSlot,
   rebuildStimuliFromSlots,
   stimuliFromImageLists,
+  titleFromFolder,
+  type ConditionSlot,
 } from '../customStimuli';
 
 describe('stimuliFromImageLists', () => {
@@ -136,6 +139,88 @@ describe('stimuliFromImageLists', () => {
         type: EVENTS.STIMULUS_1,
       },
     ]);
+  });
+});
+
+describe('titleFromFolder', () => {
+  it('uses the folder basename when the title is still the default Condition N', () => {
+    expect(titleFromFolder('/Users/me/stimuli/Faces', 'Condition 1')).toBe(
+      'Faces'
+    );
+  });
+
+  it('keeps a user-edited title', () => {
+    expect(titleFromFolder('/Users/me/stimuli/Faces', 'Houses')).toBe('Houses');
+  });
+});
+
+describe('assignDefaultResponses', () => {
+  const slot = (over: Partial<ConditionSlot>) => ({
+    ...emptyConditionSlot(EVENTS.STIMULUS_1, ''),
+    ...over,
+  });
+
+  it('spaces two active conditions at 1 and 9', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b' }),
+    } as ExperimentParameters);
+    expect(next.stimulus1?.response).toBe('1');
+    expect(next.stimulus2?.response).toBe('9');
+  });
+
+  it('spaces three active conditions at 1, 5, 9', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b' }),
+      stimulus3: slot({ type: EVENTS.STIMULUS_3, audioDir: '/c' }),
+    } as ExperimentParameters);
+    expect([
+      next.stimulus1?.response,
+      next.stimulus2?.response,
+      next.stimulus3?.response,
+    ]).toEqual(['1', '5', '9']);
+  });
+
+  it('spaces four active conditions at 1, 4, 6, 9', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b' }),
+      stimulus3: slot({ type: EVENTS.STIMULUS_3, dir: '/c' }),
+      stimulus4: slot({ type: EVENTS.STIMULUS_4, dir: '/d' }),
+    } as ExperimentParameters);
+    expect([
+      next.stimulus1?.response,
+      next.stimulus2?.response,
+      next.stimulus3?.response,
+      next.stimulus4?.response,
+    ]).toEqual(['1', '4', '6', '9']);
+  });
+
+  it('reassigns 1 and 9 to 1, 5, 9 when a third condition is added', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a', response: '1' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b', response: '9' }),
+      stimulus3: slot({ type: EVENTS.STIMULUS_3, dir: '/c' }),
+    } as ExperimentParameters);
+    expect([
+      next.stimulus1?.response,
+      next.stimulus2?.response,
+      next.stimulus3?.response,
+    ]).toEqual(['1', '5', '9']);
+  });
+
+  it('updates existing stimuli to the remapped keys', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a', response: '1' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b', response: '9' }),
+      stimulus3: slot({ type: EVENTS.STIMULUS_3, dir: '/c' }),
+      stimuli: [
+        { type: EVENTS.STIMULUS_1, title: 'a', response: '1' },
+        { type: EVENTS.STIMULUS_2, title: 'b', response: '9' },
+      ],
+    } as ExperimentParameters);
+    expect(next.stimuli?.map((s) => s.response)).toEqual(['1', '5']);
   });
 });
 

@@ -27,6 +27,7 @@ import PyodidePlotWidget from './PyodidePlotWidget';
 import { HelpButton } from './CollectComponent/HelpSidebar';
 import { PyodideActions } from '../actions/pyodideActions';
 import { cn } from './ui/utils';
+import { cssColorForIndex } from '../utils/eeg/conditionPalette';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -156,10 +157,10 @@ export default class Analyze extends Component<Props, State> {
     this.props.PyodideActions.LoadCleanedEpochs(values);
   }
 
-  handleBehaviorDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  async handleBehaviorDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const values = Array.from(e.target.selectedOptions, (o) => o.value);
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(values),
+      await readBehaviorData(values),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       this.state.showDataPoints,
@@ -188,10 +189,10 @@ export default class Analyze extends Component<Props, State> {
     }
   }
 
-  handleDependentVariableChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  async handleDependentVariableChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const { value } = e.target;
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(this.state.selectedBehaviorFilePaths),
+      await readBehaviorData(this.state.selectedBehaviorFilePaths),
       value,
       this.state.removeOutliers,
       this.state.showDataPoints,
@@ -202,9 +203,9 @@ export default class Analyze extends Component<Props, State> {
     this.setState({ selectedDependentVariable: value, dataToPlot, layout });
   }
 
-  handleRemoveOutliers() {
+  async handleRemoveOutliers() {
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(this.state.selectedBehaviorFilePaths),
+      await readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
       !this.state.removeOutliers,
       this.state.showDataPoints,
@@ -220,9 +221,9 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDataPoints() {
+  async handleDataPoints() {
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(this.state.selectedBehaviorFilePaths),
+      await readBehaviorData(this.state.selectedBehaviorFilePaths),
       this.state.selectedDependentVariable,
       this.state.removeOutliers,
       !this.state.showDataPoints,
@@ -237,13 +238,13 @@ export default class Analyze extends Component<Props, State> {
     });
   }
 
-  handleDisplayModeChange(displayMode) {
+  async handleDisplayModeChange(displayMode) {
     if (
       this.state.selectedBehaviorFilePaths &&
       this.state.selectedBehaviorFilePaths.length > 0
     ) {
       const aggregatedData = aggregateDataForPlot(
-        readBehaviorData(this.state.selectedBehaviorFilePaths),
+        await readBehaviorData(this.state.selectedBehaviorFilePaths),
         this.state.selectedDependentVariable,
         this.state.removeOutliers,
         this.state.showDataPoints,
@@ -259,8 +260,8 @@ export default class Analyze extends Component<Props, State> {
     this.setState({ isSidebarVisible: !this.state.isSidebarVisible });
   }
 
-  saveSelectedDatasets() {
-    const data = readBehaviorData(this.state.selectedBehaviorFilePaths);
+  async saveSelectedDatasets() {
+    const data = await readBehaviorData(this.state.selectedBehaviorFilePaths);
     const aggregatedData = aggregateBehaviorDataToSave(
       data,
       this.state.removeOutliers
@@ -282,14 +283,6 @@ export default class Analyze extends Component<Props, State> {
       !isNil(this.props.epochsInfo) &&
       this.state.selectedFilePaths.length >= 1
     ) {
-      const numberConditions = this.props.epochsInfo.filter(
-        (infoObj) =>
-          infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
-      ).length;
-      const colors =
-        numberConditions === 4
-          ? ['red', 'yellow', 'green', 'blue']
-          : ['red', 'green', 'teal', 'orange'];
       return (
         <div>
           {this.props.epochsInfo
@@ -301,7 +294,8 @@ export default class Analyze extends Component<Props, State> {
             .map((infoObj, index) => (
               <div key={String(infoObj.name)}>
                 <h4>{infoObj.name}</h4>
-                <span style={{ color: colors[index] }}>●</span> {infoObj.value}
+                <span style={{ color: cssColorForIndex(index) }}>●</span>{' '}
+                {infoObj.value}
               </div>
             ))}
         </div>
