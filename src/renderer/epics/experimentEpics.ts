@@ -22,7 +22,7 @@ import {
   writeEEGData,
   writeEEGEvents,
 } from '../utils/filesystem/write';
-import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
+import { resolveMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   storeExperimentState,
   restoreExperimentState,
@@ -86,8 +86,8 @@ const startEpic = (action$, state$) =>
         // Persist the code->label event map next to the CSV so the numeric
         // Marker codes are self-describing. Same registry the analysis uses,
         // so the recording and its interpretation can never drift apart.
-        const { codeToLabel } = buildMarkerRegistry(
-          state$.value.experiment.params?.stimuli
+        const { codeToLabel } = resolveMarkerRegistry(
+          state$.value.experiment.params
         );
         void writeEEGEvents(
           state$.value.experiment.title,
