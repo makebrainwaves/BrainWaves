@@ -19,7 +19,7 @@
  *     buildMarkerRegistry().eventId (label->code) ───┘   (find_events / Epochs)
  */
 import { EVENTS } from '../../constants/constants';
-import { Stimulus } from '../../constants/interfaces';
+import { ExperimentParameters, Stimulus } from '../../constants/interfaces';
 
 // Canonical numeric-code -> label lookup. The EVENTS enum has intentional
 // aliases (TARGET = 2, NONTARGET = 1); we use the condition-neutral STIMULUS_n
@@ -83,3 +83,40 @@ export const buildMarkerRegistry = (
   }
   return { codeToLabel, eventId };
 };
+
+/**
+ * Build the registry from the ordered condition labels an imported experiment
+ * declared in its Markers tab. `labels[i]` gets code `i + 1`.
+ *
+ * Position — not sequence-of-kept-entries — is the code, so a blank or repeated
+ * label leaves a gap rather than renumbering its neighbours. MNE does not care
+ * about gaps; a code that silently changed meaning between two subjects would
+ * be a corrupted ERP average.
+ */
+export const buildMarkerRegistryFromLabels = (
+  labels: string[] = []
+): MarkerRegistry => {
+  const codeToLabel: Record<number, string> = {};
+  const eventId: Record<string, number> = {};
+  labels.forEach((label, index) => {
+    if (!label || label in eventId) return;
+    const code = index + 1;
+    codeToLabel[code] = label;
+    eventId[label] = code;
+  });
+  return { codeToLabel, eventId };
+};
+
+/**
+ * The single entry point collection AND analysis use. Built-in and Custom
+ * experiments derive their codes from stimuli; imported experiments derive them
+ * from the labels frozen in the Markers tab. Anything that needs codes must
+ * come through here — a hand-built code map anywhere else is the bug this
+ * module exists to prevent.
+ */
+export const resolveMarkerRegistry = (
+  params: ExperimentParameters | null | undefined
+): MarkerRegistry =>
+  params?.imported
+    ? buildMarkerRegistryFromLabels(params.imported.conditionLabels)
+    : buildMarkerRegistry(params?.stimuli);

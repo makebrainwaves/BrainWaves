@@ -6,7 +6,11 @@
  * epochs were silently dropped.
  */
 import { describe, it, expect } from 'vitest';
-import { buildMarkerRegistry } from '../markerRegistry';
+import {
+  buildMarkerRegistry,
+  buildMarkerRegistryFromLabels,
+  resolveMarkerRegistry,
+} from '../markerRegistry';
 import { EVENTS } from '../../../constants/constants';
 import type { Stimulus } from '../../../constants/interfaces';
 
@@ -72,5 +76,89 @@ describe('buildMarkerRegistry', () => {
   it('returns empty maps when there are no stimuli', () => {
     expect(buildMarkerRegistry([])).toEqual({ codeToLabel: {}, eventId: {} });
     expect(buildMarkerRegistry()).toEqual({ codeToLabel: {}, eventId: {} });
+  });
+});
+
+describe('buildMarkerRegistryFromLabels', () => {
+  it('assigns codes from the declared order, 1-based', () => {
+    expect(buildMarkerRegistryFromLabels(['Face', 'House'])).toEqual({
+      codeToLabel: { 1: 'Face', 2: 'House' },
+      eventId: { Face: 1, House: 2 },
+    });
+  });
+
+  it('keeps position as the code, so editing a later label cannot renumber an earlier one', () => {
+    const before = buildMarkerRegistryFromLabels(['Face', 'House', 'Scene']);
+    const after = buildMarkerRegistryFromLabels(['Face', 'House', 'Object']);
+    expect(after.eventId.Face).toBe(before.eventId.Face);
+    expect(after.eventId.House).toBe(before.eventId.House);
+    expect(after.eventId.Object).toBe(3);
+  });
+
+  it('skips blanks and duplicates without shifting the codes of other labels', () => {
+    const { codeToLabel, eventId } = buildMarkerRegistryFromLabels([
+      'Face',
+      '',
+      'House',
+      'Face',
+    ]);
+    expect(eventId).toEqual({ Face: 1, House: 3 });
+    expect(codeToLabel).toEqual({ 1: 'Face', 3: 'House' });
+  });
+
+  it('produces a round-trippable code<->label pair', () => {
+    const { eventId, codeToLabel } = buildMarkerRegistryFromLabels([
+      'Face',
+      'House',
+    ]);
+    for (const [label, code] of Object.entries(eventId)) {
+      expect(codeToLabel[code]).toBe(label);
+    }
+  });
+
+  it('returns empty maps for no labels', () => {
+    expect(buildMarkerRegistryFromLabels([])).toEqual({
+      codeToLabel: {},
+      eventId: {},
+    });
+    expect(buildMarkerRegistryFromLabels()).toEqual({
+      codeToLabel: {},
+      eventId: {},
+    });
+  });
+});
+
+describe('resolveMarkerRegistry', () => {
+  const imported = {
+    kind: 'jspsych' as const,
+    file: 'experiment/task.js',
+    conditionKey: 'condition',
+    correctKey: '',
+    conditionLabels: ['Face', 'House'],
+  };
+
+  it('uses the declared labels for an imported experiment', () => {
+    expect(
+      resolveMarkerRegistry({ stimuli: [], imported } as never).eventId
+    ).toEqual({ Face: 1, House: 2 });
+  });
+
+  it('uses the stimuli for a built-in or custom experiment', () => {
+    expect(
+      resolveMarkerRegistry({
+        stimuli: [stimC('Face1', EVENTS.STIMULUS_1, 'Face')],
+      } as never).eventId
+    ).toEqual({ Face: 1 });
+  });
+
+  it('returns empty maps when there are no params at all', () => {
+    expect(resolveMarkerRegistry(null)).toEqual({
+      codeToLabel: {},
+      eventId: {},
+    });
+    expect(resolveMarkerRegistry(undefined)).toEqual({
+      codeToLabel: {},
+      eventId: {},
+    });
   });
 });
