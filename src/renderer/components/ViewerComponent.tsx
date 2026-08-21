@@ -106,7 +106,7 @@ export default function ViewerComponent(props: Props) {
   }, []);
 
   if (!viewerUrl) return null;
-  const trueAsString = 'true' as any;
+  const trueAsString = 'true' as unknown as boolean;
   return (
     <webview
       id="eegView"
