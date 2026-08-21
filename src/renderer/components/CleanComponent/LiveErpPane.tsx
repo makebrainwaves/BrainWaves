@@ -183,13 +183,21 @@ export default function LiveErpPane({
       }
       ctx.stroke();
     }
+    // Time axis. The first/last ticks sit on the plot edges, so anchor them
+    // inward — centred text would spill outside the canvas and get clipped.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
     ctx.font = '11px sans-serif';
-    ctx.textAlign = 'center';
     if (times.length > 0) {
-      ctx.fillText(times[0].toFixed(1), plotLeft, plotBottom + 12);
-      ctx.fillText(times[times.length - 1].toFixed(1), plotRight, plotBottom + 12);
+      ctx.textAlign = 'left';
+      ctx.fillText(`${times[0].toFixed(2)}s`, plotLeft, plotBottom + 12);
+      ctx.textAlign = 'right';
+      ctx.fillText(
+        `${times[times.length - 1].toFixed(2)}s`,
+        plotRight,
+        plotBottom + 12
+      );
     }
+    ctx.textAlign = 'center';
     ctx.fillText('Time (s)', (plotLeft + plotRight) / 2, CANVAS_HEIGHT - 4);
   }, [epochArrays, meta, rejected, channel, groups, uniqueSortedCodes]);
 

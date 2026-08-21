@@ -188,7 +188,9 @@ const Run: React.FC<Props> = ({
                 <div>
                   Session Number: <b>{session}</b>
                 </div>
-                {signalQualityObservable ? (
+                {isEEGEnabled &&
+                connectionStatus === CONNECTION_STATUS.CONNECTED &&
+                signalQualityObservable ? (
                   <div className="mt-4">
                     <p className="text-sm text-gray-500 mb-2">Signal quality</p>
                     <SignalQualityIndicatorComponent

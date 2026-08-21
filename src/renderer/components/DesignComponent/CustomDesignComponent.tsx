@@ -24,6 +24,7 @@ import {
   CONDITION_SLOTS,
   ConditionSlotName,
   assignDefaultResponses,
+  conditionTitle,
   countPhases,
   emptyConditionSlot,
   rebuildStimuliFromSlots,
@@ -62,12 +63,12 @@ interface State {
 }
 
 export default class CustomDesign extends Component<DesignProps, State> {
-  private conditionParams: ExperimentParameters;
+  // Guards against an older folder scan landing after a newer one; only the
+  // most recent scan is allowed to rewrite the trial list.
   private conditionRevision = 0;
   constructor(props: DesignProps) {
     super(props);
     const customParams = mergeCustomParams(props.params);
-    this.conditionParams = customParams;
     this.state = {
       activeStep: CUSTOM_STEPS.OVERVIEW,
       isPreviewing: true,
@@ -100,7 +101,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
   handleProgressBar(e: React.ChangeEvent<HTMLInputElement>) {
     const { checked } = e.target;
     this.setState((prevState) => ({
-      params: { ...prevState.params, showProgessBar: checked },
+      params: { ...prevState.params, showProgressBar: checked },
     }));
   }
 
@@ -117,8 +118,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
     this.setState({ isPreviewing: !this.state.isPreviewing });
   }
 
+  /**
+   * The single write path for experiment parameters. `this.state.params` is the
+   * only copy: every handler derives its update from it, so a setting changed
+   * on one step can never be resurrected from a stale snapshot held by another.
+   */
   handleSaveParams(params: ExperimentParameters = this.state.params) {
-    this.conditionParams = params;
     this.props.ExperimentActions.SetParams(params);
     this.props.ExperimentActions.SaveWorkspace();
     this.setState({ saved: true, params });
@@ -130,21 +135,32 @@ export default class CustomDesign extends Component<DesignProps, State> {
       const raw = event.target.value;
       const parsed = raw === '' ? 0 : parseInt(raw, 10);
       const value = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-      const params = { ...this.state.params, [field]: value };
-      this.conditionParams = { ...this.conditionParams, [field]: value };
-      this.setState({ params, saved: false });
+      this.setState((prev) => ({
+        params: { ...prev.params, [field]: value },
+        saved: false,
+      }));
+    };
+
+  handleSetInstruction =
+    (field: 'intro' | 'taskHelp') =>
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = event.target.value;
+      if (!isString(value)) return;
+      this.setState((prev) => ({
+        params: { ...prev.params, [field]: value },
+        saved: false,
+      }));
     };
 
   handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
     const params: ExperimentParameters = {
-      ...this.conditionParams,
+      ...this.state.params,
       description: {
         ...defaultCustomParams.description,
-        ...this.conditionParams.description,
+        ...this.state.params.description,
         [section]: text,
       },
     };
-    this.setState({ params, saved: false });
     this.handleSaveParams(params);
   }
 
@@ -156,72 +172,94 @@ export default class CustomDesign extends Component<DesignProps, State> {
     const slotName = changedName as ConditionSlotName;
     const slotMeta = CONDITION_SLOTS.find((slot) => slot.name === slotName);
     if (!slotMeta) return;
+    const isFolderChange = key === 'dir' || key === 'audioDir';
 
-    const previousSlot =
-      this.conditionParams[slotName] ??
-      emptyConditionSlot(slotMeta.type, '');
-    const nextSlot = {
-      ...previousSlot,
-      [key]: data,
-      ...(key === 'dir' ? { title: titleFromFolder(data, previousSlot.title) } : {}),
+    const applySlotEdit = (
+      previous: ExperimentParameters
+    ): ExperimentParameters => {
+      const previousSlot =
+        previous[slotName] ?? emptyConditionSlot(slotMeta.type, '');
+      const nextParams: ExperimentParameters = {
+        ...previous,
+        [slotName]: {
+          ...previousSlot,
+          [key]: data,
+          // Picking a folder names the condition after it, unless the student
+          // already typed their own name.
+          ...(isFolderChange
+            ? { title: titleFromFolder(data, previousSlot.title) }
+            : {}),
+        },
+      };
+      return isFolderChange ? assignDefaultResponses(nextParams) : nextParams;
     };
-    let nextParams: ExperimentParameters = {
-      ...this.conditionParams,
-      [slotName]: nextSlot,
-    };
-    if (key === 'dir' || key === 'audioDir') {
-      nextParams = assignDefaultResponses(nextParams);
-    }
-    this.conditionParams = nextParams;
 
-    if (key !== 'dir' && key !== 'audioDir') {
+    // A name or key edit can't change which files are in play — just restamp
+    // the trials that already belong to this condition.
+    if (!isFolderChange) {
+      const nextParams = applySlotEdit(this.state.params);
       const changedSlot = nextParams[slotName]!;
-      const stimuli = (nextParams.stimuli ?? []).map((stimulus) =>
-        stimulus.type === slotMeta.type
-          ? {
-              ...stimulus,
-              condition: changedSlot.title,
-              response: changedSlot.response,
-            }
-          : stimulus
-      );
-      nextParams = { ...nextParams, stimuli };
-      this.setState({ params: nextParams, saved: false });
-      this.handleSaveParams(nextParams);
+      this.handleSaveParams({
+        ...nextParams,
+        stimuli: (nextParams.stimuli ?? []).map((stimulus) =>
+          stimulus.type === slotMeta.type
+            ? {
+                ...stimulus,
+                condition: conditionTitle(changedSlot),
+                response: changedSlot.response,
+              }
+            : stimulus
+        ),
+      });
       return;
     }
 
+    // Folder changes need the folder contents, so show the new selection first
+    // and rebuild the trial list once the scan comes back.
+    const pendingParams = applySlotEdit(this.state.params);
+    this.setState({ params: pendingParams, saved: false });
+
     const revision = ++this.conditionRevision;
     const rebuiltStimuli = await rebuildStimuliFromSlots(
-      nextParams,
+      pendingParams,
       readImages,
       readAudioFiles
     );
     if (revision !== this.conditionRevision) return;
 
-    const latestParams = this.conditionParams;
+    // Re-read state: condition names and keys may have been edited while the
+    // folder scan was in flight.
+    const latestParams = this.state.params;
     const stimuli = rebuiltStimuli.map((stimulus) => {
       const slot = CONDITION_SLOTS.find(({ type }) => type === stimulus.type);
       const condition = slot ? latestParams[slot.name] : undefined;
       return condition
         ? {
             ...stimulus,
-            condition: condition.title,
+            condition: conditionTitle(condition),
             response: condition.response,
           }
         : stimulus;
     });
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const params = { ...latestParams, stimuli, nbTrials, nbPracticeTrials };
-    this.setState({ params, saved: false });
-    this.handleSaveParams(params);
+    this.handleSaveParams({
+      ...latestParams,
+      stimuli,
+      nbTrials,
+      nbPracticeTrials,
+    });
   };
 
   handleDeleteTrial = (deletedNum: number) => {
     const stimuli = [...(this.state.params.stimuli ?? [])];
     stimuli.splice(deletedNum, 1);
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const params = { ...this.state.params, stimuli, nbTrials, nbPracticeTrials };
+    const params = {
+      ...this.state.params,
+      stimuli,
+      nbTrials,
+      nbPracticeTrials,
+    };
     this.setState({ params, saved: false });
     this.handleSaveParams(params);
   };
@@ -232,7 +270,12 @@ export default class CustomDesign extends Component<DesignProps, State> {
     if (!current) return;
     stimuli[changedNum] = { ...current, [key]: data };
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const params = { ...this.state.params, stimuli, nbTrials, nbPracticeTrials };
+    const params = {
+      ...this.state.params,
+      stimuli,
+      nbTrials,
+      nbPracticeTrials,
+    };
     this.setState({ params, saved: false });
     this.handleSaveParams(params);
   };
@@ -375,7 +418,9 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </div>
               <div className="grid grid-cols-3 gap-2.5 self-end justify-self-end">
                 <div>
-                  <label htmlFor="trial-order" className="block text-sm mb-1">Order</label>
+                  <label htmlFor="trial-order" className="block text-sm mb-1">
+                    Order
+                  </label>
                   <select
                     id="trial-order"
                     className="border border-gray-300 rounded px-2 py-1"
@@ -411,7 +456,10 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   />
                 </div>
                 <div>
-                  <label htmlFor="nb-practice-trials" className="block text-sm mb-1">
+                  <label
+                    htmlFor="nb-practice-trials"
+                    className="block text-sm mb-1"
+                  >
                     Total practice trials
                   </label>
                   <input
@@ -571,18 +619,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 style={{ minHeight: 150 }}
                 value={this.state.params.intro}
                 placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house."
-                onChange={(event) => {
-                  const val = event.target.value;
-                  if (!isString(val)) return;
-                  this.conditionParams = {
-                    ...this.conditionParams,
-                    intro: val,
-                  };
-                  this.setState({
-                    params: { ...this.state.params, intro: val },
-                    saved: false,
-                  });
-                }}
+                onChange={this.handleSetInstruction('intro')}
               />
             </div>
             <div className="w-1/2">
@@ -596,18 +633,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 style={{ minHeight: 150 }}
                 value={this.state.params.taskHelp}
                 placeholder="e.g., Press 1 for a face and 9 for a house"
-                onChange={(event) => {
-                  const val = event.target.value;
-                  if (!isString(val)) return;
-                  this.conditionParams = {
-                    ...this.conditionParams,
-                    taskHelp: val,
-                  };
-                  this.setState({
-                    params: { ...this.state.params, taskHelp: val },
-                    saved: false,
-                  });
-                }}
+                onChange={this.handleSetInstruction('taskHelp')}
               />
             </div>
           </div>

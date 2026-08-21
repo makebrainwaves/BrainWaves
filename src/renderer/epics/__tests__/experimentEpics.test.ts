@@ -67,6 +67,7 @@ const rootState = (title: string): RootState =>
       suggestedRejections: [],
       worker: null,
       isWorkerReady: false,
+      cleanedEpochsSave: { revision: 0, ok: false },
     },
   }) as RootState;
 

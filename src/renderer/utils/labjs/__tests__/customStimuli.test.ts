@@ -140,6 +140,41 @@ describe('stimuliFromImageLists', () => {
       },
     ]);
   });
+
+  it('names an untitled sound-only condition after its sound folder', () => {
+    const stimuli = stimuliFromImageLists([
+      {
+        dir: '',
+        audioDir: '/Users/me/stimuli/Tones',
+        // stimulus3/stimulus4 ship with an empty title, so an unnamed
+        // sound-only condition used to write an empty `condition` column and
+        // collapse every trial into one unnamed bucket.
+        title: '',
+        response: '1',
+        type: EVENTS.STIMULUS_3,
+        images: [],
+        sounds: ['low.wav'],
+      },
+    ]);
+
+    expect(stimuli.map((s) => s.condition)).toEqual(['Tones']);
+  });
+
+  it('falls back to "Condition N" when a condition has no name or folder name', () => {
+    const stimuli = stimuliFromImageLists([
+      {
+        dir: '',
+        audioDir: '/',
+        title: '',
+        response: '1',
+        type: EVENTS.STIMULUS_4,
+        images: [],
+        sounds: ['low.wav'],
+      },
+    ]);
+
+    expect(stimuli.map((s) => s.condition)).toEqual(['Condition 4']);
+  });
 });
 
 describe('titleFromFolder', () => {
@@ -221,6 +256,30 @@ describe('assignDefaultResponses', () => {
       ],
     } as ExperimentParameters);
     expect(next.stimuli?.map((s) => s.response)).toEqual(['1', '5']);
+  });
+
+  it('leaves a student-chosen key alone and only fills the unset condition', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a', response: '3' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b', response: '7' }),
+      stimulus3: slot({ type: EVENTS.STIMULUS_3, dir: '/c' }),
+    } as ExperimentParameters);
+    expect([next.stimulus1?.response, next.stimulus2?.response]).toEqual([
+      '3',
+      '7',
+    ]);
+    expect(next.stimulus3?.response).toBe('1');
+  });
+
+  it('does not renumber keys the student picked when a folder is swapped', () => {
+    const next = assignDefaultResponses({
+      stimulus1: slot({ type: EVENTS.STIMULUS_1, dir: '/a', response: '2' }),
+      stimulus2: slot({ type: EVENTS.STIMULUS_2, dir: '/b', response: '8' }),
+    } as ExperimentParameters);
+    expect([next.stimulus1?.response, next.stimulus2?.response]).toEqual([
+      '2',
+      '8',
+    ]);
   });
 });
 

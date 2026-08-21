@@ -33,6 +33,12 @@ export interface PyodideStateType {
   readonly suggestedRejections: SuggestedRejection[];
   readonly worker: Worker | null;
   readonly isWorkerReady: boolean;
+  // Bumped every time a cleaned-epochs write settles. `revision` is what
+  // consumers compare against; `ok` says whether the file made it to disk.
+  readonly cleanedEpochsSave: {
+    readonly revision: number;
+    readonly ok: boolean;
+  };
 }
 
 const initialState: PyodideStateType = {
@@ -45,6 +51,7 @@ const initialState: PyodideStateType = {
   suggestedRejections: [],
   worker: null,
   isWorkerReady: false,
+  cleanedEpochsSave: { revision: 0, ok: false },
 };
 
 export default createReducer(initialState, (builder) =>
@@ -96,6 +103,13 @@ export default createReducer(initialState, (builder) =>
     .addCase(PyodideActions.SetWorkerReady, (state) => {
       return { ...state, isWorkerReady: true };
     })
+    .addCase(PyodideActions.CleanedEpochsSaveSettled, (state, action) => ({
+      ...state,
+      cleanedEpochsSave: {
+        revision: state.cleanedEpochsSave.revision + 1,
+        ok: action.payload.ok,
+      },
+    }))
     .addCase(ExperimentActions.ExperimentCleanup, (state) => {
       return {
         ...state,

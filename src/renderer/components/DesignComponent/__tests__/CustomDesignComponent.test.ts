@@ -33,16 +33,25 @@ const makeProps = (overrideParams = params): DesignProps =>
     isEEGEnabled: true,
   }) as unknown as DesignProps;
 
+// The component is exercised directly rather than mounted: these tests are
+// about how parameter updates compose, not about rendering. `setState` is
+// stubbed to apply synchronously so a handler's effect is observable straight
+// after the call.
+const makeDesign = (props: DesignProps = makeProps()) => {
+  const design = new CustomDesign(props);
+  design.setState = ((update) => {
+    const patch =
+      typeof update === 'function'
+        ? update(design.state, design.props)
+        : update;
+    design.state = { ...design.state, ...patch };
+  }) as typeof design.setState;
+  return design;
+};
+
 describe('CustomDesign condition updates', () => {
   it('does not let an older folder scan overwrite a newer condition edit', async () => {
-    const design = new CustomDesign(makeProps());
-    design.setState = ((update) => {
-      const patch =
-        typeof update === 'function'
-          ? update(design.state, design.props)
-          : update;
-      design.state = { ...design.state, ...patch };
-    }) as typeof design.setState;
+    const design = makeDesign();
 
     const folderUpdate = design.handleConditionChange(
       'dir',
@@ -57,15 +66,7 @@ describe('CustomDesign condition updates', () => {
   });
 
   it('saves intro and taskHelp from current React state', () => {
-    const design = new CustomDesign(makeProps());
-    design.setState = ((update) => {
-      const patch =
-        typeof update === 'function'
-          ? update(design.state, design.props)
-          : update;
-      design.state = { ...design.state, ...patch };
-    }) as typeof design.setState;
-
+    const design = makeDesign();
     design.setState({
       params: {
         ...design.state.params,
@@ -87,20 +88,14 @@ describe('CustomDesign condition updates', () => {
   });
 
   it('does not store NaN when a trial-count field is cleared', () => {
-    const design = new CustomDesign(makeProps());
-    design.setState = ((update) => {
-      const patch =
-        typeof update === 'function'
-          ? update(design.state, design.props)
-          : update;
-      design.state = { ...design.state, ...patch };
-    }) as typeof design.setState;
-
+    const design = makeDesign();
     design.setState({
       params: { ...design.state.params, nbTrials: 40, nbPracticeTrials: 8 },
     });
 
-    const empty = { target: { value: '' } } as React.ChangeEvent<HTMLInputElement>;
+    const empty = {
+      target: { value: '' },
+    } as React.ChangeEvent<HTMLInputElement>;
     design.handleTrialCountChange('nbTrials')(empty);
     design.handleTrialCountChange('nbPracticeTrials')(empty);
 
@@ -135,5 +130,24 @@ describe('CustomDesign condition updates', () => {
     expect(design.state.params.stimulus1?.response).toBe('1');
     expect(design.state.params.stimulus2?.response).toBe('9');
     expect(design.state.params.stimulus3?.response).toBe('2');
+  });
+
+  it('keeps parameters edited on another step when a condition changes', async () => {
+    const design = makeDesign();
+
+    // Parameters step: these only ever went through setState.
+    design.setState({
+      params: { ...design.state.params, iti: 750, selfPaced: false },
+    });
+
+    // Conditions step: this used to rebuild from a stale private snapshot and
+    // silently revert the two settings above.
+    await design.handleConditionChange('title', 'Faces', 'stimulus1');
+
+    expect(design.state.params.iti).toBe(750);
+    expect(design.state.params.selfPaced).toBe(false);
+    expect(design.props.ExperimentActions.SetParams).toHaveBeenLastCalledWith(
+      expect.objectContaining({ iti: 750, selfPaced: false })
+    );
   });
 });

@@ -134,7 +134,7 @@ const pyodideMessageEpic: Epic<
           toast.error(
             'Could not save cleaned data — the recording came back empty. Nothing was written.'
           );
-          return EMPTY;
+          return of(PyodideActions.CleanedEpochsSaveSettled({ ok: false }));
         }
         const { title, subject } = state$.value.experiment;
         return from(
@@ -145,10 +145,10 @@ const pyodideMessageEpic: Epic<
           )
         ).pipe(
           tap(() => toast.success('Cleaned data saved')),
-          mergeMap(() => EMPTY),
+          map(() => PyodideActions.CleanedEpochsSaveSettled({ ok: true })),
           catchError((err) => {
             toast.error(`Failed to save cleaned data: ${err?.message ?? err}`);
-            return EMPTY;
+            return of(PyodideActions.CleanedEpochsSaveSettled({ ok: false }));
           })
         );
       }
@@ -247,9 +247,7 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       saveEpochs(worker, state$.value.experiment.subject);
       requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
-    map(() =>
-      PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS)
-    )
+    map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const getEpochsInfoEpic: Epic<

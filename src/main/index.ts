@@ -447,12 +447,8 @@ ipcMain.handle(
   async (_event, data, title) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const csv = Papa.unparse(data as any);
-    await dialog.showSaveDialog(mainWindow!, {
-      title: 'Select a folder to save the data',
-      defaultPath: path.join(getWorkspaceDir(title), 'Data', 'aggregated.csv'),
-    });
-    // If user picks a path, write the file
     const result = await dialog.showSaveDialog(mainWindow!, {
+      title: 'Select a folder to save the data',
       defaultPath: path.join(getWorkspaceDir(title), 'Data', 'aggregated.csv'),
     });
     if (!result.canceled && result.filePath) {

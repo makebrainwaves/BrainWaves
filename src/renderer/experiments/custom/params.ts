@@ -4,7 +4,10 @@ import {
   ExperimentParameters,
   StimulusCondition,
 } from '../../constants/interfaces';
-import { emptyConditionSlot } from '../../utils/labjs/customStimuli';
+import {
+  assignDefaultResponses,
+  emptyConditionSlot,
+} from '../../utils/labjs/customStimuli';
 
 export const params = {
   randomize: 'random',
@@ -42,10 +45,22 @@ export type CustomParamsInput = Omit<
   stimulus4?: Partial<StimulusCondition>;
 };
 
+/**
+ * Restores a saved custom experiment, filling in anything the stored workspace
+ * is missing.
+ *
+ * This also re-runs the default response-key assignment. Conditions used to get
+ * a key only at the moment their stimulus folder was picked, so an experiment
+ * built before that existed — or one whose folders were set some other way —
+ * could reach data collection with no expected key at all. Every trial then
+ * scored as incorrect, which is indistinguishable from a participant getting
+ * everything wrong: 0% accuracy and no reaction times, with no error anywhere.
+ * Assignment only touches conditions that have no key, so a chosen key stands.
+ */
 export function mergeCustomParams(
   restored: CustomParamsInput = {}
 ): ExperimentParameters {
-  return {
+  return assignDefaultResponses({
     ...params,
     ...restored,
     description: { ...params.description, ...restored.description },
@@ -53,5 +68,5 @@ export function mergeCustomParams(
     stimulus2: { ...params.stimulus2, ...restored.stimulus2 },
     stimulus3: { ...params.stimulus3, ...restored.stimulus3 },
     stimulus4: { ...params.stimulus4, ...restored.stimulus4 },
-  };
+  });
 }

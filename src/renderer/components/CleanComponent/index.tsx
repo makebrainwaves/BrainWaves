@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import path from 'pathe';
-import { Link } from 'react-router-dom';
 import { isNil, isString, memoize } from 'lodash';
 import { Button } from '../ui/button';
 import {
   EXPERIMENTS,
   DEVICES,
   PTP_THRESHOLD,
+  SCREENS,
 } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
@@ -41,6 +41,8 @@ export interface Props {
   session: number;
   params: ExperimentParameters | null;
   suggestedRejections: SuggestedRejection[];
+  cleanedEpochsSave: { revision: number; ok: boolean };
+  navigate: (route: string) => void;
 }
 
 interface DropdownOption {
@@ -65,6 +67,10 @@ interface State {
   autoFlagThreshold: number;
   // Whether the auto-flag threshold settings panel is open.
   showAutoFlagSettings: boolean;
+  // Set when "Analyze Dataset" triggered a clean: the cleaned .fif is written
+  // asynchronously and Analyze lists that directory on mount, so navigation
+  // waits for the write to settle.
+  isWaitingForCleanedSave: boolean;
 }
 
 export default class Clean extends Component<Props, State> {
@@ -83,6 +89,7 @@ export default class Clean extends Component<Props, State> {
       badChannels: new Set(),
       autoFlagThreshold: PTP_THRESHOLD.default,
       showAutoFlagSettings: false,
+      isWaitingForCleanedSave: false,
     };
     this.handleRecordingChange = this.handleRecordingChange.bind(this);
     this.handleLoadData = this.handleLoadData.bind(this);
@@ -92,6 +99,7 @@ export default class Clean extends Component<Props, State> {
     this.handleToggleChannel = this.handleToggleChannel.bind(this);
     this.handleAutoFlag = this.handleAutoFlag.bind(this);
     this.handleCleanData = this.handleCleanData.bind(this);
+    this.handleAnalyzeClick = this.handleAnalyzeClick.bind(this);
     this.handleThresholdChange = this.handleThresholdChange.bind(this);
     this.icons =
       props.type === EXPERIMENTS.N170
@@ -158,6 +166,19 @@ export default class Clean extends Component<Props, State> {
         });
       }
     }
+
+    const { cleanedEpochsSave } = this.props;
+    if (
+      this.state.isWaitingForCleanedSave &&
+      cleanedEpochsSave.revision !== prevProps.cleanedEpochsSave.revision
+    ) {
+      this.setState({ isWaitingForCleanedSave: false });
+      // On failure the epic has already surfaced a toast; stay put so the
+      // student doesn't land on an Analyze screen missing their dataset.
+      if (cleanedEpochsSave.ok) {
+        this.props.navigate(SCREENS.ANALYZE.route);
+      }
+    }
   }
 
   handleToggleEpoch(index: number) {
@@ -184,7 +205,11 @@ export default class Clean extends Component<Props, State> {
 
     // Dropping >1 of a 4-channel (Muse) recording loses a lot of signal —
     // informational only; they can still proceed.
-    if (adding && next.size > 1 && this.props.epochArrays?.meta.n_channels === 4) {
+    if (
+      adding &&
+      next.size > 1 &&
+      this.props.epochArrays?.meta.n_channels === 4
+    ) {
       window.electronAPI.showMessageBox({
         buttons: ['Got it'],
         message:
@@ -201,20 +226,53 @@ export default class Clean extends Component<Props, State> {
     );
   }
 
-  async handleCleanData() {
+  /**
+   * Applies the pending selection. Returns false when the student backed out,
+   * so callers know nothing was dispatched.
+   *
+   * `destination` only affects the wording of the one confirmation dialog —
+   * "Clean Data" has always applied a partial selection without asking, while
+   * "Analyze Dataset" confirms because it also leaves the screen.
+   */
+  async handleCleanData(
+    destination: 'clean' | 'analyze' = 'clean'
+  ): Promise<boolean> {
     const total = this.props.epochArrays?.meta.n_epochs ?? 0;
     const nDropped = this.state.rejectedEpochs.size;
-    // Rejecting every epoch produces an empty dataset that can't be analyzed
-    // (and previously wrote a degenerate .fif with no error). Warn first.
+    const nBadChannels = this.state.badChannels.size;
+
+    // Exactly one prompt, whatever the trigger. Rejecting every epoch produces
+    // an empty dataset that can't be analyzed (and previously wrote a
+    // degenerate .fif with no error), so that warning always wins.
+    let confirmation: { confirmLabel: string; message: string } | null = null;
     if (total > 0 && nDropped >= total) {
-      const response = await window.electronAPI.showMessageBox({
-        buttons: ['Cancel', 'Reject all anyway'],
+      confirmation = {
+        confirmLabel: 'Reject all anyway',
         message: `This will reject all ${total} epochs, leaving nothing to analyze. Are you sure?`,
+      };
+    } else if (destination === 'analyze' && nDropped > 0) {
+      confirmation = {
+        confirmLabel: 'Remove selected and analyze',
+        message: `This will remove ${nDropped} selected epoch${nDropped === 1 ? '' : 's'} before analysis. Continue?`,
+      };
+    } else if (destination === 'analyze' && nBadChannels > 0) {
+      confirmation = {
+        confirmLabel: 'Apply and analyze',
+        message:
+          'This will apply flagged bad channels before analysis. Continue?',
+      };
+    }
+
+    if (confirmation) {
+      const response = await window.electronAPI.showMessageBox({
+        buttons: ['Cancel', confirmation.confirmLabel],
+        message: confirmation.message,
       });
       if (response.response !== 1) {
-        return;
+        return false;
       }
     }
+
     this.props.PyodideActions.CleanEpochs({
       dropIndices: Array.from(this.state.rejectedEpochs),
       badChannels: Array.from(this.state.badChannels),
@@ -225,6 +283,7 @@ export default class Clean extends Component<Props, State> {
       rejectedEpochs: new Set(),
       badChannels: new Set(),
     });
+    return true;
   }
 
   handleThresholdChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -243,57 +302,65 @@ export default class Clean extends Component<Props, State> {
     if (isNil(epochsInfo) || epochsInfo.length === 0) {
       return null;
     }
+    // MNE's "Drop Percentage" only counts epochs already dropped, so it can't
+    // move while the student is still selecting. Report the pending selection
+    // alongside it rather than overwriting it with a number that resets to 0
+    // after every clean.
     const total = epochArrays?.meta.n_epochs ?? 0;
-    const pendingDrop =
-      total > 0
-        ? Math.round((this.state.rejectedEpochs.size / total) * 10000) / 100
-        : 0;
+    const nSelected = this.state.rejectedEpochs.size;
+    const selectedPercent =
+      total > 0 ? Math.round((nSelected / total) * 1000) / 10 : 0;
     return (
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-        {epochsInfo.map((infoObj, index) => {
-          const name = String(infoObj.name);
-          const value =
-            name === 'Drop Percentage' ? pendingDrop : infoObj.value;
-          return (
-            <span key={name} className="whitespace-nowrap">
-              <span className="mr-1">{this.icons[index]}</span>
-              <span className="text-gray-500">{name}:</span>{' '}
-              <span className="font-medium">{value}</span>
+        {epochsInfo.map((infoObj, index) => (
+          <span key={String(infoObj.name)} className="whitespace-nowrap">
+            <span className="mr-1">{this.icons[index]}</span>
+            <span className="text-gray-500">{String(infoObj.name)}:</span>{' '}
+            <span className="font-medium">{infoObj.value}</span>
+          </span>
+        ))}
+        {nSelected > 0 && (
+          <span className="whitespace-nowrap text-brand">
+            <span className="mr-1">🚫</span>
+            <span>Selected for rejection:</span>{' '}
+            <span className="font-medium">
+              {nSelected} ({selectedPercent}%)
             </span>
-          );
-        })}
+          </span>
+        )}
       </div>
     );
   }
 
-  async handleAnalyzeClick(event: React.MouseEvent<HTMLAnchorElement>) {
-    const pending =
-      this.state.rejectedEpochs.size + this.state.badChannels.size;
-    if (pending === 0) return;
-    event.preventDefault();
-    const nEpochs = this.state.rejectedEpochs.size;
-    const response = await window.electronAPI.showMessageBox({
-      buttons: ['Cancel', 'Remove selected and analyze'],
-      message:
-        nEpochs > 0
-          ? `This will remove ${nEpochs} selected epoch${nEpochs === 1 ? '' : 's'} before analysis. Continue?`
-          : 'This will apply flagged bad channels before analysis. Continue?',
-    });
-    if (response.response !== 1) return;
-    await this.handleCleanData();
-    window.location.hash = '#/analyze';
+  async handleAnalyzeClick() {
+    if (!(await this.handleCleanData('analyze'))) return;
+    // The cleaned .fif is written by the worker well after CleanEpochs is
+    // dispatched, and Analyze lists that directory on mount — navigating now
+    // would show a picker without the dataset that was just produced.
+    this.setState({ isWaitingForCleanedSave: true });
   }
 
   renderAnalyzeButton() {
     const { epochsInfo } = this.props;
-    if (!isNil(epochsInfo) && epochsInfo.length > 0) {
-      return (
-        <Link to="/analyze" onClick={(e) => void this.handleAnalyzeClick(e)}>
-          <Button variant="default">Analyze Dataset</Button>
-        </Link>
-      );
+    if (isNil(epochsInfo) || epochsInfo.length === 0) {
+      return null;
     }
-    return null;
+    const hasSelection =
+      this.state.rejectedEpochs.size + this.state.badChannels.size > 0;
+    const isSaving = this.state.isWaitingForCleanedSave;
+    return (
+      <Button
+        variant="default"
+        disabled={isSaving}
+        onClick={() =>
+          hasSelection
+            ? void this.handleAnalyzeClick()
+            : this.props.navigate(SCREENS.ANALYZE.route)
+        }
+      >
+        {isSaving ? 'Saving cleaned data…' : 'Analyze Dataset'}
+      </Button>
+    );
   }
 
   renderSelect(filteredFilePaths: DropdownOption[]) {
@@ -368,7 +435,7 @@ export default class Clean extends Component<Props, State> {
           <Button
             variant="default"
             disabled={isNil(this.props.epochsInfo)}
-            onClick={this.handleCleanData}
+            onClick={() => void this.handleCleanData('clean')}
           >
             Clean Data
           </Button>

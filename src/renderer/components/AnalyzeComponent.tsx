@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
+import { toast } from 'react-toastify';
 import type { Data as PlotlyData } from 'plotly.js';
 import {
   DEVICES,
@@ -99,8 +100,7 @@ export default class Analyze extends Component<Props, State> {
       selectedFilePaths: [],
       selectedBehaviorFilePaths: [],
       selectedSubjects: [],
-      selectedChannel:
-        MUSE_CHANNELS[0],
+      selectedChannel: MUSE_CHANNELS[0],
     };
     this.handleChannelSelect = this.handleChannelSelect.bind(this);
     this.handleDatasetChange = this.handleDatasetChange.bind(this);
@@ -266,7 +266,15 @@ export default class Analyze extends Component<Props, State> {
       data,
       this.state.removeOutliers
     );
-    storeAggregatedBehaviorData(aggregatedData, this.props.title);
+    // readBehaviorData returns null when a file can't be read; without this the
+    // main process hands undefined to Papa.unparse and the export dies silently.
+    if (!aggregatedData) {
+      toast.error(
+        'Could not read behaviour data from the selected files. Nothing was exported.'
+      );
+      return;
+    }
+    await storeAggregatedBehaviorData(aggregatedData, this.props.title);
   }
 
   handleChannelSelect(channelName: string) {
@@ -394,8 +402,8 @@ export default class Analyze extends Component<Props, State> {
               ) : (
                 <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
                   <p className="mb-2">
-                    No cleaned data yet — clean a recording first, then it&apos;ll
-                    show up here to analyze.
+                    No cleaned data yet — clean a recording first, then
+                    it&apos;ll show up here to analyze.
                   </p>
                   <Button asChild variant="secondary" size="sm">
                     <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
@@ -451,7 +459,8 @@ export default class Analyze extends Component<Props, State> {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={this.saveSelectedDatasets}
+                  disabled={this.state.selectedBehaviorFilePaths.length === 0}
+                  onClick={() => void this.saveSelectedDatasets()}
                 >
                   ↓ Export
                 </Button>
