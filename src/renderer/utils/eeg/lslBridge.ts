@@ -33,7 +33,9 @@ export const batchSamplesToEpoch = (
   batchSize: number = DEFAULT_BATCH_SIZE
 ): Observable<LSLEpoch> =>
   rawObservable.pipe(
-    filter((s) => Array.isArray(s.data) && s.data.length === channelNames.length),
+    filter(
+      (s) => Array.isArray(s.data) && s.data.length === channelNames.length
+    ),
     bufferCount(batchSize),
     map((batch) => ({
       deviceId,

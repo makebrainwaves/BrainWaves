@@ -3,16 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [
-    react({
-      babel: {
-        plugins: [
-          ['@babel/plugin-proposal-decorators', { legacy: true }],
-          ['@babel/plugin-proposal-class-properties', { loose: true }],
-        ],
-      },
-    }),
-  ],
+  plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,

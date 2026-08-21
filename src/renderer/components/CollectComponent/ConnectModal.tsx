@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import React, { Component } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { isNil, debounce } from 'lodash';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -31,103 +31,123 @@ interface Props {
   availableLSLStreams?: Array<DiscoveredStream>;
 }
 
-interface State {
-  selectedDevice: Device | null;
-  instructionProgress: INSTRUCTION_PROGRESS;
-  // True only when native liblsl loaded in the main process. The "External LSL
-  // stream" device option is hidden otherwise so the app works without liblsl.
-  lslAvailable: boolean;
-}
-
 enum INSTRUCTION_PROGRESS {
   SEARCHING,
   TURN_ON,
 }
 
-export default class ConnectModal extends Component<Props, State> {
-  static getDeviceName(device: Device | null) {
-    if (device != null) {
-      return device.name ?? device.id;
-    }
-    return '';
+function getDeviceName(device: Device | null) {
+  if (device != null) {
+    return device.name ?? device.id;
   }
+  return '';
+}
 
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      selectedDevice: null,
-      instructionProgress: INSTRUCTION_PROGRESS.SEARCHING,
-      lslAvailable: false,
-    };
-    this.handleSearch = debounce(this.handleSearch.bind(this), 300, {
-      leading: true,
-      trailing: false,
-    });
-    this.handleConnect = debounce(this.handleConnect.bind(this), 1000, {
-      leading: true,
-      trailing: false,
-    });
-    this.handleinstructionProgress = this.handleinstructionProgress.bind(this);
-  }
+export default function ConnectModal(props: Props) {
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [instructionProgress, setInstructionProgress] = useState(
+    INSTRUCTION_PROGRESS.SEARCHING
+  );
+  const [lslAvailable, setLslAvailable] = useState(false);
 
-  componentDidMount() {
+  const propsRef = useRef(props);
+  propsRef.current = props;
+
+  // Debounced handlers — recreate once, read current state via refs
+  const selectedDeviceRef = useRef(selectedDevice);
+  selectedDeviceRef.current = selectedDevice;
+
+  const handleSearch = useMemo(
+    () =>
+      debounce(
+        function handleSearch() {
+          setInstructionProgress(0);
+          propsRef.current.DeviceActions.SetDeviceAvailability(
+            DEVICE_AVAILABILITY.SEARCHING
+          );
+        },
+        300,
+        { leading: true, trailing: false }
+      ),
+    []
+  );
+
+  const handleConnect = useMemo(
+    () =>
+      debounce(
+        function handleConnect() {
+          const device = selectedDeviceRef.current;
+          if (device) {
+            propsRef.current.DeviceActions.ConnectToDevice(device);
+          }
+        },
+        1000,
+        { leading: true, trailing: false }
+      ),
+    []
+  );
+
+  useEffect(
+    () => () => {
+      handleSearch.cancel();
+      handleConnect.cancel();
+    },
+    [handleSearch, handleConnect]
+  );
+
+  // Mount: check LSL availability
+  useEffect(() => {
     window.electronAPI
       ?.isLSLAvailable?.()
-      .then((ok) => this.setState({ lslAvailable: ok }))
-      .catch(() => this.setState({ lslAvailable: false }));
-  }
+      .then((ok) => setLslAvailable(ok))
+      .catch(() => setLslAvailable(false));
+  }, []);
 
-  UNSAFE_componentWillUpdate(nextProps: Props) {
+  // UNSAFE_componentWillUpdate → useEffect with prevAvailability ref.
+  // Class version fires BEFORE render; useEffect fires AFTER.
+  // Accept the one-frame delay — the semantics (transitioning between
+  // deviceAvailability values) is unaffected for the user.
+  const prevAvailability = useRef(props.deviceAvailability);
+  useEffect(() => {
+    const prev = prevAvailability.current;
+    prevAvailability.current = props.deviceAvailability;
     if (
-      nextProps.deviceAvailability === DEVICE_AVAILABILITY.NONE &&
-      this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+      props.deviceAvailability === DEVICE_AVAILABILITY.NONE &&
+      prev === DEVICE_AVAILABILITY.SEARCHING
     ) {
-      this.setState({ instructionProgress: 1 });
+      setInstructionProgress(INSTRUCTION_PROGRESS.TURN_ON);
     }
     if (
-      nextProps.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE &&
-      this.props.deviceAvailability === DEVICE_AVAILABILITY.NONE
+      props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE &&
+      prev === DEVICE_AVAILABILITY.NONE
     ) {
-      this.setState({ instructionProgress: 0 });
+      setInstructionProgress(INSTRUCTION_PROGRESS.SEARCHING);
     }
+  }, [props.deviceAvailability]);
+
+  function handleDiscoverLSLStreams() {
+    props.DeviceActions.DiscoverLSLStreams();
   }
 
-  handleSearch() {
-    this.setState({ instructionProgress: 0 });
-    this.props.DeviceActions.SetDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+  function handleConnectLSLStream(stream: DiscoveredStream) {
+    props.DeviceActions.ConnectToLSLStream(stream);
   }
 
-  handleConnect() {
-    if (this.state.selectedDevice) {
-      this.props.DeviceActions.ConnectToDevice(this.state.selectedDevice);
-    }
-  }
-
-  handleDiscoverLSLStreams = () => {
-    this.props.DeviceActions.DiscoverLSLStreams();
-  };
-
-  handleConnectLSLStream = (stream: DiscoveredStream) => {
-    this.props.DeviceActions.ConnectToLSLStream(stream);
-  };
-
-  handleinstructionProgress(progress: INSTRUCTION_PROGRESS) {
+  function handleinstructionProgress(progress: INSTRUCTION_PROGRESS) {
     if (progress !== 0) {
-      this.setState({ instructionProgress: progress });
+      setInstructionProgress(progress);
     }
   }
 
-  renderLSLDiscovery() {
-    const streams = this.props.availableLSLStreams ?? [];
+  function renderLSLDiscovery() {
+    const streams = props.availableLSLStreams ?? [];
     const eegStreams = streams.filter((s) => s.type === 'EEG');
     return (
       <div className="mb-3 text-left">
         <Button
           variant="secondary"
           className="w-full mb-2"
-          onClick={this.handleDiscoverLSLStreams}
+          onClick={handleDiscoverLSLStreams}
         >
           Scan for LSL streams
         </Button>
@@ -146,7 +166,7 @@ export default class ConnectModal extends Component<Props, State> {
                 </span>
                 <Button
                   variant="default"
-                  onClick={() => this.handleConnectLSLStream(stream)}
+                  onClick={() => handleConnectLSLStream(stream)}
                 >
                   Connect
                 </Button>
@@ -158,31 +178,29 @@ export default class ConnectModal extends Component<Props, State> {
     );
   }
 
-  renderAvailableDeviceList() {
+  function renderAvailableDeviceList() {
     return (
       <ul role="listbox" className="divide-y divide-gray-200">
-        {this.props.availableDevices.map((device) => (
+        {props.availableDevices.map((device) => (
           <li
             key={device.id}
             role="option"
-            aria-selected={this.state.selectedDevice === device}
+            aria-selected={selectedDevice === device}
             tabIndex={0}
             className="flex items-center gap-2 py-2 cursor-pointer text-lg"
-            onClick={() => this.setState({ selectedDevice: device })}
-            onKeyDown={(e) =>
-              e.key === 'Enter' && this.setState({ selectedDevice: device })
-            }
+            onClick={() => setSelectedDevice(device)}
+            onKeyDown={(e) => e.key === 'Enter' && setSelectedDevice(device)}
           >
-            <span>{this.state.selectedDevice === device ? '✓' : '○'}</span>
-            <span>{ConnectModal.getDeviceName(device)}</span>
+            <span>{selectedDevice === device ? '✓' : '○'}</span>
+            <span>{getDeviceName(device)}</span>
           </li>
         ))}
       </ul>
     );
   }
 
-  renderContent() {
-    if (this.props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
+  function renderContent() {
+    if (props.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING) {
       return (
         <div className="flex flex-col items-center gap-3 py-4">
           <Spinner size={32} />
@@ -190,18 +208,17 @@ export default class ConnectModal extends Component<Props, State> {
         </div>
       );
     }
-    if (this.props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
+    if (props.connectionStatus === CONNECTION_STATUS.CONNECTING) {
       return (
         <div className="flex flex-col items-center gap-3 py-4">
           <Spinner size={32} />
           <p className="text-center">
-            Connecting to{' '}
-            {ConnectModal.getDeviceName(this.state.selectedDevice)}...
+            Connecting to {getDeviceName(selectedDevice)}...
           </p>
         </div>
       );
     }
-    if (this.state.instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
+    if (instructionProgress === INSTRUCTION_PROGRESS.TURN_ON) {
       return (
         <>
           <h2>Turn your headset on</h2>
@@ -210,67 +227,61 @@ export default class ConnectModal extends Component<Props, State> {
               Device type
             </label>
             <select
-              value={this.props.deviceType}
+              value={props.deviceType}
               onChange={(e) =>
-                this.props.DeviceActions.SetDeviceType(
-                  e.target.value as DEVICES
-                )
+                props.DeviceActions.SetDeviceType(e.target.value as DEVICES)
               }
               className="w-full rounded border px-2 py-1"
             >
               <option value={DEVICES.MUSE}>Muse</option>
               <option value={DEVICES.NEUROSITY}>Neurosity Crown</option>
-              {this.state.lslAvailable && (
+              {lslAvailable && (
                 <option value={DEVICES.LSL}>External LSL stream</option>
               )}
             </select>
           </div>
-          {this.props.deviceType === DEVICES.LSL && this.renderLSLDiscovery()}
+          {props.deviceType === DEVICES.LSL && renderLSLDiscovery()}
           <p>Make sure your headset is on and fully charged.</p>
           <p>
             If the headset needs charging, set the power switch to off and plug
             in the headset. <b>Do not charge the headset while wearing it</b>
           </p>
           <div className="flex gap-2 mt-4">
-            {(this.state.instructionProgress as number) !== 0 && (
+            {(instructionProgress as number) !== 0 && (
               <Button
                 variant="secondary"
                 className="w-full"
-                onClick={() => this.handleinstructionProgress(0)}
+                onClick={() => handleinstructionProgress(0)}
               >
                 Back
               </Button>
             )}
-            <Button
-              variant="default"
-              className="w-full"
-              onClick={this.handleSearch}
-            >
+            <Button variant="default" className="w-full" onClick={handleSearch}>
               Next
             </Button>
           </div>
         </>
       );
     }
-    if (this.props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE) {
+    if (props.deviceAvailability === DEVICE_AVAILABILITY.AVAILABLE) {
       return (
         <>
           <h2>Headset(s) found</h2>
           <p>Please select which headset you would like to connect.</p>
-          {this.renderAvailableDeviceList()}
+          {renderAvailableDeviceList()}
           <div className="flex gap-2 mt-4">
             <Button
               variant="secondary"
               className="w-full"
-              onClick={() => this.handleinstructionProgress(1)}
+              onClick={() => handleinstructionProgress(1)}
             >
               Back
             </Button>
             <Button
               variant="default"
               className="w-full"
-              disabled={isNil(this.state.selectedDevice)}
-              onClick={this.handleConnect}
+              disabled={isNil(selectedDevice)}
+              onClick={handleConnect}
             >
               Connect
             </Button>
@@ -279,7 +290,7 @@ export default class ConnectModal extends Component<Props, State> {
             role="link"
             tabIndex={0}
             className="block mt-2 text-sm cursor-pointer"
-            onClick={() => this.handleinstructionProgress(1)}
+            onClick={() => handleinstructionProgress(1)}
           >
             Don&#39;t see your device?
           </a>
@@ -289,18 +300,16 @@ export default class ConnectModal extends Component<Props, State> {
     return null;
   }
 
-  render() {
-    return (
-      <Dialog
-        open={this.props.open}
-        onOpenChange={(open) => {
-          if (!open) this.props.onClose();
-        }}
-      >
-        <DialogContent className="max-w-sm text-center">
-          {this.renderContent()}
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  return (
+    <Dialog
+      open={props.open}
+      onOpenChange={(open) => {
+        if (!open) props.onClose();
+      }}
+    >
+      <DialogContent className="max-w-sm text-center">
+        {renderContent()}
+      </DialogContent>
+    </Dialog>
+  );
 }

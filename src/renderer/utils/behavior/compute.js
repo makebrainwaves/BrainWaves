@@ -28,8 +28,7 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
       // Accuracy counts every correct trial, including correct no-go/withhold
       // trials (response_given === 'no'). Do not require response_given here.
       const accuracy = e.filter(
-        (row) =>
-          row.condition === condition && row.correct_response === 'true'
+        (row) => row.condition === condition && row.correct_response === 'true'
       );
       accuracyPercent[condition] = accuracy.length
         ? Math.round(

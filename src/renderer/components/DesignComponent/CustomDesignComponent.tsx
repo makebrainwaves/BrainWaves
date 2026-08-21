@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/button';
 import {
   Table,
@@ -44,98 +44,85 @@ const CUSTOM_STEPS = {
   PREVIEW: 'PREVIEW',
 };
 
-const FIELDS = {
-  QUESTION: 'Research Question',
-  HYPOTHESIS: 'Hypothesis',
-  METHODS: 'Methods',
-  INTRO: 'Experiment Instructions',
-  HELP: 'Instructions for the task screen',
-};
+export default function CustomDesign(props: DesignProps) {
+  const [activeStep, setActiveStep] = useState(CUSTOM_STEPS.OVERVIEW);
+  const [isPreviewing, setIsPreviewing] = useState(true);
+  const [params, setParams] = useState(() => mergeCustomParams(props.params));
+  const [saved, setSaved] = useState(false);
 
-interface State {
-  activeStep: string;
-  isPreviewing: boolean;
-  params: ExperimentParameters;
-  saved: boolean;
-}
+  const conditionParamsRef = useRef(mergeCustomParams(props.params));
+  const conditionRevisionRef = useRef(0);
 
-export default class CustomDesign extends Component<DesignProps, State> {
-  private conditionParams: ExperimentParameters;
-  private conditionRevision = 0;
-  constructor(props: DesignProps) {
-    super(props);
-    const customParams = mergeCustomParams(props.params);
-    this.conditionParams = customParams;
-    this.state = {
-      activeStep: CUSTOM_STEPS.OVERVIEW,
-      isPreviewing: true,
-      params: customParams,
-      saved: false,
+  useEffect(() => {
+    return () => {
+      props.ExperimentActions.SetParams(conditionParamsRef.current);
+      props.ExperimentActions.SaveWorkspace();
     };
-    this.handleStepClick = this.handleStepClick.bind(this);
-    this.handleStartExperiment = this.handleStartExperiment.bind(this);
-    this.handlePreview = this.handlePreview.bind(this);
-    this.handleSaveParams = this.handleSaveParams.bind(this);
-    this.handleProgressBar = this.handleProgressBar.bind(this);
-    this.handleEEGEnabled = this.handleEEGEnabled.bind(this);
-    this.endPreview = this.endPreview.bind(this);
+  }, [props.ExperimentActions]);
+
+  function handleSaveParams(
+    newParams: ExperimentParameters = conditionParamsRef.current
+  ) {
+    conditionParamsRef.current = newParams;
+    props.ExperimentActions.SetParams(newParams);
+    props.ExperimentActions.SaveWorkspace();
+    setSaved(true);
+    setParams(newParams);
   }
 
-  componentWillUnmount() {
-    this.props.ExperimentActions.SetParams(this.conditionParams);
-    this.props.ExperimentActions.SaveWorkspace();
+  function handleStepClick(step: string) {
+    handleSaveParams();
+    setActiveStep(step);
   }
 
-  endPreview() {
-    this.setState({ isPreviewing: false });
-  }
-
-  handleStepClick(step: string) {
-    this.handleSaveParams();
-    this.setState({ activeStep: step });
-  }
-
-  handleProgressBar(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleProgressBar(e: React.ChangeEvent<HTMLInputElement>) {
     const { checked } = e.target;
-    this.setState((prevState) => ({
-      params: { ...prevState.params, showProgessBar: checked },
+    setParams((prev) => ({
+      ...prev,
+      showProgressBar: checked,
     }));
+    conditionParamsRef.current = {
+      ...conditionParamsRef.current,
+      showProgressBar: checked,
+    };
   }
 
-  handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
-    this.props.ExperimentActions.SetEEGEnabled(e.target.checked);
+  function handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
+    props.ExperimentActions.SetEEGEnabled(e.target.checked);
   }
 
-  handleStartExperiment() {
-    this.props.navigate(SCREENS.COLLECT.route);
+  function handleStartExperiment() {
+    props.navigate(SCREENS.COLLECT.route);
   }
 
-  handlePreview(e) {
-    e.target.blur();
-    this.setState({ isPreviewing: !this.state.isPreviewing });
+  function handlePreview(e: React.MouseEvent<HTMLButtonElement>) {
+    e.currentTarget.blur();
+    setIsPreviewing((prev) => !prev);
   }
 
-  handleSaveParams(params: ExperimentParameters = this.conditionParams) {
-    this.conditionParams = params;
-    this.props.ExperimentActions.SetParams(params);
-    this.props.ExperimentActions.SaveWorkspace();
-    this.setState({ saved: true, params });
+  function endPreview() {
+    setIsPreviewing(false);
   }
 
-  handleSetText(text: string, section: 'hypothesis' | 'methods' | 'question') {
-    const params: ExperimentParameters = {
-      ...this.conditionParams,
+  function handleSetText(
+    text: string,
+    section: 'hypothesis' | 'methods' | 'question'
+  ) {
+    const newParams: ExperimentParameters = {
+      ...conditionParamsRef.current,
       description: {
         ...defaultCustomParams.description,
-        ...this.conditionParams.description,
+        ...conditionParamsRef.current.description,
         [section]: text,
       },
     };
-    this.setState({ params, saved: false });
-    this.handleSaveParams(params);
+    conditionParamsRef.current = newParams;
+    setParams(newParams);
+    setSaved(false);
+    handleSaveParams(newParams);
   }
 
-  handleConditionChange = async (
+  const handleConditionChange = async (
     key: string,
     data: string,
     changedName: string
@@ -145,13 +132,13 @@ export default class CustomDesign extends Component<DesignProps, State> {
     if (!slotMeta) return;
 
     const previousSlot =
-      this.conditionParams[slotName] ??
+      conditionParamsRef.current[slotName] ??
       emptyConditionSlot(slotMeta.type, '');
     let nextParams: ExperimentParameters = {
-      ...this.conditionParams,
+      ...conditionParamsRef.current,
       [slotName]: { ...previousSlot, [key]: data },
     };
-    this.conditionParams = nextParams;
+    conditionParamsRef.current = nextParams;
 
     if (key !== 'dir' && key !== 'audioDir') {
       const changedSlot = nextParams[slotName]!;
@@ -165,20 +152,21 @@ export default class CustomDesign extends Component<DesignProps, State> {
           : stimulus
       );
       nextParams = { ...nextParams, stimuli };
-      this.setState({ params: nextParams, saved: false });
-      this.handleSaveParams(nextParams);
+      setParams(nextParams);
+      setSaved(false);
+      handleSaveParams(nextParams);
       return;
     }
 
-    const revision = ++this.conditionRevision;
+    const revision = ++conditionRevisionRef.current;
     const rebuiltStimuli = await rebuildStimuliFromSlots(
       nextParams,
       readImages,
       readAudioFiles
     );
-    if (revision !== this.conditionRevision) return;
+    if (revision !== conditionRevisionRef.current) return;
 
-    const latestParams = this.conditionParams;
+    const latestParams = conditionParamsRef.current;
     const stimuli = rebuiltStimuli.map((stimulus) => {
       const slot = CONDITION_SLOTS.find(({ type }) => type === stimulus.type);
       const condition = slot ? latestParams[slot.name] : undefined;
@@ -191,93 +179,95 @@ export default class CustomDesign extends Component<DesignProps, State> {
         : stimulus;
     });
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const params = { ...latestParams, stimuli, nbTrials, nbPracticeTrials };
-    this.setState({ params, saved: false });
-    this.handleSaveParams(params);
+    const newParams: ExperimentParameters = {
+      ...latestParams,
+      stimuli,
+      nbTrials,
+      nbPracticeTrials,
+    };
+    setParams(newParams);
+    setSaved(false);
   };
 
-  handleDeleteTrial = (deletedNum: number) => {
-    const stimuli = [...(this.state.params.stimuli ?? [])];
+  const handleDeleteTrial = (deletedNum: number) => {
+    const stimuli = [...(params.stimuli ?? [])];
     stimuli.splice(deletedNum, 1);
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const params = { ...this.state.params, stimuli, nbTrials, nbPracticeTrials };
-    this.setState({ params, saved: false });
-    this.handleSaveParams(params);
+    const newParams: ExperimentParameters = {
+      ...params,
+      stimuli,
+      nbTrials,
+      nbPracticeTrials,
+    };
+    setParams(newParams);
+    setSaved(false);
+    handleSaveParams(newParams);
   };
 
-  handleChangeTrial = (changedNum: number, key: string, data: string) => {
-    const stimuli: Stimulus[] = [...(this.state.params.stimuli ?? [])];
+  const handleChangeTrial = (changedNum: number, key: string, data: string) => {
+    const stimuli: Stimulus[] = [...(params.stimuli ?? [])];
     const current = stimuli[changedNum];
     if (!current) return;
     stimuli[changedNum] = { ...current, [key]: data };
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const params = { ...this.state.params, stimuli, nbTrials, nbPracticeTrials };
-    this.setState({ params, saved: false });
-    this.handleSaveParams(params);
+    const newParams: ExperimentParameters = {
+      ...params,
+      stimuli,
+      nbTrials,
+      nbPracticeTrials,
+    };
+    setParams(newParams);
+    setSaved(false);
+    handleSaveParams(newParams);
   };
 
-  renderSectionContent() {
-    switch (this.state.activeStep) {
+  function renderSectionContent() {
+    switch (activeStep) {
       case CUSTOM_STEPS.OVERVIEW:
       default:
         return (
           <div className="flex gap-4 p-4 h-[90%]">
-            <div className="flex-1 flex flex-col items-center">
-              <img
-                src={researchQuestionImage}
-                className="h-[140px] w-auto"
-                alt="Research Question"
-              />
-              <label className="block text-sm font-medium mb-1">
-                {FIELDS.QUESTION}
-              </label>
-              <textarea
-                style={{ minHeight: 100, maxHeight: 400 }}
-                className="w-full border border-gray-300 rounded p-2"
-                value={this.state.params.description?.question}
-                placeholder="Explain your research question here."
-                onChange={(event) =>
-                  this.handleSetText(event.target.value, 'question')
-                }
-              />
+            <div className="w-1/4 p-2">
+              <img src={researchQuestionImage} alt="Research Question" />
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <img
-                src={hypothesisImage}
-                className="h-[140px] w-auto"
-                alt="Hypothesis"
-              />
-              <label className="block text-sm font-medium mb-1">
-                {FIELDS.HYPOTHESIS}
-              </label>
-              <textarea
-                style={{ minHeight: 100, maxHeight: 400 }}
-                className="w-full border border-gray-300 rounded p-2"
-                value={this.state.params.description?.hypothesis}
-                placeholder="Describe your hypothesis here."
-                onChange={(event) =>
-                  this.handleSetText(event.target.value, 'hypothesis')
-                }
-              />
-            </div>
-            <div className="flex-1 flex flex-col items-center">
-              <img
-                src={methodsImage}
-                className="h-[140px] w-auto"
-                alt="Methods"
-              />
-              <label className="block text-sm font-medium mb-1">
-                {FIELDS.METHODS}
-              </label>
-              <textarea
-                style={{ minHeight: 100, maxHeight: 400 }}
-                className="w-full border border-gray-300 rounded p-2"
-                value={this.state.params.description?.methods}
-                placeholder="Explain how you will design your experiment to answer the question here."
-                onChange={(event) =>
-                  this.handleSetText(event.target.value, 'methods')
-                }
-              />
+              <h1>Design your own experiment</h1>
+              <p>Create your own experiment by following the steps below.</p>
+              <div className="mt-4 space-y-4 w-full max-w-lg">
+                <div>
+                  <h2>Ask a research question</h2>
+                  <textarea
+                    className="w-full border rounded p-2"
+                    rows={4}
+                    value={params.description?.question ?? ''}
+                    onChange={(event) =>
+                      handleSetText(event.target.value, 'question')
+                    }
+                  />
+                </div>
+                <div>
+                  <h2>Form a hypothesis</h2>
+                  <textarea
+                    className="w-full border rounded p-2"
+                    rows={4}
+                    value={params.description?.hypothesis ?? ''}
+                    onChange={(event) =>
+                      handleSetText(event.target.value, 'hypothesis')
+                    }
+                  />
+                </div>
+                <div>
+                  <h2>Describe your methods</h2>
+                  <textarea
+                    className="w-full border rounded p-2"
+                    rows={4}
+                    value={params.description?.methods ?? ''}
+                    onChange={(event) =>
+                      handleSetText(event.target.value, 'methods')
+                    }
+                  />
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -289,25 +279,8 @@ export default class CustomDesign extends Component<DesignProps, State> {
               <h1>Conditions</h1>
               <p>
                 {`Select the folder with images for each condition and choose
-                the correct response. Accepted image extensions: ".png",
-                ".jpg", ".jpeg", ".gif", ".webp". You can also add an
-                optional folder of sounds (".mp3", ".wav", ".m4a", ".ogg") —
-                each trial's sound plays the moment the trial appears.`}
+                the correct response.`}
               </p>
-              <div className="mt-2 text-sm text-gray-600 border border-gray-200 rounded p-2 bg-gray-50">
-                Tip: make sure your images are high enough resolution before
-                previewing your experiment. You can resize or compress them in
-                an image editor or with{' '}
-                <a
-                  href="https://imageresizer.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-brand underline"
-                >
-                  imageresizer.com
-                </a>
-                .
-              </div>
             </div>
             <Table>
               <TableHeader>
@@ -320,8 +293,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </TableHeader>
               <TableBody>
                 {CONDITION_SLOTS.map(({ name, number, type }) => {
-                  const slot =
-                    this.state.params[name] ?? emptyConditionSlot(type, '');
+                  const slot = params[name] ?? emptyConditionSlot(type, '');
                   return (
                     <StimuliDesignColumn
                       key={name}
@@ -331,11 +303,10 @@ export default class CustomDesign extends Component<DesignProps, State> {
                       dir={slot.dir ?? ''}
                       audioDir={slot.audioDir ?? ''}
                       numberImages={
-                        this.state.params.stimuli?.filter(
-                          (trial) => trial.type === number
-                        ).length
+                        params.stimuli?.filter((trial) => trial.type === number)
+                          .length
                       }
-                      onChange={this.handleConditionChange}
+                      onChange={handleConditionChange}
                     />
                   );
                 })}
@@ -354,18 +325,22 @@ export default class CustomDesign extends Component<DesignProps, State> {
               </div>
               <div className="grid grid-cols-3 gap-2.5 self-end justify-self-end">
                 <div>
-                  <label htmlFor="trial-order" className="block text-sm mb-1">Order</label>
+                  <label htmlFor="trial-order" className="block text-sm mb-1">
+                    Order
+                  </label>
                   <select
                     id="trial-order"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={this.state.params.randomize}
+                    value={params.randomize}
                     onChange={(event) => {
                       const val = event.target.value;
                       if (val === 'sequential' || val === 'random') {
-                        this.setState({
-                          params: { ...this.state.params, randomize: val },
-                          saved: false,
-                        });
+                        const newParams: ExperimentParameters = {
+                          ...params,
+                          randomize: val as ExperimentParameters['randomize'],
+                        };
+                        setParams(newParams);
+                        setSaved(false);
                       }
                     }}
                   >
@@ -381,36 +356,37 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     id="nb-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={this.state.params.nbTrials}
-                    onChange={(event) =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          nbTrials: parseInt(event.target.value, 10),
-                        },
-                        saved: false,
-                      })
-                    }
+                    value={params.nbTrials}
+                    onChange={(event) => {
+                      const newParams: ExperimentParameters = {
+                        ...params,
+                        nbTrials: parseInt(event.target.value, 10),
+                      };
+                      setParams(newParams);
+                      setSaved(false);
+                    }}
                   />
                 </div>
                 <div>
-                  <label htmlFor="nb-practice-trials" className="block text-sm mb-1">
+                  <label
+                    htmlFor="nb-practice-trials"
+                    className="block text-sm mb-1"
+                  >
                     Total practice trials
                   </label>
                   <input
                     id="nb-practice-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={this.state.params.nbPracticeTrials}
-                    onChange={(event) =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          nbPracticeTrials: parseInt(event.target.value, 10),
-                        },
-                        saved: false,
-                      })
-                    }
+                    value={params.nbPracticeTrials}
+                    onChange={(event) => {
+                      const newParams: ExperimentParameters = {
+                        ...params,
+                        nbPracticeTrials: parseInt(event.target.value, 10),
+                      };
+                      setParams(newParams);
+                      setSaved(false);
+                    }}
                   />
                 </div>
               </div>
@@ -421,23 +397,25 @@ export default class CustomDesign extends Component<DesignProps, State> {
                   <TableHead className="pl-[60px]">Name</TableHead>
                   <TableHead>Sound</TableHead>
                   <TableHead>Condition</TableHead>
-                  <TableHead>Correct Key Response</TableHead>
-                  <TableHead>Trial Type</TableHead>
+                  <TableHead>Default Key Response</TableHead>
+                  <TableHead>Image File</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className="overflow-y-scroll max-h-[50vh] block">
-                {(this.state.params.stimuli ?? []).map((trial, num) => (
+              <TableBody>
+                {params.stimuli?.map((stimulus, i) => (
                   <StimuliRow
-                    key={`${trial.filename ?? trial.title}-${num}`}
-                    num={num}
-                    name={trial.filename ?? trial.title}
-                    audioFilename={trial.audioFilename}
-                    response={trial.response ?? ''}
-                    dir={trial.dir ?? ''}
-                    condition={trial.condition ?? ''}
-                    phase={trial.phase ?? 'main'}
-                    onDelete={this.handleDeleteTrial}
-                    onChange={this.handleChangeTrial}
+                    key={`${stimulus.filename ?? stimulus.title}-${i}`}
+                    num={i}
+                    name={stimulus.filename ?? stimulus.title}
+                    audioFilename={stimulus.audioFilename}
+                    response={stimulus.response ?? ''}
+                    dir={stimulus.dir ?? ''}
+                    condition={stimulus.condition ?? ''}
+                    phase={stimulus.phase ?? 'main'}
+                    onDelete={() => handleDeleteTrial(i)}
+                    onChange={(num, key, data) =>
+                      handleChangeTrial(num, key, data)
+                    }
                   />
                 ))}
               </TableBody>
@@ -460,7 +438,7 @@ export default class CustomDesign extends Component<DesignProps, State> {
               <div style={{ marginTop: '100px' }}>
                 <ParamSlider
                   label="ITI Duration (seconds)"
-                  value={this.state.params.iti}
+                  value={params.iti ?? 500}
                   marks={{
                     1: '0.25',
                     2: '0.5',
@@ -472,12 +450,14 @@ export default class CustomDesign extends Component<DesignProps, State> {
                     8: '2',
                   }}
                   msConversion="250"
-                  onChange={(value) =>
-                    this.setState({
-                      params: { ...this.state.params, iti: value },
-                      saved: false,
-                    })
-                  }
+                  onChange={(value) => {
+                    const newParams: ExperimentParameters = {
+                      ...params,
+                      iti: value,
+                    };
+                    setParams(newParams);
+                    setSaved(false);
+                  }}
                 />
               </div>
             </div>
@@ -493,29 +473,24 @@ export default class CustomDesign extends Component<DesignProps, State> {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    defaultChecked={this.state.params.selfPaced}
-                    onChange={() =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          selfPaced: !this.state.params.selfPaced,
-                        },
-                        saved: false,
-                      })
-                    }
+                    defaultChecked={params.selfPaced}
+                    onChange={() => {
+                      const newParams: ExperimentParameters = {
+                        ...params,
+                        selfPaced: !params.selfPaced,
+                      };
+                      setParams(newParams);
+                      setSaved(false);
+                    }}
                   />
                   Self-paced data collection
                 </label>
               </div>
-              {!this.state.params.selfPaced ? (
+              {!params.selfPaced ? (
                 <div>
                   <ParamSlider
                     label="Presentation time (seconds)"
-                    value={
-                      this.state.params.presentationTime
-                        ? this.state.params.presentationTime
-                        : 0
-                    }
+                    value={params.presentationTime ?? 0}
                     marks={{
                       1: '0.25',
                       2: '0.5',
@@ -527,15 +502,14 @@ export default class CustomDesign extends Component<DesignProps, State> {
                       8: '2',
                     }}
                     msConversion="250"
-                    onChange={(value) =>
-                      this.setState({
-                        params: {
-                          ...this.state.params,
-                          presentationTime: value,
-                        },
-                        saved: false,
-                      })
-                    }
+                    onChange={(value) => {
+                      const newParams: ExperimentParameters = {
+                        ...params,
+                        presentationTime: value,
+                      };
+                      setParams(newParams);
+                      setSaved(false);
+                    }}
                   />
                 </div>
               ) : (
@@ -547,47 +521,47 @@ export default class CustomDesign extends Component<DesignProps, State> {
 
       case CUSTOM_STEPS.INSTRUCTIONS:
         return (
-          <div className="flex gap-4 p-4">
-            <div className="w-1/2">
-              <h1>Experiment Instructions</h1>
-              <p>
-                Edit the instruction that will be displayed on the first screen.
-              </p>
-              <textarea
-                className="w-full border border-gray-300 rounded p-2"
-                style={{ minHeight: 150 }}
-                value={this.state.params.intro}
-                placeholder="e.g., You will view a series of faces and houses. Press 1 when a face appears and 9 for a house."
-                onChange={(event) => {
-                  const val = event.target.value;
-                  if (!isString(val)) return;
-                  this.setState({
-                    params: { ...this.state.params, intro: val },
-                    saved: false,
-                  });
-                }}
-              />
-            </div>
-            <div className="w-1/2">
-              <h1>Instructions for the task screen</h1>
-              <p>
-                Edit the instruction that will be displayed in the footer during
-                the task.
-              </p>
-              <textarea
-                className="w-full border border-gray-300 rounded p-2"
-                style={{ minHeight: 150 }}
-                value={this.state.params.taskHelp}
-                placeholder="e.g., Press 1 for a face and 9 for a house"
-                onChange={(event) => {
-                  const val = event.target.value;
-                  if (!isString(val)) return;
-                  this.setState({
-                    params: { ...this.state.params, taskHelp: val },
-                    saved: false,
-                  });
-                }}
-              />
+          <div className="p-4">
+            <h1>Instructions</h1>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Intro</label>
+                <textarea
+                  className="w-full border rounded p-2"
+                  rows={4}
+                  value={params.intro}
+                  onChange={(event) => {
+                    const val = event.target.value;
+                    if (!isString(val)) return;
+                    const newParams: ExperimentParameters = {
+                      ...params,
+                      intro: val,
+                    };
+                    setParams(newParams);
+                    setSaved(false);
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Task help text
+                </label>
+                <textarea
+                  className="w-full border rounded p-2"
+                  rows={4}
+                  value={params.taskHelp}
+                  onChange={(event) => {
+                    const val = event.target.value;
+                    if (!isString(val)) return;
+                    const newParams: ExperimentParameters = {
+                      ...params,
+                      taskHelp: val,
+                    };
+                    setParams(newParams);
+                    setSaved(false);
+                  }}
+                />
+              </div>
             </div>
           </div>
         );
@@ -596,21 +570,21 @@ export default class CustomDesign extends Component<DesignProps, State> {
         return (
           <div className="flex items-start p-4 h-[90%]">
             <div className="flex-1 h-full border border-brand rounded">
-              {this.props.type && (
+              {props.type && (
                 <PreviewExperimentComponent
-                  isPreviewing={this.state.isPreviewing}
-                  onEnd={this.endPreview}
-                  type={this.props.type}
-                  experimentObject={this.props.experimentObject}
-                  params={this.state.params}
-                  title={this.props.title}
+                  isPreviewing={isPreviewing}
+                  onEnd={endPreview}
+                  type={props.type}
+                  experimentObject={props.experimentObject}
+                  params={params}
+                  title={props.title}
                 />
               )}
             </div>
             <div className="flex-shrink-0 p-2">
               <PreviewButton
-                isPreviewing={this.state.isPreviewing}
-                onClick={(e) => this.handlePreview(e)}
+                isPreviewing={isPreviewing}
+                onClick={handlePreview}
               />
             </div>
           </div>
@@ -618,34 +592,32 @@ export default class CustomDesign extends Component<DesignProps, State> {
     }
   }
 
-  render() {
-    return (
-      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
-        <SecondaryNavComponent
-          title="Experiment Design"
-          steps={CUSTOM_STEPS}
-          activeStep={this.state.activeStep}
-          onStepClick={this.handleStepClick}
-          enableEEGToggle={
-            <input
-              type="checkbox"
-              defaultChecked={this.props.isEEGEnabled}
-              onChange={(event) => this.handleEEGEnabled(event)}
-              className="scale-75"
-            />
-          }
-          saveButton={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => this.handleSaveParams()}
-            >
-              Save
-            </Button>
-          }
-        />
-        {this.renderSectionContent()}
-      </div>
-    );
-  }
+  return (
+    <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+      <SecondaryNavComponent
+        title="Experiment Design"
+        steps={CUSTOM_STEPS}
+        activeStep={activeStep}
+        onStepClick={handleStepClick}
+        enableEEGToggle={
+          <input
+            type="checkbox"
+            defaultChecked={props.isEEGEnabled}
+            onChange={handleEEGEnabled}
+            className="scale-75"
+          />
+        }
+        saveButton={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleSaveParams()}
+          >
+            Save
+          </Button>
+        }
+      />
+      {renderSectionContent()}
+    </div>
+  );
 }

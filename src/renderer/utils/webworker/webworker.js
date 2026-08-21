@@ -134,9 +134,10 @@ async function processMessage(event) {
     // can be written to host disk. Pyodide's MEMFS can't reach the host FS itself.
     if (readFileAfter) {
       const fileBytes = pyodide.FS.readFile(readFileAfter); // Uint8Array
-      self.postMessage({ buffer: fileBytes.buffer, results, plotKey, dataKey }, [
-        fileBytes.buffer,
-      ]);
+      self.postMessage(
+        { buffer: fileBytes.buffer, results, plotKey, dataKey },
+        [fileBytes.buffer]
+      );
       return;
     }
     // Fire-and-forget commands (no plotKey/dataKey/readFileAfter) must not post

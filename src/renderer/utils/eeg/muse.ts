@@ -52,7 +52,8 @@ export const getMuse = async () => {
 // Reuses the BluetoothDevice cached by getMuse() to avoid a redundant requestDevice() call.
 export const connectToMuse = async (device: Device) => {
   const deviceInstance =
-    cachedDevice ?? (await navigator.bluetooth.requestDevice({
+    cachedDevice ??
+    (await navigator.bluetooth.requestDevice({
       filters: [{ services: [MUSE_SERVICE], name: device.name }],
     }));
   cachedDevice = null;
@@ -77,14 +78,18 @@ export const disconnectFromMuse = () => {
 export const museDisconnect$: Observable<void> = new Observable<void>(
   (subscriber) => {
     const sub = (
-      client.connectionStatus as unknown as { subscribe: (n: (v: boolean) => void) => { unsubscribe: () => void } }
-    ).subscribe((() => {
-      let prev: boolean | undefined;
-      return (curr: boolean) => {
-        if (prev === true && curr === false) subscriber.next();
-        prev = curr;
-      };
-    })());
+      client.connectionStatus as unknown as {
+        subscribe: (n: (v: boolean) => void) => { unsubscribe: () => void };
+      }
+    ).subscribe(
+      (() => {
+        let prev: boolean | undefined;
+        return (curr: boolean) => {
+          if (prev === true && curr === false) subscriber.next();
+          prev = curr;
+        };
+      })()
+    );
     return () => sub.unsubscribe();
   }
 );

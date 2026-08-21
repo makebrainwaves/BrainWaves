@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { isNil } from 'lodash';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -67,75 +67,66 @@ export interface Props {
   signalQualityObservable?: Observable<SignalQualityData>;
 }
 
-interface State {
-  activeStep: string;
-  isNewExperimentModalOpen: boolean;
-  isOverviewComponentOpen: boolean;
-  recentWorkspaces: Array<string>;
-  overviewExperimentType: EXPERIMENTS;
-  workspaceStates: Record<string, ExperimentStateType | null>;
-}
+export default function Home(props: Props) {
+  const [activeStep, setActiveStep] = useState(
+    props.activeStep || HOME_STEPS.RECENT
+  );
+  const [recentWorkspaces, setRecentWorkspaces] = useState<Array<string>>([]);
+  const [workspaceStates, setWorkspaceStates] = useState<
+    Record<string, ExperimentStateType | null>
+  >({});
+  const [isNewExperimentModalOpen, setIsNewExperimentModalOpen] =
+    useState(false);
+  const [isOverviewComponentOpen, setIsOverviewComponentOpen] = useState(false);
+  const [overviewExperimentType, setOverviewExperimentType] = useState(
+    EXPERIMENTS.NONE
+  );
 
-export default class Home extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      activeStep: this.props.activeStep || HOME_STEPS.RECENT,
-      recentWorkspaces: [],
-      workspaceStates: {},
-      isNewExperimentModalOpen: false,
-      isOverviewComponentOpen: false,
-      overviewExperimentType: EXPERIMENTS.NONE,
+  useEffect(() => {
+    let cancelled = false;
+    props.PyodideActions.Launch();
+    readWorkspaces().then((workspaces) => {
+      if (cancelled) return;
+      setRecentWorkspaces(workspaces);
+      return loadWorkspaceStates(workspaces);
+    });
+    return () => {
+      cancelled = true;
     };
-    this.handleStepClick = this.handleStepClick.bind(this);
-    this.handleNewExperiment = this.handleNewExperiment.bind(this);
-    this.handleLoadCustomExperiment =
-      this.handleLoadCustomExperiment.bind(this);
-    this.handleOpenOverview = this.handleOpenOverview.bind(this);
-    this.handleCloseOverview = this.handleCloseOverview.bind(this);
-    this.handleDeleteWorkspace = this.handleDeleteWorkspace.bind(this);
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  async componentDidMount() {
-    this.props.PyodideActions.Launch();
-    const recentWorkspaces = await readWorkspaces();
-    this.setState({ recentWorkspaces });
-    await this.loadWorkspaceStates(recentWorkspaces);
-  }
-
-  async loadWorkspaceStates(workspaces: string[]) {
+  async function loadWorkspaceStates(workspaces: string[]) {
     const entries = await Promise.all(
       workspaces.map(
         async (dir) => [dir, await readAndParseState(dir)] as const
       )
     );
-    this.setState({
-      workspaceStates: Object.fromEntries(entries),
-    });
+    setWorkspaceStates(Object.fromEntries(entries));
   }
 
-  handleStepClick(step: string) {
-    this.setState({ activeStep: step });
+  function handleStepClick(step: string) {
+    setActiveStep(step);
   }
 
-  handleNewExperiment(experimentType: EXPERIMENTS) {
+  function handleNewExperiment(experimentType: EXPERIMENTS) {
     if (experimentType === EXPERIMENTS.CUSTOM) {
-      this.setState({ isNewExperimentModalOpen: true });
-    } else if (this.state.recentWorkspaces.includes(experimentType)) {
-      this.handleLoadRecentWorkspace(experimentType);
+      setIsNewExperimentModalOpen(true);
+    } else if (recentWorkspaces.includes(experimentType)) {
+      handleLoadRecentWorkspace(experimentType);
     } else {
-      this.props.ExperimentActions.CreateNewWorkspace({
+      props.ExperimentActions.CreateNewWorkspace({
         title: experimentType,
         type: experimentType,
       });
-      this.props.navigate(SCREENS.DESIGN.route);
+      props.navigate(SCREENS.DESIGN.route);
     }
   }
 
-  handleLoadCustomExperiment(title: string) {
+  function handleLoadCustomExperiment(title: string) {
     title = title.replace(/ /g, '_');
-    this.setState({ isNewExperimentModalOpen: false });
-    if (this.state.recentWorkspaces.includes(title)) {
+    setIsNewExperimentModalOpen(false);
+    if (recentWorkspaces.includes(title)) {
       toast.error(`Experiment already exists`);
       return;
     }
@@ -143,24 +134,20 @@ export default class Home extends Component<Props, State> {
       toast.error(`Experiment name is too short`);
       return;
     }
-    this.props.ExperimentActions.CreateNewWorkspace({
+    props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
     });
-    this.props.navigate(SCREENS.DESIGN.route);
+    props.navigate(SCREENS.DESIGN.route);
   }
 
-  async handleLoadRecentWorkspace(dir: string) {
+  async function handleLoadRecentWorkspace(dir: string) {
     const recentWorkspaceState = await readAndParseState(dir);
     if (recentWorkspaceState == null) {
-      // Workspace state is unreadable (missing/corrupt appState.json). Trash the
-      // dead workspace automatically rather than making the user notice and
-      // hand-delete it — deleteWorkspaceDir uses shell.trashItem, so it's
-      // recoverable if the dir held recorded data.
       await deleteWorkspaceDir(dir);
-      const recentWorkspaces = await readWorkspaces();
-      this.setState({ recentWorkspaces });
-      await this.loadWorkspaceStates(recentWorkspaces);
+      const workspaces = await readWorkspaces();
+      setRecentWorkspaces(workspaces);
+      await loadWorkspaceStates(workspaces);
       toast(`Removed unreadable experiment "${dir}"`);
       return;
     }
@@ -170,22 +157,20 @@ export default class Home extends Component<Props, State> {
         .experimentObject,
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.props.ExperimentActions.SetState(deserializedWorkspaceState as any); // experimentObject not typed in serialized state
-    this.props.navigate(SCREENS.DESIGN.route);
+    props.ExperimentActions.SetState(deserializedWorkspaceState as any);
+    props.navigate(SCREENS.DESIGN.route);
   }
 
-  handleOpenOverview(type: EXPERIMENTS) {
-    this.setState({
-      overviewExperimentType: type,
-      isOverviewComponentOpen: true,
-    });
+  function handleOpenOverview(type: EXPERIMENTS) {
+    setOverviewExperimentType(type);
+    setIsOverviewComponentOpen(true);
   }
 
-  handleCloseOverview() {
-    this.setState({ isOverviewComponentOpen: false });
+  function handleCloseOverview() {
+    setIsOverviewComponentOpen(false);
   }
 
-  async handleDeleteWorkspace(dir) {
+  async function handleDeleteWorkspace(dir) {
     const options = {
       buttons: ['No', 'Yes'],
       message: 'Do you really want to delete the experiment?',
@@ -193,35 +178,32 @@ export default class Home extends Component<Props, State> {
     const response = await window.electronAPI.showMessageBox(options);
     if (response.response === 1) {
       await deleteWorkspaceDir(dir);
-      const recentWorkspaces = await readWorkspaces();
-      this.setState({ recentWorkspaces });
-      await this.loadWorkspaceStates(recentWorkspaces);
+      const workspaces = await readWorkspaces();
+      setRecentWorkspaces(workspaces);
+      await loadWorkspaceStates(workspaces);
     }
   }
 
-  renderSectionContent() {
-    switch (this.state.activeStep) {
+  function renderSectionContent() {
+    switch (activeStep) {
       case HOME_STEPS.RECENT:
         return (
           <div className="pt-[50px]">
-            {this.state.recentWorkspaces.length > 0 ? (
+            {recentWorkspaces.length > 0 ? (
               <div className="space-y-2">
-                {/* Header row */}
                 <div className="grid grid-cols-[1fr_1fr_auto] px-6 py-2 text-sm font-semibold text-[#666]">
                   <span>Experiment name</span>
                   <span>Date Last Opened</span>
                   <span className="min-w-[495px]">Actions</span>
                 </div>
-                {this.state.recentWorkspaces
+                {recentWorkspaces
                   .sort((a, b) => {
-                    const aTime =
-                      this.state.workspaceStates[a]?.dateModified || 0;
-                    const bTime =
-                      this.state.workspaceStates[b]?.dateModified || 0;
+                    const aTime = workspaceStates[a]?.dateModified || 0;
+                    const bTime = workspaceStates[b]?.dateModified || 0;
                     return bTime - aTime;
                   })
                   .map((dir) => {
-                    const workspaceState = this.state.workspaceStates[dir];
+                    const workspaceState = workspaceStates[dir];
                     if (!workspaceState) return undefined;
                     const { dateModified } = workspaceState;
                     return (
@@ -236,7 +218,7 @@ export default class Home extends Component<Props, State> {
                         <div className="flex gap-2">
                           <Button
                             variant="secondary"
-                            onClick={() => this.handleDeleteWorkspace(dir)}
+                            onClick={() => handleDeleteWorkspace(dir)}
                           >
                             Delete
                           </Button>
@@ -248,7 +230,7 @@ export default class Home extends Component<Props, State> {
                           </Button>
                           <Button
                             variant="default"
-                            onClick={() => this.handleLoadRecentWorkspace(dir)}
+                            onClick={() => handleLoadRecentWorkspace(dir)}
                           >
                             Open Experiment
                           </Button>
@@ -269,7 +251,7 @@ export default class Home extends Component<Props, State> {
                 </p>
                 <Button
                   variant="default"
-                  onClick={() => this.handleStepClick('EXPERIMENT BANK')}
+                  onClick={() => handleStepClick('EXPERIMENT BANK')}
                 >
                   View Experiments
                 </Button>
@@ -282,14 +264,14 @@ export default class Home extends Component<Props, State> {
         return (
           <div className="grid grid-cols-2 gap-4 p-4">
             <ExperimentCard
-              onClick={() => this.handleNewExperiment(EXPERIMENTS.N170)}
+              onClick={() => handleNewExperiment(EXPERIMENTS.N170)}
               icon={faceHouseIcon}
               title="Faces/Houses"
               description={`Explore how people react to different kinds of
                         images, like faces vs. houses.`}
             />
             <ExperimentCard
-              onClick={() => this.handleNewExperiment(EXPERIMENTS.STROOP)}
+              onClick={() => handleNewExperiment(EXPERIMENTS.STROOP)}
               icon={stroopIcon}
               title="Stroop"
               description={`Investigate why it is hard to deal with
@@ -297,21 +279,21 @@ export default class Home extends Component<Props, State> {
                         printed in blue).`}
             />
             <ExperimentCard
-              onClick={() => this.handleNewExperiment(EXPERIMENTS.MULTI)}
+              onClick={() => handleNewExperiment(EXPERIMENTS.MULTI)}
               icon={multitaskingIcon}
               title="Multi-tasking"
               description={`Explore why it is challenging to carry out multiple
                         tasks at the same time.`}
             />
             <ExperimentCard
-              onClick={() => this.handleNewExperiment(EXPERIMENTS.SEARCH)}
+              onClick={() => handleNewExperiment(EXPERIMENTS.SEARCH)}
               icon={searchIcon}
               title="Visual Search"
               description={`Examine why it is difficult to find your keys in a
                         messy room.`}
             />
             <ExperimentCard
-              onClick={() => this.handleNewExperiment(EXPERIMENTS.CUSTOM)}
+              onClick={() => handleNewExperiment(EXPERIMENTS.CUSTOM)}
               icon={customIcon}
               title="Custom"
               description={`Design your own image experiment. Choose
@@ -322,58 +304,49 @@ export default class Home extends Component<Props, State> {
       case HOME_STEPS.EXPLORE:
         return (
           <EEGExplorationComponent
-            connectedDevice={this.props.connectedDevice}
-            signalQualityObservable={this.props.signalQualityObservable}
-            deviceType={this.props.deviceType}
-            deviceAvailability={this.props.deviceAvailability}
-            connectionStatus={this.props.connectionStatus}
-            availableDevices={this.props.availableDevices}
-            availableLSLStreams={this.props.availableLSLStreams}
-            DeviceActions={this.props.DeviceActions}
+            connectedDevice={props.connectedDevice}
+            signalQualityObservable={props.signalQualityObservable}
+            deviceType={props.deviceType}
+            deviceAvailability={props.deviceAvailability}
+            connectionStatus={props.connectionStatus}
+            availableDevices={props.availableDevices}
+            availableLSLStreams={props.availableLSLStreams}
+            DeviceActions={props.DeviceActions}
           />
         );
     }
   }
 
-  renderOverviewOrHome() {
-    if (this.state.isOverviewComponentOpen) {
-      return (
-        <OverviewComponent
-          type={this.state.overviewExperimentType}
-          onStartExperiment={this.handleNewExperiment}
-          onCloseOverview={this.handleCloseOverview}
-        />
-      );
-    }
+  if (isOverviewComponentOpen) {
     return (
-      <>
-        <SecondaryNavComponent
-          title={<img src={appLogo} alt="BrainWaves" />}
-          steps={HOME_STEPS}
-          activeStep={this.state.activeStep}
-          onStepClick={this.handleStepClick}
-        />
-        <div className="pt-5 h-full overflow-y-auto">
-          {this.renderSectionContent()}
-        </div>
-      </>
+      <OverviewComponent
+        type={overviewExperimentType}
+        onStartExperiment={handleNewExperiment}
+        onCloseOverview={handleCloseOverview}
+      />
     );
   }
 
-  render() {
-    return (
-      <div
-        className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]"
-        data-tid="container"
-      >
-        {this.renderOverviewOrHome()}
-        <InputModal
-          open={this.state.isNewExperimentModalOpen}
-          onClose={this.handleLoadCustomExperiment}
-          onExit={() => this.setState({ isNewExperimentModalOpen: false })}
-          header="Enter a title for this experiment"
-        />
+  return (
+    <div
+      className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]"
+      data-tid="container"
+    >
+      <SecondaryNavComponent
+        title={<img src={appLogo} alt="BrainWaves" />}
+        steps={HOME_STEPS}
+        activeStep={activeStep}
+        onStepClick={handleStepClick}
+      />
+      <div className="pt-5 h-full overflow-y-auto">
+        {renderSectionContent()}
       </div>
-    );
-  }
+      <InputModal
+        open={isNewExperimentModalOpen}
+        onClose={handleLoadCustomExperiment}
+        onExit={() => setIsNewExperimentModalOpen(false)}
+        header="Enter a title for this experiment"
+      />
+    </div>
+  );
 }
