@@ -81,14 +81,14 @@ export default function InputCollect(props: Props) {
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <label htmlFor="input-subject" className="block text-sm mb-1">Enter Subject ID</label>
+            <label htmlFor="input-subject" className="block text-sm mb-1">
+              Enter Subject ID
+            </label>
             <input
               id="input-subject"
               className={[
                 'w-full border rounded px-3 py-2',
-                isSubjectError
-                  ? 'border-red-500'
-                  : 'border-gray-300',
+                isSubjectError ? 'border-red-500' : 'border-gray-300',
               ].join(' ')}
               onChange={(e) => handleTextEntry(e, 'subject')}
               onKeyDown={handleEnterSubmit}
@@ -109,14 +109,14 @@ export default function InputCollect(props: Props) {
             />
           </div>
           <div>
-            <label htmlFor="input-session" className="block text-sm mb-1">Enter session number</label>
+            <label htmlFor="input-session" className="block text-sm mb-1">
+              Enter session number
+            </label>
             <input
               id="input-session"
               className={[
                 'w-full border rounded px-3 py-2',
-                isSessionError
-                  ? 'border-red-500'
-                  : 'border-gray-300',
+                isSessionError ? 'border-red-500' : 'border-gray-300',
               ].join(' ')}
               type="number"
               onChange={(e) => handleTextEntry(e, 'session')}

@@ -49,7 +49,12 @@ export const getNeurosity = async (): Promise<Device[]> => {
   const client = getClient();
   const device = await client.bluetooth.requestDevice();
   cachedDevice = device as unknown as BluetoothDevice;
-  return [{ id: (device as BluetoothDevice).id, name: (device as BluetoothDevice).name }];
+  return [
+    {
+      id: (device as BluetoothDevice).id,
+      name: (device as BluetoothDevice).name,
+    },
+  ];
 };
 
 /**
@@ -93,9 +98,7 @@ export const cancelNeurosityScan = (): void => {
  */
 export const neurosityDisconnect$ = (): Observable<void> => {
   const client = getClient();
-  return (
-    client.status() as unknown as Observable<{ state: string }>
-  ).pipe(
+  return (client.status() as unknown as Observable<{ state: string }>).pipe(
     rxFilter((s) => s?.state === 'offline'),
     rxMap(() => undefined)
   );
@@ -123,7 +126,8 @@ export const createRawNeurosityObservable = async (): Promise<
       const { data, info } = epoch;
       if (!data || data.length === 0) return;
       const sampleCount = data[0].length;
-      const sampleIntervalMs = 1000 / (info.samplingRate || NEUROSITY_SAMPLING_RATE);
+      const sampleIntervalMs =
+        1000 / (info.samplingRate || NEUROSITY_SAMPLING_RATE);
       for (let i = 0; i < sampleCount; i++) {
         const sample: number[] = [];
         for (let c = 0; c < data.length; c++) {

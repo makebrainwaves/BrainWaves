@@ -17,7 +17,9 @@ describe('SignalQualityIndicatorComponent', () => {
 
     const { unmount } = render(
       <SignalQualityIndicatorComponent
-        signalQualityObservable={subject as unknown as Observable<SignalQualityData>}
+        signalQualityObservable={
+          subject as unknown as Observable<SignalQualityData>
+        }
         plottingInterval={500}
       />
     );
@@ -34,7 +36,9 @@ describe('SignalQualityIndicatorComponent', () => {
 
     const { rerender } = render(
       <SignalQualityIndicatorComponent
-        signalQualityObservable={subjectA as unknown as Observable<SignalQualityData>}
+        signalQualityObservable={
+          subjectA as unknown as Observable<SignalQualityData>
+        }
         plottingInterval={500}
       />
     );
@@ -44,7 +48,9 @@ describe('SignalQualityIndicatorComponent', () => {
 
     rerender(
       <SignalQualityIndicatorComponent
-        signalQualityObservable={subjectB as unknown as Observable<SignalQualityData>}
+        signalQualityObservable={
+          subjectB as unknown as Observable<SignalQualityData>
+        }
         plottingInterval={500}
       />
     );

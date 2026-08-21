@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EXPERIMENTS } from '../../../constants/constants';
 import type { DesignProps } from '../index';
@@ -71,7 +77,9 @@ describe('CustomDesign condition updates', () => {
     await navigateToConditionsTab();
 
     // Find and click the first "Select folder" button (stimulus1 slot).
-    const allSelectFolderBtns = screen.getAllByRole('button', { name: 'Select folder' });
+    const allSelectFolderBtns = screen.getAllByRole('button', {
+      name: 'Select folder',
+    });
     await act(async () => {
       fireEvent.click(allSelectFolderBtns[0]);
     });
@@ -87,7 +95,9 @@ describe('CustomDesign condition updates', () => {
     // call 1.
 
     // Find the first condition title input (stimulus1 slot).
-    const titleInput = screen.getAllByPlaceholderText('Enter condition name')[0];
+    const titleInput = screen.getAllByPlaceholderText(
+      'Enter condition name'
+    )[0];
 
     // Now change the title while the folder scan is still pending.
     await act(async () => {

@@ -8,10 +8,7 @@
  */
 import { Observable, Subject } from 'rxjs';
 import { share } from 'rxjs/operators';
-import type {
-  DiscoveredStream,
-  LSLInletEpoch,
-} from '../../../shared/lslTypes';
+import type { DiscoveredStream, LSLInletEpoch } from '../../../shared/lslTypes';
 import { EEGData } from '../../constants/interfaces';
 
 let activeUid: string | null = null;
@@ -45,17 +42,19 @@ export const createRawLSLInletObservable = async (
   inletSubject = subject;
   activeUid = stream.uid;
 
-  inletDataUnsubscribe = window.electronAPI.onLSLInletData((epoch: LSLInletEpoch) => {
-    if (epoch.uid !== stream.uid) return;
-    const { samples, timestamps } = epoch;
-    for (let i = 0; i < samples.length; i++) {
-      // LSL timestamps are in seconds; convert to ms to match EEGData convention.
-      subject.next({
-        data: samples[i],
-        timestamp: timestamps[i] * 1000,
-      });
+  inletDataUnsubscribe = window.electronAPI.onLSLInletData(
+    (epoch: LSLInletEpoch) => {
+      if (epoch.uid !== stream.uid) return;
+      const { samples, timestamps } = epoch;
+      for (let i = 0; i < samples.length; i++) {
+        // LSL timestamps are in seconds; convert to ms to match EEGData convention.
+        subject.next({
+          data: samples[i],
+          timestamp: timestamps[i] * 1000,
+        });
+      }
     }
-  });
+  );
 
   inletDisconnectedUnsubscribe = window.electronAPI.onLSLInletDisconnected(
     (payload) => {

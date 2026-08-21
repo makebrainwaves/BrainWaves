@@ -23,9 +23,12 @@ export default function InputModal(props: Props) {
     []
   );
 
-  useEffect(() => () => {
-    handleTextEntry.cancel();
-  }, [handleTextEntry]);
+  useEffect(
+    () => () => {
+      handleTextEntry.cancel();
+    },
+    [handleTextEntry]
+  );
 
   function handleClose() {
     if (enteredText.length >= 1) {

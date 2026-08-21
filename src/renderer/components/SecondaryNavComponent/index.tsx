@@ -87,9 +87,7 @@ export default function SecondaryNavComponent(props: Props) {
 
   return (
     <div className="flex items-center">
-      <div className="w-1/4 flex items-end px-4 py-2">
-        {renderTitle()}
-      </div>
+      <div className="w-1/4 flex items-end px-4 py-2">{renderTitle()}</div>
 
       {renderSteps()}
 

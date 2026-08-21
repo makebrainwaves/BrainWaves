@@ -68,12 +68,19 @@ export interface Props {
 }
 
 export default function Home(props: Props) {
-  const [activeStep, setActiveStep] = useState(props.activeStep || HOME_STEPS.RECENT);
+  const [activeStep, setActiveStep] = useState(
+    props.activeStep || HOME_STEPS.RECENT
+  );
   const [recentWorkspaces, setRecentWorkspaces] = useState<Array<string>>([]);
-  const [workspaceStates, setWorkspaceStates] = useState<Record<string, ExperimentStateType | null>>({});
-  const [isNewExperimentModalOpen, setIsNewExperimentModalOpen] = useState(false);
+  const [workspaceStates, setWorkspaceStates] = useState<
+    Record<string, ExperimentStateType | null>
+  >({});
+  const [isNewExperimentModalOpen, setIsNewExperimentModalOpen] =
+    useState(false);
   const [isOverviewComponentOpen, setIsOverviewComponentOpen] = useState(false);
-  const [overviewExperimentType, setOverviewExperimentType] = useState(EXPERIMENTS.NONE);
+  const [overviewExperimentType, setOverviewExperimentType] = useState(
+    EXPERIMENTS.NONE
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -191,10 +198,8 @@ export default function Home(props: Props) {
                 </div>
                 {recentWorkspaces
                   .sort((a, b) => {
-                    const aTime =
-                      workspaceStates[a]?.dateModified || 0;
-                    const bTime =
-                      workspaceStates[b]?.dateModified || 0;
+                    const aTime = workspaceStates[a]?.dateModified || 0;
+                    const bTime = workspaceStates[b]?.dateModified || 0;
                     return bTime - aTime;
                   })
                   .map((dir) => {

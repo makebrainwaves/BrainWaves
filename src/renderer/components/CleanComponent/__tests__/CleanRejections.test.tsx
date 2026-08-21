@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EXPERIMENTS, DEVICES } from '../../../constants/constants';
@@ -10,9 +16,7 @@ import Clean, { Props as CleanProps } from '../index';
 let mockRejected: Set<number> = new Set();
 
 vi.mock('../EpochReviewer', () => ({
-  default: (props: {
-    rejected: Set<number>;
-  }) => {
+  default: (props: { rejected: Set<number> }) => {
     mockRejected = props.rejected;
     return <div data-testid="epoch-reviewer" />;
   },
@@ -83,7 +87,9 @@ describe('Clean suggestedRejections merge', () => {
 
     // Select the first (and only) file path.
     const select = screen.getByRole('listbox') as HTMLSelectElement;
-    const option = screen.getByRole('option', { name: 'session_1.fif' }) as HTMLOptionElement;
+    const option = screen.getByRole('option', {
+      name: 'session_1.fif',
+    }) as HTMLOptionElement;
     option.selected = true;
     await act(async () => {
       fireEvent.change(select);
@@ -104,7 +110,10 @@ describe('Clean suggestedRejections merge', () => {
     ];
     rerender(
       <MemoryRouter>
-        <Clean {...(baseProps as unknown as CleanProps)} suggestedRejections={suggestions} />
+        <Clean
+          {...(baseProps as unknown as CleanProps)}
+          suggestedRejections={suggestions}
+        />
       </MemoryRouter>
     );
 

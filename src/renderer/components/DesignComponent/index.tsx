@@ -90,7 +90,8 @@ function renderOverviewIcon(type: EXPERIMENTS) {
 export default function Design(props: DesignProps) {
   const [activeStep, setActiveStep] = useState(DESIGN_STEPS.OVERVIEW);
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const [isNewExperimentModalOpen, setIsNewExperimentModalOpen] = useState(false);
+  const [isNewExperimentModalOpen, setIsNewExperimentModalOpen] =
+    useState(false);
   const [recentWorkspaces, setRecentWorkspaces] = useState<Array<string>>([]);
 
   useEffect(() => {
@@ -161,10 +162,7 @@ export default function Design(props: DesignProps) {
         return (
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-5/12 p-2">
-              <img
-                src={renderOverviewIcon(props.type)}
-                alt={overview.title}
-              />
+              <img src={renderOverviewIcon(props.type)} alt={overview.title} />
             </div>
             <div className="w-7/12 p-2">
               <h1>{overview.title}</h1>
@@ -177,10 +175,7 @@ export default function Design(props: DesignProps) {
         return (
           <div className="flex items-center p-4 h-[90%]">
             <div className="w-1/4 p-2">
-              <img
-                src={renderOverviewIcon(props.type)}
-                alt="overview"
-              />
+              <img src={renderOverviewIcon(props.type)} alt="overview" />
             </div>
             <div className="w-5/12 p-2">
               <p>{background?.first_column_statement}</p>
@@ -223,9 +218,7 @@ export default function Design(props: DesignProps) {
               <div className="flex gap-2 items-center">
                 <img
                   className="w-1/3"
-                  src={renderConditionIcon(
-                    protocol?.condition_first_img
-                  )}
+                  src={renderConditionIcon(protocol?.condition_first_img)}
                   alt={protocol?.condition_first_title}
                 />
                 <div className="w-2/3">
@@ -236,9 +229,7 @@ export default function Design(props: DesignProps) {
               <div className="flex gap-2 items-center">
                 <img
                   className="w-1/3"
-                  src={renderConditionIcon(
-                    protocol?.condition_second_img
-                  )}
+                  src={renderConditionIcon(protocol?.condition_second_img)}
                   alt={protocol?.condition_second_title}
                 />
                 <div className="w-2/3">

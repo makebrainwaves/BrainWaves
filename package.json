@@ -37,7 +37,9 @@
     "protocols": [
       {
         "name": "BrainWaves",
-        "schemes": ["brainwaves"]
+        "schemes": [
+          "brainwaves"
+        ]
       }
     ],
     "asarUnpack": [

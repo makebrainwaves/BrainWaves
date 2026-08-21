@@ -3,11 +3,7 @@ import path from 'pathe';
 import { Link } from 'react-router-dom';
 import { isNil, isString, memoize } from 'lodash';
 import { Button } from '../ui/button';
-import {
-  EXPERIMENTS,
-  DEVICES,
-  PTP_THRESHOLD,
-} from '../../constants/constants';
+import { EXPERIMENTS, DEVICES, PTP_THRESHOLD } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
@@ -183,7 +179,10 @@ export default function Clean(props: Props) {
         return;
       }
     }
-    props.PyodideActions.CleanEpochs({ dropIndices: [...rejectedEpochs], badChannels: [...badChannels] });
+    props.PyodideActions.CleanEpochs({
+      dropIndices: [...rejectedEpochs],
+      badChannels: [...badChannels],
+    });
     setRejectedEpochs(new Set());
     setBadChannels(new Set());
   }
@@ -284,10 +283,7 @@ export default function Clean(props: Props) {
     return (
       <>
         <div className="flex items-center gap-3 mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => setView('select')}
-          >
+          <Button variant="ghost" onClick={() => setView('select')}>
             ← Datasets
           </Button>
           <h1 className="m-0">Clean</h1>
@@ -348,10 +344,7 @@ export default function Clean(props: Props) {
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Flag epochs whose peak-to-peak amplitude exceeds{' '}
-              <span className="font-medium">
-                {autoFlagThreshold} µV
-              </span>
-              .
+              <span className="font-medium">{autoFlagThreshold} µV</span>.
             </p>
           </div>
         )}

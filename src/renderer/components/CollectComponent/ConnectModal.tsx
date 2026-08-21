@@ -189,9 +189,7 @@ export default function ConnectModal(props: Props) {
             tabIndex={0}
             className="flex items-center gap-2 py-2 cursor-pointer text-lg"
             onClick={() => setSelectedDevice(device)}
-            onKeyDown={(e) =>
-              e.key === 'Enter' && setSelectedDevice(device)
-            }
+            onKeyDown={(e) => e.key === 'Enter' && setSelectedDevice(device)}
           >
             <span>{selectedDevice === device ? '✓' : '○'}</span>
             <span>{getDeviceName(device)}</span>
@@ -231,9 +229,7 @@ export default function ConnectModal(props: Props) {
             <select
               value={props.deviceType}
               onChange={(e) =>
-                props.DeviceActions.SetDeviceType(
-                  e.target.value as DEVICES
-                )
+                props.DeviceActions.SetDeviceType(e.target.value as DEVICES)
               }
               className="w-full rounded border px-2 py-1"
             >
@@ -260,11 +256,7 @@ export default function ConnectModal(props: Props) {
                 Back
               </Button>
             )}
-            <Button
-              variant="default"
-              className="w-full"
-              onClick={handleSearch}
-            >
+            <Button variant="default" className="w-full" onClick={handleSearch}>
               Next
             </Button>
           </div>

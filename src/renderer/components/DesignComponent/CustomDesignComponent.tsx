@@ -204,11 +204,7 @@ export default function CustomDesign(props: DesignProps) {
     handleSaveParams(newParams);
   };
 
-  const handleChangeTrial = (
-    changedNum: number,
-    key: string,
-    data: string
-  ) => {
+  const handleChangeTrial = (changedNum: number, key: string, data: string) => {
     const stimuli: Stimulus[] = [...(params.stimuli ?? [])];
     const current = stimuli[changedNum];
     if (!current) return;
@@ -236,9 +232,7 @@ export default function CustomDesign(props: DesignProps) {
             </div>
             <div className="flex-1 flex flex-col items-center">
               <h1>Design your own experiment</h1>
-              <p>
-                Create your own experiment by following the steps below.
-              </p>
+              <p>Create your own experiment by following the steps below.</p>
               <div className="mt-4 space-y-4 w-full max-w-lg">
                 <div>
                   <h2>Ask a research question</h2>
@@ -299,8 +293,7 @@ export default function CustomDesign(props: DesignProps) {
               </TableHeader>
               <TableBody>
                 {CONDITION_SLOTS.map(({ name, number, type }) => {
-                  const slot =
-                    params[name] ?? emptyConditionSlot(type, '');
+                  const slot = params[name] ?? emptyConditionSlot(type, '');
                   return (
                     <StimuliDesignColumn
                       key={name}
@@ -310,9 +303,8 @@ export default function CustomDesign(props: DesignProps) {
                       dir={slot.dir ?? ''}
                       audioDir={slot.audioDir ?? ''}
                       numberImages={
-                        params.stimuli?.filter(
-                          (trial) => trial.type === number
-                        ).length
+                        params.stimuli?.filter((trial) => trial.type === number)
+                          .length
                       }
                       onChange={handleConditionChange}
                     />
@@ -533,9 +525,7 @@ export default function CustomDesign(props: DesignProps) {
             <h1>Instructions</h1>
             <div className="space-y-4 mt-4">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Intro
-                </label>
+                <label className="block text-sm font-medium mb-1">Intro</label>
                 <textarea
                   className="w-full border rounded p-2"
                   rows={4}

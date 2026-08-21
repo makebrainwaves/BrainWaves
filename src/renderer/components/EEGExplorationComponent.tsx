@@ -32,18 +32,14 @@ export default function Home(props: Props) {
   const [isHelpVisible, setIsHelpVisible] = useState(false);
 
   useEffect(() => {
-    if (
-      props.connectionStatus === CONNECTION_STATUS.CONNECTED
-    ) {
+    if (props.connectionStatus === CONNECTION_STATUS.CONNECTED) {
       setIsConnectModalOpen(false);
     }
   }, [props.connectionStatus]);
 
   function handleStartConnect() {
     setIsConnectModalOpen(true);
-    props.DeviceActions.SetDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+    props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
   function handleStopConnect() {
@@ -89,9 +85,7 @@ export default function Home(props: Props) {
           <div className="w-7/12 p-2">
             <h1>Explore Raw EEG</h1>
             <hr className="my-2" />
-            <p>
-              Connect directly to an EEG device and view raw streaming data
-            </p>
+            <p>Connect directly to an EEG device and view raw streaming data</p>
             <Button variant="default" onClick={handleStartConnect}>
               Connect
             </Button>
@@ -112,15 +106,11 @@ export default function Home(props: Props) {
       )}
       {isHelpVisible ? (
         <div className="fixed top-0 right-0 z-50 h-full w-80 shadow-lg">
-          <HelpSidebar
-            handleClose={() => setIsHelpVisible(false)}
-          />
+          <HelpSidebar handleClose={() => setIsHelpVisible(false)} />
         </div>
       ) : (
         <div className="fixed bottom-6 right-6 z-40">
-          <HelpButton
-            onClick={() => setIsHelpVisible(true)}
-          />
+          <HelpButton onClick={() => setIsHelpVisible(true)} />
         </div>
       )}
     </div>

@@ -29,8 +29,12 @@ const RESPONSE_OPTIONS = new Array(10).fill(0).map((_, i) => ({
 const lastSegment = (dir: string) => dir.split(path.sep).slice(-1).join(' / ');
 
 function StimuliDesignColumn(props: Props) {
-  const [numberImages, setNumberImages] = useState<number | undefined>(undefined);
-  const [numberSounds, setNumberSounds] = useState<number | undefined>(undefined);
+  const [numberImages, setNumberImages] = useState<number | undefined>(
+    undefined
+  );
+  const [numberSounds, setNumberSounds] = useState<number | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     void refreshSoundCount(props.audioDir);
@@ -105,11 +109,7 @@ function StimuliDesignColumn(props: Props) {
           onChange={(event) => {
             const val = event.target.value;
             if (val && isString(val)) {
-              props.onChange(
-                'response',
-                val,
-                `stimulus${props.num}`
-              );
+              props.onChange('response', val, `stimulus${props.num}`);
             }
           }}
         >
@@ -126,9 +126,7 @@ function StimuliDesignColumn(props: Props) {
         {props.dir ? (
           <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
             <div>Folder {lastSegment(props.dir)}</div>
-            <div>
-              ( {numberImages || props.numberImages} images )
-            </div>
+            <div>( {numberImages || props.numberImages} images )</div>
             <button onClick={handleRemoveFolder} aria-label="Remove">
               ✕
             </button>
@@ -144,9 +142,7 @@ function StimuliDesignColumn(props: Props) {
         {props.audioDir ? (
           <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
             <div>🔊 {lastSegment(props.audioDir)}</div>
-            {numberSounds !== undefined && (
-              <div>( {numberSounds} sounds )</div>
-            )}
+            {numberSounds !== undefined && <div>( {numberSounds} sounds )</div>}
             <button
               onClick={handleRemoveAudioFolder}
               aria-label="Remove sounds"

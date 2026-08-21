@@ -77,18 +77,10 @@ export default function CleanSidebar(props: Props) {
           {content}
         </div>
         <div className="flex gap-2 mt-4">
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={handleBack}
-          >
+          <Button variant="secondary" className="w-full" onClick={handleBack}>
             Back
           </Button>
-          <Button
-            variant="default"
-            className="w-full"
-            onClick={handleNext}
-          >
+          <Button variant="default" className="w-full" onClick={handleNext}>
             Next
           </Button>
         </div>

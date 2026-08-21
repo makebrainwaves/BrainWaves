@@ -1,10 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Subscription, Observable } from 'rxjs';
 import { isNil } from 'lodash';
-import {
-  MUSE_CHANNELS,
-  VIEWER_DEFAULTS,
-} from '../constants/constants';
+import { MUSE_CHANNELS, VIEWER_DEFAULTS } from '../constants/constants';
 
 type WebviewTag = HTMLElement & {
   send: (channel: string, ...args: unknown[]) => void;
@@ -24,7 +21,9 @@ interface Props {
 }
 
 export default function ViewerComponent(props: Props) {
-  const [channels, setChannels] = useState(() => props.channels ?? MUSE_CHANNELS);
+  const [channels, setChannels] = useState(
+    () => props.channels ?? MUSE_CHANNELS
+  );
   const domain = VIEWER_DEFAULTS.domain;
   const [viewerUrl, setViewerUrl] = useState('');
 

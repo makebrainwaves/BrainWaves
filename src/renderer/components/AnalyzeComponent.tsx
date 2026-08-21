@@ -70,14 +70,17 @@ export default function Analyze(props: Props) {
   >([{ key: '', text: '', value: '' }]);
   const [dataToPlot, setDataToPlot] = useState<PlotlyData[]>([]);
   const [layout, setLayout] = useState<Record<string, unknown>>({});
-  const [selectedDependentVariable, setSelectedDependentVariable] = useState('');
+  const [selectedDependentVariable, setSelectedDependentVariable] =
+    useState('');
   const [removeOutliers, setRemoveOutliers] = useState(true);
   const [showDataPoints, setShowDataPoints] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [displayMode, setDisplayMode] = useState('errorbars');
   const [helpMode, setHelpMode] = useState('errorbars');
   const [selectedFilePaths, setSelectedFilePaths] = useState<Array<string>>([]);
-  const [selectedBehaviorFilePaths, setSelectedBehaviorFilePaths] = useState<Array<string>>([]);
+  const [selectedBehaviorFilePaths, setSelectedBehaviorFilePaths] = useState<
+    Array<string>
+  >([]);
   const [selectedSubjects, setSelectedSubjects] = useState<Array<string>>([]);
   const [selectedChannel, setSelectedChannel] = useState(MUSE_CHANNELS[0]);
 
@@ -126,7 +129,9 @@ export default function Analyze(props: Props) {
     props.PyodideActions.LoadCleanedEpochs(values);
   }
 
-  function handleBehaviorDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  function handleBehaviorDatasetChange(
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) {
     const values = Array.from(e.target.selectedOptions, (o) => o.value);
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(values),
@@ -156,7 +161,9 @@ export default function Analyze(props: Props) {
     }
   }
 
-  function handleDependentVariableChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  function handleDependentVariableChange(
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) {
     const { value } = e.target;
     const aggregatedData = aggregateDataForPlot(
       readBehaviorData(selectedBehaviorFilePaths),
@@ -225,11 +232,11 @@ export default function Analyze(props: Props) {
 
   function saveSelectedDatasets() {
     const data = readBehaviorData(selectedBehaviorFilePaths);
-    const aggregatedData = aggregateBehaviorDataToSave(
-      data,
-      removeOutliers
+    const aggregatedData = aggregateBehaviorDataToSave(data, removeOutliers);
+    storeAggregatedBehaviorData(
+      aggregatedData as Parameters<typeof storeAggregatedBehaviorData>[0],
+      props.title
     );
-    storeAggregatedBehaviorData(aggregatedData as Parameters<typeof storeAggregatedBehaviorData>[0], props.title);
   }
 
   function handleChannelSelect(channelName: string) {
@@ -243,10 +250,7 @@ export default function Analyze(props: Props) {
 
   function renderEpochLabels() {
     const { epochsInfo } = props;
-    if (
-      !isNil(epochsInfo) &&
-      selectedFilePaths.length >= 1
-    ) {
+    if (!isNil(epochsInfo) && selectedFilePaths.length >= 1) {
       const numberConditions = epochsInfo.filter(
         (infoObj) =>
           infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
@@ -547,7 +551,11 @@ export default function Analyze(props: Props) {
         activeStep={activeStep}
         onStepClick={handleStepClick}
         saveButton={
-          <Button variant="ghost" size="icon" onClick={toggleDisplayInfoVisibility}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleDisplayInfoVisibility}
+          >
             {isSidebarVisible ? 'Hide' : 'Show'} help
           </Button>
         }

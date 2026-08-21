@@ -1,7 +1,10 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 import { Button } from './ui/button';
-import { storePyodideImageSvg, storePyodideImagePng } from '../utils/filesystem/storage';
+import {
+  storePyodideImageSvg,
+  storePyodideImagePng,
+} from '../utils/filesystem/storage';
 
 interface Props {
   title: string;
@@ -27,11 +30,17 @@ function svgToPngArrayBuffer(svg: string): Promise<ArrayBuffer> {
       ctx.drawImage(img, 0, 0);
       URL.revokeObjectURL(url);
       canvas.toBlob((pngBlob) => {
-        if (!pngBlob) { reject(new Error('Canvas toBlob failed')); return; }
+        if (!pngBlob) {
+          reject(new Error('Canvas toBlob failed'));
+          return;
+        }
         pngBlob.arrayBuffer().then(resolve).catch(reject);
       }, 'image/png');
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG load failed')); };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('SVG load failed'));
+    };
     img.src = url;
   });
 }

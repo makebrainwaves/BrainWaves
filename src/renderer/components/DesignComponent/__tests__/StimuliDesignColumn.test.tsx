@@ -22,7 +22,10 @@ vi.mock('../../../utils/filesystem/select', () => ({
 describe('StimuliDesignColumn', () => {
   beforeEach(() => {
     mockReadAudioFiles.mockReset();
-    mockReadAudioFiles.mockImplementation(async (_dir: string) => ['beep.mp3', 'boop.wav']);
+    mockReadAudioFiles.mockImplementation(async (_dir: string) => [
+      'beep.mp3',
+      'boop.wav',
+    ]);
   });
 
   it('re-derives the sound count from the folder on mount', async () => {

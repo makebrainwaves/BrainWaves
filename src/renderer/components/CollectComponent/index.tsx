@@ -42,7 +42,9 @@ export interface Props {
 
 export default function Collect(props: Props) {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [isRunComponentOpen, setIsRunComponentOpen] = useState(!props.isEEGEnabled);
+  const [isRunComponentOpen, setIsRunComponentOpen] = useState(
+    !props.isEEGEnabled
+  );
 
   useEffect(() => {
     if (
@@ -55,18 +57,14 @@ export default function Collect(props: Props) {
   }, []);
 
   useEffect(() => {
-    if (
-      props.connectionStatus === CONNECTION_STATUS.CONNECTED
-    ) {
+    if (props.connectionStatus === CONNECTION_STATUS.CONNECTED) {
       setIsConnectModalOpen(false);
     }
   }, [props.connectionStatus]);
 
   function handleStartConnect() {
     setIsConnectModalOpen(true);
-    props.DeviceActions.SetDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+    props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
   function handleConnectModalClose() {
@@ -90,9 +88,7 @@ export default function Collect(props: Props) {
         open={isConnectModalOpen}
         onClose={handleConnectModalClose}
         connectedDevice={props.connectedDevice}
-        signalQualityObservable={
-          props.signalQualityObservable ?? undefined
-        }
+        signalQualityObservable={props.signalQualityObservable ?? undefined}
         deviceAvailability={props.deviceAvailability}
         connectionStatus={props.connectionStatus}
         deviceType={props.deviceType}

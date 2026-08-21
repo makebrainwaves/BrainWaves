@@ -247,9 +247,7 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       saveEpochs(worker, state$.value.experiment.subject);
       requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
-    map(() =>
-      PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS)
-    )
+    map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))
   );
 
 const getEpochsInfoEpic: Epic<

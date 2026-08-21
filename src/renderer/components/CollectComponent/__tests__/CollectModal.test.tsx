@@ -70,7 +70,10 @@ describe('Collect modal', () => {
 
   it('does not open the connect modal on mount when EEG is disabled', () => {
     render(
-      <Collect {...(baseProps as unknown as CollectProps)} isEEGEnabled={false} />
+      <Collect
+        {...(baseProps as unknown as CollectProps)}
+        isEEGEnabled={false}
+      />
     );
 
     expect(screen.queryByTestId('connect-modal')).not.toBeInTheDocument();
