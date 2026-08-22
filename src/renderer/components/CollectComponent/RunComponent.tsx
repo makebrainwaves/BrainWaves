@@ -12,7 +12,7 @@ import {
   SCREENS,
   PLOTTING_INTERVAL,
 } from '../../constants/constants';
-import { ExperimentWindow } from '../ExperimentWindow';
+import { ExperimentRuntime } from '../ExperimentRuntime';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
   ExperimentParameters,
@@ -211,7 +211,8 @@ const Run: React.FC<Props> = ({
 
         {isRunning && (
           <div className="h-full w-full">
-            <ExperimentWindow
+            <ExperimentRuntime
+              type={type}
               title={title}
               experimentObject={experimentObject}
               params={params}

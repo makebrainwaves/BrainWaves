@@ -130,6 +130,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteWorkspaceDir: (title: string): Promise<void> =>
     ipcRenderer.invoke('fs:deleteWorkspaceDir', title),
 
+  importExperimentFile: (
+    title: string,
+    sourcePath: string
+  ): Promise<{ file: string }> =>
+    ipcRenderer.invoke('fs:importExperimentFile', title, sourcePath),
+
   readImages: (dir: string): Promise<string[]> =>
     ipcRenderer.invoke('fs:readImages', dir),
 

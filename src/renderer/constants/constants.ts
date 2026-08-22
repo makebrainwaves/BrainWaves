@@ -5,6 +5,7 @@ export enum EXPERIMENTS {
   MULTI = 'Multi-tasking',
   SEARCH = 'Visual_Search',
   CUSTOM = 'Custom',
+  IMPORTED = 'Imported',
   // P300 = 'Visual Oddball',
   // SSVEP = 'Steady-state Visual Evoked Potential',
 }

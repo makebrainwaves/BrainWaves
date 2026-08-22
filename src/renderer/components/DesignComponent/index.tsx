@@ -11,6 +11,7 @@ import {
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import CustomDesign from './CustomDesignComponent';
+import ImportedDesign from './ImportedDesignComponent';
 import PreviewButton from '../PreviewButtonComponent';
 
 import facesHousesOverview from '../../experiments/faces_houses/icon.png';
@@ -157,6 +158,7 @@ export default class Design extends Component<DesignProps, State> {
       case EXPERIMENTS.SEARCH:
         return searchOverview;
       case EXPERIMENTS.CUSTOM:
+      case EXPERIMENTS.IMPORTED:
       default:
         return customOverview;
     }
@@ -289,6 +291,10 @@ export default class Design extends Component<DesignProps, State> {
   render() {
     if (this.props.type === EXPERIMENTS.CUSTOM) {
       return <CustomDesign {...this.props} />;
+    }
+
+    if (this.props.type === EXPERIMENTS.IMPORTED) {
+      return <ImportedDesign {...this.props} />;
     }
     return (
       <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
