@@ -40,6 +40,7 @@ import type {
   LSLStatus,
   LSLStatusKind,
 } from '../shared/lslTypes';
+import { importExperimentFile } from './importExperimentFile';
 
 // Needed for WASM/SharedArrayBuffer support (pyodide)
 app.commandLine.appendSwitch(
@@ -184,8 +185,12 @@ ipcMain.handle('loadDialog', async (_event, fileType) => {
     return directory;
   }
   const result = await dialog.showOpenDialog(mainWindow!, {
-    title: 'Select a jsPsych timeline file',
-    properties: ['openFile', 'promptToCreate'],
+    title: 'Select a jsPsych timeline (.js) or lab.js study (.json)',
+    properties: ['openFile'],
+    filters: [
+      { name: 'Experiment', extensions: ['js', 'json'] },
+      { name: 'All Files', extensions: ['*'] },
+    ],
   });
   return result.canceled ? null : result.filePaths[0];
 });
@@ -390,6 +395,12 @@ ipcMain.handle(
 
 ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
   shell.trashItem(path.join(workspaces, title))
+);
+
+ipcMain.handle(
+  'fs:importExperimentFile',
+  (_event, title: string, sourcePath: string) =>
+    importExperimentFile(getWorkspaceDir(title), sourcePath)
 );
 
 const readFilesWithExtensions = (dir: string, extensions: Set<string>) =>

@@ -10,7 +10,7 @@ import {
   SuggestedRejection,
 } from '../actions';
 import { RootState } from '../reducers';
-import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
+import { resolveMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   loadCSV,
   loadCleanedEpochs,
@@ -187,13 +187,12 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
       // Queue processing messages in order; the worker runs them sequentially.
       loadCSV(worker, csvArray);
       filterIIR(worker, 1, 30);
-      if (state$.value.experiment.params?.stimuli) {
-        // event_id VALUES must equal the numeric codes written to the CSV Marker
-        // column (stimulus.type). buildMarkerRegistry keeps this in lockstep with
-        // collection — array indices silently dropped codes that didn't match.
-        const { eventId } = buildMarkerRegistry(
-          state$.value.experiment.params.stimuli
-        );
+      // event_id VALUES must equal the numeric codes written to the CSV Marker
+      // column. resolveMarkerRegistry keeps this in lockstep with collection for
+      // built-in, custom, AND imported experiments — array indices silently
+      // dropped codes that didn't match.
+      const { eventId } = resolveMarkerRegistry(state$.value.experiment.params);
+      if (Object.keys(eventId).length > 0) {
         epochEvents(worker, eventId, -0.1, 0.8);
       }
       // Result returns asynchronously via pyodideMessageEpic → SetEpochInfo.

@@ -5,21 +5,16 @@ import * as lab from 'lab.js';
 import {
   ExperimentObject,
   ExperimentParameters,
-  Stimulus,
 } from '../constants/interfaces';
 import { toStimulusFileUrl } from '../../shared/stimulusUrl';
+import { ExperimentRuntimeProps } from './ExperimentRuntime';
 
-export interface ExperimentWindowProps {
-  title: string;
+export type LabjsExperimentWindowProps = ExperimentRuntimeProps & {
   experimentObject: ExperimentObject;
   params: ExperimentParameters;
-  fullScreen?: boolean;
-  eventCallback: (value: number, time: number) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onFinish: (csv: any) => void; // lab.js finish event data — shape is opaque third-party type
-}
+};
 
-export const ExperimentWindow: React.FC<ExperimentWindowProps> = ({
+export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   title,
   experimentObject,
   params,

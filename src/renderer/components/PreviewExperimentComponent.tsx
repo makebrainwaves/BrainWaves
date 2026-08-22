@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ExperimentWindow } from './ExperimentWindow';
+import { ExperimentRuntime } from './ExperimentRuntime';
 import { getImages } from '../utils/filesystem/storage';
 import {
   ExperimentObject,
@@ -16,11 +16,11 @@ interface Props {
   onEnd: () => void;
 }
 
-export default class PreviewExperimentComponent extends Component<Props> {
-  static insertPreviewLabJsCallback(e) {
-    console.log('EEG marker', e);
-  }
+function insertPreviewMarkerCallback(code: number, time: number) {
+  console.log('EEG marker', code, time);
+}
 
+export default class PreviewExperimentComponent extends Component<Props> {
   handleImages() {
     return getImages(this.props.params);
   }
@@ -35,11 +35,12 @@ export default class PreviewExperimentComponent extends Component<Props> {
     }
     return (
       <div className="h-full w-full flex">
-        <ExperimentWindow
+        <ExperimentRuntime
+          type={this.props.type}
           title={this.props.title}
           experimentObject={this.props.experimentObject}
           params={this.props.params}
-          eventCallback={PreviewExperimentComponent.insertPreviewLabJsCallback}
+          eventCallback={insertPreviewMarkerCallback}
           fullScreen={false}
           onFinish={this.props.onEnd}
         />

@@ -22,7 +22,7 @@ import {
   writeEEGData,
   writeEEGEvents,
 } from '../utils/filesystem/write';
-import { buildMarkerRegistry } from '../utils/eeg/markerRegistry';
+import { resolveMarkerRegistry } from '../utils/eeg/markerRegistry';
 import {
   storeExperimentState,
   restoreExperimentState,
@@ -49,11 +49,17 @@ const createNewWorkspaceEpic: Epic<
     mergeMap(async (workspaceInfo) => {
       await createWorkspaceDir(workspaceInfo.title);
       const experiment = getExperimentFromType(workspaceInfo.type);
+      // An imported study's contract arrives WITH the workspace request, so
+      // there is no window in which `type` is IMPORTED but `params.imported` is
+      // still the empty default.
+      const params = workspaceInfo.imported
+        ? { ...experiment.params, imported: workspaceInfo.imported }
+        : experiment.params;
       return [
         ExperimentActions.SetTitle(workspaceInfo.title),
         ExperimentActions.SetType(workspaceInfo.type),
         ExperimentActions.SetExperimentObject(experiment?.experimentObject),
-        ExperimentActions.SetParams(experiment?.params),
+        ExperimentActions.SetParams(params),
       ];
     }),
     mergeMap((actions) => of(...actions))
@@ -86,8 +92,8 @@ const startEpic = (action$, state$) =>
         // Persist the code->label event map next to the CSV so the numeric
         // Marker codes are self-describing. Same registry the analysis uses,
         // so the recording and its interpretation can never drift apart.
-        const { codeToLabel } = buildMarkerRegistry(
-          state$.value.experiment.params?.stimuli
+        const { codeToLabel } = resolveMarkerRegistry(
+          state$.value.experiment.params
         );
         void writeEEGEvents(
           state$.value.experiment.title,

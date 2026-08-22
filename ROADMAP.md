@@ -31,7 +31,7 @@ Epoch-reviewer onboarding (plain language, guided mode). See TODOS "Next".
 
 - Muse S Athena (Gen 3)
 - Neurosity polish (only if a partner classroom owns Crowns)
-- Type lab.js / strip leftover jsPsych strings (users never see this)
+- ~~Type lab.js / strip leftover jsPsych strings~~ → jsPsych is now a **supported runtime** for imported timelines (v1 shipped 2026-08-21)
 - Lesson surface beyond markdown (block-based / notebooks)
 
 ## Deliberate dual systems (not debt)

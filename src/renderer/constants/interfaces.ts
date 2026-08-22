@@ -13,9 +13,44 @@ export interface ExperimentObject {
   [key: string]: unknown;
 }
 
+export type ImportedExperimentKind = 'jspsych' | 'labjs';
+
+/**
+ * Everything BrainWaves needs in order to run an externally-authored study.
+ *
+ * `conditionLabels` is ORDERED and the order is the contract: the label at
+ * index i carries marker code i + 1. It is frozen in the Markers tab before the
+ * first subject runs, because interning labels on encounter order would give
+ * subject A `Face=1` and subject B `Face=2` under different randomization —
+ * silently corrupting cross-subject ERP averaging. Editing a later label can
+ * never renumber an earlier one.
+ *
+ * An empty `conditionLabels` is a legitimate, first-class state: the study runs
+ * behavior-only and EEG is forced off.
+ */
+export interface ImportedExperiment {
+  kind: ImportedExperimentKind;
+  /** POSIX path of the copied study file, relative to the workspace directory. */
+  file: string;
+  /** Author `data` key holding the condition label; '' until chosen. */
+  conditionKey: string;
+  /** Author `data` key holding trial correctness; '' means "not measured". */
+  correctKey: string;
+  /** Condition labels in code order. */
+  conditionLabels: string[];
+  /**
+   * Absolute path of the folder the author's relative asset URLs resolve
+   * against. Authorized through the same StimulusFileAccess allowlist as
+   * custom-experiment stimulus folders.
+   */
+  assetDir?: string;
+}
+
 export interface WorkSpaceInfo {
   title: string;
   type: EXPERIMENTS;
+  /** Set only when the workspace is created from an imported study. */
+  imported?: ImportedExperiment;
 }
 
 // All mutable aspects of an experiment that can be updated by the DesignComponent
@@ -50,6 +85,9 @@ export type ExperimentParameters = {
   stimulus2?: StimulusCondition;
   stimulus3?: StimulusCondition;
   stimulus4?: StimulusCondition;
+  // Set only for EXPERIMENTS.IMPORTED: the externally-authored study and the
+  // condition contract the Markers tab froze for it.
+  imported?: ImportedExperiment;
 };
 
 export interface Stimulus {
