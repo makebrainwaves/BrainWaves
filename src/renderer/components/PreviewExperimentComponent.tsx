@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExperimentWindow } from './ExperimentWindow';
+import { ExperimentRuntime } from './ExperimentRuntime';
 import { getImages } from '../utils/filesystem/storage';
 import {
   ExperimentObject,
@@ -16,8 +16,8 @@ interface Props {
   onEnd: () => void;
 }
 
-function insertPreviewLabJsCallback(e) {
-  console.log('EEG marker', e);
+function insertPreviewMarkerCallback(code: number, time: number) {
+  console.log('EEG marker', code, time);
 }
 
 export default function PreviewExperimentComponent(props: Props) {
@@ -34,11 +34,12 @@ export default function PreviewExperimentComponent(props: Props) {
   }
   return (
     <div className="h-full w-full flex">
-      <ExperimentWindow
+      <ExperimentRuntime
+        type={props.type}
         title={props.title}
         experimentObject={props.experimentObject}
         params={props.params}
-        eventCallback={insertPreviewLabJsCallback}
+        eventCallback={insertPreviewMarkerCallback}
         fullScreen={false}
         onFinish={props.onEnd}
       />

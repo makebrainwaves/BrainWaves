@@ -71,6 +71,10 @@ declare global {
       rawData: ArrayBuffer
     ) => Promise<void>;
     deleteWorkspaceDir: (title: string) => Promise<void>;
+    importExperimentFile: (
+      title: string,
+      sourcePath: string
+    ) => Promise<{ file: string }>;
     readImages: (dir: string) => Promise<string[]>;
     readAudioFiles: (dir: string) => Promise<string[]>;
     getImages: (params: unknown) => Promise<string[]>;

@@ -11,6 +11,7 @@ import {
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import CustomDesign from './CustomDesignComponent';
+import ImportedDesign from './ImportedDesignComponent';
 import PreviewButton from '../PreviewButtonComponent';
 
 import facesHousesOverview from '../../experiments/faces_houses/icon.png';
@@ -263,6 +264,14 @@ export default function Design(props: DesignProps) {
           </div>
         );
     }
+  }
+
+  if ((props.type as EXPERIMENTS) === EXPERIMENTS.CUSTOM) {
+    return <CustomDesign {...props} />;
+  }
+
+  if ((props.type as EXPERIMENTS) === EXPERIMENTS.IMPORTED) {
+    return <ImportedDesign {...props} />;
   }
 
   return (

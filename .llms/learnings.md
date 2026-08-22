@@ -9,6 +9,10 @@ Format: brief heading + explanation + (optional) relevant file paths.
 
 <!-- Add entries below this line -->
 
+## jsPsych v8 is a supported runtime alongside lab.js
+
+BrainWaves now runs externally-authored jsPsych v8 timelines (`.js`) and lab.js `.study.json` files. The runtime is implemented in `src/renderer/components/ImportedExperimentWindow.tsx`, which owns the `initJsPsych()` call and injects `display_element`, `override_safe_mode`, marker emission via `on_trial_start` + `requestAnimationFrame`, and behavioral CSV normalization. All 52 official `@jspsych/plugin-*` packages ship in the bundle; missing plugins are a hard classroom failure, so the full set is included despite bundle size (~9 MB against an already-shipping Pyodide runtime). Condition labels are declared by the teacher in a Markers tab (not auto-derived) because randomization and timeline variables make the true set statically unknowable. Numeric codes come from the declared label order: `conditionLabels[i]` → code `i + 1`. An empty label list is a legitimate behavior-only state (EEG forced off). See `docs/superpowers/specs/2026-08-21-import-experiments-design.md` for full architecture decisions.
+
 ## Comment style: keep them on definitions, not inside logic
 
 This repo prefers minimal comments. Write them on **function, prop, or data-structure

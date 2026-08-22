@@ -14,4 +14,21 @@ describe('getExperimentFromType', () => {
     expect(custom.params).not.toBe(faces.params);
     expect(custom.text.overview.title).toBe('Custom Experiment');
   });
+
+  it('returns the imported pack, with an empty condition contract, for EXPERIMENTS.IMPORTED', () => {
+    const imported = getExperimentFromType(EXPERIMENTS.IMPORTED);
+
+    expect(imported.params.imported).toEqual({
+      kind: 'jspsych',
+      file: '',
+      conditionKey: '',
+      correctKey: '',
+      conditionLabels: [],
+    });
+    // Nothing deserializes an imported study through lab.core.deserialize, and
+    // the lab.js runtime bails on a missing `type`, so the graph stays empty.
+    expect(imported.experimentObject).toEqual({});
+    expect(imported.params.stimuli).toEqual([]);
+    expect(imported.text.overview.title).toBe('Imported Experiment');
+  });
 });

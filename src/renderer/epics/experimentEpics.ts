@@ -49,11 +49,17 @@ const createNewWorkspaceEpic: Epic<
     mergeMap(async (workspaceInfo) => {
       await createWorkspaceDir(workspaceInfo.title);
       const experiment = getExperimentFromType(workspaceInfo.type);
+      // An imported study's contract arrives WITH the workspace request, so
+      // there is no window in which `type` is IMPORTED but `params.imported` is
+      // still the empty default.
+      const params = workspaceInfo.imported
+        ? { ...experiment.params, imported: workspaceInfo.imported }
+        : experiment.params;
       return [
         ExperimentActions.SetTitle(workspaceInfo.title),
         ExperimentActions.SetType(workspaceInfo.type),
         ExperimentActions.SetExperimentObject(experiment?.experimentObject),
-        ExperimentActions.SetParams(experiment?.params),
+        ExperimentActions.SetParams(params),
       ];
     }),
     mergeMap((actions) => of(...actions))
