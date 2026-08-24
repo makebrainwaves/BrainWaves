@@ -1,5 +1,7 @@
+import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import CleanComponent from '../components/CleanComponent';
 import { PyodideActions, ExperimentActions } from '../actions';
 import { RootState } from '../store';
@@ -24,4 +26,12 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(CleanComponent);
+const ConnectedClean = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CleanComponent);
+
+export default function CleanContainer(props: Record<string, unknown>) {
+  const navigate = useNavigate();
+  return React.createElement(ConnectedClean, { ...props, navigate });
+}

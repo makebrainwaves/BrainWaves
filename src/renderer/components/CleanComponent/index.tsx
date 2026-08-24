@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import path from 'pathe';
-import { Link } from 'react-router-dom';
 import { isNil, isString, memoize } from 'lodash';
 import { Button } from '../ui/button';
-import { EXPERIMENTS, DEVICES, PTP_THRESHOLD } from '../../constants/constants';
+import {
+  EXPERIMENTS,
+  DEVICES,
+  PTP_THRESHOLD,
+  SCREENS,
+} from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
@@ -37,6 +41,8 @@ export interface Props {
   session: number;
   params: ExperimentParameters | null;
   suggestedRejections: SuggestedRejection[];
+  cleanedEpochsSave: { revision: number; ok: boolean };
+  navigate: (route: string) => void;
 }
 
 interface DropdownOption {
@@ -60,11 +66,15 @@ export default function Clean(props: Props) {
     PTP_THRESHOLD.default
   );
   const [showAutoFlagSettings, setShowAutoFlagSettings] = useState(false);
+  const [isWaitingForCleanedSave, setIsWaitingForCleanedSave] = useState(false);
   const [icons] = useState(() =>
     props.type === EXPERIMENTS.N170
       ? ['😊', '🏠', '✕', '📖']
       : ['★', '☆', '✕', '📖']
   );
+
+  // Track previous revision so we can detect changes in cleanedEpochsSave.
+  const prevRevisionRef = useRef(props.cleanedEpochsSave.revision);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +119,28 @@ export default function Clean(props: Props) {
     }
   }, [props.suggestedRejections]);
 
+  // componentDidUpdate equivalent: watch cleanedEpochsSave.revision changes.
+  const { cleanedEpochsSave, navigate } = props;
+  useEffect(() => {
+    if (
+      isWaitingForCleanedSave &&
+      cleanedEpochsSave.revision !== prevRevisionRef.current
+    ) {
+      setIsWaitingForCleanedSave(false);
+      // On failure the epic has already surfaced a toast; stay put so the
+      // student doesn't land on an Analyze screen missing their dataset.
+      if (cleanedEpochsSave.ok) {
+        navigate(SCREENS.ANALYZE.route);
+      }
+    }
+    prevRevisionRef.current = cleanedEpochsSave.revision;
+  }, [
+    isWaitingForCleanedSave,
+    cleanedEpochsSave.revision,
+    cleanedEpochsSave.ok,
+    navigate,
+  ]);
+
   function handleRecordingChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const filePaths = Array.from(e.target.selectedOptions, (o) => o.value);
     setSelectedFilePaths(filePaths);
@@ -152,6 +184,8 @@ export default function Clean(props: Props) {
     }
     setBadChannels(next);
 
+    // Dropping >1 of a 4-channel (Muse) recording loses a lot of signal —
+    // informational only; they can still proceed.
     if (adding && next.size > 1 && props.epochArrays?.meta.n_channels === 4) {
       window.electronAPI.showMessageBox({
         buttons: ['Got it'],
@@ -167,24 +201,70 @@ export default function Clean(props: Props) {
     props.PyodideActions.GetSuggestedRejections(autoFlagThreshold);
   }
 
-  async function handleCleanData() {
+  /**
+   * Applies the pending selection. Returns false when the student backed out,
+   * so callers know nothing was dispatched.
+   *
+   * `destination` only affects the wording of the one confirmation dialog —
+   * "Clean Data" has always applied a partial selection without asking, while
+   * "Analyze Dataset" confirms because it also leaves the screen.
+   */
+  async function handleCleanData(
+    destination: 'clean' | 'analyze' = 'clean'
+  ): Promise<boolean> {
     const total = props.epochArrays?.meta.n_epochs ?? 0;
     const nDropped = rejectedEpochs.size;
+    const nBadChannels = badChannels.size;
+
+    // Exactly one prompt, whatever the trigger. Rejecting every epoch produces
+    // an empty dataset that can't be analyzed (and previously wrote a
+    // degenerate .fif with no error), so that warning always wins.
+    let confirmation: { confirmLabel: string; message: string } | null = null;
     if (total > 0 && nDropped >= total) {
-      const response = await window.electronAPI.showMessageBox({
-        buttons: ['Cancel', 'Reject all anyway'],
+      confirmation = {
+        confirmLabel: 'Reject all anyway',
         message: `This will reject all ${total} epochs, leaving nothing to analyze. Are you sure?`,
+      };
+    } else if (destination === 'analyze' && nDropped > 0) {
+      confirmation = {
+        confirmLabel: 'Remove selected and analyze',
+        message: `This will remove ${nDropped} selected epoch${nDropped === 1 ? '' : 's'} before analysis. Continue?`,
+      };
+    } else if (destination === 'analyze' && nBadChannels > 0) {
+      confirmation = {
+        confirmLabel: 'Apply and analyze',
+        message:
+          'This will apply flagged bad channels before analysis. Continue?',
+      };
+    }
+
+    if (confirmation) {
+      const response = await window.electronAPI.showMessageBox({
+        buttons: ['Cancel', confirmation.confirmLabel],
+        message: confirmation.message,
       });
       if (response.response !== 1) {
-        return;
+        return false;
       }
     }
+
     props.PyodideActions.CleanEpochs({
       dropIndices: [...rejectedEpochs],
       badChannels: [...badChannels],
     });
+    // After Clean, raw_epochs is re-fetched with fewer epochs, so the old
+    // absolute indices no longer apply.
     setRejectedEpochs(new Set());
     setBadChannels(new Set());
+    return true;
+  }
+
+  async function handleAnalyzeClick() {
+    if (!(await handleCleanData('analyze'))) return;
+    // The cleaned .fif is written by the worker well after CleanEpochs is
+    // dispatched, and Analyze lists that directory on mount — navigating now
+    // would show a picker without the dataset that was just produced.
+    setIsWaitingForCleanedSave(true);
   }
 
   function handleThresholdChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -199,33 +279,60 @@ export default function Clean(props: Props) {
   }
 
   function renderStats() {
-    const { epochsInfo } = props;
+    const { epochsInfo, epochArrays } = props;
     if (isNil(epochsInfo) || epochsInfo.length === 0) {
       return null;
     }
+    // MNE's "Drop Percentage" only counts epochs already dropped, so it can't
+    // move while the student is still selecting. Report the pending selection
+    // alongside it rather than overwriting it with a number that resets to 0
+    // after every clean.
+    const total = epochArrays?.meta.n_epochs ?? 0;
+    const nSelected = rejectedEpochs.size;
+    const selectedPercent =
+      total > 0 ? Math.round((nSelected / total) * 1000) / 10 : 0;
     return (
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
         {epochsInfo.map((infoObj, index) => (
           <span key={String(infoObj.name)} className="whitespace-nowrap">
             <span className="mr-1">{icons[index]}</span>
-            <span className="text-gray-500">{infoObj.name}:</span>{' '}
+            <span className="text-gray-500">{String(infoObj.name)}:</span>{' '}
             <span className="font-medium">{infoObj.value}</span>
           </span>
         ))}
+        {nSelected > 0 && (
+          <span className="whitespace-nowrap text-brand">
+            <span className="mr-1">🚫</span>
+            <span>Selected for rejection:</span>{' '}
+            <span className="font-medium">
+              {nSelected} ({selectedPercent}%)
+            </span>
+          </span>
+        )}
       </div>
     );
   }
 
   function renderAnalyzeButton() {
     const { epochsInfo } = props;
-    if (!isNil(epochsInfo) && epochsInfo.length > 0) {
-      return (
-        <Link to="/analyze">
-          <Button variant="default">Analyze Dataset</Button>
-        </Link>
-      );
+    if (isNil(epochsInfo) || epochsInfo.length === 0) {
+      return null;
     }
-    return null;
+    const hasSelection = rejectedEpochs.size + badChannels.size > 0;
+    const isSaving = isWaitingForCleanedSave;
+    return (
+      <Button
+        variant="default"
+        disabled={isSaving}
+        onClick={() =>
+          hasSelection
+            ? void handleAnalyzeClick()
+            : props.navigate(SCREENS.ANALYZE.route)
+        }
+      >
+        {isSaving ? 'Saving cleaned data…' : 'Analyze Dataset'}
+      </Button>
+    );
   }
 
   function renderSelect(filteredFilePaths: DropdownOption[]) {
@@ -297,7 +404,7 @@ export default function Clean(props: Props) {
           <Button
             variant="default"
             disabled={isNil(props.epochsInfo)}
-            onClick={handleCleanData}
+            onClick={() => void handleCleanData('clean')}
           >
             Clean Data
           </Button>

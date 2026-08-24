@@ -33,7 +33,7 @@ const CANVAS_HEIGHT = 240;
 const PAD_LEFT = 8;
 const PAD_RIGHT = 8;
 const PAD_TOP = 12;
-const PAD_BOTTOM = 12;
+const PAD_BOTTOM = 28;
 
 export default function LiveErpPane({
   epochArrays,
@@ -183,6 +183,22 @@ export default function LiveErpPane({
       }
       ctx.stroke();
     }
+    // Time axis. The first/last ticks sit on the plot edges, so anchor them
+    // inward — centred text would spill outside the canvas and get clipped.
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.font = '11px sans-serif';
+    if (times.length > 0) {
+      ctx.textAlign = 'left';
+      ctx.fillText(`${times[0].toFixed(2)}s`, plotLeft, plotBottom + 12);
+      ctx.textAlign = 'right';
+      ctx.fillText(
+        `${times[times.length - 1].toFixed(2)}s`,
+        plotRight,
+        plotBottom + 12
+      );
+    }
+    ctx.textAlign = 'center';
+    ctx.fillText('Time (s)', (plotLeft + plotRight) / 2, CANVAS_HEIGHT - 4);
   }, [epochArrays, meta, rejected, channel, groups, uniqueSortedCodes]);
 
   // Empty state — brand-styled, mirrors EpochReviewer's placeholder.

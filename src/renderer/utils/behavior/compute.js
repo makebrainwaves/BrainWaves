@@ -2,7 +2,15 @@
 import * as ss from 'simple-statistics';
 import path from 'pathe';
 
+const isCorrectTrial = (value) =>
+  value === true || value === 'true' || value === 'True';
+
+const isResponseGiven = (value) => value === 'yes' || value === true;
+
 export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
+  if (!Array.isArray(data) || data.length < 1) {
+    return;
+  }
   const processedData = data.map((result) => {
     if (path.basename(result.meta.datafile).includes('aggregated')) {
       return transformAggregated(result);
@@ -19,8 +27,8 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
       accuracyPercent = {};
     for (const condition of conditions) {
       const rt = e
-        .filter((row) => row.response_given === 'yes')
-        .filter((row) => row.correct_response === 'true')
+        .filter((row) => isResponseGiven(row.response_given))
+        .filter((row) => isCorrectTrial(row.correct_response))
         .filter((row) => row.condition === condition)
         .map((row) => row.reaction_time)
         .map((value) => parseFloat(value));
@@ -28,7 +36,8 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
       // Accuracy counts every correct trial, including correct no-go/withhold
       // trials (response_given === 'no'). Do not require response_given here.
       const accuracy = e.filter(
-        (row) => row.condition === condition && row.correct_response === 'true'
+        (row) =>
+          row.condition === condition && isCorrectTrial(row.correct_response)
       );
       accuracyPercent[condition] = accuracy.length
         ? Math.round(
@@ -61,7 +70,7 @@ export const aggregateDataForPlot = (
   showDataPoints,
   displayMode
 ) => {
-  if (!data || data.length < 1) {
+  if (!Array.isArray(data) || data.length < 1) {
     return;
   }
   const processedData = data.map((result) => {
@@ -136,21 +145,17 @@ const filterData = (data, removeOutliers) => {
       response_given: row.response_given,
     }));
   if (removeOutliers) {
-    try {
-      const mean = ss.mean(
-        filteredData
-          .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
-          )
-          .map((r) => r.reaction_time)
-      );
-      const standardDeviation = ss.sampleStandardDeviation(
-        filteredData
-          .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
-          )
-          .map((r) => r.reaction_time)
-      );
+    const correctRTs = filteredData
+      .filter(
+        (r) =>
+          isResponseGiven(r.response_given) &&
+          isCorrectTrial(r.correct_response)
+      )
+      .map((r) => r.reaction_time)
+      .filter((t) => Number.isFinite(t));
+    if (correctRTs.length >= 2) {
+      const mean = ss.mean(correctRTs);
+      const standardDeviation = ss.sampleStandardDeviation(correctRTs);
       const upperBoarder = mean + 2 * standardDeviation;
       const lowerBoarder = mean - 2 * standardDeviation;
       filteredData = filteredData.filter(
@@ -158,11 +163,6 @@ const filterData = (data, removeOutliers) => {
           (r.reaction_time > lowerBoarder && r.reaction_time < upperBoarder) ||
           isNaN(r.reaction_time)
       );
-    } catch (err) {
-      alert(
-        'Calculation of the mean and the standard deviation requires at least two completed trials in each condition.'
-      );
-      return filteredData;
     }
   }
   return filteredData;
@@ -186,14 +186,14 @@ const computeRT = (
         const xRaw = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
+            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
         const y = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
+            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.reaction_time);
@@ -224,7 +224,7 @@ const computeRT = (
         const xRaw = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
+            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
@@ -232,7 +232,7 @@ const computeRT = (
         const data_condition = data.map((d) =>
           d
             .filter(
-              (r) => r.response_given === 'yes' && r.correct_response === 'true'
+              (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
             )
             .filter((e) => e.condition == condition)
         );
@@ -273,14 +273,14 @@ const computeRT = (
         const x = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
+            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
         const y = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => r.response_given === 'yes' && r.correct_response === 'true'
+            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.reaction_time);
@@ -318,7 +318,7 @@ const computeAccuracy = (
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.accuracy);
             }
-            const c = d.filter((e) => e.correct_response === 'true');
+            const c = d.filter((e) => isCorrectTrial(e.correct_response));
             return Math.round((c.length / d.length) * 100);
           })
           // TODO: Remove these useless reduce steps, but confirm it doesn't break anything
@@ -365,7 +365,7 @@ const computeAccuracy = (
                 subject: l.subject,
               }));
             }
-            const c = d.filter((e) => e.correct_response === 'true');
+            const c = d.filter((e) => isCorrectTrial(e.correct_response));
             return {
               accuracy: Math.round((c.length / d.length) * 100),
               subject: d.map((r) => r.subject)[0],
@@ -410,7 +410,7 @@ const computeAccuracy = (
             if (d.filter((l) => l.accuracy).length > 0) {
               return d.map((l) => l.accuracy);
             }
-            const c = d.filter((e) => e.correct_response === 'true');
+            const c = d.filter((e) => isCorrectTrial(e.correct_response));
             return Math.round((c.length / d.length) * 100);
           })
           .reduce((acc, item) => acc.concat(item), []);

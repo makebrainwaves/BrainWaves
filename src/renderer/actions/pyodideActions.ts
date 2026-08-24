@@ -19,6 +19,10 @@ export interface SuggestedRejection {
   reason: string;
 }
 
+// Outcome of writing the cleaned .fif to the workspace. The write is the last
+// step of a clean, and Analyze lists that directory on mount, so screens that
+// need the file on disk wait for this before navigating.
+
 // -------------------------------------------------------------------------
 // Actions
 
@@ -68,6 +72,10 @@ export const PyodideActions = {
     SuggestedRejection[],
     'SET_SUGGESTED_REJECTIONS'
   >('SET_SUGGESTED_REJECTIONS'),
+  CleanedEpochsSaveSettled: createAction<
+    { ok: boolean },
+    'CLEANED_EPOCHS_SAVE_SETTLED'
+  >('CLEANED_EPOCHS_SAVE_SETTLED'),
 } as const;
 
 export type PyodideActionType = ActionType<

@@ -35,7 +35,13 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
   }
 }
 
-// Initializes a Loop component with a provided list of stimuli and other parameters extracted from experiment parameters
+// `phase` in the recorded data means "which block did this trial run in", and
+// only the running loop knows that — the value on a stimulus is just how the
+// designer counted the trial list up (see countPhases). Both loops draw from
+// the same pool, so each stamps its own block on. Passing the stimulus tag
+// through instead made behavior/compute mis-bin trials: custom tags the first
+// image of each condition 'practice', so a slice of the real task was dropped,
+// while faces_houses tags everything 'main', so practice was analysed as data.
 export function initLoopWithStimuli(
   this: lab.flow.Loop<Record<string, unknown>>
 ) {
@@ -43,17 +49,14 @@ export function initLoopWithStimuli(
     parameters: { stimuli, nbTrials, randomize },
   }: { parameters: ExperimentParameters } = this;
 
-  const balancedStimuli = balanceStimuliByCondition(stimuli, nbTrials);
-
-  this.options.templateParameters = (balancedStimuli ?? []) as Record<
-    string,
-    unknown
-  >[];
+  this.options.templateParameters = balanceStimuliByCondition(
+    stimuli,
+    nbTrials
+  ).map((stimulus) => ({ ...stimulus, phase: 'main' }));
   this.options.shuffle = randomize === 'random';
 }
 
-// Initializes a Loop component with a provided list of stimuli and other parameters extracted from experiment parameters
-// uses nbPracticeTrials
+// As initLoopWithStimuli, but sized by nbPracticeTrials.
 export function initPracticeLoopWithStimuli(
   this: lab.flow.Loop<Record<string, unknown>>
 ) {
@@ -63,12 +66,10 @@ export function initPracticeLoopWithStimuli(
 
   if (!nbPracticeTrials) return;
 
-  const balancedStimuli = balanceStimuliByCondition(stimuli, nbPracticeTrials);
-
-  this.options.templateParameters = (balancedStimuli ?? []) as Record<
-    string,
-    unknown
-  >[];
+  this.options.templateParameters = balanceStimuliByCondition(
+    stimuli,
+    nbPracticeTrials
+  ).map((stimulus) => ({ ...stimulus, phase: 'practice' }));
   this.options.shuffle = randomize === 'random';
 }
 
@@ -81,7 +82,12 @@ function balanceStimuliByCondition(
   stimuli: Stimulus[] | undefined,
   nbTrials: number
 ) {
-  if (!stimuli || stimuli.length === 0 || nbTrials === 0) {
+  if (
+    !stimuli ||
+    stimuli.length === 0 ||
+    !Number.isFinite(nbTrials) ||
+    nbTrials <= 0
+  ) {
     return [];
   }
 
@@ -144,7 +150,6 @@ export function initResponseHandlers(this: lab.core.Component) {
   // is undefined for loop-cloned components because rawOptions never has an id.
   // Use this.id directly.
   const id = this.id;
-  const { response } = this.parameters as unknown as Stimulus;
   if (!id) return;
 
   this.data.trial_number =
@@ -152,16 +157,28 @@ export function initResponseHandlers(this: lab.core.Component) {
   this.data.response_given = 'no';
 
   this.options.events = {
-    // @ts-expect-error
-    keydown: (event: { key: number }) => {
+    // @ts-expect-error lab.js event map is untyped
+    keydown: (event: { key: string }) => {
+      // Read at press time. Loop templateParameters land on the parent
+      // sequence; closing over `response` in before:prepare can see ''.
+      const expected = String(
+        (this.parameters as unknown as Stimulus).response ?? ''
+      );
       const keyPressed = String(event.key);
       this.data.reaction_time = this.timer;
       this.data.response_given = 'yes';
       this.data.response = keyPressed;
-      if (this.data.response === response) {
-        this.data.correct_response = true;
+      if (expected === '') {
+        // No key was configured for this condition, so correctness is unknown.
+        // Recording `false` would look exactly like a participant who got every
+        // trial wrong and silently flatten the whole session to 0% accuracy.
+        console.error(
+          `initResponseHandlers: condition "${
+            (this.parameters as unknown as Stimulus).condition ?? '?'
+          }" has no expected response key; correctness cannot be scored.`
+        );
       } else {
-        this.data.correct_response = false;
+        this.data.correct_response = keyPressed === expected;
       }
       this.end();
     },

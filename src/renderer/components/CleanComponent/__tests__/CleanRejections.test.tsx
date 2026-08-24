@@ -62,6 +62,8 @@ const baseProps: Record<string, unknown> = {
   session: 0,
   params: null,
   suggestedRejections: [] as SuggestedRejection[],
+  cleanedEpochsSave: { revision: 0, ok: false },
+  navigate: vi.fn(),
 };
 
 describe('Clean suggestedRejections merge', () => {

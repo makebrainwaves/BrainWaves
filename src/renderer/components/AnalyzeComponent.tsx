@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { isNil } from 'lodash';
 import Plot from 'react-plotly.js';
+import { toast } from 'react-toastify';
 import type { Data as PlotlyData } from 'plotly.js';
 import {
   DEVICES,
@@ -27,6 +28,7 @@ import PyodidePlotWidget from './PyodidePlotWidget';
 import { HelpButton } from './CollectComponent/HelpSidebar';
 import { PyodideActions } from '../actions/pyodideActions';
 import { cn } from './ui/utils';
+import { cssColorForIndex } from '../utils/eeg/conditionPalette';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -129,12 +131,12 @@ export default function Analyze(props: Props) {
     props.PyodideActions.LoadCleanedEpochs(values);
   }
 
-  function handleBehaviorDatasetChange(
+  async function handleBehaviorDatasetChange(
     e: React.ChangeEvent<HTMLSelectElement>
   ) {
     const values = Array.from(e.target.selectedOptions, (o) => o.value);
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(values),
+      await readBehaviorData(values),
       selectedDependentVariable,
       removeOutliers,
       showDataPoints,
@@ -161,12 +163,12 @@ export default function Analyze(props: Props) {
     }
   }
 
-  function handleDependentVariableChange(
+  async function handleDependentVariableChange(
     e: React.ChangeEvent<HTMLSelectElement>
   ) {
     const { value } = e.target;
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(selectedBehaviorFilePaths),
+      await readBehaviorData(selectedBehaviorFilePaths),
       value,
       removeOutliers,
       showDataPoints,
@@ -179,9 +181,9 @@ export default function Analyze(props: Props) {
     setLayout(lay);
   }
 
-  function handleRemoveOutliers() {
+  async function handleRemoveOutliers() {
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(selectedBehaviorFilePaths),
+      await readBehaviorData(selectedBehaviorFilePaths),
       selectedDependentVariable,
       !removeOutliers,
       showDataPoints,
@@ -195,9 +197,9 @@ export default function Analyze(props: Props) {
     setHelpMode('outliers');
   }
 
-  function handleDisplayModeChange(value: string) {
+  async function handleDisplayModeChange(value: string) {
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(selectedBehaviorFilePaths),
+      await readBehaviorData(selectedBehaviorFilePaths),
       selectedDependentVariable,
       removeOutliers,
       showDataPoints,
@@ -211,9 +213,9 @@ export default function Analyze(props: Props) {
     setHelpMode(value);
   }
 
-  function handleDataPoints() {
+  async function handleDataPoints() {
     const aggregatedData = aggregateDataForPlot(
-      readBehaviorData(selectedBehaviorFilePaths),
+      await readBehaviorData(selectedBehaviorFilePaths),
       selectedDependentVariable,
       removeOutliers,
       !showDataPoints,
@@ -230,10 +232,18 @@ export default function Analyze(props: Props) {
     setIsSidebarVisible((prev) => !prev);
   }
 
-  function saveSelectedDatasets() {
-    const data = readBehaviorData(selectedBehaviorFilePaths);
+  async function saveSelectedDatasets() {
+    const data = await readBehaviorData(selectedBehaviorFilePaths);
     const aggregatedData = aggregateBehaviorDataToSave(data, removeOutliers);
-    storeAggregatedBehaviorData(
+    // readBehaviorData returns null when a file can't be read; without this the
+    // main process hands undefined to Papa.unparse and the export dies silently.
+    if (!aggregatedData) {
+      toast.error(
+        'Could not read behaviour data from the selected files. Nothing was exported.'
+      );
+      return;
+    }
+    await storeAggregatedBehaviorData(
       aggregatedData as Parameters<typeof storeAggregatedBehaviorData>[0],
       props.title
     );
@@ -251,14 +261,6 @@ export default function Analyze(props: Props) {
   function renderEpochLabels() {
     const { epochsInfo } = props;
     if (!isNil(epochsInfo) && selectedFilePaths.length >= 1) {
-      const numberConditions = epochsInfo.filter(
-        (infoObj) =>
-          infoObj.name !== 'Drop Percentage' && infoObj.name !== 'Total Epochs'
-      ).length;
-      const colors =
-        numberConditions === 4
-          ? ['red', 'yellow', 'green', 'blue']
-          : ['red', 'green', 'teal', 'orange'];
       return (
         <div>
           {epochsInfo
@@ -270,7 +272,8 @@ export default function Analyze(props: Props) {
             .map((infoObj, index) => (
               <div key={String(infoObj.name)}>
                 <h4>{infoObj.name}</h4>
-                <span style={{ color: colors[index] }}>●</span> {infoObj.value}
+                <span style={{ color: cssColorForIndex(index) }}>●</span>{' '}
+                {infoObj.value}
               </div>
             ))}
         </div>
@@ -333,18 +336,30 @@ export default function Analyze(props: Props) {
             <label className="block text-sm font-medium mb-1">
               EEG Datasets
             </label>
-            <select
-              multiple
-              className="w-full border border-gray-300 rounded p-1"
-              value={selectedFilePaths}
-              onChange={handleDatasetChange}
-            >
-              {eegFilePaths.map((fp) => (
-                <option key={fp.key} value={fp.value as unknown as string}>
-                  {fp.text}
-                </option>
-              ))}
-            </select>
+            {eegFilePaths.some((f) => f.key !== '') ? (
+              <select
+                multiple
+                className="w-full border border-gray-300 rounded p-1"
+                value={selectedFilePaths}
+                onChange={handleDatasetChange}
+              >
+                {eegFilePaths.map((fp) => (
+                  <option key={fp.key} value={fp.value as unknown as string}>
+                    {fp.text}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
+                <p className="mb-2">
+                  No cleaned data yet — clean a recording first, then it&apos;ll
+                  show up here to analyze.
+                </p>
+                <Button asChild variant="secondary" size="sm">
+                  <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
+                </Button>
+              </div>
+            )}
           </div>
           <div>
             <h2>PSD Plot</h2>
@@ -428,7 +443,11 @@ export default function Analyze(props: Props) {
           <Button variant="secondary" onClick={handleDropdownClick}>
             Refresh datasets
           </Button>
-          <Button variant="default" onClick={saveSelectedDatasets}>
+          <Button
+            variant="default"
+            disabled={selectedBehaviorFilePaths.length === 0}
+            onClick={saveSelectedDatasets}
+          >
             Download aggregated data
           </Button>
         </div>
@@ -437,18 +456,30 @@ export default function Analyze(props: Props) {
             <label className="block text-sm font-medium mb-1">
               EEG Datasets
             </label>
-            <select
-              multiple
-              className="w-full border border-gray-300 rounded p-1"
-              value={selectedFilePaths}
-              onChange={handleDatasetChange}
-            >
-              {eegFilePaths.map((fp) => (
-                <option key={fp.key} value={fp.value as unknown as string}>
-                  {fp.text}
-                </option>
-              ))}
-            </select>
+            {eegFilePaths.some((f) => f.key !== '') ? (
+              <select
+                multiple
+                className="w-full border border-gray-300 rounded p-1"
+                value={selectedFilePaths}
+                onChange={handleDatasetChange}
+              >
+                {eegFilePaths.map((fp) => (
+                  <option key={fp.key} value={fp.value as unknown as string}>
+                    {fp.text}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
+                <p className="mb-2">
+                  No cleaned data yet — clean a recording first, then it&apos;ll
+                  show up here to analyze.
+                </p>
+                <Button asChild variant="secondary" size="sm">
+                  <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
+                </Button>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">

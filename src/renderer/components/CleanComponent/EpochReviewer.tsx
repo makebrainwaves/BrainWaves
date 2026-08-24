@@ -318,7 +318,7 @@ export default function EpochReviewer({
               aria-pressed={isRejected}
               aria-label={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
               title={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
-              className="absolute cursor-pointer"
+              className="absolute cursor-pointer bg-transparent border-0 p-0 appearance-none"
               style={{
                 left: LABEL_GUTTER + c * colWidth,
                 width: colWidth,

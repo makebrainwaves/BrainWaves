@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { Observable } from 'rxjs';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardContent } from '../ui/card';
 import { Link } from 'react-router-dom';
@@ -9,14 +10,17 @@ import {
   EXPERIMENTS,
   CONNECTION_STATUS,
   SCREENS,
+  PLOTTING_INTERVAL,
 } from '../../constants/constants';
 import { ExperimentWindow } from '../ExperimentWindow';
 import { checkFileExists, getImages } from '../../utils/filesystem/storage';
 import {
   ExperimentParameters,
   ExperimentObject,
+  SignalQualityData,
 } from '../../constants/interfaces';
 import { ExperimentActions as globalExperimentActions } from '../../actions';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 
 interface Props {
   type: EXPERIMENTS;
@@ -30,6 +34,7 @@ interface Props {
   isEEGEnabled: boolean;
   connectionStatus: CONNECTION_STATUS;
   ExperimentActions: typeof globalExperimentActions;
+  signalQualityObservable?: Observable<SignalQualityData> | null;
 }
 
 const Run: React.FC<Props> = ({
@@ -44,6 +49,7 @@ const Run: React.FC<Props> = ({
   isEEGEnabled,
   connectionStatus,
   ExperimentActions,
+  signalQualityObservable,
 }) => {
   const [isInputCollectOpen, setIsInputCollectOpen] = useState(
     subject.length === 0
@@ -182,6 +188,17 @@ const Run: React.FC<Props> = ({
                 <div>
                   Session Number: <b>{session}</b>
                 </div>
+                {isEEGEnabled &&
+                connectionStatus === CONNECTION_STATUS.CONNECTED &&
+                signalQualityObservable ? (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-500 mb-2">Signal quality</p>
+                    <SignalQualityIndicatorComponent
+                      signalQualityObservable={signalQualityObservable}
+                      plottingInterval={PLOTTING_INTERVAL}
+                    />
+                  </div>
+                ) : null}
                 <div className="mt-6">
                   <Button onClick={handleStartExperiment} disabled={!subject}>
                     Run Experiment

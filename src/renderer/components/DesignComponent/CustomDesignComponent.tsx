@@ -23,9 +23,12 @@ import { readImages, readAudioFiles } from '../../utils/filesystem/storage';
 import {
   CONDITION_SLOTS,
   ConditionSlotName,
+  assignDefaultResponses,
+  conditionTitle,
   countPhases,
   emptyConditionSlot,
   rebuildStimuliFromSlots,
+  titleFromFolder,
 } from '../../utils/labjs/customStimuli';
 import {
   mergeCustomParams,
@@ -50,20 +53,30 @@ export default function CustomDesign(props: DesignProps) {
   const [params, setParams] = useState(() => mergeCustomParams(props.params));
   const [saved, setSaved] = useState(false);
 
-  const conditionParamsRef = useRef(mergeCustomParams(props.params));
+  // Keep a ref always in sync with the latest params so async handlers and
+  // unmount effects read current state instead of a stale closure value.
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
+
+  // Guards against an older folder scan landing after a newer one; only the
+  // most recent scan is allowed to rewrite the trial list.
   const conditionRevisionRef = useRef(0);
 
   useEffect(() => {
     return () => {
-      props.ExperimentActions.SetParams(conditionParamsRef.current);
+      props.ExperimentActions.SetParams(paramsRef.current);
       props.ExperimentActions.SaveWorkspace();
     };
   }, [props.ExperimentActions]);
 
+  /**
+   * The single write path for experiment parameters. `params` state is the
+   * only copy: every handler derives its update from it, so a setting changed
+   * on one step can never be resurrected from a stale snapshot held by another.
+   */
   function handleSaveParams(
-    newParams: ExperimentParameters = conditionParamsRef.current
+    newParams: ExperimentParameters = paramsRef.current
   ) {
-    conditionParamsRef.current = newParams;
     props.ExperimentActions.SetParams(newParams);
     props.ExperimentActions.SaveWorkspace();
     setSaved(true);
@@ -81,10 +94,6 @@ export default function CustomDesign(props: DesignProps) {
       ...prev,
       showProgressBar: checked,
     }));
-    conditionParamsRef.current = {
-      ...conditionParamsRef.current,
-      showProgressBar: checked,
-    };
   }
 
   function handleEEGEnabled(e: React.ChangeEvent<HTMLInputElement>) {
@@ -104,19 +113,37 @@ export default function CustomDesign(props: DesignProps) {
     setIsPreviewing(false);
   }
 
+  const handleTrialCountChange =
+    (field: 'nbTrials' | 'nbPracticeTrials') =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = event.target.value;
+      const parsed = raw === '' ? 0 : parseInt(raw, 10);
+      const value = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      setParams((prev) => ({ ...prev, [field]: value }));
+      setSaved(false);
+    };
+
+  const handleSetInstruction =
+    (field: 'intro' | 'taskHelp') =>
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = event.target.value;
+      if (!isString(value)) return;
+      setParams((prev) => ({ ...prev, [field]: value }));
+      setSaved(false);
+    };
+
   function handleSetText(
     text: string,
     section: 'hypothesis' | 'methods' | 'question'
   ) {
     const newParams: ExperimentParameters = {
-      ...conditionParamsRef.current,
+      ...paramsRef.current,
       description: {
         ...defaultCustomParams.description,
-        ...conditionParamsRef.current.description,
+        ...paramsRef.current.description,
         [section]: text,
       },
     };
-    conditionParamsRef.current = newParams;
     setParams(newParams);
     setSaved(false);
     handleSaveParams(newParams);
@@ -130,63 +157,83 @@ export default function CustomDesign(props: DesignProps) {
     const slotName = changedName as ConditionSlotName;
     const slotMeta = CONDITION_SLOTS.find((slot) => slot.name === slotName);
     if (!slotMeta) return;
+    const isFolderChange = key === 'dir' || key === 'audioDir';
 
-    const previousSlot =
-      conditionParamsRef.current[slotName] ??
-      emptyConditionSlot(slotMeta.type, '');
-    let nextParams: ExperimentParameters = {
-      ...conditionParamsRef.current,
-      [slotName]: { ...previousSlot, [key]: data },
+    const applySlotEdit = (
+      previous: ExperimentParameters
+    ): ExperimentParameters => {
+      const previousSlot =
+        previous[slotName] ?? emptyConditionSlot(slotMeta.type, '');
+      const nextParams: ExperimentParameters = {
+        ...previous,
+        [slotName]: {
+          ...previousSlot,
+          [key]: data,
+          // Picking a folder names the condition after it, unless the student
+          // already typed their own name.
+          ...(isFolderChange
+            ? { title: titleFromFolder(data, previousSlot.title) }
+            : {}),
+        },
+      };
+      return isFolderChange ? assignDefaultResponses(nextParams) : nextParams;
     };
-    conditionParamsRef.current = nextParams;
 
-    if (key !== 'dir' && key !== 'audioDir') {
+    // A name or key edit can't change which files are in play — just restamp
+    // the trials that already belong to this condition.
+    if (!isFolderChange) {
+      const nextParams = applySlotEdit(paramsRef.current);
       const changedSlot = nextParams[slotName]!;
-      const stimuli = (nextParams.stimuli ?? []).map((stimulus) =>
-        stimulus.type === slotMeta.type
-          ? {
-              ...stimulus,
-              condition: changedSlot.title,
-              response: changedSlot.response,
-            }
-          : stimulus
-      );
-      nextParams = { ...nextParams, stimuli };
-      setParams(nextParams);
-      setSaved(false);
-      handleSaveParams(nextParams);
+      handleSaveParams({
+        ...nextParams,
+        stimuli: (nextParams.stimuli ?? []).map((stimulus) =>
+          stimulus.type === slotMeta.type
+            ? {
+                ...stimulus,
+                condition: conditionTitle(changedSlot),
+                response: changedSlot.response,
+              }
+            : stimulus
+        ),
+      });
       return;
     }
 
+    // Folder changes need the folder contents, so show the new selection first
+    // and rebuild the trial list once the scan comes back.
+    const pendingParams = applySlotEdit(paramsRef.current);
+    setParams(pendingParams);
+    setSaved(false);
+
     const revision = ++conditionRevisionRef.current;
     const rebuiltStimuli = await rebuildStimuliFromSlots(
-      nextParams,
+      pendingParams,
       readImages,
       readAudioFiles
     );
     if (revision !== conditionRevisionRef.current) return;
 
-    const latestParams = conditionParamsRef.current;
+    // Re-read state: condition names and keys may have been edited while the
+    // folder scan was in flight.
+    const latestParams = paramsRef.current;
     const stimuli = rebuiltStimuli.map((stimulus) => {
       const slot = CONDITION_SLOTS.find(({ type }) => type === stimulus.type);
       const condition = slot ? latestParams[slot.name] : undefined;
       return condition
         ? {
             ...stimulus,
-            condition: condition.title,
+            condition: conditionTitle(condition),
             response: condition.response,
           }
         : stimulus;
     });
     const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const newParams: ExperimentParameters = {
+    handleSaveParams({
       ...latestParams,
       stimuli,
       nbTrials,
       nbPracticeTrials,
-    };
-    setParams(newParams);
-    setSaved(false);
+    });
   };
 
   const handleDeleteTrial = (deletedNum: number) => {
@@ -356,15 +403,10 @@ export default function CustomDesign(props: DesignProps) {
                     id="nb-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={params.nbTrials}
-                    onChange={(event) => {
-                      const newParams: ExperimentParameters = {
-                        ...params,
-                        nbTrials: parseInt(event.target.value, 10),
-                      };
-                      setParams(newParams);
-                      setSaved(false);
-                    }}
+                    value={
+                      Number.isFinite(params.nbTrials) ? params.nbTrials : 0
+                    }
+                    onChange={handleTrialCountChange('nbTrials')}
                   />
                 </div>
                 <div>
@@ -378,15 +420,12 @@ export default function CustomDesign(props: DesignProps) {
                     id="nb-practice-trials"
                     type="number"
                     className="border border-gray-300 rounded px-2 py-1"
-                    value={params.nbPracticeTrials}
-                    onChange={(event) => {
-                      const newParams: ExperimentParameters = {
-                        ...params,
-                        nbPracticeTrials: parseInt(event.target.value, 10),
-                      };
-                      setParams(newParams);
-                      setSaved(false);
-                    }}
+                    value={
+                      Number.isFinite(params.nbPracticeTrials)
+                        ? params.nbPracticeTrials
+                        : 0
+                    }
+                    onChange={handleTrialCountChange('nbPracticeTrials')}
                   />
                 </div>
               </div>
@@ -530,16 +569,7 @@ export default function CustomDesign(props: DesignProps) {
                   className="w-full border rounded p-2"
                   rows={4}
                   value={params.intro}
-                  onChange={(event) => {
-                    const val = event.target.value;
-                    if (!isString(val)) return;
-                    const newParams: ExperimentParameters = {
-                      ...params,
-                      intro: val,
-                    };
-                    setParams(newParams);
-                    setSaved(false);
-                  }}
+                  onChange={handleSetInstruction('intro')}
                 />
               </div>
               <div>
@@ -550,16 +580,7 @@ export default function CustomDesign(props: DesignProps) {
                   className="w-full border rounded p-2"
                   rows={4}
                   value={params.taskHelp}
-                  onChange={(event) => {
-                    const val = event.target.value;
-                    if (!isString(val)) return;
-                    const newParams: ExperimentParameters = {
-                      ...params,
-                      taskHelp: val,
-                    };
-                    setParams(newParams);
-                    setSaved(false);
-                  }}
+                  onChange={handleSetInstruction('taskHelp')}
                 />
               </div>
             </div>
