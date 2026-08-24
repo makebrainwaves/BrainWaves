@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   EXPERIMENTS,
   CONNECTION_STATUS,
@@ -40,99 +40,79 @@ export interface Props {
   title: string;
 }
 
-interface State {
-  isConnectModalOpen: boolean;
-  isRunComponentOpen: boolean;
-}
+export default function Collect(props: Props) {
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [isRunComponentOpen, setIsRunComponentOpen] = useState(
+    !props.isEEGEnabled
+  );
 
-export default class Collect extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isConnectModalOpen: false,
-      isRunComponentOpen: !props.isEEGEnabled,
-    };
-    this.handleStartConnect = this.handleStartConnect.bind(this);
-    this.handleConnectModalClose = this.handleConnectModalClose.bind(this);
-    this.handleRunComponentOpen = this.handleRunComponentOpen.bind(this);
-    this.handleRunComponentClose = this.handleRunComponentClose.bind(this);
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     if (
-      this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED &&
-      this.props.isEEGEnabled
+      props.connectionStatus !== CONNECTION_STATUS.CONNECTED &&
+      props.isEEGEnabled
     ) {
-      this.handleStartConnect();
+      handleStartConnect();
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  componentDidUpdate = (prevProps: Props, prevState: State) => {
-    if (
-      this.props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
-      prevState.isConnectModalOpen
-    ) {
-      this.setState({ isConnectModalOpen: false });
+  useEffect(() => {
+    if (props.connectionStatus === CONNECTION_STATUS.CONNECTED) {
+      setIsConnectModalOpen(false);
     }
-  };
+  }, [props.connectionStatus]);
 
-  handleStartConnect() {
-    this.setState({ isConnectModalOpen: true });
-    this.props.DeviceActions.SetDeviceAvailability(
-      DEVICE_AVAILABILITY.SEARCHING
-    );
+  function handleStartConnect() {
+    setIsConnectModalOpen(true);
+    props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
   }
 
-  handleConnectModalClose() {
-    this.setState({ isConnectModalOpen: false });
+  function handleConnectModalClose() {
+    setIsConnectModalOpen(false);
   }
 
-  handleRunComponentOpen() {
-    this.setState({ isRunComponentOpen: true });
+  function handleRunComponentOpen() {
+    setIsRunComponentOpen(true);
   }
 
-  handleRunComponentClose() {
-    this.setState({ isRunComponentOpen: false });
+  function handleRunComponentClose() {
+    setIsRunComponentOpen(false);
   }
 
-  render() {
-    if (this.state.isRunComponentOpen) {
-      return <RunComponent {...this.props} />;
-    }
-    return (
-      <>
-        <ConnectModal
-          open={this.state.isConnectModalOpen}
-          onClose={this.handleConnectModalClose}
-          connectedDevice={this.props.connectedDevice}
-          signalQualityObservable={
-            this.props.signalQualityObservable ?? undefined
-          }
-          deviceAvailability={this.props.deviceAvailability}
-          connectionStatus={this.props.connectionStatus}
-          deviceType={this.props.deviceType}
-          DeviceActions={this.props.DeviceActions}
-          availableDevices={this.props.availableDevices}
-          availableLSLStreams={this.props.availableLSLStreams}
-        />
-        <PreTestComponent
-          connectedDevice={this.props.connectedDevice}
-          signalQualityObservable={this.props.signalQualityObservable}
-          deviceAvailability={this.props.deviceAvailability}
-          connectionStatus={this.props.connectionStatus}
-          DeviceActions={this.props.DeviceActions}
-          ExperimentActions={this.props.ExperimentActions}
-          availableDevices={this.props.availableDevices}
-          type={this.props.type}
-          isRunning={this.props.isRunning}
-          params={this.props.params}
-          title={this.props.title}
-          subject={this.props.subject}
-          group={this.props.group}
-          session={this.props.session}
-          openRunComponent={this.handleRunComponentOpen}
-        />
-      </>
-    );
+  if (isRunComponentOpen) {
+    return <RunComponent {...props} />;
   }
+  return (
+    <>
+      <ConnectModal
+        open={isConnectModalOpen}
+        onClose={handleConnectModalClose}
+        connectedDevice={props.connectedDevice}
+        signalQualityObservable={props.signalQualityObservable ?? undefined}
+        deviceAvailability={props.deviceAvailability}
+        connectionStatus={props.connectionStatus}
+        deviceType={props.deviceType}
+        DeviceActions={props.DeviceActions}
+        availableDevices={props.availableDevices}
+        availableLSLStreams={props.availableLSLStreams}
+      />
+      <PreTestComponent
+        connectedDevice={props.connectedDevice}
+        signalQualityObservable={props.signalQualityObservable}
+        deviceAvailability={props.deviceAvailability}
+        connectionStatus={props.connectionStatus}
+        DeviceActions={props.DeviceActions}
+        ExperimentActions={props.ExperimentActions}
+        availableDevices={props.availableDevices}
+        type={props.type}
+        isRunning={props.isRunning}
+        params={props.params}
+        title={props.title}
+        subject={props.subject}
+        group={props.group}
+        session={props.session}
+        openRunComponent={handleRunComponentOpen}
+      />
+    </>
+  );
 }

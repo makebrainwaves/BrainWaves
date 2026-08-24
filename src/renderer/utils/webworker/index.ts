@@ -222,7 +222,9 @@ export const saveEpochs = (worker: Worker, subject: string) => {
   worker.postMessage({
     // save() returns the Epochs/filename object — append None so only the MEMFS
     // bytes (readFileAfter) cross postMessage, not the Python return value.
-    data: [`raw_epochs.save("${memfsPath}", overwrite=True)`, 'None'].join('\n'),
+    data: [`raw_epochs.save("${memfsPath}", overwrite=True)`, 'None'].join(
+      '\n'
+    ),
     dataKey: 'savedEpochs',
     readFileAfter: memfsPath,
   });

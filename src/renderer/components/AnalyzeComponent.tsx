@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { isNil } from 'lodash';
@@ -55,217 +55,186 @@ interface Props {
   PyodideActions: typeof PyodideActions;
 }
 
-interface State {
-  activeStep: string;
-  selectedChannel: string;
-  eegFilePaths: Array<{
-    key: string;
-    text: string;
-    value: { name: string; dir: string };
-  }>;
-  behaviorFilePaths: Array<{ key: string; text: string; value: string }>;
-  selectedFilePaths: Array<string>;
-  selectedBehaviorFilePaths: Array<string>;
-  selectedSubjects: Array<string>;
-  selectedDependentVariable: string;
-  removeOutliers: boolean;
-  showDataPoints: boolean;
-  isSidebarVisible: boolean;
-  displayMode: string;
-  dataToPlot: PlotlyData[];
-  layout: Record<string, unknown>;
-  helpMode: string;
-  dependentVariables: Array<{ key: string; text: string; value: string }>;
-}
+export default function Analyze(props: Props) {
+  const [activeStep, setActiveStep] = useState(
+    props.isEEGEnabled === true
+      ? ANALYZE_STEPS.OVERVIEW
+      : ANALYZE_STEPS.BEHAVIOR
+  );
+  const [eegFilePaths, setEegFilePaths] = useState<
+    Array<{ key: string; text: string; value: { name: string; dir: string } }>
+  >([{ key: '', text: '', value: { name: '', dir: '' } }]);
+  const [behaviorFilePaths, setBehaviorFilePaths] = useState<
+    Array<{ key: string; text: string; value: string }>
+  >([{ key: '', text: '', value: '' }]);
+  const [dependentVariables, setDependentVariables] = useState<
+    Array<{ key: string; text: string; value: string }>
+  >([{ key: '', text: '', value: '' }]);
+  const [dataToPlot, setDataToPlot] = useState<PlotlyData[]>([]);
+  const [layout, setLayout] = useState<Record<string, unknown>>({});
+  const [selectedDependentVariable, setSelectedDependentVariable] =
+    useState('');
+  const [removeOutliers, setRemoveOutliers] = useState(true);
+  const [showDataPoints, setShowDataPoints] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [displayMode, setDisplayMode] = useState('errorbars');
+  const [helpMode, setHelpMode] = useState('errorbars');
+  const [selectedFilePaths, setSelectedFilePaths] = useState<Array<string>>([]);
+  const [selectedBehaviorFilePaths, setSelectedBehaviorFilePaths] = useState<
+    Array<string>
+  >([]);
+  const [selectedSubjects, setSelectedSubjects] = useState<Array<string>>([]);
+  const [selectedChannel, setSelectedChannel] = useState(MUSE_CHANNELS[0]);
 
-export default class Analyze extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      activeStep:
-        this.props.isEEGEnabled === true
-          ? ANALYZE_STEPS.OVERVIEW
-          : ANALYZE_STEPS.BEHAVIOR,
-      eegFilePaths: [{ key: '', text: '', value: { name: '', dir: '' } }],
-      behaviorFilePaths: [{ key: '', text: '', value: '' }],
-      dependentVariables: [{ key: '', text: '', value: '' }],
-      dataToPlot: [] as PlotlyData[],
-      layout: {},
-      selectedDependentVariable: '',
-      removeOutliers: true,
-      showDataPoints: false,
-      isSidebarVisible: false,
-      displayMode: 'errorbars',
-      helpMode: 'errorbars',
-      selectedFilePaths: [],
-      selectedBehaviorFilePaths: [],
-      selectedSubjects: [],
-      selectedChannel: MUSE_CHANNELS[0],
-    };
-    this.handleChannelSelect = this.handleChannelSelect.bind(this);
-    this.handleDatasetChange = this.handleDatasetChange.bind(this);
-    this.handleBehaviorDatasetChange =
-      this.handleBehaviorDatasetChange.bind(this);
-    this.handleDependentVariableChange =
-      this.handleDependentVariableChange.bind(this);
-    this.handleRemoveOutliers = this.handleRemoveOutliers.bind(this);
-    this.handleDisplayModeChange = this.handleDisplayModeChange.bind(this);
-    this.handleDataPoints = this.handleDataPoints.bind(this);
-    this.saveSelectedDatasets = this.saveSelectedDatasets.bind(this);
-    this.handleStepClick = this.handleStepClick.bind(this);
-    this.handleDropdownClick = this.handleDropdownClick.bind(this);
-    this.toggleDisplayInfoVisibility =
-      this.toggleDisplayInfoVisibility.bind(this);
-  }
-
-  async componentDidMount() {
-    const workspaceCleanData = await readWorkspaceCleanedEEGData(
-      this.props.title
-    );
-    const behavioralData = await readWorkspaceBehaviorData(this.props.title);
-    this.setState({
-      eegFilePaths: workspaceCleanData.map((filepath) => ({
-        key: filepath.name,
-        text: filepath.name,
-        value: filepath.path,
-      })),
-      behaviorFilePaths: behavioralData.map((filepath) => ({
-        key: filepath.name,
-        text: filepath.name,
-        value: filepath.path,
-      })),
-      dependentVariables: ['Response Time', 'Accuracy'].map((dv) => ({
-        key: dv,
-        text: dv,
-        value: dv,
-      })),
-      selectedDependentVariable: 'Response Time',
-    });
-  }
-
-  concatSubjectNames = (subjects: Array<string | null | undefined>) => {
-    if (subjects.length < 1) return '';
-    return subjects.reduce((acc, curr) => `${acc}-${curr}`);
-  };
-
-  handleDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const values = Array.from(e.target.selectedOptions, (o) => o.value);
-    this.setState({
-      selectedFilePaths: values,
-      selectedSubjects: getSubjectNamesFromFiles(values),
-    });
-    this.props.PyodideActions.LoadCleanedEpochs(values);
-  }
-
-  async handleBehaviorDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const values = Array.from(e.target.selectedOptions, (o) => o.value);
-    const aggregatedData = aggregateDataForPlot(
-      await readBehaviorData(values),
-      this.state.selectedDependentVariable,
-      this.state.removeOutliers,
-      this.state.showDataPoints,
-      this.state.displayMode
-    );
-    if (!aggregatedData) return;
-    const { dataToPlot, layout } = aggregatedData;
-    this.setState({
-      selectedBehaviorFilePaths: values,
-      selectedSubjects: getSubjectNamesFromFiles(values),
-      dataToPlot,
-      layout,
-    });
-  }
-
-  async handleDropdownClick() {
-    const behavioralData = await readWorkspaceBehaviorData(this.props.title);
-    if (behavioralData.length !== this.state.behaviorFilePaths.length) {
-      this.setState({
-        behaviorFilePaths: behavioralData.map((filepath) => ({
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const workspaceCleanData = await readWorkspaceCleanedEEGData(props.title);
+      const behavioralData = await readWorkspaceBehaviorData(props.title);
+      if (cancelled) return;
+      setEegFilePaths(
+        workspaceCleanData.map((filepath) => ({
           key: filepath.name,
           text: filepath.name,
           value: filepath.path,
-        })),
-      });
+        }))
+      );
+      setBehaviorFilePaths(
+        behavioralData.map((filepath) => ({
+          key: filepath.name,
+          text: filepath.name,
+          value: filepath.path,
+        }))
+      );
+      const dvs = ['Response Time', 'Accuracy'].map((dv) => ({
+        key: dv,
+        text: dv,
+        value: dv,
+      }));
+      setDependentVariables(dvs);
+      setSelectedDependentVariable('Response Time');
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [props.title]);
+
+  function concatSubjectNames(subjects: Array<string | null | undefined>) {
+    if (subjects.length < 1) return '';
+    return subjects.reduce((acc, curr) => `${acc}-${curr}`);
+  }
+
+  function handleDatasetChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const values = Array.from(e.target.selectedOptions, (o) => o.value);
+    setSelectedFilePaths(values);
+    setSelectedSubjects(getSubjectNamesFromFiles(values));
+    props.PyodideActions.LoadCleanedEpochs(values);
+  }
+
+  async function handleBehaviorDatasetChange(
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) {
+    const values = Array.from(e.target.selectedOptions, (o) => o.value);
+    const aggregatedData = aggregateDataForPlot(
+      await readBehaviorData(values),
+      selectedDependentVariable,
+      removeOutliers,
+      showDataPoints,
+      displayMode
+    );
+    if (!aggregatedData) return;
+    const { dataToPlot: data, layout: lay } = aggregatedData;
+    setSelectedBehaviorFilePaths(values);
+    setSelectedSubjects(getSubjectNamesFromFiles(values));
+    setDataToPlot(data);
+    setLayout(lay);
+  }
+
+  async function handleDropdownClick() {
+    const behavioralData = await readWorkspaceBehaviorData(props.title);
+    if (behavioralData.length !== behaviorFilePaths.length) {
+      setBehaviorFilePaths(
+        behavioralData.map((filepath) => ({
+          key: filepath.name,
+          text: filepath.name,
+          value: filepath.path,
+        }))
+      );
     }
   }
 
-  async handleDependentVariableChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  async function handleDependentVariableChange(
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) {
     const { value } = e.target;
     const aggregatedData = aggregateDataForPlot(
-      await readBehaviorData(this.state.selectedBehaviorFilePaths),
+      await readBehaviorData(selectedBehaviorFilePaths),
       value,
-      this.state.removeOutliers,
-      this.state.showDataPoints,
-      this.state.displayMode
+      removeOutliers,
+      showDataPoints,
+      displayMode
     );
     if (!aggregatedData) return;
-    const { dataToPlot, layout } = aggregatedData;
-    this.setState({ selectedDependentVariable: value, dataToPlot, layout });
+    const { dataToPlot: data, layout: lay } = aggregatedData;
+    setSelectedDependentVariable(value);
+    setDataToPlot(data);
+    setLayout(lay);
   }
 
-  async handleRemoveOutliers() {
+  async function handleRemoveOutliers() {
     const aggregatedData = aggregateDataForPlot(
-      await readBehaviorData(this.state.selectedBehaviorFilePaths),
-      this.state.selectedDependentVariable,
-      !this.state.removeOutliers,
-      this.state.showDataPoints,
-      this.state.displayMode
+      await readBehaviorData(selectedBehaviorFilePaths),
+      selectedDependentVariable,
+      !removeOutliers,
+      showDataPoints,
+      displayMode
     );
     if (!aggregatedData) return;
-    const { dataToPlot, layout } = aggregatedData;
-    this.setState({
-      removeOutliers: !this.state.removeOutliers,
-      dataToPlot,
-      layout,
-      helpMode: 'outliers',
-    });
+    const { dataToPlot: data, layout: lay } = aggregatedData;
+    setRemoveOutliers(!removeOutliers);
+    setDataToPlot(data);
+    setLayout(lay);
+    setHelpMode('outliers');
   }
 
-  async handleDataPoints() {
+  async function handleDisplayModeChange(value: string) {
     const aggregatedData = aggregateDataForPlot(
-      await readBehaviorData(this.state.selectedBehaviorFilePaths),
-      this.state.selectedDependentVariable,
-      this.state.removeOutliers,
-      !this.state.showDataPoints,
-      this.state.displayMode
+      await readBehaviorData(selectedBehaviorFilePaths),
+      selectedDependentVariable,
+      removeOutliers,
+      showDataPoints,
+      value
     );
     if (!aggregatedData) return;
-    const { dataToPlot, layout } = aggregatedData;
-    this.setState({
-      showDataPoints: !this.state.showDataPoints,
-      dataToPlot,
-      layout,
-    });
+    const { dataToPlot: data, layout: lay } = aggregatedData;
+    setDisplayMode(value);
+    setDataToPlot(data);
+    setLayout(lay);
+    setHelpMode(value);
   }
 
-  async handleDisplayModeChange(displayMode) {
-    if (
-      this.state.selectedBehaviorFilePaths &&
-      this.state.selectedBehaviorFilePaths.length > 0
-    ) {
-      const aggregatedData = aggregateDataForPlot(
-        await readBehaviorData(this.state.selectedBehaviorFilePaths),
-        this.state.selectedDependentVariable,
-        this.state.removeOutliers,
-        this.state.showDataPoints,
-        displayMode
-      );
-      if (!aggregatedData) return;
-      const { dataToPlot, layout } = aggregatedData;
-      this.setState({ dataToPlot, layout, displayMode, helpMode: displayMode });
-    }
-  }
-
-  toggleDisplayInfoVisibility() {
-    this.setState({ isSidebarVisible: !this.state.isSidebarVisible });
-  }
-
-  async saveSelectedDatasets() {
-    const data = await readBehaviorData(this.state.selectedBehaviorFilePaths);
-    const aggregatedData = aggregateBehaviorDataToSave(
-      data,
-      this.state.removeOutliers
+  async function handleDataPoints() {
+    const aggregatedData = aggregateDataForPlot(
+      await readBehaviorData(selectedBehaviorFilePaths),
+      selectedDependentVariable,
+      removeOutliers,
+      !showDataPoints,
+      displayMode
     );
+    if (!aggregatedData) return;
+    const { dataToPlot: data, layout: lay } = aggregatedData;
+    setShowDataPoints(!showDataPoints);
+    setDataToPlot(data);
+    setLayout(lay);
+  }
+
+  function toggleDisplayInfoVisibility() {
+    setIsSidebarVisible((prev) => !prev);
+  }
+
+  async function saveSelectedDatasets() {
+    const data = await readBehaviorData(selectedBehaviorFilePaths);
+    const aggregatedData = aggregateBehaviorDataToSave(data, removeOutliers);
     // readBehaviorData returns null when a file can't be read; without this the
     // main process hands undefined to Papa.unparse and the export dies silently.
     if (!aggregatedData) {
@@ -274,26 +243,27 @@ export default class Analyze extends Component<Props, State> {
       );
       return;
     }
-    await storeAggregatedBehaviorData(aggregatedData, this.props.title);
+    await storeAggregatedBehaviorData(
+      aggregatedData as Parameters<typeof storeAggregatedBehaviorData>[0],
+      props.title
+    );
   }
 
-  handleChannelSelect(channelName: string) {
-    this.setState({ selectedChannel: channelName });
-    this.props.PyodideActions.LoadERP(channelName);
+  function handleChannelSelect(channelName: string) {
+    setSelectedChannel(channelName);
+    props.PyodideActions.LoadERP(channelName);
   }
 
-  handleStepClick(step: string) {
-    this.setState({ activeStep: step });
+  function handleStepClick(step: string) {
+    setActiveStep(step);
   }
 
-  renderEpochLabels() {
-    if (
-      !isNil(this.props.epochsInfo) &&
-      this.state.selectedFilePaths.length >= 1
-    ) {
+  function renderEpochLabels() {
+    const { epochsInfo } = props;
+    if (!isNil(epochsInfo) && selectedFilePaths.length >= 1) {
       return (
         <div>
-          {this.props.epochsInfo
+          {epochsInfo
             .filter(
               (infoObj) =>
                 infoObj.name !== 'Drop Percentage' &&
@@ -312,51 +282,38 @@ export default class Analyze extends Component<Props, State> {
     return <div />;
   }
 
-  renderHelpContent() {
-    switch (this.state.helpMode) {
+  function renderHelpContent() {
+    switch (helpMode) {
       case 'datapoints':
-        return this.renderHelp(
+        return renderHelp(
           'Data Points',
-          `In this graph, each dot refers to one data point, clustered by group (e.g., conditions).
-          It's the most "neutral" way of presenting the data, of course, but it may be difficult to see any patterns.
-          Why is it always a good idea to look at all your datapoints before interpreting any trends in the data?`
+          'In this graph, each dot refers to one data point, clustered by group (e.g., conditions).'
         );
       case 'errorbars':
-        return this.renderHelp(
+        return renderHelp(
           'Bar Graph',
-          `Bar graphs are the most common way to summarize data.
-          It allows you to compare mean values between groups of datapoints (e.g., conditions),
-          and the error bars give some indication of the variance (here: the standard error of the mean).
-          Importantly, this way of summarizing data assumes that the mean is in fact representative of the data.
-          Many researchers have veered away from bar graphs because they can be deceptive, especially without error bars.
-          Can you think of any such cases?`
+          'Bar graphs are the most common way to summarize data.'
         );
       case 'whiskers':
-        return this.renderHelp(
+        return renderHelp(
           'Box Plot',
-          `Box plots summarize the data in a more informative way:
-          they actually tell you something about the distribution of datapoints within a group,
-          by taking the median as its reference point instead of the mean.
-          The boxes represent so-called "quartiles".
-          The lines ("whiskers") show how much variability there is in the data outside of those quartiles;
-          any outliers are shown as individual points.`
+          'Box plots summarize the data in a more informative way.'
         );
       case 'outliers':
       default:
-        return this.renderHelp(
+        return renderHelp(
           'Outliers',
-          `A datapoint is tagged as an "outlier" if its value exceeds 2 standard deviations below or above the mean of all data in the group.
-          Removing such outliers can help unskew the data.`
+          'A datapoint is tagged as an "outlier" if its value exceeds 2 standard deviations.'
         );
     }
   }
 
-  renderHelp(header: string, content: string) {
+  function renderHelp(header: string, content: string) {
     return (
       <div className="text-lg h-[80%]">
         <button
           className="flex justify-end w-full"
-          onClick={this.toggleDisplayInfoVisibility}
+          onClick={toggleDisplayInfoVisibility}
           aria-label="Close"
         >
           ✕
@@ -367,197 +324,277 @@ export default class Analyze extends Component<Props, State> {
     );
   }
 
-  renderSectionContent() {
-    switch (this.state.activeStep) {
-      case ANALYZE_STEPS.OVERVIEW:
-      default:
-        return (
-          <>
-            <div className="w-1/3 p-2 text-left">
-              <h1>Overview</h1>
-              <p>
-                Load cleaned datasets from different subjects and view how the
-                EEG differs between electrodes
-              </p>
-              <h4>Select Clean Datasets</h4>
-              {this.state.eegFilePaths.some((f) => f.key !== '') ? (
-                <>
-                  <select
-                    multiple
-                    className="w-full border border-gray-300 rounded p-1"
-                    value={this.state.selectedFilePaths}
-                    onChange={this.handleDatasetChange}
-                  >
-                    {this.state.eegFilePaths.map((eegFilePath) => (
-                      <option
-                        key={eegFilePath.key}
-                        value={String(eegFilePath.value)}
-                      >
-                        {eegFilePath.text}
-                      </option>
-                    ))}
-                  </select>
-                  {this.renderEpochLabels()}
-                </>
-              ) : (
-                <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
-                  <p className="mb-2">
-                    No cleaned data yet — clean a recording first, then
-                    it&apos;ll show up here to analyze.
-                  </p>
-                  <Button asChild variant="secondary" size="sm">
-                    <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="w-2/3 p-2">
-              <PyodidePlotWidget
-                title={this.props.title}
-                imageTitle={`${this.concatSubjectNames(this.state.selectedSubjects)}-Topoplot`}
-                plotMIMEBundle={this.props.topoPlot}
-              />
-            </div>
-          </>
-        );
-      case ANALYZE_STEPS.ERP:
-        return (
-          <>
-            <div className="w-1/3 p-2 text-left h-full">
-              <h1>ERP</h1>
-              <p>
-                The event-related potential represents EEG activity elicited by
-                a particular sensory event
-              </p>
-              <ClickableHeadDiagramSVG
-                channelinfo={this.props.channelInfo}
-                onChannelClick={this.handleChannelSelect}
-              />
-              <div className="my-2" />
-              {this.renderEpochLabels()}
-            </div>
-            <div className="w-2/3 p-2">
-              <PyodidePlotWidget
-                title={this.props.title}
-                imageTitle={`${this.concatSubjectNames(this.state.selectedSubjects)}-${this.state.selectedChannel}-ERP`}
-                plotMIMEBundle={this.props.erpPlot}
-              />
-            </div>
-          </>
-        );
-      case ANALYZE_STEPS.BEHAVIOR:
-        return (
-          <>
-            <div className="w-1/3 p-2 text-left">
-              <h1>Overview</h1>
-              <p>
-                Load datasets from different subjects and view behavioral
-                results
-              </p>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">Datasets</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={this.state.selectedBehaviorFilePaths.length === 0}
-                  onClick={() => void this.saveSelectedDatasets()}
-                >
-                  ↓ Export
-                </Button>
-              </div>
+  function renderOverview() {
+    const { child: psdChild } = props.psdPlot;
+    const { child: topoChild } = props.topoPlot;
+    return (
+      <div className="p-4">
+        <h1 className="mb-2">Overview</h1>
+        {renderEpochLabels()}
+        <div className="grid grid-cols-1 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              EEG Datasets
+            </label>
+            {eegFilePaths.some((f) => f.key !== '') ? (
               <select
                 multiple
                 className="w-full border border-gray-300 rounded p-1"
-                value={this.state.selectedBehaviorFilePaths}
-                onChange={this.handleBehaviorDatasetChange}
-                onClick={this.handleDropdownClick}
+                value={selectedFilePaths}
+                onChange={handleDatasetChange}
               >
-                {this.state.behaviorFilePaths.map((fp) => (
-                  <option key={fp.key} value={fp.value}>
+                {eegFilePaths.map((fp) => (
+                  <option key={fp.key} value={fp.value as unknown as string}>
                     {fp.text}
                   </option>
                 ))}
               </select>
-              <div className="my-2" />
-              <p className="font-semibold">Dependent Variable</p>
-              <select
-                className="w-full border border-gray-300 rounded p-1"
-                value={this.state.selectedDependentVariable}
-                onChange={this.handleDependentVariableChange}
-              >
-                {this.state.dependentVariables.map((dv) => (
-                  <option key={dv.key} value={dv.value}>
-                    {dv.text}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div
-              className="w-2/3 p-2"
-              style={{ overflow: 'auto', maxHeight: 650 }}
-            >
-              <div className="text-left">
-                <Plot data={this.state.dataToPlot} layout={this.state.layout} />
-                <div className="my-2" />
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={this.state.removeOutliers}
-                    onChange={this.handleRemoveOutliers}
-                  />
-                  Remove Response Time Outliers
-                </label>
-                <div className="my-2" />
-                <div className="flex gap-1">
-                  {(['datapoints', 'errorbars', 'whiskers'] as const).map(
-                    (mode) => (
-                      <Button
-                        key={mode}
-                        variant={
-                          this.state.displayMode === mode
-                            ? 'secondary'
-                            : 'outline'
-                        }
-                        size="sm"
-                        onClick={() => this.handleDisplayModeChange(mode)}
-                      >
-                        {mode === 'datapoints'
-                          ? 'Data Points'
-                          : mode === 'errorbars'
-                            ? 'Bar Graph'
-                            : 'Box Plot'}
-                      </Button>
-                    )
-                  )}
-                </div>
-                <HelpButton onClick={this.toggleDisplayInfoVisibility} />
-                {this.state.isSidebarVisible && (
-                  <div className="h-full">{this.renderHelpContent()}</div>
-                )}
+            ) : (
+              <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
+                <p className="mb-2">
+                  No cleaned data yet — clean a recording first, then it&apos;ll
+                  show up here to analyze.
+                </p>
+                <Button asChild variant="secondary" size="sm">
+                  <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
+                </Button>
               </div>
-            </div>
-          </>
-        );
-    }
-  }
-
-  render() {
-    return (
-      <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
-        <SecondaryNavComponent
-          title="Analyze"
-          steps={
-            this.props.isEEGEnabled === true
-              ? ANALYZE_STEPS
-              : ANALYZE_STEPS_BEHAVIOR
-          }
-          activeStep={this.state.activeStep}
-          onStepClick={this.handleStepClick}
-        />
-        <div className="flex items-start h-[90%]">
-          {this.renderSectionContent()}
+            )}
+          </div>
+          <div>
+            <h2>PSD Plot</h2>
+            {psdChild ? (
+              <PyodidePlotWidget
+                title={props.title}
+                imageTitle="psd"
+                plotMIMEBundle={props.psdPlot}
+              />
+            ) : (
+              <p>No PSD data available. Clean some data first.</p>
+            )}
+          </div>
+          <div>
+            <h2>Topography</h2>
+            {topoChild ? (
+              <PyodidePlotWidget
+                title={props.title}
+                imageTitle="topo"
+                plotMIMEBundle={props.topoPlot}
+              />
+            ) : (
+              <p>No topography data available.</p>
+            )}
+          </div>
         </div>
       </div>
     );
   }
+
+  function renderERP() {
+    return (
+      <div className="flex h-full">
+        <div className="flex-1 p-4">
+          <h1 className="mb-4">ERP</h1>
+          {props.erpPlot.child ? (
+            <PyodidePlotWidget
+              title={props.title}
+              imageTitle="erp"
+              plotMIMEBundle={props.erpPlot}
+            />
+          ) : (
+            <p>No ERP data available.</p>
+          )}
+        </div>
+        <div className="w-32 p-4 bg-white border-l border-gray-200">
+          <ClickableHeadDiagramSVG
+            channelinfo={props.channelInfo}
+            onChannelClick={handleChannelSelect}
+          />
+          <div className="mt-4 space-y-2">
+            {props.channelInfo.map((channel) => (
+              <div
+                key={channel}
+                role="button"
+                tabIndex={0}
+                className={`text-sm p-1 cursor-pointer rounded ${
+                  selectedChannel === channel
+                    ? 'bg-brand text-white'
+                    : 'hover:bg-gray-100'
+                }`}
+                onClick={() => handleChannelSelect(channel)}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && handleChannelSelect(channel)
+                }
+              >
+                {channel}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderBehavior() {
+    return (
+      <div className="flex flex-col p-4">
+        <h1 className="mb-4">Behavioral Data</h1>
+        <div className="flex gap-4 mb-4">
+          <Button variant="secondary" onClick={handleDropdownClick}>
+            Refresh datasets
+          </Button>
+          <Button
+            variant="default"
+            disabled={selectedBehaviorFilePaths.length === 0}
+            onClick={saveSelectedDatasets}
+          >
+            Download aggregated data
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              EEG Datasets
+            </label>
+            {eegFilePaths.some((f) => f.key !== '') ? (
+              <select
+                multiple
+                className="w-full border border-gray-300 rounded p-1"
+                value={selectedFilePaths}
+                onChange={handleDatasetChange}
+              >
+                {eegFilePaths.map((fp) => (
+                  <option key={fp.key} value={fp.value as unknown as string}>
+                    {fp.text}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-600">
+                <p className="mb-2">
+                  No cleaned data yet — clean a recording first, then it&apos;ll
+                  show up here to analyze.
+                </p>
+                <Button asChild variant="secondary" size="sm">
+                  <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Behavioral Datasets
+            </label>
+            <select
+              multiple
+              className="w-full border border-gray-300 rounded p-1"
+              value={selectedBehaviorFilePaths}
+              onChange={handleBehaviorDatasetChange}
+            >
+              {behaviorFilePaths.map((fp) => (
+                <option key={fp.key} value={fp.value}>
+                  {fp.text}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-1">
+            Dependent Variable
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded p-1 mb-2"
+            value={selectedDependentVariable}
+            onChange={handleDependentVariableChange}
+          >
+            {dependentVariables.map((dv) => (
+              <option key={dv.key} value={dv.value}>
+                {dv.text}
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-2 mb-2">
+            <label className="flex items-center gap-1 text-sm">
+              <input
+                type="checkbox"
+                checked={removeOutliers}
+                onChange={handleRemoveOutliers}
+              />
+              Remove outliers
+            </label>
+            <label className="flex items-center gap-1 text-sm">
+              <input
+                type="checkbox"
+                checked={showDataPoints}
+                onChange={handleDataPoints}
+              />
+              Show data points
+            </label>
+          </div>
+          <div className="flex gap-2 mb-2">
+            <Button
+              variant={displayMode === 'errorbars' ? 'default' : 'secondary'}
+              size="sm"
+              onClick={() => handleDisplayModeChange('errorbars')}
+            >
+              Error bars
+            </Button>
+            <Button
+              variant={displayMode === 'datapoints' ? 'default' : 'secondary'}
+              size="sm"
+              onClick={() => handleDisplayModeChange('datapoints')}
+            >
+              Data Points
+            </Button>
+            <Button
+              variant={displayMode === 'whiskers' ? 'default' : 'secondary'}
+              size="sm"
+              onClick={() => handleDisplayModeChange('whiskers')}
+            >
+              Box Plot
+            </Button>
+          </div>
+          <div className="h-96">
+            {dataToPlot.length > 0 ? (
+              <Plot
+                data={dataToPlot}
+                layout={layout}
+                useResizeHandler={true}
+                style={{ width: '100%', height: '100%' }}
+              />
+            ) : (
+              <p>Select datasets to see plots.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const steps = props.isEEGEnabled ? ANALYZE_STEPS : ANALYZE_STEPS_BEHAVIOR;
+
+  return (
+    <div className="relative h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+      <SecondaryNavComponent
+        title="Analyze"
+        steps={steps}
+        activeStep={activeStep}
+        onStepClick={handleStepClick}
+        saveButton={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleDisplayInfoVisibility}
+          >
+            {isSidebarVisible ? 'Hide' : 'Show'} help
+          </Button>
+        }
+      />
+      {isSidebarVisible && renderHelpContent()}
+      {activeStep === ANALYZE_STEPS.OVERVIEW && renderOverview()}
+      {activeStep === ANALYZE_STEPS.ERP && renderERP()}
+      {activeStep === ANALYZE_STEPS.BEHAVIOR && renderBehavior()}
+    </div>
+  );
 }

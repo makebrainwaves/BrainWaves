@@ -2,10 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EpochArraysMeta } from '../../actions';
 import { Button } from '../ui/button';
 import { cssColorForIndex } from '../../utils/eeg/conditionPalette';
-import {
-  downsampleMinMax,
-  epochChannelSeries,
-} from './epochArrays';
+import { downsampleMinMax, epochChannelSeries } from './epochArrays';
 
 // Interactive epoch reviewer: epochs run across (x), channels stacked (y).
 // Click an epoch column to reject it; click a channel label to flag it bad
@@ -219,7 +216,16 @@ export default function EpochReviewer({
         }
       }
     }
-  }, [epochArrays, meta, rejected, clampedStart, perPage, badChannels, visibleCount, uniqueSortedCodes]);
+  }, [
+    epochArrays,
+    meta,
+    rejected,
+    clampedStart,
+    perPage,
+    badChannels,
+    visibleCount,
+    uniqueSortedCodes,
+  ]);
 
   // Empty state — friendly, brand-styled, student-facing.
   if (!epochArrays || !meta || meta.n_epochs === 0) {

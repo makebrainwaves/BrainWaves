@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import Mousetrap from 'mousetrap';
 import ViewerComponent from '../ViewerComponent';
@@ -40,68 +40,48 @@ interface Props {
   openRunComponent: () => void;
 }
 
-interface State {
-  isPreviewing: boolean;
-  isSidebarVisible: boolean;
-}
+export default function PreTestComponent(props: Props) {
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
-export default class PreTestComponent extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isPreviewing: false,
-      isSidebarVisible: true,
+  useEffect(() => {
+    Mousetrap.bind('esc', props.ExperimentActions.Stop);
+    return () => {
+      Mousetrap.unbind('esc');
     };
-    this.handlePreview = this.handlePreview.bind(this);
-    this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
-    this.endPreview = this.endPreview.bind(this);
+  }, [props.ExperimentActions]);
+
+  function endPreview() {
+    setIsPreviewing(false);
   }
 
-  componentDidMount() {
-    Mousetrap.bind('esc', this.props.ExperimentActions.Stop);
-  }
-
-  componentWillUnmount() {
-    Mousetrap.unbind('esc');
-  }
-
-  endPreview() {
-    this.setState({ isPreviewing: false });
-  }
-
-  handlePreview(e) {
+  function handlePreview(e) {
     e.target.blur();
-    this.setState((prevState) => ({
-      ...prevState,
-      isSidebarVisible: false,
-      isPreviewing: !prevState.isPreviewing,
-    }));
+    setIsSidebarVisible(false);
+    setIsPreviewing((prev) => !prev);
   }
 
-  handleSidebarToggle() {
-    this.setState((prevState) => ({
-      ...prevState,
-      isSidebarVisible: !prevState.isSidebarVisible,
-    }));
+  function handleSidebarToggle() {
+    setIsSidebarVisible((prev) => !prev);
   }
 
-  renderSignalQualityOrPreview() {
-    if (this.state.isPreviewing) {
+  function renderSignalQualityOrPreview() {
+    if (isPreviewing) {
       return (
         <PreviewExperimentComponent
-          {...getExperimentFromType(this.props.type)}
-          isPreviewing={this.state.isPreviewing}
-          onEnd={this.endPreview}
-          type={this.props.type}
-          params={this.props.params}
-          title={this.props.title}
+          {...getExperimentFromType(props.type)}
+          isPreviewing={isPreviewing}
+          onEnd={endPreview}
+          type={props.type}
+          params={props.params}
+          title={props.title}
         />
       );
     }
     return (
       <div className="p-2">
         <SignalQualityIndicatorComponent
-          signalQualityObservable={this.props.signalQualityObservable}
+          signalQualityObservable={props.signalQualityObservable}
           plottingInterval={PLOTTING_INTERVAL}
         />
         <ul className="mt-2 space-y-1">
@@ -122,54 +102,50 @@ export default class PreTestComponent extends Component<Props, State> {
     );
   }
 
-  renderHelpButton() {
-    if (!this.state.isSidebarVisible) {
-      return <HelpButton onClick={this.handleSidebarToggle} />;
+  function renderHelpButton() {
+    if (!isSidebarVisible) {
+      return <HelpButton onClick={handleSidebarToggle} />;
     }
   }
 
-  render() {
-    return (
-      <div className="relative flex h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
-        {this.state.isSidebarVisible && (
-          <div className="absolute right-0 top-0 h-full w-64 z-10">
-            <HelpSidebar handleClose={this.handleSidebarToggle} />
+  return (
+    <div className="relative flex h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+      {isSidebarVisible && (
+        <div className="absolute right-0 top-0 h-full w-64 z-10">
+          <HelpSidebar handleClose={handleSidebarToggle} />
+        </div>
+      )}
+      <div className="flex-1 p-[3%]">
+        <div className="flex items-center justify-between mb-4">
+          <h1>Collect</h1>
+          <div className="flex gap-2">
+            <PreviewButton
+              isPreviewing={isPreviewing}
+              onClick={(e) => handlePreview(e)}
+            />
+            <Button
+              variant="default"
+              disabled={props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
+              onClick={props.openRunComponent}
+            >
+              Run & Record Experiment
+            </Button>
           </div>
-        )}
-        <div className="flex-1 p-[3%]">
-          <div className="flex items-center justify-between mb-4">
-            <h1>Collect</h1>
-            <div className="flex gap-2">
-              <PreviewButton
-                isPreviewing={this.state.isPreviewing}
-                onClick={(e) => this.handlePreview(e)}
-              />
-              <Button
-                variant="default"
-                disabled={
-                  this.props.connectionStatus !== CONNECTION_STATUS.CONNECTED
-                }
-                onClick={this.props.openRunComponent}
-              >
-                Run & Record Experiment
-              </Button>
-            </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="w-1/2 h-full items-center mb-5">
+            {renderSignalQualityOrPreview()}
           </div>
-          <div className="flex gap-4">
-            <div className="w-1/2 h-full items-center mb-5">
-              {this.renderSignalQualityOrPreview()}
-            </div>
-            <div className="w-1/2">
-              <ViewerComponent
-                signalQualityObservable={this.props.signalQualityObservable}
-                channels={this.props.connectedDevice?.channels}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
-              {this.renderHelpButton()}
-            </div>
+          <div className="w-1/2">
+            <ViewerComponent
+              signalQualityObservable={props.signalQualityObservable}
+              channels={props.connectedDevice?.channels}
+              plottingInterval={PLOTTING_INTERVAL}
+            />
+            {renderHelpButton()}
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }

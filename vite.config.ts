@@ -33,13 +33,6 @@ export default defineConfig({
     plugins: [
       react({
         jsxRuntime: 'classic', // React 16 does not ship react/jsx-runtime
-        babel: {
-          plugins: [
-            // Legacy decorator support (used throughout the codebase)
-            ['@babel/plugin-proposal-decorators', { legacy: true }],
-            ['@babel/plugin-proposal-class-properties', { loose: true }],
-          ],
-        },
       }),
     ],
     resolve: {

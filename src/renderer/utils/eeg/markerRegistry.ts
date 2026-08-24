@@ -75,8 +75,7 @@ export const buildMarkerRegistry = (
     const neutral = CODE_TO_LABEL[code] ?? `EVENT_${code}`;
     // Use the condition name only if it's non-empty and not already claimed by
     // another code; otherwise fall back to the guaranteed-unique neutral label.
-    const label =
-      condition && !usedLabels.has(condition) ? condition : neutral;
+    const label = condition && !usedLabels.has(condition) ? condition : neutral;
     usedLabels.add(label);
     codeToLabel[code] = label;
     eventId[label] = code;

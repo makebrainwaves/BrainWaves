@@ -30,14 +30,21 @@ export class StimulusFileAccess {
   resolveUrl(requestUrl: string): string {
     const url = new URL(requestUrl);
     const requestedPath = url.searchParams.get('path');
-    if (url.protocol !== 'bwfile:' || !requestedPath || !path.isAbsolute(requestedPath)) {
+    if (
+      url.protocol !== 'bwfile:' ||
+      !requestedPath ||
+      !path.isAbsolute(requestedPath)
+    ) {
       throw new Error('StimulusFileAccess.resolveUrl: invalid stimulus URL');
     }
 
     const canonical = fs.realpathSync(requestedPath);
     const authorized = [...this.directories].some((directory) => {
       const relative = path.relative(directory, canonical);
-      return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+      return (
+        relative === '' ||
+        (!relative.startsWith('..') && !path.isAbsolute(relative))
+      );
     });
     if (!authorized) {
       throw new Error(
