@@ -10,8 +10,8 @@ Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze,
 - [x] Muse + Neurosity first-party drivers (`EEGDriver` registry)
 - [x] LSL outlets for connected first-party devices (epochs + stimulus markers)
 - [x] External LSL inlet in ConnectModal (when liblsl is available)
-- [ ] Restore custom-experiment authoring (see TODOS — P0)
-- [ ] QA built-in + custom experiments on Muse hardware
+- [x] Restore custom-experiment authoring (see TODOS — P0)
+- [x] QA built-in + custom experiments on Muse hardware
 - [ ] First release dry-run (`v1.0.0-rc.1`) + packaged-app smoke
 - [ ] Cross-platform LSL packaging verification (macOS x64, Windows, Linux)
 
@@ -26,6 +26,13 @@ Epoch-reviewer onboarding (plain language, guided mode). See TODOS "Next".
 - [ ] Neuro content from Steve Azeka (2017 classroom material)
 - [ ] Data-science content from Teon Brooks
 - [ ] In-app lesson surface (static markdown first)
+
+## V3 - AI-powered data analysis
+- [ ] **Emit tidy trial-level data from the collection layer.** De-specialize from ERP-only averaged waveforms. Blocks everything below. *(Scope first — likely the largest hidden work item.)*
+- [ ] **Write/audit the statistical curriculum.** Normal vs. non-normal, categorical vs. ordinal, paired vs. independent, p-values. The analysis UI is unusable without it and does not teach it.
+- [ ] **Build the specification → compiler loop.** Four-slot structure declaration with custom iconography → unfiltered test palette (6 tests + non-parametric siblings) → generated Python, visible and editable, run client-side in Pyodide. Predict-before-you-run enforced and logged; effect size always adjacent to p. No free-text input; no output that narrows, ranks, or recommends a test.
+- [ ] **Generalize the data curation layer.** Condition-blind unit review, failure-class tagging, threshold inferred from the student's own calls, exclusion log exported as a writeup artifact. Cut seams for a second instrument; don't build a plugin loader yet.
+- [ ] **Ship post-submission agentic review.** Overnight, interrogative-only output, process not conclusions, identical artifact to student and teacher, never scored.
 
 ## Later
 
