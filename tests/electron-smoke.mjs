@@ -72,7 +72,9 @@ async function pollCdp(port, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
-      const resp = await fetch(`http://127.0.0.1:${port}/json/list`);
+      const resp = await fetch(`http://127.0.0.1:${port}/json/list`, {
+        signal: AbortSignal.timeout(POLL_INTERVAL),
+      });
       if (!resp.ok) {
         await sleep(POLL_INTERVAL);
         continue;
@@ -202,7 +204,14 @@ async function main() {
 
   // Wait for the app process to exit (up to deadline ms), force SIGKILL after.
   const awaitAppExit = (deadlineMs) => {
-    if (!appProcess || appProcess.killed) return Promise.resolve();
+    if (
+      !appProcess ||
+      appProcess.killed ||
+      appProcess.exitCode !== null ||
+      appProcess.signalCode !== null
+    ) {
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
         try {
@@ -225,16 +234,23 @@ async function main() {
       try { process.kill(-pgid, 'SIGTERM'); } catch { /* ok */ }
     }
   };
-  process.on('exit', killGroup);
-  process.on('SIGINT', () => { killGroup(); process.exit(1); });
-  process.on('SIGTERM', () => { killGroup(); process.exit(1); });
 
   // Full async teardown: SIGTERM, wait for exit, remove profile dir.
   const shutdown = async () => {
     killGroup();
     await awaitAppExit(5000);
+    // The npm wrapper can exit before its Electron descendants finish handling
+    // SIGTERM; let the process group settle before removing its profile.
+    await sleep(500);
     try { rmSync(USER_DATA_DIR, { recursive: true, force: true }); } catch { /* ok */ }
   };
+  process.on('exit', killGroup);
+  process.on('SIGINT', () => {
+    shutdown().finally(() => process.exit(1));
+  });
+  process.on('SIGTERM', () => {
+    shutdown().finally(() => process.exit(1));
+  });
 
   const remaining = () => Math.max(0, startTime + TIMEOUT_MS - Date.now());
 
