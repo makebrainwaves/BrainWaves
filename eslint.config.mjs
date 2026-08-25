@@ -180,6 +180,21 @@ export default [
     },
   },
 
+  // --- Node.js test scripts ---
+  {
+    files: ['tests/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2020,
+        WebSocket: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
+
   // --- Root-level Node.js scripts (e.g. *.config.js) ---
   {
     files: ['*.js', '*.mjs'],

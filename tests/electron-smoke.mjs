@@ -34,15 +34,13 @@ const TIMEOUT_SEC = Number.isFinite(Number(process.env.SMOKE_TIMEOUT))
   ? Math.max(Number(process.env.SMOKE_TIMEOUT), 1)
   : 180;
 const TIMEOUT_MS = TIMEOUT_SEC * 1000;
-//
-  (parseInt(process.env.SMOKE_TIMEOUT ?? '180', 10)) * 1000;
 const POLL_INTERVAL = 800;
 
 mkdirSync(resolve(ROOT, '.gstack'), { recursive: true });
 const SCREENSHOT_PATH = resolve(ROOT, '.gstack/electron-smoke-screenshot.png');
 
 // Temp user-data-dir so this spawn doesn't conflict with a running BrainWaves
-// instance (single-instance lock in src/main/index.ts:53-54).
+// instance's single-instance lock.
 const USER_DATA_DIR = mkdtempSync(resolve(ROOT, '.gstack/playtest-'));
 
 // ---------------------------------------------------------------------------
@@ -295,7 +293,6 @@ async function main() {
 
     // 5. Listeners BEFORE Runtime.enable (catches early errors)
     const consoleErrors = [];
-    const consoleWarnings = [];
     const exceptions = [];
     ws.addEventListener('message', (event) => {
       try {
@@ -306,7 +303,6 @@ async function main() {
             .map((a) => a.value ?? a.description ?? String(a))
             .join(' ');
           if (type === 'error') consoleErrors.push(text);
-          else if (type === 'warn') consoleWarnings.push(text);
         } else if (msg.method === 'Runtime.exceptionThrown') {
           const { exceptionDetails } = msg.params;
           const text =
