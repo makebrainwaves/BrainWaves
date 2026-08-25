@@ -13,6 +13,7 @@ import {
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
   DEVICES,
+  FILE_TYPES,
 } from '../../constants/constants';
 import faceHouseIcon from '../../experiments/faces_houses/icon.png';
 import stroopIcon from '../../experiments/stroop/icon.png';
@@ -26,6 +27,7 @@ import {
   readAndParseState,
   openWorkspaceDir,
   deleteWorkspaceDir,
+  importExperimentFile,
 } from '../../utils/filesystem/storage';
 import { ExperimentStateType } from '../../reducers/experimentReducer';
 import {
@@ -33,6 +35,12 @@ import {
   DeviceActions,
   ExperimentActions,
 } from '../../actions';
+import path from 'pathe';
+import { loadFromSystemDialog } from '../../utils/filesystem/select';
+import { readFiles } from '../../utils/filesystem/read';
+import { scanTimelineSource, V6_MIGRATION_URL } from '../../utils/jspsych/scan';
+import { JSPSYCH_PLUGIN_GLOBALS } from '../../utils/jspsych/plugins';
+import type { ImportedExperimentKind } from '../../constants/interfaces';
 import { ExperimentCard } from './ExperimentCard';
 import InputModal from '../InputModal';
 import SecondaryNavComponent from '../SecondaryNavComponent';
@@ -137,6 +145,62 @@ export default function Home(props: Props) {
     props.ExperimentActions.CreateNewWorkspace({
       title,
       type: EXPERIMENTS.CUSTOM,
+    });
+    props.navigate(SCREENS.DESIGN.route);
+  }
+
+  async function handleImportExperiment() {
+    const sourcePath = await loadFromSystemDialog(FILE_TYPES.TIMELINE);
+    if (!sourcePath) return;
+
+    const kind: ImportedExperimentKind =
+      path.extname(sourcePath).toLowerCase() === '.json' ? 'labjs' : 'jspsych';
+    const title = path.parse(sourcePath).name.replace(/[^\w-]/g, '_');
+
+    if (title.length <= 3) {
+      toast.error(`Experiment name is too short`);
+      return;
+    }
+    if (recentWorkspaces.includes(title)) {
+      toast.error(`Experiment already exists`);
+      return;
+    }
+
+    // Scan the ORIGINAL file: a rejected import must not leave a workspace
+    // behind to clean up.
+    if (kind === 'jspsych') {
+      const [source] = await readFiles([sourcePath]);
+      const scan = scanTimelineSource(
+        source,
+        Object.keys(JSPSYCH_PLUGIN_GLOBALS)
+      );
+      if (scan.v6Token) {
+        toast.error(
+          `This file is written for jsPsych 6 (it uses ${scan.v6Token}). BrainWaves runs jsPsych 8. Migration guide: ${V6_MIGRATION_URL}`
+        );
+        return;
+      }
+      if (scan.missingPluginGlobals.length > 0) {
+        toast.error(
+          `This experiment uses plugins BrainWaves does not ship: ${scan.missingPluginGlobals.join(
+            ', '
+          )}`
+        );
+        return;
+      }
+    }
+
+    const { file } = await importExperimentFile(title, sourcePath);
+    props.ExperimentActions.CreateNewWorkspace({
+      title,
+      type: EXPERIMENTS.IMPORTED,
+      imported: {
+        kind,
+        file,
+        conditionKey: '',
+        correctKey: '',
+        conditionLabels: [],
+      },
     });
     props.navigate(SCREENS.DESIGN.route);
   }
@@ -295,9 +359,16 @@ export default function Home(props: Props) {
             <ExperimentCard
               onClick={() => handleNewExperiment(EXPERIMENTS.CUSTOM)}
               icon={customIcon}
-              title="Custom"
+              title="Experiment Builder"
               description={`Design your own image experiment. Choose
                         condition folders and key responses.`}
+            />
+            <ExperimentCard
+              onClick={handleImportExperiment}
+              icon={customIcon}
+              title="Import Experiment"
+              description={`Already have a jsPsych timeline or a lab.js study?
+                        Run it here, with EEG markers and analysis.`}
             />
           </div>
         );

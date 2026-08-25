@@ -11,6 +11,7 @@ import stroopExperiment from '../../experiments/stroop';
 import customExperiment from '../../experiments/custom';
 import searchExperiment from '../../experiments/search';
 import multitaskingExperiment from '../../experiments/multitasking';
+import importedExperiment from '../../experiments/imported';
 import { toStimulusFileUrl } from '../../../shared/stimulusUrl';
 
 /**
@@ -20,6 +21,8 @@ import { toStimulusFileUrl } from '../../../shared/stimulusUrl';
  */
 export function getExperimentFromType(type: EXPERIMENTS): Experiment {
   switch (type) {
+    case EXPERIMENTS.IMPORTED:
+      return importedExperiment;
     case EXPERIMENTS.MULTI:
       return multitaskingExperiment;
     case EXPERIMENTS.STROOP:
