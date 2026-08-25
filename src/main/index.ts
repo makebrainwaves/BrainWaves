@@ -51,6 +51,12 @@ if (playtestUserData) {
   delete process.env.BW_PLAYTEST_USER_DATA;
 }
 
+// Needed for WASM/SharedArrayBuffer support (pyodide) and Web Bluetooth.
+app.commandLine.appendSwitch(
+  'enable-experimental-web-platform-features',
+  'true'
+);
+
 // Enforce a single app instance — required so the second-instance event fires
 // on Windows/Linux when the OS re-launches the app to deliver an OAuth callback.
 if (!app.requestSingleInstanceLock()) {

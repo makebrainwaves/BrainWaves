@@ -178,6 +178,19 @@ async function main() {
     console.log(`[smoke] App exited: code=${code} signal=${sig}`);
   });
 
+  // await-exit helper: resolve when the app process exits, up to deadline
+  const awaitAppExit = (deadlineMs) => {
+    if (!appProcess || appProcess.killed) return Promise.resolve();
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        // Force-kill on deadline
+        try { if (pgid) process.kill(-pgid, 'SIGKILL'); } catch { /* ok */ }
+        resolve();
+      }, deadlineMs);
+      appProcess.once('exit', () => { clearTimeout(timeout); resolve(); });
+    });
+  };
+
   // Cleanup: kill whole process group + remove temp user-data-dir
   const cleanup = () => {
     if (appProcess && !appProcess.killed && pgid) {
@@ -186,13 +199,6 @@ async function main() {
       } catch {
         /* may already be gone */
       }
-      setTimeout(() => {
-        try {
-          process.kill(-pgid, 'SIGKILL');
-        } catch {
-          /* ok */
-        }
-      }, 5000).unref();
     }
     try {
       rmSync(USER_DATA_DIR, { recursive: true, force: true });
@@ -418,11 +424,11 @@ async function main() {
   } catch (err) {
     console.error(`\n[smoke] \u274c FAIL:`, err);
     process.exitCode = 1;
-  } finally {
+    } finally {
     cleanup();
-    await sleep(500);
+    // Wait for the app process to exit (up to 6s total: 1s grace + 5s SIGKILL).
+    await awaitAppExit(5000);
     process.exit(process.exitCode ?? 0);
   }
 }
-
 main();
