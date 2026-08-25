@@ -302,6 +302,8 @@ const lslForwardEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
       // Skip the outlet for LSL inlet sources — re-broadcasting a stream we
       // just received from LSL would create a feedback loop in LabRecorder.
       if (deviceType === DEVICES.LSL) return EMPTY;
+      // Fixture is a synthetic replay source — no real LSL outlet needed.
+      if (deviceType === DEVICES.FIXTURE) return EMPTY;
       const lslDeviceType: 'muse' | 'neurosity' =
         deviceType === DEVICES.MUSE ? 'muse' : 'neurosity';
       return batchSamplesToEpoch(

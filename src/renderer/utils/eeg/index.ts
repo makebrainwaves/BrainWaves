@@ -14,10 +14,12 @@ import { DEVICES } from '../../constants/constants';
 import { EEGDriver } from './types';
 import { museDriver } from './muse';
 import { neurosityDriver } from './neurosity';
+import { fixtureDriver } from './fixture';
 
 const DRIVERS: Partial<Record<DEVICES, EEGDriver>> = {
   [DEVICES.MUSE]: museDriver,
   [DEVICES.NEUROSITY]: neurosityDriver,
+  [DEVICES.FIXTURE]: fixtureDriver,
 };
 
 /** Returns the driver for a built-in (BLE) device type, or throws if none. */

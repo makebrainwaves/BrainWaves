@@ -13,6 +13,11 @@ declare module '*.py?raw' {
   export default content;
 }
 
+declare module '*.csv?raw' {
+  const content: string;
+  export default content;
+}
+
 declare module '*.py' {
   const content: string;
   export default content;

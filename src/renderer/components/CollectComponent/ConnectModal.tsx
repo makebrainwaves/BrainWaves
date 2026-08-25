@@ -238,14 +238,26 @@ export default function ConnectModal(props: Props) {
               {lslAvailable && (
                 <option value={DEVICES.LSL}>External LSL stream</option>
               )}
+              {import.meta.env.DEV && (
+                <option value={DEVICES.FIXTURE}>Fixture (Synthetic EEG)</option>
+              )}
             </select>
           </div>
-          {props.deviceType === DEVICES.LSL && renderLSLDiscovery()}
-          <p>Make sure your headset is on and fully charged.</p>
-          <p>
-            If the headset needs charging, set the power switch to off and plug
-            in the headset. <b>Do not charge the headset while wearing it</b>
-          </p>
+          {props.deviceType === DEVICES.FIXTURE ? (
+            <p>
+              Fixture mode replays a recorded EEG sample. No headset needed.
+            </p>
+          ) : props.deviceType === DEVICES.LSL ? (
+            renderLSLDiscovery()
+          ) : (
+            <>
+              <p>Make sure your headset is on and fully charged.</p>
+              <p>
+                If the headset needs charging, set the power switch to off and
+                plug in the headset. <b>Do not charge the headset while wearing it</b>
+              </p>
+            </>
+          )}
           <div className="flex gap-2 mt-4">
             {(instructionProgress as number) !== 0 && (
               <Button
