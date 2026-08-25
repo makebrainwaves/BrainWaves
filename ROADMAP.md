@@ -4,7 +4,7 @@ Summer 2026: BrainWaves revival for high school. Execution detail lives in `TODO
 
 ## V1 / V1.1 — classroom MVP
 
-Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze, including **custom experiments** (P0; they worked in the 2017–2020 app and must work again).
+Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze, including **custom experiments** (P0; they worked in the 2017–2020 app and must work again). **Shipped as v1.0.0 on 2026-08-11.**
 
 - [x] Cut Emotiv SDK
 - [x] Muse + Neurosity first-party drivers (`EEGDriver` registry)
@@ -12,7 +12,7 @@ Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze,
 - [x] External LSL inlet in ConnectModal (when liblsl is available)
 - [x] Restore custom-experiment authoring (see TODOS — P0)
 - [x] QA built-in + custom experiments on Muse hardware
-- [ ] First release dry-run (`v1.0.0-rc.1`) + packaged-app smoke
+- [x] First release dry-run (`v1.0.0-rc.1`) + packaged-app smoke
 - [ ] Cross-platform LSL packaging verification (macOS x64, Windows, Linux)
 
 CSV is still the system of record. Using LSL *internally* for recording is not a V1 goal.

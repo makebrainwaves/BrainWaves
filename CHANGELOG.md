@@ -1,3 +1,42 @@
+# 1.0.0 (August 11, 2026) - Classroom MVP
+
+First stable release of the revived BrainWaves desktop app for high-school EEG labs.
+Ships the full classroom loop — Design → Collect → Clean → Analyze — for Muse and
+Neurosity headsets, with restored custom experiment authoring and a browser-based
+analysis backend.
+
+## Hardware & connectivity
+
+- Muse (classic protocol) and Neurosity Crown first-party drivers over Web Bluetooth.
+- Lab Streaming Layer (LSL) outlet for EEG epochs + stimulus markers.
+- External LSL inlet in `ConnectModal` for third-party recorders (when liblsl is available).
+- Packaged macOS `liblsl` is self-contained on Apple Silicon via the `afterPack` hook.
+- Emotiv SDK and Epoc+ support removed.
+
+## Experiments
+
+- Built-in experiments: Faces/Houses (N170), Stroop, Multi-tasking, Visual Search.
+- Restored custom experiment authoring: pick image folders, set conditions/trials/parameters.
+- EEG enable/disable per workspace; behavior-only mode skips Clean.
+
+## Analysis
+
+- MNE-based EEG analysis runs inside the app via Pyodide (Python in WebAssembly).
+- Custom `pyodide://` Electron protocol serves WASM assets in dev and packaged builds.
+- Fixed Clean → Analyze round-trip: cleaned epochs persist and reload correctly.
+
+## Epoch reviewer
+
+- Interactive artifact rejection across epochs and channels.
+- Bad-channel flagging and auto-flag suggestions with adjustable sensitivity.
+- Live ERP preview and real condition labels in the reviewer.
+
+## Release & quality
+
+- Release workflow gated on test / typecheck / lint before building.
+- Build-artifact tests assert the Pyodide payload is present before publishing.
+- macOS, Windows, and Linux installers built on GitHub Actions.
+
 # 0.14.2 (September 19, 2020) - TypeScript and tooling update
 
 - TypeScript
