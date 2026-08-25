@@ -1,0 +1,53 @@
+# Electron playtest smoke test
+#
+# Launches the dev-build Electron app with --remote-debugging-port, attaches
+# CDP to the renderer page, and runs assertions:
+#   - window.electronAPI present (preload injection)
+#   - React root in DOM
+#   - Pyodide worker signals ready
+#   - No console errors
+#   - Screenshot captured
+#
+# macOS has a display runner by default. Linux needs xvfb-run.
+# Windows: Electron does not support --remote-debugging-port on CI reliably;
+#           the renderer tests in test.yml already cover unit-level assertions.
+
+name: Electron Playtest
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  playtest:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Electron smoke test
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run --auto-servernum node tests/electron-smoke.mjs
+          else
+            node tests/electron-smoke.mjs
+          fi
+        env:
+          SMOKE_TIMEOUT: '120'
+          CDP_PORT: '9222'
