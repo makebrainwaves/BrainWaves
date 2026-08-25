@@ -9,6 +9,7 @@ When the user's request matches an available skill, invoke it via the Skill tool
 
 These live in `.claude/skills/` and are the source of truth for the hard seams.
 
+- Driving the Electron window via CDP (playtesting, clicking through screens, checking console errors, screenshots) → `electron-playtest`
 - Anything that crosses main / preload / renderer (IPC, `electronAPI`, native modules, Bluetooth, FS, dialogs) → `electron-ipc-architecture`, then `electron-ipc-channel` when adding/editing a channel
 - Pyodide, MNE, `webworker/`, `InstallMNE.mjs`, plot/data routing, prod-only analysis failures → `pyodide-mne`
 - Epics, live EEG, markers, empty ERPs, `buildMarkerRegistry` → `redux-observable-epochs`
@@ -20,4 +21,4 @@ These live in `.claude/skills/` and are the source of truth for the hard seams.
 - `window.electronAPI` and the `pyodide://` protocol exist only inside the Electron window (preload + main).
 - Opening `:5173` in Chrome / `/qa` crashes `LSLStatusListener` and fails Pyodide init (`Failed to fetch … pyodide://host/pyodide/pyodide.asm.js`).
 - **Never** `/qa`, `/qa-only`, or `/browse` against `localhost:5173`.
-- Playtest the Electron window. A dedicated `electron-playtest` skill (CDP attach via `--remote-debugging-port`) is the planned harness — see `TODOS.md`. Until that exists: `npm run dev` and drive the desktop app, not the Vite URL.
+- Playtest the Electron window via CDP — see the `electron-playtest` skill (`.claude/skills/electron-playtest/SKILL.md`).

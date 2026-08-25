@@ -42,7 +42,16 @@ import type {
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
 
-// Needed for WASM/SharedArrayBuffer support (pyodide)
+// Playtest harness: redirect userData to a temp dir so this instance gets its
+// own single-instance lock scope and doesn't conflict with a running app.
+// Clear the env after reading so child processes don't inherit it.
+const playtestUserData = process.env.BW_PLAYTEST_USER_DATA;
+if (playtestUserData) {
+  app.setPath('userData', playtestUserData);
+  delete process.env.BW_PLAYTEST_USER_DATA;
+}
+
+// Needed for WASM/SharedArrayBuffer support (pyodide) and Web Bluetooth.
 app.commandLine.appendSwitch(
   'enable-experimental-web-platform-features',
   'true'
