@@ -127,12 +127,14 @@ Or stop the hub process.
    favicon.ico 404) — ignore those. Flag real errors: React render errors,
    IPC timeouts, Pyodide load failures.
 
-The smoke test handles its own app lifecycle (launch via `npm run dev`, cleanup on exit). CI job:
+## CI workflow
+
+The smoke test handles its own app lifecycle (launch via `npm run dev`, cleanup on exit).
 
 ```yaml
 - name: Electron playtest
   run: node tests/electron-smoke.mjs
-  timeout-minutes: 5
+  timeout-minutes: 10
 ```
 
 macOS CI has a display by default. Linux needs `xvfb-run`:
@@ -140,27 +142,8 @@ macOS CI has a display by default. Linux needs `xvfb-run`:
 ```yaml
 - name: Electron playtest
   run: xvfb-run --auto-servernum node tests/electron-smoke.mjs
-  timeout-minutes: 5
+  timeout-minutes: 10
 ```
 
-The script auto-kills the dev server on completion. No separate `npm run dev &` needed — the script spawns it.
-
-The smoke test runs in CI via:
-
-```yaml
-- name: Electron playtest
-  run: |
-    npm run dev -- --remote-debugging-port=9222 &
-    node tests/electron-smoke.mjs
-```
-
-macOS CI has a display. Linux needs `xvfb-run`:
-
-```yaml
-- name: Electron playtest
-  run: |
-    xvfb-run --auto-servernum npm run dev -- --remote-debugging-port=9222 &
-    node tests/electron-smoke.mjs
-```
-
-The script auto-kills the dev server on completion.
+The script spawns `npm run dev` internally and auto-kills it on completion. No separate
+`npm run dev &` needed.

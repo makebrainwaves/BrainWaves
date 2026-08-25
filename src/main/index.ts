@@ -42,11 +42,14 @@ import type {
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
 
-// Needed for WASM/SharedArrayBuffer support (pyodide)
-app.commandLine.appendSwitch(
-  'enable-experimental-web-platform-features',
-  'true'
-);
+// Playtest harness: redirect userData to a temp dir so this instance gets its
+// own single-instance lock scope and doesn't conflict with a running app.
+// Clear the env after reading so child processes don't inherit it.
+const playtestUserData = process.env.BW_PLAYTEST_USER_DATA;
+if (playtestUserData) {
+  app.setPath('userData', playtestUserData);
+  delete process.env.BW_PLAYTEST_USER_DATA;
+}
 
 // Enforce a single app instance — required so the second-instance event fires
 // on Windows/Linux when the OS re-launches the app to deliver an OAuth callback.

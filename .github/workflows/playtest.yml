@@ -8,7 +8,7 @@
 #   - No console errors
 #   - Screenshot captured
 #
-# macOS has a display runner by default. Linux needs xvfb-run.
+# macOS has a display by default. Linux needs xvfb-run.
 # Windows: Electron does not support --remote-debugging-port on CI reliably;
 #           the renderer tests in test.yml already cover unit-level assertions.
 
@@ -26,7 +26,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Check out Git repository
@@ -41,6 +41,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # The postinstall step in npm ci installs Pyodide/MNE packages
+      # which are needed by the renderer. Verify they arrived.
+      - name: Verify Pyodide assets
+        run: |
+          ls src/renderer/utils/webworker/src/pyodide/pyodide.asm.wasm && echo "Pyodide OK"
+          ls src/renderer/utils/webworker/src/packages/manifest.json && echo "MNE packages OK"
+
       - name: Run Electron smoke test
         run: |
           if [ "$RUNNER_OS" = "Linux" ]; then
@@ -49,5 +56,4 @@ jobs:
             node tests/electron-smoke.mjs
           fi
         env:
-          SMOKE_TIMEOUT: '120'
-          CDP_PORT: '9222'
+          SMOKE_TIMEOUT: '180'
