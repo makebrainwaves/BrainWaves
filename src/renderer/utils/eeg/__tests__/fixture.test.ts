@@ -123,7 +123,7 @@ describe('fixture driver', () => {
   // Markers
   // -----------------------------------------------------------------------
 
-  it('injectFixtureMarker attaches the code to the next emission', async () => {
+  it('injectFixtureMarker latches the code onto subsequent samples', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
@@ -132,12 +132,15 @@ describe('fixture driver', () => {
     injectFixtureMarker(42, Date.now());
     for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer(); // 5 more
 
-    const hit = seen.find((s) => s.marker === 42);
-    expect(hit).toBeDefined();
-    expect(seen.filter((s) => s.marker === 42)).toHaveLength(1);
+    const firstMarkerIndex = seen.findIndex((s) => s.marker === 42);
+    expect(firstMarkerIndex).toBeGreaterThanOrEqual(0);
+    // All samples after injection should carry the latched marker.
+    for (let i = firstMarkerIndex; i < seen.length; i++) {
+      expect(seen[i].marker).toBe(42);
+    }
   });
 
-  it('emits baked-in CSV marker at row 128', async () => {
+  it('emits baked-in CSV marker latched from row 128 onward', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
@@ -147,9 +150,14 @@ describe('fixture driver', () => {
     const row128 = seen.find((s) => s.data[0] === 128);
     expect(row128).toBeDefined();
     expect(row128!.marker).toBe(1);
+    // Marker stays latched on every sample after row 128.
+    const first128 = seen.findIndex((s) => s.data[0] === 128);
+    for (let i = first128; i < seen.length; i++) {
+      expect(seen[i].marker).toBe(1);
+    }
   });
 
-  it('pending marker shadows baked-in CSV marker on the same row', async () => {
+  it('pending marker shadows baked-in CSV marker on the same row and latches', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
@@ -165,8 +173,11 @@ describe('fixture driver', () => {
     const row128 = seen.find((s) => s.data[0] === 128);
     expect(row128).toBeDefined();
     expect(row128!.marker).toBe(99);
-    // No sample should carry the baked-in marker 1.
-    expect(seen.find((s) => s.marker === 1)).toBeUndefined();
+    // The injected marker latches forward on subsequent samples.
+    const first128 = seen.findIndex((s) => s.data[0] === 128);
+    for (let i = first128; i < seen.length; i++) {
+      expect(seen[i].marker).toBe(99);
+    }
   });
 
   it('injectMarker before stream starts does not leak into first sample', async () => {

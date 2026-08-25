@@ -40,6 +40,7 @@ interface CsvRow {
 let parsedRows: CsvRow[] | null = null;
 let activeInterval: ReturnType<typeof setInterval> | null = null;
 let sampleSubject: Subject<EEGData> | null = null;
+let activeMarker: number | null = null;
 let pendingMarker: number | null = null;
 let disconnectSubject: Subject<void> | null = null;
 
@@ -82,6 +83,7 @@ function stopReplay(): void {
     sampleSubject.complete();
     sampleSubject = null;
   }
+  activeMarker = null;
   pendingMarker = null;
 }
 
@@ -100,7 +102,7 @@ export const getFixture = async (): Promise<Device[]> => {
  * "Connect" to the fixture — always succeeds instantly.
  */
 export const connectToFixture = async (
-  _device: Device,
+  _device: Device
 ): Promise<DeviceInfo | null> => {
   return {
     name: 'Fixture (Synthetic EEG)',
@@ -134,56 +136,61 @@ export const fixtureDisconnect$ = (): Observable<void> => {
  * Build a live Observable<EEGData> that replays the bundled CSV in real time.
  * Loops continuously when the CSV is exhausted.
  */
-export const createRawFixtureObservable =
-  async (): Promise<Observable<EEGData>> => {
-    // Tear down any previous replay before creating a new one.
-    stopReplay();
+export const createRawFixtureObservable = async (): Promise<
+  Observable<EEGData>
+> => {
+  // Tear down any previous replay before creating a new one.
+  stopReplay();
 
-    const rows = parseFixtureCsv();
-    if (rows.length === 0) {
-      throw new Error(
-        'fixture_data.csv is empty — cannot create raw observable',
-      );
+  const rows = parseFixtureCsv();
+  if (rows.length === 0) {
+    throw new Error('fixture_data.csv is empty — cannot create raw observable');
+  }
+
+  const subject = new Subject<EEGData>();
+  sampleSubject = subject;
+
+  const startTime = Date.now();
+  let index = 0;
+  let sampleCount = 0;
+
+  activeInterval = setInterval(() => {
+    if (index >= rows.length) {
+      index = 0; // loop
     }
 
-    const subject = new Subject<EEGData>();
-    sampleSubject = subject;
+    const row = rows[index];
+    const eegData: EEGData = {
+      data: [...row.data],
+      timestamp: startTime + sampleCount * SAMPLE_INTERVAL_MS,
+    };
 
-    const startTime = Date.now();
-    let index = 0;
-    let sampleCount = 0;
+    // Latch the latest marker value onto every sample, matching Muse's
+    // eventMarkers stream (withLatestFrom) which persists a marker code on
+    // the AUX channel until a new marker is injected. This keeps marker
+    // events multi-sample so MNE's find_events accepts them by default.
+    // A programmatically injected marker takes priority over a baked-in CSV
+    // marker on the same sample, and then latches forward.
+    if (pendingMarker !== null) {
+      activeMarker = pendingMarker;
+      pendingMarker = null;
+    } else if (row.marker !== null) {
+      activeMarker = row.marker;
+    }
+    if (activeMarker !== null) {
+      eegData.marker = activeMarker;
+    }
 
-    activeInterval = setInterval(() => {
-      if (index >= rows.length) {
-        index = 0; // loop
-      }
+    subject.next(eegData);
+    index++;
+    sampleCount++;
+  }, SAMPLE_INTERVAL_MS);
 
-      const row = rows[index];
-      const eegData: EEGData = {
-        data: [...row.data],
-        timestamp: startTime + sampleCount * SAMPLE_INTERVAL_MS,
-      };
-
-      // A programmatically injected marker (via injectMarker) takes priority
-      // over a baked-in CSV marker — this lets tests/playthroughs simulate
-      // arbitrary event sequences.
-      if (pendingMarker !== null) {
-        eegData.marker = pendingMarker;
-        pendingMarker = null;
-      } else if (row.marker !== null) {
-        eegData.marker = row.marker;
-      }
-
-      subject.next(eegData);
-      index++;
-      sampleCount++;
-    }, SAMPLE_INTERVAL_MS);
-
-    return subject.asObservable().pipe(share()) as Observable<EEGData>;
-  };
+  return subject.asObservable().pipe(share()) as Observable<EEGData>;
+};
 
 /**
- * Queue a marker code that will be attached to the next emitted sample.
+ * Queue a marker code that will be latched onto subsequent emitted samples.
  * No-ops if no raw stream is active (matching Muse / Neurosity behaviour).
  */
 export const injectFixtureMarker = (code: number, _time: number): void => {
