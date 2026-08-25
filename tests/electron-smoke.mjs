@@ -184,13 +184,16 @@ async function main() {
 
   appProcess.stdout.on('data', (d) => process.stdout.write(`[app:out] ${d}`));
   let resolvedCdpPort = cdpPort;
+  let stderrBuffer = '';
   appProcess.stderr.on('data', (d) => {
     const text = d.toString();
     process.stderr.write(`[app:err] ${text}`);
     if (!resolvedCdpPort) {
-      const parsed = parseCdpPort(text);
+      stderrBuffer = `${stderrBuffer}${text}`.slice(-512);
+      const parsed = parseCdpPort(stderrBuffer);
       if (parsed) {
         resolvedCdpPort = parsed;
+        stderrBuffer = '';
         console.log(`[smoke] Resolved CDP port: ${resolvedCdpPort}`);
       }
     }
@@ -321,10 +324,11 @@ async function main() {
     await cdpSend(ws, { id: 1, method: 'Runtime.enable' });
     await cdpSend(ws, { id: 2, method: 'Page.enable' });
 
-    // 7. Wait for renderer init (Pyodide ~30-60s, React mount faster)
-    const waitSec = Math.min(Math.round(remaining() / 1000 / 2), 60);
-    console.log(`[smoke] Waiting ${waitSec}s for init...`);
-    await sleep(waitSec * 1000);
+    // 7. Give React a moment to mount, then spend the remaining global budget
+    // polling Pyodide readiness instead of imposing a second timeout.
+    const initWaitMs = Math.min(5000, remaining());
+    console.log(`[smoke] Waiting ${initWaitMs / 1000}s for init...`);
+    await sleep(initWaitMs);
 
     // 8. Assertions
     console.log('[smoke] Assertions...');
@@ -366,7 +370,7 @@ async function main() {
     }
 
     // 8c. Worker readiness
-    const workerDeadline = Date.now() + Math.min(remaining(), 60_000);
+    const workerDeadline = Date.now() + remaining();
     let workerReady = false;
     while (Date.now() < workerDeadline) {
       const wr = await cdpSend(ws, {
