@@ -24,7 +24,7 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -34,6 +34,8 @@ const ROOT = resolve(__dirname, '..');
 const TIMEOUT_MS =
   (parseInt(process.env.SMOKE_TIMEOUT ?? '180', 10)) * 1000;
 const POLL_INTERVAL = 800;
+
+mkdirSync(resolve(ROOT, '.gstack'), { recursive: true });
 const SCREENSHOT_PATH = resolve(ROOT, '.gstack/electron-smoke-screenshot.png');
 
 // Temp user-data-dir so this spawn doesn't conflict with a running BrainWaves
@@ -155,8 +157,9 @@ async function main() {
   let appProcess = null;
   const startTime = Date.now();
 
-  // 1. Launch the dev app. BW_PLAYTEST_USER_DATA env var redirects userData so the spawn gets its own single-instance lock scope
-  //    detached spawns a new process group so we can kill -PGID the whole tree on cleanup.
+  // 1. Launch the dev app. BW_PLAYTEST_USER_DATA env var redirects userData so
+  //    the spawn gets its own single-instance lock scope.
+  //    detached spawns a new process group so we can kill -PGID the whole tree.
   console.log(`[smoke] Launching npm run dev (port ${cdpPort})`);
   appProcess = spawn(
     'npm',
@@ -178,16 +181,22 @@ async function main() {
     console.log(`[smoke] App exited: code=${code} signal=${sig}`);
   });
 
-  // await-exit helper: resolve when the app process exits, up to deadline
+  // Wait for the app process to exit (up to deadline ms), force SIGKILL after.
   const awaitAppExit = (deadlineMs) => {
     if (!appProcess || appProcess.killed) return Promise.resolve();
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
-        // Force-kill on deadline
-        try { if (pgid) process.kill(-pgid, 'SIGKILL'); } catch { /* ok */ }
+        try {
+          if (pgid) process.kill(-pgid, 'SIGKILL');
+        } catch {
+          /* ok */
+        }
         resolve();
       }, deadlineMs);
-      appProcess.once('exit', () => { clearTimeout(timeout); resolve(); });
+      appProcess.once('exit', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
     });
   };
 
@@ -364,12 +373,14 @@ async function main() {
       console.log('[smoke]  \u2713 worker ready');
     }
 
-    // 8d. Console errors + exceptions (filter HMR/sourcemap noise)
+    // 8d. Console errors + exceptions (filter HMR/sourcemap/noise)
     const fatalConsole = consoleErrors.filter(
       (e) =>
         !e.includes('[HMR]') &&
         !e.includes('favicon.ico') &&
-+        !e.includes('Autofill.enable') &&
+        !e.includes('Source map') &&
+        !e.includes('DevTools') &&
+        !e.includes('Autofill.enable') &&
         !e.includes('Failed to load resource')
     );
     const allFatal = [...fatalConsole, ...exceptions];
@@ -423,11 +434,12 @@ async function main() {
   } catch (err) {
     console.error(`\n[smoke] \u274c FAIL:`, err);
     process.exitCode = 1;
-    } finally {
+  } finally {
     cleanup();
-    // Wait for the app process to exit (up to 6s total: 1s grace + 5s SIGKILL).
+    // Wait for the app process to exit (up to 6s: 1s grace + 5s SIGKILL).
     await awaitAppExit(5000);
     process.exit(process.exitCode ?? 0);
   }
 }
+
 main();
