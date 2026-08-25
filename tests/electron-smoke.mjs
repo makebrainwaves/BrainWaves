@@ -369,8 +369,7 @@ async function main() {
       (e) =>
         !e.includes('[HMR]') &&
         !e.includes('favicon.ico') &&
-        !e.includes('Source map') &&
-        !e.includes('DevTools') &&
++        !e.includes('Autofill.enable') &&
         !e.includes('Failed to load resource')
     );
     const allFatal = [...fatalConsole, ...exceptions];

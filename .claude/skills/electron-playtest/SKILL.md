@@ -100,8 +100,7 @@ No CDP port needed. Use the app as a user would.
 1. **Never** `/qa`, `/qa-only`, or `/browse` against `http://localhost:5173`.
    It crashes. Use the smoke test above instead.
 
-2. **Port 9222 is the default CDP port** — if another Chrome instance is using it,
-   set `CDP_PORT=9223` in the environment.
+2. **The CDP port is dynamically allocated** by default. Set `CDP_PORT=<num>` to pin a specific port.
 
 3. **The Electron window may be slow to load** (Pyodide init takes 30-60s).
    The smoke test waits up to 180s.
