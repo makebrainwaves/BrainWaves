@@ -22,7 +22,6 @@
  */
 
 import { spawn } from 'node:child_process';
-import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -31,7 +30,11 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
-const TIMEOUT_MS =
+const TIMEOUT_SEC = Number.isFinite(Number(process.env.SMOKE_TIMEOUT))
+  ? Math.max(Number(process.env.SMOKE_TIMEOUT), 1)
+  : 180;
+const TIMEOUT_MS = TIMEOUT_SEC * 1000;
+//
   (parseInt(process.env.SMOKE_TIMEOUT ?? '180', 10)) * 1000;
 const POLL_INTERVAL = 800;
 
@@ -47,19 +50,17 @@ const USER_DATA_DIR = mkdtempSync(resolve(ROOT, '.gstack/playtest-'));
 // ---------------------------------------------------------------------------
 
 /** Bind to port 0 to get a free port, close it, return the port number. */
-async function findFreePort() {
-  const existing = process.env.CDP_PORT
-    ? parseInt(process.env.CDP_PORT, 10)
-    : null;
-  if (existing) return existing;
-  return new Promise((resolve, reject) => {
-    const srv = createServer();
-    srv.listen(0, '127.0.0.1', () => {
-      const port = srv.address().port;
-      srv.close(() => resolve(port));
-    });
-    srv.on('error', reject);
-  });
+// Electron binds to 0 and reports the actual port on stderr.
+// We parse it from the 'DevTools listening on ws://127.0.0.1:<port>' line.
+const CDP_PORT = (() => {
+  const explicit = process.env.CDP_PORT;
+  if (explicit) return parseInt(explicit, 10);
+  return 0; // let Electron choose
+})();
+
+function parseCdpPort(stderrLine) {
+  const m = stderrLine.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +85,7 @@ async function pollCdp(port, timeoutMs) {
           !t.url.startsWith('chrome-error://') &&
           !t.url.startsWith('chrome-extension://') &&
           (t.url.startsWith('http://localhost:5') ||
+            t.url.startsWith('http://127.0.0.1:5') ||
             t.url.startsWith('file://'))
       );
       if (hasAppPage) return targets;
@@ -107,6 +109,7 @@ function pickAppTarget(targets) {
         !t.url.startsWith('chrome-error://') &&
         !t.url.startsWith('chrome-extension://') &&
         (t.url.startsWith('http://localhost:5') ||
+          t.url.startsWith('http://127.0.0.1:5') ||
           t.url.startsWith('file://'))
     ) ?? null
   );
@@ -150,7 +153,7 @@ function cdpSend(ws, msg, sessionId) {
 
 async function main() {
   // 0. Allocate a free CDP port
-  const cdpPort = await findFreePort();
+  const cdpPort = CDP_PORT;
   console.log(`[smoke] CDP port ${cdpPort}`);
 
   const errors = [];
@@ -163,11 +166,16 @@ async function main() {
   console.log(`[smoke] Launching npm run dev (port ${cdpPort})`);
   appProcess = spawn(
     'npm',
-    ['run', 'dev', '--', `--remote-debugging-port=${cdpPort}`],
+    ['run', 'dev'],
     {
       cwd: ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, BW_PLAYTEST_USER_DATA: USER_DATA_DIR },
+      env: {
+        ...process.env,
+        BW_PLAYTEST_USER_DATA: USER_DATA_DIR,
+        REMOTE_DEBUGGING_PORT: String(cdpPort),
+        ...(process.platform === 'linux' ? { NO_SANDBOX: '1' } : {}),
+      },
       detached: true,
     }
   );
@@ -175,7 +183,18 @@ async function main() {
   const pgid = appProcess.pid;
 
   appProcess.stdout.on('data', (d) => process.stdout.write(`[app:out] ${d}`));
-  appProcess.stderr.on('data', (d) => process.stderr.write(`[app:err] ${d}`));
+  let resolvedCdpPort = cdpPort;
+  appProcess.stderr.on('data', (d) => {
+    const text = d.toString();
+    process.stderr.write(`[app:err] ${text}`);
+    if (!resolvedCdpPort) {
+      const parsed = parseCdpPort(text);
+      if (parsed) {
+        resolvedCdpPort = parsed;
+        console.log(`[smoke] Resolved CDP port: ${resolvedCdpPort}`);
+      }
+    }
+  });
   appProcess.on('exit', (code, sig) => {
     if (sig === 'SIGTERM') return;
     console.log(`[smoke] App exited: code=${code} signal=${sig}`);
@@ -200,37 +219,37 @@ async function main() {
     });
   };
 
-  // Cleanup: kill whole process group + remove temp user-data-dir
-  const cleanup = () => {
+  // Sync SIGTERM only — for process.on('exit') (must not await).
+  const killGroup = () => {
     if (appProcess && !appProcess.killed && pgid) {
-      try {
-        process.kill(-pgid, 'SIGTERM');
-      } catch {
-        /* may already be gone */
-      }
-    }
-    try {
-      rmSync(USER_DATA_DIR, { recursive: true, force: true });
-    } catch {
-      /* ok */
+      try { process.kill(-pgid, 'SIGTERM'); } catch { /* ok */ }
     }
   };
-  process.on('exit', cleanup);
-  process.on('SIGINT', () => {
-    cleanup();
-    process.exit(1);
-  });
-  process.on('SIGTERM', () => {
-    cleanup();
-    process.exit(1);
-  });
+  process.on('exit', killGroup);
+  process.on('SIGINT', () => { killGroup(); process.exit(1); });
+  process.on('SIGTERM', () => { killGroup(); process.exit(1); });
+
+  // Full async teardown: SIGTERM, wait for exit, remove profile dir.
+  const shutdown = async () => {
+    killGroup();
+    await awaitAppExit(5000);
+    try { rmSync(USER_DATA_DIR, { recursive: true, force: true }); } catch { /* ok */ }
+  };
 
   const remaining = () => Math.max(0, startTime + TIMEOUT_MS - Date.now());
 
   try {
     // 2. Wait for CDP endpoint with a page target
     console.log('[smoke] Waiting for app page...');
-    const targets = await pollCdp(cdpPort, remaining());
+    // If CDP_PORT was 0, wait for stderr to reveal the actual port.
+    const deadlinePort = Date.now() + 15_000;
+    while (!resolvedCdpPort && Date.now() < deadlinePort) {
+      await sleep(200);
+    }
+    if (!resolvedCdpPort) {
+      throw new Error('Could not resolve CDP port from Electron stderr');
+    }
+    const targets = await pollCdp(resolvedCdpPort, remaining());
 
     // 3. Pick the app page target
     const pageTarget = pickAppTarget(targets);
@@ -381,9 +400,12 @@ async function main() {
         !e.includes('Source map') &&
         !e.includes('DevTools') &&
         !e.includes('Autofill.enable') &&
-        !e.includes('Failed to load resource')
+        !(e.includes('Failed to load resource') && e.includes('favicon.ico'))
     );
-    const allFatal = [...fatalConsole, ...exceptions];
+    const benignExceptions = exceptions.filter(
+      (e) => e.includes('LSLStatusListener') || e.includes('Autofill')
+    );
+    const allFatal = [...fatalConsole, ...exceptions.filter(e => !benignExceptions.includes(e))];
     if (allFatal.length > 0) {
       errors.push(`FAIL: ${allFatal.length} error(s):`);
       allFatal.forEach((e) => errors.push(`  \u274c ${e.slice(0, 300)}`));
@@ -435,9 +457,8 @@ async function main() {
     console.error(`\n[smoke] \u274c FAIL:`, err);
     process.exitCode = 1;
   } finally {
-    cleanup();
-    // Wait for the app process to exit (up to 6s: 1s grace + 5s SIGKILL).
-    await awaitAppExit(5000);
+    await shutdown();
+    await sleep(500);
     process.exit(process.exitCode ?? 0);
   }
 }

@@ -1,6 +1,6 @@
 # Electron playtest smoke test
 #
-# Launches the dev-build Electron app with --remote-debugging-port, attaches
+# Launches the dev-build Electron app with REMOTE_DEBUGGING_PORT, attaches
 # CDP to the renderer page, and runs assertions:
 #   - window.electronAPI present (preload injection)
 #   - React root in DOM
@@ -9,8 +9,8 @@
 #   - Screenshot captured
 #
 # macOS has a display by default. Linux needs xvfb-run.
-# Windows: Electron does not support --remote-debugging-port on CI reliably;
-#           the renderer tests in test.yml already cover unit-level assertions.
+# Windows: Electron CDP attach is unreliable on CI; renderer tests in
+#           test.yml already cover that platform.
 
 name: Electron Playtest
 
