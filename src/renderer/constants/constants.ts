@@ -39,6 +39,7 @@ export enum DEVICES {
   MUSE = 'MUSE',
   NEUROSITY = 'NEUROSITY',
   LSL = 'LSL', // external LSL inlet stream
+  FIXTURE = 'FIXTURE', // Replay driver — no hardware needed
   GANGLION = 'GANGLION', // One day ;)
 }
 
