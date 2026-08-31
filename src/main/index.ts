@@ -28,7 +28,10 @@ import { lslOutlets } from './lsl/outlets';
 import { lslInlets } from './lsl/inlets';
 import { isLSLAvailable } from './lsl/native';
 import { persistExperimentState } from './workspaceState';
-import { StimulusFileAccess } from './stimulusFileAccess';
+import {
+  StimulusFileAccess,
+  authorizeBuiltInStimulusDirectories,
+} from './stimulusFileAccess';
 import {
   PYODIDE_SOURCE_DIR,
   PYODIDE_RESOURCE_DIR,
@@ -817,6 +820,18 @@ app.whenReady().then(async () => {
     const filePath = path.join(pyodideRoot, pathname);
     return net.fetch(pathToFileURL(filePath).href);
   });
+
+  // Built-in experiments ship their own stimuli under <resource>/experiments.
+  // They are loaded through the same bwfile:// scheme as custom/imported
+  // stimulus folders, so they must be on the allowlist. Add them implicitly
+  // (not persisted) because they are app assets, not user-selected folders.
+  const builtInResourcePath = is.dev
+    ? path.join(__dirname, '../../src/renderer')
+    : process.resourcesPath;
+  authorizeBuiltInStimulusDirectories(
+    getStimulusFileAccess(),
+    builtInResourcePath
+  );
 
   protocol.handle('bwfile', (request) => {
     const filePath = getStimulusFileAccess().resolveUrl(request.url);
