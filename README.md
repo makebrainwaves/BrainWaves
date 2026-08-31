@@ -11,6 +11,8 @@
   app
 - Investigate visual event-related brain waves (ERPs)
 - Supports Muse and Neurosity EEG devices
+- Import externally authored jsPsych v8 experiments. See
+  [JSPSYCH_INTEGRATION.md](JSPSYCH_INTEGRATION.md) for details.
 
 ## Screenshots
 
