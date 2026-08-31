@@ -27,6 +27,23 @@ export class StimulusFileAccess {
     );
   }
 
+  /**
+   * Add a directory to the in-memory allowlist without persisting it.
+   *
+   * Use this for directories the app itself ships (e.g. built-in experiment
+   * stimuli), which should be reachable over bwfile:// but must not be written
+   * into the user-managed stimulus-directories.json file.
+   */
+  addImplicitDirectory(directory: string): void {
+    const canonical = fs.realpathSync(directory);
+    if (!fs.statSync(canonical).isDirectory()) {
+      throw new Error(
+        'StimulusFileAccess.addImplicitDirectory: expected a directory'
+      );
+    }
+    this.directories.add(canonical);
+  }
+
   resolveUrl(requestUrl: string): string {
     const url = new URL(requestUrl);
     const requestedPath = url.searchParams.get('path');
@@ -77,3 +94,30 @@ export class StimulusFileAccess {
     }
   }
 }
+
+/**
+ * Authorize every `<resourcePath>/experiments/<experiment>/stimuli` directory
+ * as an implicit (non-persisted) stimulus source.
+ *
+ * Built-in experiments ship their own stimuli and load them through the same
+ * bwfile:// scheme as custom/imported stimulus folders, so they must be on the
+ * allowlist. They are added implicitly because they are app assets, not
+ * user-selected folders.
+ */
+export const authorizeBuiltInStimulusDirectories = (
+  access: StimulusFileAccess,
+  resourcePath: string
+): void => {
+  const experimentsDir = path.join(resourcePath, 'experiments');
+  if (!fs.existsSync(experimentsDir)) return;
+
+  for (const entry of fs.readdirSync(experimentsDir, {
+    withFileTypes: true,
+  })) {
+    if (!entry.isDirectory()) continue;
+    const stimuliDir = path.join(experimentsDir, entry.name, 'stimuli');
+    if (fs.existsSync(stimuliDir) && fs.statSync(stimuliDir).isDirectory()) {
+      access.addImplicitDirectory(stimuliDir);
+    }
+  }
+};

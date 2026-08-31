@@ -222,7 +222,8 @@ const loadCleanedEpochsEpic: Epic<
       of(
         PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS),
         PyodideActions.GetChannelInfo(),
-        PyodideActions.LoadTopo()
+        PyodideActions.LoadTopo(),
+        PyodideActions.LoadPSD()
       )
     )
   );

@@ -1,5 +1,6 @@
 import path from 'pathe';
 import { RESOURCE_PATH } from '../../constants/constants';
+import { toStimulusFileUrl } from '../../../shared/stimulusUrl';
 import {
   initMultitaskingResponseHandlers,
   initTasks,
@@ -13,6 +14,9 @@ const assetsDirectory = path.join(
   'multitasking',
   'stimuli'
 );
+
+const assetUrl = (filename: string) =>
+  toStimulusFileUrl(path.join(assetsDirectory, filename));
 
 // Define study
 export const multitaskingExperimentObject = {
@@ -47,40 +51,31 @@ export const multitaskingExperimentObject = {
         {
           type: 'lab.html.Screen',
           files: {
-            'diamond_2.png': `${path.join(assetsDirectory, 'diamond_2.png')}`,
-            'diamond_3.png': `${path.join(assetsDirectory, 'diamond_3.png')}`,
-            'rectangle_2.png': `${path.join(
-              assetsDirectory,
-              'rectangle_2.png'
-            )}`,
-            'rectangle_3.png': `${path.join(
-              assetsDirectory,
-              'rectangle_3.png'
-            )}`,
-            'filling.png': `${path.join(assetsDirectory, 'filling.png')}`,
-            'shape.png': `${path.join(assetsDirectory, 'shape.png')}`,
-            'example_1.png': `${path.join(assetsDirectory, 'example_1.png')}`,
-            'example_2.png': `${path.join(assetsDirectory, 'example_2.png')}`,
-            'example_3.png': `${path.join(assetsDirectory, 'example_3.png')}`,
-            'example_4.png': `${path.join(assetsDirectory, 'example_4.png')}`,
-            'all_conditions.png': `${path.join(
-              assetsDirectory,
-              'all_conditions.png'
-            )}`,
+            'diamond_2.png': assetUrl('diamond_2.png'),
+            'diamond_3.png': assetUrl('diamond_3.png'),
+            'rectangle_2.png': assetUrl('rectangle_2.png'),
+            'rectangle_3.png': assetUrl('rectangle_3.png'),
+            'filling.png': assetUrl('filling.png'),
+            'shape.png': assetUrl('shape.png'),
+            'example_1.png': assetUrl('example_1.png'),
+            'example_2.png': assetUrl('example_2.png'),
+            'example_3.png': assetUrl('example_3.png'),
+            'example_4.png': assetUrl('example_4.png'),
+            'all_conditions.png': assetUrl('all_conditions.png'),
           },
           media: {
             images: [
-              `${path.join(assetsDirectory, 'diamond_2.png')}`,
-              `${path.join(assetsDirectory, 'diamond_3.png')}`,
-              `${path.join(assetsDirectory, 'rectangle_2.png')}`,
-              `${path.join(assetsDirectory, 'rectangle_3.png')}`,
-              `${path.join(assetsDirectory, 'filling.png')}`,
-              `${path.join(assetsDirectory, 'shape.png')}`,
-              `${path.join(assetsDirectory, 'example_1.png')}`,
-              `${path.join(assetsDirectory, 'example_2.png')}`,
-              `${path.join(assetsDirectory, 'example_3.png')}`,
-              `${path.join(assetsDirectory, 'example_4.png')}`,
-              `${path.join(assetsDirectory, 'all_conditions.png')}`,
+              assetUrl('diamond_2.png'),
+              assetUrl('diamond_3.png'),
+              assetUrl('rectangle_2.png'),
+              assetUrl('rectangle_3.png'),
+              assetUrl('filling.png'),
+              assetUrl('shape.png'),
+              assetUrl('example_1.png'),
+              assetUrl('example_2.png'),
+              assetUrl('example_3.png'),
+              assetUrl('example_4.png'),
+              assetUrl('all_conditions.png'),
             ],
           },
           parameters: {},

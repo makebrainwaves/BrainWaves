@@ -325,8 +325,8 @@ export default function Analyze(props: Props) {
   }
 
   function renderOverview() {
-    const { child: psdChild } = props.psdPlot;
-    const { child: topoChild } = props.topoPlot;
+    const psdSvg = props.psdPlot?.['image/svg+xml'];
+    const topoSvg = props.topoPlot?.['image/svg+xml'];
     return (
       <div className="p-4">
         <h1 className="mb-2">Overview</h1>
@@ -363,7 +363,7 @@ export default function Analyze(props: Props) {
           </div>
           <div>
             <h2>PSD Plot</h2>
-            {psdChild ? (
+            {psdSvg ? (
               <PyodidePlotWidget
                 title={props.title}
                 imageTitle="psd"
@@ -375,7 +375,7 @@ export default function Analyze(props: Props) {
           </div>
           <div>
             <h2>Topography</h2>
-            {topoChild ? (
+            {topoSvg ? (
               <PyodidePlotWidget
                 title={props.title}
                 imageTitle="topo"
@@ -391,11 +391,12 @@ export default function Analyze(props: Props) {
   }
 
   function renderERP() {
+    const erpSvg = props.erpPlot?.['image/svg+xml'];
     return (
       <div className="flex h-full">
         <div className="flex-1 p-4">
           <h1 className="mb-4">ERP</h1>
-          {props.erpPlot.child ? (
+          {erpSvg ? (
             <PyodidePlotWidget
               title={props.title}
               imageTitle="erp"

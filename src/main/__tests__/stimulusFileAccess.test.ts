@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { StimulusFileAccess } from '../stimulusFileAccess';
+import {
+  StimulusFileAccess,
+  authorizeBuiltInStimulusDirectories,
+} from '../stimulusFileAccess';
 import { toStimulusFileUrl } from '../../shared/stimulusUrl';
 
 describe('StimulusFileAccess', () => {
@@ -51,6 +54,100 @@ describe('StimulusFileAccess', () => {
     fs.writeFileSync(file, 'image');
     expect(reloaded.resolveUrl(toStimulusFileUrl(file))).toBe(
       fs.realpathSync(file)
+    );
+  });
+
+  it('resolves files under an implicit directory', () => {
+    const implicit = path.join(root, 'built-in', 'stimuli');
+    fs.mkdirSync(implicit, { recursive: true });
+    access.addImplicitDirectory(implicit);
+
+    const file = path.join(implicit, 'builtin.png');
+    fs.writeFileSync(file, 'image');
+    expect(access.resolveUrl(toStimulusFileUrl(file))).toBe(
+      fs.realpathSync(file)
+    );
+  });
+
+  it('does not persist implicit directories', () => {
+    const implicit = path.join(root, 'built-in', 'stimuli');
+    fs.mkdirSync(implicit, { recursive: true });
+    access.addImplicitDirectory(implicit);
+
+    const reloaded = new StimulusFileAccess(path.join(root, 'authorized.json'));
+    const file = path.join(implicit, 'builtin.png');
+    fs.writeFileSync(file, 'image');
+    expect(() => reloaded.resolveUrl(toStimulusFileUrl(file))).toThrow(
+      'StimulusFileAccess.resolveUrl: file is not in an authorized directory'
+    );
+  });
+});
+
+describe('authorizeBuiltInStimulusDirectories', () => {
+  let root: string;
+  let access: StimulusFileAccess;
+
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-builtin-'));
+    access = new StimulusFileAccess(path.join(root, 'authorized.json'));
+
+    // Simulate <resource>/experiments/<experiment>/stimuli layout.
+    fs.mkdirSync(path.join(root, 'experiments', 'faces_houses', 'stimuli'), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(root, 'experiments', 'multitasking', 'stimuli'), {
+      recursive: true,
+    });
+    // A directory without stimuli should be ignored.
+    fs.mkdirSync(path.join(root, 'experiments', 'custom'), { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it('authorizes every experiments/<experiment>/stimuli directory', () => {
+    authorizeBuiltInStimulusDirectories(access, root);
+
+    const face = path.join(
+      root,
+      'experiments',
+      'faces_houses',
+      'stimuli',
+      'face.jpg'
+    );
+    const shape = path.join(
+      root,
+      'experiments',
+      'multitasking',
+      'stimuli',
+      'shape.png'
+    );
+    fs.writeFileSync(face, 'image');
+    fs.writeFileSync(shape, 'image');
+
+    expect(access.resolveUrl(toStimulusFileUrl(face))).toBe(
+      fs.realpathSync(face)
+    );
+    expect(access.resolveUrl(toStimulusFileUrl(shape))).toBe(
+      fs.realpathSync(shape)
+    );
+  });
+
+  it('does not write built-in directories to the persisted allowlist', () => {
+    authorizeBuiltInStimulusDirectories(access, root);
+
+    const reloaded = new StimulusFileAccess(path.join(root, 'authorized.json'));
+    const file = path.join(
+      root,
+      'experiments',
+      'faces_houses',
+      'stimuli',
+      'face.jpg'
+    );
+    fs.writeFileSync(file, 'image');
+    expect(() => reloaded.resolveUrl(toStimulusFileUrl(file))).toThrow(
+      'StimulusFileAccess.resolveUrl: file is not in an authorized directory'
     );
   });
 });
