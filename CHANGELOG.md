@@ -1,3 +1,7 @@
+# 1.0.2 (September 8, 2026) - Dependency updates
+
+- Routine dev-dependency bumps (postcss-selector-parser, browserslist, fast-uri, @xmldom/xmldom, @humanfs/node).
+
 # 1.0.0 (August 11, 2026) - Classroom MVP
 
 First stable release of the revived BrainWaves desktop app for high-school EEG labs.
