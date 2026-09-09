@@ -1,9 +1,16 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to release (must exist, e.g. v1.0.3)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type YES to publish a release'
+        required: true
+        type: string
 
 jobs:
   # Gate. A tag must not publish anything until the same checks CI runs on every
@@ -14,8 +21,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Confirm manual release
+        if: ${{ github.event.inputs.confirm != 'YES' }}
+        run: |
+          echo 'Release not confirmed. Set confirm=YES to publish.'
+          exit 1
+
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -49,6 +64,8 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
 
       - name: Install Node.js
         uses: actions/setup-node@v4
