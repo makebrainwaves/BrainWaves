@@ -4,7 +4,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 
 ## Now (V1 / V1.1: Summer 2026 MVP)
 
-- [ ] **QA Built-in Experiments** — Guarantee all built-in experiments (e.g. Faces Houses) are working with Muse hardware and can produce real results
+- [x] **QA Built-in Experiments** (2026-09-01) — Faces/Houses confirmed working on Muse hardware post-fix (PR #250: built-in stimuli authorization, Analyze plot rendering, multitasking image routing).
 - [ ] **QA jsPsych Import Experiments** — Merged (PR #246) but not hardware-verified. Run a jsPsych v8 timeline through Collect → Clean → Analyze with real EEG, confirm markers feed into the CSV and MNE pipeline correctly.
 - [x] **Electron playtest skill** — CDP-attach harness: `tests/electron-smoke.mjs` (zero-dep smoke test), `.claude/skills/electron-playtest/SKILL.md` (agent skill), `.github/workflows/playtest.yml` (CI), `src/main/index.ts` env-var userData redirect. Asserts: electronAPI, React root, Pyodide worker ready, no console errors, screenshot.
 - [ ] **Packaged-app launch smoke test** — `tests/build.check.ts` asserts the build output and Pyodide payload are present on disk, but nothing *launches* the packaged app. The gap is a real Electron smoke test (spawn the built app under `xvfb` on Linux, assert the window opens and the worker posts `ready`) — that is what would catch a prod-only Pyodide regression automatically instead of during a demo.
@@ -39,6 +39,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 
 <!-- Move finished items here with a date, then prune periodically. -->
 
+- **Release workflow: manual approval gate** (2026-09-01) — Switched from `push: tags` auto-trigger to `workflow_dispatch` with a `confirm=YES` input. Prevents empty releases caused by GitHub auto-creating a non-draft release that conflicts with electron-builder's `releaseType: draft`. Release process: tag → Actions → Run workflow → type YES → builds draft → manually publish in GitHub UI.
 - **Custom experiments Muse QA** (2026-08-26) — Click-through QA on Muse hardware confirmed working post-refactor. Design → Conditions (image + sound folders) → Preview → Collect → Clean → Analyze produces valid ERPs. Sound stimuli latency acceptable for ERP work.
 - **Fixture/Replay EEGDriver** (2026-08-26) — Merged (PR #247). Synthetic 4-channel CSV fixture replays as live `Observable<EEGData>` at 256 Hz with injectable markers. 12 tests passing. Enables agent and CI testing of Collect → Clean → Analyze without a physical headset.
 - **Electron playtest harness** (2026-08-26) — Merged (PR #248). CDP-attach smoke test script + CI workflow + agent skill. Asserts preload injection, React mount, Pyodide worker ready, no console errors. Catches "builds but doesn't boot" regressions automatically.
