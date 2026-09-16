@@ -1,15 +1,14 @@
 import React from 'react';
 
-const SvgComponent = (props) => (
+const SvgComponent = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
-    id="SignalQualityIndicator"
     data-name="SignalQualityIndicator"
-    style={{ minHeight: 250, minWidth: 250 }}
+    style={{ width: '100%', display: 'block' }}
     viewBox="0 0 674.44 610.29"
     {...props}
   >
     <title>Signal Quality Indicator</title>
-    <g id="Head_Plot" data-name="Head Plot">
+    <g data-name="Head Plot">
       <circle
         cx={336.54}
         cy={334.96}
@@ -84,7 +83,7 @@ const SvgComponent = (props) => (
         strokeWidth={2}
       />
     </g>
-    <g id="T7" visibility="hidden">
+    <g data-electrode="T7" visibility="hidden">
       <circle
         cx={124.37}
         cy={333.72}
@@ -103,7 +102,7 @@ const SvgComponent = (props) => (
         T7
       </text>
     </g>
-    <g id="FC5" visibility="hidden">
+    <g data-electrode="FC5" visibility="hidden">
       <circle
         cx={178.58}
         cy={259.29}
@@ -122,7 +121,7 @@ const SvgComponent = (props) => (
         FC5
       </text>
     </g>
-    <g id="FC6" visibility="hidden">
+    <g data-electrode="FC6" visibility="hidden">
       <circle
         cx={495.58}
         cy={259.29}
@@ -141,7 +140,7 @@ const SvgComponent = (props) => (
         FC6
       </text>
     </g>
-    <g id="F3" visibility="hidden">
+    <g data-electrode="F3" visibility="hidden">
       <circle
         cx={240.35}
         cy={241.01}
@@ -160,7 +159,7 @@ const SvgComponent = (props) => (
         F3
       </text>
     </g>
-    <g id="F4" visibility="hidden">
+    <g data-electrode="F4" visibility="hidden">
       <circle
         cx={434.23}
         cy={241.01}
@@ -179,7 +178,7 @@ const SvgComponent = (props) => (
         F4
       </text>
     </g>
-    <g id="AF3" visibility="hidden">
+    <g data-electrode="AF3" visibility="hidden">
       <circle
         cx={269.35}
         cy={185.69}
@@ -198,7 +197,7 @@ const SvgComponent = (props) => (
         AF3
       </text>
     </g>
-    <g id="AF4" visibility="hidden">
+    <g data-electrode="AF4" visibility="hidden">
       <circle
         cx={406.36}
         cy={185.69}
@@ -217,7 +216,7 @@ const SvgComponent = (props) => (
         AF4
       </text>
     </g>
-    <g id="M1" visibility="hidden">
+    <g data-electrode="M1" visibility="hidden">
       <circle
         cx={78.53}
         cy={401.34}
@@ -236,7 +235,7 @@ const SvgComponent = (props) => (
         M1
       </text>
     </g>
-    <g id="P7" visibility="hidden">
+    <g data-electrode="P7" visibility="hidden">
       <circle
         cx={178.58}
         cy={475.91}
@@ -255,7 +254,7 @@ const SvgComponent = (props) => (
         P7
       </text>
     </g>
-    <g id="O1" visibility="hidden">
+    <g data-electrode="O1" visibility="hidden">
       <circle
         cx={255.35}
         cy={531.29}
@@ -274,7 +273,7 @@ const SvgComponent = (props) => (
         O1
       </text>
     </g>
-    <g id="O2" visibility="hidden">
+    <g data-electrode="O2" visibility="hidden">
       <circle
         cx={420.11}
         cy={531.29}
@@ -293,7 +292,7 @@ const SvgComponent = (props) => (
         O2
       </text>
     </g>
-    <g id="P8" visibility="hidden">
+    <g data-electrode="P8" visibility="hidden">
       <circle
         cx={494.77}
         cy={475.91}
@@ -312,7 +311,7 @@ const SvgComponent = (props) => (
         P8
       </text>
     </g>
-    <g id="T8" visibility="hidden">
+    <g data-electrode="T8" visibility="hidden">
       <circle
         cx={548.92}
         cy={333.72}
@@ -331,7 +330,7 @@ const SvgComponent = (props) => (
         T8
       </text>
     </g>
-    <g id="M2" visibility="hidden">
+    <g data-electrode="M2" visibility="hidden">
       <circle
         cx={592.53}
         cy={400.89}
@@ -350,7 +349,7 @@ const SvgComponent = (props) => (
         M2
       </text>
     </g>
-    <g id="TP10" visibility="hidden">
+    <g data-electrode="TP10" visibility="hidden">
       <circle
         cx={571.87}
         cy={455.81}
@@ -369,7 +368,7 @@ const SvgComponent = (props) => (
         TP10
       </text>
     </g>
-    <g id="Fpz" visibility="hidden">
+    <g data-electrode="Fpz" visibility="hidden">
       <circle
         cx={335.79}
         cy={121.75}
@@ -391,7 +390,7 @@ const SvgComponent = (props) => (
         </tspan>
       </text>
     </g>
-    <g id="TP9" visibility="hidden">
+    <g data-electrode="TP9" visibility="hidden">
       <circle
         cx={98.87}
         cy={455.81}
@@ -410,7 +409,7 @@ const SvgComponent = (props) => (
         TP9
       </text>
     </g>
-    <g id="AF7" visibility="hidden">
+    <g data-electrode="AF7" visibility="hidden">
       <circle
         cx={208.33}
         cy={166.08}
@@ -429,7 +428,7 @@ const SvgComponent = (props) => (
         AF7
       </text>
     </g>
-    <g id="AF8" visibility="hidden">
+    <g data-electrode="AF8" visibility="hidden">
       <circle
         cx={467.66}
         cy={166.08}

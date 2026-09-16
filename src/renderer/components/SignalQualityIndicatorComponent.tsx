@@ -1,50 +1,136 @@
 import React, { useEffect, useRef } from 'react';
-import { isNil } from 'lodash';
-import * as d3 from 'd3';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import SignalQualityIndicatorSVG from './svgs/SignalQualityIndicatorSVG';
 import { SignalQualityData } from '../constants/interfaces';
+import { SIGNAL_QUALITY } from '../constants/constants';
+import { QUALITY_LABELS } from '../constants/electrodes';
 
 interface Props {
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   plottingInterval: number;
+  height?: number;
+  channels?: string[];
+  hoveredChannel?: string | null;
+  onHoveredChannelChange?: (channel: string | null) => void;
 }
 
+/** Updates only this diagram's SVG nodes as epochs arrive; hover state is shared with its sensor list. */
 export default function SignalQualityIndicatorComponent(props: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const electrodesRef = useRef(new Map<string, SVGGElement>());
   const propsRef = useRef(props);
   propsRef.current = props;
-  const subRef = useRef<Subscription | null>(null);
+  const interactive = props.onHoveredChannelChange !== undefined;
 
   useEffect(() => {
-    const observable = props.signalQualityObservable;
-    if (observable == null) return;
-    subRef.current?.unsubscribe();
-    subRef.current = observable.subscribe(
-      (epoch) => {
-        Object.keys(epoch.signalQuality).forEach((key) => {
-          d3.select(`#${key}`)
-            .attr('visibility', 'show')
-            .attr('stroke', '#000')
-            .transition()
-            .duration(propsRef.current.plottingInterval)
-            .ease(d3.easeLinear)
-            .attr('fill', epoch.signalQuality[key]);
+    const electrodes = electrodesRef.current;
+    containerRef.current
+      ?.querySelectorAll<SVGGElement>('[data-electrode]')
+      .forEach((node) => electrodes.set(node.dataset.electrode!, node));
+    return () => electrodes.clear();
+  }, []);
+
+  useEffect(() => {
+    const electrodes = electrodesRef.current;
+    electrodes.forEach((node, channel) => {
+      const visible = props.channels?.includes(channel) ?? false;
+      node.setAttribute('visibility', visible ? 'visible' : 'hidden');
+      node.setAttribute('aria-label', `${channel} · no signal`);
+      node.setAttribute('role', interactive ? 'button' : 'img');
+      node.setAttribute('tabindex', visible && interactive ? '0' : '-1');
+      node.style.cursor = interactive ? 'pointer' : 'default';
+      const circle = node.querySelector('circle');
+      if (circle) circle.style.fill = SIGNAL_QUALITY.DISCONNECTED;
+    });
+    props.channels?.forEach((channel) => {
+      const node = electrodes.get(channel);
+      if (node) node.parentElement?.appendChild(node);
+    });
+  }, [props.channels, props.signalQualityObservable, interactive]);
+
+  useEffect(() => {
+    const subscription = props.signalQualityObservable?.subscribe({
+      next: (epoch) => {
+        const { current } = propsRef;
+        electrodesRef.current.forEach((node, channel) => {
+          const quality =
+            epoch.signalQuality[channel] ?? SIGNAL_QUALITY.DISCONNECTED;
+          const visible = current.channels
+            ? current.channels.includes(channel)
+            : channel in epoch.signalQuality;
+          node.setAttribute('visibility', visible ? 'visible' : 'hidden');
+          node.setAttribute(
+            'tabindex',
+            visible && current.onHoveredChannelChange ? '0' : '-1'
+          );
+          node.setAttribute(
+            'aria-label',
+            `${channel} · ${QUALITY_LABELS[quality]}`
+          );
+          const circle = node.querySelector('circle');
+          if (circle) {
+            circle.style.transition = `fill ${current.plottingInterval}ms linear`;
+            circle.style.fill = quality;
+          }
         });
       },
-      (error) => console.error('[signal-quality] subscription error:', error)
-    );
+      error: (error) =>
+        console.error('[signal-quality] subscription error:', error),
+    });
+    return () => subscription?.unsubscribe();
   }, [props.signalQualityObservable]);
 
-  useEffect(
-    () => () => {
-      subRef.current?.unsubscribe();
-    },
-    []
-  );
+  useEffect(() => {
+    electrodesRef.current.forEach((node, channel) => {
+      const active = channel === props.hoveredChannel;
+      if (interactive) node.setAttribute('aria-pressed', String(active));
+      else node.removeAttribute('aria-pressed');
+      const circle = node.querySelector('circle');
+      if (circle) {
+        circle.style.stroke = active ? '#007c70' : '#000';
+        circle.style.strokeWidth = active ? '8' : '2';
+      }
+    });
+  }, [props.hoveredChannel, interactive]);
+
+  function activate(target: EventTarget | null) {
+    if (!(target instanceof Element)) return;
+    const electrode = target.closest<SVGGElement>('[data-electrode]');
+    if (electrode && containerRef.current?.contains(electrode)) {
+      props.onHoveredChannelChange?.(electrode.dataset.electrode ?? null);
+    }
+  }
 
   return (
-    <div>
-      <SignalQualityIndicatorSVG />
+    <div
+      ref={containerRef}
+      data-explore-head
+      onPointerOver={(event) => activate(event.target)}
+      onPointerLeave={() => props.onHoveredChannelChange?.(null)}
+      onFocus={(event) => activate(event.target)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          props.onHoveredChannelChange?.(null);
+        }
+      }}
+      onClick={(event) => activate(event.target)}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          props.onHoveredChannelChange?.(null);
+        } else if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activate(event.target);
+        }
+      }}
+    >
+      <SignalQualityIndicatorSVG
+        height={props.height ?? 250}
+        style={{
+          width: '100%',
+          display: 'block',
+          minWidth: props.height === undefined ? 250 : undefined,
+        }}
+      />
     </div>
   );
 }

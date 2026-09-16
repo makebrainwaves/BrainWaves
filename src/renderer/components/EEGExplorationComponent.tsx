@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Observable, shareReplay } from 'rxjs';
 import { Button } from './ui/button';
-import { Observable } from 'rxjs';
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
   DEVICES,
+  MUSE_CHANNELS,
+  MUSE_SAMPLING_RATE,
 } from '../constants/constants';
 import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
 import ConnectModal from './CollectComponent/ConnectModal';
-import { HelpSidebar, HelpButton } from './CollectComponent/HelpSidebar';
+import ExploreSensorCard from './ExploreSensorCard';
+import ExploreLessonFlow from './ExploreLessonFlow';
+import { EXPLORE_LESSONS, LessonId } from '../constants/exploreLessons';
+import { ExploreSession } from '../utils/eeg/exploreSignal';
 import { DeviceActions } from '../actions';
 import { Device, DeviceInfo, SignalQualityData } from '../constants/interfaces';
 import type { DiscoveredStream } from '../../shared/lslTypes';
@@ -27,15 +32,169 @@ interface Props {
   availableLSLStreams?: Array<DiscoveredStream>;
 }
 
-export default function Home(props: Props) {
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [isHelpVisible, setIsHelpVisible] = useState(false);
+/** Holds the stream and bounded lesson buffer for the entire connected visit. */
+function ConnectedExplore({
+  observable,
+  device,
+  onDisconnect,
+}: {
+  observable?: Observable<SignalQualityData>;
+  device: DeviceInfo | null | undefined;
+  onDisconnect: () => void;
+}) {
+  const channels = device?.channels ?? MUSE_CHANNELS;
+  const samplingRate = device?.samplingRate ?? MUSE_SAMPLING_RATE;
+  const stream = useMemo(
+    () => observable?.pipe(shareReplay({ bufferSize: 1, refCount: true })),
+    [observable]
+  );
+  const session = useMemo(
+    () => new ExploreSession(channels, samplingRate),
+    [channels, samplingRate]
+  );
+  const [sample, setSample] = useState<SignalQualityData | null>(null);
+  const [streamError, setStreamError] = useState('');
+  const [activeLesson, setActiveLesson] = useState<LessonId | null>(null);
+  const [hoveredChannel, setHoveredChannel] = useState<string | null>(null);
 
   useEffect(() => {
-    if (props.connectionStatus === CONNECTION_STATUS.CONNECTED) {
-      setIsConnectModalOpen(false);
-    }
-  }, [props.connectionStatus]);
+    setSample(null);
+    setStreamError('');
+    const subscription = stream?.subscribe({
+      next: (chunk) => {
+        session.consume(chunk);
+        setSample(chunk);
+      },
+      error: () =>
+        setStreamError(
+          'The signal stream stopped. Disconnect and reconnect your headset.'
+        ),
+    });
+    return () => subscription?.unsubscribe();
+  }, [stream, session]);
+
+  function startLesson(lesson: LessonId) {
+    if (lesson === 'noise-sources') session.reset();
+    setHoveredChannel(null);
+    setActiveLesson(lesson);
+  }
+
+  return (
+    <div className="flex min-h-full flex-col text-ink" data-explore-connected>
+      {streamError && (
+        <div role="alert" className="mb-3 text-sm">
+          {streamError}
+        </div>
+      )}
+      <div
+        className={
+          activeLesson ? 'hidden' : 'flex min-h-full flex-1 flex-col gap-5'
+        }
+      >
+        <div className="flex flex-none justify-end">
+          <Button variant="secondary" onClick={onDisconnect}>
+            Disconnect EEG Device
+          </Button>
+        </div>
+        <div
+          className="grid min-h-0 flex-1 grid-cols-[260px_minmax(0,1fr)] gap-7 max-[620px]:grid-cols-1"
+          data-explore-surface
+        >
+          <div className="flex min-w-0 flex-col gap-3.5">
+            <SignalQualityIndicatorComponent
+              signalQualityObservable={stream}
+              plottingInterval={PLOTTING_INTERVAL}
+              height={250}
+              channels={channels}
+              hoveredChannel={hoveredChannel}
+              onHoveredChannelChange={setHoveredChannel}
+            />
+            <ExploreSensorCard
+              channels={channels}
+              sample={sample}
+              hoveredChannel={hoveredChannel}
+              onHoveredChannelChange={setHoveredChannel}
+            />
+          </div>
+          <div className="flex min-w-0 flex-col gap-5">
+            <div
+              className="relative min-h-0 flex-1 rounded-lg border border-gray-200 bg-white px-[18px] py-4"
+              data-explore-trace
+            >
+              <ViewerComponent
+                signalQualityObservable={stream}
+                channels={channels}
+                plottingInterval={PLOTTING_INTERVAL}
+                height={300}
+              />
+              {!sample && (
+                <div role="status" className="text-sm text-ink-muted">
+                  Waiting for the headset signal…
+                </div>
+              )}
+            </div>
+            <section
+              className="flex flex-none flex-col gap-2.5"
+              aria-labelledby="explore-lessons"
+              data-explore-lessons
+            >
+              <div
+                id="explore-lessons"
+                className="text-[13px] font-bold tracking-[0.5px] text-ink-muted"
+              >
+                LEARN WITH THIS SIGNAL
+              </div>
+              <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
+                {EXPLORE_LESSONS.map((lesson) => (
+                  <div
+                    key={lesson.id}
+                    className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-lg tracking-[0.3px]">
+                        {lesson.title}
+                      </div>
+                      <div className="text-sm text-ink-muted">
+                        {lesson.detail}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline-brand"
+                      className="ml-auto flex-none"
+                      aria-label={`Start ${lesson.title}`}
+                      onClick={() => startLesson(lesson.id)}
+                    >
+                      Start
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      {activeLesson && (
+        <ExploreLessonFlow
+          lesson={activeLesson}
+          stream={stream}
+          channels={channels}
+          samplingRate={samplingRate}
+          session={session}
+          sample={sample}
+          onExit={() => setActiveLesson(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function EEGExplorationComponent(props: Props) {
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const connected = props.connectionStatus === CONNECTION_STATUS.CONNECTED;
+
+  useEffect(() => {
+    if (connected) setIsConnectModalOpen(false);
+  }, [connected]);
 
   function handleStartConnect() {
     setIsConnectModalOpen(true);
@@ -48,71 +207,64 @@ export default function Home(props: Props) {
     props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE);
   }
 
-  function handleConnectModalClose() {
-    setIsConnectModalOpen(false);
-  }
-
   return (
-    <div className="flex items-center h-[90%]">
-      {props.connectionStatus === CONNECTION_STATUS.CONNECTED &&
-        props.signalQualityObservable && (
-          <div className="flex w-full">
-            <div className="w-2/5">
-              <SignalQualityIndicatorComponent
-                signalQualityObservable={props.signalQualityObservable}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
-            </div>
-            <div className="w-3/5">
-              <div className="flex justify-end">
-                <Button variant="secondary" onClick={handleStopConnect}>
-                  Disconnect EEG Device
-                </Button>
-              </div>
-              <ViewerComponent
-                signalQualityObservable={props.signalQualityObservable}
-                channels={props.connectedDevice?.channels}
-                plottingInterval={PLOTTING_INTERVAL}
-              />
-            </div>
-          </div>
-        )}
-      {props.connectionStatus !== CONNECTION_STATUS.CONNECTED && (
-        <div className="flex w-full">
-          <div className="w-5/12 p-2">
-            <img src={eegImage} alt="EEG device" />
-          </div>
-          <div className="w-7/12 p-2">
-            <h1>Explore Raw EEG</h1>
-            <hr className="my-2" />
-            <p>Connect directly to an EEG device and view raw streaming data</p>
-            <Button variant="default" onClick={handleStartConnect}>
-              Connect
-            </Button>
-          </div>
-          <ConnectModal
-            open={isConnectModalOpen}
-            onClose={handleConnectModalClose}
-            connectedDevice={props.connectedDevice}
-            signalQualityObservable={props.signalQualityObservable}
-            deviceAvailability={props.deviceAvailability}
-            connectionStatus={props.connectionStatus}
-            deviceType={props.deviceType}
-            DeviceActions={props.DeviceActions}
-            availableDevices={props.availableDevices}
-            availableLSLStreams={props.availableLSLStreams}
-          />
-        </div>
-      )}
-      {isHelpVisible ? (
-        <div className="fixed top-0 right-0 z-50 h-full w-80 shadow-lg">
-          <HelpSidebar handleClose={() => setIsHelpVisible(false)} />
-        </div>
+    <div className="h-[90%] min-h-[560px]">
+      {connected ? (
+        <ConnectedExplore
+          observable={props.signalQualityObservable}
+          device={props.connectedDevice}
+          onDisconnect={handleStopConnect}
+        />
       ) : (
-        <div className="fixed bottom-6 right-6 z-40">
-          <HelpButton onClick={() => setIsHelpVisible(true)} />
+        <div className="flex h-full items-center justify-center text-ink">
+          <div className="flex max-w-[880px] items-center justify-center gap-14 max-[740px]:flex-col max-[740px]:gap-7">
+            <img
+              src={eegImage}
+              alt="EEG headset"
+              className="h-auto w-[300px] flex-none"
+            />
+            <div className="flex max-w-[440px] flex-col items-start gap-[18px]">
+              <div className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
+                RAW SIGNAL
+              </div>
+              <h1>Explore Raw EEG</h1>
+              <p className="leading-7">
+                Connect a headset and watch your brain&apos;s electricity show
+                up live — no experiment to set up, no data to save.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <Button size="lg" onClick={handleStartConnect}>
+                  Connect a headset
+                </Button>
+                <span className="text-sm text-ink-muted">
+                  Takes about 30 seconds
+                </span>
+              </div>
+              <div className="mt-2 flex w-full flex-col gap-1.5 border-t border-gray-200 pt-[18px]">
+                <div className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
+                  ONCE YOU&apos;RE CONNECTED
+                </div>
+                <div className="text-base tracking-[0.3px]">
+                  Two short lessons are waiting: improving signal quality, and
+                  where noise comes from.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
+      <ConnectModal
+        open={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        connectedDevice={props.connectedDevice}
+        signalQualityObservable={props.signalQualityObservable}
+        deviceAvailability={props.deviceAvailability}
+        connectionStatus={props.connectionStatus}
+        deviceType={props.deviceType}
+        DeviceActions={props.DeviceActions}
+        availableDevices={props.availableDevices}
+        availableLSLStreams={props.availableLSLStreams}
+      />
     </div>
   );
 }

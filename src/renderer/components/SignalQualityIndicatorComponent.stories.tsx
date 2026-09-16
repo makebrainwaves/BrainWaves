@@ -38,11 +38,16 @@ function fakeSignalQuality(
 ): Observable<SignalQualityData> {
   return interval(1000).pipe(
     map((tick) => ({
-      epoch: [],
+      data: ELECTRODES.map(() => []),
+      info: {
+        startTime: Date.now(),
+        samplingRate: 256,
+        channelNames: ELECTRODES,
+        signalQuality: Object.fromEntries(ELECTRODES.map((el) => [el, 12])),
+      },
       signalQuality: Object.fromEntries(
         ELECTRODES.map((el, i) => [el, pick(i, tick)])
-      ) as unknown as SIGNAL_QUALITY,
-      timestamp: Date.now(),
+      ),
     }))
   );
 }
@@ -85,14 +90,19 @@ export const PartialMontageMuse: Story = {
   args: {
     signalQualityObservable: interval(1000).pipe(
       map((tick) => ({
-        epoch: [],
+        data: ['TP9', 'AF7', 'AF8', 'TP10'].map(() => []),
+        info: {
+          startTime: Date.now(),
+          samplingRate: 256,
+          channelNames: ['TP9', 'AF7', 'AF8', 'TP10'],
+          signalQuality: { TP9: 6, AF7: 11, AF8: 18, TP10: 0 },
+        },
         signalQuality: Object.fromEntries(
           ['TP9', 'AF7', 'AF8', 'TP10'].map((el, i) => [
             el,
             QUALITIES[(i + tick) % QUALITIES.length],
           ])
-        ) as unknown as SIGNAL_QUALITY,
-        timestamp: Date.now(),
+        ),
       }))
     ),
   },
@@ -101,4 +111,12 @@ export const PartialMontageMuse: Story = {
 /** No observable yet — the head map renders with all electrodes hidden. */
 export const NoData: Story = {
   args: { signalQualityObservable: null },
+};
+
+export const LessonSize: Story = {
+  args: {
+    height: 140,
+    channels: ['TP9', 'AF7', 'AF8', 'TP10'],
+    signalQualityObservable: fakeSignalQuality(() => SIGNAL_QUALITY.GREAT),
+  },
 };

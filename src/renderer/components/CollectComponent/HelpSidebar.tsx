@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
+import { CLEAN_SIGNAL_LESSON } from '../../constants/exploreLessons';
 
 enum HELP_STEP {
   MENU,
@@ -92,25 +93,13 @@ export function HelpSidebar(props: Props) {
   function renderHelpContent() {
     switch (helpStep) {
       case HELP_STEP.SIGNAL_EXPLANATION:
-        return renderHelp(
-          'Improve the signal quality',
-          'In order to collect quality data, you want to make sure that all electrodes have  a strong connection'
-        );
       case HELP_STEP.SIGNAL_SETTLING:
-        return renderHelp(
-          'Tip #1: Good skin contact (and give it a minute)',
-          "The sensors read best against clean, bare skin — sweep hair out from under them and wipe away any makeup or lotion. When you first put the headset on the signal often looks red and jumpy: that's normal while the sensors settle into contact. Sit still and it should calm down and turn green within a minute."
-        );
       case HELP_STEP.SIGNAL_CONTACT:
-        return renderHelp(
-          'Tip #2: Ensure the sensors are making firm contact',
-          'Re-seat the headset to make sure that all sensors contact the head with some tension. Take extra care to make sure the reference electrodes (the ones right behind the ears) make proper contact.  You may need to sweep hair out of the way to accomplish this'
-        );
-      case HELP_STEP.SIGNAL_MOVEMENT:
-        return renderHelp(
-          'Tip #3: Stay still',
-          'To reduce noise during your experiment, ensure your subject is relaxed and has both feet on the floor. Sometimes, focusing on relaxing the jaw and the tongue can improve the EEG signal'
-        );
+      case HELP_STEP.SIGNAL_MOVEMENT: {
+        const tip =
+          CLEAN_SIGNAL_LESSON[helpStep - HELP_STEP.SIGNAL_EXPLANATION];
+        return renderHelp(tip.title, tip.body);
+      }
       case HELP_STEP.LEARN_BRAIN:
         return renderHelp(
           'Your brain produces electricity',
