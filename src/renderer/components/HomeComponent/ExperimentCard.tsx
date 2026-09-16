@@ -24,7 +24,7 @@ export function ExperimentCard({
           <img src={icon} alt={title} />
         </div>
         <div className="w-3/4 py-6">
-          <h1 className="text-[24px] tracking-[0.86px] leading-[29px] text-[#1a1a1a] font-normal mb-2">
+          <h1 className="text-[24px] tracking-[0.86px] leading-[29px] text-ink font-normal mb-2">
             {title}
           </h1>
           <p className="text-[16px] tracking-[0.57px] leading-[24px] text-[#4a4a4a]">

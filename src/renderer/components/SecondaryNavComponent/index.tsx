@@ -25,7 +25,7 @@ function SettingsDropdown({
       {saveButton}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="text-2xl text-[#666] focus:outline-none px-2">
+          <button className="text-2xl text-ink-muted focus:outline-none px-2">
             ⚙
           </button>
         </DropdownMenuTrigger>
@@ -62,7 +62,7 @@ export default function SecondaryNavComponent(props: Props) {
   function renderTitle() {
     if (typeof props.title === 'string') {
       return (
-        <span className="font-normal text-2xl leading-[29px] tracking-[-0.2px] text-[#1a1a1a]">
+        <span className="font-normal text-2xl leading-[29px] tracking-[-0.2px] text-ink">
           {props.title}
         </span>
       );

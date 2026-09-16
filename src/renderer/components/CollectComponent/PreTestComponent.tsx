@@ -109,7 +109,7 @@ export default function PreTestComponent(props: Props) {
   }
 
   return (
-    <div className="relative flex h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+    <div className="relative flex h-screen bg-app">
       {isSidebarVisible && (
         <div className="absolute right-0 top-0 h-full w-64 z-10">
           <HelpSidebar handleClose={handleSidebarToggle} />

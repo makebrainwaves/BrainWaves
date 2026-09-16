@@ -13,16 +13,16 @@ const navColumnBase =
   'flex justify-center items-center h-full text-sm font-bold tracking-[0.5px] border-b-4 px-4';
 
 const statusStyles = {
-  active: 'text-[#1a1a1a] border-accent',
-  visited: 'text-[#1a1a1a] border-accent',
+  active: 'text-ink border-accent',
+  visited: 'text-ink border-accent',
   initial:
-    'text-[#666] border-transparent hover:text-[#1a1a1a] hover:border-accent-light',
+    'text-ink-muted border-transparent hover:text-ink hover:border-accent-light',
 };
 
 const bubbleStyles = {
   active: 'border-accent text-accent',
-  visited: 'border-[#666] text-[#666]',
-  initial: 'border-[#ccc] text-[#ccc]',
+  visited: 'border-ink-muted text-ink-muted',
+  initial: 'border-ink-faint text-ink-faint',
 };
 
 const PrimaryNavSegment = (props: Props) => {

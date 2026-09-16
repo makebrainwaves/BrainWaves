@@ -80,14 +80,23 @@ button:active {
   letter-spacing: 0.64px !important;
 }
 
-/* Webview-related styles */
-
-#eegView {
-  height: 70vh;
+@keyframes explore-step-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-#eegView.hide {
-  visibility: hidden;
+.explore-step-copy {
+  animation: explore-step-fade 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-step-copy {
+    animation: none;
+  }
 }
 
 /* rc-slider-related styles */

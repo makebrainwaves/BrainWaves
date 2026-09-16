@@ -20,6 +20,7 @@ import stroopIcon from '../../experiments/stroop/icon.png';
 import multitaskingIcon from '../../experiments/multitasking/icon.png';
 import searchIcon from '../../experiments/search/icon.png';
 import customIcon from '../../experiments/custom/icon.png';
+import importIcon from '../../assets/common/importIcon.svg';
 import appLogo from '../../assets/common/app_logo.png';
 import divingMan from '../../assets/common/divingMan.svg';
 import {
@@ -255,7 +256,7 @@ export default function Home(props: Props) {
           <div className="pt-[50px]">
             {recentWorkspaces.length > 0 ? (
               <div className="space-y-2">
-                <div className="grid grid-cols-[1fr_1fr_auto] px-6 py-2 text-sm font-semibold text-[#666]">
+                <div className="grid grid-cols-[1fr_1fr_auto] px-6 py-2 text-sm font-semibold text-ink-muted">
                   <span>Experiment name</span>
                   <span>Date Last Opened</span>
                   <span className="min-w-[495px]">Actions</span>
@@ -306,10 +307,10 @@ export default function Home(props: Props) {
             ) : (
               <div className="text-center mt-[50px]">
                 <img src={divingMan} className="mx-auto" alt="No experiments" />
-                <h2 className="font-normal text-2xl leading-[29px] tracking-[-0.2px] text-[#1a1a1a] mt-4">
+                <h2 className="font-normal text-2xl leading-[29px] tracking-[-0.2px] text-ink mt-4">
                   You don&apos;t have any experiments yet
                 </h2>
-                <p className="text-lg text-[#1a1a1a] tracking-[-0.2px]">
+                <p className="text-lg text-ink tracking-[-0.2px]">
                   Head over to the &quot;Experiment Bank&quot; section to start
                   an experiment.
                 </p>
@@ -326,50 +327,65 @@ export default function Home(props: Props) {
       case HOME_STEPS.NEW:
       default:
         return (
-          <div className="grid grid-cols-2 gap-4 p-4">
-            <ExperimentCard
-              onClick={() => handleNewExperiment(EXPERIMENTS.N170)}
-              icon={faceHouseIcon}
-              title="Faces/Houses"
-              description={`Explore how people react to different kinds of
-                        images, like faces vs. houses.`}
-            />
-            <ExperimentCard
-              onClick={() => handleNewExperiment(EXPERIMENTS.STROOP)}
-              icon={stroopIcon}
-              title="Stroop"
-              description={`Investigate why it is hard to deal with
-                        contradictory information (like the word "RED"
-                        printed in blue).`}
-            />
-            <ExperimentCard
-              onClick={() => handleNewExperiment(EXPERIMENTS.MULTI)}
-              icon={multitaskingIcon}
-              title="Multi-tasking"
-              description={`Explore why it is challenging to carry out multiple
-                        tasks at the same time.`}
-            />
-            <ExperimentCard
-              onClick={() => handleNewExperiment(EXPERIMENTS.SEARCH)}
-              icon={searchIcon}
-              title="Visual Search"
-              description={`Examine why it is difficult to find your keys in a
-                        messy room.`}
-            />
-            <ExperimentCard
-              onClick={() => handleNewExperiment(EXPERIMENTS.CUSTOM)}
-              icon={customIcon}
-              title="Experiment Builder"
-              description={`Design your own image experiment. Choose
-                        condition folders and key responses.`}
-            />
-            <ExperimentCard
-              onClick={handleImportExperiment}
-              icon={customIcon}
-              title="Import Experiment"
-              description={`Already have a jsPsych timeline or a lab.js study?
-                        Run it here, with EEG markers and analysis.`}
-            />
+          <div className="flex flex-col gap-7 p-4">
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-bold tracking-[0.5px] text-ink-muted">
+                READY-MADE EXPERIMENTS
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <ExperimentCard
+                  onClick={() => handleNewExperiment(EXPERIMENTS.N170)}
+                  icon={faceHouseIcon}
+                  title="Faces/Houses"
+                  description={`Explore how people react to different kinds of
+                          images, like faces vs. houses.`}
+                />
+                <ExperimentCard
+                  onClick={() => handleNewExperiment(EXPERIMENTS.STROOP)}
+                  icon={stroopIcon}
+                  title="Stroop"
+                  description={`Investigate why it is hard to deal with
+                          contradictory information (like the word "RED"
+                          printed in blue).`}
+                />
+                <ExperimentCard
+                  onClick={() => handleNewExperiment(EXPERIMENTS.MULTI)}
+                  icon={multitaskingIcon}
+                  title="Multi-tasking"
+                  description={`Explore why it is challenging to carry out multiple
+                          tasks at the same time.`}
+                />
+                <ExperimentCard
+                  onClick={() => handleNewExperiment(EXPERIMENTS.SEARCH)}
+                  icon={searchIcon}
+                  title="Visual Search"
+                  description={`Examine why it is difficult to find your keys in a
+                          messy room.`}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-bold tracking-[0.5px] text-ink-muted">
+                BUILD YOUR OWN
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <ExperimentCard
+                  onClick={() => handleNewExperiment(EXPERIMENTS.CUSTOM)}
+                  icon={customIcon}
+                  title="Experiment Builder"
+                  description={`Design your own image experiment. Choose
+                          condition folders and key responses.`}
+                />
+                <ExperimentCard
+                  onClick={handleImportExperiment}
+                  icon={importIcon}
+                  title="Import Experiment"
+                  description={`Already have a jsPsych timeline or a lab.js study?
+                          Run it here, with EEG markers and analysis.`}
+                />
+              </div>
+            </div>
           </div>
         );
       case HOME_STEPS.EXPLORE:
@@ -399,10 +415,7 @@ export default function Home(props: Props) {
   }
 
   return (
-    <div
-      className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]"
-      data-tid="container"
-    >
+    <div className="h-screen p-[3%] bg-app" data-tid="container">
       <SecondaryNavComponent
         title={<img src={appLogo} alt="BrainWaves" />}
         steps={HOME_STEPS}
