@@ -1,0 +1,7 @@
+/* app.global.css locks body to the Electron window (100vh, no scroll) —
+   undo that inside the Storybook canvas iframe so tall stories aren't clipped. */
+body {
+  height: auto;
+  overflow-y: auto !important;
+  background: transparent;
+}

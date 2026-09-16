@@ -9,6 +9,10 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-brand text-white hover:bg-brand-dark',
+        // V1 signature secondary: teal outline, filled teal reserved for the
+        // one primary action per surface (e.g. "Save Workspace")
+        'outline-brand':
+          'border-2 border-brand bg-white text-brand hover:bg-brand-light',
         secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
         outline:
           'border border-gray-300 bg-transparent hover:bg-gray-100 text-gray-900',

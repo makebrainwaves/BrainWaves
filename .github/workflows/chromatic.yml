@@ -1,0 +1,38 @@
+name: Chromatic
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  chromatic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Chromatic needs git history for baselines
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # Storybook only needs JS deps — skip the Pyodide/MNE/native postinstall.
+      - run: npm ci --ignore-scripts
+      - name: Check for Chromatic token
+        id: token
+        run: |
+          if [ -n "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::CHROMATIC_PROJECT_TOKEN not set — skipping visual regression"
+          fi
+      - name: Publish to Chromatic
+        if: steps.token.outputs.present == 'true'
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          onlyChanged: true
+      # Even without a token, prove Storybook still builds.
+      - name: Build Storybook
+        if: steps.token.outputs.present != 'true'
+        run: npm run build-storybook

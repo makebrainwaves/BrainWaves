@@ -18,6 +18,7 @@ export default [
   {
     ignores: [
       'node_modules/**',
+      'storybook-static/**',
       'out/**',
       'release/**',
       'dist/**',
