@@ -45,7 +45,13 @@ const PYODIDE_ROOT_PACKAGES = ['numpy', 'scipy', 'matplotlib', 'pandas', 'microp
 // Pure-Python packages to download from PyPI (not bundled with Pyodide)
 // ---------------------------------------------------------------------------
 
-const PYPI_PACKAGES = ['mne', 'pooch', 'tqdm', 'platformdirs', 'lazy-loader'];
+const PYPI_PACKAGES = {
+  mne: '1.12.1',
+  pooch: '1.9.0',
+  tqdm: '4.70.0',
+  platformdirs: '4.11.8',
+  'lazy-loader': '0.5',
+};
 
 // ---------------------------------------------------------------------------
 // Shared network helpers
@@ -184,13 +190,14 @@ async function downloadPyodidePackages() {
 
 /**
  * Queries the PyPI JSON API for `packageName` and returns the best
- * pure-Python wheel for the latest release.
+ * pure-Python wheel for the pinned release.
  * Preference: py3-none-any > py2.py3-none-any > *-none-any
  */
-async function resolvePureWheel(packageName) {
-  const raw = await httpsGetText(`https://pypi.org/pypi/${packageName}/json`);
+async function resolvePureWheel(packageName, version) {
+  const raw = await httpsGetText(
+    `https://pypi.org/pypi/${packageName}/${version}/json`
+  );
   const data = JSON.parse(raw);
-  const version = data.info.version;
   const wheels = data.urls.filter((f) => f.filename.endsWith('.whl'));
 
   const ranked = [
@@ -206,15 +213,15 @@ async function resolvePureWheel(packageName) {
     );
   }
 
-  return { version, wheel: ranked[0] };
+  return ranked[0];
 }
 
-async function installPyPIPackage(packageName, manifest) {
+async function installPyPIPackage(packageName, version, manifest) {
   process.stdout.write(chalk.blue(`  ${packageName}: `));
 
-  let version, wheel;
+  let wheel;
   try {
-    ({ version, wheel } = await resolvePureWheel(packageName));
+    wheel = await resolvePureWheel(packageName, version);
   } catch (err) {
     console.log(chalk.red(`FAILED — ${err.message}`));
     return;
@@ -248,8 +255,8 @@ async function downloadPyPIPackages() {
   }
 
   console.log(chalk.blue.bold('\nDownloading MNE-Python wheels from PyPI…'));
-  for (const pkg of PYPI_PACKAGES) {
-    await installPyPIPackage(pkg, manifest);
+  for (const [packageName, version] of Object.entries(PYPI_PACKAGES)) {
+    await installPyPIPackage(packageName, version, manifest);
   }
 
   fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));
