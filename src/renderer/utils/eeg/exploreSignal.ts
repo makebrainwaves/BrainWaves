@@ -586,8 +586,10 @@ function alphaPower(snapshot: EEGSnapshot): number | null {
     },
   })
     .pipe(fft({ bins }), sliceFFT([8, 12]))
-    .subscribe(({ psd }: { psd: number[][] }) => {
-      const magnitudes = psd.flat();
+    // sliceFFT's declared output types psd as a loose union; it is channel-major
+    // magnitude bins.
+    .subscribe((sliced) => {
+      const magnitudes = (sliced.psd as unknown as number[][]).flat();
       power =
         magnitudes.reduce((sum, value) => sum + value ** 2, 0) /
         magnitudes.length;
