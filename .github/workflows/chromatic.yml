@@ -1,3 +1,6 @@
+# Builds the Storybook catalog for every pull request and publishes main to
+# Chromatic when CHROMATIC_PROJECT_TOKEN is configured; otherwise it builds locally.
+
 name: Chromatic
 
 on:
