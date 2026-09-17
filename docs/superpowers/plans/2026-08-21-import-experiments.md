@@ -1,7 +1,5 @@
 # Import Experiments Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Let a teacher import an externally-authored jsPsych v8 timeline (`.js`) or lab.js study (`.json`), declare its conditions once, and run it through BrainWaves' existing Collect → Clean → Analyze pipeline with real EEG markers.
 
 **Architecture:** `ExperimentWindow` is renamed `LabjsExperimentWindow` and gains a sibling, `ImportedExperimentWindow`, behind a new `ExperimentRuntime` dispatcher — so third-party code lives in exactly one file. BrainWaves owns the `initJsPsych()` call the author's file makes, injecting `display_element`, `override_safe_mode`, and chained `on_trial_start`/`on_finish` hooks that emit numeric markers and a BrainWaves-schema behavioral CSV. Numeric marker codes come from an ordered condition-label list the teacher freezes in a new imported-only **Markers** tab; `buildMarkerRegistry` gains a second entry point so collection and MNE analysis stay derived from that one list.
