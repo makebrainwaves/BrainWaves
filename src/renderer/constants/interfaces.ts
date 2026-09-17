@@ -173,10 +173,8 @@ export interface EEGData {
   marker?: string | number;
 }
 
-export interface SignalQualityData {
-  epoch: number[][];
-  signalQuality: SIGNAL_QUALITY;
-  timestamp?: number;
+export interface SignalQualityData extends PipesEpoch {
+  signalQuality: Record<string, SIGNAL_QUALITY>;
 }
 
 // For connected devices

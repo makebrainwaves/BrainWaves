@@ -1,51 +1,62 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Subscription, Observable } from 'rxjs';
-import { isNil } from 'lodash';
+import { Observable } from 'rxjs';
+import type { WebviewTag } from 'electron';
 import { MUSE_CHANNELS, VIEWER_DEFAULTS } from '../constants/constants';
-
-type WebviewTag = HTMLElement & {
-  send: (channel: string, ...args: unknown[]) => void;
-  addEventListener: (event: string, handler: () => void) => void;
-};
-import { PipesEpoch, SignalQualityData } from '../constants/interfaces';
-
-import Mousetrap from 'mousetrap';
+import { SignalQualityData } from '../constants/interfaces';
+import type { EEGSnapshot, PlotAnnotation } from '../../shared/eegVizTypes';
+import type {
+  ViewerGraphParameters,
+  ViewerMessages,
+  ViewerNavigateMessage,
+} from '../../shared/viewerTypes';
 
 interface Props {
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   plottingInterval: number;
-  // Channel labels of the connected device. Drives the viewer's traces and must
-  // match the keys of the signal-quality chunks. Defaults to MUSE_CHANNELS so a
-  // Muse renders correctly even before connectedDevice metadata is populated.
-  channels?: Array<string>;
+  channels?: string[];
+  /** Number of pixels, or any CSS height (e.g. '100%') to fill a flex parent. */
+  height?: number | string;
+  windowDuration?: number;
+  annotations?: PlotAnnotation[];
+  snapshot?: EEGSnapshot | null;
+  /** Symmetric microvolt half-range; snapshots are centered on each channel's mean. */
+  amplitudeScale?: number;
+  /** Forward Left/Right/Escape from a focused webview guest to surrounding lesson UI. */
+  onNavigate?: (action: 'left' | 'right' | 'escape') => void;
 }
 
-export default function ViewerComponent(props: Props) {
-  const [channels, setChannels] = useState(
-    () => props.channels ?? MUSE_CHANNELS
-  );
-  const domain = VIEWER_DEFAULTS.domain;
-  const [viewerUrl, setViewerUrl] = useState('');
+function graphParameters(props: Props): ViewerGraphParameters {
+  const channels = props.channels ?? props.snapshot?.channels ?? MUSE_CHANNELS;
+  return {
+    channels,
+    plottingInterval: props.plottingInterval,
+    domain: props.windowDuration ?? VIEWER_DEFAULTS.domain,
+    channelColours: channels.map(() => '#66B0A9'),
+    annotations: props.annotations ?? [],
+    snapshot: props.snapshot ?? null,
+    amplitudeScale: props.amplitudeScale,
+  };
+}
 
+/** Hosts one independently managed D3 guest; frozen views never subscribe to live data. */
+export default function ViewerComponent(props: Props) {
+  const [viewerUrl, setViewerUrl] = useState('');
+  const [ready, setReady] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const graphViewRef = useRef<WebviewTag | null>(null);
-  const subRef = useRef<Subscription | null>(null);
+  const readyRef = useRef(false);
   const propsRef = useRef(props);
   propsRef.current = props;
-  const channelsRef = useRef(channels);
-  channelsRef.current = channels;
+  const channels = props.channels ?? props.snapshot?.channels ?? MUSE_CHANNELS;
+  const frozen = props.snapshot != null;
 
-  function subscribeToObservable(observable: Observable<SignalQualityData>) {
-    subRef.current?.unsubscribe();
-    subRef.current = observable.subscribe({
-      next: (chunk) => {
-        graphViewRef.current?.send('newData', chunk);
-      },
-      error: (error) =>
-        console.error('[viewer] signal quality observable error:', error),
-    });
+  function send<K extends keyof ViewerMessages>(
+    channel: K,
+    message: ViewerMessages[K]
+  ) {
+    if (readyRef.current) graphViewRef.current?.send(channel, message);
   }
 
-  // Mount: get the viewer URL
   useEffect(() => {
     let cancelled = false;
     window.electronAPI.getViewerUrl().then((url) => {
@@ -56,63 +67,106 @@ export default function ViewerComponent(props: Props) {
     };
   }, []);
 
-  // Attach webview once viewerUrl becomes non-empty
   useEffect(() => {
-    if (!viewerUrl) return;
-    const el = document.querySelector('webview') as WebviewTag | null;
-    graphViewRef.current = el;
+    const element = graphViewRef.current;
+    if (!viewerUrl || !element) return;
     const onDomReady = () => {
-      const p = propsRef.current;
-      el?.send('initGraph', {
-        plottingInterval: p.plottingInterval,
-        channels: channelsRef.current,
-        domain,
-        channelColours: channelsRef.current.map(() => '#66B0A9'),
-      });
-      Mousetrap.bind('up', () => graphViewRef.current?.send('zoomIn'));
-      Mousetrap.bind('down', () => graphViewRef.current?.send('zoomOut'));
-      if (p.signalQualityObservable != null) {
-        subscribeToObservable(p.signalQualityObservable);
-      }
+      element.send('initGraph', graphParameters(propsRef.current));
+      readyRef.current = true;
+      setReady(true);
     };
-    el?.addEventListener('dom-ready', onDomReady);
-    // No StrictMode in the tree; class never removed the listener.
-  }, [viewerUrl, domain]);
-
-  // Adopt connected device's channels
-  useEffect(() => {
-    if (props.channels) setChannels(props.channels);
-  }, [props.channels]);
-
-  // Resubscribe when the observable identity changes
-  useEffect(() => {
-    if (props.signalQualityObservable == null) return;
-    subscribeToObservable(props.signalQualityObservable);
-  }, [props.signalQualityObservable]);
-
-  // IPC: forward state changes to the webview guest
-  useEffect(() => {
-    if (!graphViewRef.current) return;
-    graphViewRef.current.send('updateChannels', channels);
-  }, [channels]);
-
-  // Unmount cleanup
-  useEffect(() => {
+    const onLoading = () => {
+      readyRef.current = false;
+      setReady(false);
+    };
+    const onMessage = (event: Electron.IpcMessageEvent) => {
+      if (event.channel !== 'viewer:navigate') return;
+      const message = event.args[0] as ViewerNavigateMessage;
+      propsRef.current.onNavigate?.(message.type);
+    };
+    element.addEventListener('dom-ready', onDomReady);
+    element.addEventListener('did-start-loading', onLoading);
+    element.addEventListener('ipc-message', onMessage);
     return () => {
-      subRef.current?.unsubscribe();
-      Mousetrap.unbind('up');
-      Mousetrap.unbind('down');
+      readyRef.current = false;
+      element.removeEventListener('dom-ready', onDomReady);
+      element.removeEventListener('did-start-loading', onLoading);
+      element.removeEventListener('ipc-message', onMessage);
     };
+  }, [viewerUrl]);
+
+  useEffect(() => {
+    send('updateChannels', channels);
+  }, [ready, channels]);
+
+  useEffect(() => {
+    send('updateDomain', props.windowDuration ?? VIEWER_DEFAULTS.domain);
+  }, [ready, props.windowDuration]);
+
+  useEffect(() => {
+    send('updateAnnotations', props.annotations ?? []);
+  }, [ready, props.annotations]);
+
+  useEffect(() => {
+    send('updateSnapshot', {
+      snapshot: props.snapshot ?? null,
+      amplitudeScale: propsRef.current.amplitudeScale,
+    });
+  }, [ready, props.snapshot]);
+
+  useEffect(() => {
+    if (!ready || frozen || !props.signalQualityObservable) return;
+    const subscription = props.signalQualityObservable.subscribe({
+      next: (chunk) => {
+        if (!propsRef.current.snapshot) send('newData', chunk);
+      },
+      error: (error) =>
+        console.error('[viewer] signal quality observable error:', error),
+    });
+    return () => subscription.unsubscribe();
+  }, [ready, frozen, props.signalQualityObservable]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (propsRef.current.snapshot || event.defaultPrevented) return;
+      if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+      const { target } = event;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.closest('input, select, textarea, button'))
+      )
+        return;
+      const wrapper = wrapperRef.current;
+      const focused = wrapper?.contains(document.activeElement);
+      const onlyLiveViewer =
+        document.querySelectorAll('[data-eeg-viewer="live"]').length === 1;
+      if (!focused && !onlyLiveViewer) return;
+      send(event.key === 'ArrowUp' ? 'zoomIn' : 'zoomOut', undefined);
+      event.preventDefault();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  if (!viewerUrl) return null;
-  const trueAsString = 'true' as unknown as boolean;
   return (
-    <webview
-      id="eegView"
-      src={viewerUrl}
-      autosize={trueAsString}
-      plugins={trueAsString}
-    />
+    <div
+      ref={wrapperRef}
+      data-eeg-viewer={frozen ? 'frozen' : 'live'}
+      className="relative w-full min-w-0 overflow-hidden"
+      style={{ height: props.height ?? '70vh' }}
+      tabIndex={0}
+      aria-label={frozen ? 'Frozen EEG trace' : 'Live EEG trace'}
+    >
+      {viewerUrl && (
+        <webview
+          ref={(element) => {
+            graphViewRef.current = element as unknown as WebviewTag | null;
+          }}
+          src={viewerUrl}
+          style={{ display: 'flex', width: '100%', height: '100%' }}
+        />
+      )}
+    </div>
   );
 }

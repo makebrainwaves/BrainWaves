@@ -1,0 +1,598 @@
+import { of } from 'rxjs';
+import { fft, sliceFFT } from '@neurosity/pipes';
+import type { EEGSnapshot } from '../../../shared/eegVizTypes';
+import {
+  SIGNAL_QUALITY,
+  SIGNAL_QUALITY_THRESHOLDS,
+} from '../../constants/constants';
+import type { SignalQualityData } from '../../constants/interfaces';
+
+export interface BlinkEvent {
+  startTime: number;
+  endTime: number;
+  channels: string[];
+  amplitude: number;
+}
+
+export interface ExploreStatus {
+  baselineStable: boolean;
+  blinkEvents: BlinkEvent[];
+  latestTime: number | null;
+  supported: boolean;
+}
+
+export interface FrozenComparison {
+  calm: EEGSnapshot;
+  blink: EEGSnapshot;
+  sharedScale: number;
+  ratio: number;
+}
+
+const BUFFER_MS = 60000;
+const WINDOW_MS = 5000;
+const FRONTAL = ['AF7', 'AF8'];
+
+/** Causal second-order Butterworth section; unlike offline zero-phase filters, it delays peaks. */
+class Butterworth {
+  private z1 = 0;
+  private z2 = 0;
+  private readonly b0: number;
+  private readonly b1: number;
+  private readonly b2: number;
+  private readonly a1: number;
+  private readonly a2: number;
+
+  constructor(rate: number, cutoff: number, highpass: boolean) {
+    const omega = (2 * Math.PI * cutoff) / rate;
+    const cosine = Math.cos(omega);
+    const alpha = Math.sin(omega) / Math.SQRT2;
+    const a0 = 1 + alpha;
+    this.b0 = (highpass ? 1 + cosine : 1 - cosine) / (2 * a0);
+    this.b1 = (highpass ? -(1 + cosine) : 1 - cosine) / a0;
+    this.b2 = this.b0;
+    this.a1 = (-2 * cosine) / a0;
+    this.a2 = (1 - alpha) / a0;
+  }
+
+  next(value: number): number {
+    const output = this.b0 * value + this.z1;
+    this.z1 = this.b1 * value - this.a1 * output + this.z2;
+    this.z2 = this.b2 * value - this.a2 * output;
+    return output;
+  }
+}
+
+/** Fixed-size running moments keep calibration O(1) per sample. */
+class Moments {
+  private readonly values: Float64Array;
+  private cursor = 0;
+  count = 0;
+  private sum = 0;
+  private squares = 0;
+
+  constructor(size: number) {
+    this.values = new Float64Array(size);
+  }
+
+  add(value: number): void {
+    const old = this.values[this.cursor];
+    this.sum += value - old;
+    this.squares += value * value - old * old;
+    this.values[this.cursor] = value;
+    this.cursor = (this.cursor + 1) % this.values.length;
+    this.count = Math.min(this.count + 1, this.values.length);
+  }
+
+  variance(): number {
+    return Math.max(
+      0,
+      this.squares / this.count - (this.sum / this.count) ** 2
+    );
+  }
+}
+
+interface FrontalState {
+  index: number;
+  offset: number | null;
+  highpass: Butterworth;
+  lowpass: Butterworth;
+  muscle: Butterworth;
+  raw: Moments;
+  low: Moments;
+  high: Moments;
+  threshold: number;
+  value: number;
+  highValue: number;
+}
+
+interface Candidate {
+  startTime: number;
+  sign: number;
+  peaks: number[];
+  minima: number[];
+  maxima: number[];
+  energy: number[];
+  cross: number;
+  highEnergy: number;
+}
+
+/**
+ * Live educational heuristic, not a validated clinical EOG classifier. Input is already µV.
+ * MNE's 1–10 Hz EOG passband/adaptive threshold and ICLabel's bilateral slow ocular field
+ * motivate the detector; ICA source classification is not possible from these two sensors.
+ * Existing signal-quality stddev limits gate calibration, not blink amplitude. Thresholds
+ * are learned from two quiet seconds after filter warm-up; real Muse validation is pending.
+ */
+export class ExploreSession {
+  private channels: string[];
+  private samplingRate: number;
+  private capacity = 0;
+  private data: Float64Array[] = [];
+  private times = new Float64Array(0);
+  private cursor = 0;
+  private size = 0;
+  private lastChunkStart: number | null = null;
+  private frontal: FrontalState[] = [];
+  private stable = false;
+  private unstableSince: number | null = null;
+  private candidate: Candidate | null = null;
+  private refractoryUntil = -Infinity;
+  private calibrationAfter = -Infinity;
+  private events: BlinkEvent[] = [];
+
+  constructor(channels: string[], samplingRate: number) {
+    this.channels = [...channels];
+    this.samplingRate = samplingRate;
+    this.reset();
+  }
+
+  reset(): void {
+    this.capacity =
+      Number.isFinite(this.samplingRate) && this.samplingRate > 0
+        ? Math.ceil((BUFFER_MS * this.samplingRate) / 1000)
+        : 0;
+    this.data = this.channels.map(() => new Float64Array(this.capacity));
+    this.times = new Float64Array(this.capacity);
+    this.cursor = 0;
+    this.size = 0;
+    this.lastChunkStart = null;
+    this.stable = false;
+    this.unstableSince = null;
+    this.candidate = null;
+    this.refractoryUntil = -Infinity;
+    this.calibrationAfter = -Infinity;
+    this.events = [];
+    this.frontal = [];
+    if (
+      this.samplingRate > 40 &&
+      FRONTAL.every((name) => this.channels.includes(name))
+    ) {
+      this.frontal = FRONTAL.map((name) => ({
+        index: this.channels.indexOf(name),
+        offset: null,
+        highpass: new Butterworth(this.samplingRate, 1, true),
+        lowpass: new Butterworth(this.samplingRate, 10, false),
+        muscle: new Butterworth(this.samplingRate, 20, true),
+        raw: new Moments(Math.ceil(this.samplingRate * 2)),
+        low: new Moments(Math.ceil(this.samplingRate * 2)),
+        high: new Moments(Math.ceil(this.samplingRate * 2)),
+        threshold: Infinity,
+        value: 0,
+        highValue: 0,
+      }));
+    }
+  }
+
+  consume(chunk: SignalQualityData): void {
+    const { startTime, samplingRate } = chunk.info;
+    const names = chunk.info.channelNames ?? this.channels;
+    if (
+      !Number.isFinite(startTime) ||
+      !Number.isFinite(samplingRate) ||
+      samplingRate <= 0 ||
+      names.length === 0 ||
+      new Set(names).size !== names.length ||
+      chunk.data.length !== names.length ||
+      chunk.data.some((values) => values.length !== chunk.data[0].length)
+    ) {
+      this.reset();
+      return;
+    }
+    if (!chunk.data[0].length) return;
+    if (
+      samplingRate !== this.samplingRate ||
+      names.length !== this.channels.length ||
+      names.some((name, index) => name !== this.channels[index])
+    ) {
+      this.channels = [...names];
+      this.samplingRate = samplingRate;
+      this.reset();
+    }
+    if (this.lastChunkStart !== null && startTime < this.lastChunkStart)
+      this.reset();
+    this.lastChunkStart = startTime;
+    const dt = 1000 / this.samplingRate;
+    for (let sample = 0; sample < chunk.data[0].length; sample++) {
+      const time = startTime + sample * dt;
+      const latest = this.size
+        ? this.times[(this.cursor + this.capacity - 1) % this.capacity]
+        : null;
+      if (latest !== null && time <= latest + dt * 0.25) continue;
+      if (chunk.data.some((values) => !Number.isFinite(values[sample]))) {
+        this.reset();
+        this.lastChunkStart = startTime;
+        continue;
+      }
+      if (latest !== null && Math.abs(time - latest - dt) > dt * 0.5) {
+        this.reset();
+        this.lastChunkStart = startTime;
+      }
+      this.times[this.cursor] = time;
+      for (let channel = 0; channel < this.channels.length; channel++) {
+        this.data[channel][this.cursor] = chunk.data[channel][sample];
+      }
+      this.cursor = (this.cursor + 1) % this.capacity;
+      this.size = Math.min(this.capacity, this.size + 1);
+      if (this.frontal.length) this.detect(time, chunk, sample);
+    }
+    if (this.size) {
+      const oldest = this.timeAt(0);
+      while (this.events.length && this.events[0].startTime < oldest)
+        this.events.shift();
+    }
+  }
+
+  private detect(time: number, chunk: SignalQualityData, sample: number): void {
+    let qualityGood = true;
+    let usable = true;
+    let quiet = true;
+    for (const state of this.frontal) {
+      const raw = chunk.data[state.index][sample];
+      state.offset ??= raw;
+      const centered = raw - state.offset;
+      state.value = state.lowpass.next(state.highpass.next(centered));
+      state.highValue = state.muscle.next(centered);
+      state.raw.add(centered);
+      state.low.add(state.value);
+      state.high.add(state.highValue);
+      const name = this.channels[state.index];
+      const metric = chunk.info.signalQuality[name];
+      const quality = chunk.signalQuality[name];
+      usable &&=
+        Number.isFinite(metric) &&
+        quality !== undefined &&
+        quality !== SIGNAL_QUALITY.DISCONNECTED;
+      qualityGood &&=
+        Number.isFinite(metric) &&
+        metric >= SIGNAL_QUALITY_THRESHOLDS.GREAT &&
+        metric < SIGNAL_QUALITY_THRESHOLDS.BAD &&
+        (quality === SIGNAL_QUALITY.GREAT || quality === SIGNAL_QUALITY.OK);
+      const variance = state.raw.variance();
+      quiet &&=
+        variance > 1e-12 &&
+        variance < SIGNAL_QUALITY_THRESHOLDS.BAD ** 2 &&
+        state.high.variance() < variance * 0.35;
+    }
+    if (!usable) {
+      this.stable = false;
+      this.candidate = null;
+      this.calibrationAfter = time + 2000;
+      return;
+    }
+    const warm = this.size >= Math.ceil(3 * this.samplingRate);
+    if (!this.candidate && time >= this.calibrationAfter && warm) {
+      if (quiet && qualityGood) {
+        this.stable = true;
+        this.unstableSince = null;
+        for (const state of this.frontal) {
+          state.threshold = Math.max(
+            6 * Math.sqrt(state.low.variance()),
+            3 * Math.sqrt(state.raw.variance())
+          );
+        }
+      } else {
+        this.unstableSince ??= time;
+        if (time - this.unstableSince >= 750) this.stable = false;
+      }
+    }
+    if (!this.stable || time < this.refractoryUntil) return;
+    const left = this.frontal[0];
+    const right = this.frontal[1];
+    if (!this.candidate) {
+      if (
+        Math.abs(left.value) < left.threshold ||
+        Math.abs(right.value) < right.threshold ||
+        left.value * right.value <= 0
+      )
+        return;
+      this.candidate = {
+        startTime: time,
+        sign: Math.sign(left.value),
+        peaks: [0, 0],
+        minima: [Infinity, Infinity],
+        maxima: [-Infinity, -Infinity],
+        energy: [0, 0],
+        cross: 0,
+        highEnergy: 0,
+      };
+    }
+    const { candidate } = this;
+    for (let index = 0; index < 2; index++) {
+      const state = this.frontal[index];
+      candidate.peaks[index] = Math.max(
+        candidate.peaks[index],
+        candidate.sign * state.value
+      );
+      candidate.energy[index] += state.value ** 2;
+      candidate.highEnergy += state.highValue ** 2;
+      const raw = chunk.data[state.index][sample];
+      candidate.minima[index] = Math.min(candidate.minima[index], raw);
+      candidate.maxima[index] = Math.max(candidate.maxima[index], raw);
+    }
+    candidate.cross += left.value * right.value;
+    const duration = time - candidate.startTime;
+    const returned = this.frontal.every(
+      (state, index) =>
+        candidate.sign * state.value <
+        Math.max(state.threshold * 0.4, candidate.peaks[index] * 0.2)
+    );
+    if (!returned && duration <= 400) return;
+    const correlation =
+      candidate.cross / Math.sqrt(candidate.energy[0] * candidate.energy[1]);
+    const balance = candidate.peaks[0] / candidate.peaks[1];
+    if (
+      duration >= 100 &&
+      duration <= 400 &&
+      correlation >= 0.8 &&
+      balance >= 0.3 &&
+      balance <= 3 &&
+      candidate.highEnergy < 0.3 * (candidate.energy[0] + candidate.energy[1])
+    ) {
+      this.events.push({
+        startTime: candidate.startTime,
+        endTime: time,
+        channels: [...FRONTAL],
+        amplitude: Math.max(
+          candidate.maxima[0] - candidate.minima[0],
+          candidate.maxima[1] - candidate.minima[1]
+        ),
+      });
+    }
+    this.candidate = null;
+    this.refractoryUntil = time + 250;
+    this.calibrationAfter = time + 750;
+  }
+
+  status(): ExploreStatus {
+    const latestTime = this.size ? this.timeAt(this.size - 1) : null;
+    return {
+      baselineStable: this.stable,
+      blinkEvents: this.events.map((event) => ({
+        ...event,
+        channels: [...event.channels],
+      })),
+      latestTime,
+      supported: this.frontal.length === 2,
+    };
+  }
+
+  private timeAt(index: number): number {
+    return this.times[
+      (this.cursor - this.size + this.capacity + index) % this.capacity
+    ];
+  }
+
+  private valueAt(channel: number, index: number): number {
+    return this.data[channel][
+      (this.cursor - this.size + this.capacity + index) % this.capacity
+    ];
+  }
+
+  /** Half-open [startTime, endTime), aligned to complete sample cells; never bridges missing data. */
+  snapshot(
+    startTime: number,
+    endTime: number,
+    channels = this.channels
+  ): EEGSnapshot | null {
+    const dt = 1000 / this.samplingRate;
+    if (
+      !this.size ||
+      !Number.isFinite(startTime) ||
+      !Number.isFinite(endTime) ||
+      endTime <= startTime ||
+      startTime < this.timeAt(0) - 0.01 ||
+      endTime > this.timeAt(this.size - 1) + dt + 0.01 ||
+      !channels.length ||
+      new Set(channels).size !== channels.length ||
+      channels.some((name) => !this.channels.includes(name))
+    )
+      return null;
+    let lo = 0;
+    let hi = this.size;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (this.timeAt(mid) < startTime - 0.01) lo = mid + 1;
+      else hi = mid;
+    }
+    const first = lo;
+    lo = first;
+    hi = this.size;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (this.timeAt(mid) < endTime - 0.01) lo = mid + 1;
+      else hi = mid;
+    }
+    const count = lo - first;
+    if (!count) return null;
+    let peakToPeak = 0;
+    const data = channels.map((name) => {
+      const index = this.channels.indexOf(name);
+      let minimum = Infinity;
+      let maximum = -Infinity;
+      const values = Array.from({ length: count }, (_, offset) => {
+        const value = this.valueAt(index, first + offset);
+        minimum = Math.min(minimum, value);
+        maximum = Math.max(maximum, value);
+        return value;
+      });
+      peakToPeak = Math.max(peakToPeak, maximum - minimum);
+      return values;
+    });
+    return {
+      data,
+      channels: [...channels],
+      samplingRate: this.samplingRate,
+      startTime: this.timeAt(first),
+      endTime: this.timeAt(first + count - 1) + dt,
+      peakToPeak,
+    };
+  }
+
+  /** Exhaustive five-second search over bucket-aligned starts, using 250 ms extrema buckets. */
+  comparison(): FrozenComparison | null {
+    const length = Math.round((WINDOW_MS * this.samplingRate) / 1000);
+    if (!this.events.length || this.frontal.length !== 2 || this.size < length)
+      return null;
+    const bucketSamples = Math.max(1, Math.round(this.samplingRate / 4));
+    const bucketsPerWindow = Math.ceil(length / bucketSamples);
+    const buckets = Math.floor(this.size / bucketSamples);
+    const minima = [0, 1].map(() => new Float64Array(buckets).fill(Infinity));
+    const maxima = [0, 1].map(() => new Float64Array(buckets).fill(-Infinity));
+    for (let bucket = 0; bucket < buckets; bucket++) {
+      for (let channel = 0; channel < 2; channel++) {
+        const { index } = this.frontal[channel];
+        for (let offset = 0; offset < bucketSamples; offset++) {
+          const value = this.valueAt(index, bucket * bucketSamples + offset);
+          minima[channel][bucket] = Math.min(minima[channel][bucket], value);
+          maxima[channel][bucket] = Math.max(maxima[channel][bucket], value);
+        }
+      }
+    }
+    // A start bucket is admissible when its whole window fits: rounding the
+    // window up to whole buckets keeps start*bucket + length inside the buffer.
+    const candidates = buckets - bucketsPerWindow + 1;
+    const amplitudes = new Float64Array(Math.max(0, candidates));
+    const clear = new Uint8Array(Math.max(0, candidates));
+    let blinkBucket = -1;
+    let mostBlinks = 0;
+    for (let bucket = 0; bucket < candidates; bucket++) {
+      for (let channel = 0; channel < 2; channel++) {
+        let low = Infinity;
+        let high = -Infinity;
+        for (let b = bucket; b < bucket + bucketsPerWindow; b++) {
+          low = Math.min(low, minima[channel][b]);
+          high = Math.max(high, maxima[channel][b]);
+        }
+        amplitudes[bucket] = Math.max(amplitudes[bucket], high - low);
+      }
+      const start = bucket * bucketSamples;
+      const startTime = this.timeAt(start);
+      const endTime =
+        this.timeAt(start + length - 1) + 1000 / this.samplingRate;
+      const contained = this.events.filter(
+        (event) => event.startTime >= startTime && event.endTime < endTime
+      ).length;
+      clear[bucket] = this.events.some(
+        (event) => event.endTime >= startTime && event.startTime < endTime
+      )
+        ? 0
+        : 1;
+      if (contained > mostBlinks) {
+        mostBlinks = contained;
+        blinkBucket = bucket;
+      }
+    }
+    if (blinkBucket < 0) return null;
+    const blinkIndex = blinkBucket * bucketSamples;
+    let calmBucket = -1;
+    let quietest = Infinity;
+    for (let bucket = 0; bucket < candidates; bucket++) {
+      const start = bucket * bucketSamples;
+      if (
+        (start + length - 1 < blinkIndex || start > blinkIndex + length - 1) &&
+        clear[bucket] === 1 &&
+        amplitudes[bucket] > 0 &&
+        amplitudes[bucket] < quietest
+      ) {
+        calmBucket = bucket;
+        quietest = amplitudes[bucket];
+      }
+    }
+    if (calmBucket < 0) return null;
+    const calmIndex = calmBucket * bucketSamples;
+    const calm = this.snapshot(
+      this.timeAt(calmIndex),
+      this.timeAt(calmIndex) + WINDOW_MS,
+      FRONTAL
+    );
+    const blink = this.snapshot(
+      this.timeAt(blinkIndex),
+      this.timeAt(blinkIndex) + WINDOW_MS,
+      FRONTAL
+    );
+    if (!calm || !blink) return null;
+    const ratio = blink.peakToPeak / calm.peakToPeak;
+    let sharedScale = 0;
+    for (const snapshot of [calm, blink]) {
+      for (const values of snapshot.data) {
+        const mean =
+          values.reduce((sum, value) => sum + value, 0) / values.length;
+        for (const value of values)
+          sharedScale = Math.max(sharedScale, Math.abs(value - mean));
+      }
+    }
+    if (
+      !Number.isFinite(ratio) ||
+      !Number.isFinite(sharedScale) ||
+      sharedScale <= 0
+    )
+      return null;
+    return { calm, blink, sharedScale, ratio };
+  }
+
+  /** Posterior 8–12 Hz band power versus the preceding five seconds, not an alpha-rise prediction. */
+  alphaRatio(startTime: number, endTime: number): number | null {
+    if (this.samplingRate <= 24 || endTime - startTime < 1000) return null;
+    const posterior = this.channels.filter((name) =>
+      /^(?:TP9|TP10|(?:O|PO)(?:\d+|z))$/i.test(name)
+    );
+    if (!posterior.length) return null;
+    const before = this.snapshot(startTime - WINDOW_MS, startTime, posterior);
+    const during = this.snapshot(startTime, endTime, posterior);
+    if (!before || !during) return null;
+    const baseline = alphaPower(before);
+    const power = alphaPower(during);
+    if (baseline === null || power === null || baseline <= 1e-12) return null;
+    const ratio = power / baseline;
+    return Number.isFinite(ratio) ? ratio : null;
+  }
+}
+
+/**
+ * Mean 8–12 Hz power across the snapshot's channels, reusing the FFT operators
+ * the device streams already run through. `of` is synchronous, so the one-shot
+ * subscribe settles before returning. pipes' `fft` emits a magnitude spectrum,
+ * so bins are squared here to stay a power ratio rather than an amplitude one.
+ */
+function alphaPower(snapshot: EEGSnapshot): number | null {
+  const bins = 2 ** Math.round(Math.log2(snapshot.samplingRate));
+  if (snapshot.data[0].length < bins) return null;
+  let power: number | null = null;
+  of({
+    data: snapshot.data.map((values) => values.slice(0, bins)),
+    info: {
+      samplingRate: snapshot.samplingRate,
+      channelNames: snapshot.channels,
+    },
+  })
+    .pipe(fft({ bins }), sliceFFT([8, 12]))
+    // sliceFFT's declared output types psd as a loose union; it is channel-major
+    // magnitude bins.
+    .subscribe((sliced) => {
+      const magnitudes = (sliced.psd as unknown as number[][]).flat();
+      power =
+        magnitudes.reduce((sum, value) => sum + value ** 2, 0) /
+        magnitudes.length;
+    });
+  return power !== null && Number.isFinite(power) ? power : null;
+}

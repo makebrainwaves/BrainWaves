@@ -25,7 +25,7 @@ import {
 import SecondaryNavComponent from './SecondaryNavComponent';
 import ClickableHeadDiagramSVG from './svgs/ClickableHeadDiagramSVG';
 import PyodidePlotWidget from './PyodidePlotWidget';
-import { HelpButton } from './CollectComponent/HelpSidebar';
+import { HelpButton } from './CollectComponent/LessonSidebar';
 import { PyodideActions } from '../actions/pyodideActions';
 import { cn } from './ui/utils';
 import { cssColorForIndex } from '../utils/eeg/conditionPalette';

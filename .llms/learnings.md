@@ -195,3 +195,36 @@ the redesign's 19px/17px text uses `.experiment-design-copy` /
 
 Note: `.llms/learnings.md` is not Prettier-formatted; running `prettier --write` on
 it rewraps unrelated entries. Append by hand.
+
+## EEGViewer: four traps behind the "broken live plot" reports
+
+All four surfaced in one Explore playtest and all live in
+`src/renderer/components/d3Classes/EEGViewer.js`:
+
+- **Never seed a wall-clock data point.** `resetData()` used to push
+  `{ x: Date.now(), y: 0 }`. `ViewerComponent` sends `updateSnapshot(null)` to
+  every live guest as soon as it is ready, so every live plot got that point —
+  and because device timestamps lag `Date.now()` (a backgrounded renderer
+  throttles the fixture's `setInterval` to ~1 Hz, so the stream clock can trail
+  by a minute), it survived window pruning and drew a straight line from far
+  right back to the trace, looking like an unclosed SVG path.
+- **The x axis shows offsets, so it needs its own scale.** Rebuilding a
+  `scaleTime` axis from absolute timestamps on every 250 ms epoch made "-4s"
+  labels visibly jitter. There is now a separate `xAxisScale` (linear,
+  `[-domain, 0]`) redrawn only by `renderTimeAxis()` on geometry/domain change,
+  with explicit whole-second `tickValues` — `.ticks(n)` picked 500 ms steps that
+  rounded to duplicate labels ("-4s -4s -3s -3s").
+- **`rx: 999` is not a pill.** SVG clamps `rx` to half the box, so a 22 px-tall
+  annotation label rendered as an oval. Use `LABEL_RADIUS = LABEL_HEIGHT / 2`.
+  The annotation clip-path must also extend `LABEL_GUTTER` above and below the
+  plot box, or the end label (drawn at `plotHeight + 6`) is clipped away.
+- **Data arrives at 4 Hz; motion does not have to.** `PLOTTING_INTERVAL` is
+  250 ms and is load-bearing for the filter/signal-quality windows, so do not
+  lower it to make the plot smoother. `slideIn()` instead offsets the line and
+  annotation groups by the new epoch's pixel width and animates them back to
+  zero over that interval (skipped for reduced motion or a time discontinuity).
+
+Related: viewer replay. A newly mounted guest only ever draws what the shared
+observable replays, so `EEGExplorationComponent` uses
+`shareReplay({ bufferSize: domain / PLOTTING_INTERVAL })` — with `bufferSize: 1`
+a lesson plot started as a 250 ms sliver in an empty five-second window.
