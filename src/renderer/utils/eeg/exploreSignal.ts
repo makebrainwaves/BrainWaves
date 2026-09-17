@@ -1,3 +1,5 @@
+import { of } from 'rxjs';
+import { fft, sliceFFT } from '@neurosity/pipes';
 import type { EEGSnapshot } from '../../../shared/eegVizTypes';
 import {
   SIGNAL_QUALITY,
@@ -548,7 +550,7 @@ export class ExploreSession {
     return { calm, blink, sharedScale, ratio };
   }
 
-  /** Posterior Welch 8–12 Hz band power versus the preceding five seconds, not an alpha-rise prediction. */
+  /** Posterior 8–12 Hz band power versus the preceding five seconds, not an alpha-rise prediction. */
   alphaRatio(startTime: number, endTime: number): number | null {
     if (this.samplingRate <= 24 || endTime - startTime < 1000) return null;
     const posterior = this.channels.filter((name) =>
@@ -566,51 +568,29 @@ export class ExploreSession {
   }
 }
 
-/** One-second Hann-tapered, 50%-overlapping periodograms; normalize power, not interval length. */
+/**
+ * Mean 8–12 Hz power across the snapshot's channels, reusing the FFT operators
+ * the device streams already run through. `of` is synchronous, so the one-shot
+ * subscribe settles before returning. pipes' `fft` emits a magnitude spectrum,
+ * so bins are squared here to stay a power ratio rather than an amplitude one.
+ */
 function alphaPower(snapshot: EEGSnapshot): number | null {
-  const length = Math.round(snapshot.samplingRate);
-  if (snapshot.data[0].length < length) return null;
-  const taper = new Float64Array(length);
-  let taperEnergy = 0;
-  for (let sample = 0; sample < length; sample++) {
-    taper[sample] = 0.5 - 0.5 * Math.cos((2 * Math.PI * sample) / (length - 1));
-    taperEnergy += taper[sample] ** 2;
-  }
-  let total = 0;
-  let segments = 0;
-  const firstBin = Math.ceil((8 * length) / snapshot.samplingRate);
-  const lastBin = Math.floor((12 * length) / snapshot.samplingRate);
-  for (const values of snapshot.data) {
-    for (
-      let start = 0;
-      start + length <= values.length;
-      start += Math.max(1, Math.floor(length / 2))
-    ) {
-      let mean = 0;
-      for (let sample = 0; sample < length; sample++)
-        mean += values[start + sample] / length;
-      let power = 0;
-      for (let bin = firstBin; bin <= lastBin; bin++) {
-        const coefficient = 2 * Math.cos((2 * Math.PI * bin) / length);
-        let previous = 0;
-        let previous2 = 0;
-        for (let sample = 0; sample < length; sample++) {
-          const next =
-            (values[start + sample] - mean) * taper[sample] +
-            coefficient * previous -
-            previous2;
-          previous2 = previous;
-          previous = next;
-        }
-        power += Math.max(
-          0,
-          previous ** 2 + previous2 ** 2 - coefficient * previous * previous2
-        );
-      }
-      total += (2 * power) / (length * taperEnergy);
-      segments++;
-    }
-  }
-  const power = total / segments;
-  return Number.isFinite(power) ? power : null;
+  const bins = 2 ** Math.round(Math.log2(snapshot.samplingRate));
+  if (snapshot.data[0].length < bins) return null;
+  let power: number | null = null;
+  of({
+    data: snapshot.data.map((values) => values.slice(0, bins)),
+    info: {
+      samplingRate: snapshot.samplingRate,
+      channelNames: snapshot.channels,
+    },
+  })
+    .pipe(fft({ bins }), sliceFFT([8, 12]))
+    .subscribe(({ psd }: { psd: number[][] }) => {
+      const magnitudes = psd.flat();
+      power =
+        magnitudes.reduce((sum, value) => sum + value ** 2, 0) /
+        magnitudes.length;
+    });
+  return power !== null && Number.isFinite(power) ? power : null;
 }

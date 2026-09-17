@@ -35,11 +35,20 @@ function chunk(
 }
 
 describe('ExploreSession', () => {
-  it('reports supported state and consumes epochs without crashing', () => {
+  it('measures a posterior alpha rise against the preceding five seconds', () => {
     const session = new ExploreSession(channels, rate);
-    expect(session.status().supported).toBe(true);
-    session.consume(chunk(0, 4));
-    expect(session.status().latestTime).toBeGreaterThan(origin);
+    // Posterior channels carry a little resting alpha; eyes closed at t=7s
+    // makes it ten times taller, which is a hundredfold in power.
+    const posterior = (time: number, channel: number) =>
+      calm(time) +
+      (channel === 0 || channel === 3
+        ? (time >= 7 ? 30 : 3) * Math.sin(2 * Math.PI * 10 * time)
+        : 0);
+    session.consume(chunk(0, 12, posterior));
+    const ratio = session.alphaRatio(origin + 7000, origin + 12000);
+    expect(ratio).not.toBeNull();
+    expect(ratio!).toBeGreaterThan(20);
+    expect(session.alphaRatio(origin + 6000, origin + 7000)!).toBeLessThan(2);
   });
 
   it('returns an empty comparison and no alpha when there are no clear events', () => {

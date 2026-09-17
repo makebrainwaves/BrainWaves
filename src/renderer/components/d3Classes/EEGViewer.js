@@ -463,15 +463,12 @@ export default class EEGViewer {
     if (!this.annotationGroup || !this.labelsGroup) return;
 
     const bands = this.annotations
-      .filter((annotation) => {
-        if (
-          annotation.endTime != null &&
-          annotation.endTime < this.firstTimestamp
-        )
-          return false;
-        if (annotation.startTime > this.lastTimestamp) return false;
-        return true;
-      })
+      .filter(
+        (annotation) =>
+          (annotation.endTime == null ||
+            annotation.endTime >= this.firstTimestamp) &&
+          annotation.startTime <= this.lastTimestamp
+      )
       .map((annotation) => {
         const startX = this.xScale(annotation.startTime);
         const endX =
@@ -485,149 +482,86 @@ export default class EEGViewer {
         };
       });
 
-    const join = this.annotationGroup
-      .selectAll('g.annotation-band')
-      .data(bands, (d) => d.id);
-    join.exit().remove();
-    const enter = join
-      .enter()
-      .append('g')
-      .attr('class', (d) => `annotation-band annotation-band--${d.tone}`);
+    // A handful of annotations redrawn at 4 Hz: cheaper to re-append them than
+    // to maintain a keyed join, and the slide transform lives on the parent.
+    this.annotationGroup.selectAll('*').remove();
+    this.labelsGroup.selectAll('*').remove();
 
-    enter
-      .append('rect')
-      .attr('class', 'annotation-band')
-      .attr('y', 0)
-      .attr('height', this.height);
-    enter
-      .append('line')
-      .attr('class', 'annotation-band-edge annotation-band-edge--left')
-      .attr('y1', 0)
-      .attr('y2', this.height);
-    enter
-      .append('line')
-      .attr('class', 'annotation-band-edge annotation-band-edge--right')
-      .attr('y1', 0)
-      .attr('y2', this.height);
-
-    enter
-      .merge(join)
-      .select('rect.annotation-band')
-      .attr('fill', (d) => TONE_STYLES[d.tone].fill)
-      .attr('x', (d) => d.x)
-      .attr('width', (d) => d.width);
-
-    enter
-      .merge(join)
-      .select('line.annotation-band-edge--left')
-      .attr('stroke', (d) => TONE_STYLES[d.tone].stroke)
-      .attr('stroke-width', (d) => (d.tone === 'eyes-closed' ? 2 : 1))
-      .attr('stroke-dasharray', (d) =>
-        d.tone === 'eyes-closed' ? null : '4 3'
-      )
-      .attr('x1', (d) => d.x)
-      .attr('x2', (d) => d.x);
-
-    enter
-      .merge(join)
-      .select('line.annotation-band-edge--right')
-      .attr('stroke', (d) => TONE_STYLES[d.tone].stroke)
-      .attr('stroke-width', (d) => (d.tone === 'eyes-closed' ? 2 : 1))
-      .attr('stroke-dasharray', (d) =>
-        d.tone === 'eyes-closed' ? null : '4 3'
-      )
-      .attr('visibility', (d) =>
-        d.tone === 'eyes-closed' && d.endTime == null ? 'hidden' : 'visible'
-      )
-      .attr('x1', (d) => d.x + d.width)
-      .attr('x2', (d) => d.x + d.width);
-
-    this.renderLabels(bands);
+    for (const band of bands) {
+      const style = TONE_STYLES[band.tone];
+      const solid = band.tone === 'eyes-closed';
+      const group = this.annotationGroup
+        .append('g')
+        .attr('class', `annotation-band annotation-band--${band.tone}`);
+      group
+        .append('rect')
+        .attr('class', 'annotation-band')
+        .attr('y', 0)
+        .attr('height', this.height)
+        .attr('fill', style.fill)
+        .attr('x', band.x)
+        .attr('width', band.width);
+      for (const [side, x, visible] of [
+        ['left', band.x, true],
+        ['right', band.x + band.width, !(solid && band.endTime == null)],
+      ]) {
+        group
+          .append('line')
+          .attr('class', `annotation-band-edge annotation-band-edge--${side}`)
+          .attr('y1', 0)
+          .attr('y2', this.height)
+          .attr('stroke', style.stroke)
+          .attr('stroke-width', solid ? 2 : 1)
+          .attr('stroke-dasharray', solid ? null : '4 3')
+          .attr('visibility', visible ? 'visible' : 'hidden')
+          .attr('x1', x)
+          .attr('x2', x);
+      }
+      if (band.width <= 40) continue;
+      this.addLabel('start', band.label, band.x + 6, -6, style);
+      if (band.endTime != null)
+        this.addLabel(
+          'end',
+          band.endLabel ?? '',
+          band.x + band.width + 6,
+          this.height + 6,
+          style
+        );
+    }
   }
 
-  renderLabels(bands) {
-    const plotWidth = this.width;
-    const plotHeight = this.height;
-    const startLabels = bands.filter((d) => d.width > 40);
-    const endLabels = bands.filter((d) => d.endTime != null && d.width > 40);
-
-    const startJoin = this.labelsGroup
-      .selectAll('g.annotation-start-label')
-      .data(startLabels, (d) => `${d.id}-start`);
-    startJoin.exit().remove();
-    const startEnter = startJoin
-      .enter()
+  /**
+   * Pill label clamped inside the plot. A start label ends at `x` (it points at
+   * the band's left edge); an end label begins there.
+   */
+  addLabel(kind, text, x, y, style) {
+    const group = this.labelsGroup
       .append('g')
-      .attr('class', 'annotation-label annotation-start-label');
-    startEnter
-      .append('rect')
-      .attr('class', 'annotation-label-bg')
-      .attr('rx', LABEL_RADIUS)
-      .attr('height', LABEL_HEIGHT);
-    startEnter
+      .attr('class', `annotation-label annotation-${kind}-label`);
+    const label = group
       .append('text')
       .attr('class', 'annotation-label-text')
-      .attr('dy', '0.35em');
-
-    startEnter.merge(startJoin).each(function (d) {
-      const group = d3.select(this);
-      const style = TONE_STYLES[d.tone];
-      const text = group.select('text').text(d.label);
-      const labelWidth = pillWidth(text);
-      const desiredX = d.x + 6 - labelWidth;
-      const x = Math.max(0, Math.min(plotWidth - labelWidth, desiredX));
-      group.attr('transform', `translate(${x},-6)`);
-      group
-        .select('rect')
-        .attr('width', labelWidth)
-        .attr('fill', style.stroke)
-        .attr('x', 0);
-      group
-        .select('text')
-        .attr('x', labelWidth / 2)
-        .attr('y', 11)
-        .attr('text-anchor', 'middle')
-        .attr('fill', style.text);
-    });
-
-    const endJoin = this.labelsGroup
-      .selectAll('g.annotation-end-label')
-      .data(endLabels, (d) => `${d.id}-end`);
-    endJoin.exit().remove();
-    const endEnter = endJoin
-      .enter()
-      .append('g')
-      .attr('class', 'annotation-label annotation-end-label');
-    endEnter
-      .append('rect')
+      .attr('dy', '0.35em')
+      .text(text);
+    const width = pillWidth(label);
+    const left = Math.max(
+      0,
+      Math.min(this.width - width, kind === 'start' ? x - width : x)
+    );
+    group.attr('transform', `translate(${left},${y})`);
+    group
+      .insert('rect', 'text')
       .attr('class', 'annotation-label-bg')
       .attr('rx', LABEL_RADIUS)
-      .attr('height', LABEL_HEIGHT);
-    endEnter
-      .append('text')
-      .attr('class', 'annotation-label-text')
-      .attr('dy', '0.35em');
-
-    endEnter.merge(endJoin).each(function (d) {
-      const group = d3.select(this);
-      const style = TONE_STYLES[d.tone];
-      const text = group.select('text').text(d.endLabel ?? '');
-      const labelWidth = pillWidth(text);
-      const desiredX = d.x + d.width + 6;
-      const x = Math.max(0, Math.min(plotWidth - labelWidth, desiredX));
-      group.attr('transform', `translate(${x},${plotHeight + 6})`);
-      group
-        .select('rect')
-        .attr('width', labelWidth)
-        .attr('fill', style.stroke)
-        .attr('x', 0);
-      group
-        .select('text')
-        .attr('x', labelWidth / 2)
-        .attr('y', 11)
-        .attr('text-anchor', 'middle')
-        .attr('fill', style.text);
-    });
+      .attr('height', LABEL_HEIGHT)
+      .attr('width', width)
+      .attr('fill', style.stroke)
+      .attr('x', 0);
+    label
+      .attr('x', width / 2)
+      .attr('y', 11)
+      .attr('text-anchor', 'middle')
+      .attr('fill', style.text);
   }
 
   static getLineRange(index, nbChannels, height) {

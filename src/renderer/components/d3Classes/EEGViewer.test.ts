@@ -110,7 +110,11 @@ describe('EEGViewer time and amplitude coordinates', () => {
     expect(right?.getAttribute('visibility')).toBe('hidden');
 
     graph.updateAnnotations([{ ...open, endTime: 1800 }]);
-    expect(right?.getAttribute('visibility')).toBe('visible');
+    expect(
+      svg
+        .querySelector('line.annotation-band-edge--right')
+        ?.getAttribute('visibility')
+    ).toBe('visible');
   });
 
   it('renders snapshots without subscribing to live data', () => {
