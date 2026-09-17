@@ -55,7 +55,7 @@ describe('Pyodide payload', () => {
   // the pyodide:// handler, so a missing one breaks analysis silently.
   it.each([
     'pyodide.mjs',
-    'pyodide.asm.js',
+    'pyodide.asm.mjs',
     'pyodide.asm.wasm',
     'python_stdlib.zip',
   ])('ships the Pyodide runtime file %s', (filename) => {

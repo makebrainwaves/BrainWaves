@@ -250,7 +250,7 @@
     "papaparse": "^5.5.3",
     "pathe": "^2.0.3",
     "plotly.js": "^3.4.0",
-    "pyodide": "^0.29.3",
+    "pyodide": "314.0.7",
     "rc-slider": "9.2.4",
     "react": "^18.x",
     "react-dom": "^18.x",
