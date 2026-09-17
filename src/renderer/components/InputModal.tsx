@@ -61,7 +61,7 @@ export default function InputModal(props: Props) {
         </DialogHeader>
         <input
           className={[
-            'w-full border rounded px-3 py-2',
+            'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand',
             isError ? 'border-red-500' : 'border-gray-300',
           ].join(' ')}
           onChange={(e) => handleTextEntry(e.target.value)}

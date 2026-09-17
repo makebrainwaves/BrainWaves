@@ -141,7 +141,7 @@ const Run: React.FC<Props> = ({
 
   return (
     <div
-      className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]"
+      className="h-screen p-[3%] bg-app"
       data-tid="container"
     >
       <div className="h-full">

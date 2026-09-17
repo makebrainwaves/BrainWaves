@@ -1,23 +1,17 @@
+import brad from '../../assets/common/brad.png';
+
 export const background = {
-  first_column_statement: `Did you know that we spend more time looking at
-  faces than any other type of stimuli? Faces contain a lot of information
-  that is relevant to our day-to-day lives.
-  For example, by looking at someone’s face we can assess their emotional
-  state. This has led researchers speculate that faces may be processed
-  differently than other stimuli.`,
-  first_column_question: `In fact, there is a special area in your brain,
-  the Fusiform Face Area, that has been shown to be selective for faces.
-  People who have damage in this area may have a hard time recognizing
-  faces, a condition called face blindness, or prosopagnosia.`,
-  second_column_statement: `In the video (Link 1) the famous neurologist
-  Oliver Sacks explains what it is like to have face blindness to the
-  extent that he sometimes didn’t even recognize his own face (!)`,
-  second_column_question: `Fun fact: Brad Pitt claims he has face
-  blindness, but he has not been tested. Do you know anyone who has
-  face blindness?`,
+  title: `Why faces are special`,
+  first_column_statement: `We look at faces more than anything else. A face tells you how someone feels in an instant — so researchers suspect the brain handles faces on its own track.`,
+  definition_title: `The Fusiform Face Area`,
+  first_column_question: `A patch of brain that fires for faces. Damage it and recognizing faces gets hard — that’s face blindness, or prosopagnosia.`,
+  second_column_statement: `Brad Pitt says he has face blindness — though he’s never been tested.`,
+  fun_fact_image: brad,
+  second_column_question: ``,
+  link_meta: `CNN · 4 min video`,
   links: [
     {
-      name: 'Link 1',
+      name: 'Watch Oliver Sacks explain it',
       address:
         'https://www.cnn.com/videos/health/2011/01/04/sacks.face.blindness.cnn',
     },

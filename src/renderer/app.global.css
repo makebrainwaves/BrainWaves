@@ -42,6 +42,33 @@ p {
   letter-spacing: 0.64px !important;
 }
 
+.experiment-design-copy {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.8;
+  letter-spacing: 0.3px;
+  text-wrap: pretty;
+}
+
+.experiment-design-card-copy {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  text-wrap: pretty;
+}
+
+.experiment-design-content {
+  padding: 0;
+  text-align: left;
+}
+
+.experiment-design-content header {
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+}
+
 li {
   list-style: none;
 }
@@ -80,14 +107,23 @@ button:active {
   letter-spacing: 0.64px !important;
 }
 
-/* Webview-related styles */
-
-#eegView {
-  height: 70vh;
+@keyframes explore-step-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-#eegView.hide {
-  visibility: hidden;
+.explore-step-copy {
+  animation: explore-step-fade 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-step-copy {
+    animation: none;
+  }
 }
 
 /* rc-slider-related styles */

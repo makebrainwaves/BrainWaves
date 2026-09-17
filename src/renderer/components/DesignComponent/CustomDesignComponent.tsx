@@ -614,7 +614,7 @@ export default function CustomDesign(props: DesignProps) {
   }
 
   return (
-    <div className="h-screen p-[3%] bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+    <div className="h-screen p-[3%] bg-app">
       <SecondaryNavComponent
         title="Experiment Design"
         steps={CUSTOM_STEPS}

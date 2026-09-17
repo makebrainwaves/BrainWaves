@@ -576,7 +576,7 @@ export default function Analyze(props: Props) {
   const steps = props.isEEGEnabled ? ANALYZE_STEPS : ANALYZE_STEPS_BEHAVIOR;
 
   return (
-    <div className="relative h-screen bg-gradient-to-b from-[#f9f9f9] to-[#f0f0ff]">
+    <div className="relative h-screen bg-app">
       <SecondaryNavComponent
         title="Analyze"
         steps={steps}
