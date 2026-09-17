@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import EEGViewer from './EEGViewer';
 import type { EEGSnapshot } from '../../../shared/eegVizTypes';
-import type {
-  ViewerGraphParameters,
-  ViewerViewport,
-} from '../../../shared/viewerTypes';
+import type { ViewerGraphParameters } from '../../../shared/viewerTypes';
 
 const graphs: EEGViewer[] = [];
 
@@ -24,25 +21,19 @@ function createGraph(overrides: Partial<ViewerGraphParameters> = {}) {
     height,
     toJSON: () => ({}),
   }));
-  const onViewport = vi.fn<(viewport: ViewerViewport) => void>();
-  const graph = new EEGViewer(
-    svg,
-    {
-      channels: ['AF7', 'AF8'],
-      plottingInterval: 250,
-      domain: 5000,
-      channelColours: ['#66B0A9', '#66B0A9'],
-      annotations: [],
-      snapshot: null,
-      ...overrides,
-    },
-    onViewport
-  );
+  const graph = new EEGViewer(svg, {
+    channels: ['AF7', 'AF8'],
+    plottingInterval: 250,
+    domain: 5000,
+    channelColours: ['#66B0A9', '#66B0A9'],
+    annotations: [],
+    snapshot: null,
+    ...overrides,
+  });
   graphs.push(graph);
   return {
     graph,
     svg,
-    onViewport,
     resize: (nextWidth: number, nextHeight: number) => {
       width = nextWidth;
       height = nextHeight;
@@ -70,8 +61,8 @@ afterEach(() => {
 });
 
 describe('EEGViewer time and amplitude coordinates', () => {
-  it('selects named channels and reports a consistent moving time window', () => {
-    const { graph, svg, onViewport } = createGraph();
+  it('selects named channels and draws them in the moving time window', () => {
+    const { graph, svg } = createGraph();
     graph.updateAnnotations([
       {
         id: 'blink',
@@ -89,10 +80,6 @@ describe('EEGViewer time and amplitude coordinates', () => {
         [999, 999],
       ])
     );
-    expect(onViewport.mock.lastCall?.[0].timeWindow).toEqual({
-      startTime: -3000,
-      endTime: 2000,
-    });
     expect(svg.querySelector('.line')?.getAttribute('d')).toContain('L');
     expect(svg.querySelector('.annotation-band')).not.toBeNull();
   });
@@ -135,7 +122,7 @@ describe('EEGViewer time and amplitude coordinates', () => {
       endTime: 6000,
       peakToPeak: 20,
     };
-    const { svg, onViewport } = createGraph({
+    const { svg } = createGraph({
       channels: ['AF7'],
       snapshot: calm,
       amplitudeScale: 100,
@@ -143,14 +130,10 @@ describe('EEGViewer time and amplitude coordinates', () => {
     const line = svg.querySelector('.line');
     expect(line).not.toBeNull();
     expect(line!.getAttribute('d')).toContain('L');
-    expect(onViewport.mock.lastCall?.[0].timeWindow).toEqual({
-      startTime: 1000,
-      endTime: 6000,
-    });
   });
 
   it('recovers plot geometry when a hidden viewer is revealed', () => {
-    const { graph, svg, resize, onViewport } = createGraph();
+    const { graph, svg, resize } = createGraph();
     resize(0, 0);
     graph.updateData(
       epoch(1000, [
@@ -161,13 +144,10 @@ describe('EEGViewer time and amplitude coordinates', () => {
       ])
     );
     resize(548, 256);
-    const { plotBounds } = onViewport.mock.lastCall![0];
-    expect(plotBounds.width).toBeGreaterThan(0);
-    expect(plotBounds.height).toBeGreaterThan(0);
     expect(svg.querySelector('.line')!.getAttribute('d')).not.toContain('NaN');
-    expect(Number(svg.querySelector('.plot-clip')!.getAttribute('width'))).toBe(
-      plotBounds.width
-    );
+    expect(
+      Number(svg.querySelector('.plot-clip')!.getAttribute('width'))
+    ).toBeGreaterThan(0);
   });
 
   it('never plots a point outside the live window after a snapshot reset', () => {

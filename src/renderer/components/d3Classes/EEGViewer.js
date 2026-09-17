@@ -35,7 +35,7 @@ function pillWidth(text) {
 }
 
 export default class EEGViewer {
-  constructor(svg, parameters, reportViewport) {
+  constructor(svg, parameters) {
     this.channels = parameters.channels;
     this.plottingInterval = parameters.plottingInterval;
     this.domain = parameters.domain;
@@ -43,11 +43,9 @@ export default class EEGViewer {
     this.annotations = parameters.annotations ?? [];
     this.snapshot = parameters.snapshot ?? null;
     this.amplitudeScale = parameters.amplitudeScale;
-    this.reportViewport = reportViewport;
     this.downsampling = 2;
     this.lineWidth = 1.75;
     this.zoom = 1;
-    this.svgScale = 1;
     this.canvas = d3.select(svg);
 
     this.margin = { top: 20, right: 10, bottom: 30, left: 44 };
@@ -92,17 +90,10 @@ export default class EEGViewer {
       width = rect.width;
       height = rect.height;
     }
-    this.svgScale = 1;
     this.lastWidth = width;
     this.lastHeight = height;
     this.width = Math.max(0, width - (this.margin.left + this.margin.right));
     this.height = Math.max(0, height - (this.margin.top + this.margin.bottom));
-    this.plotBounds = {
-      left: this.margin.left,
-      top: this.margin.top,
-      width: this.width,
-      height: this.height,
-    };
   }
 
   init() {
@@ -121,7 +112,6 @@ export default class EEGViewer {
     this.addAxes();
     this.addLines();
     this.addAnnotationsLayer();
-    this.reportTimeWindow();
   }
 
   addDefs() {
@@ -270,20 +260,6 @@ export default class EEGViewer {
     return this.yScaleLines;
   }
 
-  autoScale() {
-    if (this.snapshot) return;
-    const ranges = this.data.map((channelData) => {
-      const ys = channelData.map((d) => d.y);
-      return { min: Math.min(...ys), max: Math.max(...ys) };
-    });
-    const allMax = Math.max(
-      ...ranges.map((r) => Math.max(Math.abs(r.max), Math.abs(r.min)))
-    );
-    this.amplitudeRange = Number.isFinite(allMax) ? allMax * 2 || 200 : 200;
-    this.zoom = 1;
-    this.redraw();
-  }
-
   zoomIn() {
     this.zoom *= ZOOM_SCALAR;
     this.redraw();
@@ -417,11 +393,6 @@ export default class EEGViewer {
     this.init();
   }
 
-  updateAmplitudeScale(scale) {
-    this.amplitudeScale = scale;
-    this.redraw();
-  }
-
   resetData() {
     const now = Date.now();
     this.lastTimestamp = now;
@@ -477,7 +448,6 @@ export default class EEGViewer {
     }
 
     this.renderAnnotations();
-    this.reportTimeWindow();
   }
 
   resize() {
@@ -512,7 +482,6 @@ export default class EEGViewer {
           ...annotation,
           x: Math.max(0, Math.min(this.width, startX)),
           width: Math.max(0, Math.min(this.width, endX) - Math.max(0, startX)),
-          rightEdge: endX,
         };
       });
 
@@ -573,25 +542,6 @@ export default class EEGViewer {
       .attr('x1', (d) => d.x + d.width)
       .attr('x2', (d) => d.x + d.width);
 
-    const openBands = bands.filter((d) => d.endTime == null);
-    const activeStyles = openBands.map((d) => TONE_STYLES[d.tone]);
-    this.annotationGroup
-      .selectAll('rect.annotation-band-pulse')
-      .data(activeStyles)
-      .join(
-        (enter) =>
-          enter
-            .append('rect')
-            .attr('class', 'annotation-band-pulse')
-            .attr('y', 0)
-            .attr('height', this.height),
-        (update) => update,
-        (exit) => exit.remove()
-      )
-      .attr('fill', (_d, i) => activeStyles[i].fill)
-      .attr('x', (_d, i) => openBands[i].x)
-      .attr('width', (_d, i) => openBands[i].width);
-
     this.renderLabels(bands);
   }
 
@@ -608,9 +558,7 @@ export default class EEGViewer {
     const startEnter = startJoin
       .enter()
       .append('g')
-      .attr('class', 'annotation-label annotation-start-label')
-      .attr('data-label-x', 0)
-      .attr('data-label-width', 0);
+      .attr('class', 'annotation-label annotation-start-label');
     startEnter
       .append('rect')
       .attr('class', 'annotation-label-bg')
@@ -640,7 +588,6 @@ export default class EEGViewer {
         .attr('y', 11)
         .attr('text-anchor', 'middle')
         .attr('fill', style.text);
-      group.attr('data-label-x', x).attr('data-label-width', labelWidth);
     });
 
     const endJoin = this.labelsGroup
@@ -680,17 +627,6 @@ export default class EEGViewer {
         .attr('y', 11)
         .attr('text-anchor', 'middle')
         .attr('fill', style.text);
-    });
-  }
-
-  reportTimeWindow() {
-    if (!this.reportViewport) return;
-    this.reportViewport({
-      timeWindow: {
-        startTime: this.firstTimestamp,
-        endTime: this.lastTimestamp,
-      },
-      plotBounds: this.plotBounds,
     });
   }
 

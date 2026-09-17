@@ -1,4 +1,4 @@
-/** D3 guest receiving data from its own host webview and reporting the plotted viewport. */
+/** D3 guest receiving data from its own host webview. */
 import EEGGraph from './components/d3Classes/EEGViewer';
 import type { ViewerAPI, ViewerNavigateMessage } from '../shared/viewerTypes';
 
@@ -32,7 +32,7 @@ const unsubscribe = [
     const svg = document.getElementById('graph');
     if (!(svg instanceof SVGSVGElement)) return;
     graph?.destroy();
-    graph = new EEGGraph(svg, parameters, api.reportViewport);
+    graph = new EEGGraph(svg, parameters);
   }),
   api.onNewData((epoch) => graph?.updateData(epoch)),
   api.onZoomIn(() => graph?.zoomIn()),
@@ -45,8 +45,6 @@ const unsubscribe = [
   api.onUpdateSnapshot(({ snapshot, amplitudeScale }) =>
     graph?.updateSnapshot(snapshot, amplitudeScale)
   ),
-  api.onUpdateAmplitudeScale((scale) => graph?.updateAmplitudeScale(scale)),
-  api.onAutoScale(() => graph?.autoScale()),
 ];
 
 function onKeyDown(event: KeyboardEvent) {

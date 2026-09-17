@@ -1,8 +1,4 @@
-import type {
-  EEGSnapshot,
-  PlotAnnotation,
-  PlotTimeWindow,
-} from './eegVizTypes';
+import type { EEGSnapshot, PlotAnnotation } from './eegVizTypes';
 
 export interface ViewerEpoch {
   data: number[][];
@@ -24,12 +20,6 @@ export interface ViewerGraphParameters {
   amplitudeScale?: number;
 }
 
-/** Guest CSS-pixel geometry excludes the sensor-label gutter and time axis. */
-export interface ViewerViewport {
-  timeWindow: PlotTimeWindow;
-  plotBounds: { left: number; top: number; width: number; height: number };
-}
-
 export interface ViewerSnapshotUpdate {
   snapshot: EEGSnapshot | null;
   amplitudeScale?: number;
@@ -40,13 +30,10 @@ export interface ViewerMessages {
   newData: ViewerEpoch;
   zoomIn: undefined;
   zoomOut: undefined;
-  navigate: { type: 'left' | 'right' | 'escape' };
   updateChannels: string[];
   updateDomain: number;
   updateAnnotations: PlotAnnotation[];
   updateSnapshot: ViewerSnapshotUpdate;
-  updateAmplitudeScale: number | undefined;
-  autoScale: undefined;
 }
 
 type ViewerListener<K extends keyof ViewerMessages> = (
@@ -62,13 +49,9 @@ export interface ViewerAPI {
   onNewData: ViewerListener<'newData'>;
   onZoomIn: ViewerListener<'zoomIn'>;
   onZoomOut: ViewerListener<'zoomOut'>;
-  onNavigate: ViewerListener<'navigate'>;
   onUpdateChannels: ViewerListener<'updateChannels'>;
   onUpdateDomain: ViewerListener<'updateDomain'>;
   onUpdateAnnotations: ViewerListener<'updateAnnotations'>;
   onUpdateSnapshot: ViewerListener<'updateSnapshot'>;
-  onUpdateAmplitudeScale: ViewerListener<'updateAmplitudeScale'>;
-  onAutoScale: ViewerListener<'autoScale'>;
-  reportViewport: (viewport: ViewerViewport) => void;
   reportNavigation: (message: ViewerNavigateMessage) => void;
 }

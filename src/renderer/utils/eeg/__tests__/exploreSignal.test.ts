@@ -40,7 +40,6 @@ describe('ExploreSession', () => {
     expect(session.status().supported).toBe(true);
     session.consume(chunk(0, 4));
     expect(session.status().latestTime).toBeGreaterThan(origin);
-    expect(session.status().bufferedDuration).toBeGreaterThan(0);
   });
 
   it('returns an empty comparison and no alpha when there are no clear events', () => {
@@ -68,7 +67,6 @@ describe('ExploreSession', () => {
     badData[0] = badData[0].map(() => NaN);
     session.consume({ ...bad, data: badData });
     expect(session.status().latestTime).toBeNull();
-    expect(session.status().bufferedDuration).toBe(0);
     expect(session.snapshot(1000, 2000)).toBeNull();
     expect(session.comparison()).toBeNull();
   });
@@ -80,7 +78,10 @@ describe('ExploreSession', () => {
 
     const rerate = new ExploreSession(channels, 128);
     rerate.consume(chunk(0, 2));
-    expect(rerate.status().bufferedDuration).toBeLessThan(2500);
+    const adopted = rerate.snapshot(origin, origin + 2000);
+    expect(adopted).not.toBeNull();
+    expect(adopted!.samplingRate).toBe(rate);
+    expect(adopted!.endTime - adopted!.startTime).toBeLessThan(2500);
   });
 
   it('chooses disjoint calm and blink comparison windows', () => {
@@ -115,7 +116,7 @@ describe('ExploreSession', () => {
     expect(comparison!.ratio).toBeGreaterThan(1);
   });
 
-  it('produces owned frozen snapshots', () => {
+  it('produces owned snapshots', () => {
     const session = new ExploreSession(channels, rate);
     session.consume(chunk(0, 5));
     const snapshot = session.snapshot(origin, origin + 5000);
@@ -123,6 +124,5 @@ describe('ExploreSession', () => {
     expect(snapshot!.channels).toEqual(channels);
     expect(snapshot!.samplingRate).toBe(rate);
     expect(snapshot!.endTime - snapshot!.startTime).toBe(5000);
-    expect(Object.isFrozen(snapshot!.data[0])).toBe(true);
   });
 });

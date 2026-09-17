@@ -42,10 +42,6 @@ export default function SignalQualityIndicatorComponent(props: Props) {
       const circle = node.querySelector('circle');
       if (circle) circle.style.fill = SIGNAL_QUALITY.DISCONNECTED;
     });
-    props.channels?.forEach((channel) => {
-      const node = electrodes.get(channel);
-      if (node) node.parentElement?.appendChild(node);
-    });
   }, [props.channels, props.signalQualityObservable, interactive]);
 
   useEffect(() => {
@@ -125,11 +121,7 @@ export default function SignalQualityIndicatorComponent(props: Props) {
     >
       <SignalQualityIndicatorSVG
         height={props.height ?? 250}
-        style={{
-          width: '100%',
-          display: 'block',
-          minWidth: props.height === undefined ? 250 : undefined,
-        }}
+        style={props.height === undefined ? { minWidth: 250 } : undefined}
       />
     </div>
   );

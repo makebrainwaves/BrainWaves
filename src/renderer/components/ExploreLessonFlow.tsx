@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Observable } from 'rxjs';
 import { EEGSnapshot, PlotAnnotation } from '../../shared/eegVizTypes';
-import { CLEAN_SIGNAL_LESSON, LessonId } from '../constants/exploreLessons';
+import {
+  CLEAN_SIGNAL_LESSON,
+  LessonId,
+  NOISE_LESSON,
+} from '../constants/exploreLessons';
 import { PLOTTING_INTERVAL } from '../constants/constants';
 import { SignalQualityData } from '../constants/interfaces';
 import { ExploreSession, FrozenComparison } from '../utils/eeg/exploreSignal';
@@ -27,12 +31,6 @@ interface CueWindow {
 }
 
 const FRONTAL_CHANNELS = ['AF7', 'AF8'];
-const NOISE_TITLES = [
-  'Your brain is making electricity right now',
-  'Now blink — hard, a few times',
-  'Same brain, same sensors, five seconds apart',
-  'Close your eyes until the second chime',
-];
 const labelClass = 'text-[13px] font-bold tracking-[0.5px] text-ink-muted';
 
 function FrozenStrip({
@@ -337,7 +335,9 @@ export default function ExploreLessonFlow(props: Props) {
         : running
           ? 'recording'
           : 'your signal, live';
-  const title = noise ? NOISE_TITLES[step] : CLEAN_SIGNAL_LESSON[step].title;
+  const title = noise
+    ? NOISE_LESSON[step].title
+    : CLEAN_SIGNAL_LESSON[step].title;
   const displayChannels =
     noise && step === 1 && status.supported ? FRONTAL_CHANNELS : channels;
 
@@ -503,11 +503,7 @@ export default function ExploreLessonFlow(props: Props) {
               Watch them for a moment before we start poking at them.
             </p>
           ) : step === 1 ? (
-            <p className="leading-7">
-              Every blink drops a big slow hump onto the two front sensors. That
-              is your eyelid muscle moving, not your brain thinking, and it is
-              the loudest thing in most student recordings.
-            </p>
+            <p className="leading-7">{NOISE_LESSON[1].body}</p>
           ) : step === 2 ? (
             <p className="leading-7">
               {comparison && Math.round(comparison.ratio) >= 2
@@ -516,10 +512,7 @@ export default function ExploreLessonFlow(props: Props) {
             </p>
           ) : (
             <>
-              <p className="leading-7">
-                One chime starts the ten seconds, two chimes end them. Nothing
-                on screen needs watching in between.
-              </p>
+              <p className="leading-7">{NOISE_LESSON[3].body}</p>
               <p className="leading-7">
                 The back of your head starts humming a steady rhythm when it has
                 nothing to look at. That is the paradox of alpha waves: the

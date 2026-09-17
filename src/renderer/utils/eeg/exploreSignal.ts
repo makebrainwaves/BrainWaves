@@ -17,7 +17,6 @@ export interface ExploreStatus {
   blinkEvents: BlinkEvent[];
   latestTime: number | null;
   supported: boolean;
-  bufferedDuration: number;
 }
 
 export interface FrozenComparison {
@@ -372,13 +371,6 @@ export class ExploreSession {
       })),
       latestTime,
       supported: this.frontal.length === 2,
-      bufferedDuration:
-        latestTime === null
-          ? 0
-          : Math.min(
-              BUFFER_MS,
-              latestTime - this.timeAt(0) + 1000 / this.samplingRate
-            ),
     };
   }
 
@@ -442,123 +434,90 @@ export class ExploreSession {
         return value;
       });
       peakToPeak = Math.max(peakToPeak, maximum - minimum);
-      Object.freeze(values);
       return values;
     });
-    Object.freeze(data);
-    const ownedChannels = [...channels];
-    Object.freeze(ownedChannels);
-    return Object.freeze({
+    return {
       data,
-      channels: ownedChannels,
+      channels: [...channels],
       samplingRate: this.samplingRate,
       startTime: this.timeAt(first),
       endTime: this.timeAt(first + count - 1) + dt,
       peakToPeak,
-    });
+    };
   }
 
-  /** Exhaustive sample-aligned five-second search, using monotone extrema queues in O(n). */
+  /** Exhaustive five-second search over bucket-aligned starts, using 250 ms extrema buckets. */
   comparison(): FrozenComparison | null {
     const length = Math.round((WINDOW_MS * this.samplingRate) / 1000);
     if (!this.events.length || this.frontal.length !== 2 || this.size < length)
       return null;
-    const minima = [new Int32Array(this.size), new Int32Array(this.size)];
-    const maxima = [new Int32Array(this.size), new Int32Array(this.size)];
-    const minHead = [0, 0];
-    const minTail = [0, 0];
-    const maxHead = [0, 0];
-    const maxTail = [0, 0];
-    let calmIndex = -1;
-    let blinkIndex = -1;
-    let mostBlinks = 0;
-    const windowCount = this.size - length + 1;
-    const windowAmplitudes = new Float64Array(windowCount);
-    const windowHasEvent = new Uint8Array(windowCount);
-    let firstOverlap = 0;
-    let firstContained = 0;
-    let lastContained = 0;
-    for (let end = 0; end < this.size; end++) {
-      const start = end - length + 1;
-      for (let ch = 0; ch < 2; ch++) {
-        const { index } = this.frontal[ch];
-        const value = this.valueAt(index, end);
-        while (
-          minTail[ch] > minHead[ch] &&
-          this.valueAt(index, minima[ch][minTail[ch] - 1]) >= value
-        )
-          minTail[ch]--;
-        while (
-          maxTail[ch] > maxHead[ch] &&
-          this.valueAt(index, maxima[ch][maxTail[ch] - 1]) <= value
-        )
-          maxTail[ch]--;
-        minima[ch][minTail[ch]++] = end;
-        maxima[ch][maxTail[ch]++] = end;
-      }
-      if (start < 0) continue;
-      for (let ch = 0; ch < 2; ch++) {
-        const { index } = this.frontal[ch];
-        while (minHead[ch] < minTail[ch] && minima[ch][minHead[ch]] < start)
-          minHead[ch]++;
-        while (maxHead[ch] < maxTail[ch] && maxima[ch][maxHead[ch]] < start)
-          maxHead[ch]++;
-      }
-      let amplitude = 0;
-      for (let ch = 0; ch < 2; ch++) {
-        const { index } = this.frontal[ch];
-        amplitude = Math.max(
-          amplitude,
-          this.valueAt(index, maxima[ch][maxHead[ch]]) -
-            this.valueAt(index, minima[ch][minHead[ch]])
-        );
-      }
-      const startTime = this.timeAt(start);
-      const endTime = this.timeAt(end) + 1000 / this.samplingRate;
-      while (
-        firstOverlap < this.events.length &&
-        this.events[firstOverlap].endTime < startTime
-      )
-        firstOverlap++;
-      const overlaps =
-        firstOverlap < this.events.length &&
-        this.events[firstOverlap].startTime < endTime;
-      windowAmplitudes[start] = amplitude;
-      windowHasEvent[start] = overlaps ? 1 : 0;
-      while (
-        firstContained < this.events.length &&
-        this.events[firstContained].startTime < startTime
-      )
-        firstContained++;
-      while (
-        lastContained < this.events.length &&
-        this.events[lastContained].endTime < endTime
-      )
-        lastContained++;
-      const count = Math.max(0, lastContained - firstContained);
-      if (count > mostBlinks) {
-        mostBlinks = count;
-        blinkIndex = start;
-      }
-    }
-    if (blinkIndex >= 0) {
-      const blinkEnd = blinkIndex + length - 1;
-      let quietest = Infinity;
-      for (let start = 0; start < windowCount; start++) {
-        const calmEnd = start + length - 1;
-        const disjoint = calmEnd < blinkIndex || start > blinkEnd;
-        if (
-          disjoint &&
-          windowHasEvent[start] === 0 &&
-          windowAmplitudes[start] > 0 &&
-          windowAmplitudes[start] < quietest
-        ) {
-          calmIndex = start;
-          quietest = windowAmplitudes[start];
+    const bucketSamples = Math.max(1, Math.round(this.samplingRate / 4));
+    const bucketsPerWindow = Math.ceil(length / bucketSamples);
+    const buckets = Math.floor(this.size / bucketSamples);
+    const minima = [0, 1].map(() => new Float64Array(buckets).fill(Infinity));
+    const maxima = [0, 1].map(() => new Float64Array(buckets).fill(-Infinity));
+    for (let bucket = 0; bucket < buckets; bucket++) {
+      for (let channel = 0; channel < 2; channel++) {
+        const { index } = this.frontal[channel];
+        for (let offset = 0; offset < bucketSamples; offset++) {
+          const value = this.valueAt(index, bucket * bucketSamples + offset);
+          minima[channel][bucket] = Math.min(minima[channel][bucket], value);
+          maxima[channel][bucket] = Math.max(maxima[channel][bucket], value);
         }
       }
     }
-    if (calmIndex < 0 || blinkIndex < 0) return null;
+    // A start bucket is admissible when its whole window fits: rounding the
+    // window up to whole buckets keeps start*bucket + length inside the buffer.
+    const candidates = buckets - bucketsPerWindow + 1;
+    const amplitudes = new Float64Array(Math.max(0, candidates));
+    const clear = new Uint8Array(Math.max(0, candidates));
+    let blinkBucket = -1;
+    let mostBlinks = 0;
+    for (let bucket = 0; bucket < candidates; bucket++) {
+      for (let channel = 0; channel < 2; channel++) {
+        let low = Infinity;
+        let high = -Infinity;
+        for (let b = bucket; b < bucket + bucketsPerWindow; b++) {
+          low = Math.min(low, minima[channel][b]);
+          high = Math.max(high, maxima[channel][b]);
+        }
+        amplitudes[bucket] = Math.max(amplitudes[bucket], high - low);
+      }
+      const start = bucket * bucketSamples;
+      const startTime = this.timeAt(start);
+      const endTime =
+        this.timeAt(start + length - 1) + 1000 / this.samplingRate;
+      const contained = this.events.filter(
+        (event) => event.startTime >= startTime && event.endTime < endTime
+      ).length;
+      clear[bucket] = this.events.some(
+        (event) => event.endTime >= startTime && event.startTime < endTime
+      )
+        ? 0
+        : 1;
+      if (contained > mostBlinks) {
+        mostBlinks = contained;
+        blinkBucket = bucket;
+      }
+    }
+    if (blinkBucket < 0) return null;
+    const blinkIndex = blinkBucket * bucketSamples;
+    let calmBucket = -1;
+    let quietest = Infinity;
+    for (let bucket = 0; bucket < candidates; bucket++) {
+      const start = bucket * bucketSamples;
+      if (
+        (start + length - 1 < blinkIndex || start > blinkIndex + length - 1) &&
+        clear[bucket] === 1 &&
+        amplitudes[bucket] > 0 &&
+        amplitudes[bucket] < quietest
+      ) {
+        calmBucket = bucket;
+        quietest = amplitudes[bucket];
+      }
+    }
+    if (calmBucket < 0) return null;
+    const calmIndex = calmBucket * bucketSamples;
     const calm = this.snapshot(
       this.timeAt(calmIndex),
       this.timeAt(calmIndex) + WINDOW_MS,
@@ -586,7 +545,7 @@ export class ExploreSession {
       sharedScale <= 0
     )
       return null;
-    return Object.freeze({ calm, blink, sharedScale, ratio });
+    return { calm, blink, sharedScale, ratio };
   }
 
   /** Posterior Welch 8–12 Hz band power versus the preceding five seconds, not an alpha-rise prediction. */

@@ -19,16 +19,10 @@ const viewerAPI: ViewerAPI = {
   onNewData: (callback) => listen('newData', callback),
   onZoomIn: (callback) => listen('zoomIn', callback),
   onZoomOut: (callback) => listen('zoomOut', callback),
-  onNavigate: (callback) => listen('navigate', callback),
   onUpdateChannels: (callback) => listen('updateChannels', callback),
   onUpdateDomain: (callback) => listen('updateDomain', callback),
   onUpdateAnnotations: (callback) => listen('updateAnnotations', callback),
   onUpdateSnapshot: (callback) => listen('updateSnapshot', callback),
-  onUpdateAmplitudeScale: (callback) =>
-    listen('updateAmplitudeScale', callback),
-  onAutoScale: (callback) => listen('autoScale', callback),
-  reportViewport: (viewport) =>
-    ipcRenderer.sendToHost('viewer:viewport', viewport),
   reportNavigation: (message) =>
     ipcRenderer.sendToHost('viewer:navigate', message),
 };

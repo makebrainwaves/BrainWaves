@@ -106,15 +106,12 @@ export const NEUROSITY_CHANNELS = [
 ];
 export const NEUROSITY_SAMPLING_RATE = 256;
 
-export const ZOOM_SCALAR = 1.5;
 export const MUSE_SAMPLING_RATE = 256;
 
 export const PLOTTING_INTERVAL = 250; // ms
 
 export const VIEWER_DEFAULTS = {
   domain: 5000, // ms
-  zoom: 1,
-  autoScale: false,
 } as const;
 
 export enum SIGNAL_QUALITY {

@@ -1,18 +1,13 @@
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Observable } from 'rxjs';
 import type { WebviewTag } from 'electron';
 import { MUSE_CHANNELS, VIEWER_DEFAULTS } from '../constants/constants';
 import { SignalQualityData } from '../constants/interfaces';
-import type {
-  EEGSnapshot,
-  PlotAnnotation,
-  PlotTimeWindow,
-} from '../../shared/eegVizTypes';
+import type { EEGSnapshot, PlotAnnotation } from '../../shared/eegVizTypes';
 import type {
   ViewerGraphParameters,
   ViewerMessages,
   ViewerNavigateMessage,
-  ViewerViewport,
 } from '../../shared/viewerTypes';
 
 interface Props {
@@ -26,8 +21,6 @@ interface Props {
   snapshot?: EEGSnapshot | null;
   /** Symmetric microvolt half-range; snapshots are centered on each channel's mean. */
   amplitudeScale?: number;
-  onTimeWindowChange?: (window: PlotTimeWindow) => void;
-  overlay?: (window: PlotTimeWindow) => ReactNode;
   /** Forward Left/Right/Escape from a focused webview guest to surrounding lesson UI. */
   onNavigate?: (action: 'left' | 'right' | 'escape') => void;
 }
@@ -49,7 +42,6 @@ function graphParameters(props: Props): ViewerGraphParameters {
 export default function ViewerComponent(props: Props) {
   const [viewerUrl, setViewerUrl] = useState('');
   const [ready, setReady] = useState(false);
-  const [viewport, setViewport] = useState<ViewerViewport | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const graphViewRef = useRef<WebviewTag | null>(null);
   const readyRef = useRef(false);
@@ -86,18 +78,11 @@ export default function ViewerComponent(props: Props) {
     const onLoading = () => {
       readyRef.current = false;
       setReady(false);
-      setViewport(null);
     };
     const onMessage = (event: Electron.IpcMessageEvent) => {
-      if (event.channel === 'viewer:navigate') {
-        const message = event.args[0] as ViewerNavigateMessage;
-        propsRef.current.onNavigate?.(message.type);
-        return;
-      }
-      if (event.channel !== 'viewer:viewport') return;
-      const next = event.args[0] as ViewerViewport;
-      setViewport(next);
-      propsRef.current.onTimeWindowChange?.(next.timeWindow);
+      if (event.channel !== 'viewer:navigate') return;
+      const message = event.args[0] as ViewerNavigateMessage;
+      propsRef.current.onNavigate?.(message.type);
     };
     element.addEventListener('dom-ready', onDomReady);
     element.addEventListener('did-start-loading', onLoading);
@@ -128,10 +113,6 @@ export default function ViewerComponent(props: Props) {
       amplitudeScale: propsRef.current.amplitudeScale,
     });
   }, [ready, props.snapshot]);
-
-  useEffect(() => {
-    send('updateAmplitudeScale', props.amplitudeScale);
-  }, [ready, props.amplitudeScale]);
 
   useEffect(() => {
     if (!ready || frozen || !props.signalQualityObservable) return;
@@ -185,14 +166,6 @@ export default function ViewerComponent(props: Props) {
           src={viewerUrl}
           style={{ display: 'flex', width: '100%', height: '100%' }}
         />
-      )}
-      {viewport && props.overlay && (
-        <div
-          className="pointer-events-none absolute overflow-hidden"
-          style={viewport.plotBounds}
-        >
-          {props.overlay(viewport.timeWindow)}
-        </div>
       )}
     </div>
   );

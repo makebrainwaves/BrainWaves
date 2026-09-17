@@ -8,7 +8,6 @@ export class LessonAudio {
   private context: AudioContext | null = null;
   private oscillators = new Set<OscillatorNode>();
   private timers = new Set<number>();
-  private previewDone: ((played: boolean) => void) | null = null;
   private generation = 0;
   private unlocked = false;
 
@@ -59,20 +58,9 @@ export class LessonAudio {
     const { generation } = this;
     const context = await this.ready();
     if (generation !== this.generation) return false;
-    const { promise, resolve } = Promise.withResolvers<boolean>();
-    this.previewDone = resolve;
-    const oscillator = this.tone(context, context.currentTime + 0.02, CUE_HZ);
-    oscillator.addEventListener(
-      'ended',
-      () => {
-        if (generation !== this.generation) return;
-        this.unlocked = true;
-        this.previewDone = null;
-        resolve(true);
-      },
-      { once: true }
-    );
-    return promise;
+    this.tone(context, context.currentTime + 0.02, CUE_HZ);
+    this.unlocked = true;
+    return true;
   }
 
   /** Callback timestamps describe cue onset, not the browser timer's delivery time. */
@@ -103,8 +91,6 @@ export class LessonAudio {
       }
     }
     this.oscillators.clear();
-    this.previewDone?.(false);
-    this.previewDone = null;
   }
 
   dispose() {

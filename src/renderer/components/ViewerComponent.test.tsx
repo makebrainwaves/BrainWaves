@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Observable, Subject } from 'rxjs';
 import ViewerComponent from './ViewerComponent';
@@ -129,7 +129,6 @@ describe('ViewerComponent', () => {
         plottingInterval={250}
         signalQualityObservable={source}
         annotations={[]}
-        onTimeWindowChange={() => {}}
       />
     );
     expect(subscriptions).toBe(1);
@@ -159,41 +158,5 @@ describe('ViewerComponent', () => {
     );
     expect(onNavigate).toHaveBeenLastCalledWith('escape');
     expect(onNavigate).toHaveBeenCalledTimes(3);
-  });
-
-  it('positions overlays inside reported plot bounds, using the guest time window', async () => {
-    const onWindow = vi.fn();
-    const { container } = render(
-      <ViewerComponent
-        plottingInterval={250}
-        signalQualityObservable={null}
-        onTimeWindowChange={onWindow}
-        overlay={(window) => (
-          <span>
-            {window.startTime}–{window.endTime}
-          </span>
-        )}
-      />
-    );
-    const [guest] = await readyWebviews(container);
-    act(() => guest.element.dispatchEvent(new Event('dom-ready')));
-    const timeWindow = { startTime: 3000, endTime: 8000 };
-    const message = Object.assign(new Event('ipc-message'), {
-      channel: 'viewer:viewport',
-      args: [
-        {
-          timeWindow,
-          plotBounds: { left: 48, top: 26, width: 600, height: 200 },
-        },
-      ],
-    });
-    act(() => guest.element.dispatchEvent(message));
-    expect(onWindow).toHaveBeenCalledWith(timeWindow);
-    expect(screen.getByText('3000–8000').parentElement).toHaveStyle({
-      left: '48px',
-      top: '26px',
-      width: '600px',
-      height: '200px',
-    });
   });
 });

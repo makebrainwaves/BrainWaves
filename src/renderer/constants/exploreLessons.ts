@@ -20,6 +20,19 @@ export const CLEAN_SIGNAL_LESSON = [
   },
 ] as const;
 
+export const NOISE_LESSON = [
+  { title: 'Your brain is making electricity right now' },
+  {
+    title: 'Now blink — hard, a few times',
+    body: 'Every blink drops a big slow hump onto the two front sensors. That is your eyelid muscle moving, not your brain thinking, and it is the loudest thing in most student recordings.',
+  },
+  { title: 'Same brain, same sensors, five seconds apart' },
+  {
+    title: 'Close your eyes until the second chime',
+    body: 'One chime starts the ten seconds, two chimes end them. Nothing on screen needs watching in between.',
+  },
+] as const;
+
 export const EXPLORE_LESSONS = [
   {
     id: 'clean-signal',
