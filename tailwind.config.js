@@ -20,6 +20,15 @@ module.exports = {
           bad: '#e06766',
           none: '#bfbfbf',
         },
+        ink: {
+          DEFAULT: '#1a1a1a',
+          muted: '#666666',
+          faint: '#cccccc',
+        },
+      },
+      backgroundImage: {
+        // App-wide screen background: white fading to faint lavender
+        app: 'linear-gradient(to bottom, #f9f9f9, #f0f0ff)',
       },
       borderRadius: {
         lg: 'var(--radius)',

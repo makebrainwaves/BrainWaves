@@ -42,3 +42,11 @@ src/renderer/utils/pyodide/src
 # Python bytecode cache
 __pycache__/
 *.pyc
+storybook-static
+.gstack/
+.design-sync/sb-reference/
+.design-sync/learnings/
+.design-sync/.cache/
+.design-sync/node_modules
+.ds-sync/
+ds-bundle/
