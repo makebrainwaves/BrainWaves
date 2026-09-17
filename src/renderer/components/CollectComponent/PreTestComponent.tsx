@@ -5,7 +5,7 @@ import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
-import { HelpSidebar, HelpButton } from './HelpSidebar';
+import { LessonSidebar, HelpButton } from './LessonSidebar';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
 import {
@@ -112,7 +112,7 @@ export default function PreTestComponent(props: Props) {
     <div className="relative flex h-screen bg-app">
       {isSidebarVisible && (
         <div className="absolute right-0 top-0 h-full w-64 z-10">
-          <HelpSidebar handleClose={handleSidebarToggle} />
+          <LessonSidebar handleClose={handleSidebarToggle} />
         </div>
       )}
       <div className="flex-1 p-[3%]">
