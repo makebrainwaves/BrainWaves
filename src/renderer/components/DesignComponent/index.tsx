@@ -176,18 +176,27 @@ export default function Design(props: DesignProps) {
             )}
             {(background.second_column_statement ||
               background.second_column_question) && (
-              <div className="flex max-w-[680px] flex-col gap-2 rounded-lg border border-[#e3def7] bg-[#f4f2ff] px-6 py-5">
-                <span className="text-[13px] font-bold tracking-[0.5px] text-[#4a3fa8]">
-                  FUN FACT
-                </span>
-                <p className="experiment-design-card-copy">
-                  {[
-                    background.second_column_statement,
-                    background.second_column_question,
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                </p>
+              <div className="flex max-w-[680px] items-center gap-5 rounded-lg border border-[#e3def7] bg-[#f4f2ff] px-6 py-5">
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <span className="text-[13px] font-bold tracking-[0.5px] text-[#4a3fa8]">
+                    FUN FACT
+                  </span>
+                  <p className="experiment-design-card-copy">
+                    {[
+                      background.second_column_statement,
+                      background.second_column_question,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  </p>
+                </div>
+                {background.fun_fact_image && (
+                  <img
+                    src={background.fun_fact_image}
+                    alt=""
+                    className="w-[88px] flex-none"
+                  />
+                )}
               </div>
             )}
             {background.links.map((link) => (

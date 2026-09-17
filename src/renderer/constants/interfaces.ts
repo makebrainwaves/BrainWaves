@@ -123,6 +123,7 @@ interface BackgroundText {
   title?: string;
   definition_title?: string;
   link_meta?: string;
+  fun_fact_image?: string; // image URL from Vite import
   first_column_statement: string;
   first_column_question: string;
   second_column_statement: string;
