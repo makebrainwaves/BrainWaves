@@ -120,6 +120,9 @@ interface BackgroundText {
     address: string;
     name: string;
   }[];
+  title?: string;
+  definition_title?: string;
+  link_meta?: string;
   first_column_statement: string;
   first_column_question: string;
   second_column_statement: string;
@@ -134,6 +137,8 @@ interface ProtocolText {
   condition_second_img: string; // image URL from Vite import
   condition_second_title: string;
   condition_second: string;
+  condition_first_key?: string;
+  condition_second_key?: string;
 }
 
 export interface Experiment {

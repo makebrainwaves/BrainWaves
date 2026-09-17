@@ -13,7 +13,7 @@ export default function SecondaryNavSegment(props: Props) {
       type="button"
       onClick={props.onClick}
       className={cn(
-        'flex items-end justify-center text-center text-sm font-bold tracking-[0.5px] border-b-4 min-w-fit px-4 pb-2 cursor-pointer',
+        'flex min-w-fit cursor-pointer items-end justify-center border-b-4 px-3.5 pb-3.5 pt-[18px] text-center text-sm font-bold tracking-[0.5px]',
         props.active
           ? 'text-ink border-accent'
           : 'text-ink-muted border-transparent hover:text-ink hover:border-accent-light'

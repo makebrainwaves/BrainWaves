@@ -42,6 +42,33 @@ p {
   letter-spacing: 0.64px !important;
 }
 
+.experiment-design-copy {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.8;
+  letter-spacing: 0.3px;
+  text-wrap: pretty;
+}
+
+.experiment-design-card-copy {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  text-wrap: pretty;
+}
+
+.experiment-design-content {
+  padding: 0;
+  text-align: left;
+}
+
+.experiment-design-content header {
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+}
+
 li {
   list-style: none;
 }

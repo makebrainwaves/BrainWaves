@@ -273,3 +273,26 @@ conditionally per trial. When authoring these in TS template literals, escape th
 placeholders as `\${`, or TS will evaluate them at module load. Sounds for stimuli
 need `media-src bwfile:` in the CSP (and `connect-src` for lab.js's fetch-based
 audio preload into `options.media.audio`).
+
+## `lab.css` styles bare `<main>`/`<header>` — Tailwind utilities lose to it
+
+`app.global.css` imports `lab.js/dist/css/lab.css` into `layer(vendor-experiment)`
+so experiment styling can't leak into app chrome. That containment is incomplete:
+lab.css sets `header, footer, main { padding: 24px; text-align: center }`, and any
+app UI built on semantic `<main>`/`<header>` silently inherits centered text and
+24px padding. `className="text-left"` does **not** reliably win.
+
+Symptom: a left-aligned design renders centered with mystery padding, while the
+utility class is present in the DOM. Confirm by walking `document.styleSheets` for
+rules matching the node (drive the Electron window per the `electron-playtest`
+skill) — `header, footer, main` shows up as the winning rule.
+
+Fix used by the Experiment Design screen: scoped classes in `app.global.css`
+(`.experiment-design-content` and `.experiment-design-content header`) that reset
+`padding`/`text-align`. Do not reach for `!important`, and do not un-layer lab.css.
+The same trap covers body copy — global `p { font-size: 18px !important }` is why
+the redesign's 19px/17px text uses `.experiment-design-copy` /
+`.experiment-design-card-copy` instead of Tailwind text utilities.
+
+Note: `.llms/learnings.md` is not Prettier-formatted; running `prettier --write` on
+it rewraps unrelated entries. Append by hand.
