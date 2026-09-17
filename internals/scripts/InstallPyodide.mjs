@@ -9,7 +9,7 @@
  * Key files copied:
  *   pyodide.mjs          – ESM entry point (imported by the web worker via npm)
  *   pyodide.js           – UMD fallback
- *   pyodide.asm.js       – compiled Python interpreter
+ *   pyodide.asm.mjs      – compiled Python interpreter
  *   pyodide.asm.wasm     – WebAssembly binary
  *   python_stdlib.zip    – Python standard library
  *   pyodide-lock.json    – package registry (read by InstallMNE.mjs)
@@ -81,6 +81,7 @@ async function main() {
   console.log(
     chalk.blue.bold(`Installing Pyodide ${version} from node_modules…`)
   );
+  fs.rmSync(DEST_DIR, { recursive: true, force: true });
   fs.mkdirSync(DEST_DIR, { recursive: true });
 
   const files = fs.readdirSync(pyodideDir);
