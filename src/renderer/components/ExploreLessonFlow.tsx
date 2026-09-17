@@ -21,7 +21,6 @@ interface Props {
   onExit: () => void;
 }
 
-type CueMode = 'audio' | 'partner' | 'haptic';
 interface CueWindow {
   startTime: number;
   endTime: number | null;
@@ -108,7 +107,6 @@ export default function ExploreLessonFlow(props: Props) {
   const [comparison, setComparison] = useState<FrozenComparison | null>(null);
   const [comparisonSkipped, setComparisonSkipped] = useState(false);
   const [waitedForBaseline, setWaitedForBaseline] = useState(false);
-  const [mode, setMode] = useState<CueMode>('audio');
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [audioBusy, setAudioBusy] = useState(false);
   const [running, setRunning] = useState(false);
@@ -116,11 +114,7 @@ export default function ExploreLessonFlow(props: Props) {
   const [review, setReview] = useState<EEGSnapshot | null>(null);
   const [alphaRatio, setAlphaRatio] = useState<number | null>(null);
   const [cueError, setCueError] = useState('');
-  const [hapticsAvailable] = useState(
-    () => typeof navigator.vibrate === 'function'
-  );
   const audio = useRef<LessonAudio | null>(null);
-  const hapticTimer = useRef<number | null>(null);
   const mounted = useRef(true);
   const cueGeneration = useRef(0);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -145,9 +139,6 @@ export default function ExploreLessonFlow(props: Props) {
       mounted.current = false;
       cueGeneration.current++;
       audio.current?.dispose();
-      if (hapticTimer.current !== null)
-        window.clearTimeout(hapticTimer.current);
-      if (typeof navigator.vibrate === 'function') navigator.vibrate(0);
     };
   }, []);
 
@@ -176,9 +167,6 @@ export default function ExploreLessonFlow(props: Props) {
   function stopCues() {
     cueGeneration.current++;
     audio.current?.cancel();
-    if (hapticTimer.current !== null) window.clearTimeout(hapticTimer.current);
-    hapticTimer.current = null;
-    if (typeof navigator.vibrate === 'function') navigator.vibrate(0);
     setRunning(false);
     setAudioBusy(false);
     setCue(null);
@@ -271,9 +259,7 @@ export default function ExploreLessonFlow(props: Props) {
     } catch (error) {
       if (mounted.current && generation === cueGeneration.current)
         setCueError(
-          error instanceof Error
-            ? error.message
-            : 'Check your sound output, or use partner mode.'
+          error instanceof Error ? error.message : 'Check your sound output.'
         );
     } finally {
       if (mounted.current && generation === cueGeneration.current)
@@ -303,42 +289,18 @@ export default function ExploreLessonFlow(props: Props) {
       );
       setRunning(false);
     };
-    if (mode === 'audio') {
-      try {
-        await audio.current?.start(startAt, endAt);
-      } catch (error) {
-        if (mounted.current && generation === cueGeneration.current) {
-          setRunning(false);
-          setCueError(
-            error instanceof Error
-              ? error.message
-              : 'Audio could not start. Use partner mode.'
-          );
-        }
-      }
-    } else {
-      const wallStart = Date.now();
-      if (mode === 'haptic' && !navigator.vibrate(200)) {
+    try {
+      await audio.current?.start(startAt, endAt);
+    } catch (error) {
+      if (mounted.current && generation === cueGeneration.current) {
         setRunning(false);
         setCueError(
-          'Vibration is unavailable on this device. Use partner mode.'
+          error instanceof Error
+            ? error.message
+            : 'Audio could not start. Check your sound output.'
         );
-        return;
       }
-      startAt(wallStart);
-      if (mode === 'haptic')
-        hapticTimer.current = window.setTimeout(() => {
-          navigator.vibrate([200, 100, 200]);
-          endAt(wallStart + 10000);
-        }, 10000);
     }
-  }
-
-  function partnerStop() {
-    setCue(
-      (current) => current && { ...current, endTime: sampleTimeAt(Date.now()) }
-    );
-    setRunning(false);
   }
 
   const visibleBlinks =
@@ -361,8 +323,8 @@ export default function ExploreLessonFlow(props: Props) {
             {
               id: 'eyes-closed',
               ...cue,
-              label: `${mode === 'audio' ? 'chime' : mode === 'haptic' ? 'vibration' : 'partner'} · eyes closed`,
-              endLabel: `${mode === 'audio' ? 'chime' : mode === 'haptic' ? 'vibration' : 'partner'} · eyes open`,
+              label: 'eyes closed',
+              endLabel: 'eyes open',
               tone: 'eyes-closed',
             },
           ]
@@ -375,11 +337,7 @@ export default function ExploreLessonFlow(props: Props) {
         : running
           ? 'recording'
           : 'your signal, live';
-  const title = noise
-    ? step === 3 && mode !== 'audio'
-      ? 'Close your eyes until your partner signals'
-      : NOISE_TITLES[step]
-    : CLEAN_SIGNAL_LESSON[step].title;
+  const title = noise ? NOISE_TITLES[step] : CLEAN_SIGNAL_LESSON[step].title;
   const displayChannels =
     noise && step === 1 && status.supported ? FRONTAL_CHANNELS : channels;
 
@@ -443,14 +401,6 @@ export default function ExploreLessonFlow(props: Props) {
               <span aria-live="polite">
                 {visibleBlinks.length}{' '}
                 {visibleBlinks.length === 1 ? 'blink' : 'blinks'} caught
-              </span>
-            )}
-            {noise && step === 3 && (
-              <span>
-                alpha band (8–12 Hz)
-                {alphaRatio === null
-                  ? ''
-                  : ` · ${alphaRatio.toFixed(1)}× before`}
               </span>
             )}
           </div>
@@ -534,7 +484,7 @@ export default function ExploreLessonFlow(props: Props) {
       )}
       <div
         key={step}
-        className="explore-step-copy flex min-h-0 flex-1 flex-wrap items-end justify-between gap-x-10 gap-y-5 pb-3"
+        className="explore-step-copy flex min-h-0 flex-1 flex-wrap items-start justify-between gap-x-10 gap-y-5 pb-3"
       >
         <div className="flex max-w-[620px] flex-col gap-2.5">
           <h2
@@ -567,11 +517,8 @@ export default function ExploreLessonFlow(props: Props) {
           ) : (
             <>
               <p className="leading-7">
-                {mode === 'audio'
-                  ? 'One chime starts the ten seconds, two chimes end them. Nothing on screen needs watching in between.'
-                  : mode === 'partner'
-                    ? 'Ask a teacher or classmate to tap Start, signal you to close your eyes, and tap Stop after ten seconds as they signal you to open them.'
-                    : 'One vibration starts the ten seconds, two vibrations end them. Keep a hand on your device; nothing on screen needs watching in between.'}
+                One chime starts the ten seconds, two chimes end them. Nothing
+                on screen needs watching in between.
               </p>
               <p className="leading-7">
                 The back of your head starts humming a steady rhythm when it has
@@ -582,63 +529,41 @@ export default function ExploreLessonFlow(props: Props) {
               </p>
             </>
           )}
-          {noise && step === 3 && (
-            <div className="flex flex-wrap items-center gap-3 text-sm text-ink-muted">
-              <label htmlFor="explore-cue-mode">Cue mode</label>
-              <select
-                id="explore-cue-mode"
-                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
-                disabled={running || audioBusy}
-                value={mode}
-                onChange={(event) => {
-                  stopCues();
-                  setMode(event.target.value as CueMode);
-                }}
-              >
-                <option value="audio">Audio chimes</option>
-                <option value="partner">Partner mode (no sound needed)</option>
-                {hapticsAvailable && (
-                  <option value="haptic">Vibration on this device</option>
-                )}
-              </select>
-              {cueError && <span role="alert">{cueError}</span>}
-            </div>
+          {cueError && (
+            <span role="alert" className="text-sm text-ink-muted">
+              {cueError}
+            </span>
           )}
         </div>
-        <div className="flex flex-none flex-wrap items-center gap-3">
+        <div className="flex flex-none flex-col items-stretch gap-3">
           {noise && step === 2 && (
             <Button variant="outline-brand" size="lg" onClick={rerecord}>
               Re-record
             </Button>
           )}
-          {noise && step === 3 && mode === 'audio' && (
-            <Button
-              variant="outline-brand"
-              size="lg"
-              onClick={hearChime}
-              disabled={running || audioBusy}
-            >
-              Hear the chime
-            </Button>
+          {noise && step === 3 && (
+            <>
+              <Button
+                variant="outline-brand"
+                size="lg"
+                onClick={hearChime}
+                disabled={running || audioBusy}
+              >
+                Hear the chime
+              </Button>
+              <Button
+                variant="outline-brand"
+                size="lg"
+                onClick={startInterval}
+                disabled={audioBusy || !audioUnlocked}
+              >
+                {cue?.endTime != null && !running
+                  ? 'Record again'
+                  : 'Start · eyes closed'}
+              </Button>
+            </>
           )}
-          {noise && step === 3 && mode === 'partner' && running && (
-            <Button variant="outline-brand" size="lg" onClick={partnerStop}>
-              Stop · eyes open
-            </Button>
-          )}
-          {noise && step === 3 && (mode !== 'partner' || !running) && (
-            <Button
-              variant="outline-brand"
-              size="lg"
-              onClick={startInterval}
-              disabled={audioBusy || (mode === 'audio' && !audioUnlocked)}
-            >
-              {cue?.endTime != null && !running
-                ? 'Record again'
-                : 'Start · eyes closed'}
-            </Button>
-          )}
-          <Button variant="secondary" size="lg" onClick={back}>
+          <Button variant="outline-brand" size="lg" onClick={back}>
             Back
           </Button>
           <Button size="lg" onClick={next} disabled={running || audioBusy}>

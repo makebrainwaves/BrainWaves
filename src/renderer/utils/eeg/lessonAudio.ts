@@ -1,3 +1,8 @@
+/** Laptop speakers roll off low frequencies; a short 220 Hz sine is inaudible. */
+const CUE_HZ = 660;
+const END_HZ = 880;
+const TONE_SECONDS = 0.3;
+
 /** Short audible cues, scheduled on the audio clock; cancellation also settles previews. */
 export class LessonAudio {
   private context: AudioContext | null = null;
@@ -11,9 +16,7 @@ export class LessonAudio {
     this.context ??= new AudioContext();
     await this.context.resume();
     if (this.context.state !== 'running') {
-      throw new Error(
-        'Audio could not start. Check your sound output, or use partner mode.'
-      );
+      throw new Error('Audio could not start. Check your sound output.');
     }
     return this.context;
   }
@@ -23,8 +26,8 @@ export class LessonAudio {
     const gain = context.createGain();
     oscillator.frequency.value = frequency;
     gain.gain.setValueAtTime(0, at);
-    gain.gain.linearRampToValueAtTime(0.15, at + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.001, at + 0.19);
+    gain.gain.linearRampToValueAtTime(0.3, at + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, at + 0.28);
     oscillator.connect(gain);
     gain.connect(context.destination);
     this.oscillators.add(oscillator);
@@ -38,7 +41,7 @@ export class LessonAudio {
       { once: true }
     );
     oscillator.start(at);
-    oscillator.stop(at + 0.2);
+    oscillator.stop(at + TONE_SECONDS);
     return oscillator;
   }
 
@@ -58,7 +61,7 @@ export class LessonAudio {
     if (generation !== this.generation) return false;
     const { promise, resolve } = Promise.withResolvers<boolean>();
     this.previewDone = resolve;
-    const oscillator = this.tone(context, context.currentTime + 0.02, 220);
+    const oscillator = this.tone(context, context.currentTime + 0.02, CUE_HZ);
     oscillator.addEventListener(
       'ended',
       () => {
@@ -81,9 +84,9 @@ export class LessonAudio {
     if (generation !== this.generation) return;
     const start = context.currentTime + 0.02;
     const wallStart = Date.now() + 20;
-    this.tone(context, start, 220);
-    this.tone(context, start + 10, 660);
-    this.tone(context, start + 10.3, 660);
+    this.tone(context, start, CUE_HZ);
+    this.tone(context, start + 10, END_HZ);
+    this.tone(context, start + 10.4, END_HZ);
     this.later(() => onStart(wallStart), 20);
     this.later(() => onEnd(wallStart + 10000), 10020);
   }

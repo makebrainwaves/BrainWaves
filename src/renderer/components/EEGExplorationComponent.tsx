@@ -8,6 +8,7 @@ import {
   DEVICES,
   MUSE_CHANNELS,
   MUSE_SAMPLING_RATE,
+  VIEWER_DEFAULTS,
 } from '../constants/constants';
 import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
@@ -44,8 +45,16 @@ function ConnectedExplore({
 }) {
   const channels = device?.channels ?? MUSE_CHANNELS;
   const samplingRate = device?.samplingRate ?? MUSE_SAMPLING_RATE;
+  // Replay a full plot window so a viewer mounted mid-visit draws a filled
+  // trace immediately instead of one 250 ms sliver.
   const stream = useMemo(
-    () => observable?.pipe(shareReplay({ bufferSize: 1, refCount: true })),
+    () =>
+      observable?.pipe(
+        shareReplay({
+          bufferSize: Math.ceil(VIEWER_DEFAULTS.domain / PLOTTING_INTERVAL),
+          refCount: true,
+        })
+      ),
     [observable]
   );
   const session = useMemo(
@@ -92,7 +101,7 @@ function ConnectedExplore({
         }
       >
         <div className="flex flex-none justify-end">
-          <Button variant="secondary" onClick={onDisconnect}>
+          <Button variant="outline-brand" onClick={onDisconnect}>
             Disconnect EEG Device
           </Button>
         </div>
@@ -121,14 +130,19 @@ function ConnectedExplore({
               className="relative min-h-0 flex-1 rounded-lg border border-gray-200 bg-white px-[18px] py-4"
               data-explore-trace
             >
-              <ViewerComponent
-                signalQualityObservable={stream}
-                channels={channels}
-                plottingInterval={PLOTTING_INTERVAL}
-                height={300}
-              />
+              {!activeLesson && (
+                <ViewerComponent
+                  signalQualityObservable={stream}
+                  channels={channels}
+                  plottingInterval={PLOTTING_INTERVAL}
+                  height="100%"
+                />
+              )}
               {!sample && (
-                <div role="status" className="text-sm text-ink-muted">
+                <div
+                  role="status"
+                  className="absolute inset-x-[18px] top-4 text-sm text-ink-muted"
+                >
                   Waiting for the headset signal…
                 </div>
               )}

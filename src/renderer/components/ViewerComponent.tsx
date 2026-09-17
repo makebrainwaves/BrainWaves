@@ -19,7 +19,8 @@ interface Props {
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   plottingInterval: number;
   channels?: string[];
-  height?: number;
+  /** Number of pixels, or any CSS height (e.g. '100%') to fill a flex parent. */
+  height?: number | string;
   windowDuration?: number;
   annotations?: PlotAnnotation[];
   snapshot?: EEGSnapshot | null;

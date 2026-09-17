@@ -124,10 +124,8 @@ export default function ExploreSensorCard({
         ?.querySelector('[data-explore-lessons]')
         ?.getBoundingClientRect();
       const width = Math.min(250, window.innerWidth - 16);
-      const right = Math.max(
-        cardRect.right + 12,
-        trace ? trace.left + 116 : cardRect.right + 116
-      );
+      // Sits directly beside its own card; flips left only at the viewport edge.
+      const right = cardRect.right + 12;
       const flipped = right + width > window.innerWidth - 8;
       const left = flipped
         ? Math.max(

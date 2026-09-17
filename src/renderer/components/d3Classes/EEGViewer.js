@@ -22,6 +22,18 @@ function mean(values) {
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
+const LABEL_HEIGHT = 22;
+// SVG clamps rx to half the box, so an oversized rx renders an oval, not a pill.
+const LABEL_RADIUS = LABEL_HEIGHT / 2;
+
+const LABEL_GUTTER = LABEL_HEIGHT + 8;
+
+/** getBBox is unavailable before layout (and in jsdom); fall back to glyph width. */
+function pillWidth(text) {
+  const measured = text.node()?.getBBox?.()?.width ?? 0;
+  return Math.max(measured, (text.text() ?? '').length * 6.5) + 20;
+}
+
 export default class EEGViewer {
   constructor(svg, parameters, reportViewport) {
     this.channels = parameters.channels;
@@ -55,8 +67,11 @@ export default class EEGViewer {
     this.windowResizeHandler = throttle(this.resize, 200);
     window.addEventListener('resize', this.windowResizeHandler);
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => {
-        if (this.graph) this.init();
+      this.resizeObserver = new ResizeObserver(([entry]) => {
+        const { width, height } = entry.contentRect;
+        if (!this.graph) return;
+        if (width === this.lastWidth && height === this.lastHeight) return;
+        this.init();
       });
       this.resizeObserver.observe(svg);
     }
@@ -78,6 +93,8 @@ export default class EEGViewer {
       height = rect.height;
     }
     this.svgScale = 1;
+    this.lastWidth = width;
+    this.lastHeight = height;
     this.width = Math.max(0, width - (this.margin.left + this.margin.right));
     this.height = Math.max(0, height - (this.margin.top + this.margin.bottom));
     this.plotBounds = {
@@ -128,9 +145,11 @@ export default class EEGViewer {
       .append('rect')
       .attr('class', 'annotation-clip')
       .attr('x', 0)
-      .attr('y', 0)
+      // Bands stay inside the plot box, but their pills sit just above and
+      // below it — a plot-height clip would hide the end label entirely.
+      .attr('y', -LABEL_GUTTER)
       .attr('width', this.width)
-      .attr('height', this.height);
+      .attr('height', this.height + 2 * LABEL_GUTTER);
   }
 
   uniqueId(prefix) {
@@ -141,6 +160,13 @@ export default class EEGViewer {
     this.xScale = d3
       .scaleTime()
       .domain([this.firstTimestamp, this.lastTimestamp])
+      .range([0, this.width]);
+
+    // Time labels are offsets from "now" ("-4s"), so the axis gets its own
+    // fixed scale and never moves as timestamps advance.
+    this.xAxisScale = d3
+      .scaleLinear()
+      .domain([-this.domain, 0])
       .range([0, this.width]);
 
     this.yScaleLines = d3.scaleLinear();
@@ -164,22 +190,32 @@ export default class EEGViewer {
 
     this.axisY = this.graph.append('g').attr('class', 'axis').call(this.yAxis);
 
-    this.axisX = this.graph
-      .append('g')
-      .attr('class', 'axis x-axis')
+    this.axisX = this.graph.append('g').attr('class', 'axis x-axis');
+    this.renderTimeAxis();
+  }
+
+  /** Ticks change only with geometry or domain, never with incoming data. */
+  renderTimeAxis() {
+    this.xAxisScale.domain([-this.domain, 0]).range([0, this.width]);
+    this.axisX
       .attr('transform', `translate(0,${this.height})`)
       .call(this.buildTimeAxis());
+    this.axisWidth = this.width;
+    this.axisHeight = this.height;
   }
 
   buildTimeAxis() {
+    // Whole-second ticks only: sub-second steps would round to duplicate labels.
+    const maxTicks = Math.max(2, Math.floor(this.width / 80));
+    const step = Math.max(1, Math.ceil(this.domain / 1000 / maxTicks)) * 1000;
+    const offsets = [];
+    for (let offset = 0; offset >= -this.domain; offset -= step)
+      offsets.push(offset);
     return d3
       .axisBottom()
-      .scale(this.xScale)
-      .ticks(Math.max(2, Math.floor(this.width / 80)))
-      .tickFormat((timestamp) => {
-        const seconds = (Number(timestamp) - this.lastTimestamp) / 1000;
-        return `${Math.round(seconds)}s`;
-      });
+      .scale(this.xAxisScale)
+      .tickValues(offsets)
+      .tickFormat((offset) => `${Math.round(Number(offset) / 1000)}s`);
   }
 
   addLines() {
@@ -267,6 +303,7 @@ export default class EEGViewer {
     const mapped = this.mapChannels(channelNames);
     const sampleCount = epoch.data[0]?.length ?? 0;
     const endTime = startTime + sampleCount / (samplingRate / 1000);
+    const previousLast = this.lastTimestamp;
     this.lastTimestamp = endTime;
     this.firstTimestamp = this.lastTimestamp - this.domain;
 
@@ -283,7 +320,12 @@ export default class EEGViewer {
       );
       this.data[i] = this.data[i]
         .concat(points)
-        .filter((sample) => sample != null && sample.x >= this.firstTimestamp);
+        .filter(
+          (sample) =>
+            sample != null &&
+            sample.x >= this.firstTimestamp &&
+            sample.x <= this.lastTimestamp
+        );
     }
 
     this.channelColours = this.channels.map(
@@ -294,6 +336,33 @@ export default class EEGViewer {
     );
 
     this.redraw();
+    this.slideIn(this.lastTimestamp - previousLast);
+  }
+
+  /**
+   * Data arrives once per plotting interval; slide the traces in over that
+   * interval so the plot moves continuously instead of stepping.
+   */
+  slideIn(elapsed) {
+    if (!this.lines || !this.annotationsGroup) return;
+    const groups = [this.lines, this.annotationsGroup];
+    const shift = (elapsed / this.domain) * this.width;
+    const reduced =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || !(shift > 0) || elapsed > this.plottingInterval * 4) {
+      groups.forEach((group) => group.interrupt().attr('transform', null));
+      return;
+    }
+    groups.forEach((group) =>
+      group
+        .interrupt()
+        .attr('transform', `translate(${shift},0)`)
+        .transition()
+        .duration(elapsed)
+        .ease(d3.easeLinear)
+        .attr('transform', 'translate(0,0)')
+    );
   }
 
   mapChannels(sourceNames) {
@@ -357,9 +426,9 @@ export default class EEGViewer {
     const now = Date.now();
     this.lastTimestamp = now;
     this.firstTimestamp = now - this.domain;
-    this.data = new Array(this.channels.length)
-      .fill(null)
-      .map(() => [{ x: this.lastTimestamp, y: 0 }]);
+    // Never seed a wall-clock point: device timestamps can lag Date.now(), and
+    // a future point survives window pruning and draws a line across the plot.
+    this.data = new Array(this.channels.length).fill(null).map(() => []);
     this.amplitudeRange = 200;
     this.channelMeans = new Array(this.channels.length).fill(0);
   }
@@ -374,7 +443,7 @@ export default class EEGViewer {
     this.annotationClipPath
       .select('rect')
       .attr('width', this.width)
-      .attr('height', this.height);
+      .attr('height', this.height + 2 * LABEL_GUTTER);
 
     this.canvas
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -395,9 +464,8 @@ export default class EEGViewer {
     ]);
 
     this.axisY.call(this.yAxis);
-    this.axisX
-      .attr('transform', `translate(0,${this.height})`)
-      .call(this.buildTimeAxis());
+    if (this.width !== this.axisWidth || this.height !== this.axisHeight)
+      this.renderTimeAxis();
 
     for (let i = 0; i < this.channels.length; i++) {
       this.getYScaleForChannel(i);
@@ -546,8 +614,8 @@ export default class EEGViewer {
     startEnter
       .append('rect')
       .attr('class', 'annotation-label-bg')
-      .attr('rx', 999)
-      .attr('height', 22);
+      .attr('rx', LABEL_RADIUS)
+      .attr('height', LABEL_HEIGHT);
     startEnter
       .append('text')
       .attr('class', 'annotation-label-text')
@@ -557,9 +625,7 @@ export default class EEGViewer {
       const group = d3.select(this);
       const style = TONE_STYLES[d.tone];
       const text = group.select('text').text(d.label);
-      const bbox = text.node()?.getBBox?.() ?? { width: 0, height: 0 };
-      const paddingX = 10;
-      const labelWidth = bbox.width + paddingX * 2;
+      const labelWidth = pillWidth(text);
       const desiredX = d.x + 6 - labelWidth;
       const x = Math.max(0, Math.min(plotWidth - labelWidth, desiredX));
       group.attr('transform', `translate(${x},-6)`);
@@ -588,8 +654,8 @@ export default class EEGViewer {
     endEnter
       .append('rect')
       .attr('class', 'annotation-label-bg')
-      .attr('rx', 999)
-      .attr('height', 22);
+      .attr('rx', LABEL_RADIUS)
+      .attr('height', LABEL_HEIGHT);
     endEnter
       .append('text')
       .attr('class', 'annotation-label-text')
@@ -599,9 +665,7 @@ export default class EEGViewer {
       const group = d3.select(this);
       const style = TONE_STYLES[d.tone];
       const text = group.select('text').text(d.endLabel ?? '');
-      const bbox = text.node()?.getBBox?.() ?? { width: 0 };
-      const paddingX = 10;
-      const labelWidth = bbox.width + paddingX * 2;
+      const labelWidth = pillWidth(text);
       const desiredX = d.x + d.width + 6;
       const x = Math.max(0, Math.min(plotWidth - labelWidth, desiredX));
       group.attr('transform', `translate(${x},${plotHeight + 6})`);

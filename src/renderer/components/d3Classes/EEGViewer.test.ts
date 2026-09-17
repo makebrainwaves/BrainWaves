@@ -169,4 +169,76 @@ describe('EEGViewer time and amplitude coordinates', () => {
       plotBounds.width
     );
   });
+
+  it('never plots a point outside the live window after a snapshot reset', () => {
+    const { graph, svg } = createGraph();
+    // ViewerComponent sends updateSnapshot(null) as soon as a live guest is
+    // ready; device timestamps can trail wall time by a long way.
+    graph.updateSnapshot(null, undefined);
+    graph.updateData(
+      epoch(Date.now() - 90_000, [
+        [0, 0],
+        [0, 10],
+        [0, -10],
+        [0, 0],
+      ])
+    );
+    const xs = svg
+      .querySelector('.line')!
+      .getAttribute('d')!
+      .split(/[ML]/)
+      .filter(Boolean)
+      .map((point) => Number(point.split(',')[0]));
+    expect(xs.length).toBeGreaterThan(1);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(494);
+  });
+
+  it('keeps relative time labels fixed as data advances', () => {
+    const { graph, svg } = createGraph();
+    const flat: number[][] = [
+      [0, 0],
+      [0, 1],
+      [0, -1],
+      [0, 0],
+    ];
+    graph.updateData(epoch(1000, flat));
+    const before = Array.from(svg.querySelectorAll('.x-axis .tick')).map(
+      (tick) => [tick.getAttribute('transform'), tick.textContent]
+    );
+    graph.updateData(epoch(2000, flat));
+    const after = Array.from(svg.querySelectorAll('.x-axis .tick')).map(
+      (tick) => [tick.getAttribute('transform'), tick.textContent]
+    );
+    expect(before.length).toBeGreaterThan(1);
+    expect(after).toEqual(before);
+    const labels = before.map(([, label]) => label);
+    expect(labels).toContain('0s');
+    expect(new Set(labels).size).toBe(labels.length);
+  });
+
+  it('draws annotation labels as pills, not clamped ovals', () => {
+    const { graph, svg } = createGraph();
+    graph.updateAnnotations([
+      {
+        id: 'alpha',
+        startTime: -1000,
+        endTime: 1000,
+        label: 'eyes closed',
+        endLabel: 'eyes open',
+        tone: 'eyes-closed',
+      },
+    ]);
+    graph.updateData(
+      epoch(1000, [
+        [0, 0],
+        [0, 1],
+        [0, -1],
+        [0, 0],
+      ])
+    );
+    const pill = svg.querySelector('rect.annotation-label-bg')!;
+    const height = Number(pill.getAttribute('height'));
+    expect(Number(pill.getAttribute('rx'))).toBeLessThanOrEqual(height / 2);
+    expect(Number(pill.getAttribute('width'))).toBeGreaterThan(2 * height);
+  });
 });
