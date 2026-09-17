@@ -225,4 +225,26 @@ describe('EEGViewer time and amplitude coordinates', () => {
     expect(Number(pill.getAttribute('rx'))).toBeLessThanOrEqual(height / 2);
     expect(Number(pill.getAttribute('width'))).toBeGreaterThan(2 * height);
   });
+
+  it('slides new data in without leaving the transform to d3-interpolate', async () => {
+    const { graph, svg } = createGraph();
+    const flat: number[][] = [
+      [0, 0],
+      [0, 1],
+      [0, -1],
+      [0, 0],
+    ];
+    graph.updateData(epoch(1000, flat));
+    graph.updateData(epoch(2000, flat));
+    const lines = svg.querySelector('#lines')!;
+    // d3-interpolate's transform parser needs SVGElement.transform.baseVal,
+    // which jsdom does not implement: running the frames proves the slide
+    // interpolates without it.
+    for (let frame = 0; frame < 2; frame++) {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      requestAnimationFrame(() => resolve());
+      await promise;
+    }
+    expect(lines.getAttribute('transform')).toMatch(/^translate\(/);
+  });
 });

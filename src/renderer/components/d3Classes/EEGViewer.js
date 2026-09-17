@@ -337,7 +337,12 @@ export default class EEGViewer {
         .transition()
         .duration(elapsed)
         .ease(d3.easeLinear)
-        .attr('transform', 'translate(0,0)')
+        // Interpolate the offset ourselves: d3-interpolate would parse the
+        // transform string via SVGElement.transform.baseVal.
+        .attrTween(
+          'transform',
+          () => (progress) => `translate(${shift * (1 - progress)},0)`
+        )
     );
   }
 
