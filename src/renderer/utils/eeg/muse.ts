@@ -115,7 +115,7 @@ export const createRawMuseObservable = async () => {
       data: sample.data.filter((val) => !Number.isNaN(val)),
     })),
     filter((sample) => sample.data.length >= 4),
-    map((sample: any) => {
+    map((sample: EEGData) => {
       if (pendingMuseMarker === null) return sample;
       if (
         sample.timestamp + MUSE_SAMPLE_INTERVAL_MS >
