@@ -4274,7 +4274,7 @@ awk -F, 'NR==1 || $6!=0' <subject>-*-raw.csv | head -21
 
 Compare each marker's EEG-sample timestamp with the visual stimulus onset. A photodiode on the screen is the gold standard; failing that, use a high-frame-rate screen recording with the system clock visible. Record the mean and spread.
 
-`synchronizeTimestamp` (`src/renderer/utils/eeg/muse.ts:179`) attaches a marker to the EEG sample falling within `INTER_SAMPLE_INTERVAL` (`muse.ts:27`, `-3.90625 ms` at 256 Hz) *before* the marker's own timestamp, so transport delay does not displace it as long as it arrives before that sample has flowed through the observable. Any residual offset is the `on_trial_start` + rAF gap this step is measuring.
+`injectMuseMarker`/`createRawMuseObservable` (`src/renderer/utils/eeg/muse.ts:107`) buffer `{ code, timestamp }` and attach a marker to the first EEG sample whose interval `[sample.timestamp, sample.timestamp + 3.90625 ms)` contains the marker timestamp. Error is bounded to one sample interval (~3.9 ms at 256 Hz), regardless of transport delay. Any residual offset beyond that bound is the `on_trial_start` + rAF gap this step is measuring.
 
 - [ ] **Step 4: Record the result in the design doc**
 

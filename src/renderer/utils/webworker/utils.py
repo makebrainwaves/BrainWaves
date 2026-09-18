@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import pandas as pd  # maybe we can remove this dependency
 
 from mne import (concatenate_raws, concatenate_epochs, create_info, viz,
-                 find_events, Epochs, pick_types, read_epochs)
+                 find_events, Epochs, EpochsArray, pick_types, read_epochs)
 from mne.io import RawArray
 from io import StringIO
 
@@ -129,6 +129,20 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
     if baseline is None:
         baseline = (tmin, tmax)
     events = find_events(raw)
+    # MNE raises when event_id contains codes that never occurred in the
+    # recording. A real run may not present every configured condition, so keep
+    # only the codes that are actually present. If no markers were recorded at
+    # all, return an empty Epochs object instead of crashing on an empty
+    # selection.
+    present_codes = set(events[:, 2]) if len(events) else set()
+    event_id = {label: code for label, code in event_id.items()
+                if code in present_codes}
+    if not event_id:
+        n_times = int(round((tmax - tmin) * raw.info['sfreq'])) + 1
+        data = np.zeros((0, len(raw.ch_names), n_times))
+        return EpochsArray(data, raw.info, events=np.empty((0, 3), dtype=int),
+                           tmin=tmin, event_id={}, baseline=baseline,
+                           drop_log=(), verbose=False)
     return Epochs(raw, events=events, event_id=event_id, tmin=tmin, tmax=tmax,
                   baseline=baseline, reject=reject, preload=True,
                   verbose=False, picks=picks)
@@ -311,10 +325,13 @@ def get_epochs_arrays(epochs, out_path):
 def get_epochs_info(epochs):
     print('Get Epochs Info:')
     # drop_log_stats() ignores IGNORED/NO_DATA entries, so the percentage is
-    # taken over candidate epochs rather than every drop_log entry.
+    # taken over candidate epochs rather than every drop_log entry. For an
+    # empty recording it would warn and return NaN; report 0% instead.
+    total = len(epochs.events)
+    drop_pct = 0.0 if total == 0 else round(epochs.drop_log_stats(), 2)
     return [*[{x: len(epochs[x])} for x in epochs.event_id],
-            {"Drop Percentage": round(epochs.drop_log_stats(), 2)},
-            {"Total Epochs": len(epochs.events)}]
+            {"Drop Percentage": drop_pct},
+            {"Total Epochs": total}]
 
 
 def apply_rejection(epochs, drop_indices, bad_channels):

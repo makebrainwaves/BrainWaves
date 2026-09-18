@@ -148,7 +148,7 @@ jsPsych has **no condition concept**. The `data` parameter is a free-form key-va
 
 Timestamp handling is worth recording, because the two drivers differ:
 
-- **Muse** honours the emitted timestamp. `synchronizeTimestamp` (`src/renderer/utils/eeg/muse.ts:179`) attaches a marker to the EEG sample falling within `INTER_SAMPLE_INTERVAL` (`muse.ts:27`, `-3.90625 ms` at 256 Hz) *before* the marker's own timestamp. Transport delay does not displace the marker, provided it arrives before that sample has flowed through the observable.
+- **Muse** honours the emitted timestamp. `createRawMuseObservable` (`src/renderer/utils/eeg/muse.ts:107`) buffers `{ code, timestamp }` and assigns the marker to the first EEG sample whose interval `[sample.timestamp, sample.timestamp + 3.90625 ms)` contains the marker timestamp. Error is bounded to one sample interval (~3.9 ms at 256 Hz), regardless of transport delay, as long as the marker arrives before that sample has flowed through the observable.
 - **Neurosity** ignores the timestamp entirely (`src/renderer/utils/eeg/neurosity.ts:160`) and pins the marker to the next emitted sample, so any delay displaces it directly.
 
 Same-realm execution (decision 2) makes both moot for v1, but the asymmetry constrains any future move to an isolated runtime.
