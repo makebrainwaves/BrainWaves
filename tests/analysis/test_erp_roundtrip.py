@@ -69,24 +69,12 @@ def test_planted_erp_is_recovered_on_target_condition():
     assert target_peak > standard_peak * 1.5
 
 
-def test_index_based_event_id_breaks_epoching():
-    """Regression for the T4 contract bug.
-
-    The old analysis keyed event_id by stimulus ARRAY INDEX ({label: 0, 1, ...}).
-    The CSV Marker column holds 1-based codes (1, 2), so an index value of 0
-    matches no events at all — MNE raises "No matching events found". This is the
-    silent-data-loss / broken-analysis failure this branch fixes by deriving
-    event_id from the shared MarkerRegistry. The correct mapping recovers every
-    epoch.
-    """
+def test_unknown_event_ids_produce_no_epochs():
+    """Configured codes absent from the recording must not be relabeled."""
     csv, expected = generate_recording()
 
-    broken_event_id = {"first": 0, "second": 1}  # array indices, not codes
-    with pytest.raises(ValueError, match="No matching events"):
-        _epochs_from_csv(csv, broken_event_id)
-
-    correct = _epochs_from_csv(csv)
-    assert len(correct) == expected["total"]
+    assert len(_epochs_from_csv(csv, {"UNKNOWN": 99})) == 0
+    assert len(_epochs_from_csv(csv)) == expected["total"]
 
 
 def test_sfreq_and_events_survive_timestamp_jitter():

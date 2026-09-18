@@ -177,7 +177,8 @@ export const plotPSD = async (worker: Worker) => {
     plotKey: 'psd',
     data: [
       'import io',
-      '_fig = raw.compute_psd(fmin=1, fmax=30).plot(show=False)',
+      '_data = clean_epochs if "clean_epochs" in globals() else raw',
+      '_fig = _data.compute_psd(fmin=1, fmax=30).plot(show=False)',
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',

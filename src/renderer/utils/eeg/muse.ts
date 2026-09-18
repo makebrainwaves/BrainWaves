@@ -1,20 +1,12 @@
-import {
-  withLatestFrom,
-  share,
-  startWith,
-  filter,
-  tap,
-  map,
-} from 'rxjs/operators';
+import { share, filter, map } from 'rxjs/operators';
 import {
   addInfo,
   epoch,
   bandpassFilter,
   addSignalQuality,
 } from '@neurosity/pipes';
-import { MUSE_SERVICE, MuseClient, zipSamples, EEGSample } from 'muse-js';
+import { MUSE_SERVICE, MuseClient, zipSamples } from 'muse-js';
 import { from, Observable } from 'rxjs';
-import { isNaN } from 'lodash';
 import { parseMuseSignalQuality } from './pipes';
 import {
   MUSE_SAMPLING_RATE,
@@ -24,12 +16,17 @@ import {
 import { Device, DeviceInfo, EEGData } from '../../constants/interfaces';
 import { EEGDriver } from './types';
 
-const INTER_SAMPLE_INTERVAL = -(1 / 256) * 1000;
-
 // Windows 7 check removed — process.platform and os.release are not available in renderer context
 
 const client = new MuseClient();
 client.enableAux = false;
+
+// Marker queued by injectMarker() to be attached to the EEG sample whose
+// collection interval contains the marker timestamp. Each Muse sample carries a
+// millisecond timestamp, so we can align on the sample clock instead of hope the
+// wall-clock instant falls in a tiny window. Bound error to ~1 sample interval.
+let pendingMuseMarker: { code: number; timestamp: number } | null = null;
+const MUSE_SAMPLE_INTERVAL_MS = 1000 / MUSE_SAMPLING_RATE;
 
 // Cached BluetoothDevice from the last getMuse() scan so that connectToMuse()
 // can reuse it without triggering a second requestDevice() call (which would
@@ -68,6 +65,7 @@ export const connectToMuse = async (device: Device) => {
 
 export const disconnectFromMuse = () => {
   cachedDevice = null;
+  pendingMuseMarker = null;
   client.disconnect();
 };
 
@@ -104,11 +102,8 @@ export const cancelMuseScan = (): void => {
 // Awaits Muse connectivity before sending an observable rep. EEG stream
 export const createRawMuseObservable = async () => {
   await client.start();
+  pendingMuseMarker = null;
   const eegStream = await client.eegReadings;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const markers = await (client.eventMarkers as any).pipe(
-    startWith({ timestamp: 0 })
-  ); // muse-js eventMarkers not typed as Observable
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return from(zipSamples(eegStream) as any).pipe(
     // muse-js zipSamples return type lacks Observable generic
@@ -117,11 +112,21 @@ export const createRawMuseObservable = async () => {
     map((sample: any) => ({
       // muse-js EEGSample type doesn't expose data.filter
       ...sample,
-      data: sample.data.filter((val) => !isNaN(val)),
+      data: sample.data.filter((val) => !Number.isNaN(val)),
     })),
     filter((sample) => sample.data.length >= 4),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    withLatestFrom(markers as any, synchronizeTimestamp), // markers inferred as any from above
+    map((sample: any) => {
+      if (pendingMuseMarker === null) return sample;
+      if (
+        sample.timestamp + MUSE_SAMPLE_INTERVAL_MS >
+        pendingMuseMarker.timestamp
+      ) {
+        const marked = { ...sample, marker: pendingMuseMarker.code };
+        pendingMuseMarker = null;
+        return marked;
+      }
+      return sample;
+    }),
     share()
   );
 };
@@ -151,13 +156,11 @@ export const createMuseSignalQualityObservable = (
   );
 };
 
-// Injects an event marker that will be included in muse-js's data stream.
-// muse-js merges this into its eventMarkers stream, which createRawMuseObservable
-// joins onto the EEG samples via synchronizeTimestamp (see below).
-export const injectMuseMarker = (code: number, time: number) => {
-  // muse-js types injectMarker's value as string; the marker is a numeric event
-  // code (see EVENTS). Pass through as-is — it round-trips to the CSV numerically.
-  client.injectMarker(code as unknown as string, time);
+// Injects an event marker by queueing it for the EEG sample whose interval
+// contains the marker timestamp. The timestamp argument (from the runtime
+// callback) is aligned against each sample's timestamp for bounded error.
+export const injectMuseMarker = (code: number, timestamp: number) => {
+  pendingMuseMarker = { code, timestamp };
 };
 
 // The Muse implementation of the shared device-driver contract. deviceEpics
@@ -171,17 +174,4 @@ export const museDriver: EEGDriver = {
   createRawObservable: createRawMuseObservable,
   injectMarker: injectMuseMarker,
   disconnect$: () => museDisconnect$,
-};
-
-// ---------------------------------------------------------------------
-// Helpers
-
-const synchronizeTimestamp = (eegSample, marker) => {
-  if (
-    eegSample.timestamp - marker.timestamp < 0 &&
-    eegSample.timestamp - marker.timestamp >= INTER_SAMPLE_INTERVAL
-  ) {
-    return { ...eegSample, marker: marker.value };
-  }
-  return eegSample;
 };
