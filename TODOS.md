@@ -9,6 +9,20 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 - [x] **Electron playtest skill** — CDP-attach harness: `tests/electron-smoke.mjs` (zero-dep smoke test), `.claude/skills/electron-playtest/SKILL.md` (agent skill), `.github/workflows/playtest.yml` (CI), `src/main/index.ts` env-var userData redirect. Asserts: electronAPI, React root, Pyodide worker ready, no console errors, screenshot.
 - [ ] **Packaged-app launch smoke test** — `tests/build.check.ts` asserts the build output and Pyodide payload are present on disk, but nothing *launches* the packaged app. The gap is a real Electron smoke test (spawn the built app under `xvfb` on Linux, assert the window opens and the worker posts `ready`) — that is what would catch a prod-only Pyodide regression automatically instead of during a demo.
 - [ ] **Cross-platform LSL packaging verification** — `macOS arm64` is done + self-contained (see Done recently). Still needs each build machine: **macOS x64** (`patchDeps` only symlinks on arm64, so an Intel build uses node-labstreaminglayer's original x86_64 dylib — `otool -L` the packaged liblsl to confirm self-contained; the `afterPack` hook bundles whatever external deps it finds, arch-agnostic), **Windows x64** (bundled `lsl_amd64.dll` is a self-contained PE — confirm koffi loads it from the packaged app), **Linux/Ubuntu** (bundled `.so` is x86_64 ELF — `ldd` it + Web-Bluetooth smoke test, `--enable-experimental-web-platform-features` already set).
+- [ ] **Playtest 1 fixes (P0)** — see `docs/uxr/playtest_naive_1.md`. Bugs and blockers from 2026-09-18 naive-user session:
+  - Collect: ConnectModal fails to appear on first navigation to the collect screen.
+  - Collect: layout incorrect.
+  - Clean: crash at "Ready to clean subject" — reproduce and fix.
+  - Analyze: layout broken by recent component changes; stray elements popping up.
+  - Student-facing experiment names (current names are placeholder/dev-written).
+  - Clearer CTA from preview → "Run full experiment"; protect against overwriting an existing recording.
+  - Larger / more obvious pre-screen edit affordance.
+  - Experiment start: prominent "Press SPACE to begin" prompt with spacebar icon.
+  - In-experiment progress bar.
+  - Pre-run coaching copy: not a speed test, ~1–1.5 s per stimulus, stay still, minimize talking.
+  - Clean vs Analyze labels are ambiguous — clarify the step purpose.
+  - Clean: allow choosing a different file without going back/undoing.
+  - Add "What does clean your data mean?" student explainer (aligns with Epoch reviewer onboarding work below).
 
 ## Next (V1.5: Visual Polish and Juice)
 - [ ] **Import stimuli into the workspace?** — today custom experiments load images/sounds straight from wherever the student keeps them (Documents/Downloads) via the `bwfile://` allowlist; moving/renaming that folder silently breaks the study, and a workspace can't be zipped up and shared as a self-contained bundle. Alternative: copy stimuli into `BrainWaves_Workspaces/<title>/stimuli/<condition>/` at selection time (single pre-authorized root, portable study bundles; costs disk duplication + stale copies if the source folder is edited later). **Contingent on user testing** — students may actually prefer managing their own folders in Documents/Downloads, since workspace folders are semi-private territory full of mysterious things like `appState.json`. Decide after watching a class use the current flow.
@@ -48,5 +62,5 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 - **Accept `.webp`/`.gif` stimulus images** (2026-08-18) — `fs:readImages` uses a real `path.extname` check incl. `.webp` (landed with PR #241); Conditions helper copy now lists all accepted extensions.
 - **Edit menu / paste in text fields** (2026-08-18) — `role: 'editMenu'` on Darwin and default templates (⌘V etc. work everywhere), plus right-click cut/copy/paste on editable fields in prod.
 
-- **Land LSL** (2026-07-06) — `device-lsl` merged (PR #204), Muse-first. macOS arm64 packaging made self-contained (PR #221): the Homebrew liblsl links `/opt/homebrew/.../libpugixml.1.dylib` (breaks on clean Macs); the `afterPack` hook bundles external deps and rewrites load paths to `@loader_path`. Remaining per-platform packaging checks broken out under "Now".
+- **Muse marker-to-sample clock + epoching hardening** (2026-09-18) — Merged. Aligns injected markers to the nearest EEG sample timestamp and hardens `utils.py` epoching around boundary/empty epoch cases.
 - **Cut Emotiv SDK** (2026-07-06) — SDK was already gone from source; corrected the README device claim ("Emotiv Epoc+" → "Muse and Neurosity").
