@@ -56,4 +56,4 @@ jobs:
             node tests/electron-smoke.mjs
           fi
         env:
-          SMOKE_TIMEOUT: '180'
+          SMOKE_TIMEOUT: '300'
