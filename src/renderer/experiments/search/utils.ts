@@ -159,3 +159,12 @@ export function initResponses(this: lab.html.Screen) {
       ? 'no'
       : 'yes';
 }
+
+/** Emits the search trial's condition label from its display size. */
+export function emitSearchCondition(this: lab.html.Screen) {
+  this.parameters.callbackForEEG(
+    parseInt(this.parameters.size, 10) < 13
+      ? '5 and 10 letters'
+      : '15 and 20 letters'
+  );
+}

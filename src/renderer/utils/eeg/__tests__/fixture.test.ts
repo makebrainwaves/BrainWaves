@@ -16,6 +16,8 @@ import {
   fixtureDisconnect$,
 } from '../fixture';
 
+const SAMPLE_INTERVAL_MS = 1000 / 256;
+
 // Mock CSV: 256 rows, 4 channels. Row i has data [i, i+1, i+2, i+3].
 // Row 128 has baked-in marker 1; all others have no marker.
 vi.mock('../fixture_data.csv?raw', () => {
@@ -123,61 +125,50 @@ describe('fixture driver', () => {
   // Markers
   // -----------------------------------------------------------------------
 
-  it('injectFixtureMarker latches the code onto subsequent samples', async () => {
+  it('attaches an injected marker to the one sample whose interval contains it', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer(); // 5 samples
-    injectFixtureMarker(42, Date.now());
-    for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer(); // 5 more
+    for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer();
 
-    const firstMarkerIndex = seen.findIndex((s) => s.marker === 42);
-    expect(firstMarkerIndex).toBeGreaterThanOrEqual(0);
-    // All samples after injection should carry the latched marker.
-    for (let i = firstMarkerIndex; i < seen.length; i++) {
-      expect(seen[i].marker).toBe(42);
-    }
+    // Lands two sample intervals out — inside the 7th sample's interval.
+    injectFixtureMarker(42, Date.now() + 2 * SAMPLE_INTERVAL_MS);
+    for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer();
+
+    const marked = seen.filter((s) => s.marker === 42);
+    expect(marked).toHaveLength(1);
   });
 
-  it('emits baked-in CSV marker latched from row 128 onward', async () => {
+  it('replays a baked-in CSV marker on its own row only', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    for (let i = 0; i < 200; i++) vi.advanceTimersToNextTimer();
+    for (let i = 0; i < 135; i++) vi.advanceTimersToNextTimer();
 
-    const row128 = seen.find((s) => s.data[0] === 128);
-    expect(row128).toBeDefined();
-    expect(row128!.marker).toBe(1);
-    // Marker stays latched on every sample after row 128.
-    const first128 = seen.findIndex((s) => s.data[0] === 128);
-    for (let i = first128; i < seen.length; i++) {
-      expect(seen[i].marker).toBe(1);
-    }
+    const marked = seen.filter((s) => s.marker !== undefined);
+    expect(marked).toHaveLength(1);
+    expect(marked[0].data[0]).toBe(128);
+    expect(marked[0].marker).toBe(1);
   });
 
-  it('pending marker shadows baked-in CSV marker on the same row and latches', async () => {
+  it('an injected marker wins over the baked-in marker on its sample', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
 
-    // Advance to just before row 128.
+    // Advance to just before row 128. seen[0].timestamp is the stream's
+    // synthetic base, so this lands the marker inside row 128's interval.
     for (let i = 0; i < 128; i++) vi.advanceTimersToNextTimer();
-    // Inject marker 99 before row 128 fires.
-    injectFixtureMarker(99, Date.now());
+    injectFixtureMarker(99, seen[0].timestamp + 128 * SAMPLE_INTERVAL_MS);
     vi.advanceTimersToNextTimer(); // row 128
 
-    // Row 128 should carry the injected code 99, not the baked-in 1.
     const row128 = seen.find((s) => s.data[0] === 128);
     expect(row128).toBeDefined();
     expect(row128!.marker).toBe(99);
-    // The injected marker latches forward on subsequent samples.
-    const first128 = seen.findIndex((s) => s.data[0] === 128);
-    for (let i = first128; i < seen.length; i++) {
-      expect(seen[i].marker).toBe(99);
-    }
+    expect(seen.filter((s) => s.marker === 99)).toHaveLength(1);
   });
 
   it('injectMarker before stream starts does not leak into first sample', async () => {

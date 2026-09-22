@@ -16,8 +16,8 @@ interface Props {
   onEnd: () => void;
 }
 
-function insertPreviewMarkerCallback(code: number, time: number) {
-  console.log('EEG marker', code, time);
+function insertPreviewMarkerCallback(label: string, time: number) {
+  console.log('EEG marker', label, time);
 }
 
 export default function PreviewExperimentComponent(props: Props) {

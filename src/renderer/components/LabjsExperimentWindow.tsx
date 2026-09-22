@@ -75,8 +75,8 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
     });
 
     // TODO: more natural labjs-y way to do this?
-    experimentToRun.parameters.callbackForEEG = (e) => {
-      eventCallback(e, new Date().getTime());
+    experimentToRun.parameters.callbackForEEG = (label: string) => {
+      eventCallback(label, Date.now());
     };
 
     experimentToRun.options.events.keydown = async (e) => {

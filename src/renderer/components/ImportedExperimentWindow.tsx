@@ -11,7 +11,6 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import 'jspsych/css/jspsych.css';
-import { buildMarkerRegistryFromLabels } from '../utils/eeg/markerRegistry';
 import { rewriteRelativeAssetUrls } from '../utils/jspsych/assets';
 import { createJsPsychHost } from '../utils/jspsych/host';
 import { ImportedExperiment } from '../constants/interfaces';
@@ -54,7 +53,6 @@ export const ImportedExperimentWindow: React.FC<
           conditionKey: imported.conditionKey,
           correctKey: imported.correctKey,
         },
-        registry: buildMarkerRegistryFromLabels(imported.conditionLabels),
         eventCallback,
         onFinish,
         onProgress,

@@ -4,9 +4,7 @@ import {
   createJsPsychHost,
   resolveTrialData,
 } from '../host';
-import { buildMarkerRegistryFromLabels } from '../../eeg/markerRegistry';
 
-const registry = buildMarkerRegistryFromLabels(['Face', 'House']);
 const mapping = { conditionKey: 'condition', correctKey: '' };
 
 const fakeInstance = (data: Record<string, unknown>) => ({
@@ -50,7 +48,6 @@ describe('buildJsPsychOptions', () => {
     const options = buildJsPsychOptions({
       hostElementId: 'host',
       mapping,
-      registry,
       eventCallback,
       onFinish,
       getInstance: () => fakeInstance(resolved),
@@ -72,20 +69,21 @@ describe('buildJsPsychOptions', () => {
     expect(options.default_iti).toBe(250);
   });
 
-  it('emits the declared code for the resolved condition on the next frame', async () => {
+  it('emits the resolved condition label on the next frame', async () => {
     const { options, eventCallback } = build();
     (options.on_trial_start as (t: unknown) => void)({ data: {} });
     expect(eventCallback).not.toHaveBeenCalled();
     await nextFrame();
     expect(eventCallback).toHaveBeenCalledTimes(1);
-    expect(eventCallback.mock.calls[0][0]).toBe(2); // House
+    // The label is the contract at this seam; numeric codes resolve at emission.
+    expect(eventCallback.mock.calls[0][0]).toBe('House');
   });
 
-  it('emits nothing for a trial whose condition was never declared', async () => {
+  it('passes any string label through; emitMarker rejects undeclared ones', async () => {
     const { options, eventCallback } = build({}, { condition: 'Scene' });
     (options.on_trial_start as (t: unknown) => void)({ data: {} });
     await nextFrame();
-    expect(eventCallback).not.toHaveBeenCalled();
+    expect(eventCallback).toHaveBeenCalledWith('Scene', expect.any(Number));
   });
 
   it('shouts when the condition key resolves to a non-string', async () => {
@@ -166,7 +164,6 @@ describe('createJsPsychHost', () => {
         {
           hostElementId: 'host',
           mapping,
-          registry,
           eventCallback: vi.fn(),
           onFinish: (value) => {
             csv = value;
@@ -192,7 +189,6 @@ describe('createJsPsychHost', () => {
     const config = {
       hostElementId: 'host',
       mapping,
-      registry,
       eventCallback: vi.fn(),
       onFinish: vi.fn(),
     };
@@ -207,7 +203,6 @@ describe('createJsPsychHost', () => {
       createJsPsychHost('thisIsNotDefined();', {
         hostElementId: 'host',
         mapping,
-        registry,
         eventCallback: vi.fn(),
         onFinish: vi.fn(),
       })

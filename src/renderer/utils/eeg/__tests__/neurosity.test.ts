@@ -106,29 +106,24 @@ describe('createRawNeurosityObservable', () => {
   // REGRESSION: Neurosity recordings previously had an all-zero Marker column
   // because eventCallback only called injectMuseMarker — so no Neurosity dataset
   // could yield an ERP. injectNeurosityMarker must attach the code to a sample.
-  it('attaches an injected marker to the next emitted sample, once', async () => {
+  it('attaches an injected marker to the sample whose interval contains its timestamp', async () => {
     const observable = await createRawNeurosityObservable();
     const seen: EEGData[] = [];
     const sub = observable.subscribe((d) => seen.push(d));
 
-    injectNeurosityMarker(2, Date.now());
+    // Epoch startTime 2000 → samples at 2000, ~2003.9, ~2007.8 (256 Hz).
+    // 2005 falls inside the second sample's interval.
+    injectNeurosityMarker(2, 2005);
     h.holder.observer?.next({
       data: [
-        [10, 11],
-        [20, 21],
+        [10, 11, 12],
+        [20, 21, 22],
       ],
-      info: { samplingRate: 256, startTime: 1000 },
-    });
-
-    // Only the first sample after injection carries the code; the rest are clean.
-    expect(seen[0].marker).toBe(2);
-    expect(seen[1].marker).toBeUndefined();
-
-    // A subsequent epoch with no new marker carries no code (not sticky).
-    h.holder.observer?.next({
-      data: [[12], [22]],
       info: { samplingRate: 256, startTime: 2000 },
     });
+
+    expect(seen[0].marker).toBeUndefined();
+    expect(seen[1].marker).toBe(2);
     expect(seen[2].marker).toBeUndefined();
     sub.unsubscribe();
   });

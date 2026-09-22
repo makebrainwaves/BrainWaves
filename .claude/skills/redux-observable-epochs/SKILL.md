@@ -39,13 +39,13 @@ Rules:
 - Recording writes samples to CSV via the `eeg:writeData` IPC (main holds the write stream).
 - `lslForwardEpic` + `lslBridge.batchSamplesToEpoch` — batch ~32 samples and forward to the main-process LSL outlet (only when `isLSLAvailable()`).
 
-Markers are injected device-agnostically: the UI calls `injectMarker()`, which delegates to the active driver's `injectMarker` (set on connect via `setActiveDriver`). Every driver implements the `EEGDriver` interface (`utils/eeg/types.ts`) — a device can't ship without a marker path. (LSL inlet is intentionally out of the driver registry; its `injectMarker` no-ops.)
+Markers are emitted device-agnostically: experiment hooks call `callbackForEEG(label)` with a **condition label** (never a number), and the runtime seam lands on `emitMarker(registry, label, time)` (`utils/eeg/index.ts`), which resolves the label to its code and writes both sinks — the active driver's `injectMarker` (set on connect via `setActiveDriver`) and `lslBridge.sendMarker`. Adapters stamp the Marker column via the shared timing rule (`createMarkerStamper` in `markerRegistry.ts`): one `{code, timestamp}` attached to the sample whose interval contains the timestamp. Every driver implements the `EEGDriver` interface (`utils/eeg/types.ts`) — a device can't ship without a marker path. (LSL inlet is intentionally out of the driver registry; its `injectMarker` no-ops.)
 
 ## The marker-code contract (read this before debugging empty ERPs)
 
 Markers in the CSV `Marker` column are **numeric** EVENTS codes (`stimulus.type`, e.g. `STIMULUS_1 = 1`), 1-based — **not** strings, not array indices. MNE's `find_events` reads them off the last (`stim`) channel.
 
-`buildMarkerRegistry(stimuli)` (`utils/eeg/markerRegistry.ts`) is the **single source of truth**, used by BOTH:
+`resolveMarkerRegistry(params)` (`utils/eeg/markerRegistry.ts`) is the **single source of truth** and entry point (`buildMarkerRegistry` from stimuli, or `buildMarkerRegistryFromLabels` for an imported study's Markers-tab order), used by BOTH:
 - collection — the CSV codes + the `-events.json` sidecar (`eeg:writeEvents` IPC), and
 - analysis — the MNE `event_id` map.
 
@@ -57,7 +57,7 @@ In `pyodideEpics.loadEpochsEpic`, `event_id` is derived from `buildMarkerRegistr
 
 ## Debugging checklist
 
-- **Markers all zero in CSV** → the device's `injectMarker` isn't wired, or `setActiveDriver` didn't run on connect.
+- **Markers all zero in CSV** → look for `emitMarker: unknown condition label` in the console (a hook label that no declared condition matches), or the device's `injectMarker` isn't wired / `setActiveDriver` didn't run on connect.
 - **"No matching events" / empty ERP** → `event_id` not derived from `buildMarkerRegistry`; codes (1-based) vs map mismatch.
 - **Epic never fires** → not in `combineEpics` / `epics/index.ts`, or the `filter(isActionOf(...))` targets the wrong action.
 - **Value leaks downstream** from a side-effect epic → use `mergeMap(() => EMPTY)`, not `map`.

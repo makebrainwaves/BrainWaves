@@ -188,8 +188,18 @@ export function initResponseHandlers(this: lab.core.Component) {
   };
 }
 
+/** Emits this trial's condition label to the marker pipeline. */
 export function triggerEEGCallback(this: lab.core.Component) {
-  this.parameters.callbackForEEG(this.parameters.type);
+  this.parameters.callbackForEEG(
+    (this.parameters as unknown as Stimulus).condition
+  );
+}
+
+/** Emits 'Congruent'/'Incongruent' for the stroop trial's derived congruency. */
+export function emitStroopCondition(this: lab.core.Component) {
+  this.parameters.callbackForEEG(
+    this.parameters.congruent === 'yes' ? 'Congruent' : 'Incongruent'
+  );
 }
 
 export function resetCorrectResponse(this: lab.core.Component) {

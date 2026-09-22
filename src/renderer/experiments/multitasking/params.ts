@@ -1,4 +1,5 @@
 import { EVENTS } from '../../constants/constants';
+import type { ExperimentParameters } from '../../constants/interfaces';
 
 export const params = {
   trialDuration: 1000,
@@ -20,4 +21,18 @@ export const params = {
     type: EVENTS.STIMULUS_2,
     response: '9',
   },
-};
+  stimuli: [
+    {
+      title: 'No switching',
+      condition: 'No switching',
+      type: EVENTS.STIMULUS_1,
+      response: '1',
+    },
+    {
+      title: 'Switching',
+      condition: 'Switching',
+      type: EVENTS.STIMULUS_2,
+      response: '9',
+    },
+  ],
+} satisfies ExperimentParameters;
