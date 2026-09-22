@@ -45,8 +45,7 @@ import type {
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
 
-// Playtest harness: redirect userData to a temp dir so this instance gets its
-// own single-instance lock scope and doesn't conflict with a running app.
+// Playtest harness: isolate smoke-test state from the user's Electron profile.
 // Clear the env after reading so child processes don't inherit it.
 const playtestUserData = process.env.BW_PLAYTEST_USER_DATA;
 if (playtestUserData) {
@@ -59,20 +58,6 @@ app.commandLine.appendSwitch(
   'enable-experimental-web-platform-features',
   'true'
 );
-
-// Enforce a single app instance — a second launch focuses the existing window.
-if (!app.requestSingleInstanceLock()) {
-  app.quit();
-}
-
-// Windows / Linux: a second launch focuses the existing window.
-// requestSingleInstanceLock() above ensures the existing instance gets this event.
-app.on('second-instance', () => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
-});
 
 // Register privileged custom schemes before app.whenReady().
 protocol.registerSchemesAsPrivileged([

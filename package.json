@@ -37,14 +37,6 @@
     "appId": "com.electron.brainwaves",
     "afterPack": "./internals/scripts/afterPack.mjs",
     "asar": true,
-    "protocols": [
-      {
-        "name": "BrainWaves",
-        "schemes": [
-          "brainwaves"
-        ]
-      }
-    ],
     "asarUnpack": [
       "**/*.node",
       "node_modules/node-labstreaminglayer/prebuild/**",
