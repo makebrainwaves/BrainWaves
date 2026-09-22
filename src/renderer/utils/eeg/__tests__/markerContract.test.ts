@@ -32,53 +32,32 @@ const emit = (
 };
 
 describe('marker code contract per pack', () => {
-  it('stroop: congruent trial emits the label declared as STIMULUS_2', () => {
-    const label = emit(emitStroopCondition, { congruent: 'yes' });
-    expect(resolveMarkerRegistry(stroopParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_2
-    );
-  });
-
-  it('stroop: incongruent trial emits the label declared as STIMULUS_1', () => {
-    const label = emit(emitStroopCondition, { congruent: 'no' });
-    expect(resolveMarkerRegistry(stroopParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_1
-    );
-  });
-
-  it('search: a 5/10-letter trial emits the label declared as STIMULUS_1', () => {
-    const label = emit(emitSearchCondition, { size: '5' });
-    expect(resolveMarkerRegistry(searchParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_1
-    );
-  });
-
-  it('search: a 15/20-letter trial emits the label declared as STIMULUS_2', () => {
-    const label = emit(emitSearchCondition, { size: '15' });
-    expect(resolveMarkerRegistry(searchParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_2
-    );
-  });
-
-  it('multitasking: Switching emits the label declared as STIMULUS_2', () => {
-    const label = emit(emitMultiCondition, { cond: 'Switching' });
-    expect(resolveMarkerRegistry(multiParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_2
-    );
-  });
-
-  it('multitasking: No switching emits the label declared as STIMULUS_1', () => {
-    const label = emit(emitMultiCondition, { cond: 'No switching' });
-    expect(resolveMarkerRegistry(multiParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_1
-    );
-  });
-
-  it('faces/houses: the generic hook emits the declared condition label', () => {
-    const label = emit(emitFaceHouseCondition, { condition: 'Face' });
-    expect(resolveMarkerRegistry(facesParams).eventId[label]).toBe(
-      EVENTS.STIMULUS_1
-    );
+  it.each([
+    [
+      emitStroopCondition,
+      { congruent: 'yes' },
+      stroopParams,
+      EVENTS.STIMULUS_2,
+    ],
+    [emitStroopCondition, { congruent: 'no' }, stroopParams, EVENTS.STIMULUS_1],
+    [emitSearchCondition, { size: '5' }, searchParams, EVENTS.STIMULUS_1],
+    [emitSearchCondition, { size: '15' }, searchParams, EVENTS.STIMULUS_2],
+    [emitMultiCondition, { cond: 'Switching' }, multiParams, EVENTS.STIMULUS_2],
+    [
+      emitMultiCondition,
+      { cond: 'No switching' },
+      multiParams,
+      EVENTS.STIMULUS_1,
+    ],
+    [
+      emitFaceHouseCondition,
+      { condition: 'Face' },
+      facesParams,
+      EVENTS.STIMULUS_1,
+    ],
+  ])('emits the code declared by its pack', (fn, parameters, params, code) => {
+    const label = emit(fn as (this: never) => void, parameters);
+    expect(resolveMarkerRegistry(params).eventId[label]).toBe(code);
   });
 
   it('every built-in pack resolves to a non-empty registry', () => {

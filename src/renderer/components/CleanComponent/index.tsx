@@ -21,7 +21,7 @@ import {
 } from '../../actions';
 
 // Memoized by params reference so we don't rebuild the registry every render.
-export const codeToLabelFor = memoize(
+const codeToLabelFor = memoize(
   (params: ExperimentParameters | null | undefined) =>
     resolveMarkerRegistry(params).codeToLabel
 );

@@ -125,11 +125,7 @@ export const resolveMarkerRegistry = (
     : buildMarkerRegistry(params?.stimuli);
 
 export interface MarkerStamper {
-  /** Queue `{code, timestamp}`; replaces any un-stamped marker (last wins). */
   inject(code: number, timestamp: number): void;
-  /** Drop the pending marker (stream teardown / restart). */
-  clear(): void;
-  /** Attach the pending marker to the one sample whose interval contains its timestamp. */
   stamp<T extends EEGData>(sample: T): T;
 }
 
@@ -145,13 +141,10 @@ export const createMarkerStamper = (
 ): MarkerStamper => {
   let pending: { code: number; timestamp: number } | null = null;
   return {
-    inject(code, timestamp) {
+    inject(code: number, timestamp: number) {
       pending = { code, timestamp };
     },
-    clear() {
-      pending = null;
-    },
-    stamp(sample) {
+    stamp<T extends EEGData>(sample: T): T {
       if (pending === null) return sample;
       if (sample.timestamp + sampleIntervalMs > pending.timestamp) {
         const marked = { ...sample, marker: pending.code };
