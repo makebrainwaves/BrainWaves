@@ -31,14 +31,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
   // Dialogs
   // ------------------------------------------------------------------
-  showOpenDialog: (options: Electron.OpenDialogOptions) =>
-    ipcRenderer.invoke('dialog:showOpen', options),
-
   showMessageBox: (options: Electron.MessageBoxOptions) =>
     ipcRenderer.invoke('dialog:showMessage', options),
-
-  showSaveDialog: (options: Electron.SaveDialogOptions) =>
-    ipcRenderer.invoke('dialog:showSave', options),
 
   loadDialog: (fileType: string): Promise<string | null> =>
     ipcRenderer.invoke('loadDialog', fileType),
@@ -46,12 +40,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
   // Shell
   // ------------------------------------------------------------------
-  showItemInFolder: (fullPath: string) =>
-    ipcRenderer.invoke('shell:showItemInFolder', fullPath),
-
-  moveItemToTrash: (fullPath: string) =>
-    ipcRenderer.invoke('shell:moveItemToTrash', fullPath),
-
   openWorkspaceDir: (title: string): Promise<string> =>
     ipcRenderer.invoke('shell:openWorkspaceDir', title),
 
@@ -205,19 +193,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ------------------------------------------------------------------
   // Misc
   // ------------------------------------------------------------------
-  getResourcePath: (): Promise<string> => ipcRenderer.invoke('getResourcePath'),
-
   getViewerUrl: (): Promise<string> => ipcRenderer.invoke('getViewerUrl'),
-
-  // ------------------------------------------------------------------
-  // OAuth deep-link callback
-  // ------------------------------------------------------------------
-  onOAuthCallback: (callback: (url: string) => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, url: string) =>
-      callback(url);
-    ipcRenderer.on('oauth:callback', handler);
-    return () => ipcRenderer.removeListener('oauth:callback', handler);
-  },
 
   // ------------------------------------------------------------------
   // Bluetooth — search cancellation

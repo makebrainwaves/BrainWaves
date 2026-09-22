@@ -60,39 +60,14 @@ app.commandLine.appendSwitch(
   'true'
 );
 
-// Enforce a single app instance — required so the second-instance event fires
-// on Windows/Linux when the OS re-launches the app to deliver an OAuth callback.
+// Enforce a single app instance — a second launch focuses the existing window.
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
 
-// Register brainwaves:// as the OS-level deep-link scheme.
-// Redirect URI for OAuth: brainwaves://oauth/callback
-app.setAsDefaultProtocolClient('brainwaves');
-
-// Buffer an OAuth callback URL that arrives before the window is ready
-// (e.g. the app is cold-launched by the OS to handle the redirect).
-let pendingOAuthUrl: string | null = null;
-
-const handleOAuthCallback = (url: string) => {
-  if (mainWindow) {
-    mainWindow.webContents.send('oauth:callback', url);
-  } else {
-    pendingOAuthUrl = url;
-  }
-};
-
-// macOS: OS fires open-url when a brainwaves:// link is opened.
-app.on('open-url', (event, url) => {
-  event.preventDefault();
-  handleOAuthCallback(url);
-});
-
-// Windows / Linux: OS relaunches the app with the URL as a CLI argument.
+// Windows / Linux: a second launch focuses the existing window.
 // requestSingleInstanceLock() above ensures the existing instance gets this event.
-app.on('second-instance', (_event, argv) => {
-  const url = argv.find((arg) => arg.startsWith('brainwaves://'));
-  if (url) handleOAuthCallback(url);
+app.on('second-instance', () => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
@@ -166,16 +141,8 @@ const activeStreams = new Map<string, fs.WriteStream>();
 // ------------------------------------------------------------------
 
 // Dialogs
-ipcMain.handle('dialog:showOpen', (_event, options) =>
-  dialog.showOpenDialog(mainWindow!, options)
-);
-
 ipcMain.handle('dialog:showMessage', (_event, options) =>
   dialog.showMessageBox(mainWindow!, options)
-);
-
-ipcMain.handle('dialog:showSave', (_event, options) =>
-  dialog.showSaveDialog(mainWindow!, options)
 );
 
 ipcMain.handle('loadDialog', async (_event, fileType) => {
@@ -208,19 +175,11 @@ ipcMain.handle('loadDialog', async (_event, fileType) => {
 });
 
 // Shell
-ipcMain.handle('shell:showItemInFolder', (_event, fullPath) =>
-  shell.showItemInFolder(fullPath)
-);
-
-// Open a workspace folder. Resolve the absolute path here — shell.openPath (and
-// showItemInFolder) silently no-op on a relative path, which is why the old
-// renderer-side path.join('BrainWaves_Workspaces', title) did nothing.
+// Open a workspace folder. Resolve the absolute path here — shell.openPath
+// silently no-ops on a relative path, which is why the old renderer-side
+// path.join('BrainWaves_Workspaces', title) did nothing.
 ipcMain.handle('shell:openWorkspaceDir', (_event, title: string) =>
   shell.openPath(getWorkspaceDir(title))
-);
-
-ipcMain.handle('shell:moveItemToTrash', (_event, fullPath) =>
-  shell.trashItem(fullPath)
 );
 
 // Workspace management
@@ -666,13 +625,6 @@ ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {
   lslInlets.unsubscribeStream(payload.uid);
 });
 
-// Resource path (for experiment file loading)
-ipcMain.handle('getResourcePath', () => {
-  return is.dev
-    ? path.join(__dirname, '../../src/renderer')
-    : process.resourcesPath;
-});
-
 // Viewer URL — used by ViewerComponent to load the EEG viewer in a webview
 ipcMain.handle('getViewerUrl', () => {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -776,10 +728,6 @@ const createWindow = async () => {
     }
     if (is.dev || process.env.DEBUG_PROD === 'true') {
       mainWindow.webContents.openDevTools();
-    }
-    if (pendingOAuthUrl) {
-      mainWindow.webContents.send('oauth:callback', pendingOAuthUrl);
-      pendingOAuthUrl = null;
     }
   });
 

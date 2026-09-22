@@ -73,7 +73,7 @@ const pyodideErrorEpic: Epic<
         `Error in pyodideWorker at ${e.filename}, Line: ${e.lineno}, ${e.message}`
       )
     ),
-    map(PyodideActions.ReceiveError)
+    mergeMap(() => EMPTY)
   );
 
 // Once pyodide webworker is created,
@@ -94,7 +94,7 @@ const pyodideMessageEpic: Epic<
       const { results, error, plotKey, dataKey } = e.data;
       if (error) {
         toast.error(`Pyodide: ${error}`);
-        return of(PyodideActions.ReceiveError(error));
+        return EMPTY;
       }
 
       // Route data results (tagged with dataKey, not plotKey). These come back
@@ -166,7 +166,7 @@ const pyodideMessageEpic: Epic<
         case 'erp':
           return of(PyodideActions.SetERPPlot(mimeBundle));
         default:
-          return of(PyodideActions.ReceiveMessage(e.data));
+          return EMPTY;
       }
     })
   );

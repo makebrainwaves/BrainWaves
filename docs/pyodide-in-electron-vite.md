@@ -236,7 +236,7 @@ switch (plotKey) {
   case 'topo':  return of(PyodideActions.SetTopoPlot(mimeBundle));
   case 'psd':   return of(PyodideActions.SetPSDPlot(mimeBundle));
   case 'erp':   return of(PyodideActions.SetERPPlot(mimeBundle));
-  default:      return of(PyodideActions.ReceiveMessage(e.data));
+  default:      return EMPTY; // unknown keys are dropped
 }
 ```
 

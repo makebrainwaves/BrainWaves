@@ -151,14 +151,6 @@ The only valid automated QA is the CDP-attached Electron smoke test. Vite
 `:5173` has no preload and fails immediately. See `skill://electron-playtest` for
 the smoke-test command and CI usage.
 
-## Custom experiments are a V1 P0 restore, not a delete
-
-The 2017–2020 app had a working custom-experiment builder (CHANGELOG 0.11–0.13).
-HEAD still has the files (`CustomDesignComponent`, `StimuliRow`/`StimuliDesignColumn`,
-`experiments/custom/`) but the bank has no Custom card, `getExperimentFromType`
-falls through to Faces/Houses, and CONDITIONS/TRIALS are stubbed. Recover from
-git history; do not delete the stub. See `TODOS.md`.
-
 ## Lab.js content templates are lodash `template` — full JS, `this` = parameter context
 
 `lab.core.deserialize` parses `${...}` placeholders in `content`/`timeout`/etc.

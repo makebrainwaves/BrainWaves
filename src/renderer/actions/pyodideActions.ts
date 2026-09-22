@@ -60,10 +60,7 @@ export const PyodideActions = {
   SetTopoPlot: createAction<any, 'SET_TOPO_PLOT'>('SET_TOPO_PLOT'), // Pyodide WASM runtime result — shape is dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetERPPlot: createAction<any, 'SET_ERP_PLOT'>('SET_ERP_PLOT'), // Pyodide WASM runtime result — shape is dynamic
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ReceiveMessage: createAction<any, 'RECEIVE_MESSAGE'>('RECEIVE_MESSAGE'), // Worker message event — shape is dynamic
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ReceiveError: createAction<any, 'RECEIVE_ERROR'>('RECEIVE_ERROR'), // Worker error event — shape is dynamic
+
   SetWorkerReady: createAction('SET_WORKER_READY'),
   GetSuggestedRejections: createAction<number, 'GET_SUGGESTED_REJECTIONS'>(
     'GET_SUGGESTED_REJECTIONS'
