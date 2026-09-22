@@ -1,3 +1,12 @@
+# 1.0.3 (September 22, 2026) - Explore lessons, design system, marker timing
+
+- New EEG exploration lessons with a sensor card and smoother live plotting.
+- Design system applied to the presentation layer; Storybook catalog and design tokens.
+- Muse markers align to the sample clock; analysis epoching hardened.
+- Pyodide: pinned compatible Python wheels.
+- Collect: HelpSidebar renamed to LessonSidebar.
+- Dependency updates (vitest, protobufjs, js-yaml).
+
 # 1.0.2 (September 8, 2026) - Dependency updates
 
 - Routine dev-dependency bumps (postcss-selector-parser, browserslist, fast-uri, @xmldom/xmldom, @humanfs/node).

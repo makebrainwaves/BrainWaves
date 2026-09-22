@@ -33,13 +33,13 @@ The renderer has **no Node access** (`contextIsolation: true`, `nodeIntegration:
 |------|---------|---------|
 | Renderer asks main, wants a result/ack | `ipcRenderer.invoke` ↔ `ipcMain.handle` (Promise) | `lsl:discoverStreams`, every `fs:*` |
 | Renderer fires hot/fire-and-forget data at main | `ipcRenderer.send` ↔ `ipcMain.on` (void) | `eeg:writeData`, `lsl:sendEpoch` |
-| Main pushes to renderer (events, inlet data) | `mainWindow.webContents.send` → `ipcRenderer.on` | `lsl:inletData`, `lsl:status`, `oauth:callback` |
+| Main pushes to renderer (events, inlet data) | `mainWindow.webContents.send` → `ipcRenderer.on` | `lsl:inletData`, `lsl:status` |
 
 Hot streaming paths (per-sample EEG, LSL epochs) deliberately use `send`, not `invoke` — a Promise per sample would swamp IPC. See `eeg:writeHeader`/`eeg:writeData` and `lslBridge.ts`'s batching (`batchSamplesToEpoch`, ~125 ms batches).
 
 ## Main → renderer subscriptions must return an unsubscribe
 
-Every `onX` in the bridge registers an `ipcRenderer.on` listener and **returns a teardown** that calls `removeListener` (see `onLSLInletData`, `onOAuthCallback`). Renderer code must call it on cleanup or listeners leak across reconnects. Never expose a raw `ipcRenderer.on` without the teardown wrapper.
+Every `onX` in the bridge registers an `ipcRenderer.on` listener and **returns a teardown** that calls `removeListener` (see `onLSLInletData`). Renderer code must call it on cleanup or listeners leak across reconnects. Never expose a raw `ipcRenderer.on` without the teardown wrapper.
 
 ## Native modules are main-only and load lazily
 

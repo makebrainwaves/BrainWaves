@@ -17,20 +17,10 @@ export {};
 declare global {
   interface ElectronAPI {
     // Dialogs
-    showOpenDialog: (
-      options: Electron.OpenDialogOptions
-    ) => Promise<Electron.OpenDialogReturnValue>;
     showMessageBox: (
       options: Electron.MessageBoxOptions
     ) => Promise<Electron.MessageBoxReturnValue>;
-    showSaveDialog: (
-      options: Electron.SaveDialogOptions
-    ) => Promise<Electron.SaveDialogReturnValue>;
     loadDialog: (fileType: string) => Promise<string | null>;
-
-    // Shell
-    showItemInFolder: (fullPath: string) => Promise<void>;
-    moveItemToTrash: (fullPath: string) => Promise<void>;
 
     // Filesystem — workspace management
     getWorkspaceDir: (title: string) => Promise<string>;
@@ -110,7 +100,6 @@ declare global {
     ) => Promise<void>;
 
     // Misc
-    getResourcePath: () => Promise<string>;
     getViewerUrl: () => Promise<string>;
 
     // Bluetooth

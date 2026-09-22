@@ -118,24 +118,6 @@ export const checkFileExists = (
   filename: string
 ): Promise<boolean> => api().checkFileExists(title, subject, filename);
 
-export const writeSignalQualityReport = (title: string, data: string) =>
-  api().writeSignalQualityReport(title, data);
-
-export const getSignalQualityReport = (title: string) =>
-  api().getSignalQualityReport(title);
-
-export const getBehavioralCsvs = (title: string) =>
-  api().getBehavioralCsvs(title);
-
-export const getExistingExperiments = (): Promise<
-  { title: string; date: string }[]
-> => api().getExistingExperiments();
-
-export const loadFromSystemDialog = (): Promise<{
-  experiment: string;
-  date: string;
-} | null> => api().loadFromSystemDialog();
-
 // ---------------------------------------------------------------------------------------------
 // Workspace helpers
 

@@ -51,8 +51,8 @@ Linux needs `xvfb-run`:
 ### Smoke test guardrails
 
 - Dynamic CDP port (no conflict with other Chrome instances)
-- `BW_PLAYTEST_USER_DATA` env var redirects userData so the spawned app gets its own
-  single-instance lock scope (doesn't interfere with a running BrainWaves)
+- `BW_PLAYTEST_USER_DATA` redirects userData so smoke tests cannot read or write
+  the user's real Electron profile
 - `detached` spawn + process-group `SIGTERM`/`SIGKILL` cleanup — no orphaned processes
 - Console + exception listeners installed BEFORE `Runtime.enable` (catches early errors)
 - Temp directory cleaned up on exit
