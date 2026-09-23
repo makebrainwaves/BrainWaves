@@ -424,16 +424,18 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle('fs:checkFileExists', (_event, title, subject, filename) => {
-  const file = path.join(
-    getWorkspaceDir(title),
-    'Data',
-    subject,
-    'Behavior',
-    filename
-  );
-  return fs.existsSync(file);
-});
+/** True when either artifact of a subject/group/session run is already on disk. */
+ipcMain.handle(
+  'fs:recordingExists',
+  (_event, title, subject, group, session) => {
+    const dir = path.join(getWorkspaceDir(title), 'Data', subject);
+    const stem = `${subject}-${group}-${session}`;
+    return (
+      fs.existsSync(path.join(dir, 'Behavior', `${stem}-behavior.csv`)) ||
+      fs.existsSync(path.join(dir, 'EEG', `${stem}-raw.csv`))
+    );
+  }
+);
 
 ipcMain.handle('fs:readFiles', (_event, filePathsArray: string[]) => {
   return filePathsArray.map((filePath) => {

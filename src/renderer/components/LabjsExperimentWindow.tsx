@@ -8,6 +8,7 @@ import {
 } from '../constants/interfaces';
 import { toStimulusFileUrl } from '../../shared/stimulusUrl';
 import { ExperimentRuntimeProps } from './ExperimentRuntime';
+import { progressFromStack } from '../utils/labjs/progress';
 
 export type LabjsExperimentWindowProps = ExperimentRuntimeProps & {
   experimentObject: ExperimentObject;
@@ -21,6 +22,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   fullScreen = true,
   eventCallback,
   onFinish,
+  onProgress,
 }) => {
   useEffect(() => {
     // experimentObject starts as {} in Redux initial state — bail out until a
@@ -86,6 +88,23 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
       }
     };
 
+    if (onProgress) {
+      let last = '';
+      // The controller exists once the root prepares, and emits one 'flip' per
+      // screen change with the active root→leaf component stack.
+      experimentToRun.on('prepare', () => {
+        const { controller } = experimentToRun.internals;
+        controller.on('flip', () => {
+          const progress = progressFromStack(controller.currentStack);
+          const key = JSON.stringify(progress);
+          if (key !== last) {
+            last = key;
+            onProgress(progress);
+          }
+        });
+      });
+    }
+
     experimentToRun.run();
 
     return () => {
@@ -98,7 +117,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
         console.log('Experiment closed before unmount');
       }
     };
-  }, [eventCallback, experimentObject, onFinish, params, title]);
+  }, [eventCallback, experimentObject, onFinish, onProgress, params, title]);
 
   return (
     <div

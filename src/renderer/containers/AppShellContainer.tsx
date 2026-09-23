@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell/AppShell';
@@ -13,6 +13,22 @@ import { ExperimentActions } from '../actions';
 import { CONNECTION_STATUS, DEVICES } from '../constants/constants';
 import { experimentLabel } from '../constants/experimentLabels';
 import { RootState } from '../store';
+import type { ExperimentProgress } from '../components/ExperimentRuntime';
+
+/** Lets the running experiment report trial progress to the RunBar. */
+export const RunProgressContext = createContext<
+  (progress: ExperimentProgress | null) => void
+>(() => undefined);
+
+const formatProgress = (progress: ExperimentProgress | null) => {
+  if (!progress) return undefined;
+  const count = progress.total
+    ? `${progress.current} of ${progress.total}`
+    : `${progress.current}`;
+  return progress.phase === 'practice'
+    ? `Practice trial ${count}`
+    : `Trial ${count}`;
+};
 
 /** Wires Redux experiment + device state into the global AppShell chrome. */
 export default function AppShellContainer({
@@ -43,7 +59,9 @@ export default function AppShellContainer({
 
   const { isRunning } = experiment;
   const [elapsed, setElapsed] = useState('00:00');
+  const [progress, setProgress] = useState<ExperimentProgress | null>(null);
   useEffect(() => {
+    setProgress(null);
     if (!isRunning) {
       return undefined;
     }
@@ -75,12 +93,18 @@ export default function AppShellContainer({
       badges={badges}
       device={deviceState}
       deviceName={device.connectedDevice?.name}
-      run={isRunning ? { kind: modality, elapsed } : undefined}
+      run={
+        isRunning
+          ? { kind: modality, elapsed, progress: formatProgress(progress) }
+          : undefined
+      }
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
       onEndRun={() => dispatch(ExperimentActions.Stop({ data: '' }))}
     >
-      {children}
+      <RunProgressContext.Provider value={setProgress}>
+        {children}
+      </RunProgressContext.Provider>
     </AppShell>
   );
 }

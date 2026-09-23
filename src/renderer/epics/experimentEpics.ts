@@ -1,5 +1,5 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, of } from 'rxjs';
+import { of } from 'rxjs';
 import {
   map,
   mergeMap,
@@ -29,7 +29,6 @@ import {
   restoreExperimentState,
   createWorkspaceDir,
   storeBehavioralData,
-  readWorkspaceBehaviorData,
   getWorkspaceDir,
 } from '../utils/filesystem/storage';
 import { RootState } from '../reducers';
@@ -146,32 +145,6 @@ const experimentStopEpic: Epic<
     mergeMap(() => of(ExperimentActions.SetIsRunning(false)))
   );
 
-const updateSessionEpic: Epic<
-  ExperimentActionType,
-  ExperimentActionType,
-  RootState
-> = (action$, state$) =>
-  action$.pipe(
-    filter(isActionOf(ExperimentActions.UpdateSession)),
-    mergeMap(() =>
-      from(
-        readWorkspaceBehaviorData(state$.value.experiment.title!) as Promise<
-          { name: string; path: string }[]
-        >
-      )
-    ),
-    map((behaviorFiles: { name: string; path: string }[]) => {
-      if (behaviorFiles.length > 0) {
-        const subjectFiles = behaviorFiles.filter((filepath) =>
-          filepath.name.startsWith(state$.value.experiment.subject)
-        );
-        return subjectFiles.length + 1;
-      }
-      return 1;
-    }),
-    map(ExperimentActions.SetSession)
-  );
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
   action$ // RouterActions union requires any here
@@ -234,7 +207,6 @@ export default combineEpics(
   createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
-  updateSessionEpic,
   autoSaveEpic,
   saveWorkspaceEpic,
   navigationCleanupEpic,
