@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/button';
 
 interface Props {
@@ -18,9 +18,7 @@ export default function PreviewButton({
   onRunAndRecord,
 }: Props) {
   const [hasPreviewed, setHasPreviewed] = useState(false);
-  useEffect(() => {
-    if (isPreviewing) setHasPreviewed(true);
-  }, [isPreviewing]);
+  if (isPreviewing && !hasPreviewed) setHasPreviewed(true);
   const runIsPrimary = Boolean(onRunAndRecord) && hasPreviewed;
 
   return (
@@ -38,7 +36,7 @@ export default function PreviewButton({
           )}
           <Button
             size="lg"
-            variant={runIsPrimary || !onRunAndRecord ? 'outline' : 'default'}
+            variant={onRunAndRecord && !hasPreviewed ? 'default' : 'outline'}
             onClick={onClick}
           >
             {hasPreviewed ? 'Preview again' : 'Preview experiment'}

@@ -60,9 +60,10 @@ const Run: React.FC<Props> = ({
   // Clean, instead of silently dropping back to the identical pre-run landing.
   const [hasFinished, setHasFinished] = useState(false);
 
-  // Checks passed; waiting for the participant to press SPACE. Nothing is
-  // recorded until then.
-  const [isArmed, setIsArmed] = useState(false);
+  // 'armed': checks passed, waiting for SPACE; nothing is recorded yet.
+  // 'starting': SPACE pressed, Start dispatched; the gate stays up until the
+  // run is live so the Ready card doesn't flash, and SPACE can't start twice.
+  const [gate, setGate] = useState<'off' | 'armed' | 'starting'>('off');
   const reportProgress = useContext(RunProgressContext);
   const { pacing } = getExperimentFromType(type).text.protocol;
 
@@ -89,19 +90,15 @@ const Run: React.FC<Props> = ({
       const { response } = await window.electronAPI.showMessageBox({
         type: 'warning',
         message: `Session ${session} for ${subject} (${group}) is already recorded.`,
-        detail: `Record this run as session ${freeSession} to keep the earlier data, or replace session ${session}. Replacing deletes the earlier recording.`,
-        buttons: [
-          'Cancel',
-          `Record as session ${freeSession}`,
-          `Replace session ${session}`,
-        ],
+        detail: `This run will be recorded as session ${freeSession}, so the earlier recording is kept.`,
+        buttons: ['Cancel', `Record as session ${freeSession}`],
         defaultId: 1,
         cancelId: 0,
       });
-      if (response === 0) return;
-      if (response === 1) ExperimentActions.SetSession(freeSession);
+      if (response !== 1) return;
+      ExperimentActions.SetSession(freeSession);
     }
-    setIsArmed(true);
+    setGate('armed');
   }, [
     subject,
     group,
@@ -113,19 +110,23 @@ const Run: React.FC<Props> = ({
   ]);
 
   useEffect(() => {
-    if (!isArmed) return undefined;
+    if (isRunning) setGate('off');
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (gate !== 'armed') return undefined;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space' && !event.repeat) {
         event.preventDefault();
-        setIsArmed(false);
+        setGate('starting');
         ExperimentActions.Start();
       } else if (event.code === 'Escape') {
-        setIsArmed(false);
+        setGate('off');
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isArmed, ExperimentActions]);
+  }, [gate, ExperimentActions]);
 
   const handleCloseInputCollect = useCallback(
     (newSubject: string, newGroup: string, newSession: number) => {
@@ -185,7 +186,7 @@ const Run: React.FC<Props> = ({
           </div>
         )}
 
-        {!isRunning && !hasFinished && isArmed && (
+        {!isRunning && !hasFinished && gate !== 'off' && (
           <div
             role="dialog"
             aria-label="Press space to begin"
@@ -202,12 +203,14 @@ const Run: React.FC<Props> = ({
               space
             </kbd>
             <p className="text-[15px] text-ink-muted">
-              Press Esc to go back without recording.
+              {gate === 'starting'
+                ? 'Starting…'
+                : 'Press Esc to go back without recording.'}
             </p>
           </div>
         )}
 
-        {!isRunning && !hasFinished && !isArmed && (
+        {!isRunning && !hasFinished && gate === 'off' && (
           <div className="flex items-center justify-center h-full">
             <Card className="w-full max-w-lg">
               <CardHeader>
@@ -231,14 +234,16 @@ const Run: React.FC<Props> = ({
                     ✏ Edit participant, group or session
                   </Button>
                 </div>
-                <ul className="m-0 list-disc space-y-1 pl-5 text-[15px]">
-                  {pacing && <li>{pacing}</li>}
-                  {isEEGEnabled && (
-                    <li>
-                      Remain still and avoid talking while trials are running.
-                    </li>
-                  )}
-                </ul>
+                {(pacing || isEEGEnabled) && (
+                  <ul className="m-0 list-disc space-y-1 pl-5 text-[15px]">
+                    {pacing && <li>{pacing}</li>}
+                    {isEEGEnabled && (
+                      <li>
+                        Remain still and avoid talking while trials are running.
+                      </li>
+                    )}
+                  </ul>
+                )}
                 {isEEGEnabled &&
                 connectionStatus === CONNECTION_STATUS.CONNECTED &&
                 signalQualityObservable ? (

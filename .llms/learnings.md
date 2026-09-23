@@ -286,8 +286,14 @@ screen change and exposes `controller.currentStack` (root → leaf components).
 does not exist before that) and `utils/labjs/progress.ts` reads the innermost
 Loop's `options.content.indexOf(child)`. Loops are detected by
 `options.templateParameters`, not `type === 'flow.Loop'`: `type` is built from the
-class name, which prod minification can mangle. Nested loops (Multitasking's
-blocks) only yield a per-block count.
+class name, which prod minification can mangle. A loop whose iterations contain a
+loop is a block loop (Multitasking), so its screens report no trial, and counts
+are per block. Multitasking marks practice with `task: 'training'`, not `phase`.
+
+`RunState.progress` (AppShell/types.ts) is live, not story-only: it was once
+removed as unused and `tsc` did not flag `AppShellContainer` still passing it,
+because excess-property checks do not apply through the `isRunning ? … : undefined`
+ternary. Progress then vanished silently; only a real run showed it.
 
 jsPsych's `getProgress().total_trials` is `getNaiveTrialCount()`, which ignores
 `loop_function`, `conditional_function`, and `sample.type: 'custom'`. `host.ts`

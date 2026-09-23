@@ -11,12 +11,15 @@ describe('progressFromStack', () => {
   it('reports the position in the innermost loop, not an outer block loop', () => {
     const trials = [trial('practice'), trial('practice'), trial('practice')];
     const inner = loop(trials);
-    const block = sequence([inner]);
+    const intro = { options: {} };
+    const block = sequence([intro, inner]);
     const blocks = loop([sequence([]), block]);
     const screen = { options: {} };
     expect(
       progressFromStack([blocks, block, inner, trials[1], screen])
     ).toEqual({ phase: 'practice', current: 2, total: 3 });
+    // A block's instruction screen is between trials, not "trial 2 of 2".
+    expect(progressFromStack([blocks, block, intro])).toBeNull();
   });
 
   it("treats Stroop's 'task' phase as the recorded main task", () => {
@@ -24,6 +27,13 @@ describe('progressFromStack', () => {
     expect(progressFromStack([loop(trials), trials[1]])).toMatchObject({
       phase: 'main',
       current: 2,
+    });
+  });
+
+  it("reads Multitasking's `task: 'training'` as practice", () => {
+    const trials = [{ options: {}, parameters: { task: 'training' } }];
+    expect(progressFromStack([loop(trials), trials[0]])).toMatchObject({
+      phase: 'practice',
     });
   });
 

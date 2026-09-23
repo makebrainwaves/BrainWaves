@@ -202,7 +202,7 @@ export const RunEeg: Story = {
   args: {
     location: 'collect',
     workspace: facesHouses,
-    run: { kind: 'eeg', elapsed: '02:14' },
+    run: { kind: 'eeg', elapsed: '02:14', progress: 'Trial 34 of 120' },
     children: (
       <div className="px-[56px] pb-[40px] pt-[32px]">
         <Placeholder
@@ -220,7 +220,11 @@ export const RunBehavior: Story = {
     location: 'collect',
     workspace: stroop,
     device: 'none',
-    run: { kind: 'behavior', elapsed: '01:02' },
+    run: {
+      kind: 'behavior',
+      elapsed: '01:02',
+      progress: 'Practice trial 3 of 6',
+    },
     children: (
       <div className="px-[56px] pb-[40px] pt-[32px]">
         <Placeholder

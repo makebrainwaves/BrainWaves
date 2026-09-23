@@ -15,7 +15,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
   - Clean: crash at "Ready to clean subject" — reproduce and fix.
   - Analyze: layout broken by recent component changes; stray elements popping up.
   - Student-facing experiment names (current names are placeholder/dev-written).
-  - ~~Preview → run CTA; overwrite protection~~ — shipped 2026-09-23 (`Run & record` after a preview on all Design surfaces; an existing subject/group/session offers the next free session or an explicit replace, checking both behavior and EEG files; branch `feat/run-preview-polish`).
+  - ~~Preview → run CTA; overwrite protection~~ — shipped 2026-09-23 (`Run & record` after a preview on all Design surfaces; an existing subject/group/session — behavior or EEG file — is never overwritten: the run moves to the next free session or is cancelled; branch `feat/run-preview-polish`).
   - ~~Larger pre-screen edit affordance~~ — shipped 2026-09-23 (Ready-to-run card, same branch).
   - ~~"Press SPACE to begin" prompt~~ — shipped 2026-09-23 (gate between Ready and `Start`; nothing records until SPACE, same branch).
   - ~~In-experiment progress~~ — shipped 2026-09-23 in the RunBar (lab.js: innermost loop position + practice/main; jsPsych: total only when the timeline has no loop/conditional functions or custom sampling). Multitasking counts trials within each block — no study-wide total.

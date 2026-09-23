@@ -63,7 +63,7 @@ const hasDynamicLength = (description: unknown): boolean => {
 };
 
 /** The starting trial's 1-based position, with a total only when it is exact. */
-export const trialProgress = (instance: unknown): ExperimentProgress | null => {
+const trialProgress = (instance: unknown): ExperimentProgress | null => {
   const internals = instance as JsPsychInternals | undefined;
   const progress = internals?.getProgress?.();
   if (progress?.current_trial_global === undefined) return null;
@@ -219,7 +219,7 @@ export const createJsPsychHost = (
     // and a syntax or reference error throws HERE, where we can show it, instead
     // of landing on window.onerror. jsPsych's own migration shim also makes a v6
     // `jsPsych.init(...)` throw into this catch.
-
+    // eslint-disable-next-line no-new-func
     new Function(source)();
   } catch (error) {
     teardown();
