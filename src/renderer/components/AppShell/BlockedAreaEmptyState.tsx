@@ -5,17 +5,14 @@ interface Props {
   title: string;
   /** Says what is missing and where to get it. */
   body: string;
-  /** Points at the unblocking area, e.g. `Go to Collect`. */
-  ctaLabel: string;
-  onCta?(): void;
+  onCollect(): void;
 }
 
 /** Shown instead of disabling a workflow area that has nothing to work on yet. */
 export default function BlockedAreaEmptyState({
   title,
   body,
-  ctaLabel,
-  onCta,
+  onCollect,
 }: Props) {
   return (
     <div className="px-[56px] pb-[48px] pt-[40px]">
@@ -26,8 +23,8 @@ export default function BlockedAreaEmptyState({
         <p className="m-0 max-w-[560px] !text-[17px] leading-[1.55] !tracking-normal [text-wrap:pretty]">
           {body}
         </p>
-        <Button size="lg" className="mt-[8px]" onClick={onCta}>
-          {ctaLabel}
+        <Button size="lg" className="mt-[8px]" onClick={onCollect}>
+          Go to Collect
         </Button>
       </div>
     </div>

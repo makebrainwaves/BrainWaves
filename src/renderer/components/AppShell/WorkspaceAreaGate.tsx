@@ -12,6 +12,17 @@ interface Props {
   children: ReactNode;
 }
 
+const COPY: Record<Props['area'], [title: string, body: string]> = {
+  clean: [
+    'Nothing to clean yet',
+    'Clean needs at least one complete EEG recording. Collect a run first, then come back.',
+  ],
+  analyze: [
+    'No results yet',
+    'Analyze needs data from a run. Collect a recording first, then come back.',
+  ],
+};
+
 /**
  * Keeps a workflow area selectable but replaces its screen with an
  * explanation and one corrective action when the workspace has no data
@@ -35,19 +46,12 @@ export default function WorkspaceAreaGate({ area, children }: Props) {
 
   if (!blocked) return <>{children}</>;
 
-  return area === 'clean' ? (
+  const [title, body] = COPY[area];
+  return (
     <BlockedAreaEmptyState
-      title="Nothing to clean yet"
-      body="Clean needs at least one complete EEG recording. Collect a run first, then come back."
-      ctaLabel="Go to Collect"
-      onCta={() => navigate(AREA_ROUTES.collect)}
-    />
-  ) : (
-    <BlockedAreaEmptyState
-      title="No results yet"
-      body="Analyze needs data from a run. Collect a recording first, then come back."
-      ctaLabel="Go to Collect"
-      onCta={() => navigate(AREA_ROUTES.collect)}
+      title={title}
+      body={body}
+      onCollect={() => navigate(AREA_ROUTES.collect)}
     />
   );
 }

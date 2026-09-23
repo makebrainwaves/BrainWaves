@@ -51,7 +51,7 @@ export default function RunBar({
           {eeg ? 'EEG recording' : 'Behavior only'}
         </span>
         <span className="text-[14px] tabular-nums text-ink-muted">
-          {[run.elapsed, run.progress].filter(Boolean).join(' · ')}
+          {run.elapsed}
           {!eeg && ' · saving key presses, no EEG'}
         </span>
       </div>

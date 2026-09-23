@@ -18,8 +18,6 @@ export interface RunState {
   kind: Modality;
   /** Preformatted elapsed time, e.g. `02:14`. */
   elapsed: string;
-  /** Preformatted progress, e.g. `Trial 34 of 120`. Omitted when the runtime reports no trial count. */
-  progress?: string;
 }
 
 /** `Faces/Houses · EEG`, `Stroop · Behavior only`. */

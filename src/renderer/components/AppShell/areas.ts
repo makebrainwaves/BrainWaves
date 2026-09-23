@@ -1,3 +1,4 @@
+import { SCREENS } from '../../constants/constants';
 import { Area } from './types';
 
 /** Routes outside any workspace. No workspace state is saved on these. */
@@ -7,10 +8,10 @@ export const EXPLORE_ROUTE = '/explore';
 
 /** The one place a workflow area maps to a router path. */
 export const AREA_ROUTES: Record<Area, string> = {
-  prepare: '/design',
-  collect: '/collect',
-  clean: '/clean',
-  analyze: '/analyze',
+  prepare: SCREENS.DESIGN.route,
+  collect: SCREENS.COLLECT.route,
+  clean: SCREENS.CLEAN.route,
+  analyze: SCREENS.ANALYZE.route,
 };
 
 const BY_ROUTE = Object.entries(AREA_ROUTES) as [Area, string][];

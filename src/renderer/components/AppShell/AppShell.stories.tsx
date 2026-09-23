@@ -73,7 +73,6 @@ const meta: Meta<typeof AppShell> = {
     onSelectArea: fn(),
     onHome: fn(),
     onEndRun: fn(),
-    onSettings: fn(),
   },
 };
 export default meta;
@@ -192,7 +191,7 @@ export const BlockedAreaEmptyState: Story = {
       <BlockedAreaPanel
         title="Nothing to clean yet"
         body="Clean works on EEG recordings, and this workspace doesn’t have any. Record one in Collect, then come back."
-        ctaLabel="Go to Collect"
+        onCollect={fn()}
       />
     ),
   },
@@ -203,7 +202,7 @@ export const RunEeg: Story = {
   args: {
     location: 'collect',
     workspace: facesHouses,
-    run: { kind: 'eeg', elapsed: '02:14', progress: 'Trial 34 of 120' },
+    run: { kind: 'eeg', elapsed: '02:14' },
     children: (
       <div className="px-[56px] pb-[40px] pt-[32px]">
         <Placeholder
@@ -221,7 +220,7 @@ export const RunBehavior: Story = {
     location: 'collect',
     workspace: stroop,
     device: 'none',
-    run: { kind: 'behavior', elapsed: '01:02', progress: 'Trial 18 of 96' },
+    run: { kind: 'behavior', elapsed: '01:02' },
     children: (
       <div className="px-[56px] pb-[40px] pt-[32px]">
         <Placeholder

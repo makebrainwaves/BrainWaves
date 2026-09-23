@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react';
-import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import DeviceChip from './DeviceChip';
 import RunBar from './RunBar';
@@ -21,7 +20,6 @@ export interface AppShellProps {
   onSelectArea?(area: Area): void;
   onHome?(): void;
   onEndRun?(): void;
-  onSettings?(): void;
   /** The current screen, rendered on the app gradient under the bar. */
   children?: ReactNode;
 }
@@ -31,8 +29,8 @@ const divider = (
 );
 
 /**
- * Global chrome: Home, workspace identity, workflow areas, device status and
- * Settings — or the RunBar while an experiment runs. Pure props; containers
+ * Global chrome: Home, workspace identity, workflow areas and device status
+ * — or the RunBar while an experiment runs. Pure props; containers
  * wire Redux.
  */
 export default function AppShell({
@@ -46,7 +44,6 @@ export default function AppShell({
   onSelectArea,
   onHome,
   onEndRun,
-  onSettings,
   children,
 }: AppShellProps) {
   const onHomePage = location === 'home';
@@ -95,13 +92,8 @@ export default function AppShell({
             </>
           )}
           <div className="flex-1" />
-          <div className="flex items-center gap-[8px]">
+          <div className="flex items-center">
             <DeviceChip device={device} deviceName={deviceName} />
-            {onSettings && (
-              <Button variant="ghost" size="sm" onClick={onSettings}>
-                Settings
-              </Button>
-            )}
           </div>
         </header>
       )}

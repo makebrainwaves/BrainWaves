@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import { fn, userEvent, within } from 'storybook/test';
 import HomeLanding from './HomeLanding';
 import WorkspaceNameDialog from './WorkspaceNameDialog';
 import DeleteWorkspaceDialog from './DeleteWorkspaceDialog';
@@ -46,13 +46,11 @@ export const HomeFirstTime: Story = {
 /** H02 — Continue leads; opening the most recent workspace is the one filled action. */
 export const HomeReturning: Story = {};
 
-const namingDialog = (defaultValue?: string) => (
+const namingDialog = (
   <WorkspaceNameDialog
-    open
     templateName="Faces/Houses"
     baseName="Faces_Houses"
     existingNames={EXISTING_FACES_HOUSES_NAMES}
-    defaultValue={defaultValue}
     onCreate={fn()}
     onCancel={fn()}
   />
@@ -63,7 +61,7 @@ export const HomeNamingDialog: Story = {
   render: (args) => (
     <>
       <HomeLanding {...args} />
-      {namingDialog()}
+      {namingDialog}
     </>
   ),
 };
@@ -73,9 +71,15 @@ export const HomeNamingConflict: Story = {
   render: (args) => (
     <>
       <HomeLanding {...args} />
-      {namingDialog('Faces_Houses_2')}
+      {namingDialog}
     </>
   ),
+  // The dialog portals to <body>, outside the story canvas.
+  play: async () => {
+    const field = within(document.body).getByLabelText('Workspace name');
+    await userEvent.clear(field);
+    await userEvent.type(field, 'Faces_Houses_2');
+  },
 };
 
 /** H05 — States exactly what will be removed. Destructive action is red. */
@@ -84,10 +88,7 @@ export const HomeDeleteConfirm: Story = {
     <>
       <HomeLanding {...args} />
       <DeleteWorkspaceDialog
-        open
         workspaceName="Stroop_Task"
-        recordingCount={4}
-        cleanedCount={3}
         onConfirm={fn()}
         onCancel={fn()}
       />

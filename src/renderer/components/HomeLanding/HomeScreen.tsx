@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -36,7 +36,7 @@ export default function HomeScreen(props: Props) {
   const [template, setTemplate] = useState<EXPERIMENTS | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  async function refresh() {
     const workspaceDirs = await readWorkspaces();
     const entries = (
       await Promise.all(
@@ -56,14 +56,13 @@ export default function HomeScreen(props: Props) {
           (a, b) => (b.state.dateModified ?? 0) - (a.state.dateModified ?? 0)
         )
         .map(({ dir, state }) => ({
-          id: dir,
           name: dir,
           experimentType: experimentLabel(state.type),
           modality: state.isEEGEnabled ? 'eeg' : 'behavior',
           lastOpened: dayjs(state.dateModified ?? undefined).fromNow(),
         }))
     );
-  }, []);
+  }
 
   useEffect(() => {
     props.PyodideActions.Launch();
@@ -112,7 +111,6 @@ export default function HomeScreen(props: Props) {
       />
       {template !== null && (
         <WorkspaceNameDialog
-          open
           templateName={experimentLabel(template)}
           baseName={template}
           existingNames={dirs}
@@ -122,10 +120,7 @@ export default function HomeScreen(props: Props) {
       )}
       {pendingDelete !== null && (
         <DeleteWorkspaceDialog
-          open
           workspaceName={pendingDelete}
-          recordingCount={0}
-          cleanedCount={0}
           onConfirm={() => handleConfirmDelete(pendingDelete)}
           onCancel={() => setPendingDelete(null)}
         />

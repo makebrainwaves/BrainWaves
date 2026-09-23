@@ -23,7 +23,6 @@ function SearchIcon() {
 }
 
 export interface HomeWorkspace extends ShellWorkspace {
-  id: string;
   /** Preformatted relative time, e.g. `2 hours ago`. */
   lastOpened: string;
 }
@@ -31,9 +30,9 @@ export interface HomeWorkspace extends ShellWorkspace {
 interface Props {
   /** Most recent first. Empty = first-time Home. */
   workspaces: HomeWorkspace[];
-  onOpen(id: string): void;
-  onReveal(id: string): void;
-  onDelete(id: string): void;
+  onOpen(name: string): void;
+  onReveal(name: string): void;
+  onDelete(name: string): void;
   /** Should open the naming dialog before creating anything. */
   onStartTemplate(templateId: EXPERIMENTS): void;
   onBrowseTemplates(): void;
@@ -47,8 +46,7 @@ const CARD =
   'flex-1 rounded-[6px] bg-white p-[28px] shadow-[0_1px_3px_rgba(0,0,0,0.06)]';
 const BODY =
   'm-0 !text-[16px] leading-normal !tracking-normal [text-wrap:pretty]';
-const CARD_TITLE =
-  'm-0 text-[30px] font-light leading-tight tracking-[0.3px]';
+const CARD_TITLE = 'm-0 text-[30px] font-light leading-tight tracking-[0.3px]';
 const NOTE = 'm-0 !text-[13px] !tracking-normal text-ink-muted';
 
 /**
@@ -93,7 +91,12 @@ export default function HomeLanding({
               aria-label="Search workspaces"
               placeholder="Search"
               className="rounded-[6px] border border-[#d4d4d4] bg-white text-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              style={{ height: 30, width: 200, paddingLeft: 32, paddingRight: 8 }}
+              style={{
+                height: 30,
+                width: 200,
+                paddingLeft: 32,
+                paddingRight: 8,
+              }}
             />
           </label>
         )}
@@ -109,7 +112,7 @@ export default function HomeLanding({
         >
           {visible.map((workspace, i) => (
             <li
-              key={workspace.id}
+              key={workspace.name}
               className="flex items-center gap-[24px] rounded-[6px] border border-[#ececec] bg-white py-[14px] pl-[24px] pr-[16px]"
             >
               <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
@@ -126,7 +129,7 @@ export default function HomeLanding({
                   variant="ghost"
                   size="sm"
                   aria-label={`Show ${workspace.name} in folder`}
-                  onClick={() => onReveal(workspace.id)}
+                  onClick={() => onReveal(workspace.name)}
                 >
                   Show in folder
                 </Button>
@@ -135,7 +138,7 @@ export default function HomeLanding({
                   size="sm"
                   aria-label={`Delete ${workspace.name}`}
                   className="text-red-700 hover:bg-red-50"
-                  onClick={() => onDelete(workspace.id)}
+                  onClick={() => onDelete(workspace.name)}
                 >
                   Delete
                 </Button>
@@ -143,7 +146,7 @@ export default function HomeLanding({
                   variant={i === 0 ? 'default' : 'outline-brand'}
                   aria-label={`Open ${workspace.name}`}
                   className="ml-[12px] w-[96px]"
-                  onClick={() => onOpen(workspace.id)}
+                  onClick={() => onOpen(workspace.name)}
                 >
                   Open
                 </Button>
@@ -194,8 +197,8 @@ export default function HomeLanding({
               </span>
               <h3 className={CARD_TITLE}>Faces/Houses</h3>
               <p className={BODY}>
-                Does your brain react to faces differently than to houses?
-                Takes about 15 minutes.
+                Does your brain react to faces differently than to houses? Takes
+                about 15 minutes.
               </p>
               <div className="mt-[6px] flex flex-wrap items-center gap-[16px]">
                 <Button
@@ -228,8 +231,8 @@ export default function HomeLanding({
             <div className="flex min-w-0 flex-col items-start gap-[16px]">
               <h3 className={CARD_TITLE}>Explore EEG</h3>
               <p className={BODY}>
-                Put on a headset and watch the EEG (electroencephalogram)
-                signal in real time.
+                Put on a headset and watch the EEG (electroencephalogram) signal
+                in real time.
               </p>
               <Button variant="outline-brand" onClick={onExploreLive}>
                 Open live view
