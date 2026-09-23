@@ -323,13 +323,14 @@ export default function ImportedDesign(props: DesignProps) {
                 type={props.type}
               />
             </div>
-            <div className="w-1/4 flex justify-center">
+            <div className="w-1/4 flex justify-center p-2">
               <PreviewButton
                 isPreviewing={isPreviewing}
                 onClick={(event) => {
                   event.currentTarget.blur();
                   setIsPreviewing((previous) => !previous);
                 }}
+                onRunAndRecord={() => props.navigate(SCREENS.COLLECT.route)}
               />
             </div>
           </div>

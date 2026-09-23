@@ -15,11 +15,11 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
   - Clean: crash at "Ready to clean subject" — reproduce and fix.
   - Analyze: layout broken by recent component changes; stray elements popping up.
   - Student-facing experiment names (current names are placeholder/dev-written).
-  - Clearer CTA from preview → "Run full experiment"; protect against overwriting an existing recording.
-  - Larger / more obvious pre-screen edit affordance.
-  - Experiment start: prominent "Press SPACE to begin" prompt with spacebar icon.
-  - In-experiment progress bar.
-  - Pre-run coaching copy: not a speed test, ~1–1.5 s per stimulus, stay still, minimize talking.
+  - ~~Preview → run CTA; overwrite protection~~ — shipped 2026-09-23 (`Run & record` after a preview on all Design surfaces; an existing subject/group/session offers the next free session or an explicit replace, checking both behavior and EEG files; branch `feat/run-preview-polish`).
+  - ~~Larger pre-screen edit affordance~~ — shipped 2026-09-23 (Ready-to-run card, same branch).
+  - ~~"Press SPACE to begin" prompt~~ — shipped 2026-09-23 (gate between Ready and `Start`; nothing records until SPACE, same branch).
+  - ~~In-experiment progress~~ — shipped 2026-09-23 in the RunBar (lab.js: innermost loop position + practice/main; jsPsych: total only when the timeline has no loop/conditional functions or custom sampling). Multitasking counts trials within each block — no study-wide total.
+  - ~~Pre-run coaching copy~~ — shipped 2026-09-23. Pacing is per-protocol (`protocol.pacing`, set for Faces/Houses, Visual Search, Multitasking); the shared EEG line is stillness/no talking only (plan §7.4).
   - Clean vs Analyze labels are ambiguous — clarify the step purpose.
   - Clean: allow choosing a different file without going back/undoing.
   - Add "What does clean your data mean?" student explainer (aligns with Epoch reviewer onboarding work below).

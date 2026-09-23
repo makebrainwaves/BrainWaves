@@ -112,11 +112,19 @@ export const getSubjectNamesFromFiles = (filePaths: string[]): string[] =>
 export const deleteWorkspaceDir = (title: string): Promise<void> =>
   api().deleteWorkspaceDir(title);
 
-export const checkFileExists = (
+/** First session number, starting at `session`, with no behavior or EEG file on disk. */
+export const nextFreeSession = async (
   title: string,
   subject: string,
-  filename: string
-): Promise<boolean> => api().checkFileExists(title, subject, filename);
+  group: string,
+  session: number
+): Promise<number> => {
+  let candidate = session;
+  while (await api().recordingExists(title, subject, group, candidate)) {
+    candidate += 1;
+  }
+  return candidate;
+};
 
 // ---------------------------------------------------------------------------------------------
 // Workspace helpers

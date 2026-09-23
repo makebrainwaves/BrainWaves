@@ -12,5 +12,6 @@ export const protocol = {
   condition_second: `If the object is shown on the bottom, they need to
   respond to the number of dots inside (pressing ‘n’ for 3 dots and ‘b’
   for 2 dots). `,
+  pacing: `Speed counts here: answer as fast as you can without making errors.`,
   links: [],
 };

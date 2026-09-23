@@ -277,3 +277,20 @@ collected every test twice and the duplicate copies failed with
 real regression. `vitest.config.ts` extends `configDefaults.exclude` with
 `.worktrees/**`. If a mass failure appears only in paths starting `.worktrees/`,
 it is collection scope, not code.
+
+## Trial progress: lab.js `flip` stack and jsPsych's naive total
+
+lab.js 23 has no "trial started" event, but its controller emits `flip` on every
+screen change and exposes `controller.currentStack` (root → leaf components).
+`LabjsExperimentWindow` subscribes once the root fires `prepare` (the controller
+does not exist before that) and `utils/labjs/progress.ts` reads the innermost
+Loop's `options.content.indexOf(child)`. Loops are detected by
+`options.templateParameters`, not `type === 'flow.Loop'`: `type` is built from the
+class name, which prod minification can mangle. Nested loops (Multitasking's
+blocks) only yield a per-block count.
+
+jsPsych's `getProgress().total_trials` is `getNaiveTrialCount()`, which ignores
+`loop_function`, `conditional_function`, and `sample.type: 'custom'`. `host.ts`
+drops the total when any of those appear rather than show a wrong "of N".
+Progress reaches the RunBar through `RunProgressContext` (AppShellContainer), not
+Redux, so it never lands in the persisted `appState.json`.

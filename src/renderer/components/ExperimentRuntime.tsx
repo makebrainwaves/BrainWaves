@@ -9,6 +9,14 @@ import { readImportedExperimentFile } from '../utils/filesystem/storage';
 import { LabjsExperimentWindow } from './LabjsExperimentWindow';
 import { ImportedExperimentWindow } from './ImportedExperimentWindow';
 
+/** Where the participant is in the study, as reported by the runtime. */
+export interface ExperimentProgress {
+  phase?: 'practice' | 'main';
+  current: number;
+  /** Omitted when the runtime cannot know the length up front. */
+  total?: number;
+}
+
 /**
  * The contract every experiment runtime honours. Collect and Preview render the
  * dispatcher and never learn which runtime ran, so Preview comes free: same
@@ -19,6 +27,8 @@ export interface ExperimentRuntimeProps {
   fullScreen?: boolean;
   eventCallback: (code: number, time: number) => void;
   onFinish: (csv: string) => void;
+  /** Called as trials start; `null` between trial blocks. */
+  onProgress?: (progress: ExperimentProgress | null) => void;
 }
 
 type Props = ExperimentRuntimeProps & {

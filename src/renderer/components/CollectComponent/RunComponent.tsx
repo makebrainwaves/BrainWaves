@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Observable } from 'rxjs';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardContent } from '../ui/card';
@@ -13,7 +13,9 @@ import {
   PLOTTING_INTERVAL,
 } from '../../constants/constants';
 import { ExperimentRuntime } from '../ExperimentRuntime';
-import { checkFileExists, getImages } from '../../utils/filesystem/storage';
+import { nextFreeSession } from '../../utils/filesystem/storage';
+import { getExperimentFromType } from '../../utils/labjs/functions';
+import { RunProgressContext } from '../../containers/AppShellContainer';
 import {
   ExperimentParameters,
   ExperimentObject,
@@ -58,6 +60,12 @@ const Run: React.FC<Props> = ({
   // Clean, instead of silently dropping back to the identical pre-run landing.
   const [hasFinished, setHasFinished] = useState(false);
 
+  // Checks passed; waiting for the participant to press SPACE. Nothing is
+  // recorded until then.
+  const [isArmed, setIsArmed] = useState(false);
+  const reportProgress = useContext(RunProgressContext);
+  const { pacing } = getExperimentFromType(type).text.protocol;
+
   const handleStartExperiment = useCallback(async () => {
     // Warn before a run that won't capture brain data: EEG turned off, or on
     // but no device connected. Either way it silently records behavior only.
@@ -76,21 +84,24 @@ const Run: React.FC<Props> = ({
       }
     }
 
-    const filename = `${subject}-${group}-${session}-behavior.csv`;
-    const fileExists = await checkFileExists(title, subject, filename);
-    if (fileExists) {
-      const options = {
-        buttons: ['No', 'Yes'],
-        message:
-          'You already have a file with the same name. If you continue the experiment, the current file will be deleted. Do you really want to overwrite the data?',
-      };
-      const response = await window.electronAPI.showMessageBox(options);
-      if (response.response === 1) {
-        ExperimentActions.Start();
-      }
-    } else {
-      ExperimentActions.Start();
+    const freeSession = await nextFreeSession(title, subject, group, session);
+    if (freeSession !== session) {
+      const { response } = await window.electronAPI.showMessageBox({
+        type: 'warning',
+        message: `Session ${session} for ${subject} (${group}) is already recorded.`,
+        detail: `Record this run as session ${freeSession} to keep the earlier data, or replace session ${session}. Replacing deletes the earlier recording.`,
+        buttons: [
+          'Cancel',
+          `Record as session ${freeSession}`,
+          `Replace session ${session}`,
+        ],
+        defaultId: 1,
+        cancelId: 0,
+      });
+      if (response === 0) return;
+      if (response === 1) ExperimentActions.SetSession(freeSession);
     }
+    setIsArmed(true);
   }, [
     subject,
     group,
@@ -100,6 +111,21 @@ const Run: React.FC<Props> = ({
     connectionStatus,
     ExperimentActions,
   ]);
+
+  useEffect(() => {
+    if (!isArmed) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && !event.repeat) {
+        event.preventDefault();
+        setIsArmed(false);
+        ExperimentActions.Start();
+      } else if (event.code === 'Escape') {
+        setIsArmed(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isArmed, ExperimentActions]);
 
   const handleCloseInputCollect = useCallback(
     (newSubject: string, newGroup: string, newSession: number) => {
@@ -140,10 +166,7 @@ const Run: React.FC<Props> = ({
   }, []);
 
   return (
-    <div
-      className="h-screen p-[3%] bg-app"
-      data-tid="container"
-    >
+    <div className="h-screen p-[3%] bg-app" data-tid="container">
       <div className="h-full">
         {!isRunning && hasFinished && (
           <div className="flex flex-col items-center justify-center h-full text-center gap-4">
@@ -162,36 +185,64 @@ const Run: React.FC<Props> = ({
           </div>
         )}
 
-        {!isRunning && !hasFinished && (
+        {!isRunning && !hasFinished && isArmed && (
+          <div
+            role="dialog"
+            aria-label="Press space to begin"
+            className="flex h-full flex-col items-center justify-center gap-8 text-center"
+          >
+            <p className="text-[15px] font-bold uppercase tracking-[0.5px] text-ink-muted">
+              Participant&apos;s turn · hands on the keyboard
+            </p>
+            <h1 className="m-0 text-[44px]">Press SPACE to begin</h1>
+            <kbd
+              aria-hidden
+              className="flex h-[72px] w-[360px] items-end justify-center rounded-xl border-2 border-b-[6px] border-ink bg-white pb-3 text-[16px] font-bold tracking-[1px] text-ink-muted"
+            >
+              space
+            </kbd>
+            <p className="text-[15px] text-ink-muted">
+              Press Esc to go back without recording.
+            </p>
+          </div>
+        )}
+
+        {!isRunning && !hasFinished && !isArmed && (
           <div className="flex items-center justify-center h-full">
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-lg">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <h2 className="m-0 text-lg font-semibold">Ready to run</h2>
+                <h2 className="m-0 text-lg font-semibold">Ready to run</h2>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="rounded-lg border border-[#ececf1] bg-white p-4">
+                  <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-[17px]">
+                    <dt className="text-ink-muted">Participant</dt>
+                    <dd className="m-0 font-bold">{subject || '—'}</dd>
+                    <dt className="text-ink-muted">Group</dt>
+                    <dd className="m-0 font-bold">{group || '—'}</dd>
+                    <dt className="text-ink-muted">Session</dt>
+                    <dd className="m-0 font-bold">{session}</dd>
+                  </dl>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Edit subject details"
+                    variant="outline"
+                    className="mt-3 w-full"
                     onClick={() => setIsInputCollectOpen(true)}
                   >
-                    ✏
+                    ✏ Edit participant, group or session
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <div>
-                  Subject ID: <b>{subject}</b>
-                </div>
-                <div>
-                  Group Name: <b>{group}</b>
-                </div>
-                <div>
-                  Session Number: <b>{session}</b>
-                </div>
+                <ul className="m-0 list-disc space-y-1 pl-5 text-[15px]">
+                  {pacing && <li>{pacing}</li>}
+                  {isEEGEnabled && (
+                    <li>
+                      Remain still and avoid talking while trials are running.
+                    </li>
+                  )}
+                </ul>
                 {isEEGEnabled &&
                 connectionStatus === CONNECTION_STATUS.CONNECTED &&
                 signalQualityObservable ? (
-                  <div className="mt-4">
+                  <div>
                     <p className="text-sm text-gray-500 mb-2">Signal quality</p>
                     <SignalQualityIndicatorComponent
                       signalQualityObservable={signalQualityObservable}
@@ -199,11 +250,14 @@ const Run: React.FC<Props> = ({
                     />
                   </div>
                 ) : null}
-                <div className="mt-6">
-                  <Button onClick={handleStartExperiment} disabled={!subject}>
-                    Run Experiment
-                  </Button>
-                </div>
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={handleStartExperiment}
+                  disabled={!subject}
+                >
+                  Run &amp; record
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -218,11 +272,13 @@ const Run: React.FC<Props> = ({
               params={params}
               eventCallback={eventCallback}
               onFinish={onFinish}
+              onProgress={reportProgress}
             />
           </div>
         )}
       </div>
       <InputCollect
+        key={`${subject}-${group}-${session}`}
         open={isInputCollectOpen}
         onClose={handleCloseInputCollect}
         onExit={() => setIsInputCollectOpen(false)}

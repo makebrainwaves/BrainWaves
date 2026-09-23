@@ -15,6 +15,7 @@ import {
   normalizeJsPsychTrials,
   toBehavioralCsv,
 } from './normalize';
+import type { ExperimentProgress } from '../../components/ExperimentRuntime';
 
 export interface JsPsychHostConfig {
   /** id of the div jsPsych renders into. Must already be in the document. */
@@ -23,6 +24,7 @@ export interface JsPsychHostConfig {
   registry: MarkerRegistry;
   eventCallback: (code: number, time: number) => void;
   onFinish: (csv: string) => void;
+  onProgress?: (progress: ExperimentProgress) => void;
 }
 
 interface BuildJsPsychOptionsArgs extends JsPsychHostConfig {
@@ -36,9 +38,41 @@ interface TrialNode {
 }
 
 interface JsPsychInternals {
-  timeline?: { getLatestNode?: () => TrialNode | undefined };
+  timeline?: {
+    getLatestNode?: () => TrialNode | undefined;
+    description?: unknown;
+  };
   abortExperiment?: (endMessage?: string) => void;
+  getProgress?: () => { total_trials?: number; current_trial_global?: number };
 }
+
+/**
+ * jsPsych's `total_trials` is a naive count that ignores loop/conditional
+ * functions and custom sampling, so it is only true when none appear.
+ */
+const hasDynamicLength = (description: unknown): boolean => {
+  if (Array.isArray(description)) return description.some(hasDynamicLength);
+  if (typeof description !== 'object' || description === null) return false;
+  const node = description as Record<string, unknown>;
+  return (
+    typeof node.loop_function === 'function' ||
+    typeof node.conditional_function === 'function' ||
+    (node.sample as { type?: string } | undefined)?.type === 'custom' ||
+    hasDynamicLength(node.timeline)
+  );
+};
+
+/** The starting trial's 1-based position, with a total only when it is exact. */
+export const trialProgress = (instance: unknown): ExperimentProgress | null => {
+  const internals = instance as JsPsychInternals | undefined;
+  const progress = internals?.getProgress?.();
+  if (progress?.current_trial_global === undefined) return null;
+  const exact = !hasDynamicLength(internals?.timeline?.description);
+  return {
+    current: progress.current_trial_global + 1,
+    total: exact ? progress.total_trials : undefined,
+  };
+};
 
 /**
  * The resolved, parent-merged `data` values for the trial that is starting.
@@ -78,6 +112,7 @@ export const buildJsPsychOptions = ({
   registry,
   eventCallback,
   onFinish,
+  onProgress,
   getInstance,
   authorOptions,
 }: BuildJsPsychOptionsArgs): Record<string, unknown> => ({
@@ -90,6 +125,8 @@ export const buildJsPsychOptions = ({
   // runs on http://localhost:5173 and looks perfect.
   override_safe_mode: true,
   on_trial_start: (trialObject: Record<string, unknown>) => {
+    const progress = onProgress && trialProgress(getInstance());
+    if (progress) onProgress(progress);
     const label = resolveTrialData(getInstance(), trialObject)[
       mapping.conditionKey
     ];
@@ -182,7 +219,7 @@ export const createJsPsychHost = (
     // and a syntax or reference error throws HERE, where we can show it, instead
     // of landing on window.onerror. jsPsych's own migration shim also makes a v6
     // `jsPsych.init(...)` throw into this catch.
-    // eslint-disable-next-line no-new-func
+
     new Function(source)();
   } catch (error) {
     teardown();

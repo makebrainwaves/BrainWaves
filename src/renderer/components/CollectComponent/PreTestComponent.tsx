@@ -128,7 +128,7 @@ export default function PreTestComponent(props: Props) {
               disabled={props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
               onClick={props.openRunComponent}
             >
-              Run & Record Experiment
+              Run &amp; record
             </Button>
           </div>
         </div>

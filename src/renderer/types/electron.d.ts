@@ -73,10 +73,11 @@ declare global {
       data: unknown,
       title: string
     ) => Promise<void>;
-    checkFileExists: (
+    recordingExists: (
       title: string,
       subject: string,
-      filename: string
+      group: string,
+      session: number
     ) => Promise<boolean>;
     readFiles: (filePathsArray: string[]) => Promise<string[]>;
     readFileAsBytes: (filePath: string) => Promise<Uint8Array>;

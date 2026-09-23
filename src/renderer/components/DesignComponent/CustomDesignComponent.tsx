@@ -606,6 +606,7 @@ export default function CustomDesign(props: DesignProps) {
               <PreviewButton
                 isPreviewing={isPreviewing}
                 onClick={handlePreview}
+                onRunAndRecord={handleStartExperiment}
               />
             </div>
           </div>

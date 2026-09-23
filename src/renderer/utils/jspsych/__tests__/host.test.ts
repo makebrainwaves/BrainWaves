@@ -93,7 +93,10 @@ describe('buildJsPsychOptions', () => {
     // TimelineVariable means no marker, a perfect-looking behavioral CSV, and an
     // EEG Marker column of zeros discovered only at analysis. It must be loud.
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const { options, eventCallback } = build({}, { condition: { unresolved: true } });
+    const { options, eventCallback } = build(
+      {},
+      { condition: { unresolved: true } }
+    );
     (options.on_trial_start as (t: unknown) => void)({ data: {} });
     await nextFrame();
     expect(eventCallback).not.toHaveBeenCalled();
@@ -209,5 +212,43 @@ describe('createJsPsychHost', () => {
         onFinish: vi.fn(),
       })
     ).toThrow(/createJsPsychHost: .*thisIsNotDefined/);
+  });
+
+  const runReportingProgress = (timeline: string) =>
+    new Promise<unknown[]>((resolve) => {
+      document.body.innerHTML = '<div id="host"></div>';
+      const reports: unknown[] = [];
+      const host = createJsPsychHost(
+        `const jsPsych = initJsPsych({}); jsPsych.run(${timeline});`,
+        {
+          hostElementId: 'host',
+          mapping,
+          registry,
+          eventCallback: vi.fn(),
+          onProgress: (progress) => reports.push(progress),
+          onFinish: () => {
+            host.teardown();
+            resolve(reports);
+          },
+        }
+      );
+    });
+
+  it('reports trial position with an exact total for a fixed timeline', async () => {
+    const reports = await runReportingProgress(`[{
+      timeline: [{ type: jsPsychCallFunction, func: () => {} }],
+      timeline_variables: [{}, {}], repetitions: 2,
+    }]`);
+    expect(reports).toEqual(
+      [1, 2, 3, 4].map((current) => ({ current, total: 4 }))
+    );
+  });
+
+  it('drops the total when a loop_function makes the length unknowable', async () => {
+    const reports = await runReportingProgress(`[{
+      timeline: [{ type: jsPsychCallFunction, func: () => {} }],
+      loop_function: (data) => data.count() < 1,
+    }]`);
+    expect(reports).toEqual([{ current: 1, total: undefined }]);
   });
 });
