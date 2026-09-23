@@ -24,7 +24,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
   - Clean: allow choosing a different file without going back/undoing.
   - Add "What does clean your data mean?" student explainer (aligns with Epoch reviewer onboarding work below).
   - Nav-state distinction: the workflow bar (Prepare/Collect/Clean/Analyze) and the local steps bar (Overview/Background/Protocol/Preview) read as one stacked nav on Prepare — Workstream 4, plan §3.2. (playtest 09-23)
-  - Blocked areas: `BlockedAreaEmptyState.tsx` is built but wired to nothing; clicking Clean in a workspace with zero recordings shows the ordinary screen instead of an explanation. Workstream 1 acceptance gap. (playtest 09-23)
+  - ~~Blocked areas~~ — shipped 2026-09-23 (`WorkspaceAreaGate` on /clean and /analyze, PR #269).
   - Device chip is display-only; plan §3.1 requires it to open headset setup outside a run. Wire when WS2's setup flow exists. (playtest 09-23)
 
 ## Next (V1.5: Visual Polish and Juice)
