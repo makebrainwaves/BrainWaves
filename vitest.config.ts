@@ -9,6 +9,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
     css: true,
+    // Sibling git worktrees carry their own node_modules and duplicate every
+    // test file; collecting them breaks `npm test` with cross-copy React.
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.worktrees/**'],
   },
   resolve: {
     alias: {

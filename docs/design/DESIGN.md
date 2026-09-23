@@ -2,7 +2,8 @@
 
 This is the canonical guide for BrainWaves UI decisions. The component catalog in
 Storybook shows the current implementation; reusable primitives live in
-`src/renderer/components/ui/`, and design tokens live in `tailwind.config.js`.
+`src/renderer/components/ui/`, tokens in `src/renderer/tokens.css`, and Tailwind
+maps its theme names to those tokens in `tailwind.config.js`.
 
 ## Principles
 
@@ -137,7 +138,7 @@ Use direct Tailwind classes for layout and one-off composition around primitives
 
 ## Maintaining the system
 
-- Add or change tokens in `tailwind.config.js`; avoid new arbitrary color values.
+- Add or change tokens in `src/renderer/tokens.css`; avoid new arbitrary color values.
 - Update the relevant Storybook story when a shared primitive or variant changes.
 - Keep app-specific components composed from shared primitives where practical.
 - Check keyboard navigation, focus visibility, contrast, and readable labels for every
