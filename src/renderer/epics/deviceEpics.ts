@@ -1,10 +1,12 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { of, from, ObservableInput, EMPTY } from 'rxjs';
+import { of, from, defer, ObservableInput, EMPTY } from 'rxjs';
 import {
   map,
   pluck,
   mergeMap,
+  switchMap,
   tap,
+  take,
   filter,
   catchError,
   takeUntil,
@@ -47,7 +49,8 @@ const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     pluck('payload'),
     filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
     map(() => getDriver(state$.value.device.deviceType).scan()),
-    mergeMap((promise) =>
+    // switchMap: a newer search drops the older request's late answer.
+    switchMap((promise) =>
       promise.then(
         (devices) =>
           devices?.length
@@ -98,8 +101,9 @@ const cancelSearchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
 
 /**
  * Connects the chosen device. A rejected connect reports DISCONNECTED (the
- * setup flow's "failed" state) without killing the epic; DisconnectFromDevice
- * abandons an in-flight attempt so a late success cannot report CONNECTED.
+ * setup flow's "failed" state) without killing the epic. DisconnectFromDevice
+ * abandons an in-flight attempt: a late success never reports CONNECTED and
+ * is disconnected so the headset is not left linked.
  */
 const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
@@ -108,12 +112,19 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
-    mergeMap((device) =>
-      from(getDriver(state$.value.device.deviceType).connect(device)).pipe(
+    mergeMap((device) => {
+      const driver = getDriver(state$.value.device.deviceType);
+      const attempt = driver.connect(device);
+      const abandoned$ = action$.pipe(
+        filter(isActionOf(DeviceActions.DisconnectFromDevice)),
+        take(1),
+        tap(() => {
+          void attempt.then(() => driver.disconnect()).catch(() => undefined);
+        })
+      );
+      return from(attempt).pipe(
         catchError(() => of(null)),
-        takeUntil(
-          action$.pipe(filter(isActionOf(DeviceActions.DisconnectFromDevice)))
-        ),
+        takeUntil(abandoned$),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mergeMap<DeviceInfo | null, ObservableInput<any>>((deviceInfo) => {
           if (deviceInfo != null && deviceInfo.samplingRate != null) {
@@ -131,15 +142,19 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
             DeviceActions.SetConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
           );
         })
-      )
-    )
+      );
+    })
   );
 
 const isConnectingEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$
 ) =>
   action$.pipe(
-    filter(isActionOf(DeviceActions.ConnectToDevice)),
+    filter(
+      (action) =>
+        isActionOf(DeviceActions.ConnectToDevice)(action) ||
+        isActionOf(DeviceActions.ConnectToLSLStream)(action)
+    ),
     map(() => DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTING))
   );
 
@@ -208,9 +223,13 @@ const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     map(DeviceActions.Cleanup)
   );
 
-// Watches for unexpected BLE disconnects and dispatches DeviceLost so the UI
-// can clear its "connected" state and surface a toast. Only runs while a BLE
-// device is active — LSL inlets have their own disconnect path.
+/**
+ * Watches each BLE connection for an unexpected drop and dispatches DeviceLost
+ * so the UI can clear "connected" and surface a toast. Every CONNECTED gets its
+ * own watch, ended by that connection's Cleanup; the epic itself never ends,
+ * so a later connection in the same session is still watched. LSL inlets have
+ * their own disconnect path.
+ */
 const deviceDisconnectWatchEpic: Epic<
   DeviceActionType,
   DeviceActionType,
@@ -220,15 +239,18 @@ const deviceDisconnectWatchEpic: Epic<
     filter(isActionOf(DeviceActions.SetConnectionStatus)),
     pluck('payload'),
     filter((status) => status === CONNECTION_STATUS.CONNECTED),
-    mergeMap(() => {
+    switchMap(() => {
       const dt = state$.value.device.deviceType;
-      // LSL inlets have their own disconnect path; only BLE drivers report here.
       if (dt === DEVICES.LSL) return EMPTY;
-      return getDriver(dt).disconnect$();
+      return getDriver(dt)
+        .disconnect$()
+        .pipe(
+          take(1),
+          takeUntil(action$.pipe(filter(isActionOf(DeviceActions.Cleanup))))
+        );
     }),
     tap(() => toast.error('EEG device disconnected')),
-    map(() => DeviceActions.DeviceLost()),
-    takeUntil(action$.pipe(filter(isActionOf(DeviceActions.Cleanup))))
+    map(() => DeviceActions.DeviceLost())
   );
 
 // Responds to DeviceLost by tearing down driver state and resetting redux.
@@ -260,6 +282,11 @@ const discoverLSLStreamsEpic: Epic<
     map(DeviceActions.SetAvailableLSLStreams)
   );
 
+/**
+ * Opens an LSL inlet. A failure reports DISCONNECTED and tears the half-open
+ * inlet down instead of killing every device epic; DisconnectFromDevice
+ * abandons an attempt still waiting on the inlet.
+ */
 const connectToLSLStreamEpic: Epic<
   DeviceActionType,
   DeviceActionType,
@@ -268,23 +295,35 @@ const connectToLSLStreamEpic: Epic<
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToLSLStream)),
     pluck('payload'),
-    mergeMap((stream) => {
-      const deviceInfo = connectToLSLInlet(stream);
-      // LSL recording is an external-recorder mode — no first-party driver owns
-      // markers, so clear any previously-active BLE driver (injectMarker no-ops).
-      setActiveDriver(null);
-      return from(createRawLSLInletObservable(stream)).pipe(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mergeMap<unknown, ObservableInput<any>>((rawObservable) =>
-          of(
-            DeviceActions.SetDeviceType(DEVICES.LSL),
-            DeviceActions.SetDeviceInfo(deviceInfo),
-            DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED),
-            DeviceActions.SetRawObservable(rawObservable)
+    mergeMap((stream) =>
+      defer(() => {
+        const deviceInfo = connectToLSLInlet(stream);
+        // LSL recording is an external-recorder mode — no first-party driver owns
+        // markers, so clear any previously-active BLE driver (injectMarker no-ops).
+        setActiveDriver(null);
+        return from(createRawLSLInletObservable(stream)).pipe(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          mergeMap<unknown, ObservableInput<any>>((rawObservable) =>
+            of(
+              DeviceActions.SetDeviceType(DEVICES.LSL),
+              DeviceActions.SetDeviceInfo(deviceInfo),
+              DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED),
+              DeviceActions.SetRawObservable(rawObservable)
+            )
           )
+        );
+      }).pipe(
+        catchError(() => {
+          disconnectFromLSLInlet();
+          return of(
+            DeviceActions.SetConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
+          );
+        }),
+        takeUntil(
+          action$.pipe(filter(isActionOf(DeviceActions.DisconnectFromDevice)))
         )
-      );
-    })
+      )
+    )
   );
 
 // Forwards each raw EEG sample over IPC to the main-process LSL outlet.

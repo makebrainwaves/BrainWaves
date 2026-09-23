@@ -16,8 +16,14 @@ const driver = vi.hoisted(() => ({
   cancelScan: vi.fn(),
   connect: vi.fn(),
   disconnect: vi.fn(),
+  disconnect$: vi.fn(),
 }));
-const lsl = vi.hoisted(() => ({ discoverLSLStreams: vi.fn() }));
+const lsl = vi.hoisted(() => ({
+  discoverLSLStreams: vi.fn(),
+  connectToLSLInlet: vi.fn(),
+  createRawLSLInletObservable: vi.fn(),
+  disconnectFromLSLInlet: vi.fn(),
+}));
 
 vi.mock('../../utils/eeg', () => ({
   getDriver: () => driver,
@@ -28,6 +34,7 @@ vi.mock('../../utils/eeg/muse', () => ({
 }));
 vi.mock('../../utils/eeg/lslInlet', () => lsl);
 vi.mock('../../utils/eeg/lslBridge', () => ({}));
+vi.mock('react-toastify', () => ({ toast: { error: vi.fn() } }));
 
 const MUSE = { id: 'muse-1', name: 'Muse-4A2F' };
 const INFO = { name: 'Muse-4A2F', samplingRate: 256, channels: ['AF7'] };
@@ -110,6 +117,28 @@ describe('device discovery', () => {
     h.sub.unsubscribe();
   });
 
+  it('a cancelled search answering late cannot end the search that replaced it', async () => {
+    const cancelled = Promise.withResolvers<never>();
+    driver.scan
+      .mockReturnValueOnce(cancelled.promise)
+      .mockReturnValueOnce(new Promise(() => undefined));
+    const h = harness({ deviceAvailability: DEVICE_AVAILABILITY.SEARCHING });
+    h.actions.next(
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
+    );
+    h.actions.next(DeviceActions.CancelSearch());
+    h.actions.next(
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
+    );
+    h.out.length = 0;
+
+    cancelled.reject(new Error('cancelled'));
+    await flush();
+
+    expect(h.out).toEqual([]);
+    h.sub.unsubscribe();
+  });
+
   it('reports not found when LSL discovery fails', async () => {
     lsl.discoverLSLStreams.mockRejectedValue(new Error('liblsl'));
     const h = harness({ deviceType: DEVICES.LSL });
@@ -145,19 +174,70 @@ describe('device connection', () => {
     h.sub.unsubscribe();
   });
 
-  it('never reports connected after the attempt was cancelled', async () => {
+  it('never reports connected after the attempt was cancelled, and unlinks the late connection', async () => {
     const connect = Promise.withResolvers<typeof INFO>();
     driver.connect.mockReturnValue(connect.promise);
     const h = harness({ connectionStatus: CONNECTION_STATUS.CONNECTING });
 
     h.actions.next(DeviceActions.ConnectToDevice(MUSE));
     h.actions.next(DeviceActions.DisconnectFromDevice());
+    const disconnectsBeforeLateSuccess = driver.disconnect.mock.calls.length;
     connect.resolve(INFO);
     await flush();
 
     expect(h.out).not.toContainEqual(
       DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
     );
+    expect(driver.disconnect).toHaveBeenCalledTimes(
+      disconnectsBeforeLateSuccess + 1
+    );
+    h.sub.unsubscribe();
+  });
+
+  it('reports a failed LSL connect, closes the inlet, and keeps the epics alive', async () => {
+    const STREAM = {
+      uid: 'u1',
+      name: 'EEG',
+      type: 'EEG',
+      channelCount: 8,
+      sampleRate: 250,
+      sourceId: 's',
+    };
+    lsl.connectToLSLInlet.mockReturnValue(INFO);
+    lsl.createRawLSLInletObservable.mockRejectedValue(new Error('inlet'));
+    lsl.discoverLSLStreams.mockResolvedValue([STREAM]);
+    const h = harness({ deviceType: DEVICES.LSL });
+
+    h.actions.next(DeviceActions.ConnectToLSLStream(STREAM));
+    await flush();
+    expect(h.out).toContainEqual(
+      DeviceActions.SetConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
+    );
+    expect(lsl.disconnectFromLSLInlet).toHaveBeenCalled();
+
+    h.actions.next(DeviceActions.DiscoverLSLStreams());
+    await flush();
+    expect(h.out).toContainEqual(
+      DeviceActions.SetAvailableLSLStreams([STREAM])
+    );
+    h.sub.unsubscribe();
+  });
+
+  it('still notices a headset drop on a later connection in the same session', () => {
+    const drop = new Subject<void>();
+    driver.disconnect$.mockReturnValue(drop);
+    const h = harness();
+
+    h.actions.next(
+      DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
+    );
+    h.actions.next(DeviceActions.Cleanup());
+    h.actions.next(
+      DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
+    );
+    drop.next();
+
+    expect(h.out).toContainEqual(DeviceActions.DeviceLost());
     h.sub.unsubscribe();
   });
 });
