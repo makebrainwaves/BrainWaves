@@ -54,7 +54,8 @@ interface Props {
   onContinue(): void;
   /** The only way discovery starts. */
   onFindHeadset(): void;
-  onCancelSearch(): void;
+  /** Stops the current search or connection attempt. */
+  onCancel(): void;
   onSelectHeadset(id: string): void;
   onConnect(): void;
   /** Fixture: start replay. LSL: look for streams. */
@@ -73,17 +74,6 @@ const NAME: Record<SetupDevice, string> = {
 };
 
 const STAGES = ['Choose', 'Get ready', 'Connect'] as const;
-const STAGE_OF: Record<PairingStep, number> = {
-  choose: 0,
-  wear: 1,
-  ready: 2,
-  searching: 2,
-  notFound: 2,
-  found: 2,
-  connecting: 2,
-  failed: 2,
-  connected: 2,
-};
 
 const TITLE = 'm-0 !text-[26px] !font-light !leading-tight !tracking-[0.3px]';
 const BODY =
@@ -107,11 +97,11 @@ const POWER_ON: Record<DEVICES.MUSE | DEVICES.NEUROSITY, string> = {
   [DEVICES.MUSE]:
     'Hold the power button until the lights come on. Moving lights mean it is waiting to pair.',
   [DEVICES.NEUROSITY]:
-    'Press the power button and wait for the light. It is ready to pair once it is on and not charging.',
+    'Press the power button and wait for the light to come on.',
 };
 
 const TROUBLESHOOT = [
-  'Is it turned on and charged? It will not pair while plugged in.',
+  'Is it turned on and charged?',
   'Close the headset’s phone app — a headset can only talk to one device.',
   'Bring it close to this computer.',
 ];
@@ -148,7 +138,7 @@ function OutcomeMark({ ok }: { ok: boolean }) {
       aria-hidden
       className={cn(
         'flex h-[48px] w-[48px] flex-none items-center justify-center rounded-full text-[24px] font-bold',
-        ok ? 'bg-brand-light text-brand' : 'bg-[#f3f3f8] text-ink'
+        ok ? 'bg-brand-light text-brand' : 'bg-gray-100 text-ink'
       )}
     >
       {ok ? '✓' : '!'}
@@ -173,7 +163,7 @@ function Checklist({ items, label }: { items: string[]; label: string }) {
 
 function Actions({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-[8px] flex flex-row-reverse items-center gap-[12px]">
+    <div className="mt-[8px] flex items-center justify-end gap-[12px]">
       {children}
     </div>
   );
@@ -192,7 +182,6 @@ export default function HeadsetSetup(props: Props) {
   const selected = found.find((h) => h.id === selectedId);
   const deviceName = device ? NAME[device] : 'headset';
   const headsetLabel = selected?.name ?? deviceName;
-  const isSoftware = device === DEVICES.FIXTURE || device === DEVICES.LSL;
 
   return (
     <section
@@ -200,7 +189,7 @@ export default function HeadsetSetup(props: Props) {
       className="relative flex w-[560px] flex-col gap-[20px] rounded-[10px] bg-white p-[32px] text-left shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
     >
       <div className="flex items-start justify-between">
-        <Stepper stage={STAGE_OF[step]} />
+        <Stepper stage={step === 'choose' ? 0 : step === 'wear' ? 1 : 2} />
         <Button
           variant="ghost"
           size="icon"
@@ -237,7 +226,7 @@ export default function HeadsetSetup(props: Props) {
               ))}
             </div>
             {(props.showFixture || props.showLSL) && (
-              <div className="flex flex-col gap-[4px] border-t border-[#eee] pt-[12px]">
+              <div className="flex flex-col gap-[4px] border-t border-gray-200 pt-[12px]">
                 <p className={NOTE}>No headset on you?</p>
                 <div className="flex gap-[8px]">
                   {props.showFixture && (
@@ -293,18 +282,18 @@ export default function HeadsetSetup(props: Props) {
                 ))}
               </ol>
             </div>
-            <div className="rounded-[8px] bg-[#f7f7fa] p-[16px]">
+            <div className="rounded-[8px] bg-gray-100 p-[16px]">
               <p className="m-0 !text-[15px] font-bold">Turn it on</p>
               <p className={cn(NOTE, 'mt-[4px] text-ink')}>
                 {POWER_ON[device]}
               </p>
             </div>
             <Actions>
-              <Button size="lg" onClick={props.onContinue}>
-                It’s on
-              </Button>
               <Button variant="outline" size="lg" onClick={props.onBack}>
                 Back
+              </Button>
+              <Button size="lg" onClick={props.onContinue}>
+                It’s on
               </Button>
             </Actions>
           </>
@@ -322,15 +311,15 @@ export default function HeadsetSetup(props: Props) {
               cancel.
             </p>
             <Actions>
+              <Button variant="outline" size="lg" onClick={props.onBack}>
+                Back
+              </Button>
               <Button
                 size="lg"
                 className="px-[32px]"
                 onClick={props.onFindHeadset}
               >
                 Find my headset
-              </Button>
-              <Button variant="outline" size="lg" onClick={props.onBack}>
-                Back
               </Button>
             </Actions>
           </>
@@ -343,18 +332,14 @@ export default function HeadsetSetup(props: Props) {
               Looking for your {deviceName}…
             </h2>
             <div role="status" className="flex items-center gap-[16px]">
-              <Spinner size={32} className="flex-none text-brand" />
+              <Spinner aria-hidden size={32} className="flex-none" />
               <p className={BODY}>
                 Searching. This can take a little while — keep the headset on
                 and nearby.
               </p>
             </div>
             <Actions>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={props.onCancelSearch}
-              >
+              <Button variant="outline" size="lg" onClick={props.onCancel}>
                 Cancel search
               </Button>
             </Actions>
@@ -375,11 +360,11 @@ export default function HeadsetSetup(props: Props) {
               items={TROUBLESHOOT}
             />
             <Actions>
-              <Button size="lg" onClick={props.onFindHeadset}>
-                Search again
-              </Button>
               <Button variant="outline" size="lg" onClick={props.onBack}>
                 Back to setup tips
+              </Button>
+              <Button size="lg" onClick={props.onFindHeadset}>
+                Search again
               </Button>
             </Actions>
           </>
@@ -450,11 +435,11 @@ export default function HeadsetSetup(props: Props) {
               })}
             </ul>
             <Actions>
-              <Button size="lg" disabled={!selected} onClick={props.onConnect}>
-                {selected ? `Connect to ${selected.name}` : 'Connect'}
-              </Button>
               <Button variant="outline" size="lg" onClick={props.onFindHeadset}>
                 Search again
+              </Button>
+              <Button size="lg" disabled={!selected} onClick={props.onConnect}>
+                {selected ? `Connect to ${selected.name}` : 'Connect'}
               </Button>
             </Actions>
           </>
@@ -467,15 +452,11 @@ export default function HeadsetSetup(props: Props) {
               Connecting to {headsetLabel}…
             </h2>
             <div role="status" className="flex items-center gap-[16px]">
-              <Spinner size={32} className="flex-none text-brand" />
+              <Spinner aria-hidden size={32} className="flex-none" />
               <p className={BODY}>Keep the headset on and nearby.</p>
             </div>
             <Actions>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={props.onCancelSearch}
-              >
+              <Button variant="outline" size="lg" onClick={props.onCancel}>
                 Cancel
               </Button>
             </Actions>
@@ -493,11 +474,11 @@ export default function HeadsetSetup(props: Props) {
             </div>
             <Checklist label="This usually fixes it:" items={TROUBLESHOOT} />
             <Actions>
-              <Button size="lg" onClick={props.onConnect}>
-                Try again
-              </Button>
               <Button variant="outline" size="lg" onClick={props.onFindHeadset}>
                 Search again
+              </Button>
+              <Button size="lg" onClick={props.onConnect}>
+                Try again
               </Button>
             </Actions>
           </>
@@ -513,7 +494,7 @@ export default function HeadsetSetup(props: Props) {
               </h2>
             </div>
             <p className={BODY}>
-              {isSoftware
+              {device === DEVICES.FIXTURE || device === DEVICES.LSL
                 ? 'The app is receiving EEG data.'
                 : `The app can hear your ${deviceName}${selected ? ` (${selected.model})` : ''}.`}{' '}
               <strong>Nothing is being recorded</strong> — recording only starts
@@ -554,11 +535,11 @@ export default function HeadsetSetup(props: Props) {
           </>
         )}
         <Actions>
-          <Button size="lg" onClick={props.onStartSoftwareSource}>
-            {fixture ? 'Start fixture data' : 'Look for LSL streams'}
-          </Button>
           <Button variant="outline" size="lg" onClick={props.onBack}>
             Back
+          </Button>
+          <Button size="lg" onClick={props.onStartSoftwareSource}>
+            {fixture ? 'Start fixture data' : 'Look for LSL streams'}
           </Button>
         </Actions>
       </>

@@ -18,8 +18,6 @@ export interface SensorReading {
 interface Props {
   device: DEVICES.MUSE | DEVICES.NEUROSITY;
   sensors: SensorReading[];
-  /** Names where the student goes next, e.g. `Start exploring`. */
-  continueLabel: string;
   onContinue(): void;
 }
 
@@ -29,13 +27,6 @@ const DOT: Record<SIGNAL_QUALITY, string> = {
   [SIGNAL_QUALITY.BAD]: 'bg-signal-bad border-signal-bad',
   [SIGNAL_QUALITY.DISCONNECTED]: 'bg-white border-signal-none',
 };
-
-const LEGEND = [
-  SIGNAL_QUALITY.GREAT,
-  SIGNAL_QUALITY.OK,
-  SIGNAL_QUALITY.BAD,
-  SIGNAL_QUALITY.DISCONNECTED,
-];
 
 const HEADING = 'm-0 !text-[18px] font-bold !tracking-normal';
 const BODY =
@@ -47,12 +38,7 @@ const BODY =
  * per-sensor quality as color plus a word plus a fix. Never gates: the
  * student can continue at any quality.
  */
-export default function SignalPrep({
-  device,
-  sensors,
-  continueLabel,
-  onContinue,
-}: Props) {
+export default function SignalPrep({ device, sensors, onContinue }: Props) {
   const ids = { prep: useId(), meaning: useId(), sensors: useId() };
   const prep = [
     'Sensors need clean, bare skin. Move hair out of the way.',
@@ -104,7 +90,7 @@ export default function SignalPrep({
             aria-label="Signal quality key"
             className="m-0 flex list-none flex-wrap gap-x-[16px] gap-y-[6px] p-0 text-[14px]"
           >
-            {LEGEND.map((q) => (
+            {(Object.keys(QUALITY_LABELS) as SIGNAL_QUALITY[]).map((q) => (
               <li key={q} className="flex items-center gap-[6px]">
                 <span
                   aria-hidden
@@ -163,7 +149,7 @@ export default function SignalPrep({
 
       <div className="flex">
         <Button size="lg" onClick={onContinue}>
-          {continueLabel}
+          Start exploring
         </Button>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { fn } from 'storybook/test';
 import HeadsetSetup from './HeadsetSetup';
 import SignalPrepPanel from './SignalPrep';
 import { DEVICES } from '../../constants/constants';
-import { FOUND_MUSE, MIXED_MUSE_SENSORS } from './fixtures';
+import { CROWN_SENSORS, FOUND_MUSE, MIXED_MUSE_SENSORS } from './fixtures';
 
 const meta: Meta<typeof HeadsetSetup> = {
   title: 'Domain/HeadsetSetup',
@@ -30,7 +30,7 @@ const meta: Meta<typeof HeadsetSetup> = {
     onBack: fn(),
     onContinue: fn(),
     onFindHeadset: fn(),
-    onCancelSearch: fn(),
+    onCancel: fn(),
     onSelectHeadset: fn(),
     onConnect: fn(),
     onStartSoftwareSource: fn(),
@@ -114,7 +114,18 @@ export const SignalPrep: Story = {
     <SignalPrepPanel
       device={DEVICES.MUSE}
       sensors={MIXED_MUSE_SENSORS}
-      continueLabel="Start exploring"
+      onContinue={fn()}
+    />
+  ),
+};
+
+/** S02 — Crown: no snug-band step; all eight sensors show their scalp location. */
+export const SignalPrepCrown: Story = {
+  parameters: { surface: 'page' },
+  render: () => (
+    <SignalPrepPanel
+      device={DEVICES.NEUROSITY}
+      sensors={CROWN_SENSORS}
       onContinue={fn()}
     />
   ),

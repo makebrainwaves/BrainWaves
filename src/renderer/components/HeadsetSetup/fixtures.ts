@@ -1,4 +1,4 @@
-import { SIGNAL_QUALITY } from '../../constants/constants';
+import { NEUROSITY_CHANNELS, SIGNAL_QUALITY } from '../../constants/constants';
 import { FoundHeadset } from './HeadsetSetup';
 import { SensorReading } from './SignalPrep';
 
@@ -15,3 +15,11 @@ export const MIXED_MUSE_SENSORS: SensorReading[] = [
   { channel: 'AF8', quality: SIGNAL_QUALITY.BAD },
   { channel: 'TP10', quality: SIGNAL_QUALITY.DISCONNECTED },
 ];
+
+/** Crown montage cycling through every quality, so each sensor's location renders. */
+export const CROWN_SENSORS: SensorReading[] = NEUROSITY_CHANNELS.map(
+  (channel, i) => ({
+    channel,
+    quality: MIXED_MUSE_SENSORS[i % MIXED_MUSE_SENSORS.length].quality,
+  })
+);
