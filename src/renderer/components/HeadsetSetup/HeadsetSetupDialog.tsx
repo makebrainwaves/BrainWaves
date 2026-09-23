@@ -22,7 +22,7 @@ const MODEL: Record<Exclude<SetupDevice, DEVICES.LSL>, string> = {
 interface Props {
   open: boolean;
   onClose(): void;
-  /** "Check my signal" pressed on the Connected screen. */
+  /** "Check my signal" pressed on the Connected screen; `onClose` follows. */
   onDone(device: SetupDevice): void;
 }
 
@@ -53,13 +53,6 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
       .then(setShowLSL)
       .catch(() => setShowLSL(false));
   }, []);
-
-  useEffect(() => {
-    if (open) {
-      setScreen('choose');
-      setSelectedId(undefined);
-    }
-  }, [open]);
 
   useEffect(() => setLslSearching(false), [availableLSLStreams]);
 
@@ -96,17 +89,17 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
     if (!device) return;
     setSelectedId(undefined);
     setScreen('discovery');
-    if (device === DEVICES.LSL) {
-      setLslSearching(true);
-      dispatch(DeviceActions.DiscoverLSLStreams());
-      return;
-    }
     if (connectionStatus === CONNECTION_STATUS.DISCONNECTED) {
       dispatch(
         DeviceActions.SetConnectionStatus(CONNECTION_STATUS.NOT_YET_CONNECTED)
       );
     }
     dispatch(DeviceActions.SetDeviceType(device));
+    if (device === DEVICES.LSL) {
+      setLslSearching(true);
+      dispatch(DeviceActions.DiscoverLSLStreams());
+      return;
+    }
     dispatch(
       DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
     );
@@ -122,8 +115,11 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
     );
   }
 
+  /** Every exit: cancels a pending attempt so the next open starts at "Which headset?". */
   function close() {
     if (step === 'searching' || step === 'connecting') cancel();
+    setScreen('choose');
+    setSelectedId(undefined);
     onClose();
   }
 
@@ -168,7 +164,10 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
             }
             onConnect={connect}
             onStartSoftwareSource={find}
-            onDone={() => shownDevice && onDone(shownDevice)}
+            onDone={() => {
+              if (shownDevice) onDone(shownDevice);
+              close();
+            }}
             onClose={close}
           />
         </DialogPrimitive.Content>

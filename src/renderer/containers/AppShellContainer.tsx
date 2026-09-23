@@ -1,9 +1,16 @@
-import React, { createContext, ReactNode, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell/AppShell';
 import {
   AREA_ROUTES,
+  EXPLORE_ROUTE,
   HOME_ROUTE,
   areaForPath,
 } from '../components/AppShell/areas';
@@ -75,7 +82,6 @@ export default function AppShellContainer({
 
   const { isRunning } = experiment;
   const [setupOpen, setSetupOpen] = useState(false);
-  const openHeadsetSetup = () => setSetupOpen(true);
   const [signalPrep, setSignalPrep] = useState<
     DEVICES.MUSE | DEVICES.NEUROSITY | null
   >(null);
@@ -83,6 +89,15 @@ export default function AppShellContainer({
     if (device.connectionStatus !== CONNECTION_STATUS.CONNECTED)
       setSignalPrep(null);
   }, [device.connectionStatus]);
+  /** Stable across the shell's per-second run-clock renders, so the running experiment's host does not re-render with it. */
+  const headsetSetup = useMemo<HeadsetSetupApi>(
+    () => ({
+      openHeadsetSetup: () => setSetupOpen(true),
+      signalPrep,
+      finishSignalPrep: () => setSignalPrep(null),
+    }),
+    [signalPrep]
+  );
   const [elapsed, setElapsed] = useState('00:00');
   const [progress, setProgress] = useState<ExperimentProgress | null>(null);
   useEffect(() => {
@@ -126,16 +141,10 @@ export default function AppShellContainer({
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
       onEndRun={() => dispatch(ExperimentActions.Stop({ data: '' }))}
-      onDeviceClick={openHeadsetSetup}
+      onDeviceClick={headsetSetup.openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>
-        <HeadsetSetupContext.Provider
-          value={{
-            openHeadsetSetup,
-            signalPrep,
-            finishSignalPrep: () => setSignalPrep(null),
-          }}
-        >
+        <HeadsetSetupContext.Provider value={headsetSetup}>
           {children}
         </HeadsetSetupContext.Provider>
       </RunProgressContext.Provider>
@@ -143,8 +152,10 @@ export default function AppShellContainer({
         open={setupOpen}
         onClose={() => setSetupOpen(false)}
         onDone={(d) => {
-          setSetupOpen(false);
-          if (d === DEVICES.MUSE || d === DEVICES.NEUROSITY) setSignalPrep(d);
+          if (d !== DEVICES.MUSE && d !== DEVICES.NEUROSITY) return;
+          setSignalPrep(d);
+          if (pathname !== AREA_ROUTES.collect && pathname !== EXPLORE_ROUTE)
+            void navigate(EXPLORE_ROUTE);
         }}
       />
     </AppShell>

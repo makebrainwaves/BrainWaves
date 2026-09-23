@@ -27,13 +27,11 @@ export function pairingStep(i: PairingInputs): PairingStep {
   if (i.connectionStatus === CONNECTION_STATUS.CONNECTED) return 'connected';
   if (i.screen !== 'discovery') return i.screen;
   if (i.connectionStatus === CONNECTION_STATUS.CONNECTING) return 'connecting';
-  if (i.isLSL) {
-    if (i.lslSearching) return 'searching';
-    return i.foundCount ? 'found' : 'notFound';
-  }
-  if (i.availability === DEVICE_AVAILABILITY.SEARCHING) return 'searching';
+  const searching = i.isLSL
+    ? i.lslSearching
+    : i.availability === DEVICE_AVAILABILITY.SEARCHING;
+  if (searching) return 'searching';
   if (i.connectionStatus === CONNECTION_STATUS.DISCONNECTED) return 'failed';
-  if (i.availability === DEVICE_AVAILABILITY.AVAILABLE && i.foundCount)
-    return 'found';
-  return 'notFound';
+  const listed = i.isLSL || i.availability === DEVICE_AVAILABILITY.AVAILABLE;
+  return listed && i.foundCount ? 'found' : 'notFound';
 }

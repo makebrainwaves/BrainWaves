@@ -83,5 +83,12 @@ describe('pairingStep', () => {
     expect(pairingStep({ ...lsl, lslSearching: true })).toBe('searching');
     expect(pairingStep({ ...lsl, foundCount: 2 })).toBe('found');
     expect(pairingStep(lsl)).toBe('notFound');
+    expect(
+      pairingStep({
+        ...lsl,
+        foundCount: 2,
+        connectionStatus: CONNECTION_STATUS.DISCONNECTED,
+      })
+    ).toBe('failed');
   });
 });
