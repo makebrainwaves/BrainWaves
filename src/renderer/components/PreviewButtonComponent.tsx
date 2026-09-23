@@ -1,22 +1,58 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/button';
 
 interface Props {
   isPreviewing: boolean;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /**
+   * Offered next to the preview toggle. Becomes the one dominant action once
+   * a preview has been started and stopped (or ran to the end).
+   */
+  onRunAndRecord?: () => void;
 }
 
-export default function PreviewButton(props: Props) {
-  if (!props.isPreviewing) {
-    return (
-      <Button variant="secondary" onClick={props.onClick}>
-        Preview Experiment
-      </Button>
-    );
-  }
+/** Preview toggle plus the persistent "nothing is recorded" preview status. */
+export default function PreviewButton({
+  isPreviewing,
+  onClick,
+  onRunAndRecord,
+}: Props) {
+  const [hasPreviewed, setHasPreviewed] = useState(false);
+  if (isPreviewing && !hasPreviewed) setHasPreviewed(true);
+  const runIsPrimary = Boolean(onRunAndRecord) && hasPreviewed;
+
   return (
-    <Button variant="destructive" onClick={props.onClick}>
-      Stop Preview
-    </Button>
+    <div className="flex flex-wrap items-center gap-3">
+      {isPreviewing ? (
+        <Button size="lg" variant="destructive" onClick={onClick}>
+          Stop preview
+        </Button>
+      ) : (
+        <>
+          {runIsPrimary && (
+            <Button size="lg" onClick={onRunAndRecord}>
+              Run &amp; record
+            </Button>
+          )}
+          <Button
+            size="lg"
+            variant={onRunAndRecord && !hasPreviewed ? 'default' : 'outline'}
+            onClick={onClick}
+          >
+            {hasPreviewed ? 'Preview again' : 'Preview experiment'}
+          </Button>
+        </>
+      )}
+      <span role="status" className="text-[15px] text-ink-muted">
+        {isPreviewing ? (
+          <>
+            <b className="tracking-[0.5px] text-ink">PREVIEW</b> · nothing is
+            being recorded
+          </>
+        ) : (
+          'Nothing is recorded during a preview.'
+        )}
+      </span>
+    </div>
   );
 }

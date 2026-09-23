@@ -1,3 +1,4 @@
+@import './tokens.css';
 @import 'rc-slider/assets/index.css';
 @import 'react-toastify/dist/ReactToastify.css';
 /* lab.css styles bare input/select/button/textarea (2px gray borders, white
@@ -8,18 +9,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --radius: 0.375rem;
-}
-
 body {
   position: relative;
   height: 100vh;
   background: rgba(255, 255, 255, 0.2);
-  font-family:
-    Lato,
-    Helvetica Neue,
-    sans-serif;
+  font-family: var(--font-sans);
   overflow-y: hidden;
 }
 
@@ -129,19 +123,19 @@ button:active {
 /* rc-slider-related styles */
 
 .rc-slider-rail {
-  background-color: #ccc !important;
+  background-color: var(--color-ink-faint) !important;
 }
 
 .rc-slider-track {
-  background-color: #ccc !important;
+  background-color: var(--color-ink-faint) !important;
 }
 
 .rc-slider-dot {
   width: 10px;
   height: 10px;
   bottom: -3px;
-  border-color: #ccc;
-  background-color: #ccc;
+  border-color: var(--color-ink-faint);
+  background-color: var(--color-ink-faint);
 }
 
 .rc-slider-handle {
@@ -150,8 +144,8 @@ button:active {
   box-sizing: border-box;
   height: 32px;
   width: 32px;
-  border: 2px solid #007c70;
-  background-color: #007c70;
+  border: 2px solid var(--color-brand);
+  background-color: var(--color-brand);
   transform: none !important;
 }
 
@@ -167,6 +161,6 @@ button:active {
 }
 
 .channelCircle:hover {
-  fill: #007c70;
+  fill: var(--color-brand);
   cursor: pointer;
 }

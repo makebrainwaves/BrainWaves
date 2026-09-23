@@ -10,5 +10,6 @@ export const protocol = {
   condition_second_title: `No orange T`,
   condition_second: `If the orange T is not on the screen, participants
   should press the ‘n’ key instead.`,
+  pacing: `Speed counts here: find the orange T as quickly as you can, without guessing.`,
   links: [],
 };

@@ -30,7 +30,14 @@ let hostCounter = 0;
 
 export const ImportedExperimentWindow: React.FC<
   ImportedExperimentWindowProps
-> = ({ source, imported, fullScreen = true, eventCallback, onFinish }) => {
+> = ({
+  source,
+  imported,
+  fullScreen = true,
+  eventCallback,
+  onFinish,
+  onProgress,
+}) => {
   const hostElementId = useRef(
     `brainwaves-jspsych-host-${(hostCounter += 1)}`
   ).current;
@@ -50,13 +57,14 @@ export const ImportedExperimentWindow: React.FC<
         registry: buildMarkerRegistryFromLabels(imported.conditionLabels),
         eventCallback,
         onFinish,
+        onProgress,
       });
       return host.teardown;
     } catch (failure) {
       setError((failure as Error).message);
       return undefined;
     }
-  }, [eventCallback, hostElementId, imported, onFinish, source]);
+  }, [eventCallback, hostElementId, imported, onFinish, onProgress, source]);
 
   if (error) {
     return (

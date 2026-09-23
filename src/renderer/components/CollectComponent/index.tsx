@@ -46,15 +46,19 @@ export default function Collect(props: Props) {
     !props.isEEGEnabled
   );
 
+  // Re-prompt on any not-connected state, not just mount.
   useEffect(() => {
     if (
+      props.isEEGEnabled &&
+      !isRunComponentOpen &&
+      !isConnectModalOpen &&
       props.connectionStatus !== CONNECTION_STATUS.CONNECTED &&
-      props.isEEGEnabled
+      props.connectionStatus !== CONNECTION_STATUS.CONNECTING
     ) {
       handleStartConnect();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.connectionStatus, props.isEEGEnabled, isRunComponentOpen]);
 
   useEffect(() => {
     if (props.connectionStatus === CONNECTION_STATUS.CONNECTED) {
@@ -73,10 +77,6 @@ export default function Collect(props: Props) {
 
   function handleRunComponentOpen() {
     setIsRunComponentOpen(true);
-  }
-
-  function handleRunComponentClose() {
-    setIsRunComponentOpen(false);
   }
 
   if (isRunComponentOpen) {

@@ -36,7 +36,6 @@ export const ExperimentActions = {
     'SET_EXPERIMENT_STATE'
   ),
   SetEEGEnabled: createAction<boolean, 'SET_EEG_ENABLED'>('SET_EEG_ENABLED'),
-  UpdateSession: createAction('UPDATE_SESSION'),
 } as const;
 
 export type ExperimentActionType = ActionType<

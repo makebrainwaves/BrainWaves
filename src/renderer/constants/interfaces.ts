@@ -140,6 +140,11 @@ interface ProtocolText {
   condition_second: string;
   condition_first_key?: string;
   condition_second_key?: string;
+  /**
+   * Pre-run pacing coaching. Only set where the protocol allows it: reaction
+   * time is an analysed outcome in several experiments.
+   */
+  pacing?: string;
 }
 
 export interface Experiment {

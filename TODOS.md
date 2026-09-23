@@ -15,14 +15,17 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
   - Clean: crash at "Ready to clean subject" — reproduce and fix.
   - Analyze: layout broken by recent component changes; stray elements popping up.
   - Student-facing experiment names (current names are placeholder/dev-written).
-  - Clearer CTA from preview → "Run full experiment"; protect against overwriting an existing recording.
-  - Larger / more obvious pre-screen edit affordance.
-  - Experiment start: prominent "Press SPACE to begin" prompt with spacebar icon.
-  - In-experiment progress bar.
-  - Pre-run coaching copy: not a speed test, ~1–1.5 s per stimulus, stay still, minimize talking.
+  - ~~Preview → run CTA; overwrite protection~~ — shipped 2026-09-23 (`Run & record` after a preview on all Design surfaces; an existing subject/group/session — behavior or EEG file — is never overwritten: the run moves to the next free session or is cancelled; branch `feat/run-preview-polish`).
+  - ~~Larger pre-screen edit affordance~~ — shipped 2026-09-23 (Ready-to-run card, same branch).
+  - ~~"Press SPACE to begin" prompt~~ — shipped 2026-09-23 (gate between Ready and `Start`; nothing records until SPACE, same branch).
+  - ~~In-experiment progress~~ — shipped 2026-09-23 in the RunBar (lab.js: innermost loop position + practice/main; jsPsych: total only when the timeline has no loop/conditional functions or custom sampling). Multitasking counts trials within each block — no study-wide total.
+  - ~~Pre-run coaching copy~~ — shipped 2026-09-23. Pacing is per-protocol (`protocol.pacing`, set for Faces/Houses, Visual Search, Multitasking); the shared EEG line is stillness/no talking only (plan §7.4).
   - Clean vs Analyze labels are ambiguous — clarify the step purpose.
   - Clean: allow choosing a different file without going back/undoing.
   - Add "What does clean your data mean?" student explainer (aligns with Epoch reviewer onboarding work below).
+  - Nav-state distinction: the workflow bar (Prepare/Collect/Clean/Analyze) and the local steps bar (Overview/Background/Protocol/Preview) read as one stacked nav on Prepare — Workstream 4, plan §3.2. (playtest 09-23)
+  - ~~Blocked areas~~ — shipped 2026-09-23 (`WorkspaceAreaGate` on /clean and /analyze, PR #269).
+  - Device chip is display-only; plan §3.1 requires it to open headset setup outside a run. Wire when WS2's setup flow exists. (playtest 09-23)
 
 ## Next (V1.5: Visual Polish and Juice)
 - [ ] **Import stimuli into the workspace?** — today custom experiments load images/sounds straight from wherever the student keeps them (Documents/Downloads) via the `bwfile://` allowlist; moving/renaming that folder silently breaks the study, and a workspace can't be zipped up and shared as a self-contained bundle. Alternative: copy stimuli into `BrainWaves_Workspaces/<title>/stimuli/<condition>/` at selection time (single pre-authorized root, portable study bundles; costs disk duplication + stale copies if the source folder is edited later). **Contingent on user testing** — students may actually prefer managing their own folders in Documents/Downloads, since workspace folders are semi-private territory full of mysterious things like `appState.json`. Decide after watching a class use the current flow.

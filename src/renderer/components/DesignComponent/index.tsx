@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { toast } from 'react-toastify';
-import { EXPERIMENTS } from '../../constants/constants';
+import { EXPERIMENTS, SCREENS } from '../../constants/constants';
 import { readWorkspaces } from '../../utils/filesystem/storage';
 import {
   ExperimentObject,
@@ -9,6 +9,7 @@ import {
 } from '../../constants/interfaces';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
+import PreviewButton from '../PreviewButtonComponent';
 import CustomDesign from './CustomDesignComponent';
 import ImportedDesign from './ImportedDesignComponent';
 
@@ -288,18 +289,11 @@ export default function Design(props: DesignProps) {
                 type={props.type}
               />
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <Button
-                size="lg"
-                variant={isPreviewing ? 'destructive' : 'default'}
-                onClick={handlePreview}
-              >
-                {isPreviewing ? 'Stop Preview' : 'Preview Experiment'}
-              </Button>
-              <span className="text-[15px] text-ink-muted">
-                Nothing is recorded during a preview.
-              </span>
-            </div>
+            <PreviewButton
+              isPreviewing={isPreviewing}
+              onClick={handlePreview}
+              onRunAndRecord={() => props.navigate(SCREENS.COLLECT.route)}
+            />
           </section>
         );
 

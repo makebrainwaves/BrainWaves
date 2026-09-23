@@ -21,7 +21,6 @@ vi.mock('../../utils/filesystem/storage', () => ({
   restoreExperimentState: vi.fn(),
   createWorkspaceDir: vi.fn(),
   storeBehavioralData: vi.fn(),
-  readWorkspaceBehaviorData: vi.fn(),
   getWorkspaceDir: vi.fn(),
 }));
 

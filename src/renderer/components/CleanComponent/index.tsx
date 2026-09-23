@@ -11,7 +11,6 @@ import {
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
-import CleanSidebar from './CleanSidebar';
 import EpochReviewer from './EpochReviewer';
 import LiveErpPane from './LiveErpPane';
 import {
@@ -51,6 +50,41 @@ interface DropdownOption {
   value: string;
 }
 
+const CLEAN_STEPS = [
+  'Click a noisy trial (epoch) column to leave it out — click again to bring it back.',
+  'Click a sensor name if that one sensor looks bad the whole time.',
+  'Auto-flag suggests noisy trials for you. They’re only suggestions, so check them.',
+  'Watch the Live ERP update as you leave trials out.',
+  'Save the cleaned dataset. Analyze uses it to make your results.',
+];
+
+/** Plain-language "what is cleaning?" primer; always available, collapsible. */
+function CleanExplainer({ defaultOpen }: { defaultOpen: boolean }) {
+  return (
+    <details
+      open={defaultOpen}
+      className="mb-4 rounded-lg border border-brand/30 bg-white/70 p-3 text-left"
+    >
+      <summary className="cursor-pointer font-medium text-brand">
+        What does cleaning your data mean? 🧹
+      </summary>
+      <div className="mt-2 text-sm">
+        Blinks, jaw clenches and loose sensors add big spikes that have nothing
+        to do with your experiment. Cleaning means finding the trials or sensors
+        with movement or poor signal and leaving them out before the responses
+        are averaged. Your original recording stays unchanged.
+      </div>
+      <ol className="mt-2 space-y-0.5 text-sm">
+        {CLEAN_STEPS.map((step, i) => (
+          <li key={step}>
+            {i + 1}. {step}
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
 export default function Clean(props: Props) {
   const [view, setView] = useState<'select' | 'review'>('select');
   const [subjects, setSubjects] = useState<Array<DropdownOption>>([]);
@@ -59,7 +93,6 @@ export default function Clean(props: Props) {
   ]);
   const [selectedSubject, setSelectedSubject] = useState(props.subject);
   const [selectedFilePaths, setSelectedFilePaths] = useState<Array<string>>([]);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [rejectedEpochs, setRejectedEpochs] = useState<Set<number>>(new Set());
   const [badChannels, setBadChannels] = useState<Set<string>>(new Set());
   const [autoFlagThreshold, setAutoFlagThreshold] = useState(
@@ -206,8 +239,9 @@ export default function Clean(props: Props) {
    * so callers know nothing was dispatched.
    *
    * `destination` only affects the wording of the one confirmation dialog —
-   * "Clean Data" has always applied a partial selection without asking, while
-   * "Analyze Dataset" confirms because it also leaves the screen.
+   * "Apply exclusions & save" has always applied a partial selection without
+   * asking, while "Save cleaned dataset & analyze" confirms because it also
+   * leaves the screen.
    */
   async function handleCleanData(
     destination: 'clean' | 'analyze' = 'clean'
@@ -274,10 +308,6 @@ export default function Clean(props: Props) {
     }
   }
 
-  function handleSidebarToggle() {
-    setIsSidebarVisible((prev) => !prev);
-  }
-
   function renderStats() {
     const { epochsInfo, epochArrays } = props;
     if (isNil(epochsInfo) || epochsInfo.length === 0) {
@@ -330,7 +360,11 @@ export default function Clean(props: Props) {
             : props.navigate(SCREENS.ANALYZE.route)
         }
       >
-        {isSaving ? 'Saving cleaned data…' : 'Analyze Dataset'}
+        {isSaving
+          ? 'Saving cleaned data…'
+          : hasSelection
+            ? 'Save cleaned dataset & analyze →'
+            : 'Go to Analyze →'}
       </Button>
     );
   }
@@ -338,12 +372,12 @@ export default function Clean(props: Props) {
   function renderSelect(filteredFilePaths: DropdownOption[]) {
     return (
       <div className="max-w-2xl text-left">
-        <h1>Clean</h1>
-        <h4 className="mt-2">Select &amp; Clean</h4>
-        <p>
-          Ready to clean some data? Pick a subject and one or more EEG
-          recordings, then launch the editor.
+        <h1>Clean your data</h1>
+        <p className="mt-2">
+          Remove the noisy bits of a recording and save a cleaned copy. Analyze
+          uses that cleaned copy to make your results.
         </p>
+        <CleanExplainer defaultOpen />
         <h4 className="mt-4">Select Subject</h4>
         <select
           className="w-full border border-gray-300 rounded p-1 mb-2"
@@ -375,7 +409,7 @@ export default function Clean(props: Props) {
           disabled={selectedFilePaths.length === 0}
           onClick={handleLoadData}
         >
-          Load Dataset →
+          Start cleaning →
         </Button>
       </div>
     );
@@ -391,14 +425,16 @@ export default function Clean(props: Props) {
       <>
         <div className="flex items-center gap-3 mb-4">
           <Button variant="ghost" onClick={() => setView('select')}>
-            ← Datasets
+            ← Pick different data
           </Button>
-          <h1 className="m-0">Clean</h1>
+          <h1 className="m-0">Clean your data</h1>
           <span className="text-sm text-gray-500">
             {selectedSubject} · {nRecordings} recording
             {nRecordings === 1 ? '' : 's'}
           </span>
         </div>
+
+        <CleanExplainer defaultOpen={false} />
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <Button
@@ -406,7 +442,7 @@ export default function Clean(props: Props) {
             disabled={isNil(props.epochsInfo)}
             onClick={() => void handleCleanData('clean')}
           >
-            Clean Data
+            Apply exclusions &amp; save
           </Button>
           <Button
             variant="secondary"
@@ -508,17 +544,10 @@ export default function Clean(props: Props) {
   const { suggestedRejections } = props;
 
   return (
-    <div className="relative flex h-screen bg-app">
-      {isSidebarVisible && (
-        <div className="absolute right-0 top-0 h-full w-64 z-10">
-          <CleanSidebar handleClose={handleSidebarToggle} />
-        </div>
-      )}
-      <div className="flex-1 p-[3%] overflow-y-auto">
-        {view === 'select'
-          ? renderSelect(filteredFilePaths)
-          : renderReview(codeToLabel, suggestedRejections)}
-      </div>
+    <div className="h-full overflow-y-auto bg-app p-[3%]">
+      {view === 'select'
+        ? renderSelect(filteredFilePaths)
+        : renderReview(codeToLabel, suggestedRejections)}
     </div>
   );
 }

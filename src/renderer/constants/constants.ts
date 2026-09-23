@@ -25,7 +25,6 @@ export const PTP_THRESHOLD = {
 
 export const SCREENS = {
   HOME: { route: '/', title: 'HOME', order: 0 },
-  BANK: { route: '/home', title: 'HOME', order: 0 },
   DESIGN: { route: '/design', title: 'REVIEW DESIGN', order: 1 },
   COLLECT: { route: '/collect', title: 'COLLECT', order: 2 },
   CLEAN: { route: '/clean', title: 'CLEAN', order: 3 },

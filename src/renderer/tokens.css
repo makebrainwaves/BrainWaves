@@ -1,0 +1,18 @@
+:root {
+  --color-brand: #007c70; /*! @kind color */
+  --color-brand-dark: #00635a; /*! @kind color */
+  --color-brand-light: #e6f2f1; /*! @kind color */
+  --color-accent: #ffc107; /*! @kind color */
+  --color-accent-light: #ffe69c; /*! @kind color */
+  --color-signal-great: #66b0a9; /*! @kind color */
+  --color-signal-ok: #ffcd39; /*! @kind color */
+  --color-signal-bad: #e06766; /*! @kind color */
+  --color-signal-none: #bfbfbf; /*! @kind color */
+  --color-ink: #1a1a1a; /*! @kind color */
+  --color-ink-muted: #666; /*! @kind color */
+  --color-ink-faint: #ccc; /*! @kind color */
+  --radius-card: 6px; /*! @kind radius */
+  --radius-control: 4px; /*! @kind radius */
+  --font-sans:
+    Lato, 'Helvetica Neue', Helvetica, sans-serif; /*! @kind typography */
+}

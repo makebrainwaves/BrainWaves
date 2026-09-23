@@ -9,5 +9,6 @@ export const protocol = {
   condition_second_title: `Houses`,
   condition_second: `Sees a house → press`,
   condition_second_key: `9`,
+  pacing: `This isn't a speed test. Take about 1–1.5 seconds per picture and answer carefully.`,
   links: [],
 };

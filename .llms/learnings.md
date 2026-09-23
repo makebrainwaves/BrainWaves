@@ -220,3 +220,89 @@ Related: viewer replay. A newly mounted guest only ever draws what the shared
 observable replays, so `EEGExplorationComponent` uses
 `shareReplay({ bufferSize: domain / PLOTTING_INTERVAL })` — with `bufferSize: 1`
 a lesson plot started as a 250 ms sliver in an empty five-second window.
+
+## Root font-size is 18px, so every rem-based Tailwind utility is 1.125× larger
+
+`lab.css` (imported layered, but nothing else sets `:root` font-size) sets
+`:root { font-size: 18px }`. Tailwind spacing/type utilities are rem-based, so in
+the app *and* Storybook `text-sm` is 15.75px, `px-4` is 18px, `h-16` is 72px.
+Design handoffs are specced at a 16px root. When a handoff gives exact px (e.g. the
+64px shell bar, 1180px min width), use arbitrary px utilities (`h-[64px]`,
+`text-[14px]`) — the `AppShell/` and `HomeLanding/` components do. shadcn `Button`
+stays rem-based. Confirm with `getComputedStyle(el).padding` in the canvas.
+
+## Design-sync token comments need an uncompiled CSS entry
+
+Storybook's Vite build strips `/*! @kind ... */` comments from imported CSS, so
+the compiled iframe stylesheet cannot carry token typing metadata by itself.
+BrainWaves keeps canonical values in `src/renderer/tokens.css`; design-sync copies
+that file through `cfg.cssEntry`, then
+`.design-sync/overrides/css-fallback.mjs` appends Storybook's compiled CSS so
+component styles still ship. Token collection must exclude
+`@layer vendor-experiment`, all `react-toastify` CSS, and `--tw-*`.
+
+## AppShell is the only global chrome; routes live in one map
+
+`containers/App.tsx` wraps every route in `containers/AppShellContainer.tsx`, which
+is the single place Redux state becomes shell props (workspace identity, device
+chip, workflow areas, run bar). The old global `TopNavComponent` /
+`TopNavBarContainer` are gone; per-screen `SecondaryNavComponent` tab bars stay.
+
+Route knowledge is centralized in `components/AppShell/areas.ts`: `AREA_ROUTES`
+(prepare→/design, collect→/collect, clean→/clean, analyze→/analyze), `areaForPath`,
+and `isWorkspaceRoute`. The save/cleanup epics in `experimentEpics.ts` gate on
+`isWorkspaceRoute` rather than hardcoded `'/'`/`'/home'` strings — that is what
+keeps `/explore` (live view, no workspace) from triggering `SaveWorkspace` or
+resurrecting state. Any new non-workspace route works automatically; any new area
+must be added to `AREA_ROUTES` and `WorkflowNav`'s `AREAS`.
+
+Home is now three routes: `/` (`HomeLanding` via `HomeScreen`), `/home` (experiment
+bank only) and `/explore` (live EEG). `PyodideActions.Launch()` fires once from
+`HomeScreen`, the app's entry screen — it is no longer in the bank component.
+
+## `getBehavioralCsvs` is dead in the renderer — no preload bridge exists
+
+`utils/filesystem/storage.ts` exports `getBehavioralCsvs`, but there is no matching
+`ipcMain` handler or preload method, so calling it rejects. Use
+`readWorkspaceBehaviorData(title)` (`fs:readWorkspaceBehaviorData`), which returns
+`{name,path}[]` and already swallows ENOENT in main. `useWorkspaceProgress` (shell
+badges + `Next →`) uses it alongside `readWorkspaceRawEEGData` /
+`readWorkspaceCleanedEEGData`.
+
+## `npm test` collects sibling git worktrees unless excluded
+
+A `.worktrees/<branch>/` checkout carries its own `node_modules`, so Vitest
+collected every test twice and the duplicate copies failed with
+`Cannot read properties of null (reading 'useState')` — two React instances, not a
+real regression. `vitest.config.ts` extends `configDefaults.exclude` with
+`.worktrees/**`. If a mass failure appears only in paths starting `.worktrees/`,
+it is collection scope, not code.
+
+## Trial progress: lab.js `flip` stack and jsPsych's naive total
+
+lab.js 23 has no "trial started" event, but its controller emits `flip` on every
+screen change and exposes `controller.currentStack` (root → leaf components).
+`LabjsExperimentWindow` subscribes once the root fires `prepare` (the controller
+does not exist before that) and `utils/labjs/progress.ts` reads the innermost
+Loop's `options.content.indexOf(child)`. Loops are detected by
+`options.templateParameters`, not `type === 'flow.Loop'`: `type` is built from the
+class name, which prod minification can mangle. A loop whose iterations contain a
+loop is a block loop (Multitasking), so its screens report no trial, and counts
+are per block. Multitasking marks practice with `task: 'training'`, not `phase`.
+
+`RunState.progress` (AppShell/types.ts) is live, not story-only: it was once
+removed as unused and `tsc` did not flag `AppShellContainer` still passing it,
+because excess-property checks do not apply through the `isRunning ? … : undefined`
+ternary. Progress then vanished silently; only a real run showed it.
+
+jsPsych's `getProgress().total_trials` is `getNaiveTrialCount()`, which ignores
+`loop_function`, `conditional_function`, and `sample.type: 'custom'`. `host.ts`
+drops the total when any of those appear rather than show a wrong "of N".
+Progress reaches the RunBar through `RunProgressContext` (AppShellContainer), not
+Redux, so it never lands in the persisted `appState.json`.
+
+## Global `li { list-style: none }` hides `list-decimal`/`list-disc`
+
+`app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
+lose and numbered lists render bare. Write the numbers as text (see
+`CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
