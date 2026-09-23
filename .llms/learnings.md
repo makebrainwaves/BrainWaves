@@ -306,3 +306,14 @@ Redux, so it never lands in the persisted `appState.json`.
 `app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
 lose and numbered lists render bare. Write the numbers as text (see
 `CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
+
+## Headset setup: discovery is open-ended and gesture-bound
+
+`HeadsetSetupDialog` (mounted once in `AppShellContainer`, opened via
+`HeadsetSetupContext`) replaced `ConnectModal`. Bluetooth search has no timer:
+it ends on `DeviceFound`, a rejected/empty `scan()` (→ not found), or
+`DeviceActions.CancelSearch` (→ driver `cancelScan()` → `bluetooth:cancelSearch`
+rejects the pending `requestDevice()`). `SetDeviceAvailability(SEARCHING)` must
+be dispatched synchronously in the click — `searchEpic` calls `scan()` inside
+that dispatch, and Web Bluetooth rejects without the user gesture. Which screen
+shows is `pairingStep()`; add states there, not in the view.
