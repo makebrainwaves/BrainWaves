@@ -1,21 +1,18 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
   DEVICES,
 } from '../../../constants/constants';
+import { HeadsetSetupContext } from '../../../containers/AppShellContainer';
 import Collect, { Props as CollectProps } from '../index';
 
 const mockSetDeviceAvailability = vi.fn();
+const openHeadsetSetup = vi.fn();
 
 vi.mock('lab.js', () => ({}));
-
-vi.mock('../ConnectModal', () => ({
-  default: (props: { open: boolean }) =>
-    props.open ? <div data-testid="connect-modal">ConnectModal</div> : null,
-}));
 
 vi.mock('../PreTestComponent', () => ({
   default: () => <div data-testid="pretest">PreTest</div>,
@@ -45,7 +42,6 @@ const baseProps: Record<string, unknown> = {
   connectionStatus: CONNECTION_STATUS.DISCONNECTED,
   deviceType: DEVICES.MUSE,
   availableDevices: [],
-  availableLSLStreams: [],
   type: 'Faces_and_Houses' as const,
   experimentObject: {},
   signalQualityObservable: undefined,
@@ -58,58 +54,51 @@ const baseProps: Record<string, unknown> = {
   title: 'Test',
 };
 
-describe('Collect modal', () => {
-  it('opens the connect modal on mount when EEG is enabled and not connected', () => {
-    render(<Collect {...(baseProps as unknown as CollectProps)} />);
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <HeadsetSetupContext.Provider value={{ openHeadsetSetup }}>
+    {children}
+  </HeadsetSetupContext.Provider>
+);
+const renderCollect = (overrides: Partial<CollectProps> = {}) =>
+  render(
+    <Collect {...(baseProps as unknown as CollectProps)} {...overrides} />,
+    { wrapper }
+  );
 
-    expect(screen.getByTestId('connect-modal')).toBeInTheDocument();
-    expect(mockSetDeviceAvailability).toHaveBeenCalledWith(
+describe('Collect headset setup', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('opens headset setup on arrival without starting a Bluetooth search', () => {
+    renderCollect();
+
+    expect(openHeadsetSetup).toHaveBeenCalled();
+    expect(mockSetDeviceAvailability).not.toHaveBeenCalledWith(
       DEVICE_AVAILABILITY.SEARCHING
     );
   });
 
-  it('does not open the connect modal on mount when EEG is disabled', () => {
-    render(
-      <Collect
-        {...(baseProps as unknown as CollectProps)}
-        isEEGEnabled={false}
-      />
-    );
+  it('does not open headset setup when EEG is disabled', () => {
+    renderCollect({ isEEGEnabled: false });
 
-    expect(screen.queryByTestId('connect-modal')).not.toBeInTheDocument();
+    expect(openHeadsetSetup).not.toHaveBeenCalled();
   });
 
-  it('closes the connect modal when connection status changes to CONNECTED', () => {
-    const { rerender } = render(
-      <Collect {...(baseProps as unknown as CollectProps)} />
-    );
-    expect(screen.getByTestId('connect-modal')).toBeInTheDocument();
-
-    rerender(
-      <Collect
-        {...(baseProps as unknown as CollectProps)}
-        connectionStatus={CONNECTION_STATUS.CONNECTED}
-      />
-    );
-
-    expect(screen.queryByTestId('connect-modal')).not.toBeInTheDocument();
-  });
-
-  it('opens the connect modal when a headset connected on arrival later drops', () => {
-    const connected = {
-      ...(baseProps as unknown as CollectProps),
+  it('reopens headset setup when a connected headset drops', () => {
+    const { rerender } = renderCollect({
       connectionStatus: CONNECTION_STATUS.CONNECTED,
-    };
-    const { rerender } = render(<Collect {...connected} />);
-    expect(screen.queryByTestId('connect-modal')).not.toBeInTheDocument();
+    });
+    expect(openHeadsetSetup).not.toHaveBeenCalled();
 
     rerender(
       <Collect
-        {...connected}
+        {...(baseProps as unknown as CollectProps)}
         connectionStatus={CONNECTION_STATUS.NOT_YET_CONNECTED}
       />
     );
 
-    expect(screen.getByTestId('connect-modal')).toBeInTheDocument();
+    expect(openHeadsetSetup).toHaveBeenCalled();
+    expect(mockSetDeviceAvailability).not.toHaveBeenCalledWith(
+      DEVICE_AVAILABILITY.SEARCHING
+    );
   });
 });
