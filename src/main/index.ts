@@ -691,9 +691,8 @@ const createWindow = async () => {
         pendingBluetoothCallback(device.deviceId);
         pendingBluetoothCallback = null;
       }
-      // Nothing visible yet — keep scanning. The event will fire again as more
-      // devices are discovered. The renderer's search timer calls cancelBluetoothSearch
-      // after SEARCH_TIMER ms if nothing is found.
+      // Nothing visible yet — keep scanning. The event fires again as devices
+      // appear; the renderer's Cancel calls bluetooth:cancelSearch to reject.
     }
   );
 

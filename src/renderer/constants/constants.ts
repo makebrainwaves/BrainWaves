@@ -63,8 +63,6 @@ export enum PYODIDE_VARIABLE_NAMES {
   CLEAN_EPOCHS = 'clean_epochs',
 }
 
-export const SEARCH_TIMER = 3000;
-
 // NOTE: TARGET/NONTARGET are intentional semantic aliases for STIMULUS_2/STIMULUS_1
 // because the actual marker id values of stimulus 1 and 2 are reversed.
 export enum EVENTS {

@@ -1,5 +1,5 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { of, from, timer, ObservableInput, EMPTY } from 'rxjs';
+import { of, from, ObservableInput, EMPTY } from 'rxjs';
 import {
   map,
   pluck,
@@ -9,7 +9,6 @@ import {
   catchError,
   takeUntil,
 } from 'rxjs/operators';
-import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import { DeviceActions, DeviceActionType } from '../actions';
@@ -26,7 +25,6 @@ import {
   CONNECTION_STATUS,
   DEVICES,
   DEVICE_AVAILABILITY,
-  SEARCH_TIMER,
 } from '../constants/constants';
 import { Device, DeviceInfo } from '../constants/interfaces';
 import { RootState } from '../reducers';
@@ -34,8 +32,13 @@ import { RootState } from '../reducers';
 // -------------------------------------------------------------------------
 // Epics
 
-// NOTE: Uses a Promise "then" inside b/c Observable.from leads to loss of user gesture propagation for web bluetooth
-const searchMuseEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
+/**
+ * Runs one discovery per SEARCHING. `scan()` is called synchronously inside the
+ * dispatch so Web Bluetooth keeps the user gesture (Observable.from loses it).
+ * The search stays open until the driver answers; a rejected or empty scan
+ * ends it as not found. Results after a cancel are dropped.
+ */
+const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
   state$
 ) =>
@@ -46,16 +49,17 @@ const searchMuseEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     map(() => getDriver(state$.value.device.deviceType).scan()),
     mergeMap((promise) =>
       promise.then(
-        (devices) => devices,
-        () => {
-          // This error will fire a bit too promiscuously until we fix windows web bluetooth
-          // toast.error(`"Device Error: " ${error.toString()}`);
-          return [];
-        }
+        (devices) =>
+          devices?.length
+            ? DeviceActions.DeviceFound(devices)
+            : DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE),
+        () => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE)
       )
     ),
-    filter((devices) => !isNil(devices) && devices.length >= 1),
-    map(DeviceActions.DeviceFound)
+    filter(
+      () =>
+        state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
+    )
   );
 
 const deviceFoundEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
@@ -81,35 +85,22 @@ const deviceFoundEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     )
   );
 
-const searchTimerEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
+/** User cancelled: reject the pending requestDevice() in main and end the search. */
+const cancelSearchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
   state$
 ) =>
   action$.pipe(
-    filter(isActionOf(DeviceActions.SetDeviceAvailability)),
-    pluck('payload'),
-    filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
-    // Cancel the timeout as soon as a device is found. Without this, a device
-    // discovered right around SEARCH_TIMER races the timer: DeviceFound sets
-    // AVAILABLE, then the timer's late NONE clobbers it, leaving a found device
-    // the connect modal can't show (it only renders the list when AVAILABLE).
-    mergeMap(() =>
-      timer(SEARCH_TIMER).pipe(
-        takeUntil(action$.pipe(filter(isActionOf(DeviceActions.DeviceFound))))
-      )
-    ),
-    filter(
-      () =>
-        state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
-    ),
-    // Cancel the pending requestDevice() promise in the main process so it
-    // doesn't hang after the search window closes.
-    tap(() => {
-      getDriver(state$.value.device.deviceType).cancelScan();
-    }),
+    filter(isActionOf(DeviceActions.CancelSearch)),
+    tap(() => getDriver(state$.value.device.deviceType).cancelScan()),
     map(() => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
+/**
+ * Connects the chosen device. A rejected connect reports DISCONNECTED (the
+ * setup flow's "failed" state) without killing the epic; DisconnectFromDevice
+ * abandons an in-flight attempt so a late success cannot report CONNECTED.
+ */
 const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
   state$
@@ -117,26 +108,31 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToDevice)),
     pluck('payload'),
-    map((device) => getDriver(state$.value.device.deviceType).connect(device)),
-    mergeMap((promise) => promise.then((deviceInfo) => deviceInfo)),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mergeMap<DeviceInfo | null, ObservableInput<any>>((deviceInfo) => {
-      // returns union of several action types
-      if (deviceInfo != null && deviceInfo.samplingRate != null) {
-        // Mark this device's driver active so the marker dispatcher and the
-        // raw-observable epic resolve to the right backend.
-        setActiveDriver(state$.value.device.deviceType);
-        // Preserve the currently-selected deviceType; do not hardcode MUSE.
-        return of(
-          DeviceActions.SetDeviceType(state$.value.device.deviceType),
-          DeviceActions.SetDeviceInfo(deviceInfo),
-          DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
-        );
-      }
-      return of(
-        DeviceActions.SetConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
-      );
-    })
+    mergeMap((device) =>
+      from(getDriver(state$.value.device.deviceType).connect(device)).pipe(
+        catchError(() => of(null)),
+        takeUntil(
+          action$.pipe(filter(isActionOf(DeviceActions.DisconnectFromDevice)))
+        ),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mergeMap<DeviceInfo | null, ObservableInput<any>>((deviceInfo) => {
+          if (deviceInfo != null && deviceInfo.samplingRate != null) {
+            // Mark this device's driver active so the marker dispatcher and the
+            // raw-observable epic resolve to the right backend.
+            setActiveDriver(state$.value.device.deviceType);
+            // Preserve the currently-selected deviceType; do not hardcode MUSE.
+            return of(
+              DeviceActions.SetDeviceType(state$.value.device.deviceType),
+              DeviceActions.SetDeviceInfo(deviceInfo),
+              DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
+            );
+          }
+          return of(
+            DeviceActions.SetConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
+          );
+        })
+      )
+    )
   );
 
 const isConnectingEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
@@ -260,7 +256,7 @@ const discoverLSLStreamsEpic: Epic<
 > = (action$) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.DiscoverLSLStreams)),
-    mergeMap(() => from(discoverLSLStreams())),
+    mergeMap(() => from(discoverLSLStreams()).pipe(catchError(() => of([])))),
     map(DeviceActions.SetAvailableLSLStreams)
   );
 
@@ -328,9 +324,9 @@ const lslForwardEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   );
 
 export default combineEpics(
-  searchMuseEpic,
+  searchEpic,
   deviceFoundEpic,
-  searchTimerEpic,
+  cancelSearchEpic,
   connectEpic,
   isConnectingEpic,
   setRawObservableEpic,

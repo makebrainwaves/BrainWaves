@@ -43,6 +43,8 @@ export const DeviceActions = {
     'SET_SIGNAL_OBSERVABLE'
   ),
   Cleanup: createAction<void, 'CLEANUP'>('CLEANUP'),
+  /** Stops an in-progress Bluetooth search; the pending requestDevice() rejects. */
+  CancelSearch: createAction<void, 'CANCEL_SEARCH'>('CANCEL_SEARCH'),
   DeviceLost: createAction<void, 'DEVICE_LOST'>('DEVICE_LOST'),
 
   // External LSL inlet streams
