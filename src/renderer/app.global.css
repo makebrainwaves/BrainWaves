@@ -63,6 +63,173 @@ p {
   text-align: left;
 }
 
+/* BrainWaves-owned lab.js participant screens (experiments/shared/
+   participantScreens.ts). Sized to read from a chair. Copy uses <div>, not
+   <p>, because of the global `p` size above; lab.css header/main/footer
+   padding and centering are reset here. The footer has a fixed height so
+   "Press Space" sits in the same spot on every screen. No animation. */
+/* Tailwind's `.container` (width: 100%, max-width steps) beats lab.css's
+   layered fullscreen width and pushes the mount 24px past the right edge. */
+.container.fullscreen:has(> .bw-participant) {
+  width: auto;
+  max-width: none;
+}
+
+.bw-participant {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  color: var(--color-ink);
+}
+
+.bw-participant main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 48px 64px 32px;
+}
+
+.bw-participant h1 {
+  margin: 0;
+}
+
+.bw-participant-phase {
+  border-bottom: 4px solid var(--color-accent);
+  padding-bottom: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.bw-participant-summary {
+  max-width: 820px;
+  font-size: 24px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.bw-participant-rules {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px 72px;
+}
+
+.bw-participant-rules section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.bw-participant-rule {
+  font-size: 20px;
+  color: var(--color-ink-muted);
+}
+
+.bw-participant-rules ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 48px;
+  margin: 0;
+  padding: 0;
+}
+
+.bw-participant-rules li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 26px;
+}
+
+.bw-participant-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  height: 64px;
+  padding: 0 16px;
+  border: 2px solid var(--color-ink);
+  border-bottom-width: 6px;
+  border-radius: 10px;
+  background: white;
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.bw-participant-key-none {
+  border-style: dashed;
+  border-bottom-width: 2px;
+  font-size: 16px;
+  text-transform: none;
+  color: var(--color-ink-muted);
+}
+
+.bw-participant-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 820px;
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+.bw-participant footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 176px;
+  gap: 12px;
+  padding: 28px 64px;
+}
+
+.bw-participant-start {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 30px;
+}
+
+.bw-participant-key-space {
+  min-width: 200px;
+  border-color: var(--color-brand-dark);
+  background: var(--color-brand);
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: white;
+}
+
+.bw-participant-skip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  color: var(--color-ink-muted);
+}
+
+.bw-participant-skip .bw-participant-key {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border-width: 1px;
+  border-bottom-width: 3px;
+  border-color: var(--color-ink-muted);
+  border-radius: 6px;
+  font-size: 18px;
+  color: var(--color-ink-muted);
+}
+
 li {
   list-style: none;
 }
