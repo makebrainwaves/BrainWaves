@@ -20,6 +20,8 @@ export interface AppShellProps {
   onSelectArea?(area: Area): void;
   onHome?(): void;
   onEndRun?(): void;
+  /** Opens headset setup from the chip; not offered during a run. */
+  onDeviceClick?(): void;
   /** The current screen, rendered on the app gradient under the bar. */
   children?: ReactNode;
 }
@@ -44,6 +46,7 @@ export default function AppShell({
   onSelectArea,
   onHome,
   onEndRun,
+  onDeviceClick,
   children,
 }: AppShellProps) {
   const onHomePage = location === 'home';
@@ -93,7 +96,11 @@ export default function AppShell({
           )}
           <div className="flex-1" />
           <div className="flex items-center">
-            <DeviceChip device={device} deviceName={deviceName} />
+            <DeviceChip
+              device={device}
+              deviceName={deviceName}
+              onClick={onDeviceClick}
+            />
           </div>
         </header>
       )}

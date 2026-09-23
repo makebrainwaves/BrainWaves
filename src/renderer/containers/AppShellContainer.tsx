@@ -14,11 +14,22 @@ import { CONNECTION_STATUS, DEVICES } from '../constants/constants';
 import { experimentLabel } from '../constants/experimentLabels';
 import { RootState } from '../store';
 import type { ExperimentProgress } from '../components/ExperimentRuntime';
+import HeadsetSetupDialog from '../components/HeadsetSetup/HeadsetSetupDialog';
 
 /** Lets the running experiment report trial progress to the RunBar. */
 export const RunProgressContext = createContext<
   (progress: ExperimentProgress | null) => void
 >(() => undefined);
+
+export interface HeadsetSetupApi {
+  /** Opens pairing at "Which headset?" (or Connected); never starts a search. */
+  openHeadsetSetup(): void;
+}
+
+/** Lets Collect and Explore open the one shell-owned headset setup dialog. */
+export const HeadsetSetupContext = createContext<HeadsetSetupApi>({
+  openHeadsetSetup: () => undefined,
+});
 
 const formatProgress = (progress: ExperimentProgress | null) => {
   if (!progress) return undefined;
@@ -58,6 +69,8 @@ export default function AppShellContainer({
   );
 
   const { isRunning } = experiment;
+  const [setupOpen, setSetupOpen] = useState(false);
+  const openHeadsetSetup = () => setSetupOpen(true);
   const [elapsed, setElapsed] = useState('00:00');
   const [progress, setProgress] = useState<ExperimentProgress | null>(null);
   useEffect(() => {
@@ -101,10 +114,18 @@ export default function AppShellContainer({
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
       onEndRun={() => dispatch(ExperimentActions.Stop({ data: '' }))}
+      onDeviceClick={openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>
-        {children}
+        <HeadsetSetupContext.Provider value={{ openHeadsetSetup }}>
+          {children}
+        </HeadsetSetupContext.Provider>
       </RunProgressContext.Provider>
+      <HeadsetSetupDialog
+        open={setupOpen}
+        onClose={() => setSetupOpen(false)}
+        onDone={() => setSetupOpen(false)}
+      />
     </AppShell>
   );
 }
