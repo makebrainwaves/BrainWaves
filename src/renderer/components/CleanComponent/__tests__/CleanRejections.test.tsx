@@ -22,10 +22,6 @@ vi.mock('../EpochReviewer', () => ({
   },
 }));
 
-vi.mock('../CleanSidebar', () => ({
-  default: () => <div data-testid="clean-sidebar" />,
-}));
-
 vi.mock('../LiveErpPane', () => ({
   default: () => <div data-testid="live-erp" />,
 }));

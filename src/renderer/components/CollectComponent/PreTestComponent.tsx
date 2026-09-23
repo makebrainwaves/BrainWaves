@@ -110,11 +110,6 @@ export default function PreTestComponent(props: Props) {
 
   return (
     <div className="flex h-full bg-app">
-      {isSidebarVisible && (
-        <div className="order-last h-full w-64 flex-none">
-          <LessonSidebar handleClose={handleSidebarToggle} />
-        </div>
-      )}
       <div className="min-w-0 flex-1 overflow-y-auto p-[3%]">
         <div className="flex items-center justify-between mb-4">
           <h1>Collect</h1>
@@ -146,6 +141,11 @@ export default function PreTestComponent(props: Props) {
           </div>
         </div>
       </div>
+      {isSidebarVisible && (
+        <div className="w-64 flex-none">
+          <LessonSidebar handleClose={handleSidebarToggle} />
+        </div>
+      )}
     </div>
   );
 }

@@ -11,7 +11,6 @@ import {
 import { ExperimentParameters } from '../../constants/interfaces';
 import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
-import CleanSidebar from './CleanSidebar';
 import EpochReviewer from './EpochReviewer';
 import LiveErpPane from './LiveErpPane';
 import {
@@ -69,14 +68,12 @@ function CleanExplainer({ defaultOpen }: { defaultOpen: boolean }) {
       <summary className="cursor-pointer font-medium text-brand">
         What does cleaning your data mean? 🧹
       </summary>
-      {/* div, not p: the global `p` rule forces 18px over text-sm. */}
       <div className="mt-2 text-sm">
         Blinks, jaw clenches and loose sensors add big spikes that have nothing
         to do with your experiment. Cleaning means finding the trials or sensors
         with movement or poor signal and leaving them out before the responses
         are averaged. Your original recording stays unchanged.
       </div>
-      {/* Numbers are text: app.global.css sets `li { list-style: none }`. */}
       <ol className="mt-2 space-y-0.5 text-sm">
         {CLEAN_STEPS.map((step, i) => (
           <li key={step}>
@@ -96,7 +93,6 @@ export default function Clean(props: Props) {
   ]);
   const [selectedSubject, setSelectedSubject] = useState(props.subject);
   const [selectedFilePaths, setSelectedFilePaths] = useState<Array<string>>([]);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [rejectedEpochs, setRejectedEpochs] = useState<Set<number>>(new Set());
   const [badChannels, setBadChannels] = useState<Set<string>>(new Set());
   const [autoFlagThreshold, setAutoFlagThreshold] = useState(
@@ -310,10 +306,6 @@ export default function Clean(props: Props) {
     if (!Number.isNaN(parsed)) {
       setAutoFlagThreshold(parsed);
     }
-  }
-
-  function handleSidebarToggle() {
-    setIsSidebarVisible((prev) => !prev);
   }
 
   function renderStats() {
@@ -552,17 +544,10 @@ export default function Clean(props: Props) {
   const { suggestedRejections } = props;
 
   return (
-    <div className="relative flex h-full bg-app">
-      {isSidebarVisible && (
-        <div className="absolute right-0 top-0 h-full w-64 z-10">
-          <CleanSidebar handleClose={handleSidebarToggle} />
-        </div>
-      )}
-      <div className="flex-1 p-[3%] overflow-y-auto">
-        {view === 'select'
-          ? renderSelect(filteredFilePaths)
-          : renderReview(codeToLabel, suggestedRejections)}
-      </div>
+    <div className="h-full overflow-y-auto bg-app p-[3%]">
+      {view === 'select'
+        ? renderSelect(filteredFilePaths)
+        : renderReview(codeToLabel, suggestedRejections)}
     </div>
   );
 }

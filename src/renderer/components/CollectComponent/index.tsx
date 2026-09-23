@@ -46,9 +46,7 @@ export default function Collect(props: Props) {
     !props.isEEGEnabled
   );
 
-  // Prompt whenever EEG is on and no headset is connected — not just on mount.
-  // Arriving connected and then dropping the headset otherwise left no way to
-  // reach the modal short of leaving and re-entering Collect.
+  // Re-prompt on any not-connected state, not just mount.
   useEffect(() => {
     if (
       props.isEEGEnabled &&
@@ -79,10 +77,6 @@ export default function Collect(props: Props) {
 
   function handleRunComponentOpen() {
     setIsRunComponentOpen(true);
-  }
-
-  function handleRunComponentClose() {
-    setIsRunComponentOpen(false);
   }
 
   if (isRunComponentOpen) {
