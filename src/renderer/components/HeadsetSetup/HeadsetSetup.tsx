@@ -3,7 +3,16 @@ import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
 import { cn } from '../ui/utils';
 import { DEVICES } from '../../constants/constants';
-import { CrownWearArt, HeadsetGlyph, MuseWearArt } from './illustrations';
+import musePng from '../../assets/common/muse.png';
+import museWornPng from '../../assets/common/muse_worn.png';
+import crownPng from '../../assets/common/crown.png';
+import crownWornPng from '../../assets/common/crown_worn.png';
+
+/** Decorative art per headset: the device alone, and the device being worn. */
+const ART = {
+  [DEVICES.MUSE]: { device: musePng, worn: museWornPng },
+  [DEVICES.NEUROSITY]: { device: crownPng, worn: crownWornPng },
+};
 
 /** Device types the setup flow can pair or start. */
 export type SetupDevice =
@@ -152,7 +161,7 @@ function Checklist({ items, label }: { items: string[]; label: string }) {
       <p className={NOTE}>{label}</p>
       <ul className="m-0 flex flex-col gap-[6px] pl-[20px]">
         {items.map((t) => (
-          <li key={t} className="!text-[15px] leading-normal">
+          <li key={t} className="list-disc !text-[15px] leading-normal">
             {t}
           </li>
         ))}
@@ -220,7 +229,11 @@ export default function HeadsetSetup(props: Props) {
                   onClick={() => props.onChooseDevice(d)}
                   className="flex flex-1 flex-col items-center gap-[10px] rounded-[8px] border-2 border-[#e0e0e0] bg-white px-[16px] py-[20px] text-[16px] font-bold text-ink transition-colors hover:border-brand hover:bg-brand-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                 >
-                  <HeadsetGlyph kind={d === DEVICES.MUSE ? 'muse' : 'crown'} />
+                  <img
+                    src={ART[d].device}
+                    alt=""
+                    className="h-[88px] w-[88px] object-contain"
+                  />
                   {NAME[d]}
                 </button>
               ))}
@@ -269,18 +282,21 @@ export default function HeadsetSetup(props: Props) {
               Put on your {deviceName}
             </h2>
             <div className="flex items-center gap-[20px]">
-              {device === DEVICES.MUSE ? (
-                <MuseWearArt className="w-[200px] flex-none" />
-              ) : (
-                <CrownWearArt className="w-[200px] flex-none" />
-              )}
-              <ol className="m-0 flex flex-col gap-[10px] pl-[20px]">
+              <img
+                src={ART[device].worn}
+                alt=""
+                className="w-[200px] flex-none"
+              />
+              <ul className="m-0 flex flex-col gap-[10px] pl-[20px]">
                 {WEAR_CUES[device].map((cue) => (
-                  <li key={cue} className="!text-[15px] leading-normal">
+                  <li
+                    key={cue}
+                    className="list-disc !text-[15px] leading-normal"
+                  >
                     {cue}
                   </li>
                 ))}
-              </ol>
+              </ul>
             </div>
             <div className="rounded-[8px] bg-gray-100 p-[16px]">
               <p className="m-0 !text-[15px] font-bold">Turn it on</p>

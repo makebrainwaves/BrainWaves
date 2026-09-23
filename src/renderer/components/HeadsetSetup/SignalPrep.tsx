@@ -65,7 +65,7 @@ export default function SignalPrep({ device, sensors, onContinue }: Props) {
           </h2>
           <ol className="m-0 flex flex-col gap-[8px] pl-[20px]">
             {prep.map((t) => (
-              <li key={t} className="!text-[15px] leading-normal">
+              <li key={t} className="list-decimal !text-[15px] leading-normal">
                 {t}
               </li>
             ))}

@@ -46,7 +46,7 @@ export const ChooseDeviceType: Story = {
   args: { step: 'choose', device: undefined, showFixture: true, showLSL: true },
 };
 
-/** P02 — Muse wearing art with numbered cues, then power-on and "lights moving = waiting to pair". */
+/** P02 — Muse worn illustration with wearing cues, then power-on and "lights moving = waiting to pair". */
 export const HowToWearMuse: Story = { args: { step: 'wear' } };
 
 /** P03 — Same shape for the Crown: its own art, cues and power-on copy. */
