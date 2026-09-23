@@ -25,21 +25,17 @@ vi.mock('../../../utils/filesystem/read', () => ({
 
 const toastError = vi.fn();
 vi.mock('react-toastify', () => ({
-  toast: Object.assign(vi.fn(), { error: (message: string) => toastError(message) }),
+  toast: Object.assign(vi.fn(), {
+    error: (message: string) => toastError(message),
+  }),
 }));
 
 vi.mock('lab.js', () => ({}));
 
 const makeProps = (): Props =>
   ({
-    availableDevices: [],
-    availableLSLStreams: [],
-    connectedDevice: null,
-    DeviceActions: {},
     ExperimentActions: { CreateNewWorkspace: vi.fn() },
     navigate: vi.fn(),
-    PyodideActions: { Launch: vi.fn() },
-    activeStep: 'EXPERIMENT BANK',
   }) as unknown as Props;
 
 describe('Home — import experiment', () => {
@@ -62,7 +58,9 @@ describe('Home — import experiment', () => {
     readFiles.mockResolvedValue([
       "const t = { type: jsPsychImageKeyboardResponse, data: { condition: 'Face' } };",
     ]);
-    importExperimentFile.mockResolvedValue({ file: 'experiment/faces_task.js' });
+    importExperimentFile.mockResolvedValue({
+      file: 'experiment/faces_task.js',
+    });
 
     render(<Home {...props} />);
     fireEvent.click(screen.getByText('Import Experiment'));
@@ -119,7 +117,9 @@ describe('Home — import experiment', () => {
   it('imports a lab.js study without scanning it as jsPsych', async () => {
     const props = makeProps();
     loadFromSystemDialog.mockResolvedValue('/Users/t/Desktop/my_study.json');
-    importExperimentFile.mockResolvedValue({ file: 'experiment/my_study.json' });
+    importExperimentFile.mockResolvedValue({
+      file: 'experiment/my_study.json',
+    });
 
     render(<Home {...props} />);
     fireEvent.click(screen.getByText('Import Experiment'));

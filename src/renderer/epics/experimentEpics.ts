@@ -16,6 +16,7 @@ import {
 } from '../actions';
 import { RouterActions } from '../actions/routerActions';
 import { MUSE_CHANNELS, CONNECTION_STATUS } from '../constants/constants';
+import { isWorkspaceRoute } from '../components/AppShell/areas';
 import {
   createEEGWriteStream,
   writeHeader,
@@ -178,7 +179,7 @@ const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(RouterActions.RouteChanged)),
     map((action) => action.payload as string),
-    filter((pathname) => pathname !== '/' && pathname !== '/home'),
+    filter(isWorkspaceRoute),
     map(() => ExperimentActions.SaveWorkspace())
   );
 
@@ -213,7 +214,7 @@ const navigationCleanupEpic: Epic<any, ExperimentActionType, RootState> = (
     filter(isActionOf(RouterActions.RouteChanged)),
     tap((action) => console.log('navigation', action.payload)),
     map((action) => action.payload as string),
-    filter((pathname) => pathname === '/' || pathname === '/home'),
+    filter((pathname) => !isWorkspaceRoute(pathname)),
     map(() => ExperimentActions.ExperimentCleanup())
   );
 

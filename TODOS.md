@@ -23,6 +23,9 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
   - Clean vs Analyze labels are ambiguous — clarify the step purpose.
   - Clean: allow choosing a different file without going back/undoing.
   - Add "What does clean your data mean?" student explainer (aligns with Epoch reviewer onboarding work below).
+  - Nav-state distinction: the workflow bar (Prepare/Collect/Clean/Analyze) and the local steps bar (Overview/Background/Protocol/Preview) read as one stacked nav on Prepare — Workstream 4, plan §3.2. (playtest 09-23)
+  - ~~Blocked areas~~ — shipped 2026-09-23 (`WorkspaceAreaGate` on /clean and /analyze, PR #269).
+  - Device chip is display-only; plan §3.1 requires it to open headset setup outside a run. Wire when WS2's setup flow exists. (playtest 09-23)
 
 ## Next (V1.5: Visual Polish and Juice)
 - [ ] **Import stimuli into the workspace?** — today custom experiments load images/sounds straight from wherever the student keeps them (Documents/Downloads) via the `bwfile://` allowlist; moving/renaming that folder silently breaks the study, and a workspace can't be zipped up and shared as a self-contained bundle. Alternative: copy stimuli into `BrainWaves_Workspaces/<title>/stimuli/<condition>/` at selection time (single pre-authorized root, portable study bundles; costs disk duplication + stale copies if the source folder is edited later). **Contingent on user testing** — students may actually prefer managing their own folders in Documents/Downloads, since workspace folders are semi-private territory full of mysterious things like `appState.json`. Decide after watching a class use the current flow.

@@ -12,7 +12,7 @@ import {
 import { isNil } from 'lodash';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
-import { DeviceActions, DeviceActionType, ExperimentActions } from '../actions';
+import { DeviceActions, DeviceActionType } from '../actions';
 import { getDriver, setActiveDriver } from '../utils/eeg';
 import { createMuseSignalQualityObservable } from '../utils/eeg/muse';
 import {
@@ -183,12 +183,18 @@ const setSignalQualityObservableEpic: Epic<
     map(DeviceActions.SetSignalQualityObservable)
   );
 
+/**
+ * Tears down the driver and resets device state, but only on an explicit
+ * disconnect request. Experiment cleanup (e.g. navigating Home) must NOT
+ * reach here — the connection stays alive so Explore → Home → Collect can
+ * reuse it (plan §2.2).
+ */
 const deviceCleanupEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
   state$
 ) =>
   action$.pipe(
-    filter(isActionOf(ExperimentActions.ExperimentCleanup)),
+    filter(isActionOf(DeviceActions.DisconnectFromDevice)),
     filter(
       () =>
         state$.value.device.connectionStatus !==

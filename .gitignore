@@ -44,9 +44,11 @@ __pycache__/
 *.pyc
 storybook-static
 .gstack/
-.design-sync/sb-reference/
-.design-sync/learnings/
-.design-sync/.cache/
-.design-sync/node_modules
+.design-sync/
+
+# Local agent tooling and UX research notes (not part of the shipped repo)
+.agents/
+skills-lock.json
+docs/uxr/
 .ds-sync/
 ds-bundle/

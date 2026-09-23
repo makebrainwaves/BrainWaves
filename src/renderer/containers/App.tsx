@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
-import TopNav from './TopNavBarContainer';
+import AppShellContainer from './AppShellContainer';
 import { RouterActions } from '../actions/routerActions';
 
 function NavigationTracker() {
@@ -34,8 +34,7 @@ export function App(props: Props) {
     <div>
       <NavigationTracker />
       <LSLStatusListener />
-      <TopNav />
-      {props.children}
+      <AppShellContainer>{props.children}</AppShellContainer>
       <ToastContainer />
     </div>
   );
