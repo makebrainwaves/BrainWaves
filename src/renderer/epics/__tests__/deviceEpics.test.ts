@@ -34,22 +34,21 @@ const INFO = { name: 'Muse-4A2F', samplingRate: 256, channels: ['AF7'] };
 
 function harness(device: Partial<RootState['device']> = {}) {
   const actions = new Subject<DeviceActionType>();
+  const deviceState = {
+    deviceType: DEVICES.MUSE,
+    deviceAvailability: DEVICE_AVAILABILITY.NONE,
+    connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
+    availableDevices: [],
+    ...device,
+  };
   const state = {
-    value: {
-      device: {
-        deviceType: DEVICES.MUSE,
-        deviceAvailability: DEVICE_AVAILABILITY.NONE,
-        connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
-        availableDevices: [],
-        ...device,
-      },
-    },
+    value: { device: deviceState },
   } as unknown as StateObservable<RootState>;
   const out: DeviceActionType[] = [];
   const sub = deviceEpics(actions, state, undefined).subscribe((a) =>
     out.push(a)
   );
-  return { actions, state, out, sub };
+  return { actions, device: deviceState, out, sub };
 }
 
 /** Lets settled driver promises reach the epics (one macrotask turn, no fixed delay). */
@@ -100,7 +99,7 @@ describe('device discovery', () => {
     );
 
     h.actions.next(DeviceActions.CancelSearch());
-    h.state.value.device.deviceAvailability = DEVICE_AVAILABILITY.NONE;
+    h.device.deviceAvailability = DEVICE_AVAILABILITY.NONE;
     scan.reject(new Error('cancelled'));
     await flush();
 
