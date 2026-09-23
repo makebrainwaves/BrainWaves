@@ -14,6 +14,7 @@ import ViewerComponent from './ViewerComponent';
 import { HeadsetSetupContext } from '../containers/AppShellContainer';
 import ExploreSensorCard from './ExploreSensorCard';
 import ExploreLessonFlow from './ExploreLessonFlow';
+import LiveSignalPrep from './HeadsetSetup/LiveSignalPrep';
 import { EXPLORE_LESSONS, LessonId } from '../constants/exploreLessons';
 import { ExploreSession } from '../utils/eeg/exploreSignal';
 import { DeviceActions } from '../actions';
@@ -196,12 +197,20 @@ function ConnectedExplore({
 }
 
 export default function EEGExplorationComponent(props: Props) {
-  const { openHeadsetSetup } = useContext(HeadsetSetupContext);
+  const { openHeadsetSetup, signalPrep, finishSignalPrep } =
+    useContext(HeadsetSetupContext);
   const connected = props.connectionStatus === CONNECTION_STATUS.CONNECTED;
 
   return (
     <div className="h-[90%] min-h-[560px]">
-      {connected ? (
+      {connected && signalPrep ? (
+        <LiveSignalPrep
+          device={signalPrep}
+          observable={props.signalQualityObservable}
+          channels={props.connectedDevice?.channels ?? []}
+          onContinue={finishSignalPrep}
+        />
+      ) : connected ? (
         <ConnectedExplore
           observable={props.signalQualityObservable}
           device={props.connectedDevice}

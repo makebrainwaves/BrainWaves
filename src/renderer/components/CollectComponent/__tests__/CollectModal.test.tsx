@@ -55,7 +55,9 @@ const baseProps: Record<string, unknown> = {
 };
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <HeadsetSetupContext.Provider value={{ openHeadsetSetup }}>
+  <HeadsetSetupContext.Provider
+    value={{ openHeadsetSetup, signalPrep: null, finishSignalPrep: vi.fn() }}
+  >
     {children}
   </HeadsetSetupContext.Provider>
 );

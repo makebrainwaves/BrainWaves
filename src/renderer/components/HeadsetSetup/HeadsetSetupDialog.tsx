@@ -107,7 +107,9 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
       );
     }
     dispatch(DeviceActions.SetDeviceType(device));
-    dispatch(DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING));
+    dispatch(
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
+    );
   }
 
   /** Stops the current search or connect and returns to the last manual screen. */

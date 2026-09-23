@@ -24,11 +24,16 @@ export const RunProgressContext = createContext<
 export interface HeadsetSetupApi {
   /** Opens pairing at "Which headset?" (or Connected); never starts a search. */
   openHeadsetSetup(): void;
+  /** Worn headset just paired via "Check my signal"; hosts show SignalPrep until finished. */
+  signalPrep: DEVICES.MUSE | DEVICES.NEUROSITY | null;
+  finishSignalPrep(): void;
 }
 
 /** Lets Collect and Explore open the one shell-owned headset setup dialog. */
 export const HeadsetSetupContext = createContext<HeadsetSetupApi>({
   openHeadsetSetup: () => undefined,
+  signalPrep: null,
+  finishSignalPrep: () => undefined,
 });
 
 const formatProgress = (progress: ExperimentProgress | null) => {
@@ -71,6 +76,13 @@ export default function AppShellContainer({
   const { isRunning } = experiment;
   const [setupOpen, setSetupOpen] = useState(false);
   const openHeadsetSetup = () => setSetupOpen(true);
+  const [signalPrep, setSignalPrep] = useState<
+    DEVICES.MUSE | DEVICES.NEUROSITY | null
+  >(null);
+  useEffect(() => {
+    if (device.connectionStatus !== CONNECTION_STATUS.CONNECTED)
+      setSignalPrep(null);
+  }, [device.connectionStatus]);
   const [elapsed, setElapsed] = useState('00:00');
   const [progress, setProgress] = useState<ExperimentProgress | null>(null);
   useEffect(() => {
@@ -117,14 +129,23 @@ export default function AppShellContainer({
       onDeviceClick={openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>
-        <HeadsetSetupContext.Provider value={{ openHeadsetSetup }}>
+        <HeadsetSetupContext.Provider
+          value={{
+            openHeadsetSetup,
+            signalPrep,
+            finishSignalPrep: () => setSignalPrep(null),
+          }}
+        >
           {children}
         </HeadsetSetupContext.Provider>
       </RunProgressContext.Provider>
       <HeadsetSetupDialog
         open={setupOpen}
         onClose={() => setSetupOpen(false)}
-        onDone={() => setSetupOpen(false)}
+        onDone={(d) => {
+          setSetupOpen(false);
+          if (d === DEVICES.MUSE || d === DEVICES.NEUROSITY) setSignalPrep(d);
+        }}
       />
     </AppShell>
   );

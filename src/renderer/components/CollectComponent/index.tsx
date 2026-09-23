@@ -15,6 +15,7 @@ import {
 } from '../../constants/interfaces';
 import PreTestComponent from './PreTestComponent';
 import { HeadsetSetupContext } from '../../containers/AppShellContainer';
+import LiveSignalPrep from '../HeadsetSetup/LiveSignalPrep';
 import RunComponent from './RunComponent';
 import { ExperimentActions, DeviceActions } from '../../actions';
 
@@ -42,7 +43,8 @@ export default function Collect(props: Props) {
   const [isRunComponentOpen, setIsRunComponentOpen] = useState(
     !props.isEEGEnabled
   );
-  const { openHeadsetSetup } = useContext(HeadsetSetupContext);
+  const { openHeadsetSetup, signalPrep, finishSignalPrep } =
+    useContext(HeadsetSetupContext);
 
   useEffect(() => {
     if (
@@ -63,7 +65,14 @@ export default function Collect(props: Props) {
   if (isRunComponentOpen) {
     return <RunComponent {...props} />;
   }
-  return (
+  return signalPrep ? (
+    <LiveSignalPrep
+      device={signalPrep}
+      observable={props.signalQualityObservable}
+      channels={props.connectedDevice?.channels ?? []}
+      onContinue={finishSignalPrep}
+    />
+  ) : (
     <PreTestComponent
       connectedDevice={props.connectedDevice}
       signalQualityObservable={props.signalQualityObservable}

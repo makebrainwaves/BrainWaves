@@ -26,7 +26,7 @@ import {
   DEVICES,
   DEVICE_AVAILABILITY,
 } from '../constants/constants';
-import { Device, DeviceInfo } from '../constants/interfaces';
+import { DeviceInfo } from '../constants/interfaces';
 import { RootState } from '../reducers';
 
 // -------------------------------------------------------------------------
