@@ -28,7 +28,7 @@ import lockFileRaw from 'pyodide/pyodide-lock.json?raw';
 
 // Custom Electron protocol scheme registered in src/main/index.ts.
 // Serves files from src/renderer/utils/webworker/src/ (dev) or
-// resources/webworker/src/ (prod) without opening a network socket.
+// resources/pyodide/ (prod) without opening a network socket.
 const PYODIDE_ASSET_BASE = 'pyodide://host';
 
 const pyodideReadyPromise = (async () => {

@@ -2,9 +2,8 @@
  * Electron playtest smoke test.
  *
  * Launches the dev-build Electron app with --remote-debugging-port on a
- * dynamically allocated port and a temporary --user-data-dir (avoids the
- * single-instance lock conflict with a running app). Attaches CDP to the
- * renderer page, runs assertions, and takes a screenshot.
+ * dynamically allocated port and an isolated temporary user-data directory.
+ * Attaches CDP to the renderer page, runs assertions, and takes a screenshot.
  *
  * Usage:
  *   node tests/electron-smoke.mjs
@@ -39,8 +38,7 @@ const POLL_INTERVAL = 800;
 mkdirSync(resolve(ROOT, '.gstack'), { recursive: true });
 const SCREENSHOT_PATH = resolve(ROOT, '.gstack/electron-smoke-screenshot.png');
 
-// Temp user-data-dir so this spawn doesn't conflict with a running BrainWaves
-// instance's single-instance lock.
+// Temp user-data directory keeps smoke-test state out of the real app profile.
 const USER_DATA_DIR = mkdtempSync(resolve(ROOT, '.gstack/playtest-'));
 
 // ---------------------------------------------------------------------------
@@ -160,9 +158,8 @@ async function main() {
   let appProcess = null;
   const startTime = Date.now();
 
-  // 1. Launch the dev app. BW_PLAYTEST_USER_DATA env var redirects userData so
-  //    the spawn gets its own single-instance lock scope.
-  //    detached spawns a new process group so we can kill -PGID the whole tree.
+  // 1. Launch the dev app with isolated userData and a detached process group
+  //    so the smoke test cannot touch the real profile and can kill the whole tree.
   console.log(`[smoke] Launching npm run dev (port ${cdpPort})`);
   appProcess = spawn(
     'npm',
@@ -258,13 +255,18 @@ async function main() {
   try {
     // 2. Wait for CDP endpoint with a page target
     console.log('[smoke] Waiting for app page...');
-    // If CDP_PORT was 0, wait for stderr to reveal the actual port.
-    const deadlinePort = Date.now() + 15_000;
-    while (!resolvedCdpPort && Date.now() < deadlinePort) {
+    // If CDP_PORT was 0, wait for stderr to reveal the actual port. A cold CI
+    // runner can need well over 15s (esbuild dep optimization + first Electron
+    // launch), so share the global budget and bail early if the app dies.
+    while (!resolvedCdpPort && remaining() > 0 && appProcess.exitCode === null) {
       await sleep(200);
     }
     if (!resolvedCdpPort) {
-      throw new Error('Could not resolve CDP port from Electron stderr');
+      throw new Error(
+        appProcess.exitCode === null
+          ? 'Could not resolve CDP port from Electron stderr'
+          : `App exited (code ${appProcess.exitCode}) before CDP port was announced`
+      );
     }
     const targets = await pollCdp(resolvedCdpPort, remaining());
 

@@ -32,7 +32,7 @@ export default defineConfig({
     publicDir: path.resolve(__dirname, 'src/renderer/utils/webworker/src'),
     plugins: [
       react({
-        jsxRuntime: 'classic', // React 16 does not ship react/jsx-runtime
+        jsxRuntime: 'classic',
       }),
     ],
     resolve: {
@@ -56,7 +56,8 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
-        // viewer.html + viewer.ts are handled by viewerRendererPlugin above
+        // viewer.html + viewer.ts are built by internals/scripts/BuildViewers.mjs
+        // (predev/postbuild hooks), outside this config.
         input: {
           index: path.resolve(__dirname, 'src/renderer/index.html'),
         },

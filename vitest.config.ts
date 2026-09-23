@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -9,9 +9,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
     css: true,
-    // Sibling git worktrees carry their own node_modules and duplicate every
-    // test file; collecting them breaks `npm test` with cross-copy React.
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.worktrees/**'],
+    // Stale git worktrees and packaged output carry their own node_modules and
+    // test copies; without this, `vitest run` dies on two-React hook errors.
+    exclude: [...configDefaults.exclude, '.worktrees/**', 'release/**', 'out/**'],
   },
   resolve: {
     alias: {
