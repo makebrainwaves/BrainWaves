@@ -78,7 +78,8 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 │             └── failure ──► SetConnectionStatus(DISCONNECTED)  ("Try again") │
 │                                                                               │
 │  DisconnectFromDevice (Cancel while connecting) abandons the attempt: a late  │
-│  success never reports CONNECTED.                                             │
+│  success never reports CONNECTED and is disconnected right away.              │
+│  LSL inlets follow the same contract (CONNECTING → CONNECTED | DISCONNECTED). │
 └─────────────────────────────────────────────────────────────────────────────  │
              │                                                                   │
 ┌────────────▼──────────────────────────────────────────────────────────────── │

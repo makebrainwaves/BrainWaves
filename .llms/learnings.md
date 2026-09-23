@@ -317,3 +317,15 @@ rejects the pending `requestDevice()`). `SetDeviceAvailability(SEARCHING)` must
 be dispatched synchronously in the click — `searchEpic` calls `scan()` inside
 that dispatch, and Web Bluetooth rejects without the user gesture. Which screen
 shows is `pairingStep()`; add states there, not in the view.
+
+## Epics: `takeUntil` on the outer pipe ends the epic for the whole session
+
+`combineEpics` subscribes each epic exactly once. A `takeUntil(Cleanup)` placed
+on the epic's top-level pipe completes that epic the first time `Cleanup` fires
+and it never restarts — every later occurrence is silently ignored.
+`deviceDisconnectWatchEpic` had this: after any disconnect (Explore "Disconnect",
+cancel-while-connecting, a drop) no later headset drop was ever noticed until
+reload. Scope per-occurrence lifetimes inside the `mergeMap`/`switchMap`
+(`disconnect$().pipe(take(1), takeUntil(Cleanup))`), not on the outer stream.
+The same rule applies to `catchError`: an uncaught rejection inside any epic
+kills the root epic, so async driver/IPC calls need an inner `catchError`.
