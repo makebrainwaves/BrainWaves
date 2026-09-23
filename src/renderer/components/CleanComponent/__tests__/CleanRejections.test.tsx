@@ -84,7 +84,7 @@ describe('Clean suggestedRejections merge', () => {
     // Wait for the mount effect to populate the select options.
 
     await waitFor(() => {
-      expect(screen.getByText('Load Dataset →')).toBeInTheDocument();
+      expect(screen.getByText('Start cleaning →')).toBeInTheDocument();
     });
 
     // Select the first (and only) file path.
@@ -97,9 +97,9 @@ describe('Clean suggestedRejections merge', () => {
       fireEvent.change(select);
     });
 
-    // Click "Load Dataset" to switch to review view.
+    // Click "Start cleaning" to switch to review view.
     await act(async () => {
-      fireEvent.click(screen.getByText('Load Dataset →'));
+      fireEvent.click(screen.getByText('Start cleaning →'));
     });
 
     // Now EpochReviewer should be rendered.

@@ -109,13 +109,13 @@ export default function PreTestComponent(props: Props) {
   }
 
   return (
-    <div className="relative flex h-screen bg-app">
+    <div className="flex h-full bg-app">
       {isSidebarVisible && (
-        <div className="absolute right-0 top-0 h-full w-64 z-10">
+        <div className="order-last h-full w-64 flex-none">
           <LessonSidebar handleClose={handleSidebarToggle} />
         </div>
       )}
-      <div className="flex-1 p-[3%]">
+      <div className="min-w-0 flex-1 overflow-y-auto p-[3%]">
         <div className="flex items-center justify-between mb-4">
           <h1>Collect</h1>
           <div className="flex gap-2">
