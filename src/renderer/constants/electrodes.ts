@@ -151,4 +151,52 @@ export const ELECTRODES: Record<string, ElectrodeMetadata> = {
       'Sits near the right occipital region, involved in vision. Rhythms here can change when eyes close, though not in every recording.',
     fixes: hairFixes,
   },
+  CP3: {
+    location: 'Left top-back scalp',
+    description:
+      'Sits behind the left central area, near regions that process touch and body position. Hair can interfere with sensor contact.',
+    fixes: hairFixes,
+  },
+  C3: {
+    location: 'Left top of head',
+    description:
+      'Sits over the left central region, near areas involved in movement of the right side of the body. Hair can interfere with sensor contact.',
+    fixes: hairFixes,
+  },
+  F5: {
+    location: 'Left front-side scalp',
+    description:
+      'Sits over the left frontal region, near areas involved in planning and language. Eye and forehead muscles can also affect the signal.',
+    fixes: hairFixes,
+  },
+  PO3: {
+    location: 'Left lower back of head',
+    description:
+      'Sits between the left parietal and occipital regions, involved in vision and spatial attention. Hair can interfere with sensor contact.',
+    fixes: hairFixes,
+  },
+  PO4: {
+    location: 'Right lower back of head',
+    description:
+      'Sits between the right parietal and occipital regions, involved in vision and spatial attention. Hair can interfere with sensor contact.',
+    fixes: hairFixes,
+  },
+  F6: {
+    location: 'Right front-side scalp',
+    description:
+      'Sits over the right frontal region, near areas involved in planning and attention. Eye and forehead muscles can also affect the signal.',
+    fixes: hairFixes,
+  },
+  C4: {
+    location: 'Right top of head',
+    description:
+      'Sits over the right central region, near areas involved in movement of the left side of the body. Hair can interfere with sensor contact.',
+    fixes: hairFixes,
+  },
+  CP4: {
+    location: 'Right top-back scalp',
+    description:
+      'Sits behind the right central area, near regions that process touch and body position. Hair can interfere with sensor contact.',
+    fixes: hairFixes,
+  },
 };
