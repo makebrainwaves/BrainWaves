@@ -300,3 +300,9 @@ jsPsych's `getProgress().total_trials` is `getNaiveTrialCount()`, which ignores
 drops the total when any of those appear rather than show a wrong "of N".
 Progress reaches the RunBar through `RunProgressContext` (AppShellContainer), not
 Redux, so it never lands in the persisted `appState.json`.
+
+## Global `li { list-style: none }` hides `list-decimal`/`list-disc`
+
+`app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
+lose and numbered lists render bare. Write the numbers as text (see
+`CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.

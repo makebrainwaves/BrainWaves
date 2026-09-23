@@ -94,4 +94,22 @@ describe('Collect modal', () => {
 
     expect(screen.queryByTestId('connect-modal')).not.toBeInTheDocument();
   });
+
+  it('opens the connect modal when a headset connected on arrival later drops', () => {
+    const connected = {
+      ...(baseProps as unknown as CollectProps),
+      connectionStatus: CONNECTION_STATUS.CONNECTED,
+    };
+    const { rerender } = render(<Collect {...connected} />);
+    expect(screen.queryByTestId('connect-modal')).not.toBeInTheDocument();
+
+    rerender(
+      <Collect
+        {...connected}
+        connectionStatus={CONNECTION_STATUS.NOT_YET_CONNECTED}
+      />
+    );
+
+    expect(screen.getByTestId('connect-modal')).toBeInTheDocument();
+  });
 });
