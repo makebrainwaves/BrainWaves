@@ -147,6 +147,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ): Promise<boolean> =>
     ipcRenderer.invoke('fs:recordingExists', title, subject, group, session),
 
+  markRecordingIncomplete: (
+    title: string,
+    subject: string,
+    group: string,
+    session: number
+  ): Promise<void> =>
+    ipcRenderer.invoke(
+      'fs:markRecordingIncomplete',
+      title,
+      subject,
+      group,
+      session
+    ),
+
   readFiles: (filePathsArray: string[]): Promise<string[]> =>
     ipcRenderer.invoke('fs:readFiles', filePathsArray),
 

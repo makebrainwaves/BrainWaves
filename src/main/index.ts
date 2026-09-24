@@ -44,6 +44,12 @@ import type {
   LSLStatusKind,
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
+import {
+  isBehaviorFile,
+  isRawEEGFile,
+  markRecordingIncomplete,
+  recordingExists,
+} from './recordings';
 
 // Playtest harness: isolate smoke-test state from the user's Electron profile.
 // Clear the env after reading so child processes don't inherit it.
@@ -233,7 +239,7 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
       recursive: true,
     }) as string[];
     return files
-      .filter((filepath) => filepath.slice(-7).includes('raw.csv'))
+      .filter(isRawEEGFile)
       .map((filepath) => {
         const fullPath = path.join(getWorkspaceDir(title), filepath);
         return { name: path.basename(filepath), path: fullPath };
@@ -267,7 +273,7 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
       recursive: true,
     }) as string[];
     return files
-      .filter((filepath) => filepath.slice(-12).includes('behavior.csv'))
+      .filter(isBehaviorFile)
       .map((filepath) => {
         const fullPath = path.join(getWorkspaceDir(title), filepath);
         return { name: path.basename(filepath), path: fullPath };
@@ -424,17 +430,18 @@ ipcMain.handle(
   }
 );
 
-/** True when either artifact of a subject/group/session run is already on disk. */
+/** True when any artifact of a subject/group/session run is on disk, including ended-early ones. */
 ipcMain.handle(
   'fs:recordingExists',
-  (_event, title, subject, group, session) => {
-    const dir = path.join(getWorkspaceDir(title), 'Data', subject);
-    const stem = `${subject}-${group}-${session}`;
-    return (
-      fs.existsSync(path.join(dir, 'Behavior', `${stem}-behavior.csv`)) ||
-      fs.existsSync(path.join(dir, 'EEG', `${stem}-raw.csv`))
-    );
-  }
+  (_event, title, subject, group, session) =>
+    recordingExists(getWorkspaceDir(title), subject, group, session)
+);
+
+/** Hides an ended-early run from Clean, Analyze and badges; the files stay on disk. */
+ipcMain.handle(
+  'fs:markRecordingIncomplete',
+  (_event, title, subject, group, session) =>
+    markRecordingIncomplete(getWorkspaceDir(title), subject, group, session)
 );
 
 ipcMain.handle('fs:readFiles', (_event, filePathsArray: string[]) => {
