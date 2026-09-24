@@ -3,11 +3,13 @@ import { of } from 'rxjs';
 import {
   map,
   mergeMap,
+  exhaustMap,
   filter,
   takeUntil,
   debounceTime,
   tap,
 } from 'rxjs/operators';
+import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import {
   DeviceActions,
@@ -18,6 +20,7 @@ import { RouterActions } from '../actions/routerActions';
 import { MUSE_CHANNELS, CONNECTION_STATUS } from '../constants/constants';
 import { isWorkspaceRoute } from '../components/AppShell/areas';
 import {
+  closeEEGStream,
   createEEGWriteStream,
   writeHeader,
   writeEEGData,
@@ -29,6 +32,7 @@ import {
   restoreExperimentState,
   createWorkspaceDir,
   storeBehavioralData,
+  markRecordingIncomplete,
   getWorkspaceDir,
 } from '../utils/filesystem/storage';
 import { RootState } from '../reducers';
@@ -65,11 +69,15 @@ const createNewWorkspaceEpic: Epic<
     mergeMap((actions) => of(...actions))
   );
 
+/** The open raw-EEG write stream of the current run; closed by the stop epic. */
+let activeEEGStream: string | null = null;
+
 const startEpic = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.Start)),
     filter(() => !state$.value.experiment.isRunning),
     mergeMap(async () => {
+      activeEEGStream = null;
       await createWorkspaceDir(state$.value.experiment.title);
       if (
         state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
@@ -84,6 +92,7 @@ const startEpic = (action$, state$) =>
         if (!streamId) {
           return true;
         }
+        activeEEGStream = streamId;
         writeHeader(
           streamId,
           state$.value.device.connectedDevice?.channels ?? MUSE_CHANNELS
@@ -121,6 +130,11 @@ const startEpic = (action$, state$) =>
     map(ExperimentActions.SetIsRunning)
   );
 
+/**
+ * Finalizes a run exactly once: closes the EEG stream (the raw subscription
+ * already ended on Stop), writes behavior, and for an ended-early run renames
+ * both files so Clean and Analyze skip them. Stops arriving meanwhile are ignored.
+ */
 const experimentStopEpic: Epic<
   ExperimentActionType,
   ExperimentActionType,
@@ -129,20 +143,25 @@ const experimentStopEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.Stop)),
     filter(() => state$.value.experiment.isRunning),
-    map((action) => action.payload as { data: string }),
-    map(({ data }) => {
-      if (!state$.value.experiment.title) {
-        return;
+    exhaustMap(async ({ payload: { data, outcome } }) => {
+      const { title, subject, group, session } = state$.value.experiment;
+      const streamId = activeEEGStream;
+      activeEEGStream = null;
+      try {
+        if (streamId) await closeEEGStream(streamId);
+        if (title) {
+          if (data)
+            await storeBehavioralData(data, title, subject, group, session);
+          if (outcome === 'incomplete')
+            await markRecordingIncomplete(title, subject, group, session);
+        }
+      } catch (error) {
+        toast.error(
+          `Couldn't finish saving this run: ${(error as Error).message}`
+        );
       }
-      storeBehavioralData(
-        data,
-        state$.value.experiment.title,
-        state$.value.experiment.subject,
-        state$.value.experiment.group,
-        state$.value.experiment.session
-      );
-    }),
-    mergeMap(() => of(ExperimentActions.SetIsRunning(false)))
+      return ExperimentActions.SetIsRunning(false);
+    })
   );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

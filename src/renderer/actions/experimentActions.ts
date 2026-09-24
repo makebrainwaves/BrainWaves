@@ -8,12 +8,15 @@ import {
 } from '../constants/interfaces';
 import { ExperimentStateType } from '../reducers/experimentReducer';
 
+/** How a recorded run ended; an incomplete run is kept but hidden from Clean/Analyze. */
+export type RunOutcome = 'complete' | 'incomplete';
+
 // -------------------------------------------------------------------------
 // Actions
 
 export const ExperimentActions = {
   Start: createAction('START'),
-  Stop: createAction<{ data: string }, 'STOP'>('STOP'),
+  Stop: createAction<{ data: string; outcome: RunOutcome }, 'STOP'>('STOP'),
   SetType: createAction<EXPERIMENTS, 'SET_TYPE'>('SET_TYPE'),
   SetExperimentObject: createAction<ExperimentObject, 'SET_EXPERIMENT_OBJECT'>(
     'SET_EXPERIMENT_OBJECT'

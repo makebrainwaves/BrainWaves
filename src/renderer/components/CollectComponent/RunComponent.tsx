@@ -156,7 +156,7 @@ const Run: React.FC<Props> = ({
 
   const onFinish = useCallback(
     (csv) => {
-      ExperimentActions.Stop({ data: csv });
+      ExperimentActions.Stop({ data: csv, outcome: 'complete' });
       setHasFinished(true);
     },
     [ExperimentActions]

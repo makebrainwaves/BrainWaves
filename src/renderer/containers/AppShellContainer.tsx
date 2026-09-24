@@ -140,7 +140,9 @@ export default function AppShellContainer({
       }
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
-      onEndRun={() => dispatch(ExperimentActions.Stop({ data: '' }))}
+      onEndRun={() =>
+        dispatch(ExperimentActions.Stop({ data: '', outcome: 'incomplete' }))
+      }
       onDeviceClick={headsetSetup.openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>
