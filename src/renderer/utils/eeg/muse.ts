@@ -93,7 +93,7 @@ export const museDisconnect$: Observable<void> = new Observable<void>(
 );
 
 // Cancels any in-progress BLE scan by telling the main process to reject the
-// pending requestDevice() call. Called when the search timer expires.
+// pending requestDevice() call. Called when the student cancels the search.
 export const cancelMuseScan = (): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).electronAPI?.cancelBluetoothSearch();

@@ -8,11 +8,7 @@ function mapStateToProps(state: RootState) {
   return {
     connectedDevice: state.device.connectedDevice,
     signalQualityObservable: state.device.signalQualityObservable ?? undefined,
-    deviceType: state.device.deviceType,
-    deviceAvailability: state.device.deviceAvailability,
     connectionStatus: state.device.connectionStatus,
-    availableDevices: state.device.availableDevices,
-    availableLSLStreams: state.device.availableLSLStreams,
   };
 }
 

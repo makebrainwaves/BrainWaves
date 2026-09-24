@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Observable, shareReplay } from 'rxjs';
 import { Button } from './ui/button';
 import {
   PLOTTING_INTERVAL,
   CONNECTION_STATUS,
-  DEVICE_AVAILABILITY,
-  DEVICES,
   MUSE_CHANNELS,
   MUSE_SAMPLING_RATE,
   VIEWER_DEFAULTS,
@@ -13,24 +11,20 @@ import {
 import eegImage from '../assets/common/EEG.png';
 import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
 import ViewerComponent from './ViewerComponent';
-import ConnectModal from './CollectComponent/ConnectModal';
+import { HeadsetSetupContext } from '../containers/AppShellContainer';
 import ExploreSensorCard from './ExploreSensorCard';
 import ExploreLessonFlow from './ExploreLessonFlow';
+import LiveSignalPrep from './HeadsetSetup/LiveSignalPrep';
 import { EXPLORE_LESSONS, LessonId } from '../constants/exploreLessons';
 import { ExploreSession } from '../utils/eeg/exploreSignal';
 import { DeviceActions } from '../actions';
-import { Device, DeviceInfo, SignalQualityData } from '../constants/interfaces';
-import type { DiscoveredStream } from '../../shared/lslTypes';
+import { DeviceInfo, SignalQualityData } from '../constants/interfaces';
 
 interface Props {
   connectedDevice: DeviceInfo | null | undefined;
   signalQualityObservable?: Observable<SignalQualityData>;
-  deviceType: DEVICES;
-  deviceAvailability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
   DeviceActions: typeof DeviceActions;
-  availableDevices: Array<Device>;
-  availableLSLStreams?: Array<DiscoveredStream>;
 }
 
 /** Holds the stream and bounded lesson buffer for the entire connected visit. */
@@ -203,31 +197,24 @@ function ConnectedExplore({
 }
 
 export default function EEGExplorationComponent(props: Props) {
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const { openHeadsetSetup, signalPrep, finishSignalPrep } =
+    useContext(HeadsetSetupContext);
   const connected = props.connectionStatus === CONNECTION_STATUS.CONNECTED;
-
-  useEffect(() => {
-    if (connected) setIsConnectModalOpen(false);
-  }, [connected]);
-
-  function handleStartConnect() {
-    setIsConnectModalOpen(true);
-    props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING);
-  }
-
-  function handleStopConnect() {
-    props.DeviceActions.DisconnectFromDevice();
-    setIsConnectModalOpen(false);
-    props.DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE);
-  }
 
   return (
     <div className="h-[90%] min-h-[560px]">
-      {connected ? (
+      {connected && signalPrep ? (
+        <LiveSignalPrep
+          device={signalPrep}
+          observable={props.signalQualityObservable}
+          channels={props.connectedDevice?.channels ?? []}
+          onContinue={finishSignalPrep}
+        />
+      ) : connected ? (
         <ConnectedExplore
           observable={props.signalQualityObservable}
           device={props.connectedDevice}
-          onDisconnect={handleStopConnect}
+          onDisconnect={() => props.DeviceActions.DisconnectFromDevice()}
         />
       ) : (
         <div className="flex h-full items-center justify-center text-ink">
@@ -247,7 +234,7 @@ export default function EEGExplorationComponent(props: Props) {
                 up live — no experiment to set up, no data to save.
               </p>
               <div className="flex flex-wrap items-center gap-4">
-                <Button size="lg" onClick={handleStartConnect}>
+                <Button size="lg" onClick={openHeadsetSetup}>
                   Connect a headset
                 </Button>
                 <span className="text-sm text-ink-muted">
@@ -267,18 +254,6 @@ export default function EEGExplorationComponent(props: Props) {
           </div>
         </div>
       )}
-      <ConnectModal
-        open={isConnectModalOpen}
-        onClose={() => setIsConnectModalOpen(false)}
-        connectedDevice={props.connectedDevice}
-        signalQualityObservable={props.signalQualityObservable}
-        deviceAvailability={props.deviceAvailability}
-        connectionStatus={props.connectionStatus}
-        deviceType={props.deviceType}
-        DeviceActions={props.DeviceActions}
-        availableDevices={props.availableDevices}
-        availableLSLStreams={props.availableLSLStreams}
-      />
     </div>
   );
 }

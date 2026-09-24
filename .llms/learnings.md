@@ -306,3 +306,47 @@ Redux, so it never lands in the persisted `appState.json`.
 `app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
 lose and numbered lists render bare. Write the numbers as text (see
 `CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
+
+## Headset setup: discovery is time-limited and gesture-bound
+
+`HeadsetSetupDialog` (mounted once in `AppShellContainer`, opened via
+`HeadsetSetupContext`) replaced `ConnectModal`. A Bluetooth search ends on
+`DeviceFound`, a rejected/empty `scan()` (→ not found), `SEARCH_TIMEOUT_MS`
+(one minute → driver `cancelScan()` → not found), or `DeviceActions.CancelSearch`
+(→ driver `cancelScan()`). Both `cancelScan()` paths go through
+`bluetooth:cancelSearch`, which rejects the pending `requestDevice()` in main.
+Not found shows "Is your Muse turned on?" with the moving-lights cue.
+`SetDeviceAvailability(SEARCHING)` must be dispatched synchronously in the click
+— `searchEpic` calls `scan()` inside that dispatch, and Web Bluetooth rejects
+without the user gesture. Keep the timer in the `race` *after* that `map`.
+Which screen shows is `pairingStep()`; add states there, not in the view.
+
+## Epics: `takeUntil` on the outer pipe ends the epic for the whole session
+
+`combineEpics` subscribes each epic exactly once. A `takeUntil(Cleanup)` placed
+on the epic's top-level pipe completes that epic the first time `Cleanup` fires
+and it never restarts — every later occurrence is silently ignored.
+`deviceDisconnectWatchEpic` had this: after any disconnect (Explore "Disconnect",
+cancel-while-connecting, a drop) no later headset drop was ever noticed until
+reload. Scope per-occurrence lifetimes inside the `mergeMap`/`switchMap`
+(`disconnect$().pipe(take(1), takeUntil(Cleanup))`), not on the outer stream.
+The same rule applies to `catchError`: an uncaught rejection inside any epic
+kills the root epic, so async driver/IPC calls need an inner `catchError`.
+
+## Device state: reducer owns transitions, epics own side effects
+
+In `deviceReducer.ts`, pure device-state changes are reducer cases, not epics:
+- `ConnectToDevice` → `CONNECTING`;
+- `DeviceFound` → replace the list and set `AVAILABLE`;
+- `DiscoverLSLStreams` → `SEARCHING`;
+- a new search clears `DISCONNECTED`;
+- `Cleanup` keeps `deviceType`.
+
+Two traps:
+- An LSL connect must be LSL-typed *before* `SetDeviceInfo` arrives. The
+  `ConnectToLSLStream` reducer case guarantees this. Otherwise
+  `setRawObservableEpic` sees a Bluetooth type and starts the Muse client
+  against an inlet.
+- `getDriver(LSL)` throws (LSL is not in the driver registry). Any epic that
+  calls `getDriver()` from a search or cancel path guards
+  `deviceType !== LSL` itself, instead of relying on the UI never dispatching it.

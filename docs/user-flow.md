@@ -14,8 +14,9 @@ flowchart TD
     MY_EXP -->|"Open Experiment"| DESIGN
     EXP_BANK -->|"Pick card → Design"| DESIGN
 
-    EXPLORE --> CONNECT_MODAL_EXP["ConnectModal\n(Muse / Neurosity / LSL)"]
-    CONNECT_MODAL_EXP --> EEG_EXPLORE["Live EEG Viewer\n(signal quality + waveform)"]
+    EXPLORE --> CONNECT_MODAL_EXP["Headset setup\n(Muse / Neurosity / LSL)"]
+    CONNECT_MODAL_EXP --> SIGNAL_PREP_EXP["Signal prep\n(worn headsets)"]
+    SIGNAL_PREP_EXP --> EEG_EXPLORE["Live EEG Viewer\n(signal quality + waveform)"]
 
     subgraph DESIGN ["DESIGN  /design"]
         direction TB
@@ -32,9 +33,11 @@ flowchart TD
     subgraph COLLECT ["COLLECT  /collect"]
         direction TB
         PRE_TEST["PRE-TEST\n(signal quality + EEG viewer)"]
-        CONNECT_MODAL["ConnectModal\n① power on headset\n② pick Muse / Neurosity / LSL\n③ select device → connect"]
+        CONNECT_MODAL["Headset setup\n① pick Muse / Neurosity / LSL\n② wear + power on\n③ Find my headset → select → connect"]
+        SIGNAL_PREP["Signal prep\n(per-sensor quality, never gates)"]
         PRE_TEST -->|"EEG enabled & not connected"| CONNECT_MODAL
-        CONNECT_MODAL -->|"Connected"| PRE_TEST
+        CONNECT_MODAL -->|"Check my signal"| SIGNAL_PREP
+        SIGNAL_PREP -->|"Continue"| PRE_TEST
         PRE_TEST -->|"Run & Record"| RUN
         RUN["RUN\n(subject ID / group / session)"]
         EXP_WINDOW["ExperimentWindow\n(lab.js + EEG markers)"]
@@ -95,7 +98,7 @@ Custom experiments add Conditions / Trials / Parameters / Instructions. Pick 1�
 
 ### 3. Collect (`/collect`)
 
-- **Pre-Test** — `ConnectModal` (headset on → pick **Muse**, **Neurosity Crown**, or **External LSL stream** if liblsl loaded → connect), then signal quality + live waveform. Muse/Neurosity are Web Bluetooth. There is no USB receiver (that was Emotiv).
+- **Pre-Test** — headset setup opens automatically when EEG is on and nothing is connected (also from the header device chip): pick **Muse**, **Neurosity Crown**, or an **LSL stream** if liblsl loaded → wear/power-on tips → `Find my headset` (the only thing that starts a search; it runs until a headset is found, the student cancels, or one minute passes, which asks "Is your Muse turned on?") → connect → `Check my signal` → signal prep → pre-run screen with signal quality + live waveform. Muse/Neurosity are Web Bluetooth. There is no USB receiver (that was Emotiv).
 - **Run** — subject ID, group, session → full-screen lab.js. Markers go through `injectMarker()` (active BLE driver) and, when LSL is available, `sendMarker()` to the outlet. Behavioral CSV is saved on end.
 
 ### 4. Clean (`/clean`) — EEG only

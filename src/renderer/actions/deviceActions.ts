@@ -27,9 +27,6 @@ export const DeviceActions = {
 
   // Actions From Epics
   SetDeviceInfo: createAction<DeviceInfo, 'SET_DEVICE_INFO'>('SET_DEVICE_INFO'),
-  SetAvailableDevices: createAction<Device[], 'SET_AVAILABLE_DEVICES'>(
-    'SET_AVAILABLE_DEVICES'
-  ),
   DeviceFound: createAction<Device[], 'DEVICE_FOUND'>('DEVICE_FOUND'),
   SetDeviceType: createAction<DEVICES, 'SET_DEVICE_TYPE'>('SET_DEVICE_TYPE'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,6 +40,8 @@ export const DeviceActions = {
     'SET_SIGNAL_OBSERVABLE'
   ),
   Cleanup: createAction<void, 'CLEANUP'>('CLEANUP'),
+  /** Stops an in-progress Bluetooth search; the pending requestDevice() rejects. */
+  CancelSearch: createAction<void, 'CANCEL_SEARCH'>('CANCEL_SEARCH'),
   DeviceLost: createAction<void, 'DEVICE_LOST'>('DEVICE_LOST'),
 
   // External LSL inlet streams
