@@ -16,7 +16,7 @@
 - `docs/uxr/playtest_naive_1_design_implementation_plan.md` §7.1–7.4 and §11 WS5.
 - Approved design: PR #273 (`src/renderer/experiments/shared/participantScreens.ts`, `src/renderer/components/ParticipantScreens/`, brief `docs/uxr/2026-09-23-ws5-design-brief.md`).
 
-**Prerequisite:** PR #275 (WS5 early exit) merged. Task 3 edits `LabjsExperimentWindow.tsx`, `ExperimentRuntime.tsx` and `RunComponent.tsx` as #275 leaves them, and extends #275's `LabjsExperimentWindow.test.tsx`.
+**Prerequisite:** PR #275 (WS5 early exit) — merged 2026-09-24 (`0025f8e`). Task 3 edits `LabjsExperimentWindow.tsx`, `ExperimentRuntime.tsx` and `RunComponent.tsx` as #275 left them (including its final lifecycle refactor `c5c2788`; `<ExperimentRuntime>` still renders in `RunComponent.tsx`), and extends #275's `LabjsExperimentWindow.test.tsx`.
 
 ## Global Constraints
 
@@ -313,7 +313,7 @@ Then replace only the `content:` value of these screens. Leave every other prope
 | Experiment | `title: 'Instruction'` / `'Intro'` | transition screen | `title: 'End'` |
 |---|---|---|---|
 | faces_houses | `instructionsScreen(instructions)` | `'Main task'` → `transitionScreen(instructions)` | `endScreen()` |
-| stroop | `instructionsScreen(instructions)` | `'Main task'` → `transitionScreen(instructions)` | `endScreen()` (the `keypress(Space)': 'end'` screen) |
+| stroop | `instructionsScreen(instructions)` | `'Main task'` → `transitionScreen(instructions)` | `title: 'Thanks'` → `endScreen()` |
 | search | `instructionsScreen(instructions)` | `'Main task instruction'` → `transitionScreen(instructions)` | `endScreen()` |
 | multitasking | `'Intro'` → `instructionsScreen(instructions)` | — (its `Instructions` and block screens stay) | `endScreen()` |
 
