@@ -2,7 +2,6 @@ import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import AppShell from './AppShell';
-import RunBar from './RunBar';
 import BlockedAreaPanel from './BlockedAreaEmptyState';
 import { AREA_LABELS } from './WorkflowNav';
 import { Area, ShellWorkspace } from './types';
@@ -237,32 +236,20 @@ export const RunBehavior: Story = {
   },
 };
 
-/**
- * S10 — Holding Esc says, in words, that letting go keeps the run going.
- * Rendered through RunBar: AppShell does not forward `escapeHeld` yet.
- */
+/** S10 — Holding Esc says, in words, that letting go keeps the run going. */
 export const HoldingEscape: Story = {
   args: {
     location: 'collect',
     workspace: facesHouses,
     run: { kind: 'eeg', elapsed: '02:14', progress: 'Trial 34 of 120' },
-  },
-  render: ({ run, workspace, device, deviceName, onEndRun }) => (
-    <div className="flex h-screen min-w-[1180px] flex-col bg-white text-ink">
-      <RunBar
-        run={run!}
-        workspace={workspace}
-        device={device}
-        deviceName={deviceName}
-        onEndRun={onEndRun}
-        escapeHeld
-      />
-      <div className="flex-1 bg-app px-[56px] pb-[40px] pt-[32px]">
+    escapeHeld: true,
+    children: (
+      <div className="px-[56px] pb-[40px] pt-[32px]">
         <Placeholder
           label="experiment runtime (trials) — unchanged"
           height={300}
         />
       </div>
-    </div>
-  ),
+    ),
+  },
 };

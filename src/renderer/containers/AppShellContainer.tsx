@@ -1,8 +1,10 @@
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -27,6 +29,16 @@ import HeadsetSetupDialog from '../components/HeadsetSetup/HeadsetSetupDialog';
 export const RunProgressContext = createContext<
   (progress: ExperimentProgress | null) => void
 >(() => undefined);
+
+/** Lets the running Collect screen receive the RunBar's "End experiment early". */
+export const EndRunContext = createContext<(end: (() => void) | null) => void>(
+  () => undefined
+);
+
+/** Lets the running Collect screen show the RunBar's hold-Escape status. */
+export const EscapeHeldContext = createContext<(held: boolean) => void>(
+  () => undefined
+);
 
 export interface HeadsetSetupApi {
   /** Opens pairing at "Which headset?" (or Connected); never starts a search. */
@@ -100,6 +112,11 @@ export default function AppShellContainer({
   );
   const [elapsed, setElapsed] = useState('00:00');
   const [progress, setProgress] = useState<ExperimentProgress | null>(null);
+  const [escapeHeld, setEscapeHeld] = useState(false);
+  const endRun = useRef<(() => void) | null>(null);
+  const registerEndRun = useCallback((end: (() => void) | null) => {
+    endRun.current = end;
+  }, []);
   useEffect(() => {
     setProgress(null);
     if (!isRunning) {
@@ -141,14 +158,23 @@ export default function AppShellContainer({
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
       onEndRun={() =>
-        dispatch(ExperimentActions.Stop({ data: '', outcome: 'incomplete' }))
+        endRun.current
+          ? endRun.current()
+          : dispatch(
+              ExperimentActions.Stop({ data: '', outcome: 'incomplete' })
+            )
       }
+      escapeHeld={escapeHeld}
       onDeviceClick={headsetSetup.openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>
-        <HeadsetSetupContext.Provider value={headsetSetup}>
-          {children}
-        </HeadsetSetupContext.Provider>
+        <EndRunContext.Provider value={registerEndRun}>
+          <EscapeHeldContext.Provider value={setEscapeHeld}>
+            <HeadsetSetupContext.Provider value={headsetSetup}>
+              {children}
+            </HeadsetSetupContext.Provider>
+          </EscapeHeldContext.Provider>
+        </EndRunContext.Provider>
       </RunProgressContext.Provider>
       <HeadsetSetupDialog
         open={setupOpen}

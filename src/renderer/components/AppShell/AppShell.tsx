@@ -20,6 +20,8 @@ export interface AppShellProps {
   onSelectArea?(area: Area): void;
   onHome?(): void;
   onEndRun?(): void;
+  /** Escape is being held during a run; the RunBar says so. */
+  escapeHeld?: boolean;
   /** Opens headset setup from the chip; not offered during a run. */
   onDeviceClick?(): void;
   /** The current screen, rendered on the app gradient under the bar. */
@@ -46,6 +48,7 @@ export default function AppShell({
   onSelectArea,
   onHome,
   onEndRun,
+  escapeHeld,
   onDeviceClick,
   children,
 }: AppShellProps) {
@@ -59,6 +62,7 @@ export default function AppShell({
           device={device}
           deviceName={deviceName}
           onEndRun={onEndRun}
+          escapeHeld={escapeHeld}
         />
       ) : (
         <header className="flex h-[64px] min-h-0 items-stretch border-b border-[#e5e5e5] bg-white px-[24px] py-0 text-left">
