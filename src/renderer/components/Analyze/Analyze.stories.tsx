@@ -34,6 +34,10 @@ type AnalyzeStoryProps = {
   modality: 'eeg' | 'behavior';
   activeStep: 'OVERVIEW' | 'ERP' | 'BEHAVIOR';
   isEEGEnabled: boolean;
+  /** Workspace badges shown in AppShell; derived from the story's data state. */
+  badges?: { collect?: string[]; clean?: string[] };
+  /** Recommended next area on the AppShell workflow nav. */
+  nextArea?: 'prepare' | 'collect' | 'clean' | 'analyze';
   children: React.ReactNode;
 };
 
@@ -46,6 +50,8 @@ const withAnalyzeChrome: Decorator<AnalyzeStoryProps> = (
   const isEEGEnabled = args.isEEGEnabled ?? (modality === 'eeg');
   const steps = isEEGEnabled ? ANALYZE_STEPS : ANALYZE_STEPS_BEHAVIOR;
   const activeStep = args.activeStep ?? 'OVERVIEW';
+  const badges = args.badges ?? parameters.badges;
+  const nextArea = args.nextArea ?? parameters.nextArea;
   return (
     <MemoryRouter>
       <AppShell
@@ -57,11 +63,8 @@ const withAnalyzeChrome: Decorator<AnalyzeStoryProps> = (
         }}
         device="connected"
         deviceName="Muse 2"
-        badges={
-          isEEGEnabled
-            ? { collect: ['4 recordings'], clean: ['3 cleaned'] }
-            : { collect: ['4 recordings'] }
-        }
+        badges={badges}
+        nextArea={nextArea}
       >
         <div className="flex h-full flex-col">
           <SecondaryNavComponent
@@ -169,7 +172,7 @@ function BehaviorSection(props: Partial<AnalyzeBehaviorProps>) {
 /** A01 — Nothing to analyze yet; one action back to Collect. */
 export const NoData: Story = {
   args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: { modality: 'eeg' },
+  parameters: { modality: 'eeg', nextArea: 'collect' },
   render: () => (
     <div className="flex h-full flex-col items-center justify-center text-center">
       <h1 className="m-0">No results yet</h1>
@@ -183,7 +186,11 @@ export const NoData: Story = {
 /** A02 — Behavior is ready; Overview/ERP explain the clean-data prerequisite. */
 export const BehaviorBeforeCleaning: Story = {
   args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: { modality: 'eeg' },
+  parameters: {
+    modality: 'eeg',
+    badges: { collect: ['4 recordings'] },
+    nextArea: 'clean',
+  },
   render: () => (
     <div className="flex flex-col gap-8">
       <Card className="border-dashed border-amber-300 bg-amber-50/30">
@@ -206,60 +213,70 @@ export const BehaviorBeforeCleaning: Story = {
 /** A03 — Cleaned datasets selected, with PSD and topography visible. */
 export const OverviewResults: Story = {
   args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <OverviewSection selectedDatasets={[EEG_DATASET_OPTIONS[0].value]} />,
 };
 
 /** A04 — Explicit loading state while PSD/topo compute. */
 export const OverviewLoading: Story = {
   args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <OverviewSection status="loading" psdPlot={null} topoPlot={null} />,
 };
 
 /** A05 — Error state with one retry action. */
 export const OverviewError: Story = {
   args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <OverviewSection status="error" psdPlot={null} topoPlot={null} />,
 };
 
 /** A06 — ERP explainer + results side by side. */
 export const ErpExplainer: Story = {
   args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <ErpSection selectedChannel="TP9" />,
 };
 
 /** A07 — Results state with channel and condition legend. */
 export const ErpResults: Story = {
   args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
-  render: () => <ErpSection selectedChannel="AF7" />,
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
+  render: () => <ErpSection selectedChannel="TP9" />,
 };
 
 /** A08 — ERP panel before any channel is selected. */
 export const ErpNoResult: Story = {
   args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <ErpSection status="noData" erpPlot={null} />,
 };
 
 /** A09 — ERP loading spinner in full chrome. */
 export const ErpLoading: Story = {
   args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <ErpSection status="loading" erpPlot={null} />,
 };
 
 /** A10 — ERP error with retry. */
 export const ErpError: Story = {
   args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <ErpSection status="error" erpPlot={null} />,
 };
 
 /** A11 — Behavior results with controls active. */
 export const BehaviorResults: Story = {
   args: { modality: 'eeg', activeStep: 'BEHAVIOR', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => <BehaviorSection selectedDatasets={[BEHAVIOR_DATASET_OPTIONS[0].value]} />,
 };
 
 /** A12 — Export success feedback visible. */
 export const BehaviorExport: Story = {
   args: { modality: 'eeg', activeStep: 'BEHAVIOR', isEEGEnabled: true },
+  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
   render: () => (
     <BehaviorSection
       selectedDatasets={[BEHAVIOR_DATASET_OPTIONS[0].value]}
@@ -271,6 +288,10 @@ export const BehaviorExport: Story = {
 /** A13 — Behavior-only workspace: no Overview/ERP tabs, no Clean references. */
 export const BehaviorOnlyWorkspace: Story = {
   args: { modality: 'behavior', activeStep: 'BEHAVIOR', isEEGEnabled: false },
-  parameters: { modality: 'behavior' },
+  parameters: {
+    modality: 'behavior',
+    badges: { collect: ['4 recordings'] },
+    nextArea: 'analyze',
+  },
   render: () => <BehaviorSection behaviorOnly />,
 };
