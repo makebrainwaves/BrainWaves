@@ -365,15 +365,21 @@ debug plugin does — and aborting between a screen's render and show frames
 hangs it, so that jump is deferred two frames. `controller.audioContext` is
 undefined in 23.x; the real one is `global.audioContext`.
 
-`RunComponent` settles once per run (a token per running period, so a late
-report from an earlier run's runtime is ignored; a 3 s fallback covers a runtime
-that never reports) and dispatches `Stop({ data, outcome })`. The stop epic
-closes the EEG stream, writes behavior, then `fs:markRecordingIncomplete`
-renames both files to `*.incomplete.csv`; each step runs even if an earlier one
-failed. Every discovery filter (`src/main/recordings.ts`) and the workflow
-badges skip that suffix; `recordingExists` still counts it so the session number
-is never reused. Before this, "End experiment early" wrote the partial run as a
-normal file and `closeEEGStream` was never called.
+The run lifecycle lives in the store, not in components. The RunBar button and
+`escapeHoldEpic` (a 1 s Escape hold) both dispatch `EndRun`; the reducer sets
+`isEnding`, which unmounts the runtime, and the runtime's report becomes
+`Stop({ data, outcome })`. The reducer keeps the first `Stop` of a run as
+`runOutcome` (the result screen), and `endRunFallbackEpic` sends an empty
+incomplete `Stop` after 3 s if no runtime reports (e.g. an imported study that
+never loaded). `SetState` resets these live fields so a reopened workspace never
+shows a stale result. The stop epic closes the EEG stream, writes behavior, then
+`fs:markRecordingIncomplete` renames both files to `*.incomplete.csv`; each step
+runs even if an earlier one failed. Every discovery filter
+(`src/main/recordings.ts`) and the workflow badges skip that suffix;
+`recordingExists` still counts it so the session number is never reused. The
+result screen and RunBar say "EEG" only via `selectRecordsEEG` (EEG on *and* a
+headset connected). Before this, "End experiment early" wrote the partial run
+as a normal file and `closeEEGStream` was never called.
 
 Agent playtests: Electron's native `showMessageBox` (the no-EEG warning, the
 session-taken prompt) and file pickers cannot be driven over CDP, and a covered

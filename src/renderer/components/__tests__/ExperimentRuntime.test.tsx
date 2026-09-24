@@ -28,9 +28,7 @@ const baseProps = {
   onFinish: vi.fn(),
 };
 
-const importedParams = (
-  overrides: Record<string, unknown> = {}
-): never =>
+const importedParams = (overrides: Record<string, unknown> = {}): never =>
   ({
     stimuli: [],
     imported: {
@@ -72,7 +70,9 @@ describe('ExperimentRuntime', () => {
       />
     );
     await waitFor(() =>
-      expect(screen.getByTestId('jspsych')).toHaveTextContent('initJsPsych({});')
+      expect(screen.getByTestId('jspsych')).toHaveTextContent(
+        'initJsPsych({});'
+      )
     );
     expect(readImportedExperimentFile).toHaveBeenCalledWith(
       'My_Study',
@@ -81,13 +81,18 @@ describe('ExperimentRuntime', () => {
   });
 
   it('parses an imported lab.js study and hands it to the lab.js runtime', async () => {
-    readImportedExperimentFile.mockResolvedValue('{"type":"lab.flow.Sequence"}');
+    readImportedExperimentFile.mockResolvedValue(
+      '{"type":"lab.flow.Sequence"}'
+    );
     render(
       <ExperimentRuntime
         {...baseProps}
         type={EXPERIMENTS.IMPORTED}
         experimentObject={{}}
-        params={importedParams({ kind: 'labjs', file: 'experiment/study.json' })}
+        params={importedParams({
+          kind: 'labjs',
+          file: 'experiment/study.json',
+        })}
       />
     );
     await waitFor(() =>
@@ -108,44 +113,5 @@ describe('ExperimentRuntime', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('ENOENT: gone')
     );
-  });
-
-  it('reports an abort itself when torn down before an imported study loads', () => {
-    readImportedExperimentFile.mockReturnValue(new Promise(() => undefined));
-    const onAbort = vi.fn();
-    const { unmount } = render(
-      <ExperimentRuntime
-        {...baseProps}
-        onAbort={onAbort}
-        type={EXPERIMENTS.IMPORTED}
-        experimentObject={{} as never}
-        params={importedParams()}
-      />
-    );
-
-    unmount();
-
-    expect(onAbort).toHaveBeenCalledWith('');
-  });
-
-  it('leaves abort reporting to the inner runtime once it is mounted', async () => {
-    readImportedExperimentFile.mockResolvedValue(
-      'const jsPsych = initJsPsych({});'
-    );
-    const onAbort = vi.fn();
-    const { unmount } = render(
-      <ExperimentRuntime
-        {...baseProps}
-        onAbort={onAbort}
-        type={EXPERIMENTS.IMPORTED}
-        experimentObject={{} as never}
-        params={importedParams()}
-      />
-    );
-    await screen.findByTestId('jspsych');
-
-    unmount();
-
-    expect(onAbort).not.toHaveBeenCalled();
   });
 });

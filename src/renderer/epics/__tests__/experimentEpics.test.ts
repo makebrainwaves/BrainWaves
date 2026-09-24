@@ -64,6 +64,9 @@ const experiment = {
   isRunning: false,
   isEEGEnabled: true,
   dateModified: null,
+  isEnding: false,
+  escapeHeld: false,
+  runOutcome: null,
 };
 const rootState = (title: string): RootState =>
   ({
@@ -214,5 +217,75 @@ describe('experiment stop', () => {
       'A',
       1
     );
+  });
+});
+
+describe('ending a run early', () => {
+  const live = () => {
+    const s = recording();
+    s.experiment.isRunning = true;
+    const actions = new Subject<ExperimentActionType>();
+    const out: ExperimentActionType[] = [];
+    const sub = experimentEpics(
+      actions,
+      { value: s } as unknown as StateObservable<RootState>,
+      undefined
+    ).subscribe((a) => out.push(a));
+    return { actions, out, sub };
+  };
+  const escape = (type: 'keydown' | 'keyup') =>
+    window.dispatchEvent(new KeyboardEvent(type, { key: 'Escape' }));
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('a tap of Escape never ends the run; holding it does', () => {
+    vi.useFakeTimers();
+    const { out, sub } = live();
+
+    escape('keydown');
+    vi.advanceTimersByTime(400);
+    escape('keyup');
+    vi.advanceTimersByTime(2000);
+    expect(out).toEqual([
+      ExperimentActions.SetEscapeHeld(true),
+      ExperimentActions.SetEscapeHeld(false),
+    ]);
+
+    escape('keydown');
+    vi.advanceTimersByTime(1000);
+    expect(out.at(-1)).toEqual(ExperimentActions.EndRun());
+    sub.unsubscribe();
+  });
+
+  it('ends the run anyway if the runtime never reports', () => {
+    vi.useFakeTimers();
+    const { actions, out, sub } = live();
+
+    actions.next(ExperimentActions.EndRun());
+    vi.advanceTimersByTime(3000);
+
+    expect(out).toContainEqual(
+      ExperimentActions.Stop({ data: '', outcome: 'incomplete' })
+    );
+    sub.unsubscribe();
+  });
+
+  it('adds nothing once the runtime has reported', () => {
+    vi.useFakeTimers();
+    const { actions, out, sub } = live();
+
+    actions.next(ExperimentActions.EndRun());
+    actions.next(
+      ExperimentActions.Stop({ data: 'partial', outcome: 'incomplete' })
+    );
+    vi.advanceTimersByTime(3000);
+
+    expect(out).not.toContainEqual(
+      ExperimentActions.Stop({ data: '', outcome: 'incomplete' })
+    );
+    sub.unsubscribe();
   });
 });

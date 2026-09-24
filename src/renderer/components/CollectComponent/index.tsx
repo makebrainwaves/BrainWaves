@@ -18,6 +18,7 @@ import { HeadsetSetupContext } from '../../containers/AppShellContainer';
 import LiveSignalPrep from '../HeadsetSetup/LiveSignalPrep';
 import RunComponent from './RunComponent';
 import { ExperimentActions, DeviceActions } from '../../actions';
+import type { RunOutcome } from '../../actions/experimentActions';
 
 export interface Props {
   ExperimentActions: typeof ExperimentActions;
@@ -31,6 +32,9 @@ export interface Props {
   experimentObject: ExperimentObject;
   signalQualityObservable: Observable<SignalQualityData> | null | undefined;
   isRunning: boolean;
+  isEnding: boolean;
+  runOutcome: RunOutcome | null;
+  recordsEEG: boolean;
   params: ExperimentParameters;
   subject: string;
   group: string;

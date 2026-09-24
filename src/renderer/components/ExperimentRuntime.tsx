@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { EXPERIMENTS } from '../constants/constants';
 import {
   ExperimentObject,
@@ -58,9 +58,9 @@ const resolveImport = async (
 };
 
 /**
- * Picks the runtime for a study. While an imported study is loading or failed,
- * no inner runtime exists, so the dispatcher itself reports `onAbort('')` on
- * teardown.
+ * Picks the runtime for a study. An imported study that is still loading or
+ * failed has no runtime to report an early exit; the end-run fallback epic
+ * ends that run.
  */
 export const ExperimentRuntime: React.FC<Props> = ({
   type,
@@ -88,17 +88,6 @@ export const ExperimentRuntime: React.FC<Props> = ({
       cancelled = true;
     };
   }, [imported, runtime.title]);
-
-  const waitingRef = useRef(false);
-  waitingRef.current = Boolean(imported) && !resolved;
-  const onAbortRef = useRef(runtime.onAbort);
-  onAbortRef.current = runtime.onAbort;
-  useEffect(
-    () => () => {
-      if (waitingRef.current) onAbortRef.current?.('');
-    },
-    []
-  );
 
   if (imported) {
     if (error) {

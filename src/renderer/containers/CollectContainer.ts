@@ -4,6 +4,7 @@ import Collect from '../components/CollectComponent';
 import { DeviceActions, ExperimentActions } from '../actions';
 import { RootState } from '../store';
 import { ExperimentParameters } from '../constants/interfaces';
+import { selectRecordsEEG } from '../selectors';
 
 function mapStateToProps(state: RootState) {
   return {
@@ -12,6 +13,7 @@ function mapStateToProps(state: RootState) {
     connectedDevice: state.device.connectedDevice,
     signalQualityObservable: state.device.signalQualityObservable ?? undefined,
     params: state.experiment.params as ExperimentParameters,
+    recordsEEG: selectRecordsEEG(state),
   };
 }
 

@@ -62,7 +62,7 @@ export const ImportedExperimentWindow: React.FC<
       return host.teardown;
     } catch (failure) {
       setError((failure as Error).message);
-      return () => onAbort?.('');
+      return undefined;
     }
   }, [
     eventCallback,

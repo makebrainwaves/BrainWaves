@@ -1,5 +1,6 @@
 import { createReducer } from '@reduxjs/toolkit';
 import { ExperimentActions } from '../actions';
+import type { RunOutcome } from '../actions/experimentActions';
 import { EXPERIMENTS } from '../constants/constants';
 import {
   ExperimentObject,
@@ -24,7 +25,16 @@ export interface ExperimentStateType {
   readonly isRunning: boolean;
   readonly isEEGEnabled: boolean;
   readonly dateModified: number | null;
+  /** End early was asked for; the runtime is unmounting and reporting its data. */
+  readonly isEnding: boolean;
+  /** Escape is held during a run; the RunBar says so. */
+  readonly escapeHeld: boolean;
+  /** How the last run ended; the first Stop of a run wins. Cleared by the next run. */
+  readonly runOutcome: RunOutcome | null;
 }
+
+/** The live-run fields: never carried across runs or restored from disk. */
+const idleRun = { isEnding: false, escapeHeld: false, runOutcome: null };
 
 const initialState: ExperimentStateType = {
   type: EXPERIMENTS.NONE,
@@ -38,6 +48,7 @@ const initialState: ExperimentStateType = {
   // EEG-on is the app's whole point; opt out for behavior-only runs, not in.
   isEEGEnabled: true,
   dateModified: null,
+  ...idleRun,
 };
 
 export default createReducer(initialState, (builder) =>
@@ -98,12 +109,33 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(ExperimentActions.SetIsRunning, (state, action) => {
-      return {
-        ...state,
-        isRunning: action.payload,
-      };
-    })
+    .addCase(ExperimentActions.SetIsRunning, (state, action) => ({
+      ...state,
+      isRunning: action.payload,
+      isEnding: false,
+      escapeHeld: false,
+      runOutcome: action.payload ? null : state.runOutcome,
+    }))
+
+    .addCase(ExperimentActions.Stop, (state, action) =>
+      state.isRunning && !state.runOutcome
+        ? { ...state, runOutcome: action.payload.outcome }
+        : state
+    )
+
+    .addCase(ExperimentActions.EndRun, (state) =>
+      state.isRunning ? { ...state, isEnding: true, escapeHeld: false } : state
+    )
+
+    .addCase(ExperimentActions.SetEscapeHeld, (state, action) => ({
+      ...state,
+      escapeHeld: action.payload,
+    }))
+
+    .addCase(ExperimentActions.DismissRunResult, (state) => ({
+      ...state,
+      runOutcome: null,
+    }))
 
     .addCase(ExperimentActions.SetEEGEnabled, (state, action) => {
       return {
@@ -112,12 +144,11 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(ExperimentActions.SetState, (state, action) => {
-      return {
-        ...state,
-        ...action.payload,
-      };
-    })
+    .addCase(ExperimentActions.SetState, (state, action) => ({
+      ...state,
+      ...action.payload,
+      ...idleRun,
+    }))
 
     .addCase(ExperimentActions.ExperimentCleanup, (state, action) => {
       return initialState;

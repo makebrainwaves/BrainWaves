@@ -3,7 +3,6 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { Observable } from 'rxjs';
@@ -23,11 +22,7 @@ import {
 import { ExperimentRuntime } from '../ExperimentRuntime';
 import { nextFreeSession } from '../../utils/filesystem/storage';
 import { getExperimentFromType } from '../../utils/labjs/functions';
-import {
-  EndRunContext,
-  EscapeHeldContext,
-  RunProgressContext,
-} from '../../containers/AppShellContainer';
+import { RunProgressContext } from '../../containers/AppShellContainer';
 import {
   ExperimentParameters,
   ExperimentObject,
@@ -41,6 +36,11 @@ interface Props {
   type: EXPERIMENTS;
   title: string;
   isRunning: boolean;
+  /** End early was asked for; the runtime unmounts and reports what it recorded. */
+  isEnding: boolean;
+  runOutcome: RunOutcome | null;
+  /** The run captures EEG (EEG on and a headset connected), not just key presses. */
+  recordsEEG: boolean;
   params: ExperimentParameters;
   subject: string;
   experimentObject: ExperimentObject;
@@ -52,15 +52,13 @@ interface Props {
   signalQualityObservable?: Observable<SignalQualityData> | null;
 }
 
-/** How long Escape must be held to end a run early; a tap never ends it. */
-const END_EARLY_HOLD_MS = 1000;
-/** ponytail: a runtime that never reports on teardown gets this long, then the run ends with no behavior data. */
-const ABORT_FALLBACK_MS = 3000;
-
 const Run: React.FC<Props> = ({
   type,
   title,
   isRunning,
+  isEnding,
+  runOutcome,
+  recordsEEG,
   params,
   subject,
   experimentObject,
@@ -74,14 +72,7 @@ const Run: React.FC<Props> = ({
   const [isInputCollectOpen, setIsInputCollectOpen] = useState(
     subject.length === 0
   );
-  /** Set when a run settles; picks the result screen until the next run. */
-  const [outcome, setOutcome] = useState<RunOutcome | null>(null);
-  /** End early was asked for; the runtime is unmounted and reports its partial data. */
-  const [ending, setEnding] = useState(false);
-  const registerEndRun = useContext(EndRunContext);
-  const setEscapeHeld = useContext(EscapeHeldContext);
   const navigate = useNavigate();
-
   // 'armed': checks passed, waiting for SPACE; nothing is recorded yet.
   // 'starting': SPACE pressed, Start dispatched; the gate stays up until the
   // run is live so the Ready card doesn't flash, and SPACE can't start twice.
@@ -132,11 +123,7 @@ const Run: React.FC<Props> = ({
   ]);
 
   useEffect(() => {
-    if (!isRunning) {
-      setEnding(false);
-      return;
-    }
-    setGate('off');
+    if (isRunning) setGate('off');
   }, [isRunning]);
 
   useEffect(() => {
@@ -174,77 +161,21 @@ const Run: React.FC<Props> = ({
     [isEEGEnabled, registry]
   );
 
-  /** One token per running period; a report from an earlier run's runtime never settles a later one. */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const run = useMemo(() => ({ settled: false }), [isRunning]);
-  const currentRun = useRef(run);
-  currentRun.current = run;
-  const settle = useCallback(
-    (csv: string, result: RunOutcome) => {
-      if (run.settled || currentRun.current !== run) return;
-      run.settled = true;
-      ExperimentActions.Stop({ data: csv, outcome: result });
-      setOutcome(result);
-    },
-    [run, ExperimentActions]
-  );
   const onFinish = useCallback(
-    (csv: string) => settle(csv, 'complete'),
-    [settle]
+    (csv: string) => ExperimentActions.Stop({ data: csv, outcome: 'complete' }),
+    [ExperimentActions]
   );
   const onAbort = useCallback(
-    (csv: string) => settle(csv, 'incomplete'),
-    [settle]
+    (csv: string) =>
+      ExperimentActions.Stop({ data: csv, outcome: 'incomplete' }),
+    [ExperimentActions]
   );
-  const endEarly = useCallback(() => setEnding(true), []);
-
-  useEffect(() => {
-    if (!isRunning) return undefined;
-    registerEndRun(endEarly);
-    return () => registerEndRun(null);
-  }, [isRunning, endEarly, registerEndRun]);
-
-  useEffect(() => {
-    if (!isRunning) return undefined;
-    let hold: number | undefined;
-    const release = () => {
-      window.clearTimeout(hold);
-      setEscapeHeld(false);
-    };
-    const down = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || e.repeat) return;
-      window.clearTimeout(hold);
-      setEscapeHeld(true);
-      hold = window.setTimeout(() => {
-        setEscapeHeld(false);
-        endEarly();
-      }, END_EARLY_HOLD_MS);
-    };
-    const up = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') release();
-    };
-    window.addEventListener('keydown', down, true);
-    window.addEventListener('keyup', up, true);
-    return () => {
-      release();
-      window.removeEventListener('keydown', down, true);
-      window.removeEventListener('keyup', up, true);
-    };
-  }, [isRunning, endEarly, setEscapeHeld]);
-
-  useEffect(() => {
-    if (!ending) return undefined;
-    const fallback = window.setTimeout(() => onAbort(''), ABORT_FALLBACK_MS);
-    return () => window.clearTimeout(fallback);
-  }, [ending, onAbort]);
-
-  const handleRunAgain = useCallback(() => setOutcome(null), []);
   const handleRunAnother = useCallback(() => {
-    setOutcome(null);
+    ExperimentActions.DismissRunResult();
     setIsInputCollectOpen(true);
-  }, []);
+  }, [ExperimentActions]);
 
-  const result = isRunning ? ending && 'saving' : outcome;
+  const result = isRunning ? isEnding && 'saving' : runOutcome;
 
   return (
     <div className="h-full p-[3%] bg-app" data-tid="container">
@@ -252,16 +183,16 @@ const Run: React.FC<Props> = ({
         {result && (
           <RunResult
             outcome={result}
-            modality={isEEGEnabled ? 'eeg' : 'behavior'}
+            modality={recordsEEG ? 'eeg' : 'behavior'}
             subject={subject}
             onClean={() => navigate(SCREENS.CLEAN.route)}
             onAnalyze={() => navigate(SCREENS.ANALYZE.route)}
             onRunAnother={handleRunAnother}
-            onRunAgain={handleRunAgain}
+            onRunAgain={() => ExperimentActions.DismissRunResult()}
           />
         )}
 
-        {!isRunning && !outcome && gate !== 'off' && (
+        {!isRunning && !runOutcome && gate !== 'off' && (
           <div
             role="dialog"
             aria-label="Press space to begin"
@@ -285,7 +216,7 @@ const Run: React.FC<Props> = ({
           </div>
         )}
 
-        {!isRunning && !outcome && gate === 'off' && (
+        {!isRunning && !runOutcome && gate === 'off' && (
           <div className="flex items-center justify-center h-full">
             <Card className="w-full max-w-lg">
               <CardHeader>
@@ -343,7 +274,7 @@ const Run: React.FC<Props> = ({
           </div>
         )}
 
-        {isRunning && !ending && (
+        {isRunning && !isEnding && (
           <div className="h-full w-full">
             <ExperimentRuntime
               type={type}

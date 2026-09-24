@@ -1,10 +1,12 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { of } from 'rxjs';
+import { concat, fromEvent, of, race, timer } from 'rxjs';
 import {
   map,
   mergeMap,
   exhaustMap,
   filter,
+  switchMap,
+  take,
   takeUntil,
   debounceTime,
   tap,
@@ -174,6 +176,66 @@ const experimentStopEpic: Epic<
     })
   );
 
+/** How long Escape must be held to end a run early; a tap never ends it. */
+const END_EARLY_HOLD_MS = 1000;
+/** ponytail: a runtime that never reports on teardown gets this long, then the run ends with no behavior data. */
+const ABORT_FALLBACK_MS = 3000;
+
+const escapeKey = (type: 'keydown' | 'keyup') =>
+  fromEvent<KeyboardEvent>(window, type, { capture: true }).pipe(
+    filter((event) => event.key === 'Escape')
+  );
+
+/**
+ * Holding Escape for END_EARLY_HOLD_MS during a run ends it early, the same as
+ * the RunBar button; letting go sooner keeps it running. Keys still reach the
+ * study, whose own presentation is untouched.
+ */
+const escapeHoldEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  escapeKey('keydown').pipe(
+    filter(
+      (event) =>
+        !event.repeat &&
+        state$.value.experiment.isRunning &&
+        !state$.value.experiment.isEnding
+    ),
+    exhaustMap(() =>
+      concat(
+        of(ExperimentActions.SetEscapeHeld(true)),
+        race(
+          timer(END_EARLY_HOLD_MS).pipe(map(() => ExperimentActions.EndRun())),
+          escapeKey('keyup').pipe(
+            take(1),
+            map(() => ExperimentActions.SetEscapeHeld(false))
+          )
+        )
+      ).pipe(
+        takeUntil(action$.pipe(filter(isActionOf(ExperimentActions.Stop))))
+      )
+    )
+  );
+
+/** Ends an ended-early run with no behavior data if the runtime never reports. */
+const endRunFallbackEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.EndRun)),
+    filter(() => state$.value.experiment.isRunning),
+    switchMap(() =>
+      timer(ABORT_FALLBACK_MS).pipe(
+        takeUntil(action$.pipe(filter(isActionOf(ExperimentActions.Stop)))),
+        map(() => ExperimentActions.Stop({ data: '', outcome: 'incomplete' }))
+      )
+    )
+  );
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const autoSaveEpic: Epic<any, ExperimentActionType, RootState> = (
   action$ // RouterActions union requires any here
@@ -236,6 +298,8 @@ export default combineEpics(
   createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
+  escapeHoldEpic,
+  endRunFallbackEpic,
   autoSaveEpic,
   saveWorkspaceEpic,
   navigationCleanupEpic,

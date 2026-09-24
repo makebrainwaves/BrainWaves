@@ -173,6 +173,8 @@ export const createJsPsychHost = (
   const replaced = new Map<string, unknown>();
   let instance: JsPsychInternals | undefined;
   let finished = false;
+  /** Cleared when the file fails to load, so the error screen stays up. */
+  let { onAbort } = config;
   const route = (csv: string) => {
     if (finished) return;
     finished = true;
@@ -189,7 +191,7 @@ export const createJsPsychHost = (
    * reported at once: jsPsych still awaits a post-trial gap after an abort, so
    * its own on_finish can arrive many seconds later (and is then ignored).
    */
-  const teardown = (report = true) => {
+  const teardown = () => {
     if (!finished) {
       finished = true;
       const trials = instance?.data?.get().values() ?? [];
@@ -198,12 +200,11 @@ export const createJsPsychHost = (
       } catch {
         // An instance whose timeline never started has nothing to abort.
       }
-      if (report)
-        config.onAbort?.(
-          trials.length
-            ? toBehavioralCsv(normalizeJsPsychTrials(trials, config.mapping))
-            : ''
-        );
+      onAbort?.(
+        trials.length
+          ? toBehavioralCsv(normalizeJsPsychTrials(trials, config.mapping))
+          : ''
+      );
     }
     instance = undefined;
     for (const [key, value] of replaced) {
@@ -242,7 +243,8 @@ export const createJsPsychHost = (
     // eslint-disable-next-line no-new-func
     new Function(source)();
   } catch (error) {
-    teardown(false);
+    onAbort = undefined;
+    teardown();
     throw new Error(
       `createJsPsychHost: the imported experiment threw while loading — ${
         (error as Error).message
@@ -250,5 +252,5 @@ export const createJsPsychHost = (
     );
   }
 
-  return { teardown: () => teardown() };
+  return { teardown };
 };

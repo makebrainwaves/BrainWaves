@@ -1,10 +1,8 @@
 import React, {
   createContext,
   ReactNode,
-  useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,6 +20,7 @@ import { ExperimentActions } from '../actions';
 import { CONNECTION_STATUS, DEVICES } from '../constants/constants';
 import { experimentLabel } from '../constants/experimentLabels';
 import { RootState } from '../store';
+import { selectRecordsEEG } from '../selectors';
 import type { ExperimentProgress } from '../components/ExperimentRuntime';
 import HeadsetSetupDialog from '../components/HeadsetSetup/HeadsetSetupDialog';
 
@@ -29,16 +28,6 @@ import HeadsetSetupDialog from '../components/HeadsetSetup/HeadsetSetupDialog';
 export const RunProgressContext = createContext<
   (progress: ExperimentProgress | null) => void
 >(() => undefined);
-
-/** Lets the running Collect screen receive the RunBar's "End experiment early". */
-export const EndRunContext = createContext<(end: (() => void) | null) => void>(
-  () => undefined
-);
-
-/** Lets the running Collect screen show the RunBar's hold-Escape status. */
-export const EscapeHeldContext = createContext<(held: boolean) => void>(
-  () => undefined
-);
 
 export interface HeadsetSetupApi {
   /** Opens pairing at "Which headset?" (or Connected); never starts a search. */
@@ -76,6 +65,7 @@ export default function AppShellContainer({
   const dispatch = useDispatch();
   const experiment = useSelector((state: RootState) => state.experiment);
   const device = useSelector((state: RootState) => state.device);
+  const recordsEEG = useSelector(selectRecordsEEG);
 
   const modality: Modality = experiment.isEEGEnabled ? 'eeg' : 'behavior';
   const workspace = experiment.title
@@ -112,11 +102,6 @@ export default function AppShellContainer({
   );
   const [elapsed, setElapsed] = useState('00:00');
   const [progress, setProgress] = useState<ExperimentProgress | null>(null);
-  const [escapeHeld, setEscapeHeld] = useState(false);
-  const endRun = useRef<(() => void) | null>(null);
-  const registerEndRun = useCallback((end: (() => void) | null) => {
-    endRun.current = end;
-  }, []);
   useEffect(() => {
     setProgress(null);
     if (!isRunning) {
@@ -152,29 +137,23 @@ export default function AppShellContainer({
       deviceName={device.connectedDevice?.name}
       run={
         isRunning
-          ? { kind: modality, elapsed, progress: formatProgress(progress) }
+          ? {
+              kind: recordsEEG ? 'eeg' : 'behavior',
+              elapsed,
+              progress: formatProgress(progress),
+            }
           : undefined
       }
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
-      onEndRun={() =>
-        endRun.current
-          ? endRun.current()
-          : dispatch(
-              ExperimentActions.Stop({ data: '', outcome: 'incomplete' })
-            )
-      }
-      escapeHeld={escapeHeld}
+      onEndRun={() => dispatch(ExperimentActions.EndRun())}
+      escapeHeld={experiment.escapeHeld}
       onDeviceClick={headsetSetup.openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>
-        <EndRunContext.Provider value={registerEndRun}>
-          <EscapeHeldContext.Provider value={setEscapeHeld}>
-            <HeadsetSetupContext.Provider value={headsetSetup}>
-              {children}
-            </HeadsetSetupContext.Provider>
-          </EscapeHeldContext.Provider>
-        </EndRunContext.Provider>
+        <HeadsetSetupContext.Provider value={headsetSetup}>
+          {children}
+        </HeadsetSetupContext.Provider>
       </RunProgressContext.Provider>
       <HeadsetSetupDialog
         open={setupOpen}
