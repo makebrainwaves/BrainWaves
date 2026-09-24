@@ -376,6 +376,30 @@ p {
   }
 }
 
+/* Analyze plot cards (components/Analyze/AnalyzeParts PlotFigure): the
+   PyodidePlotWidget image shrinks to the card instead of growing the page,
+   keeping its aspect ratio; the Save buttons stay under it. */
+.bw-analyze-plot {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.bw-analyze-plot > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px 0 0;
+}
+
+.bw-analyze-plot img {
+  flex: 1 1 0;
+  min-height: 0;
+  object-fit: contain;
+}
+
 li {
   list-style: none;
 }

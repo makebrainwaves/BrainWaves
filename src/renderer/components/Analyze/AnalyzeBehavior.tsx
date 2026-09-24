@@ -1,64 +1,83 @@
 import React from 'react';
-import { Card, CardContent, CardHeader } from '../ui/card';
-import { Button } from '../ui/button';
-import { Spinner } from '../ui/spinner';
 import Plot from 'react-plotly.js';
-import type { Data as PlotlyData } from 'plotly.js';
-import type { BehaviorDatasetOption, DisplayMode } from './fixtures';
+import { Button } from '../ui/button';
+import { cn } from '../ui/utils';
+import {
+  AnalyzeLayout,
+  DatasetChecklist,
+  RailSection,
+  ResultStatus,
+  Segmented,
+} from './AnalyzeParts';
+import type { BehaviorPlot, DatasetOption } from './fixtures';
 
-export type ExportStatus = 'idle' | 'success' | 'error';
+/** `aggregateDataForPlot`'s dependent variables. */
+export type DependentVariable = 'Response Time' | 'Accuracy';
+
+/** `aggregateDataForPlot`'s display modes. */
+export type DisplayMode = 'errorbars' | 'datapoints' | 'whiskers';
 
 export interface AnalyzeBehaviorProps {
-  /** Whether this workspace is behavior-only (no EEG component at all). */
-  behaviorOnly: boolean;
-  behaviorDatasets: BehaviorDatasetOption[];
+  behaviorDatasets: DatasetOption[];
   selectedDatasets: string[];
-  dependentVariable: 'Response Time' | 'Accuracy';
+  dependentVariable: DependentVariable;
   removeOutliers: boolean;
   showDataPoints: boolean;
   displayMode: DisplayMode;
-  dataToPlot: PlotlyData[];
-  layout: Record<string, unknown>;
-  exportStatus: ExportStatus;
-  onDatasetChange: (values: string[]) => void;
-  onDependentVariableChange: (value: 'Response Time' | 'Accuracy') => void;
-  onToggleOutliers: () => void;
-  onToggleDataPoints: () => void;
-  onDisplayModeChange: (mode: DisplayMode) => void;
-  onExport: () => void;
+  /** `aggregateDataForPlot` output for the current choices; null before any selection. */
+  plot: BehaviorPlot | null;
+  /** Result of the last `storeAggregatedBehaviorData`. */
+  exportStatus: 'idle' | 'saving' | 'success' | 'error';
+  onDatasetChange(values: string[]): void;
+  onDependentVariableChange(value: DependentVariable): void;
+  onToggleOutliers(): void;
+  onToggleDataPoints(): void;
+  onDisplayModeChange(mode: DisplayMode): void;
+  onExport(): void;
 }
 
-const DEPENDENT_VARIABLES: { key: string; text: string; value: 'Response Time' | 'Accuracy' }[] = [
-  { key: 'Response Time', text: 'Response Time', value: 'Response Time' },
-  { key: 'Accuracy', text: 'Accuracy', value: 'Accuracy' },
-];
+/** What each plot type communicates, per measure. */
+const CAPTIONS: Record<DisplayMode, Record<DependentVariable, string>> = {
+  errorbars: {
+    'Response Time':
+      'Each bar is one participant’s average time for that image type. The thin line on top shows how precise that average is.',
+    Accuracy:
+      'Each bar is one participant’s percent correct for that image type. Taller means more correct answers.',
+  },
+  datapoints: {
+    'Response Time':
+      'Each dot is one correct trial. You can see how spread out the times are, and spot unusually fast or slow responses.',
+    Accuracy:
+      'Each dot is one participant’s percent correct for that image type.',
+  },
+  whiskers: {
+    'Response Time':
+      'The box holds the middle half of the times and the line inside is the median. The whiskers reach the rest, so you can compare spread as well as the middle.',
+    Accuracy:
+      'The box holds the middle half of the scores and the line inside is the median, so you can compare spread as well as the middle.',
+  },
+};
 
-function ExplainBehavior({ mode }: { mode: DisplayMode }) {
-  const text: Record<DisplayMode, string> = {
-    errorbars:
-      'Bar graph: the height of each bar shows the average for that condition, and the error bars show how much the values vary.',
-    datapoints:
-      'Data points: every participant’s value is shown as a dot. This lets you see the spread and any clusters or outliers.',
-    whiskers:
-      'Box plot: the box covers the middle 50% of values, the line inside is the median, and the whiskers show the full range.',
-  };
-  return (
-    <p className="m-0 text-ink-muted">
-      {text[mode]}
-    </p>
-  );
-}
+const EXPORT_FEEDBACK = {
+  saving: 'Saving…',
+  success: '✓ Saved to this workspace’s Data folder.',
+  error:
+    '✕ Couldn’t export: the selected recordings could not be read. Nothing was saved.',
+};
 
+/**
+ * Behavior tab: choose complete behavioral recordings and how to plot them,
+ * read the plot beside the controls, and export a per-participant summary.
+ * Available before any EEG is cleaned. Pure props.
+ */
 export default function AnalyzeBehavior({
-  behaviorOnly,
   behaviorDatasets,
   selectedDatasets,
   dependentVariable,
   removeOutliers,
   showDataPoints,
   displayMode,
-  dataToPlot,
-  layout,
+  plot,
   exportStatus,
   onDatasetChange,
   onDependentVariableChange,
@@ -67,141 +86,124 @@ export default function AnalyzeBehavior({
   onDisplayModeChange,
   onExport,
 }: AnalyzeBehaviorProps) {
+  const rail = (
+    <>
+      <RailSection label="Recordings">
+        <DatasetChecklist
+          options={behaviorDatasets}
+          selected={selectedDatasets}
+          onChange={onDatasetChange}
+        />
+      </RailSection>
+      <RailSection label="Plot" className="border-t border-gray-200 pt-[12px]">
+        <Segmented
+          label="Measure"
+          value={dependentVariable}
+          onChange={onDependentVariableChange}
+          options={[
+            { value: 'Response Time', text: 'Response time' },
+            { value: 'Accuracy', text: 'Accuracy' },
+          ]}
+        />
+        <Segmented
+          label="Plot type"
+          value={displayMode}
+          onChange={onDisplayModeChange}
+          options={[
+            { value: 'errorbars', text: 'Bars' },
+            { value: 'datapoints', text: 'Dots' },
+            { value: 'whiskers', text: 'Box' },
+          ]}
+        />
+        <label className="flex items-start gap-[8px] text-[14px] text-ink">
+          <input
+            type="checkbox"
+            className="mt-[3px] h-[16px] w-[16px] accent-brand"
+            checked={removeOutliers}
+            onChange={onToggleOutliers}
+          />
+          <span>
+            Remove outliers
+            <span className="block text-[12px] leading-[1.35] text-ink-muted">
+              Skips times far from the average (over 2 SD)
+            </span>
+          </span>
+        </label>
+        <label className="flex items-center gap-[8px] text-[14px] text-ink">
+          <input
+            type="checkbox"
+            className="h-[16px] w-[16px] accent-brand"
+            checked={showDataPoints}
+            onChange={onToggleDataPoints}
+          />
+          Show data points
+        </label>
+      </RailSection>
+      <RailSection
+        label="Export"
+        className="mt-auto border-t border-gray-200 pt-[12px]"
+      >
+        <Button
+          size="lg"
+          disabled={selectedDatasets.length === 0 || exportStatus === 'saving'}
+          onClick={onExport}
+        >
+          Export summary CSV
+        </Button>
+        <div
+          role="status"
+          className={cn(
+            'min-h-[18px] text-[13px] leading-[1.35]',
+            exportStatus === 'error' ? 'text-red-700' : 'text-ink-muted',
+            exportStatus === 'success' && 'text-brand'
+          )}
+        >
+          {exportStatus === 'idle'
+            ? 'One row per participant.'
+            : EXPORT_FEEDBACK[exportStatus]}
+        </div>
+      </RailSection>
+    </>
+  );
+
   return (
-    <div className="flex flex-col gap-6">
-      <section>
-        <h1 className="m-0 mb-1">{behaviorOnly ? 'Behavior' : 'Behavioral Data'}</h1>
-        <p className="m-0 mb-4 max-w-[720px] text-ink-muted">
-          Look at how participants responded: were they fast or accurate? Choose the visualization that
-          best tells your research story.
-        </p>
-      </section>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <h2 className="m-0 text-lg font-light">Datasets</h2>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <select
-              multiple
-              className="min-h-[120px] w-full rounded-md border border-gray-300 bg-white p-2 text-sm"
-              value={selectedDatasets}
-              onChange={(e) => onDatasetChange(Array.from(e.target.selectedOptions, (o) => o.value))}
-            >
-              {behaviorDatasets.map((ds) => (
-                <option key={ds.key} value={ds.value}>
-                  {ds.text}
-                </option>
-              ))}
-            </select>
-            <p className="m-0 text-xs text-ink-muted">
-              Tip: hold Cmd (Mac) or Ctrl (Windows) to select more than one file.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <h2 className="m-0 text-lg font-light">Plot options</h2>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium">Measure</label>
-                <select
-                  className="w-full rounded-md border border-gray-300 bg-white p-2 text-sm"
-                  value={dependentVariable}
-                  onChange={(e) => onDependentVariableChange(e.target.value as 'Response Time' | 'Accuracy')}
-                >
-                  {DEPENDENT_VARIABLES.map((dv) => (
-                    <option key={dv.key} value={dv.value}>
-                      {dv.text}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col justify-end gap-2 sm:flex-row sm:items-center">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={removeOutliers}
-                    onChange={onToggleOutliers}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  Remove outliers (&gt;2 SD)
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={showDataPoints}
-                    onChange={onToggleDataPoints}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  Show data points
-                </label>
-              </div>
+    <AnalyzeLayout title="Behavior" rail={rail}>
+      {selectedDatasets.length === 0 || !plot ? (
+        <ResultStatus
+          status="empty"
+          title="Pick a recording to start"
+          body="Tick one or more recordings. Each participant gets their own bar, dots or box."
+        />
+      ) : (
+        <figure className="m-0 flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white px-[16px] pb-[8px] pt-[12px]">
+          <figcaption className="flex flex-none flex-col gap-[2px]">
+            <h2 className="m-0 text-[18px] font-normal text-ink">
+              {dependentVariable} by participant
+            </h2>
+            <div className="text-[14px] leading-[1.4] text-ink-muted">
+              {CAPTIONS[displayMode][dependentVariable]}
             </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">Display type</label>
-              <div className="flex flex-wrap gap-2">
-                {(['errorbars', 'datapoints', 'whiskers'] as DisplayMode[]).map((mode) => (
-                  <Button
-                    key={mode}
-                    type="button"
-                    size="sm"
-                    variant={displayMode === mode ? 'default' : 'secondary'}
-                    onClick={() => onDisplayModeChange(mode)}
-                  >
-                    {mode === 'errorbars' ? 'Error bars' : mode === 'datapoints' ? 'Data points' : 'Box plot'}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <h2 className="m-0 text-lg font-light">{dependentVariable}</h2>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-3">
-            <ExplainBehavior mode={displayMode} />
+          </figcaption>
+          <div className="min-h-0 flex-1">
+            <Plot
+              data={plot.dataToPlot}
+              layout={{
+                ...plot.layout,
+                title: { text: '' },
+                autosize: true,
+                margin: { l: 64, r: 16, t: 28, b: 40 },
+                font: { family: 'Lato, Helvetica Neue, sans-serif', size: 13 },
+                legend: { orientation: 'h', x: 0, y: 1.08 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+              }}
+              config={{ displayModeBar: false, responsive: true }}
+              useResizeHandler
+              style={{ width: '100%', height: '100%' }}
+            />
           </div>
-          <div className="h-80 w-full rounded-md border border-gray-100 bg-white">
-            {dataToPlot.length > 0 ? (
-              <Plot data={dataToPlot} layout={layout} useResizeHandler style={{ width: '100%', height: '100%' }} />
-            ) : (
-              <div className="flex h-full items-center justify-center text-ink-muted">Select at least one behavioral dataset to see the plot.</div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="m-0 text-lg font-light">Export aggregated data</h2>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="m-0 text-ink-muted">
-            Save a summary CSV with one row per dataset and columns for each condition.
-          </p>
-          <div className="flex items-center gap-3">
-            <Button disabled={selectedDatasets.length === 0} size="lg" onClick={onExport}>
-              Download aggregated data
-            </Button>
-            {exportStatus === 'success' && (
-              <span className="text-sm text-brand">Saved successfully.</span>
-            )}
-            {exportStatus === 'error' && (
-              <span className="text-sm text-red-600">Export failed — try again.</span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </figure>
+      )}
+    </AnalyzeLayout>
   );
 }

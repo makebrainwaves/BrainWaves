@@ -1,297 +1,340 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
-import { MemoryRouter, Link } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { fn } from 'storybook/test';
 import AppShell from '../AppShell/AppShell';
+import BlockedAreaEmptyState from '../AppShell/BlockedAreaEmptyState';
+import type { Area } from '../AppShell/types';
 import SecondaryNavComponent from '../SecondaryNavComponent';
-import AnalyzeOverview from './AnalyzeOverview';
-import AnalyzeErp from './AnalyzeErp';
-import AnalyzeBehavior from './AnalyzeBehavior';
+import { aggregateDataForPlot } from '../../utils/behavior/compute';
+import AnalyzeOverview, { AnalyzeOverviewProps } from './AnalyzeOverview';
+import AnalyzeErp, { AnalyzeErpProps, ErpWalkthroughStep } from './AnalyzeErp';
+import AnalyzeBehavior, {
+  AnalyzeBehaviorProps,
+  DependentVariable,
+  DisplayMode,
+} from './AnalyzeBehavior';
 import {
-  ANALYZE_STEPS,
-  ANALYZE_STEPS_BEHAVIOR,
+  BEHAVIOR_CSVS,
   BEHAVIOR_DATASET_OPTIONS,
+  BehaviorPlot,
   EEG_DATASET_OPTIONS,
   EPOCHS_INFO,
-  ERP_PLOT_MIME,
+  EXAMPLE_EPOCH_ARRAYS,
+  FACES_HOUSES_CODE_TO_LABEL,
   MUSE_CHANNEL_INFO,
   PSD_PLOT_MIME,
   TOPO_PLOT_MIME,
-  CONDITION_SUMMARIES,
-  RT_ERRORBAR_PLOT,
-  ACCURACY_ERRORBAR_PLOT,
-  EMPTY_BEHAVIOR_PLOT,
-  FACES_HOUSES_TITLE,
+  WORKSPACE_TITLE,
+  erpPlotMime,
 } from './fixtures';
-import { SCREENS } from '../../constants/constants';
-import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import type { AnalyzeOverviewProps } from './AnalyzeOverview';
-import type { AnalyzeErpProps } from './AnalyzeErp';
-import type { AnalyzeBehaviorProps } from './AnalyzeBehavior';
 
-type AnalyzeStoryProps = {
-  modality: 'eeg' | 'behavior';
-  activeStep: 'OVERVIEW' | 'ERP' | 'BEHAVIOR';
-  isEEGEnabled: boolean;
-  /** Workspace badges shown in AppShell; derived from the story's data state. */
-  badges?: { collect?: string[]; clean?: string[] };
-  /** Recommended next area on the AppShell workflow nav. */
-  nextArea?: 'prepare' | 'collect' | 'clean' | 'analyze';
-  children: React.ReactNode;
+type Tab = 'OVERVIEW' | 'ERP' | 'BEHAVIOR';
+
+interface ChromeParameters {
+  modality?: 'eeg' | 'behavior';
+  tab?: Tab;
+  /** Shell badges for the story's data state (`useWorkspaceProgress.summarize`). */
+  badges?: Partial<Record<Area, string[]>>;
+  nextArea?: Area;
+  /** WorkspaceAreaGate replaces the whole screen, tab bar included. */
+  gated?: boolean;
+}
+
+/** Shell facts for an EEG workspace with 4 recordings, 3 of them cleaned. */
+const CLEANED: ChromeParameters = {
+  badges: { collect: ['4 recordings'], clean: ['3 cleaned'] },
+  nextArea: 'analyze',
 };
 
-/** Wrap a section in Analyze chrome: real AppShell, memory router, redesigned secondary nav. */
-const withAnalyzeChrome: Decorator<AnalyzeStoryProps> = (
-  Story,
-  { args, parameters }
-) => {
-  const modality = args.modality ?? parameters.modality ?? 'eeg';
-  const isEEGEnabled = args.isEEGEnabled ?? (modality === 'eeg');
-  const steps = isEEGEnabled ? ANALYZE_STEPS : ANALYZE_STEPS_BEHAVIOR;
-  const activeStep = args.activeStep ?? 'OVERVIEW';
-  const badges = args.badges ?? parameters.badges;
-  const nextArea = args.nextArea ?? parameters.nextArea;
+/** Shell facts for an EEG workspace with 4 recordings and nothing cleaned yet. */
+const NOT_CLEANED: ChromeParameters = {
+  badges: { collect: ['4 recordings'] },
+  nextArea: 'clean',
+};
+
+/**
+ * Storybook deep-merges object parameters, so stories set `badges` whole and
+ * the cleaned-workspace default lives here rather than in `meta.parameters`.
+ *
+ * The real chrome around Analyze: AppShell at `analyze` with the story's
+ * workspace facts, then Analyze's tab bar (Overview / ERP / Behavior, or
+ * Behavior only). The tab body fills the rest without page scroll.
+ */
+const withAnalyzeChrome: Decorator = (Story, { parameters }) => {
+  const {
+    modality = 'eeg',
+    tab = 'OVERVIEW',
+    badges = CLEANED.badges,
+    nextArea = CLEANED.nextArea,
+    gated,
+  } = parameters as ChromeParameters;
+  const eeg = modality === 'eeg';
   return (
     <MemoryRouter>
       <AppShell
         location="analyze"
         workspace={{
-          name: FACES_HOUSES_TITLE,
+          name: eeg ? WORKSPACE_TITLE : 'Faces_Houses_4',
           experimentType: 'Faces/Houses',
           modality,
         }}
-        device="connected"
+        device={eeg ? 'connected' : 'none'}
         deviceName="Muse 2"
         badges={badges}
         nextArea={nextArea}
       >
-        <div className="flex h-full flex-col">
-          <SecondaryNavComponent
-            title="Analyze"
-            steps={steps}
-            activeStep={activeStep}
-            onStepClick={fn()}
-            isEEGEnabled={isEEGEnabled}
-            onEEGEnabledChange={fn()}
-          />
-          <div className="flex-1 overflow-y-auto p-6 lg:p-9">
-            <Story />
+        {gated ? (
+          <Story />
+        ) : (
+          <div className="flex h-full flex-col">
+            <SecondaryNavComponent
+              title="Analyze"
+              steps={
+                eeg
+                  ? { OVERVIEW: 'OVERVIEW', ERP: 'ERP', BEHAVIOR: 'BEHAVIOR' }
+                  : { BEHAVIOR: 'BEHAVIOR' }
+              }
+              activeStep={tab}
+              onStepClick={fn()}
+              isEEGEnabled={eeg}
+              onEEGEnabledChange={fn()}
+            />
+            <div className="min-h-0 flex-1">
+              <Story />
+            </div>
           </div>
-        </div>
+        )}
       </AppShell>
     </MemoryRouter>
   );
 };
 
-const meta: Meta<AnalyzeStoryProps> = {
+const meta: Meta = {
   title: 'Domain/Analyze',
-  component: ({ children }) => <>{children}</>,
   parameters: { layout: 'fullscreen' },
   decorators: [withAnalyzeChrome],
-  args: {
-    modality: 'eeg',
-    activeStep: 'OVERVIEW',
-    isEEGEnabled: true,
-  },
 };
 export default meta;
-type Story = StoryObj<AnalyzeStoryProps>;
+type Story = StoryObj;
 
-function OverviewSection(props: Partial<AnalyzeOverviewProps>) {
-  const [selected, setSelected] = useState<string[]>(props.selectedDatasets ?? []);
+/** Overview with local dataset selection; everything else fixed by the story. */
+function Overview(props: Partial<AnalyzeOverviewProps>) {
+  const [selected, setSelected] = useState(
+    props.selectedDatasets ?? [EEG_DATASET_OPTIONS[0].value]
+  );
   return (
     <AnalyzeOverview
       status="results"
-      title={FACES_HOUSES_TITLE}
+      eegAvailable
+      workspaceTitle={WORKSPACE_TITLE}
       eegDatasets={EEG_DATASET_OPTIONS}
-      selectedDatasets={selected}
       epochsInfo={EPOCHS_INFO}
       psdPlot={PSD_PLOT_MIME}
       topoPlot={TOPO_PLOT_MIME}
-      onDatasetChange={setSelected}
+      onRetry={fn()}
+      onGoToClean={fn()}
       {...props}
+      selectedDatasets={selected}
+      onDatasetChange={setSelected}
     />
   );
 }
 
-function ErpSection(props: Partial<AnalyzeErpProps>) {
-  const [channel, setChannel] = useState(props.selectedChannel ?? MUSE_CHANNEL_INFO[0]);
+/** ERP with a live sensor pick and walkthrough; the plot follows the sensor. */
+function Erp(props: Partial<AnalyzeErpProps>) {
+  const [channel, setChannel] = useState<string | null>(
+    props.selectedChannel === undefined ? 'TP9' : props.selectedChannel
+  );
+  const [step, setStep] = useState<ErpWalkthroughStep>(
+    props.walkthroughStep ?? 0
+  );
   return (
     <AnalyzeErp
       status="results"
-      title={FACES_HOUSES_TITLE}
       eegAvailable
-      eegDatasets={EEG_DATASET_OPTIONS}
+      workspaceTitle={WORKSPACE_TITLE}
       channelInfo={MUSE_CHANNEL_INFO}
-      erpPlot={ERP_PLOT_MIME}
-      selectedChannel={channel}
       epochsInfo={EPOCHS_INFO}
-      conditions={CONDITION_SUMMARIES}
-      onChannelSelect={setChannel}
-      onRequestErp={fn()}
+      epochArrays={EXAMPLE_EPOCH_ARRAYS}
+      codeToLabel={FACES_HOUSES_CODE_TO_LABEL}
+      onRetry={fn()}
+      onGoToClean={fn()}
       {...props}
+      selectedChannel={channel}
+      erpPlot={channel ? erpPlotMime(channel) : null}
+      walkthroughStep={step}
+      onChannelSelect={setChannel}
+      onWalkthroughStepChange={setStep}
     />
   );
 }
 
-function BehaviorSection(props: Partial<AnalyzeBehaviorProps>) {
-  const [selected, setSelected] = useState<string[]>(props.selectedDatasets ?? []);
-  const [dependentVariable, setDependentVariable] = useState<AnalyzeBehaviorProps['dependentVariable']>(
-    props.dependentVariable ?? 'Response Time'
+/** Behavior plotted by the real `aggregateDataForPlot` from the example CSVs. */
+function Behavior(props: Partial<AnalyzeBehaviorProps>) {
+  const [selected, setSelected] = useState(
+    props.selectedDatasets ?? BEHAVIOR_DATASET_OPTIONS.slice(0, 3).map((o) => o.value)
   );
-  const [removeOutliers, setRemoveOutliers] = useState(props.removeOutliers ?? false);
-  const [showDataPoints, setShowDataPoints] = useState(props.showDataPoints ?? false);
-  const [displayMode, setDisplayMode] = useState<AnalyzeBehaviorProps['displayMode']>(
-    props.displayMode ?? 'errorbars'
+  const [dependentVariable, setDependentVariable] =
+    useState<DependentVariable>('Response Time');
+  const [removeOutliers, setRemoveOutliers] = useState(true);
+  const [showDataPoints, setShowDataPoints] = useState(false);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('errorbars');
+  const plot = useMemo(
+    () =>
+      (aggregateDataForPlot(
+        selected.map((path) => BEHAVIOR_CSVS[path]),
+        dependentVariable,
+        removeOutliers,
+        showDataPoints,
+        displayMode
+      ) as BehaviorPlot | undefined) ?? null,
+    [selected, dependentVariable, removeOutliers, showDataPoints, displayMode]
   );
-  const plotData = dependentVariable === 'Response Time' ? RT_ERRORBAR_PLOT : ACCURACY_ERRORBAR_PLOT;
   return (
     <AnalyzeBehavior
-      behaviorOnly={false}
       behaviorDatasets={BEHAVIOR_DATASET_OPTIONS}
+      exportStatus="idle"
+      onExport={fn()}
+      {...props}
       selectedDatasets={selected}
       dependentVariable={dependentVariable}
       removeOutliers={removeOutliers}
       showDataPoints={showDataPoints}
       displayMode={displayMode}
-      dataToPlot={plotData.dataToPlot}
-      layout={plotData.layout}
-      exportStatus="idle"
+      plot={plot}
       onDatasetChange={setSelected}
       onDependentVariableChange={setDependentVariable}
       onToggleOutliers={() => setRemoveOutliers((v) => !v)}
       onToggleDataPoints={() => setShowDataPoints((v) => !v)}
       onDisplayModeChange={setDisplayMode}
-      onExport={fn()}
-      {...props}
     />
   );
 }
 
-/** A01 — Nothing to analyze yet; one action back to Collect. */
+/** A01 — No data at all: WorkspaceAreaGate's blocked state, one action to Collect. */
 export const NoData: Story = {
-  args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: { modality: 'eeg', nextArea: 'collect' },
+  parameters: { gated: true, badges: {}, nextArea: 'collect' },
   render: () => (
-    <div className="flex h-full flex-col items-center justify-center text-center">
-      <h1 className="m-0">No results yet</h1>
-      <p className="m-0 max-w-[560px] text-ink-muted">
-        Analyze needs data from a run. Collect a recording first, then come back.
-      </p>
-    </div>
-  ),
-};
-
-/** A02 — Behavior is ready; Overview/ERP explain the clean-data prerequisite. */
-export const BehaviorBeforeCleaning: Story = {
-  args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: {
-    modality: 'eeg',
-    badges: { collect: ['4 recordings'] },
-    nextArea: 'clean',
-  },
-  render: () => (
-    <div className="flex flex-col gap-8">
-      <Card className="border-dashed border-amber-300 bg-amber-50/30">
-        <CardContent className="pt-5">
-          <h2 className="m-0 mb-2 text-xl font-light">Overview and ERP need cleaned EEG</h2>
-          <p className="m-0 mb-4 max-w-[640px] text-ink-muted">
-            You have behavioral data, but cleaned EEG is required for the EEG analyses. Clean a
-            recording first; your behavior results stay available below.
-          </p>
-          <Button asChild size="lg" variant="secondary">
-            <Link to={SCREENS.CLEAN.route}>Go to Clean →</Link>
-          </Button>
-        </CardContent>
-      </Card>
-      <BehaviorSection />
-    </div>
-  ),
-};
-
-/** A03 — Cleaned datasets selected, with PSD and topography visible. */
-export const OverviewResults: Story = {
-  args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <OverviewSection selectedDatasets={[EEG_DATASET_OPTIONS[0].value]} />,
-};
-
-/** A04 — Explicit loading state while PSD/topo compute. */
-export const OverviewLoading: Story = {
-  args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <OverviewSection status="loading" psdPlot={null} topoPlot={null} />,
-};
-
-/** A05 — Error state with one retry action. */
-export const OverviewError: Story = {
-  args: { modality: 'eeg', activeStep: 'OVERVIEW', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <OverviewSection status="error" psdPlot={null} topoPlot={null} />,
-};
-
-/** A06 — ERP explainer + results side by side. */
-export const ErpExplainer: Story = {
-  args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <ErpSection selectedChannel="TP9" />,
-};
-
-/** A07 — Results state with channel and condition legend. */
-export const ErpResults: Story = {
-  args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <ErpSection selectedChannel="TP9" />,
-};
-
-/** A08 — ERP panel before any channel is selected. */
-export const ErpNoResult: Story = {
-  args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <ErpSection status="noData" erpPlot={null} />,
-};
-
-/** A09 — ERP loading spinner in full chrome. */
-export const ErpLoading: Story = {
-  args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <ErpSection status="loading" erpPlot={null} />,
-};
-
-/** A10 — ERP error with retry. */
-export const ErpError: Story = {
-  args: { modality: 'eeg', activeStep: 'ERP', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <ErpSection status="error" erpPlot={null} />,
-};
-
-/** A11 — Behavior results with controls active. */
-export const BehaviorResults: Story = {
-  args: { modality: 'eeg', activeStep: 'BEHAVIOR', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => <BehaviorSection selectedDatasets={[BEHAVIOR_DATASET_OPTIONS[0].value]} />,
-};
-
-/** A12 — Export success feedback visible. */
-export const BehaviorExport: Story = {
-  args: { modality: 'eeg', activeStep: 'BEHAVIOR', isEEGEnabled: true },
-  parameters: { modality: 'eeg', badges: { collect: ['4 recordings'], clean: ['3 cleaned'] }, nextArea: 'analyze' },
-  render: () => (
-    <BehaviorSection
-      selectedDatasets={[BEHAVIOR_DATASET_OPTIONS[0].value]}
-      exportStatus="success"
+    <BlockedAreaEmptyState
+      title="No results yet"
+      body="Analyze needs data from a run. Collect a recording first, then come back."
+      onCollect={fn()}
     />
   ),
 };
 
-/** A13 — Behavior-only workspace: no Overview/ERP tabs, no Clean references. */
+/** A02 — Behavior is complete, no EEG is cleaned: Overview explains why and offers Go to Clean. Clean is Next in the shell. */
+export const BehaviorBeforeCleaning: Story = {
+  parameters: { ...NOT_CLEANED, tab: 'OVERVIEW' },
+  render: () => <Overview eegAvailable={false} />,
+};
+
+/** A02b — Same workspace, ERP tab: the same prerequisite, one Go to Clean. */
+export const ErpCleanRequired: Story = {
+  parameters: { ...NOT_CLEANED, tab: 'ERP' },
+  render: () => <Erp eegAvailable={false} />,
+};
+
+/** A02c — Same workspace, Behavior tab: fully usable before cleaning. */
+export const BehaviorBeforeCleaningBehaviorTab: Story = {
+  parameters: { ...NOT_CLEANED, tab: 'BEHAVIOR' },
+  render: () => <Behavior />,
+};
+
+/** A03 — Rail: tick recordings (P01 here, whose example epochs feed every EEG story), see who's included. Results: PSD and per-sensor ERPs side by side. */
+export const OverviewResults: Story = {
+  render: () => <Overview />,
+};
+
+/** A03b — Comparison for review: plots on top, a compact recordings strip below. One of A03/A03b gets deleted. */
+export const CompareOverviewPlotsFirst: Story = {
+  render: () => <Overview arrangement="plotsFirst" />,
+};
+
+/** A04 — Loading in the results area; the rail stays usable. */
+export const OverviewLoading: Story = {
+  render: () => <Overview status="loading" />,
+};
+
+/** A05 — Analysis error in words, with Try again. */
+export const OverviewError: Story = {
+  render: () => <Overview status="error" />,
+};
+
+/** E01 — Graph first: the MNE ERP for the picked sensor, then an invitation to the walkthrough. Uses example epochs. */
+export const ErpResults: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp />,
+};
+
+/** E02 — Walkthrough 1/4, example epochs: every trial as a faint line, one highlighted. */
+export const ErpWalkthroughStep1: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp walkthroughStep={1} />,
+};
+
+/** E03 — Walkthrough 2/4, example epochs: the mean of all trials, computed from the arrays. */
+export const ErpWalkthroughStep2: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp walkthroughStep={2} />,
+};
+
+/** E04 — Walkthrough 3/4, example epochs: one mean per image type; solid vs dashed plus end labels. */
+export const ErpWalkthroughStep3: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp walkthroughStep={3} />,
+};
+
+/** E05 — Walkthrough 4/4, example epochs: the ~170 ms window, worded as "may". */
+export const ErpWalkthroughStep4: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp walkthroughStep={4} />,
+};
+
+/** E06 — No sensor picked yet. */
+export const ErpNoResult: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp status="empty" selectedChannel={null} />,
+};
+
+/** E07 — ERP computing for the picked sensor. */
+export const ErpLoading: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp status="loading" />,
+};
+
+/** E08 — ERP failed, with Try again. */
+export const ErpError: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp status="error" />,
+};
+
+/** B01 — Rail: recordings, measure, plot type, outliers. Plot beside it, with what it shows. */
+export const BehaviorResults: Story = {
+  parameters: { tab: 'BEHAVIOR' },
+  render: () => <Behavior />,
+};
+
+/** B02 — Export succeeded: said in words next to the button. */
+export const BehaviorExport: Story = {
+  parameters: { tab: 'BEHAVIOR' },
+  render: () => <Behavior exportStatus="success" />,
+};
+
+/** B03 — Export failed: said in words, nothing saved. */
+export const BehaviorExportFailed: Story = {
+  parameters: { tab: 'BEHAVIOR' },
+  render: () => <Behavior exportStatus="error" />,
+};
+
+/** B04 — Behavior-only workspace: Behavior tab only, no Clean area, no EEG copy. */
 export const BehaviorOnlyWorkspace: Story = {
-  args: { modality: 'behavior', activeStep: 'BEHAVIOR', isEEGEnabled: false },
   parameters: {
     modality: 'behavior',
+    tab: 'BEHAVIOR',
     badges: { collect: ['4 recordings'] },
     nextArea: 'analyze',
   },
-  render: () => <BehaviorSection behaviorOnly />,
+  render: () => <Behavior />,
 };
