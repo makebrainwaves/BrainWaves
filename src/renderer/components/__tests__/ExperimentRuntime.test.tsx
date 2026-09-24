@@ -109,4 +109,43 @@ describe('ExperimentRuntime', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('ENOENT: gone')
     );
   });
+
+  it('reports an abort itself when torn down before an imported study loads', () => {
+    readImportedExperimentFile.mockReturnValue(new Promise(() => undefined));
+    const onAbort = vi.fn();
+    const { unmount } = render(
+      <ExperimentRuntime
+        {...baseProps}
+        onAbort={onAbort}
+        type={EXPERIMENTS.IMPORTED}
+        experimentObject={{} as never}
+        params={importedParams()}
+      />
+    );
+
+    unmount();
+
+    expect(onAbort).toHaveBeenCalledWith('');
+  });
+
+  it('leaves abort reporting to the inner runtime once it is mounted', async () => {
+    readImportedExperimentFile.mockResolvedValue(
+      'const jsPsych = initJsPsych({});'
+    );
+    const onAbort = vi.fn();
+    const { unmount } = render(
+      <ExperimentRuntime
+        {...baseProps}
+        onAbort={onAbort}
+        type={EXPERIMENTS.IMPORTED}
+        experimentObject={{} as never}
+        params={importedParams()}
+      />
+    );
+    await screen.findByTestId('jspsych');
+
+    unmount();
+
+    expect(onAbort).not.toHaveBeenCalled();
+  });
 });

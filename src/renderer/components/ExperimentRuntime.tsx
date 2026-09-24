@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { EXPERIMENTS } from '../constants/constants';
 import {
   ExperimentObject,
@@ -28,6 +28,11 @@ export interface ExperimentRuntimeProps {
   /** Emitted at stimulus onset with the trial's condition label and one clock reading. */
   eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
+  /**
+   * Called once if the runtime is torn down before the study finishes, with the
+   * trials recorded so far ('' if none). Omitted by Preview, which records nothing.
+   */
+  onAbort?: (csv: string) => void;
   /** Called as trials start; `null` between trial blocks. */
   onProgress?: (progress: ExperimentProgress | null) => void;
 }
@@ -52,6 +57,11 @@ const resolveImport = async (
   return { kind: 'labjs', study: JSON.parse(source) as ExperimentObject };
 };
 
+/**
+ * Picks the runtime for a study. While an imported study is loading or failed,
+ * no inner runtime exists, so the dispatcher itself reports `onAbort('')` on
+ * teardown.
+ */
 export const ExperimentRuntime: React.FC<Props> = ({
   type,
   experimentObject,
@@ -78,6 +88,17 @@ export const ExperimentRuntime: React.FC<Props> = ({
       cancelled = true;
     };
   }, [imported, runtime.title]);
+
+  const waitingRef = useRef(false);
+  waitingRef.current = Boolean(imported) && !resolved;
+  const onAbortRef = useRef(runtime.onAbort);
+  onAbortRef.current = runtime.onAbort;
+  useEffect(
+    () => () => {
+      if (waitingRef.current) onAbortRef.current?.('');
+    },
+    []
+  );
 
   if (imported) {
     if (error) {

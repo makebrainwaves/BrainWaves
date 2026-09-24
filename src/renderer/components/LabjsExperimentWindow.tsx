@@ -15,6 +15,11 @@ export type LabjsExperimentWindowProps = ExperimentRuntimeProps & {
   params: ExperimentParameters;
 };
 
+/**
+ * Normal end → `onFinish(csv)`; unmount before the end → lab.js `end()` →
+ * `onAbort(partial csv)`. Escape is not handled here — see RunComponent's
+ * hold-Escape.
+ */
 export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   title,
   experimentObject,
@@ -22,6 +27,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   fullScreen = true,
   eventCallback,
   onFinish,
+  onAbort,
   onProgress,
 }) => {
   useEffect(() => {
@@ -66,26 +72,26 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
       );
     }
 
+    let finished = false;
+    let aborting = false;
+    const partialCsv = () => {
+      try {
+        return experimentToRun.global.datastore.exportCsv();
+      } catch {
+        return '';
+      }
+    };
+    // lab.js 23.x moved the datastore from `options.datastore` to
+    // `global.datastore`; the old path throws inside lab.js's end sequence.
     experimentToRun.on('end', () => {
-      // lab.js 23.x moved the datastore from `options.datastore` to
-      // `global.datastore` (controller.global). The old path is undefined and
-      // throws inside the end handler, aborting lab.js's end sequence.
-      const csv = experimentToRun.global.datastore.exportCsv();
-      onFinish(csv);
+      finished = true;
+      if (aborting) onAbort?.(partialCsv());
+      else onFinish(experimentToRun.global.datastore.exportCsv());
     });
 
     // TODO: more natural labjs-y way to do this?
     experimentToRun.parameters.callbackForEEG = (label: string) => {
       eventCallback(label, Date.now());
-    };
-
-    experimentToRun.options.events.keydown = async (e) => {
-      if (e.code === 'Escape') {
-        if (experimentToRun) {
-          await experimentToRun.internals.controller.audioContext.close();
-          experimentToRun.end();
-        }
-      }
     };
 
     if (onProgress) {
@@ -109,15 +115,25 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
 
     return () => {
       try {
-        if (experimentToRun) {
-          experimentToRun.internals.controller.audioContext.close();
-          experimentToRun.end();
-        }
-      } catch (e) {
-        console.log('Experiment closed before unmount');
+        experimentToRun.internals.controller.audioContext.close();
+      } catch {
+        // No controller before the study prepares; nothing to close.
       }
+      if (finished) return;
+      aborting = true;
+      Promise.resolve()
+        .then(() => experimentToRun.end())
+        .catch(() => onAbort?.(''));
     };
-  }, [eventCallback, experimentObject, onFinish, onProgress, params, title]);
+  }, [
+    eventCallback,
+    experimentObject,
+    onAbort,
+    onFinish,
+    onProgress,
+    params,
+    title,
+  ]);
 
   return (
     <div

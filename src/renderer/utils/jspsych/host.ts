@@ -23,6 +23,8 @@ export interface JsPsychHostConfig {
   /** Emitted with the trial's condition label and one clock reading. */
   eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
+  /** Teardown before the timeline finished; receives the trials so far. */
+  onAbort?: (csv: string) => void;
   onProgress?: (progress: ExperimentProgress) => void;
 }
 
@@ -169,6 +171,13 @@ export const createJsPsychHost = (
   const scope = window as unknown as Record<string, unknown>;
   const replaced = new Map<string, unknown>();
   let instance: JsPsychInternals | undefined;
+  let finished = false;
+  let aborting = false;
+  const route = (csv: string) => {
+    finished = true;
+    if (aborting) config.onAbort?.(csv);
+    else config.onFinish(csv);
+  };
 
   const install = (key: string, value: unknown) => {
     if (!replaced.has(key)) replaced.set(key, scope[key]);
@@ -176,10 +185,13 @@ export const createJsPsychHost = (
   };
 
   const teardown = () => {
-    try {
-      instance?.abortExperiment?.();
-    } catch {
-      // A finished run has nothing left to abort; that is not an error.
+    if (!finished) {
+      aborting = true;
+      try {
+        instance?.abortExperiment?.();
+      } catch {
+        config.onAbort?.('');
+      }
     }
     instance = undefined;
     for (const [key, value] of replaced) {
@@ -199,6 +211,7 @@ export const createJsPsychHost = (
     instance = initJsPsych(
       buildJsPsychOptions({
         ...config,
+        onFinish: route,
         getInstance: () => instance,
         authorOptions,
       })

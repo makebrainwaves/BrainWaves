@@ -35,6 +35,7 @@ export const ImportedExperimentWindow: React.FC<
   fullScreen = true,
   eventCallback,
   onFinish,
+  onAbort,
   onProgress,
 }) => {
   const hostElementId = useRef(
@@ -55,14 +56,23 @@ export const ImportedExperimentWindow: React.FC<
         },
         eventCallback,
         onFinish,
+        onAbort,
         onProgress,
       });
       return host.teardown;
     } catch (failure) {
       setError((failure as Error).message);
-      return undefined;
+      return () => onAbort?.('');
     }
-  }, [eventCallback, hostElementId, imported, onFinish, onProgress, source]);
+  }, [
+    eventCallback,
+    hostElementId,
+    imported,
+    onAbort,
+    onFinish,
+    onProgress,
+    source,
+  ]);
 
   if (error) {
     return (
