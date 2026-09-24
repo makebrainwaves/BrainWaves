@@ -19,7 +19,11 @@
  *     buildMarkerRegistry().eventId (label->code) ───┘   (find_events / Epochs)
  */
 import { EVENTS } from '../../constants/constants';
-import { ExperimentParameters, Stimulus } from '../../constants/interfaces';
+import {
+  EEGData,
+  ExperimentParameters,
+  Stimulus,
+} from '../../constants/interfaces';
 
 // Canonical numeric-code -> label lookup. The EVENTS enum has intentional
 // aliases (TARGET = 2, NONTARGET = 1); we use the condition-neutral STIMULUS_n
@@ -119,3 +123,35 @@ export const resolveMarkerRegistry = (
   params?.imported
     ? buildMarkerRegistryFromLabels(params.imported.conditionLabels)
     : buildMarkerRegistry(params?.stimuli);
+
+export interface MarkerStamper {
+  inject(code: number, timestamp: number): void;
+  stamp<T extends EEGData>(sample: T): T;
+}
+
+/**
+ * The shared marker timing rule (CONTEXT.md "Marker timing rule"): buffer
+ * `{code, timestamp}`, attach it to the first sample whose collection interval
+ * contains the timestamp, then forget it — one marked sample per event, error
+ * bounded to one sample interval. Every adapter stamps through this so the
+ * Marker column has one shape regardless of device.
+ */
+export const createMarkerStamper = (
+  sampleIntervalMs: number
+): MarkerStamper => {
+  let pending: { code: number; timestamp: number } | null = null;
+  return {
+    inject(code: number, timestamp: number) {
+      pending = { code, timestamp };
+    },
+    stamp<T extends EEGData>(sample: T): T {
+      if (pending === null) return sample;
+      if (sample.timestamp + sampleIntervalMs > pending.timestamp) {
+        const marked = { ...sample, marker: pending.code };
+        pending = null;
+        return marked;
+      }
+      return sample;
+    },
+  };
+};

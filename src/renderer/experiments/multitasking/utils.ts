@@ -117,10 +117,7 @@ export function initTasks(this: lab.flow.Loop<Record<string, unknown>>) {
 }
 
 export function triggerEEGCallback(this: lab.core.Component) {
-  this.parameters.callbackForEEG(
-    //  TODO: is this parameter ever handled?
-    this.parameters.cond === 'Switching' ? 1 : 2
-  );
+  this.parameters.callbackForEEG(this.parameters.cond);
   this.data.correct = 'empty';
 }
 

@@ -15,6 +15,8 @@ import { EEGDriver } from './types';
 import { museDriver } from './muse';
 import { neurosityDriver } from './neurosity';
 import { fixtureDriver } from './fixture';
+import { sendMarker } from './lslBridge';
+import type { MarkerRegistry } from './markerRegistry';
 
 const DRIVERS: Partial<Record<DEVICES, EEGDriver>> = {
   [DEVICES.MUSE]: museDriver,
@@ -47,6 +49,30 @@ export const setActiveDriver = (deviceType: DEVICES | null): void => {
  */
 export const injectMarker = (code: number, time: number): void => {
   activeDriver?.injectMarker(code, time);
+};
+
+/**
+ * The one emission point. Resolves the condition label to its numeric code via
+ * the registry, stamps one clock, and writes both sinks (driver `injectMarker`
+ * + LSL `sendMarker`). Unknown labels are the worst silent failure in the app
+ * (an all-zero Marker column discovered after 25 children were recorded), so
+ * they are logged loudly and write nothing.
+ */
+export const emitMarker = (
+  registry: MarkerRegistry,
+  label: string,
+  time: number = Date.now()
+): void => {
+  const code = registry.eventId[label];
+  if (code === undefined) {
+    console.error(
+      `emitMarker: unknown condition label "${label}" — no marker written. ` +
+        `Check the experiment's declared conditions (Markers tab / params.stimuli).`
+    );
+    return;
+  }
+  injectMarker(code, time);
+  sendMarker({ label, rendererTimestamp: time });
 };
 
 export type { EEGDriver } from './types';

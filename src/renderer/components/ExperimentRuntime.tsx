@@ -25,7 +25,8 @@ export interface ExperimentProgress {
 export interface ExperimentRuntimeProps {
   title: string;
   fullScreen?: boolean;
-  eventCallback: (code: number, time: number) => void;
+  /** Emitted at stimulus onset with the trial's condition label and one clock reading. */
+  eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
   /** Called as trials start; `null` between trial blocks. */
   onProgress?: (progress: ExperimentProgress | null) => void;

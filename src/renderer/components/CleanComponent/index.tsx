@@ -9,7 +9,7 @@ import {
   SCREENS,
 } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
-import { buildMarkerRegistry } from '../../utils/eeg/markerRegistry';
+import { resolveMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
 import EpochReviewer from './EpochReviewer';
 import LiveErpPane from './LiveErpPane';
@@ -20,10 +20,10 @@ import {
   SuggestedRejection,
 } from '../../actions';
 
-// Memoized by stimuli reference so we don't rebuild the registry every render.
+// Memoized by params reference so we don't rebuild the registry every render.
 const codeToLabelFor = memoize(
-  (stimuli: ExperimentParameters['stimuli']) =>
-    buildMarkerRegistry(stimuli).codeToLabel
+  (params: ExperimentParameters | null | undefined) =>
+    resolveMarkerRegistry(params).codeToLabel
 );
 
 export interface Props {
@@ -540,7 +540,7 @@ export default function Clean(props: Props) {
     return selectedSubject === subjectFromFilepath;
   });
 
-  const codeToLabel = codeToLabelFor(props.params?.stimuli);
+  const codeToLabel = codeToLabelFor(props.params);
   const { suggestedRejections } = props;
 
   return (

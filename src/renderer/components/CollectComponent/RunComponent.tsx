@@ -1,11 +1,17 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Observable } from 'rxjs';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardContent } from '../ui/card';
 import { Link } from 'react-router-dom';
 import InputCollect from '../InputCollect';
-import { injectMarker } from '../../utils/eeg';
-import { sendMarker } from '../../utils/eeg/lslBridge';
+import { emitMarker } from '../../utils/eeg';
+import { resolveMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import {
   EXPERIMENTS,
   CONNECTION_STATUS,
@@ -138,20 +144,14 @@ const Run: React.FC<Props> = ({
     [ExperimentActions]
   );
 
+  const registry = useMemo(() => resolveMarkerRegistry(params), [params]);
   const eventCallback = useCallback(
-    (event: number, time: number) => {
+    (label: string, time: number) => {
       if (isEEGEnabled) {
-        // Device-agnostic: dispatches to whichever driver is connected (Muse or
-        // Neurosity), so markers reach the recorded CSV regardless of device.
-        injectMarker(event, time);
-        // Goes through lslBridge so it no-ops (no IPC) when liblsl is unavailable.
-        sendMarker({
-          label: String(event),
-          rendererTimestamp: performance.now(),
-        });
+        emitMarker(registry, label, time);
       }
     },
-    [isEEGEnabled]
+    [isEEGEnabled, registry]
   );
 
   const onFinish = useCallback(

@@ -14,9 +14,9 @@ export interface LSLEpoch {
 }
 
 export interface LSLMarker {
-  /** e.g. 'stimulus_onset', '1', '2' */
+  /** The trial's condition label, e.g. 'Face' or 'Switching'. */
   label: string;
-  /** performance.now() at event time */
+  /** ms at event time — the same clock reading the driver's marker carries. */
   rendererTimestamp: number;
 }
 

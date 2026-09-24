@@ -8,7 +8,6 @@
  */
 import { initJsPsych } from 'jspsych';
 import * as jsPsychModule from 'jspsych';
-import { MarkerRegistry } from '../eeg/markerRegistry';
 import { JSPSYCH_PLUGIN_GLOBALS } from './plugins';
 import {
   BehavioralMapping,
@@ -21,8 +20,8 @@ export interface JsPsychHostConfig {
   /** id of the div jsPsych renders into. Must already be in the document. */
   hostElementId: string;
   mapping: BehavioralMapping;
-  registry: MarkerRegistry;
-  eventCallback: (code: number, time: number) => void;
+  /** Emitted with the trial's condition label and one clock reading. */
+  eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
   onProgress?: (progress: ExperimentProgress) => void;
 }
@@ -109,7 +108,6 @@ export const resolveTrialData = (
 export const buildJsPsychOptions = ({
   hostElementId,
   mapping,
-  registry,
   eventCallback,
   onFinish,
   onProgress,
@@ -131,15 +129,12 @@ export const buildJsPsychOptions = ({
       mapping.conditionKey
     ];
     if (typeof label === 'string') {
-      const code = registry.eventId[label];
-      if (code !== undefined) {
-        // on_trial_start fires BEFORE the plugin writes DOM (Trial.ts:63-72).
-        // For a synchronous plugin the write happens later in the same task, so
-        // this rAF callback lands after the write and before paint. Async
-        // plugins (audio/video preload) write in a later task and take an early
-        // marker.
-        requestAnimationFrame(() => eventCallback(code, Date.now()));
-      }
+      // on_trial_start fires BEFORE the plugin writes DOM (Trial.ts:63-72).
+      // For a synchronous plugin the write happens later in the same task, so
+      // this rAF callback lands after the write and before paint. Async
+      // plugins (audio/video preload) write in a later task and take an early
+      // marker.
+      requestAnimationFrame(() => eventCallback(label, Date.now()));
     } else if (label !== undefined) {
       // A non-string condition means resolution failed — in practice an
       // unresolved TimelineVariable. Silence here is the worst failure in the

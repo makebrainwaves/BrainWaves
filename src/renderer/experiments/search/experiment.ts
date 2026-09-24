@@ -1,6 +1,7 @@
 import * as lab from 'lab.js';
 
 import {
+  emitSearchCondition,
   initSearchTrials,
   initPracticeTrials,
   initGrid,
@@ -323,9 +324,7 @@ export const searchExperimentObject = {
                 },
                 hooks: {
                   run: function anonymous(this: lab.html.Screen) {
-                    this.parameters.callbackForEEG(
-                      parseInt(this.parameters.size, 10) < 13 ? 2 : 1
-                    );
+                    emitSearchCondition.call(this);
                     const taskgrid = document.querySelector('#taskgrid');
                     if (!taskgrid) return;
                     const { stimuli } = this.parameters;

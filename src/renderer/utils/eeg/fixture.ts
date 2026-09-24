@@ -23,6 +23,7 @@ import { share } from 'rxjs/operators';
 import { Device, DeviceInfo, EEGData } from '../../constants/interfaces';
 import { EEGDriver } from './types';
 import fixtureCsv from './fixture_data.csv?raw';
+import { createMarkerStamper, MarkerStamper } from './markerRegistry';
 
 const CHANNEL_NAMES = ['TP9', 'AF7', 'AF8', 'TP10'];
 const SAMPLING_RATE = 256;
@@ -40,8 +41,7 @@ interface CsvRow {
 let parsedRows: CsvRow[] | null = null;
 let activeInterval: ReturnType<typeof setInterval> | null = null;
 let sampleSubject: Subject<EEGData> | null = null;
-let activeMarker: number | null = null;
-let pendingMarker: number | null = null;
+let markerStamper: MarkerStamper | null = null;
 let disconnectSubject: Subject<void> | null = null;
 
 // ---------------------------------------------------------------------------
@@ -83,8 +83,7 @@ function stopReplay(): void {
     sampleSubject.complete();
     sampleSubject = null;
   }
-  activeMarker = null;
-  pendingMarker = null;
+  markerStamper = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -149,6 +148,8 @@ export const createRawFixtureObservable = async (): Promise<
 
   const subject = new Subject<EEGData>();
   sampleSubject = subject;
+  const stamper = createMarkerStamper(SAMPLE_INTERVAL_MS);
+  markerStamper = stamper;
 
   const startTime = Date.now();
   let index = 0;
@@ -165,23 +166,12 @@ export const createRawFixtureObservable = async (): Promise<
       timestamp: startTime + sampleCount * SAMPLE_INTERVAL_MS,
     };
 
-    // Latch the latest marker value onto every sample, matching Muse's
-    // eventMarkers stream (withLatestFrom) which persists a marker code on
-    // the AUX channel until a new marker is injected. This keeps marker
-    // events multi-sample so MNE's find_events accepts them by default.
-    // A programmatically injected marker takes priority over a baked-in CSV
-    // marker on the same sample, and then latches forward.
-    if (pendingMarker !== null) {
-      activeMarker = pendingMarker;
-      pendingMarker = null;
-    } else if (row.marker !== null) {
-      activeMarker = row.marker;
-    }
-    if (activeMarker !== null) {
-      eegData.marker = activeMarker;
+    const stamped = stamper.stamp(eegData);
+    if (stamped.marker === undefined && row.marker !== null) {
+      stamped.marker = row.marker;
     }
 
-    subject.next(eegData);
+    subject.next(stamped);
     index++;
     sampleCount++;
   }, SAMPLE_INTERVAL_MS);
@@ -190,12 +180,12 @@ export const createRawFixtureObservable = async (): Promise<
 };
 
 /**
- * Queue a marker code that will be latched onto subsequent emitted samples.
- * No-ops if no raw stream is active (matching Muse / Neurosity behaviour).
+ * Queue a marker for the shared timing rule (one stamped sample). No-ops if no
+ * raw stream is active (matching Muse / Neurosity behaviour).
  */
-export const injectFixtureMarker = (code: number, _time: number): void => {
-  if (!sampleSubject) return; // no active stream — match Neurosity behaviour
-  pendingMarker = code;
+export const injectFixtureMarker = (code: number, time: number): void => {
+  if (!sampleSubject) return;
+  markerStamper?.inject(code, time);
 };
 
 // ---------------------------------------------------------------------------

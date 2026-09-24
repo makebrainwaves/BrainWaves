@@ -1,4 +1,5 @@
 import { EVENTS } from '../../constants/constants';
+import type { ExperimentParameters } from '../../constants/interfaces';
 
 /**
  * NOTE: this params object may contain additional parameters in use by the experiment that are not
@@ -18,13 +19,15 @@ export const params = {
   stimuli: [
     {
       title: 'Incongruent',
+      condition: 'Incongruent',
       type: EVENTS.STIMULUS_1,
       response: '1',
     },
     {
       title: 'Congruent',
+      condition: 'Congruent',
       type: EVENTS.STIMULUS_2,
       response: '9',
     },
   ],
-};
+} satisfies ExperimentParameters;

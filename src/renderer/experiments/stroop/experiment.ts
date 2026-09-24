@@ -1,5 +1,8 @@
 import { core } from 'lab.js';
-import { initStroopTrial } from '../../utils/labjs/functions';
+import {
+  initStroopTrial,
+  emitStroopCondition,
+} from '../../utils/labjs/functions';
 
 export const stroopExperiment = {
   hooks: {},
@@ -614,11 +617,7 @@ export const stroopExperiment = {
                     'keydown(y)': '#ffe32a',
                   },
                   hooks: {
-                    run: function anonymous(this: core.Component) {
-                      this.parameters.callbackForEEG(
-                        this.parameters.congruent === 'yes' ? 1 : 2
-                      );
-                    },
+                    run: emitStroopCondition,
                   },
                   viewport: [800, 600],
                   title: 'Stroop screen',

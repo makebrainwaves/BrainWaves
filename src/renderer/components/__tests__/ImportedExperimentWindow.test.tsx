@@ -44,13 +44,13 @@ describe('ImportedExperimentWindow', () => {
     expect(document.getElementById(config.hostElementId)).toBeInTheDocument();
   });
 
-  it('passes the declared registry and mapping through', () => {
+  it('passes the mapping through with no registry (codes resolve at emission)', () => {
     render(<ImportedExperimentWindow {...baseProps} imported={imported} />);
     const [, config] = createJsPsychHost.mock.calls[0] as unknown as [
       string,
-      { registry: { eventId: Record<string, number> }; mapping: unknown },
+      { registry?: unknown; mapping: unknown },
     ];
-    expect(config.registry.eventId).toEqual({ Face: 1, House: 2 });
+    expect(config.registry).toBeUndefined();
     expect(config.mapping).toEqual({
       conditionKey: 'condition',
       correctKey: 'correct',

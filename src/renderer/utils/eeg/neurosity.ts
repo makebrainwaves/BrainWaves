@@ -14,6 +14,7 @@ import {
   NEUROSITY_SAMPLING_RATE,
 } from '../../constants/constants';
 import { Device, DeviceInfo, EEGData } from '../../constants/interfaces';
+import { createMarkerStamper, MarkerStamper } from './markerRegistry';
 import { EEGDriver } from './types';
 
 // A single SDK client per renderer (Crown BLE allows one consumer at a time).
@@ -24,12 +25,11 @@ let cachedDevice: BluetoothDevice | null = null;
 let brainwavesSubscription: { unsubscribe: () => void } | null = null;
 let markerSubject: Subject<EEGData> | null = null;
 
-// The Crown SDK has no native event-marker stream (unlike muse-js). We hold the
-// most recently injected marker code here and attach it to the next sample
-// emitted from the brainwaves loop, then clear it — so a stimulus marker lands
-// on the recorded stream with at most one epoch of latency. Without this,
-// Neurosity recordings carry an all-zero Marker column and cannot yield ERPs.
-let pendingMarker: number | null = null;
+// The Crown SDK has no native event-marker stream (unlike muse-js), so markers
+// are stamped onto the flattened samples here via the shared timing rule
+// (markerRegistry.createMarkerStamper). Without this, Neurosity recordings
+// carry an all-zero Marker column and cannot yield ERPs.
+let markerStamper: MarkerStamper | null = null;
 
 const getClient = (): Neurosity => {
   if (!neurosity) {
@@ -77,7 +77,7 @@ export const disconnectFromNeurosity = async (): Promise<void> => {
   brainwavesSubscription = null;
   markerSubject?.complete();
   markerSubject = null;
-  pendingMarker = null;
+  markerStamper = null;
   cachedDevice = null;
   if (neurosity) {
     try {
@@ -114,6 +114,8 @@ export const createRawNeurosityObservable = async (): Promise<
   const client = getClient();
   const subject = new Subject<EEGData>();
   markerSubject = subject;
+  const stamper = createMarkerStamper(1000 / NEUROSITY_SAMPLING_RATE);
+  markerStamper = stamper;
 
   // brainwaves('raw') emits Epoch { data: number[][] (channels×samples), info }
   const stream = client.brainwaves('raw') as unknown as Observable<{
@@ -137,13 +139,7 @@ export const createRawNeurosityObservable = async (): Promise<
           data: sample,
           timestamp: info.startTime + i * sampleIntervalMs,
         };
-        // Attach a pending marker to the first sample after injectMarker() was
-        // called, then clear it so only one sample carries the event code.
-        if (pendingMarker !== null) {
-          eegData.marker = pendingMarker;
-          pendingMarker = null;
-        }
-        subject.next(eegData);
+        subject.next(stamper.stamp(eegData));
       }
     },
     error: (err) => subject.error(err),
@@ -153,13 +149,13 @@ export const createRawNeurosityObservable = async (): Promise<
 };
 
 /**
- * Queue a marker code to be attached to the next emitted sample. No-ops if no
+ * Queue a marker for the shared timing rule (one stamped sample). No-ops if no
  * raw stream is active (markers injected before recording starts are dropped,
  * matching the Muse behaviour).
  */
-export const injectNeurosityMarker = (code: number, _time: number): void => {
+export const injectNeurosityMarker = (code: number, time: number): void => {
   if (!markerSubject) return;
-  pendingMarker = code;
+  markerStamper?.inject(code, time);
 };
 
 // The Neurosity implementation of the shared device-driver contract.
