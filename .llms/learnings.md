@@ -350,3 +350,33 @@ Two traps:
 - `getDriver(LSL)` throws (LSL is not in the driver registry). Any epic that
   calls `getDriver()` from a search or cancel path guards
   `deviceType !== LSL` itself, instead of relying on the UI never dispatching it.
+
+## Early exit = runtime teardown; incomplete = `*.incomplete.csv`
+
+Runtimes report exactly one of `onFinish(csv)` / `onAbort(csv)` per mount.
+Unmounting a running runtime is the abort, and both runtimes report the
+trials saved so far *synchronously* on teardown (lab.js datastore / jsPsych
+`data.get()`), then stop the study and ignore its later end hook. Waiting for
+the runtime's own end is unsafe: jsPsych still awaits `post_trial_gap` after
+`abortExperiment()`, and lab.js's flips run on rAF, which a hidden window pauses.
+lab.js 23 traps: a bare root `end()` does not stop the study (the flip loop
+keeps iterating) — use `controller.jump('abort', { sender: root })`, as lab.js's
+debug plugin does — and aborting between a screen's render and show frames
+hangs it, so that jump is deferred two frames. `controller.audioContext` is
+undefined in 23.x; the real one is `global.audioContext`.
+
+`RunComponent` settles once per run (a token per running period, so a late
+report from an earlier run's runtime is ignored; a 3 s fallback covers a runtime
+that never reports) and dispatches `Stop({ data, outcome })`. The stop epic
+closes the EEG stream, writes behavior, then `fs:markRecordingIncomplete`
+renames both files to `*.incomplete.csv`; each step runs even if an earlier one
+failed. Every discovery filter (`src/main/recordings.ts`) and the workflow
+badges skip that suffix; `recordingExists` still counts it so the session number
+is never reused. Before this, "End experiment early" wrote the partial run as a
+normal file and `closeEEGStream` was never called.
+
+Agent playtests: Electron's native `showMessageBox` (the no-EEG warning, the
+session-taken prompt) and file pickers cannot be driven over CDP, and a covered
+window reports `visibilityState: hidden`, which stalls lab.js and CDP
+screenshots. Use a subject/session that needs no prompt, and keep the window
+uncovered.
