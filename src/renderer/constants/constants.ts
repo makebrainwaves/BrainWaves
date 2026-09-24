@@ -57,6 +57,9 @@ export enum DEVICE_AVAILABILITY {
   AVAILABLE = 'AVAILABLE',
 }
 
+/** How long one Bluetooth search runs before it ends as not found. */
+export const SEARCH_TIMEOUT_MS = 60_000;
+
 // Names of variables in pyodide
 export enum PYODIDE_VARIABLE_NAMES {
   RAW_EPOCHS = 'raw_epochs',

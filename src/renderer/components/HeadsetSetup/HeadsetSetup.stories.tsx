@@ -57,10 +57,10 @@ export const HowToWearCrown: Story = {
 /** P04 — Discovery starts only from the one filled `Find my headset` button. No auto-scan. */
 export const ReadyToSearch: Story = { args: { step: 'ready' } };
 
-/** P05 — Open-ended search with a live status; Cancel is always available. No countdown. */
+/** P05 — Search with a live status for up to a minute; Cancel is always available. No countdown. */
 export const Searching: Story = { args: { step: 'searching' } };
 
-/** P06 — Failure in words + mark, a fix checklist, and a retry that stays in the flow. */
+/** P06 — Failure in words + mark, then "Is your Muse turned on?" with the moving-lights cue, a fix checklist, and a retry that stays in the flow. Also shown when the one-minute search runs out. */
 export const NoDeviceFound: Story = { args: { step: 'notFound' } };
 
 /** P07 — The whole row is the target; selected = teal border, check and "Selected". Click to toggle. */

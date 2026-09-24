@@ -520,7 +520,7 @@ ipcMain.handle('eeg:closeStream', (_event, streamId) => {
   });
 });
 
-// Bluetooth — called by renderer's search timer when scan times out with no result
+// Bluetooth — the renderer rejects the pending requestDevice() on Cancel or when its one-minute search limit runs out
 ipcMain.handle('bluetooth:cancelSearch', () => {
   if (pendingBluetoothCallback) {
     pendingBluetoothCallback('');
@@ -692,7 +692,7 @@ const createWindow = async () => {
         pendingBluetoothCallback = null;
       }
       // Nothing visible yet — keep scanning. The event fires again as devices
-      // appear; the renderer's Cancel calls bluetooth:cancelSearch to reject.
+      // appear; the renderer's Cancel or one-minute limit calls bluetooth:cancelSearch.
     }
   );
 

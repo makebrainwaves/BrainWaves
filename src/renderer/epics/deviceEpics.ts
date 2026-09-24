@@ -1,5 +1,5 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { of, from, defer, ObservableInput, EMPTY } from 'rxjs';
+import { of, from, defer, race, timer, ObservableInput, EMPTY } from 'rxjs';
 import {
   map,
   pluck,
@@ -27,6 +27,7 @@ import {
   CONNECTION_STATUS,
   DEVICES,
   DEVICE_AVAILABILITY,
+  SEARCH_TIMEOUT_MS,
 } from '../constants/constants';
 import { DeviceInfo } from '../constants/interfaces';
 import { RootState } from '../reducers';
@@ -37,8 +38,9 @@ import { RootState } from '../reducers';
 /**
  * Runs one discovery per SEARCHING. `scan()` is called synchronously inside the
  * dispatch so Web Bluetooth keeps the user gesture (Observable.from loses it).
- * The search stays open until the driver answers; a rejected or empty scan
- * ends it as not found. Results after a cancel are dropped.
+ * The search ends on the driver's answer (a rejected or empty scan is not
+ * found) or after SEARCH_TIMEOUT_MS, which also rejects the pending
+ * requestDevice(). A cancel or a newer search drops everything still pending.
  */
 const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
@@ -49,14 +51,23 @@ const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     pluck('payload'),
     filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
     map(() => getDriver(state$.value.device.deviceType).scan()),
-    // switchMap: a newer search drops the older request's late answer.
     switchMap((promise) =>
-      promise.then(
-        (devices) =>
-          devices?.length
-            ? DeviceActions.DeviceFound(devices)
-            : DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE),
-        () => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE)
+      race(
+        promise.then(
+          (devices) =>
+            devices?.length
+              ? DeviceActions.DeviceFound(devices)
+              : DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE),
+          () => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE)
+        ),
+        timer(SEARCH_TIMEOUT_MS).pipe(
+          tap(() => getDriver(state$.value.device.deviceType).cancelScan()),
+          map(() =>
+            DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE)
+          )
+        )
+      ).pipe(
+        takeUntil(action$.pipe(filter(isActionOf(DeviceActions.CancelSearch))))
       )
     ),
     filter(

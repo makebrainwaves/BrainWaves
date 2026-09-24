@@ -7,6 +7,7 @@ import {
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
   DEVICES,
+  SEARCH_TIMEOUT_MS,
 } from '../../constants/constants';
 import type { RootState } from '../../reducers';
 import deviceEpics from '../deviceEpics';
@@ -67,7 +68,7 @@ describe('device discovery', () => {
     vi.clearAllMocks();
   });
 
-  it('keeps searching until the driver answers — no timeout gives up', async () => {
+  it('searches for a full minute, then stops the platform search and ends as not found', async () => {
     vi.useFakeTimers();
     driver.scan.mockReturnValue(new Promise(() => undefined));
     const h = harness({ deviceAvailability: DEVICE_AVAILABILITY.SEARCHING });
@@ -75,10 +76,15 @@ describe('device discovery', () => {
     h.actions.next(
       DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
     );
-    await vi.advanceTimersByTimeAsync(60_000);
-
+    await vi.advanceTimersByTimeAsync(SEARCH_TIMEOUT_MS - 1);
     expect(h.out).toEqual([]);
     expect(driver.cancelScan).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(driver.cancelScan).toHaveBeenCalledTimes(1);
+    expect(h.out).toEqual([
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE),
+    ]);
     h.sub.unsubscribe();
   });
 
@@ -109,6 +115,24 @@ describe('device discovery', () => {
     h.device.deviceAvailability = DEVICE_AVAILABILITY.NONE;
     scan.reject(new Error('cancelled'));
     await flush();
+
+    expect(driver.cancelScan).toHaveBeenCalledTimes(1);
+    expect(h.out).toEqual([
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE),
+    ]);
+    h.sub.unsubscribe();
+  });
+
+  it('a cancelled search never hits the time limit later, even if the platform never answers', async () => {
+    vi.useFakeTimers();
+    driver.scan.mockReturnValue(new Promise(() => undefined));
+    const h = harness({ deviceAvailability: DEVICE_AVAILABILITY.SEARCHING });
+    h.actions.next(
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
+    );
+
+    h.actions.next(DeviceActions.CancelSearch());
+    await vi.advanceTimersByTimeAsync(SEARCH_TIMEOUT_MS);
 
     expect(driver.cancelScan).toHaveBeenCalledTimes(1);
     expect(h.out).toEqual([

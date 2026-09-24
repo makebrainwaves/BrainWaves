@@ -98,7 +98,7 @@ Custom experiments add Conditions / Trials / Parameters / Instructions. Pick 1�
 
 ### 3. Collect (`/collect`)
 
-- **Pre-Test** — headset setup opens automatically when EEG is on and nothing is connected (also from the header device chip): pick **Muse**, **Neurosity Crown**, or an **LSL stream** if liblsl loaded → wear/power-on tips → `Find my headset` (the only thing that starts a search; it runs until found or cancelled) → connect → `Check my signal` → signal prep → pre-run screen with signal quality + live waveform. Muse/Neurosity are Web Bluetooth. There is no USB receiver (that was Emotiv).
+- **Pre-Test** — headset setup opens automatically when EEG is on and nothing is connected (also from the header device chip): pick **Muse**, **Neurosity Crown**, or an **LSL stream** if liblsl loaded → wear/power-on tips → `Find my headset` (the only thing that starts a search; it runs until a headset is found, the student cancels, or one minute passes, which asks "Is your Muse turned on?") → connect → `Check my signal` → signal prep → pre-run screen with signal quality + live waveform. Muse/Neurosity are Web Bluetooth. There is no USB receiver (that was Emotiv).
 - **Run** — subject ID, group, session → full-screen lab.js. Markers go through `injectMarker()` (active BLE driver) and, when LSL is available, `sendMarker()` to the outlet. Behavioral CSV is saved on end.
 
 ### 4. Clean (`/clean`) — EEG only

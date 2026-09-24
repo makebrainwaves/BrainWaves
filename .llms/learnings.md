@@ -307,16 +307,19 @@ Redux, so it never lands in the persisted `appState.json`.
 lose and numbered lists render bare. Write the numbers as text (see
 `CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
 
-## Headset setup: discovery is open-ended and gesture-bound
+## Headset setup: discovery is time-limited and gesture-bound
 
 `HeadsetSetupDialog` (mounted once in `AppShellContainer`, opened via
-`HeadsetSetupContext`) replaced `ConnectModal`. Bluetooth search has no timer:
-it ends on `DeviceFound`, a rejected/empty `scan()` (→ not found), or
-`DeviceActions.CancelSearch` (→ driver `cancelScan()` → `bluetooth:cancelSearch`
-rejects the pending `requestDevice()`). `SetDeviceAvailability(SEARCHING)` must
-be dispatched synchronously in the click — `searchEpic` calls `scan()` inside
-that dispatch, and Web Bluetooth rejects without the user gesture. Which screen
-shows is `pairingStep()`; add states there, not in the view.
+`HeadsetSetupContext`) replaced `ConnectModal`. A Bluetooth search ends on
+`DeviceFound`, a rejected/empty `scan()` (→ not found), `SEARCH_TIMEOUT_MS`
+(one minute → driver `cancelScan()` → not found), or `DeviceActions.CancelSearch`
+(→ driver `cancelScan()`). Both `cancelScan()` paths go through
+`bluetooth:cancelSearch`, which rejects the pending `requestDevice()` in main.
+Not found shows "Is your Muse turned on?" with the moving-lights cue.
+`SetDeviceAvailability(SEARCHING)` must be dispatched synchronously in the click
+— `searchEpic` calls `scan()` inside that dispatch, and Web Bluetooth rejects
+without the user gesture. Keep the timer in the `race` *after* that `map`.
+Which screen shows is `pairingStep()`; add states there, not in the view.
 
 ## Epics: `takeUntil` on the outer pipe ends the epic for the whole session
 

@@ -104,14 +104,13 @@ const WEAR_CUES: Record<DEVICES.MUSE | DEVICES.NEUROSITY, string[]> = {
 
 const POWER_ON: Record<DEVICES.MUSE | DEVICES.NEUROSITY, string> = {
   [DEVICES.MUSE]:
-    'Hold the power button until the lights come on. Moving lights mean it is waiting to pair.',
+    'Tap the power button and ensure that lights come on. Moving lights mean it is waiting to pair.',
   [DEVICES.NEUROSITY]:
     'Press the power button and wait for the light to come on.',
 };
 
 const TROUBLESHOOT = [
   'Is it turned on and charged?',
-  'Close the headset’s phone app — a headset can only talk to one device.',
   'Bring it close to this computer.',
 ];
 
@@ -323,8 +322,7 @@ export default function HeadsetSetup(props: Props) {
             </h2>
             <p className={BODY}>
               Keep it on and close by. We’ll start looking when you press the
-              button — it keeps searching until it finds your headset or you
-              cancel.
+              button and keep looking for up to a minute.
             </p>
             <Actions>
               <Button variant="outline" size="lg" onClick={props.onBack}>
@@ -371,10 +369,27 @@ export default function HeadsetSetup(props: Props) {
                 We couldn’t find your {deviceName}
               </h2>
             </div>
-            <Checklist
-              label="Check these, then search again:"
-              items={TROUBLESHOOT}
-            />
+            {device === DEVICES.MUSE || device === DEVICES.NEUROSITY ? (
+              <>
+                <div className="rounded-[8px] bg-gray-100 p-[16px]">
+                  <p className="m-0 !text-[15px] font-bold">
+                    Is your {deviceName} turned on?
+                  </p>
+                  <p className={cn(NOTE, 'mt-[4px] text-ink')}>
+                    {POWER_ON[device]}
+                  </p>
+                </div>
+                <Checklist
+                  label="If it is on, check these too:"
+                  items={['Is it charged?', 'Bring it close to this computer.']}
+                />
+              </>
+            ) : (
+              <Checklist
+                label="Check these, then search again:"
+                items={TROUBLESHOOT}
+              />
+            )}
             <Actions>
               <Button variant="outline" size="lg" onClick={props.onBack}>
                 Back to setup tips

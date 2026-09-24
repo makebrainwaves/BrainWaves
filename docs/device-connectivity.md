@@ -41,12 +41,12 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 │    │                        │               │  driver.cancelScan()              │
 │    │                        ▼               │   → bluetooth:cancelSearch        │
 │    │        navigator.bluetooth             │  SetDeviceAvailability(NONE)      │
-│    │          .requestDevice()  — no timeout; waits for a device,               │
-│    │         ┌─────────┴──────────┐   a platform failure, or a cancel          │
-│    │      rejected / []        resolved                                         │
-│    │         │                   │                                             │
-│    │  SetDeviceAvailability   DeviceFound([device])                            │
-│    │  (NONE) → "couldn't find"   │   (dropped if no longer SEARCHING)          │
+│    │          .requestDevice()  — races a 1-minute SEARCH_TIMEOUT_MS            │
+│    │         ┌─────────┴──────────┬──────────────┐                              │
+│    │      rejected / []        resolved        1 min elapsed                    │
+│    │         │                   │              cancelScan()                  │
+│    │  SetDeviceAvailability   DeviceFound      SetDeviceAvailability(NONE)      │
+│    │  (NONE) → "couldn't find"   │   (all dropped if no longer SEARCHING)       │
 │    │                             ▼                                             │
 │    │                    deviceFoundEpic                                        │
 │    │                       Deduplicates by id                                  │
@@ -149,9 +149,11 @@ the picker event does not fire twice. Same pattern in `neurosity.ts`.
 ### Fixed: silent search failure
 
 `searchEpic` maps a rejected or empty `scan()` to `SetDeviceAvailability(NONE)`,
-so the setup dialog shows "We couldn't find your …" instead of spinning. There is
-no search timer: a search ends on a found device, a platform failure, or the
-student's Cancel. The error toast stays silenced because Windows Web Bluetooth
+so the setup dialog shows "We couldn't find your …" instead of spinning. A
+search also ends after `SEARCH_TIMEOUT_MS` (one minute). That calls
+`cancelScan()` to reject the pending `requestDevice()`, then shows the same
+screen, which asks "Is your Muse turned on?" and explains the moving-lights
+pairing cue. The error toast stays silenced because Windows Web Bluetooth
 rejects promiscuously.
 
 ### LSL inlet markers are a no-op (intentional)
