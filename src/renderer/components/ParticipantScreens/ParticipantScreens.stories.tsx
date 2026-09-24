@@ -47,8 +47,7 @@ function LabjsScreen({ content, parameters }: LabjsScreenProps) {
  * RunBar, then RunComponent's padded area and its two `h-full` wrappers.
  * RunComponent's outer div is `h-screen` today; this uses `h-full`, the
  * engineering fix that lets the area fit under the 64px RunBar.
- * `parameters.experimentType` names the workspace; `parameters.phasePlacement:
- * 'edge'` shows the top-edge tag variant for comparison.
+ * `parameters.experimentType` names the workspace.
  */
 const withRunChrome: Decorator<LabjsScreenProps> = (
   Story,
@@ -56,7 +55,6 @@ const withRunChrome: Decorator<LabjsScreenProps> = (
 ) => {
   const eeg = Boolean(args.parameters?.isEEGEnabled);
   const experimentType: string = parameters.experimentType ?? 'Faces/Houses';
-  const edge = parameters.phasePlacement === 'edge';
   return (
     <AppShell
       location="collect"
@@ -70,7 +68,7 @@ const withRunChrome: Decorator<LabjsScreenProps> = (
     >
       <div className="h-full p-[3%] bg-app" data-tid="container">
         <div className="h-full">
-          <div className={`h-full w-full${edge ? ' bw-phase-edge' : ''}`}>
+          <div className="h-full w-full">
             <Story />
           </div>
         </div>
@@ -89,7 +87,7 @@ const meta: Meta<typeof LabjsScreen> = {
 export default meta;
 type Story = StoryObj<typeof LabjsScreen>;
 
-/** R01 — Corner chalk "Practice first" tag, two keys, the protocol's "not a speed test" pacing, stillness line. */
+/** R01 — Chalk "Practice first" tag at the top, two keys, the protocol's "not a speed test" pacing, stillness line. */
 export const InstructionsFacesHouses: Story = {
   args: { content: instructionsScreen(FACES_HOUSES) },
 };
@@ -138,7 +136,7 @@ export const InstructionsEegOff: Story = {
   },
 };
 
-/** R07 — Corner "Data collection" tag with the RunBar's red dot; the same mapping again. */
+/** R07 — "Data collection" tag at the top with the RunBar's red dot; the same mapping again. */
 export const Transition: Story = {
   args: {
     content: transitionScreen({
@@ -151,16 +149,4 @@ export const Transition: Story = {
 /** R08 — Thank-you, Space in the same spot as every other screen. */
 export const End: Story = {
   args: { content: endScreen() },
-};
-
-/** Compare — Practice tag hanging from the top edge instead of the top-left corner. */
-export const CompareEdgeInstructions: Story = {
-  ...InstructionsFacesHouses,
-  parameters: { phasePlacement: 'edge' },
-};
-
-/** Compare — Data-collection tag on the top edge instead of the top-left corner. */
-export const CompareEdgeTransition: Story = {
-  ...Transition,
-  parameters: { phasePlacement: 'edge' },
 };

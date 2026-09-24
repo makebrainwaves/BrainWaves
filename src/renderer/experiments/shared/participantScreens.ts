@@ -94,7 +94,7 @@ const notes = (pacing?: string) =>
     pacing ? `<li>${pacing}</li>` : ''
   }\${this.parameters.isEEGEnabled ? '<li>${STILLNESS_LINE}</li>' : ''}</ul>`;
 
-/** `phase` is a supplemental tag pinned to the screen's corner, outside the centered content. */
+/** `phase` is a supplemental tag centered at the top of the screen, outside the centered content. */
 const screen = (main: string, footer: string, phase = '') =>
   `<div class="bw-participant">${phase}<main>${main}</main><footer>${footer}</footer></div>`;
 
@@ -105,7 +105,7 @@ const pressSpace = (action: string) =>
   )} to ${action}</div>`;
 
 /**
- * Shown before practice: a corner chalkboard "Practice first" tag, title, summary,
+ * Shown before practice: a top chalkboard "Practice first" tag, title, summary,
  * optional example, key mapping, pacing, Space to start, Q to skip.
  */
 export function instructionsScreen({
@@ -135,7 +135,7 @@ ${notes(pacing)}`,
 }
 
 /**
- * Between practice and the real trials: a corner "Data collection" tag with
+ * Between practice and the real trials: a top "Data collection" tag with
  * the RunBar's red dot, the same mapping again, then Space to begin. It never
  * says "recording": EEG records practice too, and the RunBar owns that word.
  */

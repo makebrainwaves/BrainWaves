@@ -112,40 +112,27 @@ p {
   gap: 24px;
   min-height: 0;
   overflow-y: auto;
-  padding: 32px 64px 16px;
+  /* Top padding reserves the phase tag's band so content never slides under it. */
+  padding: 60px 64px 16px;
 }
 
 .bw-participant h1 {
   margin: 0;
 }
 
-/* Phase tag: supplemental context pinned to the screen's top-left corner, out
-   of the centered content so the title stays the first thing read. */
+/* Phase tag: supplemental context centered at the top of the screen, out of
+   the centered content so the title stays the first thing read. */
 .bw-participant-phase {
   position: absolute;
-  top: 20px;
-  left: 24px;
-  z-index: 1;
-}
-
-/* Top-edge comparison variant (story-only until one placement is chosen). */
-.bw-phase-edge .bw-participant-phase {
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.bw-phase-edge .bw-participant-chalk {
-  border-radius: 0 0 6px 6px;
-}
-
-.bw-phase-edge .bw-participant-data {
   top: 14px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
 }
 
 /* Practice: yellow chalk on a small green chalkboard (accent on chalkboard is ~4.8:1). */
 .bw-participant-chalk {
-  transform: rotate(-4deg);
+  transform: translateX(-50%) rotate(-3deg);
   padding: 3px 14px 5px;
   border-radius: 5px;
   background: var(--color-chalkboard);
@@ -363,7 +350,7 @@ p {
 @media (max-height: 800px) {
   .bw-participant main {
     gap: 12px;
-    padding-top: 12px;
+    padding-top: 52px;
   }
 
   .bw-participant-rules .bw-participant-key {
