@@ -94,8 +94,9 @@ const notes = (pacing?: string) =>
     pacing ? `<li>${pacing}</li>` : ''
   }\${this.parameters.isEEGEnabled ? '<li>${STILLNESS_LINE}</li>' : ''}</ul>`;
 
-const screen = (main: string, footer: string) =>
-  `<div class="bw-participant"><main>${main}</main><footer>${footer}</footer></div>`;
+/** `phase` is a supplemental tag pinned to the screen's corner, outside the centered content. */
+const screen = (main: string, footer: string, phase = '') =>
+  `<div class="bw-participant">${phase}<main>${main}</main><footer>${footer}</footer></div>`;
 
 const pressSpace = (action: string) =>
   `<div class="bw-participant-start">Press ${keycap(
@@ -104,7 +105,7 @@ const pressSpace = (action: string) =>
   )} to ${action}</div>`;
 
 /**
- * Shown before practice: a chalkboard "Practice first" tag, title, summary,
+ * Shown before practice: a corner chalkboard "Practice first" tag, title, summary,
  * optional example, key mapping, pacing, Space to start, Q to skip.
  */
 export function instructionsScreen({
@@ -117,7 +118,7 @@ export function instructionsScreen({
   canSkipPractice = false,
 }: InstructionsScreenParams): string {
   return screen(
-    `<div class="bw-participant-title"><div class="bw-participant-chalk">Practice first</div><h1>${title}</h1></div>
+    `<h1>${title}</h1>
 <div class="bw-participant-summary">${summary}</div>
 ${example ?? ''}
 ${responseRules(rules)}
@@ -128,12 +129,13 @@ ${notes(pacing)}`,
             'Q'
           )} to skip practice</div>`
         : ''
-    }`
+    }`,
+    '<div class="bw-participant-phase bw-participant-chalk">Practice first</div>'
   );
 }
 
 /**
- * Between practice and the real trials: a heavy "Data collection" label with
+ * Between practice and the real trials: a corner "Data collection" tag with
  * the RunBar's red dot, the same mapping again, then Space to begin. It never
  * says "recording": EEG records practice too, and the RunBar owns that word.
  */
@@ -142,11 +144,12 @@ export function transitionScreen({
   pacing,
 }: TransitionScreenParams): string {
   return screen(
-    `<div class="bw-participant-title"><div class="bw-participant-data"><span aria-hidden="true"></span>Data collection</div><h1>The real trials start now</h1></div>
+    `<h1>The real trials start now</h1>
 <div class="bw-participant-summary">Same keys as in practice:</div>
 ${responseRules(rules)}
 ${notes(pacing)}`,
-    pressSpace('begin')
+    pressSpace('begin'),
+    '<div class="bw-participant-phase bw-participant-data"><span aria-hidden="true"></span>Data collection</div>'
   );
 }
 

@@ -95,6 +95,7 @@ p {
 }
 
 .bw-participant {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -118,21 +119,38 @@ p {
   margin: 0;
 }
 
-.bw-participant-title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+/* Phase tag: supplemental context pinned to the screen's top-left corner, out
+   of the centered content so the title stays the first thing read. */
+.bw-participant-phase {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  z-index: 1;
+}
+
+/* Top-edge comparison variant (story-only until one placement is chosen). */
+.bw-phase-edge .bw-participant-phase {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bw-phase-edge .bw-participant-chalk {
+  border-radius: 0 0 6px 6px;
+}
+
+.bw-phase-edge .bw-participant-data {
+  top: 14px;
 }
 
 /* Practice: yellow chalk on a small green chalkboard (accent on chalkboard is ~4.8:1). */
 .bw-participant-chalk {
-  transform: rotate(-3deg);
-  padding: 6px 22px 8px;
-  border-radius: 6px;
+  transform: rotate(-4deg);
+  padding: 3px 14px 5px;
+  border-radius: 5px;
   background: var(--color-chalkboard);
   font-family: 'Fredericka the Great', var(--font-sans);
-  font-size: 28px;
+  font-size: 20px;
   line-height: 1.2;
   letter-spacing: 1px;
   color: var(--color-accent);
@@ -142,20 +160,20 @@ p {
 .bw-participant-data {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   font-family: 'Archivo Black', var(--font-sans);
-  font-size: 24px;
+  font-size: 15px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--color-ink);
 }
 
 .bw-participant-data span {
-  width: 16px;
-  height: 16px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #d32f2f;
-  box-shadow: 0 0 0 5px #fde3e3;
+  box-shadow: 0 0 0 4px #fde3e3;
 }
 
 .bw-participant-summary {
@@ -346,15 +364,6 @@ p {
   .bw-participant main {
     gap: 12px;
     padding-top: 12px;
-  }
-
-  .bw-participant-title {
-    gap: 8px;
-  }
-
-  .bw-participant-chalk {
-    padding: 4px 18px 6px;
-    font-size: 24px;
   }
 
   .bw-participant-rules .bw-participant-key {
