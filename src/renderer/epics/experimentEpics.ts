@@ -133,7 +133,9 @@ const startEpic = (action$, state$) =>
 /**
  * Finalizes a run exactly once: closes the EEG stream (the raw subscription
  * already ended on Stop), writes behavior, and for an ended-early run renames
- * both files so Clean and Analyze skip them. Stops arriving meanwhile are ignored.
+ * both files so Clean and Analyze skip them. Each step runs even if an earlier
+ * one failed, so a failed behavior write never leaves an ended-early EEG file
+ * discoverable. Stops arriving meanwhile are ignored.
  */
 const experimentStopEpic: Epic<
   ExperimentActionType,
@@ -147,19 +149,27 @@ const experimentStopEpic: Epic<
       const { title, subject, group, session } = state$.value.experiment;
       const streamId = activeEEGStream;
       activeEEGStream = null;
-      try {
-        if (streamId) await closeEEGStream(streamId);
-        if (title) {
-          if (data)
-            await storeBehavioralData(data, title, subject, group, session);
-          if (outcome === 'incomplete')
-            await markRecordingIncomplete(title, subject, group, session);
+      const failures: string[] = [];
+      const step = async (work: () => Promise<void>) => {
+        try {
+          await work();
+        } catch (error) {
+          failures.push((error as Error).message);
         }
-      } catch (error) {
-        toast.error(
-          `Couldn't finish saving this run: ${(error as Error).message}`
-        );
+      };
+      if (streamId) await step(() => closeEEGStream(streamId));
+      if (title) {
+        if (data)
+          await step(() =>
+            storeBehavioralData(data, title, subject, group, session)
+          );
+        if (outcome === 'incomplete')
+          await step(() =>
+            markRecordingIncomplete(title, subject, group, session)
+          );
       }
+      if (failures.length)
+        toast.error(`Couldn't finish saving this run: ${failures.join('; ')}`);
       return ExperimentActions.SetIsRunning(false);
     })
   );

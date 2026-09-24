@@ -202,4 +202,17 @@ describe('experiment stop', () => {
     );
     expect(markRecordingIncomplete).not.toHaveBeenCalled();
   });
+
+  it('still hides an ended-early run when saving behavior fails', async () => {
+    vi.mocked(storeBehavioralData).mockRejectedValueOnce(new Error('EACCES'));
+
+    await runThenStop(recording(), 'incomplete');
+
+    expect(markRecordingIncomplete).toHaveBeenCalledWith(
+      'My_Custom',
+      'P1',
+      'A',
+      1
+    );
+  });
 });

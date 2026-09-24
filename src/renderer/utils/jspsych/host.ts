@@ -44,6 +44,7 @@ interface JsPsychInternals {
     description?: unknown;
   };
   abortExperiment?: (endMessage?: string) => void;
+  data?: { get: () => { values: () => Record<string, unknown>[] } };
   getProgress?: () => { total_trials?: number; current_trial_global?: number };
 }
 
@@ -172,11 +173,10 @@ export const createJsPsychHost = (
   const replaced = new Map<string, unknown>();
   let instance: JsPsychInternals | undefined;
   let finished = false;
-  let aborting = false;
   const route = (csv: string) => {
+    if (finished) return;
     finished = true;
-    if (aborting) config.onAbort?.(csv);
-    else config.onFinish(csv);
+    config.onFinish(csv);
   };
 
   const install = (key: string, value: unknown) => {
@@ -184,14 +184,26 @@ export const createJsPsychHost = (
     scope[key] = value;
   };
 
-  const teardown = () => {
+  /**
+   * Aborts a running timeline and restores globals. The trials saved so far are
+   * reported at once: jsPsych still awaits a post-trial gap after an abort, so
+   * its own on_finish can arrive many seconds later (and is then ignored).
+   */
+  const teardown = (report = true) => {
     if (!finished) {
-      aborting = true;
+      finished = true;
+      const trials = instance?.data?.get().values() ?? [];
       try {
         instance?.abortExperiment?.();
       } catch {
-        config.onAbort?.('');
+        // An instance whose timeline never started has nothing to abort.
       }
+      if (report)
+        config.onAbort?.(
+          trials.length
+            ? toBehavioralCsv(normalizeJsPsychTrials(trials, config.mapping))
+            : ''
+        );
     }
     instance = undefined;
     for (const [key, value] of replaced) {
@@ -230,7 +242,7 @@ export const createJsPsychHost = (
     // eslint-disable-next-line no-new-func
     new Function(source)();
   } catch (error) {
-    teardown();
+    teardown(false);
     throw new Error(
       `createJsPsychHost: the imported experiment threw while loading — ${
         (error as Error).message
@@ -238,5 +250,5 @@ export const createJsPsychHost = (
     );
   }
 
-  return { teardown };
+  return { teardown: () => teardown() };
 };

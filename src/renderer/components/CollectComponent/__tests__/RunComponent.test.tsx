@@ -118,4 +118,22 @@ describe('ending a run early', () => {
     expect(Stop).toHaveBeenCalledTimes(1);
     expect(Stop).toHaveBeenCalledWith({ data: 'full', outcome: 'complete' });
   });
+
+  it('a late report from an earlier run never ends the next one', () => {
+    const { rerender } = render(<Run {...props} />, { wrapper });
+    const firstRun = runtime.props!;
+    act(() => firstRun.onAbort!('first'));
+    rerender(<Run {...props} isRunning={false} />);
+    rerender(<Run {...props} isRunning />);
+
+    act(() => firstRun.onAbort!('late'));
+    act(() => firstRun.onFinish('late'));
+
+    expect(Stop).toHaveBeenCalledTimes(1);
+    act(() => runtime.props!.onFinish('second'));
+    expect(Stop).toHaveBeenLastCalledWith({
+      data: 'second',
+      outcome: 'complete',
+    });
+  });
 });

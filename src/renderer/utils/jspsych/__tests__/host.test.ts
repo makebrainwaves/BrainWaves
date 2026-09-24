@@ -216,6 +216,35 @@ describe('createJsPsychHost', () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
+  it('an abort during a post-trial gap reports the finished trials at once', async () => {
+    document.body.innerHTML = '<div id="host"></div>';
+    const onAbort = vi.fn();
+    const scope = window as unknown as { trialSaved?: boolean };
+    const host = createJsPsychHost(
+      `
+      const jsPsych = initJsPsych({ on_data_update: () => { window.trialSaved = true; } });
+      jsPsych.run([
+        { type: jsPsychCallFunction, func: () => {}, data: { condition: 'Face' }, post_trial_gap: 10000 },
+        { type: jsPsychCallFunction, func: () => {}, data: { condition: 'House' } },
+      ]);
+      `,
+      {
+        hostElementId: 'host',
+        mapping,
+        eventCallback: vi.fn(),
+        onFinish: vi.fn(),
+        onAbort,
+      }
+    );
+    await vi.waitFor(() => expect(scope.trialSaved).toBe(true));
+
+    host.teardown();
+
+    expect(onAbort).toHaveBeenCalledTimes(1);
+    expect(onAbort.mock.calls[0][0]).toContain('1,Face,');
+    delete scope.trialSaved;
+  });
+
   it('re-declaring the same top-level names twice does not throw', () => {
     document.body.innerHTML = '<div id="host"></div>';
     const config = {

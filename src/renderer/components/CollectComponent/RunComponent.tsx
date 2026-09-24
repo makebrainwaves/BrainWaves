@@ -78,7 +78,6 @@ const Run: React.FC<Props> = ({
   const [outcome, setOutcome] = useState<RunOutcome | null>(null);
   /** End early was asked for; the runtime is unmounted and reports its partial data. */
   const [ending, setEnding] = useState(false);
-  const settled = useRef(false);
   const registerEndRun = useContext(EndRunContext);
   const setEscapeHeld = useContext(EscapeHeldContext);
   const navigate = useNavigate();
@@ -138,7 +137,6 @@ const Run: React.FC<Props> = ({
       return;
     }
     setGate('off');
-    settled.current = false;
   }, [isRunning]);
 
   useEffect(() => {
@@ -176,14 +174,19 @@ const Run: React.FC<Props> = ({
     [isEEGEnabled, registry]
   );
 
+  /** One token per running period; a report from an earlier run's runtime never settles a later one. */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const run = useMemo(() => ({ settled: false }), [isRunning]);
+  const currentRun = useRef(run);
+  currentRun.current = run;
   const settle = useCallback(
     (csv: string, result: RunOutcome) => {
-      if (settled.current) return;
-      settled.current = true;
+      if (run.settled || currentRun.current !== run) return;
+      run.settled = true;
       ExperimentActions.Stop({ data: csv, outcome: result });
       setOutcome(result);
     },
-    [ExperimentActions]
+    [run, ExperimentActions]
   );
   const onFinish = useCallback(
     (csv: string) => settle(csv, 'complete'),
