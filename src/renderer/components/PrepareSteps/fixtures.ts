@@ -6,12 +6,10 @@ import { params as facesParams } from '../../experiments/faces_houses/params';
 import { overview as stroopOverview } from '../../experiments/stroop/content_overview';
 import { background as stroopBackground } from '../../experiments/stroop/content_background';
 import { protocol as stroopProtocol } from '../../experiments/stroop/content_protocol';
-import { params as stroopParams } from '../../experiments/stroop/params';
 
 import { overview as searchOverview } from '../../experiments/search/content_overview';
 import { background as searchBackground } from '../../experiments/search/content_background';
 import { protocol as searchProtocol } from '../../experiments/search/content_protocol';
-import { params as searchParams } from '../../experiments/search/params';
 
 import facesIcon from '../../experiments/faces_houses/icon.png';
 import face from '../../experiments/faces_houses/stimuli/faces/Face1.jpg';
@@ -76,7 +74,8 @@ export const STROOP: PrepareFixture = {
     { key: 'b', label: 'Blue ink', stimulus: { word: 'yellow', color: 'blue' } },
     { key: 'y', label: 'Yellow ink', stimulus: { word: 'red', color: '#ffe32a' } },
   ],
-  flow: buildFlow({ nbTrials: stroopParams.nbTrials }),
+  // stroop/experiment.ts: 'Practice task' loop has 8 templateParameters (~l.99); 'Stroop task' samples n: '96' (~l.484). params.nbTrials is unused.
+  flow: buildFlow({ includePractice: true, nbPracticeTrials: 8, nbTrials: 96 }),
 };
 
 /** Keys from search/experiment.ts (b = orange T present, n = absent). */
@@ -96,7 +95,8 @@ export const SEARCH: PrepareFixture = {
       stimulus: { src: noOrangeT, alt: 'Letters with no right-side-up orange T' },
     },
   ],
-  flow: buildFlow({ nbTrials: searchParams.nbTrials }),
+  // search/utils.ts: constructTrials makes 8 per block; practice = 1 block (l.81), main = 10 blocks (l.77). params.nbTrials is unused.
+  flow: buildFlow({ includePractice: true, nbPracticeTrials: 8, nbTrials: 80 }),
 };
 
 /** Shared no-op callbacks so stories do not need to supply handlers. */

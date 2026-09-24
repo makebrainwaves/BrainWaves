@@ -24,6 +24,14 @@ const behaviorWorkspace = {
   modality: 'behavior' as const,
 };
 
+const stroopWorkspace = { ...behaviorWorkspace, modality: 'eeg' as const };
+
+const searchWorkspace = {
+  name: 'Visual_Search_1',
+  experimentType: 'Visual Search',
+  modality: 'eeg' as const,
+};
+
 /**
  * Wrap the story in the real AppShell chrome at Prepare, with Collect
  * recommended. This makes the local stepper visually subordinate to the
@@ -104,13 +112,15 @@ export const Protocol: Story = {
   render: () => <InteractiveStep initialStep="protocol" />,
 };
 
-/** P04 — Stroop protocol: four ink colors, four keys; no practice phase in its params. */
+/** P04 — Stroop protocol: four ink colors, four keys; 8 practice + 96 recorded trials. */
 export const ProtocolStroop: Story = {
+  parameters: { workspace: stroopWorkspace },
   render: () => <InteractiveStep initialStep="protocol" fixture={STROOP} />,
 };
 
 /** P05 — Visual Search protocol: target present / absent on b / n. */
 export const ProtocolSearch: Story = {
+  parameters: { workspace: searchWorkspace },
   render: () => <InteractiveStep initialStep="protocol" fixture={SEARCH} />,
 };
 
