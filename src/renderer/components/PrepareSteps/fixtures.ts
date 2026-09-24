@@ -26,6 +26,11 @@ export interface PrepareFixture {
   icon?: string;
   expectedKeys: { label: string; key?: string }[];
   flow: FlowPhase[];
+  /** Optional media placeholder shown on the Oliver Sacks fallback step. */
+  mediaFallback?: {
+    caption: string;
+    alt: string;
+  };
 }
 
 /**
@@ -75,6 +80,10 @@ export const FACES_HOUSES: PrepareFixture = {
     nbPracticeTrials: facesParams.nbPracticeTrials,
     nbTrials: facesParams.nbTrials,
   }),
+  mediaFallback: {
+    caption: 'Oliver Sacks on face blindness',
+    alt: 'Illustrated portrait placeholder for Oliver Sacks',
+  },
 };
 
 export const STROOP: PrepareFixture = {

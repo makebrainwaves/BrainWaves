@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import AppShell from '../AppShell/AppShell';
-import { Button } from '../ui/button';
 import PrepareSteps, { PrepareStepId } from './PrepareSteps';
 import {
   CUSTOM,
@@ -111,12 +110,10 @@ type Story = StoryObj<typeof PrepareSteps>;
 function InteractiveStep({
   initialStep,
   fixtureKey = 'faces',
-  workspaceOverride,
   modality = 'eeg',
 }: {
   initialStep: PrepareStepId;
   fixtureKey?: StoryParams['fixture'];
-  workspaceOverride?: typeof workspace;
   modality?: 'eeg' | 'behavior';
 }) {
   const fixture = fixtureFor(fixtureKey);
@@ -208,29 +205,15 @@ export const PreviewFinished: Story = {
   ),
 };
 
-/** P07 — DirectCollect. Skipping lessons is allowed; Collect reachable, no lock or checkmark. */
+/**
+ * P07 — DirectCollect. A student who skips the lessons: on Overview of a
+ * behavior-only workspace, Collect is marked Next and clickable in the global
+ * bar. Nothing is locked or checked off.
+ */
 export const DirectCollect: Story = {
   parameters: { workspace: behaviorWorkspace, device: 'none' },
   render: () => (
-    <AppShell
-      location="collect"
-      workspace={behaviorWorkspace}
-      nextArea="analyze"
-      device="none"
-    >
-      <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        <h1 className="m-0">Ready to run</h1>
-        <p className="m-0 max-w-[560px] text-ink-muted">
-          This workspace records key presses and reaction times only — no
-          headset needed. You can review the protocol first, or start now.
-        </p>
-        <div className="mt-2">
-          <Button size="lg" onClick={() => {}}>
-            Run &amp; record →
-          </Button>
-        </div>
-      </div>
-    </AppShell>
+    <InteractiveStep initialStep="overview" fixtureKey="stroop" modality="behavior" />
   ),
 };
 
@@ -248,20 +231,19 @@ export const ImportedConfigure: Story = {
   ),
 };
 
-/** P10 — OliverSacksFallback. Transcript-length text + illustrated placeholder, no remote player. */
+/** P10 — OliverSacksFallback. Background with the Sacks section: illustration placeholder + explanatory text, no remote player. */
 export const OliverSacksFallback: Story = {
   render: () => (
     <PrepareSteps
       step="background"
       heading={FACES_HOUSES.heading}
       overview={FACES_HOUSES.overview}
-      background={{
-        ...FACES_HOUSES.background,
-        links: [],
-      }}
+      background={{ ...FACES_HOUSES.background, links: [] }}
       protocol={FACES_HOUSES.protocol}
       expectedKeys={FACES_HOUSES.expectedKeys}
       flow={FACES_HOUSES.flow}
+      icon={FACES_HOUSES.icon}
+      mediaFallback={FACES_HOUSES.mediaFallback}
       modality="eeg"
       isPreviewing={false}
       hasPreviewed={false}
