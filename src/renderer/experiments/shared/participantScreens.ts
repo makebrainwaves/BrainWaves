@@ -103,10 +103,6 @@ const pressSpace = (action: string) =>
     ' bw-participant-key-space'
   )} to ${action}</div>`;
 
-/** The phase label and the title share one centered row, saving height on short windows. */
-const titleRow = (label: string, title: string) =>
-  `<div class="bw-participant-title">${label}<h1>${title}</h1></div>`;
-
 /**
  * Shown before practice: a chalkboard "Practice first" tag, title, summary,
  * optional example, key mapping, pacing, Space to start, Q to skip.
@@ -121,7 +117,7 @@ export function instructionsScreen({
   canSkipPractice = false,
 }: InstructionsScreenParams): string {
   return screen(
-    `${titleRow('<div class="bw-participant-chalk">Practice first</div>', title)}
+    `<div class="bw-participant-title"><div class="bw-participant-chalk">Practice first</div><h1>${title}</h1></div>
 <div class="bw-participant-summary">${summary}</div>
 ${example ?? ''}
 ${responseRules(rules)}
@@ -146,10 +142,7 @@ export function transitionScreen({
   pacing,
 }: TransitionScreenParams): string {
   return screen(
-    `${titleRow(
-      '<div class="bw-participant-data"><span aria-hidden="true"></span>Data collection</div>',
-      'The real trials start now'
-    )}
+    `<div class="bw-participant-title"><div class="bw-participant-data"><span aria-hidden="true"></span>Data collection</div><h1>The real trials start now</h1></div>
 <div class="bw-participant-summary">Same keys as in practice:</div>
 ${responseRules(rules)}
 ${notes(pacing)}`,
