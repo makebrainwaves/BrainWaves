@@ -1,4 +1,5 @@
 import React from 'react';
+import PreviewLabel from '../PreviewLabel';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 
@@ -9,10 +10,17 @@ export interface FlowPhase {
   count?: number;
 }
 
+/** One stimulus → key pair, drawn in the Protocol diagram and the Preview key legend. */
+export interface ResponseMapping {
+  key: string;
+  /** What the participant is looking for, e.g. "Face" or "Red ink". */
+  label: string;
+  /** An example stimulus: an image, or a word in colored ink (Stroop). */
+  stimulus: { src: string; alt: string } | { word: string; color: string };
+}
+
 export interface PrepareStepsProps {
   step: PrepareStepId;
-  heading: string;
-  modality: 'eeg' | 'behavior';
   overview: { title: string; overview: string; links: { address: string; name: string }[] };
   background: {
     links: { address: string; name: string }[];
@@ -25,24 +33,11 @@ export interface PrepareStepsProps {
     second_column_statement: string;
     second_column_question: string;
   };
-  protocol: {
-    title: string;
-    protocol: string;
-    condition_first_img: string;
-    condition_first_title: string;
-    condition_first: string;
-    condition_second_img: string;
-    condition_second_title: string;
-    condition_second: string;
-    condition_first_key?: string;
-    condition_second_key?: string;
-    pacing?: string;
-    links?: { address: string; name: string }[];
-  };
-  expectedKeys: { label: string; key?: string }[];
+  protocol: { title: string; protocol: string };
+  responses: ResponseMapping[];
   flow: FlowPhase[];
   icon?: string;
-  /** Local stand-in for the Oliver Sacks clip (§6.3: no remote player, rights unconfirmed); shown inside Background. */
+  /** Local stand-in for the Oliver Sacks clip (§6.3: no remote player, rights unconfirmed); replaces Background's video link. */
   mediaFallback?: { caption: string; alt: string };
   onStep: (step: PrepareStepId) => void;
   onCollect: () => void;
@@ -53,6 +48,20 @@ export interface PrepareStepsProps {
   hasPreviewed: boolean;
 }
 
+/** The single centered reading column shared by the stepper, step content and action row. */
+const COLUMN = 'mx-auto w-full max-w-[800px] px-6';
+
+const EYEBROW = 'text-[13px] font-bold tracking-[0.5px] text-ink-muted';
+
+/** Keycap in the #273 participant-screen look (ink outline, heavy bottom edge), sized for lesson pages. */
+const KEYCAP =
+  'inline-flex h-[40px] min-w-[40px] flex-none items-center justify-center rounded-[8px] border-2 border-b-[5px] border-ink bg-white px-2 font-sans text-[20px] font-bold uppercase text-ink';
+
+/**
+ * Lesson progress inside Prepare. Pills in the secondary bar, so it never reads
+ * as a second global nav: the global bar marks location with a 4px gold
+ * underline, this marks the current step with a small gold-filled pill.
+ */
 function Stepper({
   current,
   onStep,
@@ -78,30 +87,24 @@ function Stepper({
               type="button"
               onClick={() => onStep(s.id)}
               aria-current={isCurrent ? 'step' : undefined}
-              className={`
-                flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-bold
-                tracking-[0.5px] transition-colors focus-visible:outline-none
-                focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
-                ${
-                  isCurrent
-                    ? 'bg-ink text-white'
-                    : isPast
-                      ? 'bg-brand-light text-brand hover:bg-brand hover:text-white'
-                      : 'bg-white text-ink-muted hover:bg-[#f3f3f8] hover:text-ink'
-                }
-              `}
+              className={cn(
+                'flex items-center gap-[6px] rounded-full py-[4px] pl-[5px] pr-[12px] text-[13px] font-bold tracking-[0.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
+                isCurrent
+                  ? 'bg-accent text-ink'
+                  : isPast
+                    ? 'bg-brand-light text-brand hover:bg-brand hover:text-white'
+                    : 'bg-white text-ink-muted hover:bg-[#f3f3f8] hover:text-ink'
+              )}
             >
               <span
-                className={`
-                  flex h-5 w-5 items-center justify-center rounded-full text-[11px]
-                  ${
-                    isCurrent
-                      ? 'bg-white text-ink'
-                      : isPast
-                        ? 'bg-brand text-white'
-                        : 'border border-ink-faint text-ink-muted'
-                  }
-                `}
+                className={cn(
+                  'flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px]',
+                  isCurrent
+                    ? 'bg-white text-ink'
+                    : isPast
+                      ? 'bg-brand text-white'
+                      : 'border border-ink-faint text-ink-muted'
+                )}
               >
                 {isPast ? '✓' : i + 1}
               </span>
@@ -120,77 +123,118 @@ function Stepper({
   );
 }
 
-function KeyLegend({ keys }: { keys: { label: string; key?: string }[] }) {
+function KeyLegend({ responses }: { responses: ResponseMapping[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {keys.map(({ label, key }) => (
-        <div
-          key={label}
-          className="flex items-center gap-2 rounded-lg border border-[#ececf1] bg-white px-2.5 py-1"
-        >
-          {key ? (
-            <kbd className="flex h-5 min-w-[20px] items-center justify-center rounded border-2 border-ink bg-white px-1 text-[12px] font-bold">
+    <ul className="m-0 flex flex-wrap items-center gap-x-5 gap-y-2 p-0">
+      {responses.map(({ label, key }) => (
+        <li key={key} className="flex items-center gap-2">
+          <kbd className={KEYCAP}>{key}</kbd>
+          <span className="text-[16px] text-ink">{label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Static flowchart: each example stimulus, an arrow, then the key it asks for,
+ * with "Sees" / "Presses" row labels. A figure, not a control, so it does not
+ * invite a key press.
+ */
+function ResponseDiagram({ responses }: { responses: ResponseMapping[] }) {
+  const rail = 'justify-self-start text-[14px] text-ink-muted';
+  return (
+    <figure className="m-0 flex flex-col gap-3 rounded-lg border border-[#ececf1] bg-white p-4">
+      <figcaption className={EYEBROW}>HOW PARTICIPANTS RESPOND</figcaption>
+      <ul className="m-0 grid auto-cols-fr grid-flow-col grid-cols-[auto] grid-rows-[repeat(4,auto)] items-center justify-items-center gap-x-3 gap-y-1 p-0">
+        <li aria-hidden className="contents">
+          <span className={rail}>Sees</span>
+          <span />
+          <span />
+          <span className={rail}>Presses</span>
+        </li>
+        {responses.map(({ key, label, stimulus }) => (
+          <li key={key} className="contents">
+            {'src' in stimulus ? (
+              <img
+                src={stimulus.src}
+                alt={stimulus.alt}
+                className="h-[88px] w-[88px] rounded-md border border-[#ececf1] object-cover"
+              />
+            ) : (
+              <span
+                className="flex h-[72px] w-[88px] items-center justify-center rounded-md border border-[#ececf1] bg-white text-[20px] font-bold"
+                style={{ color: stimulus.color }}
+              >
+                {stimulus.word}
+              </span>
+            )}
+            <span className="text-[14px] font-bold text-ink">{label}</span>
+            <svg
+              aria-hidden
+              width="12"
+              height="22"
+              viewBox="0 0 12 22"
+              className="text-ink-muted"
+            >
+              <path
+                d="M6 1v18M1.5 14.5 6 20l4.5-5.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+            <kbd className={KEYCAP}>
+              <span className="sr-only">press </span>
               {key}
             </kbd>
-          ) : null}
-          <span className="text-[14px] text-ink">{label}</span>
-        </div>
-      ))}
-    </div>
+          </li>
+        ))}
+      </ul>
+      <span className="mt-auto text-[14px] text-ink-muted">
+        Just a diagram. You can try it for real in Preview.
+      </span>
+    </figure>
   );
 }
 
-function ConditionCard({
-  title,
-  description,
-  keyLabel,
-}: {
-  title: string;
-  description: string;
-  keyLabel?: string;
-}) {
+/** Vertical timeline of the task's phases, generated from `flow`. */
+function FlowTimeline({ phases }: { phases: FlowPhase[] }) {
   return (
-    <article className="flex flex-col gap-1.5 rounded-lg border border-[#ececf1] bg-white p-3">
-      <h3 className="m-0 text-base font-normal">{title}</h3>
-      <p className="m-0 text-[16px] leading-snug text-ink">
-        {description}
-        {keyLabel ? (
-          <>
-            {' '}
-            <kbd className="ml-1 inline-flex h-[26px] min-w-[26px] items-center justify-center rounded-md border-2 border-ink text-[15px] font-bold">
-              {keyLabel}
-            </kbd>
-          </>
-        ) : null}
-      </p>
-    </article>
-  );
-}
-
-function FlowInfographic({ phases }: { phases: FlowPhase[] }) {
-  return (
-    <div className="rounded-lg border border-[#e3def7] bg-[#f4f2ff] p-3">
-      <h3 className="m-0 mb-1.5 text-base font-normal">What happens in this task</h3>
-      <ol className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1.5 p-0">
+    <section className="rounded-lg border border-[#e3def7] bg-[#f4f2ff] p-4">
+      <h2 className={cn(EYEBROW, 'm-0 mb-3')}>WHAT HAPPENS IN THIS TASK</h2>
+      <ol className="m-0 p-0">
         {phases.map((phase, i) => (
-          <React.Fragment key={phase.label}>
-            <li className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[15px] text-ink shadow-sm">
-              {typeof phase.count === 'number' ? (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white">
-                  {phase.count}
-                </span>
-              ) : null}
-              {phase.label}
-            </li>
+          <li
+            key={phase.label}
+            className="relative flex items-start gap-3 pb-3 last:pb-0"
+          >
             {i < phases.length - 1 && (
-              <li aria-hidden className="text-ink-muted">
-                →
-              </li>
+              <span
+                aria-hidden
+                className="absolute bottom-[-6px] left-[5px] top-[18px] w-[2px] bg-[#c9c2ee]"
+              />
             )}
-          </React.Fragment>
+            <span
+              aria-hidden
+              className={cn(
+                'mt-[6px] h-[12px] w-[12px] flex-none rounded-full border-2',
+                phase.count ? 'border-brand bg-brand' : 'border-ink-muted bg-white'
+              )}
+            />
+            <span className="text-[16px] leading-[24px] text-ink">
+              {phase.count ? (
+                <>
+                  <b>{phase.count}</b> {phase.label.toLowerCase()}
+                </>
+              ) : (
+                phase.label
+              )}
+            </span>
+          </li>
         ))}
       </ol>
-    </div>
+    </section>
   );
 }
 
@@ -202,11 +246,9 @@ function OverviewView({
   icon?: string;
 }) {
   return (
-    <section className="flex flex-wrap-reverse items-start gap-6">
-      <div className="flex min-w-0 max-w-[680px] flex-[1_1_420px] flex-col gap-2">
-        <span className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
-          THE BIG QUESTION
-        </span>
+    <section className="flex items-start gap-8">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <span className={EYEBROW}>THE BIG QUESTION</span>
         <h1 className="m-0 [text-wrap:pretty]">{overview.title}</h1>
         {overview.overview.split(/\n\s*\n/).map((paragraph) => (
           <p key={paragraph} className="experiment-design-copy m-0">
@@ -215,13 +257,7 @@ function OverviewView({
         ))}
       </div>
       {icon && (
-        <div className="flex flex-[0_1_220px] items-center justify-center pt-2">
-          <img
-            src={icon}
-            alt={overview.title}
-            className="h-auto w-full max-w-52"
-          />
-        </div>
+        <img src={icon} alt="" className="mt-8 h-auto w-[180px] flex-none" />
       )}
     </section>
   );
@@ -230,23 +266,23 @@ function OverviewView({
 function BackgroundView({
   background,
   icon,
+  media,
 }: {
   background: PrepareStepsProps['background'];
   icon?: string;
+  media?: PrepareStepsProps['mediaFallback'];
 }) {
   return (
-    <section className="flex flex-col gap-3">
-      <header className="flex max-w-[680px] flex-col gap-1">
-        <span className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
-          BACKGROUND · 2 MIN READ
-        </span>
+    <section className="flex flex-col gap-4">
+      <header className="flex flex-col gap-1">
+        <span className={EYEBROW}>BACKGROUND · 2 MIN READ</span>
         <h1 className="m-0 [text-wrap:pretty]">{background.title ?? 'Background'}</h1>
       </header>
-        <p className="experiment-design-copy max-w-[680px] m-0 !leading-snug">
+      <p className="experiment-design-copy m-0 !leading-snug">
         {background.first_column_statement}
       </p>
       {background.first_column_question && (
-        <div className="flex max-w-[680px] items-start gap-4 rounded-lg border border-[#ececf1] bg-white p-4">
+        <div className="flex items-start gap-4 rounded-lg border border-[#ececf1] bg-white p-4">
           {icon && (
             <div className="flex h-[56px] w-[56px] flex-none items-center justify-center rounded-lg border border-[#f6ead3] bg-[#fffaf0]">
               <img src={icon} alt="" className="max-w-9" />
@@ -263,7 +299,7 @@ function BackgroundView({
         </div>
       )}
       {(background.second_column_statement || background.second_column_question) && (
-        <div className="flex max-w-[680px] items-center gap-4 rounded-lg border border-[#e3def7] bg-[#f4f2ff] px-4 py-3">
+        <div className="flex items-center gap-4 rounded-lg border border-[#e3def7] bg-[#f4f2ff] px-4 py-3">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-[13px] font-bold tracking-[0.5px] text-[#4a3fa8]">
               FUN FACT
@@ -275,180 +311,135 @@ function BackgroundView({
             </p>
           </div>
           {background.fun_fact_image && (
-            <img
-              src={background.fun_fact_image}
-              alt=""
-              className="w-[60px] flex-none"
-            />
+            <img src={background.fun_fact_image} alt="" className="w-[60px] flex-none" />
           )}
         </div>
       )}
-      {background.links.map((link) => (
-        <div key={link.address} className="flex flex-wrap items-center gap-4">
-          <Button
-            variant="outline-brand"
-            onClick={() => window.open(link.address, '_blank')}
-          >
-            {link.name}
-          </Button>
-          {background.link_meta && (
-            <span className="text-[15px] text-ink-muted">{background.link_meta}</span>
-          )}
-        </div>
-      ))}
+      {media ? (
+        <OliverSacksFallback media={media} />
+      ) : (
+        background.links.map((link) => (
+          <div key={link.address} className="flex flex-wrap items-center gap-4">
+            <Button
+              variant="outline-brand"
+              onClick={() => window.open(link.address, '_blank')}
+            >
+              {link.name}
+            </Button>
+            {background.link_meta && (
+              <span className="text-[15px] text-ink-muted">{background.link_meta}</span>
+            )}
+          </div>
+        ))
+      )}
+    </section>
+  );
+}
+
+/** The video slot in Background's column, holding the local Sacks stand-in and its transcript-length text. */
+function OliverSacksFallback({ media }: { media: { caption: string; alt: string } }) {
+  return (
+    <section className="flex flex-col gap-3 pt-2">
+      <h2 className="m-0 text-[22px] font-normal">{media.caption}</h2>
+      <div
+        role="img"
+        aria-label={`Illustration placeholder: ${media.alt}`}
+        className="flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white"
+      >
+        <span
+          aria-hidden
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-xl"
+        >
+          🎬
+        </span>
+        <span className="text-[15px] font-bold text-ink-muted">
+          Illustration placeholder (video slot, 16:9)
+        </span>
+        <span className="text-[14px] text-ink-muted">{media.alt}</span>
+      </div>
+      <p className="experiment-design-copy m-0 !leading-snug">
+        Some people cannot recognize faces — even faces they have seen thousands
+        of times. Neurologist Oliver Sacks described this in himself: he might
+        walk past a close friend, or his own reflection, without knowing who it
+        was.
+      </p>
+      <p className="experiment-design-copy m-0 !leading-snug">
+        Scientists call this condition <b>prosopagnosia</b>, from the Greek for
+        &quot;face&quot; and &quot;not knowing.&quot; It is not poor eyesight; the
+        brain&apos;s face-recognition system doesn&apos;t process faces the usual
+        way.
+      </p>
+      <p className="experiment-design-copy m-0 !leading-snug">
+        Sacks wrote about what this feels like, and about the idea that the brain
+        has a dedicated &quot;face area.&quot; That idea led researchers to
+        compare the brain&apos;s responses to faces and to other objects.
+      </p>
+      <p className="experiment-design-copy m-0 !leading-snug">
+        <b>Source:</b> Oliver Sacks, &quot;Face-Blind&quot; (2010),{' '}
+        <i>The New Yorker</i> / <i>The Mind&apos;s Eye</i>.
+      </p>
     </section>
   );
 }
 
 function ProtocolView({
   protocol,
-  expectedKeys,
+  responses,
   flow,
 }: {
   protocol: PrepareStepsProps['protocol'];
-  expectedKeys: { label: string; key?: string }[];
+  responses: ResponseMapping[];
   flow: FlowPhase[];
 }) {
-  const conditions = [
-    {
-      title: protocol.condition_first_title,
-      description: protocol.condition_first,
-      key: protocol.condition_first_key,
-    },
-    {
-      title: protocol.condition_second_title,
-      description: protocol.condition_second,
-      key: protocol.condition_second_key,
-    },
-  ];
   return (
-    <section className="flex flex-col gap-3">
-      <header className="flex max-w-[680px] flex-col gap-1">
-        <span className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
-          PROTOCOL
-        </span>
+    <section className="flex flex-col gap-4">
+      <header className="flex flex-col gap-1">
+        <span className={EYEBROW}>PROTOCOL</span>
         <h1 className="m-0 [text-wrap:pretty]">{protocol.title}</h1>
         <p className="experiment-design-copy m-0 !leading-snug">{protocol.protocol}</p>
       </header>
-      <div className="grid max-w-[1100px] grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3">
-        {conditions.map(
-          (condition) =>
-            condition.title && (
-              <ConditionCard
-                key={condition.title}
-                title={condition.title}
-                description={condition.description}
-                keyLabel={condition.key}
-              />
-            )
-        )}
+      <div className="grid grid-cols-[minmax(0,1fr)_240px] gap-4">
+        <ResponseDiagram responses={responses} />
+        <FlowTimeline phases={flow} />
       </div>
-      <FlowInfographic phases={flow} />
-      {protocol.pacing && (
-        <div className="max-w-[680px] rounded-lg border-l-4 border-brand bg-white p-2.5 shadow-sm">
-          <p className="m-0 text-[16px] leading-snug text-ink">
-            <b>Pacing:</b> {protocol.pacing}
-          </p>
-        </div>
-      )}
-      <KeyLegend keys={expectedKeys} />
     </section>
   );
 }
 
-function PreviewStoppedView({
-  expectedKeys,
-}: {
-  expectedKeys: { label: string; key?: string }[];
-}) {
-  return (
-    <section className="flex flex-col gap-3">
-      <header className="flex max-w-[680px] flex-col gap-1">
-        <span className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
-          PREVIEW
-        </span>
-        <h1 className="m-0 [text-wrap:pretty]">See it the way they will</h1>
-        <p className="experiment-design-copy m-0 !leading-snug">
-          Nothing is recorded during a preview. Try the experiment, then decide
-          when you are ready to collect real data.
-        </p>
-      </header>
-      <KeyLegend keys={expectedKeys} />
-    </section>
-  );
-}
+/** Preview-step copy before and after a preview run. */
+const PREVIEW_INTRO = {
+  stopped: {
+    title: 'See it the way they will',
+    body: 'Nothing is recorded during a preview. Try the experiment, then decide when you are ready to collect real data.',
+  },
+  finished: {
+    title: 'Ready to record?',
+    body: 'Preview is done. When a participant is ready, run and record real data.',
+  },
+};
 
-function PreviewRunningView({
-  expectedKeys,
-}: {
-  expectedKeys: { label: string; key?: string }[];
-}) {
+function PreviewRunningView({ responses }: { responses: ResponseMapping[] }) {
   return (
-    <section className="flex h-full flex-col gap-3">
-      <div
-        role="status"
-        className="flex items-center gap-3 rounded-lg border border-[#ececf1] bg-white px-3 py-2"
-      >
-        <span className="rounded-full bg-brand px-2 py-0.5 text-[12px] font-bold uppercase tracking-[0.5px] text-white">
-          Preview
-        </span>
-        <span className="text-[15px] text-ink-muted">
-          Nothing is being recorded
-        </span>
-      </div>
+    <section className="flex flex-1 flex-col gap-3">
       <div className="flex flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[15px] font-bold uppercase tracking-[0.5px] text-ink-muted">
-            Experiment area
-          </span>
-        </div>
+        <span className={EYEBROW}>EXPERIMENT AREA</span>
         <div className="flex flex-1 items-center justify-center rounded-md bg-[#f9f9f9]">
           <span className="text-[15px] text-ink-muted">
             Participant screen would appear here
           </span>
         </div>
       </div>
-      <KeyLegend keys={expectedKeys} />
+      <KeyLegend responses={responses} />
     </section>
   );
 }
 
-function PreviewFinishedView({
-  expectedKeys,
-}: {
-  expectedKeys: { label: string; key?: string }[];
-}) {
+function StepActions({ children }: { children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3">
-      <header className="flex max-w-[680px] flex-col gap-1">
-        <span className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
-          PREVIEW
-        </span>
-        <h1 className="m-0 [text-wrap:pretty]">Ready to record?</h1>
-        <p className="experiment-design-copy m-0 !leading-snug">
-          Preview is done. When a participant is ready, run and record real data.
-        </p>
-      </header>
-      <KeyLegend keys={expectedKeys} />
-    </section>
-  );
-}
-
-function StepActions({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        'sticky bottom-0 z-10 flex flex-wrap items-center gap-3 border-t border-[#e5e5e5] bg-white/95 backdrop-blur-sm',
-        className
-      )}
-    >
-      {children}
+    <div className="sticky bottom-0 z-10 border-t border-[#e5e5e5] bg-white/95 backdrop-blur-sm">
+      <div className={cn(COLUMN, 'flex flex-wrap items-center gap-3 py-2')}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -481,146 +472,88 @@ function ActionBack({
   );
 }
 
-function OliverSacksFallbackView({
-  media,
-}: {
-  media: { caption: string; alt: string };
-}) {
-  return (
-    <section className="flex flex-col gap-3">
-      <header className="flex max-w-[680px] flex-col gap-1">
-        <span className="text-[13px] font-bold tracking-[0.5px] text-ink-muted">
-          OLIVER SACKS · FACE BLINDNESS
-        </span>
-        <h1 className="m-0 [text-wrap:pretty]">{media.caption}</h1>
-      </header>
-      <div className="flex max-w-[680px] flex-col gap-2 rounded-lg border border-[#ececf1] bg-white p-4">
-        <div className="flex aspect-video w-full items-center justify-center rounded-md border-2 border-dashed border-[#d4d4de] bg-[#f9f9f9]">
-          <div className="flex flex-col items-center gap-1 text-center">
-            <span
-              aria-hidden
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-xl"
-            >
-              🎬
-            </span>
-            <span className="text-[15px] font-bold text-ink-muted">
-              Illustration placeholder
-            </span>
-          </div>
-        </div>
-        <p className="m-0 text-[15px] text-ink-muted">
-          Illustration placeholder for: {media.alt}
-        </p>
-      </div>
-      <div className="max-w-[680px] space-y-2">
-        <p className="experiment-design-copy m-0 !leading-snug">
-          Some people cannot recognize faces — even faces they have seen thousands
-          of times. Neurologist Oliver Sacks described this in himself: he might
-          walk past a close friend, or his own reflection, without knowing who it
-          was.
-        </p>
-        <p className="experiment-design-copy m-0 !leading-snug">
-          Scientists call this condition <b>prosopagnosia</b>, from the Greek for
-          "face" and "not knowing." It is not poor eyesight; the brain's
-          face-recognition system doesn&apos;t process faces the usual way.
-        </p>
-        <p className="experiment-design-copy m-0 !leading-snug">
-          Sacks wrote about what this feels like, and about the idea that the
-          brain has a dedicated &quot;face area.&quot; That idea led researchers
-          to compare the brain&apos;s responses to faces and to other objects.
-        </p>
-        <p className="experiment-design-copy m-0 !leading-snug">
-          <b>Source:</b> Oliver Sacks, &quot;Face-Blind&quot; (2010),
-          <i>The New Yorker</i> / <i>The Mind's Eye</i>.
-        </p>
-      </div>
-    </section>
-  );
-}
+/** Built-in lesson steps of the Prepare area: Overview, Background, Protocol, Preview. Pure props. */
 export default function PrepareSteps(props: PrepareStepsProps) {
-  const { step } = props;
-
-  function transitionTo(nextStep: PrepareStepId) {
-    props.onStep(nextStep);
-  }
+  const { step, onStep, isPreviewing, hasPreviewed } = props;
+  const previewStopped = step === 'preview' && !isPreviewing && !hasPreviewed;
+  const previewRunning = step === 'preview' && isPreviewing;
+  const previewFinished = step === 'preview' && !isPreviewing && hasPreviewed;
+  const previewIntro = previewStopped
+    ? PREVIEW_INTRO.stopped
+    : previewFinished
+      ? PREVIEW_INTRO.finished
+      : undefined;
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
-      <div className="border-b border-[#e5e5e5] bg-white px-[24px] py-3">
-        <Stepper current={step} onStep={transitionTo} />
+      <div className="border-b border-[#e5e5e5] bg-white py-3">
+        <div className={COLUMN}>
+          <Stepper current={step} onStep={onStep} />
+        </div>
       </div>
       <main className="experiment-design-content min-h-0 flex-1 overflow-y-auto bg-app">
         <div className="flex min-h-full flex-col">
-          <div className="w-full flex-1 px-5 pt-5">
+          <div className={cn(COLUMN, 'flex flex-1 flex-col pb-5 pt-5')}>
             {step === 'overview' && (
-              <OverviewView
-                overview={props.overview}
-                icon={props.icon}
-              />
+              <OverviewView overview={props.overview} icon={props.icon} />
             )}
             {step === 'background' && (
-              <>
-                <BackgroundView
-                  background={props.background}
-                  icon={props.icon}
-                />
-                {props.mediaFallback && (
-                  <OliverSacksFallbackView media={props.mediaFallback} />
-                )}
-              </>
+              <BackgroundView
+                background={props.background}
+                icon={props.icon}
+                media={props.mediaFallback}
+              />
             )}
             {step === 'protocol' && (
               <ProtocolView
                 protocol={props.protocol}
-                expectedKeys={props.expectedKeys}
+                responses={props.responses}
                 flow={props.flow}
               />
             )}
-            {step === 'preview' && !props.isPreviewing && !props.hasPreviewed && (
-              <PreviewStoppedView
-                expectedKeys={props.expectedKeys}
-              />
+            {previewIntro && (
+              <section className="flex flex-col gap-4">
+                <header className="flex flex-col gap-1">
+                  <span className={EYEBROW}>PREVIEW</span>
+                  <h1 className="m-0 [text-wrap:pretty]">{previewIntro.title}</h1>
+                  <p className="experiment-design-copy m-0 !leading-snug">
+                    {previewIntro.body}
+                  </p>
+                </header>
+                <KeyLegend responses={props.responses} />
+              </section>
             )}
-            {step === 'preview' && props.isPreviewing && (
-              <PreviewRunningView
-                expectedKeys={props.expectedKeys}
-              />
-            )}
-            {step === 'preview' && !props.isPreviewing && props.hasPreviewed && (
-              <PreviewFinishedView
-                expectedKeys={props.expectedKeys}
-              />
-            )}
+            {previewRunning && <PreviewRunningView responses={props.responses} />}
           </div>
-          <StepActions className="px-5 py-2">
+          <StepActions>
             {step === 'overview' && (
-              <ActionNext onClick={() => transitionTo('background')}>Next: Background →</ActionNext>
+              <ActionNext onClick={() => onStep('background')}>Next: Background →</ActionNext>
             )}
             {step === 'background' && (
               <>
-                <ActionBack onClick={() => transitionTo('overview')}>← Back</ActionBack>
-                <ActionNext onClick={() => transitionTo('protocol')}>Next: Protocol →</ActionNext>
+                <ActionBack onClick={() => onStep('overview')}>← Back</ActionBack>
+                <ActionNext onClick={() => onStep('protocol')}>Next: Protocol →</ActionNext>
               </>
             )}
             {step === 'protocol' && (
               <>
-                <ActionBack onClick={() => transitionTo('background')}>← Back</ActionBack>
-                <ActionNext onClick={() => transitionTo('preview')}>Try the experiment →</ActionNext>
+                <ActionBack onClick={() => onStep('background')}>← Back</ActionBack>
+                <ActionNext onClick={() => onStep('preview')}>Try the experiment →</ActionNext>
               </>
             )}
-            {step === 'preview' && !props.isPreviewing && !props.hasPreviewed && (
+            {previewStopped && (
               <>
-                <ActionBack onClick={() => transitionTo('protocol')}>← Back</ActionBack>
+                <ActionBack onClick={() => onStep('protocol')}>← Back</ActionBack>
                 <ActionNext onClick={props.onPreviewStart}>Try the experiment →</ActionNext>
               </>
             )}
-            {step === 'preview' && props.isPreviewing && (
+            {previewRunning && (
               <>
                 <ActionBack onClick={props.onPreviewStop}>Stop preview</ActionBack>
-                <span className="text-[15px] text-ink-muted">Preview in progress</span>
+                <PreviewLabel />
               </>
             )}
-            {step === 'preview' && !props.isPreviewing && props.hasPreviewed && (
+            {previewFinished && (
               <>
                 <ActionBack onClick={props.onPreviewAgain}>Preview again</ActionBack>
                 <ActionNext onClick={props.onCollect}>Run &amp; record →</ActionNext>
