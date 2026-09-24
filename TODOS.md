@@ -12,7 +12,7 @@ Deferred and in-flight work. Keep this current — when something ships, delete 
 - [ ] **Playtest 1 fixes (P0)** — see `docs/uxr/playtest_naive_1.md`. Bugs and blockers from 2026-09-18 naive-user session:
   - ~~Collect: ConnectModal fails to appear on first navigation to the collect screen.~~ — shipped 2026-09-23 (WS2, PR #274). `ConnectModal` is gone; Collect opens the shell-owned `HeadsetSetupDialog` whenever EEG is on and no headset is connected, and never scans until `Find my headset`.
   - ~~QA (WS2, PR #274): real-Muse pass~~ — done 2026-09-24 (human, real Muse): find → connect → signal prep, cancel/search again, drop → setup reopens, cancel while connecting. Finding: the platform never ends a search itself (it ran until Cancel), hence the one-minute limit below.
-  - **QA TODO (PR #274): one-minute search limit on a real Muse.** Headset off → `Find my headset` → after ~60 s the dialog shows "We couldn't find your Muse" / "Is your Muse turned on?" with the moving-lights cue. Then turn it on → `Search again` finds it straight away, with no "already in progress" error left behind by the timed-out request.
+  - ~~QA (PR #274): one-minute search limit on a real Muse~~ — done 2026-09-24 (human, real Muse): with the headset off, the search ends after a minute on "We couldn't find your Muse" / "Is your Muse turned on?". "Search again" afterwards is covered by `HeadsetSetupDialog.timeout.test.tsx` (real reducer, epics and dialog; faked driver).
   - Collect: layout incorrect.
   - Clean: crash at "Ready to clean subject" — reproduce and fix.
   - Analyze: layout broken by recent component changes; stray elements popping up.
