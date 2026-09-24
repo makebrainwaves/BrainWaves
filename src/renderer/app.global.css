@@ -130,7 +130,7 @@ p {
   transform: translateX(-50%);
 }
 
-/* Practice: yellow chalk on a small green chalkboard (accent on chalkboard is ~4.8:1). */
+/* Practice: white chalk on a small green chalkboard (white on chalkboard is ~7.6:1). */
 .bw-participant-chalk {
   transform: translateX(-50%) rotate(-3deg);
   padding: 3px 14px 5px;
@@ -140,7 +140,7 @@ p {
   font-size: 20px;
   line-height: 1.2;
   letter-spacing: 1px;
-  color: var(--color-accent);
+  color: white;
 }
 
 /* Real trials: heavy black label with the RunBar's red recording dot. */
