@@ -7,10 +7,8 @@ import { PairingInputs, pairingStep } from '../pairingStep';
 
 const base: PairingInputs = {
   screen: 'discovery',
-  isLSL: false,
   availability: DEVICE_AVAILABILITY.NONE,
   connectionStatus: CONNECTION_STATUS.NOT_YET_CONNECTED,
-  lslSearching: false,
   foundCount: 0,
 };
 
@@ -72,23 +70,5 @@ describe('pairingStep', () => {
         connectionStatus: CONNECTION_STATUS.CONNECTING,
       })
     ).toBe('connecting');
-  });
-
-  it('follows LSL discovery from its own stream list, not Bluetooth availability', () => {
-    const lsl = {
-      ...base,
-      isLSL: true,
-      availability: DEVICE_AVAILABILITY.SEARCHING,
-    };
-    expect(pairingStep({ ...lsl, lslSearching: true })).toBe('searching');
-    expect(pairingStep({ ...lsl, foundCount: 2 })).toBe('found');
-    expect(pairingStep(lsl)).toBe('notFound');
-    expect(
-      pairingStep({
-        ...lsl,
-        foundCount: 2,
-        connectionStatus: CONNECTION_STATUS.DISCONNECTED,
-      })
-    ).toBe('failed');
   });
 });

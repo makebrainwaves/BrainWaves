@@ -9,11 +9,9 @@ export type SetupScreen = 'choose' | 'wear' | 'ready' | 'discovery';
 
 export interface PairingInputs {
   screen: SetupScreen;
-  /** LSL lists streams from its own discovery, not Bluetooth availability. */
-  isLSL: boolean;
+  /** Bluetooth and LSL discovery share it: the reducer moves both through SEARCHING. */
   availability: DEVICE_AVAILABILITY;
   connectionStatus: CONNECTION_STATUS;
-  lslSearching: boolean;
   /** Headsets or EEG streams currently listable. */
   foundCount: number;
 }
@@ -27,11 +25,9 @@ export function pairingStep(i: PairingInputs): PairingStep {
   if (i.connectionStatus === CONNECTION_STATUS.CONNECTED) return 'connected';
   if (i.screen !== 'discovery') return i.screen;
   if (i.connectionStatus === CONNECTION_STATUS.CONNECTING) return 'connecting';
-  const searching = i.isLSL
-    ? i.lslSearching
-    : i.availability === DEVICE_AVAILABILITY.SEARCHING;
-  if (searching) return 'searching';
+  if (i.availability === DEVICE_AVAILABILITY.SEARCHING) return 'searching';
   if (i.connectionStatus === CONNECTION_STATUS.DISCONNECTED) return 'failed';
-  const listed = i.isLSL || i.availability === DEVICE_AVAILABILITY.AVAILABLE;
-  return listed && i.foundCount ? 'found' : 'notFound';
+  return i.availability === DEVICE_AVAILABILITY.AVAILABLE && i.foundCount
+    ? 'found'
+    : 'notFound';
 }

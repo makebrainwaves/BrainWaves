@@ -332,3 +332,21 @@ reload. Scope per-occurrence lifetimes inside the `mergeMap`/`switchMap`
 (`disconnect$().pipe(take(1), takeUntil(Cleanup))`), not on the outer stream.
 The same rule applies to `catchError`: an uncaught rejection inside any epic
 kills the root epic, so async driver/IPC calls need an inner `catchError`.
+
+## Device state: reducer owns transitions, epics own side effects
+
+In `deviceReducer.ts`, pure device-state changes are reducer cases, not epics:
+- `ConnectToDevice` → `CONNECTING`;
+- `DeviceFound` → replace the list and set `AVAILABLE`;
+- `DiscoverLSLStreams` → `SEARCHING`;
+- a new search clears `DISCONNECTED`;
+- `Cleanup` keeps `deviceType`.
+
+Two traps:
+- An LSL connect must be LSL-typed *before* `SetDeviceInfo` arrives. The
+  `ConnectToLSLStream` reducer case guarantees this. Otherwise
+  `setRawObservableEpic` sees a Bluetooth type and starts the Muse client
+  against an inlet.
+- `getDriver(LSL)` throws (LSL is not in the driver registry). Any epic that
+  calls `getDriver()` from a search or cancel path guards
+  `deviceType !== LSL` itself, instead of relying on the UI never dispatching it.

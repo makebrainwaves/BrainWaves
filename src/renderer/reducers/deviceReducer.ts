@@ -4,7 +4,6 @@ import {
   DEVICES,
   CONNECTION_STATUS,
   DEVICE_AVAILABILITY,
-  SIGNAL_QUALITY,
 } from '../constants/constants';
 import {
   DeviceInfo,
@@ -38,11 +37,32 @@ const initialState: DeviceStateType = {
   deviceType: DEVICES.MUSE,
 };
 
+/**
+ * Enters a search. A new search clears a previous failed connect, so its
+ * result is never shown as "Couldn't connect".
+ */
+const startSearch = (state: DeviceStateType): DeviceStateType => ({
+  ...state,
+  deviceAvailability: DEVICE_AVAILABILITY.SEARCHING,
+  connectionStatus:
+    state.connectionStatus === CONNECTION_STATUS.DISCONNECTED
+      ? CONNECTION_STATUS.NOT_YET_CONNECTED
+      : state.connectionStatus,
+});
+
 export default createReducer(initialState, (builder) =>
   builder
-    .addCase(DeviceActions.ConnectToDevice, (state) => {
-      return state;
-    })
+    .addCase(DeviceActions.ConnectToDevice, (state) => ({
+      ...state,
+      connectionStatus: CONNECTION_STATUS.CONNECTING,
+    }))
+    // An LSL connection is LSL-typed before SetDeviceInfo, so
+    // setRawObservableEpic never starts a Bluetooth driver for it.
+    .addCase(DeviceActions.ConnectToLSLStream, (state) => ({
+      ...state,
+      deviceType: DEVICES.LSL,
+      connectionStatus: CONNECTION_STATUS.CONNECTING,
+    }))
     .addCase(DeviceActions.SetDeviceType, (state, action) => {
       return {
         ...state,
@@ -55,25 +75,24 @@ export default createReducer(initialState, (builder) =>
         connectedDevice: action.payload,
       };
     })
-
-    .addCase(DeviceActions.SetAvailableDevices, (state, action) => {
-      return {
-        ...state,
-        availableDevices: action.payload,
-      };
-    })
+    // Each Web Bluetooth search answers with the one device it picked; earlier
+    // results are stale (possibly off or taken), so the list is replaced.
+    .addCase(DeviceActions.DeviceFound, (state, action) => ({
+      ...state,
+      availableDevices: action.payload,
+      deviceAvailability: DEVICE_AVAILABILITY.AVAILABLE,
+    }))
     .addCase(DeviceActions.SetConnectionStatus, (state, action) => {
       return {
         ...state,
         connectionStatus: action.payload,
       };
     })
-    .addCase(DeviceActions.SetDeviceAvailability, (state, action) => {
-      return {
-        ...state,
-        deviceAvailability: action.payload,
-      };
-    })
+    .addCase(DeviceActions.SetDeviceAvailability, (state, action) =>
+      action.payload === DEVICE_AVAILABILITY.SEARCHING
+        ? startSearch(state)
+        : { ...state, deviceAvailability: action.payload }
+    )
 
     .addCase(DeviceActions.SetRawObservable, (state, action) => {
       return {
@@ -88,11 +107,17 @@ export default createReducer(initialState, (builder) =>
         signalQualityObservable: action.payload,
       };
     })
-    .addCase(DeviceActions.Cleanup, (state, action) => {
-      return initialState;
-    })
+    // Keeps the student's chosen device type across a disconnect or cancel.
+    .addCase(DeviceActions.Cleanup, (state) => ({
+      ...initialState,
+      deviceType: state.deviceType,
+    }))
+    .addCase(DeviceActions.DiscoverLSLStreams, startSearch)
     .addCase(DeviceActions.SetAvailableLSLStreams, (state, action) => ({
       ...state,
       availableLSLStreams: action.payload,
+      deviceAvailability: action.payload.length
+        ? DEVICE_AVAILABILITY.AVAILABLE
+        : DEVICE_AVAILABILITY.NONE,
     }))
 );

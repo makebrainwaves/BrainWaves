@@ -5,11 +5,7 @@ import { Dialog, DialogOverlay, DialogPortal } from '../ui/dialog';
 import HeadsetSetup, { FoundHeadset, SetupDevice } from './HeadsetSetup';
 import { pairingStep, SetupScreen } from './pairingStep';
 import { DeviceActions } from '../../actions';
-import {
-  CONNECTION_STATUS,
-  DEVICE_AVAILABILITY,
-  DEVICES,
-} from '../../constants/constants';
+import { DEVICE_AVAILABILITY, DEVICES } from '../../constants/constants';
 import { RootState } from '../../store';
 
 /** Model line shown under each discovered Bluetooth device. */
@@ -27,10 +23,11 @@ interface Props {
 }
 
 /**
- * Live pairing dialog around the approved `HeadsetSetup` view. The student's
- * own screens (choose → wear → ready) are local; once they press search,
- * Redux device state picks the screen via `pairingStep`. Closing while
- * searching or connecting cancels that attempt.
+ * Live pairing dialog around the approved `HeadsetSetup` view. Only the
+ * student's place in the manual screens (choose → wear → ready) and their row
+ * pick are local; the device type and every search/connect state live in
+ * Redux, and `pairingStep` maps them to the screen. Closing while searching or
+ * connecting cancels that attempt.
  */
 export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
   const dispatch = useDispatch();
@@ -41,10 +38,9 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
     deviceAvailability,
     deviceType,
   } = useSelector((s: RootState) => s.device);
-  const [device, setDevice] = useState<SetupDevice>();
+  const device = deviceType as SetupDevice;
   const [screen, setScreen] = useState<SetupScreen>('choose');
   const [selectedId, setSelectedId] = useState<string>();
-  const [lslSearching, setLslSearching] = useState(false);
   const [showLSL, setShowLSL] = useState(false);
 
   useEffect(() => {
@@ -54,11 +50,7 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
       .catch(() => setShowLSL(false));
   }, []);
 
-  useEffect(() => setLslSearching(false), [availableLSLStreams]);
-
-  const connected = connectionStatus === CONNECTION_STATUS.CONNECTED;
-  const shownDevice = connected ? (deviceType as SetupDevice) : device;
-  const isLSL = shownDevice === DEVICES.LSL;
+  const isLSL = device === DEVICES.LSL;
   const found: FoundHeadset[] = isLSL
     ? availableLSLStreams
         .filter((s) => s.type === 'EEG')
@@ -70,14 +62,12 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
     : availableDevices.map((d) => ({
         id: d.id,
         name: d.name ?? d.id,
-        model: shownDevice ? MODEL[shownDevice as keyof typeof MODEL] : '',
+        model: MODEL[device as keyof typeof MODEL] ?? '',
       }));
   const step = pairingStep({
     screen,
-    isLSL,
     availability: deviceAvailability,
     connectionStatus,
-    lslSearching,
     foundCount: found.length,
   });
 
@@ -86,30 +76,19 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
    * only runs inside the click that dispatched SEARCHING.
    */
   function find() {
-    if (!device) return;
     setSelectedId(undefined);
     setScreen('discovery');
-    if (connectionStatus === CONNECTION_STATUS.DISCONNECTED) {
-      dispatch(
-        DeviceActions.SetConnectionStatus(CONNECTION_STATUS.NOT_YET_CONNECTED)
-      );
-    }
-    dispatch(DeviceActions.SetDeviceType(device));
-    if (device === DEVICES.LSL) {
-      setLslSearching(true);
-      dispatch(DeviceActions.DiscoverLSLStreams());
-      return;
-    }
     dispatch(
-      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
+      isLSL
+        ? DeviceActions.DiscoverLSLStreams()
+        : DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
     );
   }
 
   /** Stops the current search or connect and returns to the last manual screen. */
   function cancel() {
-    if (step === 'searching' && !isLSL) dispatch(DeviceActions.CancelSearch());
+    if (step === 'searching') dispatch(DeviceActions.CancelSearch());
     if (step === 'connecting') dispatch(DeviceActions.DisconnectFromDevice());
-    setLslSearching(false);
     setScreen(
       device === DEVICES.MUSE || device === DEVICES.NEUROSITY ? 'ready' : 'wear'
     );
@@ -146,13 +125,13 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
           </DialogPrimitive.Title>
           <HeadsetSetup
             step={step}
-            device={shownDevice}
+            device={device}
             found={found}
             selectedId={selectedId}
             showFixture={import.meta.env.DEV}
             showLSL={showLSL}
             onChooseDevice={(d) => {
-              setDevice(d);
+              dispatch(DeviceActions.SetDeviceType(d));
               setScreen('wear');
             }}
             onBack={() => setScreen(screen === 'wear' ? 'choose' : 'wear')}
@@ -165,7 +144,7 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
             onConnect={connect}
             onStartSoftwareSource={find}
             onDone={() => {
-              if (shownDevice) onDone(shownDevice);
+              onDone(device);
               close();
             }}
             onClose={close}

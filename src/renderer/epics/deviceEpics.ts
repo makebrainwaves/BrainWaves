@@ -1,5 +1,5 @@
 import { combineEpics, Epic } from 'redux-observable';
-import { of, from, defer, race, timer, ObservableInput, EMPTY } from 'rxjs';
+import { of, from, race, timer, ObservableInput, EMPTY } from 'rxjs';
 import {
   map,
   pluck,
@@ -36,11 +36,12 @@ import { RootState } from '../reducers';
 // Epics
 
 /**
- * Runs one discovery per SEARCHING. `scan()` is called synchronously inside the
- * dispatch so Web Bluetooth keeps the user gesture (Observable.from loses it).
- * The search ends on the driver's answer (a rejected or empty scan is not
- * found) or after SEARCH_TIMEOUT_MS, which also rejects the pending
- * requestDevice(). A cancel or a newer search drops everything still pending.
+ * Runs one Bluetooth discovery per SEARCHING (LSL discovers via its own epic).
+ * `scan()` is called synchronously inside the dispatch so Web Bluetooth keeps
+ * the user gesture (Observable.from loses it). The search ends on the driver's
+ * answer (a rejected or empty scan is not found) or after SEARCH_TIMEOUT_MS,
+ * which also rejects the pending requestDevice(). A cancel or a newer search
+ * drops everything still pending.
  */
 const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
@@ -50,6 +51,7 @@ const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
     filter(isActionOf(DeviceActions.SetDeviceAvailability)),
     pluck('payload'),
     filter((status) => status === DEVICE_AVAILABILITY.SEARCHING),
+    filter(() => state$.value.device.deviceType !== DEVICES.LSL),
     map(() => getDriver(state$.value.device.deviceType).scan()),
     switchMap((promise) =>
       race(
@@ -69,44 +71,23 @@ const searchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
       ).pipe(
         takeUntil(action$.pipe(filter(isActionOf(DeviceActions.CancelSearch))))
       )
-    ),
-    filter(
-      () =>
-        state$.value.device.deviceAvailability === DEVICE_AVAILABILITY.SEARCHING
     )
   );
 
-const deviceFoundEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
-  action$,
-  state$
-) =>
-  action$.pipe(
-    filter(isActionOf(DeviceActions.DeviceFound)),
-    pluck('payload'),
-    map((foundDevices) =>
-      foundDevices.reduce((acc, curr) => {
-        if (acc.find((device) => device.id === curr.id)) {
-          return acc;
-        }
-        return acc.concat(curr);
-      }, state$.value.device.availableDevices)
-    ),
-    mergeMap((devices) =>
-      of(
-        DeviceActions.SetAvailableDevices(devices),
-        DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.AVAILABLE)
-      )
-    )
-  );
-
-/** User cancelled: reject the pending requestDevice() in main and end the search. */
+/**
+ * User cancelled: reject a pending requestDevice() in main and end the search.
+ * LSL discovery is a one-shot IPC with nothing to reject.
+ */
 const cancelSearchEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
   action$,
   state$
 ) =>
   action$.pipe(
     filter(isActionOf(DeviceActions.CancelSearch)),
-    tap(() => getDriver(state$.value.device.deviceType).cancelScan()),
+    tap(() => {
+      const dt = state$.value.device.deviceType;
+      if (dt !== DEVICES.LSL) getDriver(dt).cancelScan();
+    }),
     map(() => DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE))
   );
 
@@ -142,9 +123,7 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
             // Mark this device's driver active so the marker dispatcher and the
             // raw-observable epic resolve to the right backend.
             setActiveDriver(state$.value.device.deviceType);
-            // Preserve the currently-selected deviceType; do not hardcode MUSE.
             return of(
-              DeviceActions.SetDeviceType(state$.value.device.deviceType),
               DeviceActions.SetDeviceInfo(deviceInfo),
               DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED)
             );
@@ -155,18 +134,6 @@ const connectEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
         })
       );
     })
-  );
-
-const isConnectingEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
-  action$
-) =>
-  action$.pipe(
-    filter(
-      (action) =>
-        isActionOf(DeviceActions.ConnectToDevice)(action) ||
-        isActionOf(DeviceActions.ConnectToLSLStream)(action)
-    ),
-    map(() => DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTING))
   );
 
 // TODO: confirm the shape of data that actually flows through these observables  and formalize with interfaces
@@ -306,24 +273,20 @@ const connectToLSLStreamEpic: Epic<
   action$.pipe(
     filter(isActionOf(DeviceActions.ConnectToLSLStream)),
     pluck('payload'),
-    mergeMap((stream) =>
-      defer(() => {
-        const deviceInfo = connectToLSLInlet(stream);
-        // LSL recording is an external-recorder mode — no first-party driver owns
-        // markers, so clear any previously-active BLE driver (injectMarker no-ops).
-        setActiveDriver(null);
-        return from(createRawLSLInletObservable(stream)).pipe(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          mergeMap<unknown, ObservableInput<any>>((rawObservable) =>
-            of(
-              DeviceActions.SetDeviceType(DEVICES.LSL),
-              DeviceActions.SetDeviceInfo(deviceInfo),
-              DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED),
-              DeviceActions.SetRawObservable(rawObservable)
-            )
+    mergeMap((stream) => {
+      const deviceInfo = connectToLSLInlet(stream);
+      // LSL recording is an external-recorder mode — no first-party driver owns
+      // markers, so clear any previously-active BLE driver (injectMarker no-ops).
+      setActiveDriver(null);
+      return from(createRawLSLInletObservable(stream)).pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mergeMap<unknown, ObservableInput<any>>((rawObservable) =>
+          of(
+            DeviceActions.SetDeviceInfo(deviceInfo),
+            DeviceActions.SetConnectionStatus(CONNECTION_STATUS.CONNECTED),
+            DeviceActions.SetRawObservable(rawObservable)
           )
-        );
-      }).pipe(
+        ),
         catchError(() => {
           disconnectFromLSLInlet();
           return of(
@@ -333,8 +296,8 @@ const connectToLSLStreamEpic: Epic<
         takeUntil(
           action$.pipe(filter(isActionOf(DeviceActions.DisconnectFromDevice)))
         )
-      )
-    )
+      );
+    })
   );
 
 // Forwards each raw EEG sample over IPC to the main-process LSL outlet.
@@ -375,10 +338,8 @@ const lslForwardEpic: Epic<DeviceActionType, DeviceActionType, RootState> = (
 
 export default combineEpics(
   searchEpic,
-  deviceFoundEpic,
   cancelSearchEpic,
   connectEpic,
-  isConnectingEpic,
   setRawObservableEpic,
   setSignalQualityObservableEpic,
   lslForwardEpic,

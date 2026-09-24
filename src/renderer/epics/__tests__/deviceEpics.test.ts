@@ -141,6 +141,22 @@ describe('device discovery', () => {
     h.sub.unsubscribe();
   });
 
+  it('never asks the Bluetooth driver to scan or cancel for an LSL search', () => {
+    const h = harness({ deviceType: DEVICES.LSL });
+
+    h.actions.next(
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.SEARCHING)
+    );
+    h.actions.next(DeviceActions.CancelSearch());
+
+    expect(driver.scan).not.toHaveBeenCalled();
+    expect(driver.cancelScan).not.toHaveBeenCalled();
+    expect(h.out).toEqual([
+      DeviceActions.SetDeviceAvailability(DEVICE_AVAILABILITY.NONE),
+    ]);
+    h.sub.unsubscribe();
+  });
+
   it('a cancelled search answering late cannot end the search that replaced it', async () => {
     const cancelled = Promise.withResolvers<never>();
     driver.scan

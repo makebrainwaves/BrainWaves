@@ -46,12 +46,11 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 │    │      rejected / []        resolved        1 min elapsed                    │
 │    │         │                   │              cancelScan()                  │
 │    │  SetDeviceAvailability   DeviceFound      SetDeviceAvailability(NONE)      │
-│    │  (NONE) → "couldn't find"   │   (all dropped if no longer SEARCHING)       │
+│    │  (NONE) → "couldn't find"   │   (cancel / newer search drop all three)     │
 │    │                             ▼                                             │
-│    │                    deviceFoundEpic                                        │
-│    │                       Deduplicates by id                                  │
-│    │                       SetAvailableDevices([...])                          │
-│    │                       SetDeviceAvailability(AVAILABLE)                    │
+│    │                    deviceReducer (no epic):                               │
+│    │                       availableDevices = [device]  (replaces, not merges) │
+│    │                       deviceAvailability = AVAILABLE                      │
 └────┼─────────────────────────────────────────────────────────────────────────  │
      │                                                                           │
 ┌────▼──────────────────────────────────────────────────────────────────────────┐
@@ -62,8 +61,7 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 │    ▼                                                                          │
 │  DeviceActions.ConnectToDevice(device)                                        │
 │    │                                                                          │
-│    ├──► isConnectingEpic                                                      │
-│    │      SetConnectionStatus(CONNECTING)                                     │
+│    ├──► deviceReducer: connectionStatus = CONNECTING (no epic)                │
 │    │                                                                          │
 │    └──► connectEpic                                                           │
 │             │  reuses BluetoothDevice cached by getMuse()                     │
@@ -71,7 +69,6 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 │             │  client.connect(gatt)       [muse-js MuseClient]               │
 │             │                                                                 │
 │             ├── success ──► DeviceInfo { name, samplingRate: 256, channels } │
-│             │                 SetDeviceType(MUSE)                             │
 │             │                 SetDeviceInfo(deviceInfo)                       │
 │             │                 SetConnectionStatus(CONNECTED)                  │
 │             │                                                                 │
@@ -112,15 +109,23 @@ All device state lives in Redux (`reducers/deviceReducer.ts`). Epics react to di
 ## Redux State (`deviceReducer`)
 
 ```
-deviceType:               DEVICES.MUSE | NEUROSITY | LSL
-deviceAvailability:       NONE | SEARCHING | AVAILABLE
+deviceType:               DEVICES.MUSE | NEUROSITY | FIXTURE | LSL — set when the student picks one; survives Cleanup
+deviceAvailability:       NONE | SEARCHING | AVAILABLE — Bluetooth search and LSL discovery both use it
 connectionStatus:         NOT_YET_CONNECTED | CONNECTING | CONNECTED | DISCONNECTED
-availableDevices:         Device[]         — BLE scan results (Muse / Neurosity)
+availableDevices:         Device[]         — latest BLE scan result (Muse / Neurosity / Fixture)
 availableLSLStreams:      DiscoveredStream[] — inlet discovery (when liblsl loaded)
 connectedDevice:          DeviceInfo | null — { name, samplingRate, channels }
 rawObservable:            Observable<EEGData> | null
 signalQualityObservable:  Observable<SignalQualityData> | null
 ```
+
+Pure state changes are reducer cases, not epics. Epics are only for side effects (driver/IPC calls, timers, watchers):
+
+- `ConnectToDevice` / `ConnectToLSLStream` → `CONNECTING`. The LSL case also sets `deviceType = LSL`, so `setRawObservableEpic` never starts a Bluetooth driver for an inlet.
+- `DeviceFound` → replaces `availableDevices` and sets `AVAILABLE`.
+- `SetDeviceAvailability(SEARCHING)` / `DiscoverLSLStreams` → `SEARCHING`, and clear a previous `DISCONNECTED` (a new search replaces "Couldn't connect").
+- `SetAvailableLSLStreams` → `AVAILABLE` if any streams came back, else `NONE`.
+- `Cleanup` → initial state, keeping `deviceType`.
 
 `DEVICES.GANGLION` exists in the enum only ("One day") and has no driver.
 
