@@ -11,6 +11,8 @@ interface Props {
   deviceName?: string;
   /** Should open a confirm in the container before aborting. */
   onEndRun?(): void;
+  /** Escape is being held; the run ends early once the hold completes. */
+  escapeHeld?: boolean;
 }
 
 /**
@@ -23,6 +25,7 @@ export default function RunBar({
   device,
   deviceName,
   onEndRun,
+  escapeHeld,
 }: Props) {
   const eeg = run.kind === 'eeg';
   return (
@@ -63,6 +66,17 @@ export default function RunBar({
       )}
       <div className="flex-1" />
       <DeviceChip device={device} deviceName={deviceName} />
+      {escapeHeld && (
+        <span
+          role="status"
+          className="flex items-center gap-[8px] text-[14px] font-bold text-ink"
+        >
+          <kbd className="rounded-[4px] border border-b-[3px] border-ink bg-white px-[6px] font-sans text-[12px]">
+            Esc
+          </kbd>
+          Keep holding to end early
+        </span>
+      )}
       <Button variant="outline" onClick={onEndRun}>
         End experiment early
       </Button>
