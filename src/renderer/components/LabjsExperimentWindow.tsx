@@ -16,10 +16,10 @@ export type LabjsExperimentWindowProps = ExperimentRuntimeProps & {
 };
 
 /**
- * Normal end → `onFinish(csv)`; unmount before the end → the controller's
- * `jump('abort')` (lab.js 23's own abort, as its debug plugin uses) →
- * `onAbort(partial csv)`. Escape is not handled here — see RunComponent's
- * hold-Escape.
+ * Normal end → `onFinish(csv)`. Unmount before the end → `onAbort` at once
+ * with the trials committed so far, then the study is stopped with the
+ * controller's `jump('abort')` (lab.js 23's own abort, as its debug plugin
+ * uses). Escape is not handled here — see RunComponent's hold-Escape.
  */
 export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   title,
@@ -74,15 +74,13 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
     }
 
     let finished = false;
-    let aborting = false;
     // lab.js 23.x moved the datastore and audio context from `options`/the
     // controller to `global`; the old paths throw inside lab.js's end sequence.
     experimentToRun.on('end', () => {
-      finished = true;
-      const csv = experimentToRun.global.datastore.exportCsv();
-      if (aborting) onAbort?.(csv);
-      else onFinish(csv);
       void experimentToRun.global.audioContext.close();
+      if (finished) return;
+      finished = true;
+      onFinish(experimentToRun.global.datastore.exportCsv());
     });
 
     // TODO: more natural labjs-y way to do this?
@@ -111,7 +109,14 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
 
     return () => {
       if (finished) return;
-      aborting = true;
+      finished = true;
+      let csv = '';
+      try {
+        csv = experimentToRun.global.datastore.exportCsv();
+      } catch {
+        // No controller before the study prepares; nothing was recorded.
+      }
+      onAbort?.(csv);
       // A bare root `end()` does not stop lab.js 23 (the flip loop keeps
       // iterating), and an abort between a screen's render and show frames
       // hangs it, so the abort waits two frames for pending flips to settle.
@@ -123,7 +128,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
                 sender: experimentToRun,
               })
             )
-            .catch(() => onAbort?.(''));
+            .catch(() => undefined);
         })
       );
     };

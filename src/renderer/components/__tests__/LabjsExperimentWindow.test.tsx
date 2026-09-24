@@ -28,9 +28,9 @@ const study = {
 };
 
 describe('LabjsExperimentWindow', () => {
-  it('unmounting mid-study reports the trials so far through onAbort, never onFinish', async () => {
+  it('unmounting mid-study reports the trials so far at once, and never onFinish', async () => {
     const onFinish = vi.fn();
-    const aborted = Promise.withResolvers<string>();
+    const onAbort = vi.fn();
     const { unmount } = render(
       <LabjsExperimentWindow
         title="Study"
@@ -38,14 +38,15 @@ describe('LabjsExperimentWindow', () => {
         params={{} as never}
         eventCallback={vi.fn()}
         onFinish={onFinish}
-        onAbort={aborted.resolve}
+        onAbort={onAbort}
       />
     );
     await screen.findByText('waiting', {}, { timeout: 3000 });
 
     unmount();
 
-    expect((await aborted.promise).split('\n').length).toBeGreaterThan(1);
+    expect(onAbort).toHaveBeenCalledTimes(1);
+    expect(onAbort.mock.calls[0][0]).toContain('html.Screen');
     expect(onFinish).not.toHaveBeenCalled();
   });
 });
