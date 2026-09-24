@@ -15,6 +15,12 @@ export type LabjsExperimentWindowProps = ExperimentRuntimeProps & {
   params: ExperimentParameters;
 };
 
+/**
+ * Normal end → `onFinish(csv)`. Unmount before the end → `onAbort` at once
+ * with the trials committed so far, then the study is stopped with the
+ * controller's `jump('abort')` (lab.js 23's own abort, as its debug plugin
+ * uses). Escape is not handled here — see RunComponent's hold-Escape.
+ */
 export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   title,
   experimentObject,
@@ -22,6 +28,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   fullScreen = true,
   eventCallback,
   onFinish,
+  onAbort,
   onProgress,
 }) => {
   useEffect(() => {
@@ -66,26 +73,19 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
       );
     }
 
+    let finished = false;
+    // lab.js 23.x moved the datastore and audio context from `options`/the
+    // controller to `global`; the old paths throw inside lab.js's end sequence.
     experimentToRun.on('end', () => {
-      // lab.js 23.x moved the datastore from `options.datastore` to
-      // `global.datastore` (controller.global). The old path is undefined and
-      // throws inside the end handler, aborting lab.js's end sequence.
-      const csv = experimentToRun.global.datastore.exportCsv();
-      onFinish(csv);
+      void experimentToRun.global.audioContext.close();
+      if (finished) return;
+      finished = true;
+      onFinish(experimentToRun.global.datastore.exportCsv());
     });
 
     // TODO: more natural labjs-y way to do this?
     experimentToRun.parameters.callbackForEEG = (label: string) => {
       eventCallback(label, Date.now());
-    };
-
-    experimentToRun.options.events.keydown = async (e) => {
-      if (e.code === 'Escape') {
-        if (experimentToRun) {
-          await experimentToRun.internals.controller.audioContext.close();
-          experimentToRun.end();
-        }
-      }
     };
 
     if (onProgress) {
@@ -108,16 +108,39 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
     experimentToRun.run();
 
     return () => {
+      if (finished) return;
+      finished = true;
+      let csv = '';
       try {
-        if (experimentToRun) {
-          experimentToRun.internals.controller.audioContext.close();
-          experimentToRun.end();
-        }
-      } catch (e) {
-        console.log('Experiment closed before unmount');
+        csv = experimentToRun.global.datastore.exportCsv();
+      } catch {
+        // No controller before the study prepares; nothing was recorded.
       }
+      onAbort?.(csv);
+      // A bare root `end()` does not stop lab.js 23 (the flip loop keeps
+      // iterating), and an abort between a screen's render and show frames
+      // hangs it, so the abort waits two frames for pending flips to settle.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          Promise.resolve()
+            .then(() =>
+              experimentToRun.internals.controller.jump('abort', {
+                sender: experimentToRun,
+              })
+            )
+            .catch(() => undefined);
+        })
+      );
     };
-  }, [eventCallback, experimentObject, onFinish, onProgress, params, title]);
+  }, [
+    eventCallback,
+    experimentObject,
+    onAbort,
+    onFinish,
+    onProgress,
+    params,
+    title,
+  ]);
 
   return (
     <div

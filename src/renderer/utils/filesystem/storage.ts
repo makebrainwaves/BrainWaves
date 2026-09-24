@@ -49,6 +49,15 @@ export const storeBehavioralData = (
 ): Promise<void> =>
   api().storeBehavioralData(csv, title, subject, group, session);
 
+/** Marks a session ended early: its files leave ordinary Clean/Analyze discovery. */
+export const markRecordingIncomplete = (
+  title: string,
+  subject: string,
+  group: string,
+  session: number
+): Promise<void> =>
+  api().markRecordingIncomplete(title, subject, group, session);
+
 export const importExperimentFile = (
   title: string,
   sourcePath: string

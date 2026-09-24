@@ -8,12 +8,20 @@ import {
 } from '../constants/interfaces';
 import { ExperimentStateType } from '../reducers/experimentReducer';
 
+/** How a recorded run ended; an incomplete run is kept but hidden from Clean/Analyze. */
+export type RunOutcome = 'complete' | 'incomplete';
+
 // -------------------------------------------------------------------------
 // Actions
 
 export const ExperimentActions = {
   Start: createAction('START'),
-  Stop: createAction<{ data: string }, 'STOP'>('STOP'),
+  Stop: createAction<{ data: string; outcome: RunOutcome }, 'STOP'>('STOP'),
+  /** Ends the live run early: the runtime unmounts and reports what it recorded. */
+  EndRun: createAction('END_RUN'),
+  SetEscapeHeld: createAction<boolean, 'SET_ESCAPE_HELD'>('SET_ESCAPE_HELD'),
+  /** Leaves the result screen for the Ready card. */
+  DismissRunResult: createAction('DISMISS_RUN_RESULT'),
   SetType: createAction<EXPERIMENTS, 'SET_TYPE'>('SET_TYPE'),
   SetExperimentObject: createAction<ExperimentObject, 'SET_EXPERIMENT_OBJECT'>(
     'SET_EXPERIMENT_OBJECT'

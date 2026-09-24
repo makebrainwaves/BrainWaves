@@ -79,6 +79,12 @@ declare global {
       group: string,
       session: number
     ) => Promise<boolean>;
+    markRecordingIncomplete: (
+      title: string,
+      subject: string,
+      group: string,
+      session: number
+    ) => Promise<void>;
     readFiles: (filePathsArray: string[]) => Promise<string[]>;
     readFileAsBytes: (filePath: string) => Promise<Uint8Array>;
 

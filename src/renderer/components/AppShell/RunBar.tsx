@@ -9,7 +9,7 @@ interface Props {
   workspace?: ShellWorkspace;
   device: DeviceState;
   deviceName?: string;
-  /** Should open a confirm in the container before aborting. */
+  /** Ends the run immediately — no confirm (plan §1.5); data so far is kept as incomplete. */
   onEndRun?(): void;
   /** Escape is being held; the run ends early once the hold completes. */
   escapeHeld?: boolean;

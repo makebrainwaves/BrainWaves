@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/button';
-import Mousetrap from 'mousetrap';
 import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
@@ -43,13 +42,6 @@ interface Props {
 export default function PreTestComponent(props: Props) {
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-
-  useEffect(() => {
-    Mousetrap.bind('esc', props.ExperimentActions.Stop);
-    return () => {
-      Mousetrap.unbind('esc');
-    };
-  }, [props.ExperimentActions]);
 
   function endPreview() {
     setIsPreviewing(false);

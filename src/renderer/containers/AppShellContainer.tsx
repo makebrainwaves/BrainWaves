@@ -20,6 +20,7 @@ import { ExperimentActions } from '../actions';
 import { CONNECTION_STATUS, DEVICES } from '../constants/constants';
 import { experimentLabel } from '../constants/experimentLabels';
 import { RootState } from '../store';
+import { selectRecordsEEG } from '../selectors';
 import type { ExperimentProgress } from '../components/ExperimentRuntime';
 import HeadsetSetupDialog from '../components/HeadsetSetup/HeadsetSetupDialog';
 
@@ -64,6 +65,7 @@ export default function AppShellContainer({
   const dispatch = useDispatch();
   const experiment = useSelector((state: RootState) => state.experiment);
   const device = useSelector((state: RootState) => state.device);
+  const recordsEEG = useSelector(selectRecordsEEG);
 
   const modality: Modality = experiment.isEEGEnabled ? 'eeg' : 'behavior';
   const workspace = experiment.title
@@ -135,12 +137,17 @@ export default function AppShellContainer({
       deviceName={device.connectedDevice?.name}
       run={
         isRunning
-          ? { kind: modality, elapsed, progress: formatProgress(progress) }
+          ? {
+              kind: recordsEEG ? 'eeg' : 'behavior',
+              elapsed,
+              progress: formatProgress(progress),
+            }
           : undefined
       }
       onSelectArea={(area: Area) => navigate(AREA_ROUTES[area])}
       onHome={() => navigate(HOME_ROUTE)}
-      onEndRun={() => dispatch(ExperimentActions.Stop({ data: '' }))}
+      onEndRun={() => dispatch(ExperimentActions.EndRun())}
+      escapeHeld={experiment.escapeHeld}
       onDeviceClick={headsetSetup.openHeadsetSetup}
     >
       <RunProgressContext.Provider value={setProgress}>

@@ -23,6 +23,8 @@ export interface JsPsychHostConfig {
   /** Emitted with the trial's condition label and one clock reading. */
   eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
+  /** Teardown before the timeline finished; receives the trials so far. */
+  onAbort?: (csv: string) => void;
   onProgress?: (progress: ExperimentProgress) => void;
 }
 
@@ -42,6 +44,7 @@ interface JsPsychInternals {
     description?: unknown;
   };
   abortExperiment?: (endMessage?: string) => void;
+  data?: { get: () => { values: () => Record<string, unknown>[] } };
   getProgress?: () => { total_trials?: number; current_trial_global?: number };
 }
 
@@ -169,17 +172,39 @@ export const createJsPsychHost = (
   const scope = window as unknown as Record<string, unknown>;
   const replaced = new Map<string, unknown>();
   let instance: JsPsychInternals | undefined;
+  let finished = false;
+  /** Cleared when the file fails to load, so the error screen stays up. */
+  let { onAbort } = config;
+  const route = (csv: string) => {
+    if (finished) return;
+    finished = true;
+    config.onFinish(csv);
+  };
 
   const install = (key: string, value: unknown) => {
     if (!replaced.has(key)) replaced.set(key, scope[key]);
     scope[key] = value;
   };
 
+  /**
+   * Aborts a running timeline and restores globals. The trials saved so far are
+   * reported at once: jsPsych still awaits a post-trial gap after an abort, so
+   * its own on_finish can arrive many seconds later (and is then ignored).
+   */
   const teardown = () => {
-    try {
-      instance?.abortExperiment?.();
-    } catch {
-      // A finished run has nothing left to abort; that is not an error.
+    if (!finished) {
+      finished = true;
+      const trials = instance?.data?.get().values() ?? [];
+      try {
+        instance?.abortExperiment?.();
+      } catch {
+        // An instance whose timeline never started has nothing to abort.
+      }
+      onAbort?.(
+        trials.length
+          ? toBehavioralCsv(normalizeJsPsychTrials(trials, config.mapping))
+          : ''
+      );
     }
     instance = undefined;
     for (const [key, value] of replaced) {
@@ -199,6 +224,7 @@ export const createJsPsychHost = (
     instance = initJsPsych(
       buildJsPsychOptions({
         ...config,
+        onFinish: route,
         getInstance: () => instance,
         authorOptions,
       })
@@ -217,6 +243,7 @@ export const createJsPsychHost = (
     // eslint-disable-next-line no-new-func
     new Function(source)();
   } catch (error) {
+    onAbort = undefined;
     teardown();
     throw new Error(
       `createJsPsychHost: the imported experiment threw while loading — ${

@@ -6,9 +6,10 @@ import React, {
   useState,
 } from 'react';
 import { Observable } from 'rxjs';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardContent } from '../ui/card';
-import { Link } from 'react-router-dom';
+import RunResult from './RunResult';
 import InputCollect from '../InputCollect';
 import { emitMarker } from '../../utils/eeg';
 import { resolveMarkerRegistry } from '../../utils/eeg/markerRegistry';
@@ -28,12 +29,18 @@ import {
   SignalQualityData,
 } from '../../constants/interfaces';
 import { ExperimentActions as globalExperimentActions } from '../../actions';
+import type { RunOutcome } from '../../actions/experimentActions';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 
 interface Props {
   type: EXPERIMENTS;
   title: string;
   isRunning: boolean;
+  /** End early was asked for; the runtime unmounts and reports what it recorded. */
+  isEnding: boolean;
+  runOutcome: RunOutcome | null;
+  /** The run captures EEG (EEG on and a headset connected), not just key presses. */
+  recordsEEG: boolean;
   params: ExperimentParameters;
   subject: string;
   experimentObject: ExperimentObject;
@@ -49,6 +56,9 @@ const Run: React.FC<Props> = ({
   type,
   title,
   isRunning,
+  isEnding,
+  runOutcome,
+  recordsEEG,
   params,
   subject,
   experimentObject,
@@ -62,10 +72,7 @@ const Run: React.FC<Props> = ({
   const [isInputCollectOpen, setIsInputCollectOpen] = useState(
     subject.length === 0
   );
-  // A run finished this session — show a completion panel that points forward to
-  // Clean, instead of silently dropping back to the identical pre-run landing.
-  const [hasFinished, setHasFinished] = useState(false);
-
+  const navigate = useNavigate();
   // 'armed': checks passed, waiting for SPACE; nothing is recorded yet.
   // 'starting': SPACE pressed, Start dispatched; the gate stays up until the
   // run is live so the Ready card doesn't flash, and SPACE can't start twice.
@@ -155,38 +162,37 @@ const Run: React.FC<Props> = ({
   );
 
   const onFinish = useCallback(
-    (csv) => {
-      ExperimentActions.Stop({ data: csv });
-      setHasFinished(true);
-    },
+    (csv: string) => ExperimentActions.Stop({ data: csv, outcome: 'complete' }),
     [ExperimentActions]
   );
+  const onAbort = useCallback(
+    (csv: string) =>
+      ExperimentActions.Stop({ data: csv, outcome: 'incomplete' }),
+    [ExperimentActions]
+  );
+  const handleRunAnother = useCallback(() => {
+    ExperimentActions.DismissRunResult();
+    setIsInputCollectOpen(true);
+  }, [ExperimentActions]);
 
-  const handleRunAgain = useCallback(() => {
-    setHasFinished(false);
-  }, []);
+  const result = isRunning ? isEnding && 'saving' : runOutcome;
 
   return (
-    <div className="h-screen p-[3%] bg-app" data-tid="container">
+    <div className="h-full p-[3%] bg-app" data-tid="container">
       <div className="h-full">
-        {!isRunning && hasFinished && (
-          <div className="flex flex-col items-center justify-center h-full text-center gap-4">
-            <h1 className="m-0">Recording complete 🎉</h1>
-            <p className="text-gray-600">
-              Saved <b>{subject}</b>&apos;s data. Ready to clean and analyze it?
-            </p>
-            <div className="flex gap-3 mt-2">
-              <Button asChild variant="default">
-                <Link to={SCREENS.CLEAN.route}>Clean your data →</Link>
-              </Button>
-              <Button variant="secondary" onClick={handleRunAgain}>
-                Run again
-              </Button>
-            </div>
-          </div>
+        {result && (
+          <RunResult
+            outcome={result}
+            modality={recordsEEG ? 'eeg' : 'behavior'}
+            subject={subject}
+            onClean={() => navigate(SCREENS.CLEAN.route)}
+            onAnalyze={() => navigate(SCREENS.ANALYZE.route)}
+            onRunAnother={handleRunAnother}
+            onRunAgain={() => ExperimentActions.DismissRunResult()}
+          />
         )}
 
-        {!isRunning && !hasFinished && gate !== 'off' && (
+        {!isRunning && !runOutcome && gate !== 'off' && (
           <div
             role="dialog"
             aria-label="Press space to begin"
@@ -210,7 +216,7 @@ const Run: React.FC<Props> = ({
           </div>
         )}
 
-        {!isRunning && !hasFinished && gate === 'off' && (
+        {!isRunning && !runOutcome && gate === 'off' && (
           <div className="flex items-center justify-center h-full">
             <Card className="w-full max-w-lg">
               <CardHeader>
@@ -268,7 +274,7 @@ const Run: React.FC<Props> = ({
           </div>
         )}
 
-        {isRunning && (
+        {isRunning && !isEnding && (
           <div className="h-full w-full">
             <ExperimentRuntime
               type={type}
@@ -277,6 +283,7 @@ const Run: React.FC<Props> = ({
               params={params}
               eventCallback={eventCallback}
               onFinish={onFinish}
+              onAbort={onAbort}
               onProgress={reportProgress}
             />
           </div>

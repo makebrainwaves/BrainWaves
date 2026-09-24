@@ -28,9 +28,7 @@ const baseProps = {
   onFinish: vi.fn(),
 };
 
-const importedParams = (
-  overrides: Record<string, unknown> = {}
-): never =>
+const importedParams = (overrides: Record<string, unknown> = {}): never =>
   ({
     stimuli: [],
     imported: {
@@ -72,7 +70,9 @@ describe('ExperimentRuntime', () => {
       />
     );
     await waitFor(() =>
-      expect(screen.getByTestId('jspsych')).toHaveTextContent('initJsPsych({});')
+      expect(screen.getByTestId('jspsych')).toHaveTextContent(
+        'initJsPsych({});'
+      )
     );
     expect(readImportedExperimentFile).toHaveBeenCalledWith(
       'My_Study',
@@ -81,13 +81,18 @@ describe('ExperimentRuntime', () => {
   });
 
   it('parses an imported lab.js study and hands it to the lab.js runtime', async () => {
-    readImportedExperimentFile.mockResolvedValue('{"type":"lab.flow.Sequence"}');
+    readImportedExperimentFile.mockResolvedValue(
+      '{"type":"lab.flow.Sequence"}'
+    );
     render(
       <ExperimentRuntime
         {...baseProps}
         type={EXPERIMENTS.IMPORTED}
         experimentObject={{}}
-        params={importedParams({ kind: 'labjs', file: 'experiment/study.json' })}
+        params={importedParams({
+          kind: 'labjs',
+          file: 'experiment/study.json',
+        })}
       />
     );
     await waitFor(() =>

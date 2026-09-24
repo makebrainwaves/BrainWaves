@@ -1,13 +1,17 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { of } from 'rxjs';
+import { concat, fromEvent, of, race, timer } from 'rxjs';
 import {
   map,
   mergeMap,
+  exhaustMap,
   filter,
+  switchMap,
+  take,
   takeUntil,
   debounceTime,
   tap,
 } from 'rxjs/operators';
+import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import {
   DeviceActions,
@@ -18,6 +22,7 @@ import { RouterActions } from '../actions/routerActions';
 import { MUSE_CHANNELS, CONNECTION_STATUS } from '../constants/constants';
 import { isWorkspaceRoute } from '../components/AppShell/areas';
 import {
+  closeEEGStream,
   createEEGWriteStream,
   writeHeader,
   writeEEGData,
@@ -29,6 +34,7 @@ import {
   restoreExperimentState,
   createWorkspaceDir,
   storeBehavioralData,
+  markRecordingIncomplete,
   getWorkspaceDir,
 } from '../utils/filesystem/storage';
 import { RootState } from '../reducers';
@@ -65,11 +71,15 @@ const createNewWorkspaceEpic: Epic<
     mergeMap((actions) => of(...actions))
   );
 
+/** The open raw-EEG write stream of the current run; closed by the stop epic. */
+let activeEEGStream: string | null = null;
+
 const startEpic = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.Start)),
     filter(() => !state$.value.experiment.isRunning),
     mergeMap(async () => {
+      activeEEGStream = null;
       await createWorkspaceDir(state$.value.experiment.title);
       if (
         state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
@@ -84,6 +94,7 @@ const startEpic = (action$, state$) =>
         if (!streamId) {
           return true;
         }
+        activeEEGStream = streamId;
         writeHeader(
           streamId,
           state$.value.device.connectedDevice?.channels ?? MUSE_CHANNELS
@@ -121,6 +132,13 @@ const startEpic = (action$, state$) =>
     map(ExperimentActions.SetIsRunning)
   );
 
+/**
+ * Finalizes a run exactly once: closes the EEG stream (the raw subscription
+ * already ended on Stop), writes behavior, and for an ended-early run renames
+ * both files so Clean and Analyze skip them. Each step runs even if an earlier
+ * one failed, so a failed behavior write never leaves an ended-early EEG file
+ * discoverable. Stops arriving meanwhile are ignored.
+ */
 const experimentStopEpic: Epic<
   ExperimentActionType,
   ExperimentActionType,
@@ -129,20 +147,93 @@ const experimentStopEpic: Epic<
   action$.pipe(
     filter(isActionOf(ExperimentActions.Stop)),
     filter(() => state$.value.experiment.isRunning),
-    map((action) => action.payload as { data: string }),
-    map(({ data }) => {
-      if (!state$.value.experiment.title) {
-        return;
+    exhaustMap(async ({ payload: { data, outcome } }) => {
+      const { title, subject, group, session } = state$.value.experiment;
+      const streamId = activeEEGStream;
+      activeEEGStream = null;
+      const failures: string[] = [];
+      const step = async (work: () => Promise<void>) => {
+        try {
+          await work();
+        } catch (error) {
+          failures.push((error as Error).message);
+        }
+      };
+      if (streamId) await step(() => closeEEGStream(streamId));
+      if (title) {
+        if (data)
+          await step(() =>
+            storeBehavioralData(data, title, subject, group, session)
+          );
+        if (outcome === 'incomplete')
+          await step(() =>
+            markRecordingIncomplete(title, subject, group, session)
+          );
       }
-      storeBehavioralData(
-        data,
-        state$.value.experiment.title,
-        state$.value.experiment.subject,
-        state$.value.experiment.group,
-        state$.value.experiment.session
-      );
-    }),
-    mergeMap(() => of(ExperimentActions.SetIsRunning(false)))
+      if (failures.length)
+        toast.error(`Couldn't finish saving this run: ${failures.join('; ')}`);
+      return ExperimentActions.SetIsRunning(false);
+    })
+  );
+
+/** How long Escape must be held to end a run early; a tap never ends it. */
+const END_EARLY_HOLD_MS = 1000;
+/** ponytail: a runtime that never reports on teardown gets this long, then the run ends with no behavior data. */
+const ABORT_FALLBACK_MS = 3000;
+
+const escapeKey = (type: 'keydown' | 'keyup') =>
+  fromEvent<KeyboardEvent>(window, type, { capture: true }).pipe(
+    filter((event) => event.key === 'Escape')
+  );
+
+/**
+ * Holding Escape for END_EARLY_HOLD_MS during a run ends it early, the same as
+ * the RunBar button; letting go sooner keeps it running. Keys still reach the
+ * study, whose own presentation is untouched.
+ */
+const escapeHoldEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  escapeKey('keydown').pipe(
+    filter(
+      (event) =>
+        !event.repeat &&
+        state$.value.experiment.isRunning &&
+        !state$.value.experiment.isEnding
+    ),
+    exhaustMap(() =>
+      concat(
+        of(ExperimentActions.SetEscapeHeld(true)),
+        race(
+          timer(END_EARLY_HOLD_MS).pipe(map(() => ExperimentActions.EndRun())),
+          escapeKey('keyup').pipe(
+            take(1),
+            map(() => ExperimentActions.SetEscapeHeld(false))
+          )
+        )
+      ).pipe(
+        takeUntil(action$.pipe(filter(isActionOf(ExperimentActions.Stop))))
+      )
+    )
+  );
+
+/** Ends an ended-early run with no behavior data if the runtime never reports. */
+const endRunFallbackEpic: Epic<
+  ExperimentActionType,
+  ExperimentActionType,
+  RootState
+> = (action$, state$) =>
+  action$.pipe(
+    filter(isActionOf(ExperimentActions.EndRun)),
+    filter(() => state$.value.experiment.isRunning),
+    switchMap(() =>
+      timer(ABORT_FALLBACK_MS).pipe(
+        takeUntil(action$.pipe(filter(isActionOf(ExperimentActions.Stop)))),
+        map(() => ExperimentActions.Stop({ data: '', outcome: 'incomplete' }))
+      )
+    )
   );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,6 +298,8 @@ export default combineEpics(
   createNewWorkspaceEpic,
   startEpic,
   experimentStopEpic,
+  escapeHoldEpic,
+  endRunFallbackEpic,
   autoSaveEpic,
   saveWorkspaceEpic,
   navigationCleanupEpic,

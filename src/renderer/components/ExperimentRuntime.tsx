@@ -28,6 +28,11 @@ export interface ExperimentRuntimeProps {
   /** Emitted at stimulus onset with the trial's condition label and one clock reading. */
   eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
+  /**
+   * Called once if the runtime is torn down before the study finishes, with the
+   * trials recorded so far ('' if none). Omitted by Preview, which records nothing.
+   */
+  onAbort?: (csv: string) => void;
   /** Called as trials start; `null` between trial blocks. */
   onProgress?: (progress: ExperimentProgress | null) => void;
 }
@@ -52,6 +57,11 @@ const resolveImport = async (
   return { kind: 'labjs', study: JSON.parse(source) as ExperimentObject };
 };
 
+/**
+ * Picks the runtime for a study. An imported study that is still loading or
+ * failed has no runtime to report an early exit; the end-run fallback epic
+ * ends that run.
+ */
 export const ExperimentRuntime: React.FC<Props> = ({
   type,
   experimentObject,
