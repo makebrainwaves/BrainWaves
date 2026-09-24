@@ -39,7 +39,7 @@ p {
 .experiment-design-copy {
   margin: 0;
   font-size: 19px;
-  line-height: 1.55;
+  line-height: 1.8;
   letter-spacing: 0.3px;
   text-wrap: pretty;
 }
@@ -47,7 +47,7 @@ p {
 .experiment-design-card-copy {
   margin: 0;
   font-size: 17px;
-  line-height: 1.5;
+  line-height: 1.7;
   letter-spacing: 0.3px;
   text-wrap: pretty;
 }
