@@ -218,7 +218,6 @@ describe('createJsPsychHost', () => {
         {
           hostElementId: 'host',
           mapping,
-          registry,
           eventCallback: vi.fn(),
           onProgress: (progress) => reports.push(progress),
           onFinish: () => {
