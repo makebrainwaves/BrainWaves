@@ -413,8 +413,12 @@ not only `.container.fullscreen`, or the footer spills over Stop preview.
 `skip: "${ state.response === 'skipPractice' }"` on the loop after an
 instruction screen is parsed with stale state and is always false —
 `tardy: true` does not help, because the stack walk calls `prepare()`
-directly. Confirmed with real lab.js under jsdom. Q-to-skip-practice is
-broken in every study that advertises it (see TODOS).
+directly. Confirmed with real lab.js under jsdom. Skip from the screen that
+decides instead: `skipPracticeOnRequest` (`utils/labjs/functions.ts`) is an
+instruction-screen `end` hook that sets `options.skip = true` on the next
+sibling, which lab.js checks in `run()` right after `stopOutgoing`. Don't
+keep a `skip` template string on that block: its parsed value is an own
+property on the options proxy and would shadow the raw `true`.
 
 ## CDP playtest traps: hidden window and fast key presses
 
