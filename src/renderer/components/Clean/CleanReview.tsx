@@ -260,12 +260,16 @@ export default function CleanReview(props: CleanReviewProps) {
         <div className="flex h-[224px] flex-none gap-[12px]">
           <section
             aria-label="Live ERP"
-            className="flex w-[440px] flex-none flex-col rounded-lg border border-gray-200 bg-white px-[12px] pb-[8px] pt-[6px]"
+            className={
+              props.suggestions.length > 0
+                ? 'flex w-[440px] flex-none flex-col rounded-lg border border-gray-200 bg-white px-[12px] pb-[8px] pt-[6px]'
+                : 'flex flex-1 flex-col rounded-lg border border-gray-200 bg-white px-[12px] pb-[8px] pt-[6px]'
+            }
           >
             <FitPane
               logicalWidth={640}
               logicalHeight={344}
-              className="min-h-0 w-full flex-1"
+              className="flex min-h-0 w-full flex-1 items-center justify-center"
             >
               <LiveErpPane
                 epochArrays={props.epochArrays}
@@ -274,23 +278,17 @@ export default function CleanReview(props: CleanReviewProps) {
               />
             </FitPane>
           </section>
-          <section
-            aria-label="Auto-flag suggestions"
-            className="flex min-w-0 flex-1 flex-col gap-[6px] rounded-lg border border-gray-200 bg-white p-[14px]"
-          >
-            <div className="flex items-baseline gap-[10px]">
-              <span className={railLabel}>Suggested by auto-flag</span>
-              <div className="text-[12px] text-ink-muted">
-                Suggestions, not decisions — you decide.
+          {props.suggestions.length > 0 && (
+            <section
+              aria-label="Auto-flag suggestions"
+              className="flex min-w-0 flex-1 flex-col gap-[6px] rounded-lg border border-gray-200 bg-white p-[14px]"
+            >
+              <div className="flex items-baseline gap-[10px]">
+                <span className={railLabel}>Suggested by auto-flag</span>
+                <div className="text-[12px] text-ink-muted">
+                  Suggestions, not decisions — you decide.
+                </div>
               </div>
-            </div>
-            {props.suggestions.length === 0 ? (
-              <div className="text-[13px] leading-[1.5] text-ink-muted">
-                No suggestions yet. Suggest noisy trials in the left panel and
-                they will collect here for you to review — accepting one leaves
-                that trial out, Restore puts it back.
-              </div>
-            ) : (
               <ul className="m-0 flex flex-col gap-[4px] p-0">
                 {props.suggestions.map((suggestion) => (
                   <li
@@ -334,8 +332,8 @@ export default function CleanReview(props: CleanReviewProps) {
                   </li>
                 ))}
               </ul>
-            )}
-          </section>
+            </section>
+          )}
         </div>
       </>
     );
