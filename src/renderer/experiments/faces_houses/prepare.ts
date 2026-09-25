@@ -13,10 +13,10 @@ export const prepare: PrepareFixture = {
   background,
   protocol,
   icon,
-  // §6.3: Oliver Sacks clip rights are unconfirmed, so Background shows the local illustrated stand-in, not a remote player.
+  // §6.3: Oliver Sacks clip rights are unconfirmed, so Background shows a local illustration and transcript-length text, not a remote player.
   mediaFallback: {
-    caption: 'Oliver Sacks on face blindness',
-    alt: 'Illustrated portrait of Oliver Sacks',
+    caption: 'Oliver Sacks and face blindness',
+    alt: 'Illustration: a row of people; one familiar face looks blank, with a question mark above it',
   },
   responses: [
     { key: '1', label: 'Face', stimulus: { src: face, alt: 'A face photo' } },

@@ -369,7 +369,18 @@ function BackgroundView({
   );
 }
 
-/** The video slot in Background's column, holding the local Sacks stand-in and its transcript-length text. */
+/** Hair shapes for the face-crowd illustration, drawn above a head centred at (0, 0). */
+const HAIR = [
+  'M-34 -4a34 34 0 0 1 68 0c-10-12-24-16-34-16s-24 4-34 16z',
+  'M-34 0a34 34 0 0 1 68 0l-6-10-10 6-8-10-10 8-10-8-8 10-10-6z',
+  'M-36 6a36 38 0 0 1 72 0c-6-20-20-26-36-26S-30-14-36 6z',
+];
+
+/**
+ * Background's local stand-in for the Oliver Sacks clip (§6.3): a flat
+ * two-tone illustration of a crowd in which one familiar face reads as blank
+ * with a "?", then the transcript-length explanation and its source.
+ */
 function OliverSacksFallback({
   media,
 }: {
@@ -378,22 +389,59 @@ function OliverSacksFallback({
   return (
     <section className="flex flex-col gap-3 pt-2">
       <h2 className="m-0 text-[22px] font-normal">{media.caption}</h2>
-      <div
+      <svg
         role="img"
-        aria-label={`Illustration placeholder: ${media.alt}`}
-        className="flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white"
+        aria-label={media.alt}
+        viewBox="0 0 520 150"
+        className="h-auto w-full rounded-lg border border-[#f6ead3] bg-[#fffaf0] stroke-ink text-ink"
+        strokeWidth="1.5"
       >
-        <span
-          aria-hidden
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-xl"
-        >
-          🎬
-        </span>
-        <span className="text-[15px] font-bold text-ink-muted">
-          Illustration placeholder (video slot, 16:9)
-        </span>
-        <span className="text-[14px] text-ink-muted">{media.alt}</span>
-      </div>
+        {[0, 1, 2, 3, 4].map((i) => {
+          const unknown = i === 2;
+          return (
+            <g key={i} transform={`translate(${60 + i * 100} 86)`}>
+              <path
+                d="M-46 64c0-24 20-36 46-36s46 12 46 36z"
+                className="fill-accent"
+              />
+              <circle r="34" className="fill-accent-light" />
+              <path d={HAIR[i % HAIR.length]} className="fill-accent" />
+              {unknown ? (
+                <>
+                  <path
+                    d="M-24 -78h48a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H6l-6 8-6-8h-18a10 10 0 0 1-10-10v-20a10 10 0 0 1 10-10z"
+                    className="fill-white"
+                  />
+                  <text
+                    x="0"
+                    y="-50"
+                    textAnchor="middle"
+                    className="fill-ink stroke-none text-[24px] font-bold"
+                  >
+                    ?
+                  </text>
+                </>
+              ) : (
+                <>
+                  <circle
+                    cx="-11"
+                    cy="2"
+                    r="2.5"
+                    className="fill-ink stroke-none"
+                  />
+                  <circle
+                    cx="11"
+                    cy="2"
+                    r="2.5"
+                    className="fill-ink stroke-none"
+                  />
+                  <path d="M-9 15q9 7 18 0" fill="none" />
+                </>
+              )}
+            </g>
+          );
+        })}
+      </svg>
       <p className="experiment-design-copy m-0 !leading-snug">
         Some people cannot recognize faces — even faces they have seen thousands
         of times. Neurologist Oliver Sacks described this in himself: he might

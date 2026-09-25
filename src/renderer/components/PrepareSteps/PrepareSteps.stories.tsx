@@ -296,7 +296,7 @@ export const EEGOff: Story = {
   ),
 };
 
-/** P10 — OliverSacksFallback. Background's video slot holds the local stand-in (16:9 placeholder) and transcript-length text; no remote player. */
+/** P10 — OliverSacksFallback. Background's Sacks stand-in: a local face-crowd illustration (one familiar face blank, with a "?") and transcript-length text; no remote player. */
 export const OliverSacksFallback: Story = {
   render: () => (
     <PrepareSteps
