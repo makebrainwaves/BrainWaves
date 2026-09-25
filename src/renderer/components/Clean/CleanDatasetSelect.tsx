@@ -8,9 +8,9 @@ import type { RawRecording } from './fixtures';
 
 export interface CleanDatasetSelectProps {
   recordings: RawRecording[];
-  /** Keys of the recordings chosen for cleaning. */
-  selected: string[];
-  onSelectChange(keys: string[]): void;
+  /** The one recording chosen for cleaning — Clean loads a single recording. */
+  selected: string | null;
+  onSelectChange(key: string): void;
   /** Ended-early recordings stay hidden until the student asks for them. */
   showIncomplete: boolean;
   onShowIncompleteChange(show: boolean): void;
@@ -32,7 +32,7 @@ const LOOP = [
 ];
 
 /**
- * Clean's first phase: pick a complete raw recording to clean. Ended-early
+ * Clean's first phase: pick one complete raw recording to clean. Ended-early
  * recordings are hidden by default and, once revealed, are clearly incomplete
  * and deletable but never selectable as cleaning candidates. Pure props.
  */
@@ -50,7 +50,7 @@ export default function CleanDatasetSelect({
 }: CleanDatasetSelectProps) {
   const complete = recordings.filter((r) => !r.incomplete);
   const incomplete = recordings.filter((r) => r.incomplete);
-  const chosen = recordings.filter((r) => selected.includes(r.key));
+  const chosen = recordings.find((r) => r.key === selected) ?? null;
 
   const rail = (
     <>
@@ -70,24 +70,19 @@ export default function CleanDatasetSelect({
       </RailSection>
       <RailSection label="Your pick" className="border-t border-gray-200 pt-[12px]">
         <div className="text-[14px] text-ink">
-          {chosen.length === 0 ? (
-            'Nothing chosen yet.'
-          ) : (
+          {chosen ? (
             <>
-              <div className="font-bold">
-                {chosen.length} recording{chosen.length === 1 ? '' : 's'} ·{' '}
-                {chosen.map((r) => r.subject).join(', ')}
-              </div>
-              <div className="truncate text-ink-muted">
-                {chosen.map((r) => r.name).join(', ')}
-              </div>
+              <div className="font-bold">{chosen.subject}</div>
+              <div className="truncate text-ink-muted">{chosen.name}</div>
             </>
+          ) : (
+            'Nothing chosen yet.'
           )}
         </div>
         <Button
           className="mt-[4px] w-full"
           size="lg"
-          disabled={chosen.length === 0}
+          disabled={chosen === null}
           onClick={onStart}
         >
           Start cleaning
@@ -101,14 +96,18 @@ export default function CleanDatasetSelect({
       <section className="flex min-h-0 flex-1 flex-col rounded-lg border border-gray-200 bg-white p-[24px]">
         <h2 className="m-0 text-[22px] font-light text-ink">Clean your data</h2>
         <div className="mt-[4px] text-[15px] leading-[1.5] text-ink-muted">
-          Choose a complete raw recording. You can pick more than one; cleaning
-          saves a new copy and never changes the original.
+          Choose a complete raw recording. Cleaning saves a new copy and never
+          changes the original.
         </div>
 
         <div className={`${railLabel} mt-[16px]`}>Complete recordings</div>
-        <ul className="m-0 mt-[6px] flex flex-col gap-[6px] p-0">
+        <ul
+          role="radiogroup"
+          aria-label="Complete recordings"
+          className="m-0 mt-[6px] flex flex-col gap-[6px] p-0"
+        >
           {complete.map((recording) => {
-            const checked = selected.includes(recording.key);
+            const checked = selected === recording.key;
             return (
               <li key={recording.key}>
                 <label
@@ -120,16 +119,11 @@ export default function CleanDatasetSelect({
                   )}
                 >
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="clean-recording"
                     className="h-[16px] w-[16px] accent-brand"
                     checked={checked}
-                    onChange={() =>
-                      onSelectChange(
-                        checked
-                          ? selected.filter((k) => k !== recording.key)
-                          : [...selected, recording.key]
-                      )
-                    }
+                    onChange={() => onSelectChange(recording.key)}
                   />
                   <span className="font-bold text-ink">{recording.subject}</span>
                   <span className="text-[14px] text-ink">{recording.name}</span>

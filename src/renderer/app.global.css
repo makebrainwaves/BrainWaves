@@ -408,14 +408,6 @@ li {
   list-style: none;
 }
 
-/* Clean review pair (components/Clean/CleanReview): EpochReviewer and
-   LiveErpPane draw at a fixed 640px logical width. `zoom` scales them —
-   layout included — so both fit beside the 300px rail at 1280 wide without
-   page scroll. */
-.bw-clean-fit {
-  zoom: 0.7;
-}
-
 a {
   color: inherit;
   text-decoration: none;

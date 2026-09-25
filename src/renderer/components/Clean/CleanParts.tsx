@@ -1,5 +1,6 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/button';
+import { cn } from '../ui/utils';
 import {
   Dialog,
   DialogContent,
@@ -28,11 +29,54 @@ export function CleanLayout({
       <h1 className="sr-only">{title}</h1>
       <aside
         aria-label="Cleaning controls"
-        className="flex w-[300px] flex-none flex-col gap-[12px] overflow-y-auto rounded-lg border border-gray-200 bg-white p-[16px]"
+        className="flex w-[300px] flex-none flex-col gap-[5px] overflow-y-auto rounded-lg border border-gray-200 bg-white p-[14px]"
       >
         {rail}
       </aside>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-[12px]">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Scales a fixed-logical-size pane (`EpochReviewer`, `LiveErpPane`) to fill
+ * its box — `zoom`, so layout and click targets scale together — so the real
+ * panes use the space they are given instead of sitting at their hand-coded
+ * 640px width.
+ */
+export function FitPane({
+  logicalWidth,
+  logicalHeight,
+  className,
+  children,
+}: {
+  /** The pane's natural size in CSS px. */
+  logicalWidth: number;
+  logicalHeight: number;
+  className?: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  useEffect(() => {
+    const box = ref.current;
+    if (!box) {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => {
+      const { width, height } = box.getBoundingClientRect();
+      if (width > 0 && height > 0) {
+        setZoom(Math.min(width / logicalWidth, height / logicalHeight));
+      }
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [logicalWidth, logicalHeight]);
+  return (
+    <div ref={ref} className={cn('min-h-0 min-w-0 overflow-hidden', className)}>
+      <div style={{ zoom, width: logicalWidth, height: logicalHeight }}>
         {children}
       </div>
     </div>

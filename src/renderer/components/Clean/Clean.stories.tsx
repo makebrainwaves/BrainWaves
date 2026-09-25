@@ -74,7 +74,7 @@ function SelectHarness({
   recordings: RawRecording[];
   initialShowIncomplete?: boolean;
 }) {
-  const [selected, setSelected] = useState([recordings[0].key]);
+  const [selected, setSelected] = useState<string | null>(recordings[0].key);
   const [showIncomplete, setShowIncomplete] = useState(initialShowIncomplete);
   const [deleting, setDeleting] = useState<RawRecording | null>(null);
   return (

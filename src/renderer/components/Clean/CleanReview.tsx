@@ -6,8 +6,13 @@ import LiveErpPane from '../CleanComponent/LiveErpPane';
 import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
 import { RailSection, ResultStatus, railLabel } from '../Analyze/AnalyzeParts';
-import { CleanLayout, ConfirmDialog } from './CleanParts';
-import { CleanPrimer, PrimerPointer, PrimerStep } from './CleanPrimer';
+import { CleanLayout, ConfirmDialog, FitPane } from './CleanParts';
+import {
+  CleanPrimerBar,
+  CleanPrimerCard,
+  PrimerPointer,
+  PrimerStep,
+} from './CleanPrimer';
 import type { EpochArrays } from './fixtures';
 
 /** Which `CleanComponent` confirmation is open, restyled as an in-app dialog. */
@@ -62,11 +67,13 @@ export interface CleanReviewProps {
 }
 
 /**
- * Clean's review phase: the Epoch Reviewer and the Live ERP as a coordinated
- * pair beside the controls rail, with the always-available primer, auto-flag
- * suggestions to review, and the save states. Everything fits the window with
- * no page scroll. Pure props; the real reviewer and ERP panes are rendered
- * unmodified.
+ * Clean's review phase. The Epoch Reviewer fills the working area — it is the
+ * thing students click, and its fixed 640×426 drawing box has almost exactly
+ * the aspect of the area, so scaled up it uses all of it. The Live ERP, the
+ * auto-flag suggestions and the save controls live in the rail; the primer is
+ * a rail bar whose steps open as a card near their pointer target. Everything
+ * fits the window with no page scroll. Pure props; the real reviewer and ERP
+ * panes are rendered unmodified inside `FitPane`.
  */
 export default function CleanReview(props: CleanReviewProps) {
   const meta = props.epochArrays?.meta ?? null;
@@ -78,17 +85,37 @@ export default function CleanReview(props: CleanReviewProps) {
   const rail = (
     <>
       <RailSection label="Dataset">
-        <div className="min-w-0 text-[14px]">
-          <div className="font-bold text-ink">{dataset.subject}</div>
-          <div className="truncate text-ink-muted">{dataset.recording}</div>
-        </div>
-        <Button variant="ghost" size="sm" onClick={props.onBackToSelection}>
-          ← Pick different data
-        </Button>
-      </RailSection>
-      <RailSection label="Auto-flag" className="border-t border-gray-200 pt-[12px]">
         <div className="flex items-center gap-[8px]">
-          <span className="text-[12px] text-ink-muted">More flags</span>
+          <div className="min-w-0 flex-1 truncate text-[13px] leading-[1.35]">
+            <span className="font-bold text-ink">{dataset.subject}</span>
+            <span className="text-ink-muted"> · {dataset.recording}</span>
+          </div>
+          <Button
+            variant="link"
+            size="sm"
+            className="flex-none"
+            onClick={props.onBackToSelection}
+          >
+            ← Pick different data
+          </Button>
+        </div>
+      </RailSection>
+      <div className="border-t border-gray-200 pt-[8px]">
+        <FitPane
+          logicalWidth={640}
+          logicalHeight={344}
+          className="h-[86px] w-full"
+        >
+          <LiveErpPane
+            epochArrays={props.epochArrays}
+            rejected={props.rejected}
+            codeToLabel={props.codeToLabel}
+          />
+        </FitPane>
+      </div>
+      <RailSection label="Auto-flag" className="border-t border-gray-200 pt-[8px]">
+        <div className="flex items-center gap-[8px]">
+          <span className="text-[11px] text-ink-muted">More flags</span>
           <input
             id="clean-autoflag-threshold"
             type="range"
@@ -100,52 +127,77 @@ export default function CleanReview(props: CleanReviewProps) {
             onChange={(e) => props.onThresholdChange(Number(e.target.value))}
             className="flex-1 accent-brand"
           />
-          <span className="text-[12px] text-ink-muted">Fewer flags</span>
-        </div>
-        <div className="text-[12px] leading-[1.4] text-ink-muted">
-          Suggests trials whose peak-to-peak amplitude goes over{' '}
-          {props.autoFlagThreshold} µV.
+          <span className="text-[11px] text-ink-muted">Fewer</span>
         </div>
         <Button variant="outline-brand" size="sm" onClick={props.onSuggest}>
           Suggest noisy trials
         </Button>
+        {props.suggestions.length > 0 && (
+          <ul className="m-0 flex flex-col gap-[2px] p-0">
+            {props.suggestions.map((suggestion) => (
+              <li key={suggestion.index}>
+                <Button
+                  variant={suggestion.accepted ? 'outline' : 'outline-brand'}
+                  size="sm"
+                  aria-pressed={suggestion.accepted}
+                  className="flex h-[28px] w-full items-center justify-between gap-[6px] px-[8px]"
+                  onClick={() =>
+                    suggestion.accepted
+                      ? props.onRestoreSuggestion(suggestion.index)
+                      : props.onAcceptSuggestion(suggestion.index)
+                  }
+                >
+                  <span className="min-w-0 truncate text-[12px]">
+                    <span className="font-bold">Trial {suggestion.index}</span>
+                    <span className="ml-[4px] text-ink-muted">
+                      {suggestion.reason}
+                    </span>
+                  </span>
+                  <span className="flex-none text-[12px]">
+                    {suggestion.accepted ? '✓ Left out · Restore' : 'Accept'}
+                  </span>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
       </RailSection>
-      <RailSection label="Exclusions" className="border-t border-gray-200 pt-[12px]">
+      <RailSection label="Exclusions" className="border-t border-gray-200 pt-[8px]">
         {total === 0 ? (
-          <div className="text-[14px] text-ink-muted">
+          <div className="text-[13px] text-ink-muted">
             Counts show up once the trials are loaded.
           </div>
         ) : (
-          <div className="text-[14px] leading-[1.5] text-ink">
-          <div>
-            {props.rejected.size} of {total} trials left out
-            {props.rejected.size > 0 &&
-              (acceptedCount > 0 && props.rejected.size > acceptedCount
-                ? ` — ${props.rejected.size - acceptedCount} clicked by you, ${acceptedCount} accepted from suggestions`
-                : acceptedCount > 0
-                  ? ' — all accepted from suggestions'
-                  : ' — all clicked by you')}
-          </div>
-          <div>
-            {props.badChannels.size === 0
-              ? 'No sensors flagged'
-              : `Sensor${props.badChannels.size === 1 ? '' : 's'} flagged: ${[
-                  ...props.badChannels,
-                ].join(', ')}`}
-          </div>
-          <div className="font-bold">{kept} trials will be averaged</div>
+          <div className="text-[12px] leading-[1.3] text-ink">
+            <div>
+              {props.rejected.size} of {total} trials left out
+              {props.rejected.size > 0 &&
+                (acceptedCount > 0 && props.rejected.size > acceptedCount
+                  ? ` (${props.rejected.size - acceptedCount} by you, ${acceptedCount} suggested)`
+                  : acceptedCount > 0
+                    ? ' (all suggested)'
+                    : ' (all by you)')}
+            </div>
+            <div>
+              {props.badChannels.size === 0
+                ? 'No sensors flagged'
+                : `Sensor${props.badChannels.size === 1 ? '' : 's'} flagged: ${[
+                    ...props.badChannels,
+                  ].join(', ')}`}
+            </div>
+            <div className="font-bold">{kept} trials will be averaged</div>
           </div>
         )}
       </RailSection>
-      <RailSection label="Save" className="border-t border-gray-200 pt-[12px]">
+      <RailSection label="Save" className="border-t border-gray-200 pt-[8px]">
         {props.saveState === 'saving' && (
           <div role="status" className="flex items-center gap-[8px]">
             <Spinner size={20} aria-hidden />
             <div>
-              <div className="text-[14px] font-bold text-ink">
+              <div className="text-[13px] font-bold text-ink">
                 Saving your cleaned dataset…
               </div>
-              <div className="text-[12px] leading-[1.4] text-ink-muted">
+              <div className="text-[11px] leading-[1.35] text-ink-muted">
                 Writing a cleaned copy. Your original recording is unchanged.
               </div>
             </div>
@@ -153,10 +205,10 @@ export default function CleanReview(props: CleanReviewProps) {
         )}
         {props.saveState === 'failed' && (
           <div role="alert">
-            <div className="text-[14px] font-bold text-red-700">
+            <div className="text-[13px] font-bold text-red-700">
               Couldn&apos;t save the cleaned dataset
             </div>
-            <div className="mt-[2px] text-[12px] leading-[1.4] text-ink-muted">
+            <div className="mt-[2px] text-[11px] leading-[1.35] text-ink-muted">
               Nothing was written — your original recording is unchanged.
             </div>
             <div className="mt-[6px] flex gap-[8px]">
@@ -171,10 +223,10 @@ export default function CleanReview(props: CleanReviewProps) {
         )}
         {props.saveState === 'saved' && (
           <div role="status">
-            <div className="text-[14px] font-bold text-ink">
+            <div className="text-[13px] font-bold text-ink">
               ✓ Cleaned dataset saved
             </div>
-            <div className="mt-[2px] text-[12px] leading-[1.4] text-ink-muted">
+            <div className="mt-[2px] text-[11px] leading-[1.35] text-ink-muted">
               Your original recording is unchanged. The cleaned copy is ready to
               use in Analyze.
             </div>
@@ -184,7 +236,7 @@ export default function CleanReview(props: CleanReviewProps) {
           </div>
         )}
         {props.saveState === 'idle' && (
-          <div className="flex flex-col gap-[6px]">
+          <div className="flex gap-[8px]">
             <Button size="sm" variant="outline-brand" onClick={props.onApply}>
               Apply exclusions
             </Button>
@@ -194,6 +246,7 @@ export default function CleanReview(props: CleanReviewProps) {
           </div>
         )}
       </RailSection>
+      <CleanPrimerBar onOpen={() => props.onPrimerOpenChange(true)} />
     </>
   );
 
@@ -229,92 +282,27 @@ export default function CleanReview(props: CleanReviewProps) {
     );
   } else {
     body = (
-      <>
-        <div className="relative flex min-h-0 flex-1 items-start gap-[16px]">
-          <div className="bw-clean-fit w-[640px]">
-            <EpochReviewer
-              epochArrays={props.epochArrays}
-              rejected={props.rejected}
-              onToggleEpoch={props.onToggleEpoch}
-              badChannels={props.badChannels}
-              onToggleChannel={props.onToggleChannel}
-              codeToLabel={props.codeToLabel}
-            />
-          </div>
-          <div className="bw-clean-fit w-[640px]">
-            <LiveErpPane
-              epochArrays={props.epochArrays}
-              rejected={props.rejected}
-              codeToLabel={props.codeToLabel}
-            />
-          </div>
-          {props.primerOpen && <PrimerPointer step={props.primerStep} />}
-        </div>
-
-        {props.suggestions.length > 0 && (
-          <section
-            aria-label="Auto-flag suggestions"
-            className="flex-none rounded-lg border border-gray-200 bg-white px-[20px] py-[12px]"
-          >
-            <div className="flex items-baseline gap-[12px]">
-              <span className={railLabel}>Suggested by auto-flag</span>
-              <div className="text-[13px] text-ink-muted">
-                Suggestions, not decisions — check each one before it goes into
-                your cleaned data.
-              </div>
-              <div className="ml-auto flex-none text-[13px] text-ink-muted">
-                {props.suggestions.length - acceptedCount} to review ·{' '}
-                {acceptedCount} accepted
-              </div>
-            </div>
-            <ul className="m-0 mt-[8px] flex flex-col gap-[4px] p-0">
-              {props.suggestions.map((suggestion) => (
-                <li
-                  key={suggestion.index}
-                  className="flex items-center gap-[12px] rounded-md border border-gray-200 px-[12px] py-[6px]"
-                >
-                  <span className="flex-none text-[14px] font-bold text-ink">
-                    Trial {suggestion.index}
-                  </span>
-                  <span className="min-w-0 truncate text-[13px] text-ink-muted">
-                    {suggestion.reason}
-                  </span>
-                  {suggestion.accepted ? (
-                    <>
-                      <span className="ml-auto flex-none text-[13px] font-bold text-ink">
-                        ✓ Left out (from a suggestion)
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => props.onRestoreSuggestion(suggestion.index)}
-                      >
-                        Restore
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline-brand"
-                      className="ml-auto flex-none"
-                      onClick={() => props.onAcceptSuggestion(suggestion.index)}
-                    >
-                      Accept
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
+      <div className="relative flex min-h-0 flex-1">
+        <FitPane logicalWidth={640} logicalHeight={426} className="flex-1">
+          <EpochReviewer
+            epochArrays={props.epochArrays}
+            rejected={props.rejected}
+            onToggleEpoch={props.onToggleEpoch}
+            badChannels={props.badChannels}
+            onToggleChannel={props.onToggleChannel}
+            codeToLabel={props.codeToLabel}
+          />
+        </FitPane>
+        {props.primerOpen && <PrimerPointer step={props.primerStep} />}
+        {props.primerOpen && (
+          <CleanPrimerCard
+            step={props.primerStep}
+            onStepChange={props.onPrimerStepChange}
+            onClose={() => props.onPrimerOpenChange(false)}
+            className="absolute right-[16px] top-[16px]"
+          />
         )}
-
-        <CleanPrimer
-          open={props.primerOpen}
-          step={props.primerStep}
-          onStepChange={props.onPrimerStepChange}
-          onOpenChange={props.onPrimerOpenChange}
-        />
-      </>
+      </div>
     );
   }
 

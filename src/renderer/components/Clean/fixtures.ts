@@ -67,9 +67,10 @@ export const RAW_RECORDINGS: RawRecording[] = [
  * Auto-flag output for the example epochs, in the shape Python's
  * `suggest_rejections` returns: one artifact suggestion per noisy trial.
  * Suggestions are never applied on their own — the student accepts them.
+ * Reasons are short enough for the rail's one-line rows.
  */
 export const SUGGESTED_REJECTIONS: SuggestedRejection[] = [
-  { index: 3, reason: 'Peak-to-peak 212 µV at AF7 — over the 100 µV threshold' },
-  { index: 12, reason: 'Peak-to-peak 189 µV at TP9 — over the 100 µV threshold' },
-  { index: 27, reason: 'Peak-to-peak 176 µV at AF7 — over the 100 µV threshold' },
+  { index: 3, reason: '212 µV peak-to-peak at AF7' },
+  { index: 12, reason: '189 µV peak-to-peak at TP9' },
+  { index: 27, reason: '176 µV peak-to-peak at AF7' },
 ];
