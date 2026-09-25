@@ -6,10 +6,6 @@ export const params = {
   nbTrials: 150,
   iti: 500,
   sampleType: 'with-replacement',
-  intro: `You know how difficult it is to find your keys in a messy room. We
-  want to know how good you are in quickly finding your keys. Instead of keys,
-  we just want to know how quickly you can find an orange T amongst blue Ts
-  and upside-down orange Ts. Sounds easy! But it is not at all that easy!`,
   showProgressBar: false,
   stimuli: [
     {

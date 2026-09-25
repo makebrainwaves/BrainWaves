@@ -5,6 +5,12 @@ import {
   triggerEEGCallback,
   resetCorrectResponse,
 } from '../../utils/labjs/functions';
+import {
+  endScreen,
+  instructionsScreen,
+  transitionScreen,
+} from '../shared/participantScreens';
+import { instructions } from './screens';
 
 // Define study
 export const facesHousesExperiment = {
@@ -34,8 +40,7 @@ export const facesHousesExperiment = {
           },
           hooks: {},
           title: 'Instruction',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe face-house task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n     ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
+          content: instructionsScreen(instructions),
         },
         {
           type: 'lab.flow.Loop',
@@ -155,8 +160,7 @@ export const facesHousesExperiment = {
           },
           hooks: {},
           title: 'Main task',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EReady for the real data collection?\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n    Press the the space bar to start the main task.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fmain\u003E\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
+          content: transitionScreen(instructions),
         },
         {
           type: 'lab.flow.Loop',
@@ -243,8 +247,7 @@ export const facesHousesExperiment = {
           },
           hooks: {},
           title: 'End',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',
+          content: endScreen(),
         },
       ],
     },

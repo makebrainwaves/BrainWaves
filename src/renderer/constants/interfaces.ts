@@ -67,7 +67,8 @@ export type StimulusCondition = {
 export type ExperimentParameters = {
   // TODO: consider refactoring to expose lab.js sample.mode
   description?: ExperimentDescription;
-  intro: string;
+  /** Teacher-written intro for custom experiments; built-ins' screens carry their own copy. */
+  intro?: string;
   iti: number;
   nbPracticeTrials?: number;
   nbTrials: number;

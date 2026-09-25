@@ -7,15 +7,15 @@ import {
   instructionsScreen,
   transitionScreen,
 } from '../../experiments/shared/participantScreens';
+import { instructions as FACES_HOUSES } from '../../experiments/faces_houses/screens';
+import { instructions as STROOP } from '../../experiments/stroop/screens';
+import { instructions as VISUAL_SEARCH } from '../../experiments/search/screens';
+import { instructions as MULTITASKING } from '../../experiments/multitasking/screens';
 import {
   CUSTOM,
   CUSTOM_FOUR_KEYS,
   CUSTOM_INTRO,
   CUSTOM_LONG_INTRO,
-  FACES_HOUSES,
-  MULTITASKING,
-  STROOP,
-  VISUAL_SEARCH,
 } from './fixtures';
 
 interface LabjsScreenProps {
@@ -139,10 +139,7 @@ export const InstructionsEegOff: Story = {
 /** R07 — "Data collection" tag at the top with the RunBar's red dot; the same mapping again. */
 export const Transition: Story = {
   args: {
-    content: transitionScreen({
-      rules: FACES_HOUSES.rules,
-      pacing: FACES_HOUSES.pacing,
-    }),
+    content: transitionScreen(FACES_HOUSES),
   },
 };
 
