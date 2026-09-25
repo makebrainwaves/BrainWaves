@@ -2,6 +2,7 @@ import { core } from 'lab.js';
 import {
   initStroopTrial,
   emitStroopCondition,
+  skipPracticeOnRequest,
 } from '../../utils/labjs/functions';
 import {
   endScreen,
@@ -29,7 +30,7 @@ export const stroopExperiment = {
       title: 'Stroop task',
       content: [
         {
-          hooks: {},
+          hooks: { end: skipPracticeOnRequest },
           type: 'lab.html.Screen',
           responses: {
             'keypress(Space)': 'continue',
@@ -51,7 +52,6 @@ export const stroopExperiment = {
           hooks: {},
           title: 'Practice frame',
           tardy: true,
-          skip: "${ state.response === 'skipPractice' }",
           content: {
             hooks: {},
             type: 'lab.flow.Loop',

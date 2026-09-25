@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LabjsExperimentWindow } from '../LabjsExperimentWindow';
 import {
   instructionsScreen,
   STILLNESS_LINE,
 } from '../../experiments/shared/participantScreens';
+import { skipPracticeOnRequest } from '../../utils/labjs/functions';
 
 // lab.js needs browser APIs jsdom lacks: its canvas module subclasses
 // DOMMatrixReadOnly at import, every controller opens an AudioContext, and
@@ -87,4 +88,61 @@ describe('LabjsExperimentWindow', () => {
     expect(Boolean(screen.queryByText(STILLNESS_LINE))).toBe(shown);
     unmount();
   });
+
+  it.each([
+    ['q', 'skips', null],
+    [' ', 'runs', 'practice trial'],
+  ])(
+    'pressing %j on the instruction screen %s practice',
+    async (key, _, practiceText) => {
+      const skipStudy = {
+        type: 'lab.flow.Sequence',
+        content: [
+          {
+            type: 'lab.html.Screen',
+            content: '<p>instructions</p>',
+            responses: {
+              'keypress(Space)': 'continue',
+              'keypress(q)': 'skipPractice',
+            },
+            hooks: { end: skipPracticeOnRequest },
+          },
+          {
+            type: 'lab.flow.Loop',
+            templateParameters: [{ n: 1 }],
+            template: {
+              type: 'lab.html.Screen',
+              content: '<p>practice trial</p>',
+              timeout: 10,
+            },
+          },
+          { type: 'lab.html.Screen', content: '<p>real trials</p>' },
+        ],
+      };
+      const seen: string[] = [];
+      const observer = new MutationObserver(() =>
+        seen.push(document.body.textContent ?? '')
+      );
+      observer.observe(document.body, { childList: true, subtree: true });
+      const { unmount } = render(
+        <LabjsExperimentWindow
+          title="Study"
+          experimentObject={skipStudy as never}
+          params={{} as never}
+          eventCallback={vi.fn()}
+          onFinish={vi.fn()}
+        />
+      );
+      await screen.findByText('instructions', {}, { timeout: 3000 });
+
+      fireEvent.keyPress(document, { key: key, charCode: key.charCodeAt(0) });
+      await screen.findByText('real trials', {}, { timeout: 3000 });
+
+      observer.disconnect();
+      expect(seen.some((text) => text.includes('practice trial'))).toBe(
+        practiceText !== null
+      );
+      unmount();
+    }
+  );
 });

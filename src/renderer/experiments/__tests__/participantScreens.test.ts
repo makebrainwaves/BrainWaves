@@ -4,6 +4,10 @@ import { params as facesHousesParams } from '../faces_houses/params';
 import { stroopExperiment } from '../stroop/experiment';
 import { searchExperimentObject } from '../search/experiment';
 import { multitaskingExperimentObject } from '../multitasking/experiment';
+import { customExperiment } from '../custom/experiment';
+import { customInstructionsScreen } from '../../utils/labjs/customStimuli';
+import { skipPracticeOnRequest } from '../../utils/labjs/functions';
+import type { ExperimentParameters } from '../../constants/interfaces';
 
 vi.mock('lab.js', () => ({}));
 
@@ -11,6 +15,7 @@ type Node = {
   title?: string;
   content?: unknown;
   responses?: Record<string, string>;
+  hooks?: Record<string, unknown>;
 };
 
 /** Every non-Space, non-skip key any screen in the study responds to. */
@@ -27,11 +32,11 @@ const acceptedKeys = (node: unknown, out = new Set<string>()): Set<string> => {
   return out;
 };
 
-/** The `content` of the first screen with this title. */
-const screenContent = (node: unknown, title: string): string | undefined => {
+/** The first screen with this title and string content. */
+const findScreen = (node: unknown, title: string): Node | undefined => {
   if (Array.isArray(node)) {
     for (const child of node) {
-      const found = screenContent(child, title);
+      const found = findScreen(child, title);
       if (found) return found;
     }
   } else if (node && typeof node === 'object') {
@@ -39,9 +44,9 @@ const screenContent = (node: unknown, title: string): string | undefined => {
       (node as Node).title === title &&
       typeof (node as Node).content === 'string'
     )
-      return (node as Node).content as string;
+      return node as Node;
     for (const child of Object.values(node)) {
-      const found = screenContent(child, title);
+      const found = findScreen(child, title);
       if (found) return found;
     }
   }
@@ -79,16 +84,34 @@ describe.each([
     const accepted = new Set([...acceptedKeys(study), ...dynamicKeys]);
 
     it('show exactly the keys the trials accept before practice', () => {
-      const html = screenContent(study, instructionTitle as string) ?? '';
+      const html = String(findScreen(study, instructionTitle)?.content ?? '');
       expect(shownKeys(html)).toEqual(accepted);
     });
 
     it.runIf(transitionTitle)(
       'show the same keys again before the recorded task',
       () => {
-        const html = screenContent(study, transitionTitle as string) ?? '';
+        const html = String(
+          findScreen(study, transitionTitle as string)?.content ?? ''
+        );
         expect(shownKeys(html)).toEqual(accepted);
       }
     );
+
+    it('skip practice on Q exactly where the screen offers it', () => {
+      const instruction = findScreen(study, instructionTitle);
+      expect(instruction?.hooks?.end === skipPracticeOnRequest).toBe(
+        String(instruction?.content).includes('bw-participant-skip')
+      );
+    });
   }
 );
+
+it('Custom skips practice on Q, as its screen offers', () => {
+  expect(customInstructionsScreen({} as ExperimentParameters)).toContain(
+    'bw-participant-skip'
+  );
+  expect(findScreen(customExperiment, 'Instruction')?.hooks?.end).toBe(
+    skipPracticeOnRequest
+  );
+});

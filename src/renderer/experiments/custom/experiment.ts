@@ -4,6 +4,7 @@ import {
   initResponseHandlers,
   triggerEEGCallback,
   resetCorrectResponse,
+  skipPracticeOnRequest,
 } from '../../utils/labjs/functions';
 import {
   customInstructionsScreen,
@@ -126,7 +127,10 @@ export const customExperiment = {
             'keypress(Space)': 'continue',
             'keypress(q)': 'skipPractice',
           },
-          hooks: { 'before:prepare': prepareInstructions },
+          hooks: {
+            'before:prepare': prepareInstructions,
+            end: skipPracticeOnRequest,
+          },
           title: 'Instruction',
           content: '',
         },

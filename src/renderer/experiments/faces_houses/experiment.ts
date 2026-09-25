@@ -4,6 +4,7 @@ import {
   initResponseHandlers,
   triggerEEGCallback,
   resetCorrectResponse,
+  skipPracticeOnRequest,
 } from '../../utils/labjs/functions';
 import {
   endScreen,
@@ -38,7 +39,7 @@ export const facesHousesExperiment = {
             'keypress(Space)': 'continue',
             'keypress(q)': 'skipPractice',
           },
-          hooks: {},
+          hooks: { end: skipPracticeOnRequest },
           title: 'Instruction',
           content: instructionsScreen(instructions),
         },

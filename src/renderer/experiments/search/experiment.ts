@@ -7,6 +7,7 @@ import {
   initGrid,
   initResponses,
 } from './utils';
+import { skipPracticeOnRequest } from '../../utils/labjs/functions';
 import {
   endScreen,
   instructionsScreen,
@@ -40,7 +41,7 @@ export const searchExperimentObject = {
             'keypress(Space)': 'next',
             'keypress(q)': 'skipPractice',
           },
-          hooks: {},
+          hooks: { end: skipPracticeOnRequest },
           title: 'Instruction',
           content: instructionsScreen(instructions),
         },
@@ -58,7 +59,6 @@ export const searchExperimentObject = {
           },
           title: 'Practice task',
           tardy: true,
-          skip: "${ state.response === 'skipPractice' }",
           shuffleGroups: [],
           template: {
             type: 'lab.flow.Sequence',
