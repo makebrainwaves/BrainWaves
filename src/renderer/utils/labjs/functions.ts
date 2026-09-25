@@ -206,6 +206,20 @@ export function resetCorrectResponse(this: lab.core.Component) {
   this.data.correct_response = false;
 }
 
+/**
+ * Instruction-screen `end` hook: a `skipPractice` response (Q) skips the
+ * practice block that follows this screen. A `skip` template on the block
+ * cannot do this: lab.js prepares the next component, parsing its options,
+ * before this screen's response is committed to `state`.
+ */
+export function skipPracticeOnRequest(this: lab.core.Component) {
+  if (this.data.response !== 'skipPractice') return;
+  const siblings: lab.core.Component[] =
+    (this.parent as lab.flow.Sequence | undefined)?.options.content ?? [];
+  const practice = siblings[siblings.indexOf(this) + 1];
+  if (practice) practice.options.skip = true;
+}
+
 // -------------------------------------------------------------
 // Stroop
 

@@ -386,3 +386,48 @@ session-taken prompt) and file pickers cannot be driven over CDP, and a covered
 window reports `visibilityState: hidden`, which stalls lab.js and CDP
 screenshots. Use a subject/session that needs no prompt, and keep the window
 uncovered.
+
+## Participant screens: built-ins own `screens.ts`; Custom builds at prepare
+
+Built-in lab.js studies take their instruction / practice→main / end screen
+content from `experiments/shared/participantScreens.ts` builders fed by each
+experiment's `screens.ts`; `experiments/__tests__/participantScreens.test.ts`
+fails if the keys a screen shows ever drift from the keys its trials accept.
+Custom studies can't be static (keys and names are the teacher's), so their
+screens are built in `before:prepare` hooks from `this.parameters` —
+setting `this.options.content` there is still run through lab.js's `${…}`
+templating (options proxy parses on set/arm). The teacher's intro stays a
+`${this.parameters.intro}` placeholder so its text is never parsed as a
+template. The stillness line reads `parameters.isEEGEnabled`, which
+`LabjsExperimentWindow` sets from the `isEEGEnabled` runtime prop (it also
+lands as an `isEEGEnabled` column in behavior CSVs, like `title`).
+
+Preview mounts lab.js with `fullScreen={false}` (class `container false`), so
+the `.bw-participant` fit rule in `app.global.css` must match `.container`,
+not only `.container.fullscreen`, or the footer spills over Stop preview.
+
+## lab.js 23: a `skip` template can't see the response that led to it
+
+`flipIterable.js` computes and prepares the *next* stack before
+`stopOutgoing` ends and commits the current screen, so
+`skip: "${ state.response === 'skipPractice' }"` on the loop after an
+instruction screen is parsed with stale state and is always false —
+`tardy: true` does not help, because the stack walk calls `prepare()`
+directly. Confirmed with real lab.js under jsdom. Skip from the screen that
+decides instead: `skipPracticeOnRequest` (`utils/labjs/functions.ts`) is an
+instruction-screen `end` hook that sets `options.skip = true` on the next
+sibling, which lab.js checks in `run()` right after `stopOutgoing`. Don't
+keep a `skip` template string on that block: its parsed value is an own
+property on the options proxy and would shadow the raw `true`.
+
+## CDP playtest traps: hidden window and fast key presses
+
+A hub-launched Electron window is often occluded: `document.visibilityState`
+is `hidden`, rAF runs at ~10 fps or stops, and lab.js stalls. Enable the main
+inspector (`kill -USR1 <electron pid>`, port 9229), then
+`webContents.setBackgroundThrottling(false)` / `showInactive()`. Pressing a
+response key within a couple of throttled frames of a stimulus appearing can
+deadlock the flip (the previous screen's `lock` frame is cancelled), so wait
+~700 ms before each automated response. Native `showMessageBox` dialogs can be
+auto-answered by re-registering `dialog:showMessage` from that inspector
+(`process.getBuiltinModule('module').createRequire(...)('electron')`).

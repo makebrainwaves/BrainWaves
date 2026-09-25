@@ -281,6 +281,7 @@ const Run: React.FC<Props> = ({
               title={title}
               experimentObject={experimentObject}
               params={params}
+              isEEGEnabled={isEEGEnabled}
               eventCallback={eventCallback}
               onFinish={onFinish}
               onAbort={onAbort}

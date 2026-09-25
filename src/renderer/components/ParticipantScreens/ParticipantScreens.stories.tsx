@@ -7,15 +7,16 @@ import {
   instructionsScreen,
   transitionScreen,
 } from '../../experiments/shared/participantScreens';
+import { instructions as FACES_HOUSES } from '../../experiments/faces_houses/screens';
+import { instructions as STROOP } from '../../experiments/stroop/screens';
+import { instructions as VISUAL_SEARCH } from '../../experiments/search/screens';
+import { instructions as MULTITASKING } from '../../experiments/multitasking/screens';
+import { customInstructionsScreen } from '../../utils/labjs/customStimuli';
 import {
-  CUSTOM,
-  CUSTOM_FOUR_KEYS,
+  CUSTOM_FOUR_KEYS_PARAMS,
   CUSTOM_INTRO,
   CUSTOM_LONG_INTRO,
-  FACES_HOUSES,
-  MULTITASKING,
-  STROOP,
-  VISUAL_SEARCH,
+  CUSTOM_PARAMS,
 } from './fixtures';
 
 interface LabjsScreenProps {
@@ -110,20 +111,20 @@ export const MultitaskingIntro: Story = {
   args: { content: instructionsScreen(MULTITASKING) },
 };
 
-/** R05 — Teacher's intro via `parameters.intro`; a condition with no key reads "No key". No pacing line. */
+/** R05 — Teacher's intro via `parameters.intro`; the watched-only condition reads its own title ("Bird") next to a "No key" cap. No pacing line. */
 export const InstructionsCustom: Story = {
   parameters: { experimentType: 'Custom' },
   args: {
-    content: instructionsScreen(CUSTOM),
+    content: customInstructionsScreen(CUSTOM_PARAMS),
     parameters: { isEEGEnabled: true, intro: CUSTOM_INTRO },
   },
 };
 
-/** R05b — Stress: a textarea-full teacher intro and four keys. `main` scrolls; Space stays put. */
+/** R05b — Stress: a textarea-full teacher intro and four keyed conditions (1, 4, 6, 9). `main` scrolls; Space stays put. */
 export const InstructionsCustomLongIntro: Story = {
   parameters: { experimentType: 'Custom' },
   args: {
-    content: instructionsScreen(CUSTOM_FOUR_KEYS),
+    content: customInstructionsScreen(CUSTOM_FOUR_KEYS_PARAMS),
     parameters: { isEEGEnabled: true, intro: CUSTOM_LONG_INTRO },
   },
 };
@@ -139,10 +140,7 @@ export const InstructionsEegOff: Story = {
 /** R07 — "Data collection" tag at the top with the RunBar's red dot; the same mapping again. */
 export const Transition: Story = {
   args: {
-    content: transitionScreen({
-      rules: FACES_HOUSES.rules,
-      pacing: FACES_HOUSES.pacing,
-    }),
+    content: transitionScreen(FACES_HOUSES),
   },
 };
 

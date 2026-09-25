@@ -26,6 +26,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   experimentObject,
   params,
   fullScreen = true,
+  isEEGEnabled,
   eventCallback,
   onFinish,
   onAbort,
@@ -44,6 +45,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
     const experimentToRun = lab.core.deserialize(experimentClone, lab);
 
     experimentToRun.parameters.title = title;
+    experimentToRun.parameters.isEEGEnabled = Boolean(isEEGEnabled);
     if (params.stimuli) {
       experimentToRun.options.media.images = params.stimuli.reduce<string[]>(
         (images, stimulus) => {
@@ -135,6 +137,7 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   }, [
     eventCallback,
     experimentObject,
+    isEEGEnabled,
     onAbort,
     onFinish,
     onProgress,

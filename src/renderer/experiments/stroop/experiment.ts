@@ -2,7 +2,14 @@ import { core } from 'lab.js';
 import {
   initStroopTrial,
   emitStroopCondition,
+  skipPracticeOnRequest,
 } from '../../utils/labjs/functions';
+import {
+  endScreen,
+  instructionsScreen,
+  transitionScreen,
+} from '../shared/participantScreens';
+import { instructions } from './screens';
 
 export const stroopExperiment = {
   hooks: {},
@@ -23,15 +30,14 @@ export const stroopExperiment = {
       title: 'Stroop task',
       content: [
         {
-          hooks: {},
+          hooks: { end: skipPracticeOnRequest },
           type: 'lab.html.Screen',
           responses: {
             'keypress(Space)': 'continue',
             'keypress(q)': 'skipPractice',
           },
           title: 'Instruction',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EStroop Task\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Cp\u003E\n    Welcome to the \u003Cstrong\u003EStroop experiment\u003C\u002Fstrong\u003E!\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    To indicate the color of the word, please use the keys \u003Cstrong\u003Er\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eg\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eb\u003C\u002Fstrong\u003E and \u003Cstrong\u003Ey\u003C\u002Fstrong\u003E for \u003Cspan style="color: red;"\u003Ered\u003C\u002Fspan\u003E, \u003Cspan style="color: green;"\u003Egreen\u003C\u002Fspan\u003E, \u003Cspan style="color: blue;"\u003Eblue\u003C\u002Fspan\u003E and \u003Cspan style="color: #c5ad0b;"\u003Eyellow\u003C\u002Fspan\u003E, respectively.\n      \u003Cbr\u003E\n      Please answer quickly, and as accurately as you can.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Press the the space bar on your keyboard to start doing the practice trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    If you want to skip the practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E\n\n\n',
+          content: instructionsScreen(instructions),
           parameters: {},
           files: {},
         },
@@ -46,7 +52,6 @@ export const stroopExperiment = {
           hooks: {},
           title: 'Practice frame',
           tardy: true,
-          skip: "${ state.response === 'skipPractice' }",
           content: {
             hooks: {},
             type: 'lab.flow.Loop',
@@ -311,8 +316,7 @@ export const stroopExperiment = {
             'keypress(Space)': 'continue',
           },
           title: 'Main task',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EReady for the real data collection?\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n    Press the the space bar to start the main task.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fmain\u003E\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E\n\n\n',
+          content: transitionScreen(instructions),
           parameters: {},
           files: {},
         },
@@ -697,8 +701,7 @@ export const stroopExperiment = {
             'keypress(Space)': 'end',
           },
           title: 'Thanks',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',
+          content: endScreen(),
           parameters: {},
           files: {},
         },

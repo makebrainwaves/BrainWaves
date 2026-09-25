@@ -7,6 +7,8 @@ import {
   initTaskScreen,
   triggerEEGCallback,
 } from './utils';
+import { endScreen, instructionsScreen } from '../shared/participantScreens';
+import { instructions } from './screens';
 
 const assetsDirectory = path.join(
   RESOURCE_PATH,
@@ -45,8 +47,7 @@ export const multitaskingExperimentObject = {
           },
           hooks: {},
           title: 'Intro',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ch1\u003EThe multi-tasking test\u003C\u002Fh1\u003E\n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n\n  \u003Cp\u003E\n  ${this.parameters.intro}\n  \u003C\u002Fp\u003E\n  \n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Ffooter\u003E',
+          content: instructionsScreen(instructions),
         },
         {
           type: 'lab.html.Screen',
@@ -2508,8 +2509,7 @@ export const multitaskingExperimentObject = {
           },
           hooks: {},
           title: 'End',
-          content:
-            '\u003Cheader class="content-vertical-center content-horizontal-center"\u003E\n  \n\u003C\u002Fheader\u003E\n\n\u003Cmain\u003E\n  \u003Ch1\u003E\n    Thank you!\n  \u003C\u002Fh1\u003E\n  \u003Ch1\u003E\n    Press the space bar to finish the task.\n  \u003C\u002Fh1\u003E\n\u003C\u002Fmain\u003E\n\n',
+          content: endScreen(),
         },
       ],
     },
