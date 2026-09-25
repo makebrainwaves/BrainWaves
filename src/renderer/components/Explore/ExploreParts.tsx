@@ -206,7 +206,7 @@ export function FixturePlot({
                       transform={`translate(${Math.max(
                         0,
                         Math.min(plotW - endW, x + bandWidth + 6)
-                      )},${plotH + 6})`}
+                      )},${plotH - LABEL_HEIGHT - 4})`}
                     >
                       <rect
                         width={endW}
@@ -500,7 +500,7 @@ export function LessonStepPanel({
       )}
       <div
         key={step}
-        className="explore-step-copy flex min-h-0 flex-1 flex-col gap-[10px]"
+        className="explore-step-copy flex min-h-0 flex-1 flex-col gap-[10px] overflow-y-auto"
       >
         <h2
           ref={heading}
@@ -668,18 +668,18 @@ export function AlphaExampleCard() {
       className="flex flex-none flex-col gap-[6px] rounded-lg border-2 border-dashed border-gray-300 px-[14px] py-[10px]"
     >
       <span className={cn('m-0', stepLabel)}>Example</span>
-      <svg viewBox="0 0 260 100" aria-hidden className="h-[100px] w-full">
-        <rect x={20} y={44} width={64} height={34} fill="#bfbfbf" />
-        <rect x={150} y={12} width={64} height={66} fill="#666" />
-        <text x={52} y={92} textAnchor="middle" fill="#666" style={{ font: AXIS_FONT }}>
+      <svg viewBox="0 0 260 78" aria-hidden className="h-[64px] w-full">
+        <rect x={20} y={38} width={64} height={24} fill="#bfbfbf" />
+        <rect x={150} y={10} width={64} height={52} fill="#666" />
+        <text x={52} y={74} textAnchor="middle" fill="#666" style={{ font: AXIS_FONT }}>
           before
         </text>
-        <text x={182} y={92} textAnchor="middle" fill="#666" style={{ font: AXIS_FONT }}>
+        <text x={182} y={74} textAnchor="middle" fill="#666" style={{ font: AXIS_FONT }}>
           eyes closed
         </text>
       </svg>
       <p className="m-0 !text-[13px] !tracking-normal leading-[1.45] text-ink-muted">
-        What a clear alpha increase can look like. {ALPHA_EXAMPLE_CAPTION}
+        A clear alpha increase. {ALPHA_EXAMPLE_CAPTION}
       </p>
     </section>
   );

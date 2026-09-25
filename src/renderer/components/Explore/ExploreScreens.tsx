@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
   ALPHA_NO_EFFECT_BODY,
+  ALPHA_RESULT_BODY,
   BLINK_NOT_DETECTED,
   BLINK_STEPS,
   EYES_END_BODY,
@@ -16,7 +17,6 @@ import {
   QualityState,
   STABLE_COLOR_BY_CHANNEL,
   SensorStatus,
-  alphaResultBody,
 } from './fixtures';
 import {
   AlphaExampleCard,
@@ -397,7 +397,7 @@ export function EyesClosedView({
     alphaRatio == null
       ? 'There is not enough continuous posterior-channel data to compare alpha power. The marked interval is still saved below.'
       : alphaRatio > 1
-        ? alphaResultBody(alphaRatio)
+        ? ALPHA_RESULT_BODY
         : ALPHA_NO_EFFECT_BODY;
   return (
     <div className="flex h-full min-h-0 gap-[20px] px-[24px] py-[16px]">

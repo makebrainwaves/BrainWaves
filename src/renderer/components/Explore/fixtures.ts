@@ -293,20 +293,20 @@ export const EYES_INTRO_BODY =
 export const EYES_INTRO_BODY_2 =
   'When you press Begin, a visible 3–2–1 countdown comes first, so the start never surprises you.';
 
-export const EYES_PROXY_NOTE =
-  'Muse has no sensors over the visual cortex, so we watch TP9 and TP10 behind your ears — the closest available posterior-side look at alpha.';
-
 export const EYES_INTERVAL_BODY =
   'Keep them closed until you hear two chimes. Sitting still is fine — the screen can wait.';
 
 export const EYES_END_BODY =
   'Two chimes just ended the activity. Your marked interval is saved on the plot below — take a look.';
 
-export const alphaResultBody = (ratio: number) =>
-  `The teal band is the ten seconds your eyes were closed. Measured 8–12 Hz (alpha) power was ${ratio.toFixed(1)}× the five seconds before it. The back of your head starts humming a steady rhythm when it has nothing to look at: the seeing part of your brain gets louder once you stop giving it anything to see.`;
+export const ALPHA_RESULT_BODY =
+  'The teal band marks the ten seconds your eyes were closed. The back of your head hums a steady rhythm when it has nothing to look at — that hum is alpha, and it is the seeing part of your brain getting louder.';
 
 export const ALPHA_NO_EFFECT_BODY =
   'Alpha did not increase in this interval. That is a real result, not a failed lesson — alpha is clearest in some people and nearly invisible in others. Blinking still worked, and that one really was your eyelid.';
+
+export const EYES_PROXY_NOTE =
+  'Muse has no sensors over the visual cortex — TP9 and TP10 behind the ears are the closest available posterior-side look at alpha.';
 
 export const ALPHA_EXAMPLE_CAPTION =
   'Some recordings look like this. Yours will be yours.';
