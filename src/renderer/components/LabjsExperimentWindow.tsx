@@ -33,10 +33,11 @@ export const LabjsExperimentWindow: React.FC<LabjsExperimentWindowProps> = ({
   onProgress,
 }) => {
   useEffect(() => {
-    // experimentObject starts as {} in Redux initial state — bail out until a
-    // real experiment is loaded, otherwise lab.core.deserialize crashes on
-    // the missing `type` field.
-    if (!experimentObject?.type) return;
+    // experimentObject starts as {} and params as null in Redux initial state
+    // (and again after ExperimentCleanup) — bail out until a real experiment is
+    // loaded, otherwise lab.core.deserialize crashes on the missing `type`
+    // field and lab.js's parameter proxy throws on null params.
+    if (!experimentObject?.type || !params) return;
 
     // TODO: move this study mutation into Redux?
     const experimentClone = clonedeep(experimentObject);
