@@ -84,9 +84,13 @@ p {
 }
 
 /* Beats lab.css's viewport-sized fullscreen mount (and Tailwind's
-   `.container` width) so the screen fits the space it is given. */
-.container.fullscreen:has(> .bw-participant) {
+   `.container` width) so the screen fits the space it is given, including
+   Preview's non-fullscreen mount. */
+.container:has(> .bw-participant) {
   box-sizing: border-box;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   width: auto;
   max-width: none;
   height: 100%;
