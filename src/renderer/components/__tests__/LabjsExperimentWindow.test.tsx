@@ -2,6 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LabjsExperimentWindow } from '../LabjsExperimentWindow';
+import {
+  instructionsScreen,
+  STILLNESS_LINE,
+} from '../../experiments/shared/participantScreens';
 
 // lab.js needs browser APIs jsdom lacks: its canvas module subclasses
 // DOMMatrixReadOnly at import, every controller opens an AudioContext, and
@@ -27,6 +31,20 @@ const study = {
   ],
 };
 
+const instructionsStudy = {
+  type: 'lab.flow.Sequence',
+  content: [
+    {
+      type: 'lab.html.Screen',
+      content: instructionsScreen({
+        title: 'Faces and houses',
+        summary: 'summary',
+        rules: [{ keys: [{ key: '1', meaning: 'Face' }] }],
+      }),
+    },
+  ],
+};
+
 describe('LabjsExperimentWindow', () => {
   it('unmounting mid-study reports the trials so far at once, and never onFinish', async () => {
     const onFinish = vi.fn();
@@ -48,5 +66,25 @@ describe('LabjsExperimentWindow', () => {
     expect(onAbort).toHaveBeenCalledTimes(1);
     expect(onAbort.mock.calls[0][0]).toContain('html.Screen');
     expect(onFinish).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [true, true],
+    [false, false],
+  ])('EEG %s → stillness line shown: %s', async (isEEGEnabled, shown) => {
+    const { unmount } = render(
+      <LabjsExperimentWindow
+        title="Study"
+        experimentObject={instructionsStudy as never}
+        params={{} as never}
+        isEEGEnabled={isEEGEnabled}
+        eventCallback={vi.fn()}
+        onFinish={vi.fn()}
+      />
+    );
+    await screen.findByText('Faces and houses', {}, { timeout: 3000 });
+
+    expect(Boolean(screen.queryByText(STILLNESS_LINE))).toBe(shown);
+    unmount();
   });
 });

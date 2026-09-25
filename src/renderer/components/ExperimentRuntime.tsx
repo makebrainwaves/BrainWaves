@@ -25,6 +25,8 @@ export interface ExperimentProgress {
 export interface ExperimentRuntimeProps {
   title: string;
   fullScreen?: boolean;
+  /** EEG is being recorded; lab.js screens read it as `parameters.isEEGEnabled` (the stillness line). */
+  isEEGEnabled?: boolean;
   /** Emitted at stimulus onset with the trial's condition label and one clock reading. */
   eventCallback: (label: string, time: number) => void;
   onFinish: (csv: string) => void;
