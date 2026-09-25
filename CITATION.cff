@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use BrainWaves in your research or teaching, please cite it as below."
+title: "BrainWaves"
+type: software
+license: MIT
+repository-code: "https://github.com/makebrainwaves/BrainWaves"
+url: "https://github.com/makebrainwaves/BrainWaves"
+
+authors:
+  - family-names: "Morrison"
+    given-names: "Dano"
+    email: "dano@neurotechx.com"
+    orcid: "https://orcid.org/0009-0009-0856-5608"
+
+  - family-names: "Brooks"
+    given-names: "Teon"
+    orcid: "https://orcid.org/0000-0001-7344-3230"
+
+abstract: >
+  BrainWaves is an easy-to-use platform for designing, running,
+  and analyzing EEG experiments in the classroom. It supports
+  visual event-related potential experiments and EEG acquisition
+  from Muse and Neurosity devices.
+
+keywords:
+  - EEG
+  - electroencephalography
+  - neuroscience
+  - education
+  - event-related potentials
+  - ERP
