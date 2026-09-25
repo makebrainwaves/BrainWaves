@@ -69,6 +69,26 @@ describe('LabjsExperimentWindow', () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
+  it('waits without starting a study while params is null (workspace cleared)', async () => {
+    const onFinish = vi.fn();
+    render(
+      <LabjsExperimentWindow
+        title="Study"
+        experimentObject={study as never}
+        params={null as never}
+        eventCallback={vi.fn()}
+        onFinish={onFinish}
+      />
+    );
+    const settled = Promise.withResolvers<void>();
+    setTimeout(settled.resolve, 100);
+    await settled.promise;
+
+    expect(screen.getByText('Loading Experiment')).toBeInTheDocument();
+    expect(screen.queryByText('first')).not.toBeInTheDocument();
+    expect(onFinish).not.toHaveBeenCalled();
+  });
+
   it.each([
     [true, true],
     [false, false],
