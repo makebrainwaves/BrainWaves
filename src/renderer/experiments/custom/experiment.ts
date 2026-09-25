@@ -5,6 +5,12 @@ import {
   triggerEEGCallback,
   resetCorrectResponse,
 } from '../../utils/labjs/functions';
+import {
+  customInstructionsScreen,
+  customTransitionScreen,
+} from '../../utils/labjs/customStimuli';
+import { endScreen } from '../shared/participantScreens';
+import type { ExperimentParameters } from '../../constants/interfaces';
 
 // The stimulus screen renders whatever the trial carries: an image
 // (`filepath`), a sound (`audiopath`), or both. Sounds start playing when the
@@ -75,6 +81,26 @@ const stimulusScreen = {
   content: stimulusScreenContent,
 };
 
+/** Builds the instruction screen from this workspace's conditions when lab.js prepares it. */
+function prepareInstructions(this: {
+  parameters: unknown;
+  options: { content?: string };
+}) {
+  this.options.content = customInstructionsScreen(
+    this.parameters as ExperimentParameters
+  );
+}
+
+/** Builds the practice → recorded-task screen from this workspace's conditions. */
+function prepareTransition(this: {
+  parameters: unknown;
+  options: { content?: string };
+}) {
+  this.options.content = customTransitionScreen(
+    this.parameters as ExperimentParameters
+  );
+}
+
 export const customExperiment = {
   title: 'root',
   type: 'lab.flow.Sequence',
@@ -100,23 +126,9 @@ export const customExperiment = {
             'keypress(Space)': 'continue',
             'keypress(q)': 'skipPractice',
           },
-          hooks: {},
+          hooks: { 'before:prepare': prepareInstructions },
           title: 'Instruction',
-          content: `<header class="content-vertical-center content-horizontal-center">
-  <h1>Welcome to your experiment</h1>
-</header>
-
-<main>
-
-  <p>
-     \${this.parameters.intro}
-  </p>
-
-</main>
-
-<footer class="content-vertical-center content-horizontal-center">
-  <p>Press the space bar to begin with a few practice trials.</p>
-</footer>`,
+          content: '',
         },
         {
           type: 'lab.flow.Loop',
@@ -187,21 +199,9 @@ export const customExperiment = {
           responses: {
             'keypress(Space)': 'continue',
           },
-          hooks: {},
+          hooks: { 'before:prepare': prepareTransition },
           title: 'Main task',
-          content: `<header class="content-vertical-center content-horizontal-center">
-  <h1>Ready for the real data collection?</h1>
-</header>
-<main>
-
-  <p>
-    Press the space bar to start the main task.
-  </p>
-
-</main>
-<footer class="content-vertical-center content-horizontal-center">
-
-</footer>`,
+          content: '',
         },
         {
           type: 'lab.flow.Loop',
@@ -237,19 +237,7 @@ export const customExperiment = {
           },
           hooks: {},
           title: 'End',
-          content: `<header class="content-vertical-center content-horizontal-center">
-
-</header>
-
-<main>
-  <h1>
-    Thank you!
-  </h1>
-  <h1>
-    Press the space bar to finish the task.
-  </h1>
-</main>
-`,
+          content: endScreen(),
         },
       ],
     },

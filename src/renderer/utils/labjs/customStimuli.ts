@@ -4,6 +4,11 @@ import {
   Stimulus,
   StimulusCondition,
 } from '../../constants/interfaces';
+import {
+  instructionsScreen,
+  transitionScreen,
+  type ResponseRule,
+} from '../../experiments/shared/participantScreens';
 
 export type ConditionSlotName =
   | 'stimulus1'
@@ -65,6 +70,43 @@ export const DEFAULT_RESPONSE_KEYS: Record<1 | 2 | 3 | 4, readonly string[]> = {
 
 const isActiveSlot = (slot: ConditionSlot | undefined) =>
   Boolean(slot && (slot.dir || slot.audioDir));
+
+/**
+ * What a participant is told to press: each condition with a stimulus folder,
+ * named as it is recorded (`conditionTitle`), with its key or none.
+ */
+export function customResponseRules(
+  params: ExperimentParameters
+): ResponseRule[] {
+  return [
+    {
+      keys: CONDITION_SLOTS.flatMap(({ name }) => {
+        const slot = params[name];
+        return slot && isActiveSlot(slot)
+          ? [{ key: slot.response || undefined, meaning: conditionTitle(slot) }]
+          : [];
+      }),
+    },
+  ];
+}
+
+/**
+ * The custom instruction screen. The teacher's intro stays a lab.js
+ * placeholder so its text is interpolated once, never parsed as a template.
+ */
+export function customInstructionsScreen(params: ExperimentParameters): string {
+  return instructionsScreen({
+    title: 'Welcome to your experiment',
+    summary: '${this.parameters.intro}',
+    rules: customResponseRules(params),
+    canSkipPractice: true,
+  });
+}
+
+/** The custom practice → recorded-task screen, with the same keys again. */
+export function customTransitionScreen(params: ExperimentParameters): string {
+  return transitionScreen({ rules: customResponseRules(params) });
+}
 
 /**
  * Give every active condition a farthest-spaced number key: 1 → "1", 2 → "1/9",
