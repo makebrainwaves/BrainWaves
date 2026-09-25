@@ -15,7 +15,6 @@ import {
   FACES_HOUSES,
   MULTITASKING,
   NOOP_HANDLERS,
-  SACKS_STAND_IN,
   SEARCH,
   STROOP,
 } from './fixtures';
@@ -91,6 +90,9 @@ const meta: Meta<typeof PrepareSteps> = {
     onPreviewStart: fn(),
     onPreviewStop: fn(),
     onPreviewAgain: fn(),
+    isEEGEnabled: true,
+    onEEGEnabledChange: fn(),
+    onCustomize: fn(),
   },
 };
 export default meta;
@@ -107,9 +109,13 @@ function InteractiveStep({
   const [step, setStep] = useState<PrepareStepId>(initialStep);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [hasPreviewed, setHasPreviewed] = useState(false);
+  const [isEEGEnabled, setIsEEGEnabled] = useState(true);
   return (
     <PrepareSteps
       {...fixture}
+      isEEGEnabled={isEEGEnabled}
+      onEEGEnabledChange={setIsEEGEnabled}
+      onCustomize={() => {}}
       step={step}
       isPreviewing={isPreviewing}
       hasPreviewed={hasPreviewed}
@@ -130,9 +136,10 @@ export const Overview: Story = {
   render: () => <InteractiveStep initialStep="overview" />,
 };
 
-/** P02 — Background. Centered lesson column with Back and Next: Protocol. */
+/** P02 — Background. Centered lesson column with Back and Next: Protocol; Stroop's video link (Faces/Houses uses the Sacks stand-in, P10). */
 export const Background: Story = {
-  render: () => <InteractiveStep initialStep="background" />,
+  parameters: { workspace: stroopWorkspace },
+  render: () => <InteractiveStep initialStep="background" fixture={STROOP} />,
 };
 
 /** P03 — Protocol. Static stimulus → key diagram beside a vertical task timeline generated from `flow`. */
@@ -274,6 +281,21 @@ export const DirectCollect: Story = {
   render: () => <InteractiveStep initialStep="overview" fixture={STROOP} />,
 };
 
+/** P11 — EEGOff. The action row's EEG recording switch off (behavior-only workspace); Customize beside it. */
+export const EEGOff: Story = {
+  parameters: { workspace: behaviorWorkspace },
+  render: () => (
+    <PrepareSteps
+      {...STROOP}
+      {...NOOP_HANDLERS}
+      step="overview"
+      isEEGEnabled={false}
+      isPreviewing={false}
+      hasPreviewed={false}
+    />
+  ),
+};
+
 /** P10 — OliverSacksFallback. Background's video slot holds the local stand-in (16:9 placeholder) and transcript-length text; no remote player. */
 export const OliverSacksFallback: Story = {
   render: () => (
@@ -281,7 +303,6 @@ export const OliverSacksFallback: Story = {
       {...FACES_HOUSES}
       {...NOOP_HANDLERS}
       step="background"
-      mediaFallback={SACKS_STAND_IN}
       isPreviewing={false}
       hasPreviewed={false}
     />

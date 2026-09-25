@@ -46,6 +46,11 @@ export interface PrepareStepsProps {
   onPreviewAgain: () => void;
   isPreviewing: boolean;
   hasPreviewed: boolean;
+  /** Workspace EEG setting; with `onEEGEnabledChange`, the action row shows an "EEG recording" switch. */
+  isEEGEnabled?: boolean;
+  onEEGEnabledChange?: (enabled: boolean) => void;
+  /** Offers "Customize": start a new Custom experiment (Design asks for its name). */
+  onCustomize?: () => void;
   /** The live participant screen shown while previewing (Design passes `PreviewExperimentComponent`); a placeholder when absent. */
   preview?: React.ReactNode;
 }
@@ -53,7 +58,13 @@ export interface PrepareStepsProps {
 /** One built-in experiment's Prepare content, defined in its `experiments/<name>/prepare.ts`. */
 export type PrepareFixture = Pick<
   PrepareStepsProps,
-  'overview' | 'background' | 'protocol' | 'responses' | 'flow' | 'icon'
+  | 'overview'
+  | 'background'
+  | 'protocol'
+  | 'responses'
+  | 'flow'
+  | 'icon'
+  | 'mediaFallback'
 >;
 
 /** The single centered reading column shared by the stepper, step content and action row. */
@@ -515,6 +526,36 @@ function ActionBack({
   );
 }
 
+/** The workspace's EEG recording switch: a native checkbox named "EEG recording", drawn as a toggle. */
+function EEGSwitch({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (enabled: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2 rounded-full p-1 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="sr-only"
+      />
+      <span
+        aria-hidden
+        className={cn(
+          'flex h-[22px] w-10 flex-none items-center rounded-full px-[3px]',
+          checked ? 'justify-end bg-brand' : 'justify-start bg-ink-faint'
+        )}
+      >
+        <span className="h-4 w-4 rounded-full bg-white" />
+      </span>
+      <span className="text-[14px] text-ink">EEG recording</span>
+    </label>
+  );
+}
+
 /** Built-in lesson steps of the Prepare area: Overview, Background, Protocol, Preview. Pure props. */
 export default function PrepareSteps(props: PrepareStepsProps) {
   const { step, onStep, isPreviewing, hasPreviewed } = props;
@@ -628,6 +669,21 @@ export default function PrepareSteps(props: PrepareStepsProps) {
                   Run &amp; record →
                 </ActionNext>
               </>
+            )}
+            {(props.onEEGEnabledChange || props.onCustomize) && (
+              <div className="ml-auto flex items-center gap-2">
+                {props.onEEGEnabledChange && (
+                  <EEGSwitch
+                    checked={Boolean(props.isEEGEnabled)}
+                    onChange={props.onEEGEnabledChange}
+                  />
+                )}
+                {props.onCustomize && (
+                  <Button variant="link" onClick={props.onCustomize}>
+                    Customize
+                  </Button>
+                )}
+              </div>
             )}
           </StepActions>
         </div>
