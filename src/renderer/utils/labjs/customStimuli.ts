@@ -71,9 +71,19 @@ export const DEFAULT_RESPONSE_KEYS: Record<1 | 2 | 3 | 4, readonly string[]> = {
 const isActiveSlot = (slot: ConditionSlot | undefined) =>
   Boolean(slot && (slot.dir || slot.audioDir));
 
+/** Teacher-typed text as literal screen text: no HTML, and no `${` for lab.js's template to run. */
+const literalText = (text: string) =>
+  text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\$\{/g, '&#36;{');
+
 /**
  * What a participant is told to press: each condition with a stimulus folder,
- * named as it is recorded (`conditionTitle`), with its key or none.
+ * named as it is recorded (`conditionTitle`), with its key or none. Both are
+ * escaped: they are baked into the screen's template source.
  */
 export function customResponseRules(
   params: ExperimentParameters
@@ -83,7 +93,12 @@ export function customResponseRules(
       keys: CONDITION_SLOTS.flatMap(({ name }) => {
         const slot = params[name];
         return slot && isActiveSlot(slot)
-          ? [{ key: slot.response || undefined, meaning: conditionTitle(slot) }]
+          ? [
+              {
+                key: slot.response ? literalText(slot.response) : undefined,
+                meaning: literalText(conditionTitle(slot)),
+              },
+            ]
           : [];
       }),
     },

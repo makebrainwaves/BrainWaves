@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { template } from 'lodash';
 import { EVENTS } from '../../../constants/constants';
 import type { ExperimentParameters } from '../../../constants/interfaces';
 import {
@@ -51,5 +52,21 @@ describe('custom participant screens', () => {
     const html = customInstructionsScreen(params);
     expect(html).toContain('${this.parameters.intro}');
     expect(html).not.toContain('${danger}');
+  });
+
+  it('shows condition titles literally, never as HTML or a template', () => {
+    const hostile = {
+      ...params,
+      stimulus1: slot(EVENTS.STIMULUS_1, '<b>${danger}', '/pics/dogs', '1'),
+    } as unknown as ExperimentParameters;
+    const context = { parameters: { intro: '' }, state: {}, files: {} };
+    const el = document.createElement('div');
+    el.innerHTML = template(customInstructionsScreen(hostile), {
+      escape: '',
+      evaluate: '',
+    }).call(context, context);
+
+    expect(el.textContent).toContain('<b>${danger}');
+    expect(el.querySelector('b')).toBeNull();
   });
 });
