@@ -46,6 +46,8 @@ export interface PrepareStepsProps {
   onPreviewAgain: () => void;
   isPreviewing: boolean;
   hasPreviewed: boolean;
+  /** The live participant screen shown while previewing (Design passes `PreviewExperimentComponent`); a placeholder when absent. */
+  preview?: React.ReactNode;
 }
 
 /** One built-in experiment's Prepare content, defined in its `experiments/<name>/prepare.ts`. */
@@ -444,15 +446,30 @@ const PREVIEW_INTRO = {
   },
 };
 
-function PreviewRunningView({ responses }: { responses: ResponseMapping[] }) {
+/**
+ * The running preview fills the free height (at least 420px) and draws the
+ * participant screen at 0.55 zoom, so a screen laid out for a ~1366px-wide run
+ * area shows whole, without scrolling, in the 800px lesson column.
+ */
+function PreviewRunningView({
+  responses,
+  preview,
+}: {
+  responses: ResponseMapping[];
+  preview?: React.ReactNode;
+}) {
   return (
     <section className="flex flex-1 flex-col gap-3">
-      <div className="flex flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white p-4">
+      <div className="flex min-h-[420px] flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white p-4">
         <span className={EYEBROW}>EXPERIMENT AREA</span>
-        <div className="flex flex-1 items-center justify-center rounded-md bg-[#f9f9f9]">
-          <span className="text-[15px] text-ink-muted">
-            Participant screen would appear here
-          </span>
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-md bg-[#f9f9f9]">
+          {preview ? (
+            <div className="absolute inset-0 flex [zoom:0.55]">{preview}</div>
+          ) : (
+            <span className="absolute inset-0 m-auto h-fit w-fit text-[15px] text-ink-muted">
+              Participant screen would appear here
+            </span>
+          )}
         </div>
       </div>
       <KeyLegend responses={responses} />
@@ -552,7 +569,10 @@ export default function PrepareSteps(props: PrepareStepsProps) {
               </section>
             )}
             {previewRunning && (
-              <PreviewRunningView responses={props.responses} />
+              <PreviewRunningView
+                responses={props.responses}
+                preview={props.preview}
+              />
             )}
           </div>
           <StepActions>
