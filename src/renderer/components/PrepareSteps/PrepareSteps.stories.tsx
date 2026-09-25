@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import AppShell from '../AppShell/AppShell';
-import PrepareSteps, { PrepareStepId } from './PrepareSteps';
+import PrepareSteps, { PrepareFixture, PrepareStepId } from './PrepareSteps';
 import {
   FACES_HOUSES,
+  MULTITASKING,
   NOOP_HANDLERS,
-  PrepareFixture,
   SACKS_STAND_IN,
   SEARCH,
   STROOP,
@@ -29,6 +29,12 @@ const stroopWorkspace = { ...behaviorWorkspace, modality: 'eeg' as const };
 const searchWorkspace = {
   name: 'Visual_Search_1',
   experimentType: 'Visual Search',
+  modality: 'eeg' as const,
+};
+
+const multitaskingWorkspace = {
+  name: 'Multitasking_1',
+  experimentType: 'Multitasking',
   modality: 'eeg' as const,
 };
 
@@ -122,6 +128,14 @@ export const ProtocolStroop: Story = {
 export const ProtocolSearch: Story = {
   parameters: { workspace: searchWorkspace },
   render: () => <InteractiveStep initialStep="protocol" fixture={SEARCH} />,
+};
+
+/** P05b — Multitasking protocol: two rules on the same b / n keys; a block timeline with no study-wide total. */
+export const ProtocolMultitasking: Story = {
+  parameters: { workspace: multitaskingWorkspace },
+  render: () => (
+    <InteractiveStep initialStep="protocol" fixture={MULTITASKING} />
+  ),
 };
 
 /** P06 — PreviewStopped. Nothing recorded; Try the experiment is primary. */
