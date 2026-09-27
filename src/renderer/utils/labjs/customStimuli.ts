@@ -220,16 +220,6 @@ export function stimuliFromImageLists(slots: ConditionImageList[]): Stimulus[] {
   return stimuli;
 }
 
-export function countPhases(stimuli: Stimulus[]): {
-  nbTrials: number;
-  nbPracticeTrials: number;
-} {
-  return {
-    nbTrials: stimuli.filter((s) => s.phase === 'main').length,
-    nbPracticeTrials: stimuli.filter((s) => s.phase === 'practice').length,
-  };
-}
-
 export async function rebuildStimuliFromSlots(
   params: ExperimentParameters,
   readImages: (dir: string) => Promise<string[]>,

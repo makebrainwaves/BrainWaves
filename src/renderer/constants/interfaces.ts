@@ -90,6 +90,12 @@ export type ExperimentParameters = {
   // Set only for EXPERIMENTS.IMPORTED: the externally-authored study and the
   // condition contract the Markers tab froze for it.
   imported?: ImportedExperiment;
+  /**
+   * Custom only: the design the student last saw a feasibility analysis for,
+   * as its phrasing prompt. The analysis is valid while this matches the
+   * current design's prompt.
+   */
+  feasibilityCheckedPrompt?: string;
 };
 
 export interface Stimulus {

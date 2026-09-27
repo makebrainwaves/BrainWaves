@@ -33,6 +33,7 @@ describe('StimuliDesignColumn', () => {
       <table>
         <tbody>
           <StimuliDesignColumn
+            mode="assets"
             num={1}
             title="Face"
             response="1"
@@ -53,6 +54,7 @@ describe('StimuliDesignColumn', () => {
       <table>
         <tbody>
           <StimuliDesignColumn
+            mode="assets"
             num={1}
             title="Face"
             response="1"
@@ -82,6 +84,7 @@ describe('StimuliDesignColumn', () => {
         <table>
           <tbody>
             <StimuliDesignColumn
+              mode="assets"
               num={1}
               title="Face"
               response="1"
