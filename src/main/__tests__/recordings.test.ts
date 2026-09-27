@@ -24,10 +24,11 @@ const write = (rel: string) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, 'x');
 };
+/** Workspace CSVs relative to `dir`, with `/` separators (tests alias `path` to `pathe`). */
 const csvFiles = () =>
-  (fs.readdirSync(dir, { recursive: true }) as string[]).filter((f) =>
-    f.endsWith('.csv')
-  );
+  (fs.readdirSync(dir, { recursive: true }) as string[])
+    .map(path.normalize)
+    .filter((f) => f.endsWith('.csv'));
 
 describe('recordings', () => {
   it('complete recordings are discovered', () => {
@@ -71,7 +72,7 @@ describe('recordings', () => {
     expect(csvFiles().filter(isIncompleteRawEEGFile)).toEqual([
       path.join('Data/P1/EEG/P1-A-1-raw.incomplete.csv'),
     ]);
-    expect(incompleteRecordingFiles(dir, eeg)).toEqual([
+    expect(incompleteRecordingFiles(dir, eeg).map(path.normalize)).toEqual([
       eeg,
       path.join(dir, 'Data/P1/Behavior/P1-A-1-behavior.incomplete.csv'),
       path.join(dir, 'Data/P1/EEG/P1-A-1-events.json'),
