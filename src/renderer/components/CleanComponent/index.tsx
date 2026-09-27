@@ -1,18 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import path from 'pathe';
-import { isNil, isString, memoize } from 'lodash';
-import { Button } from '../ui/button';
-import {
-  EXPERIMENTS,
-  DEVICES,
-  PTP_THRESHOLD,
-  SCREENS,
-} from '../../constants/constants';
+import { memoize } from 'lodash';
+import { toast } from 'react-toastify';
+import { PTP_THRESHOLD, SCREENS } from '../../constants/constants';
 import { ExperimentParameters } from '../../constants/interfaces';
 import { resolveMarkerRegistry } from '../../utils/eeg/markerRegistry';
-import { readWorkspaceRawEEGData } from '../../utils/filesystem/storage';
-import EpochReviewer from './EpochReviewer';
-import LiveErpPane from './LiveErpPane';
+import {
+  deleteIncompleteRecording,
+  readWorkspaceIncompleteEEGData,
+  readWorkspaceRawEEGData,
+} from '../../utils/filesystem/storage';
+import { AREA_ROUTES } from '../AppShell/areas';
+import CleanDatasetSelect from '../Clean/CleanDatasetSelect';
+import CleanReview, { CleanConfirm, SaveState } from '../Clean/CleanReview';
+import { PrimerStep } from '../Clean/CleanPrimer';
+import type { RawRecording } from '../Clean/fixtures';
 import {
   PyodideActions,
   ExperimentActions,
@@ -27,527 +29,251 @@ const codeToLabelFor = memoize(
 );
 
 export interface Props {
-  type?: EXPERIMENTS;
   title: string;
-  deviceType: DEVICES;
-  epochsInfo: Array<{
-    [key: string]: number | string;
-  }>;
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
   PyodideActions: typeof PyodideActions;
   ExperimentActions: typeof ExperimentActions;
-  subject: string;
-  session: number;
   params: ExperimentParameters | null;
   suggestedRejections: SuggestedRejection[];
   cleanedEpochsSave: { revision: number; ok: boolean };
   navigate: (route: string) => void;
 }
 
-interface DropdownOption {
-  key: string;
-  text: string;
-  value: string;
-}
-
-const CLEAN_STEPS = [
-  'Click a noisy trial (epoch) column to leave it out — click again to bring it back.',
-  'Click a sensor name if that one sensor looks bad the whole time.',
-  'Auto-flag suggests noisy trials for you. They’re only suggestions, so check them.',
-  'Watch the Live ERP update as you leave trials out.',
-  'Save the cleaned dataset. Analyze uses it to make your results.',
-];
-
-/** Plain-language "what is cleaning?" primer; always available, collapsible. */
-function CleanExplainer({ defaultOpen }: { defaultOpen: boolean }) {
-  return (
-    <details
-      open={defaultOpen}
-      className="mb-4 rounded-lg border border-brand/30 bg-white/70 p-3 text-left"
-    >
-      <summary className="cursor-pointer font-medium text-brand">
-        What does cleaning your data mean? 🧹
-      </summary>
-      <div className="mt-2 text-sm">
-        Blinks, jaw clenches and loose sensors add big spikes that have nothing
-        to do with your experiment. Cleaning means finding the trials or sensors
-        with movement or poor signal and leaving them out before the responses
-        are averaged. Your original recording stays unchanged.
-      </div>
-      <ol className="mt-2 space-y-0.5 text-sm">
-        {CLEAN_STEPS.map((step, i) => (
-          <li key={step}>
-            {i + 1}. {step}
-          </li>
-        ))}
-      </ol>
-    </details>
-  );
-}
-
+/**
+ * The Clean screen: pick one complete raw recording (`CleanDatasetSelect`),
+ * then leave out trials, flag sensors, accept or restore auto-flag suggestions
+ * and save a cleaned copy (`CleanReview`). Owns exclusion, confirmation and
+ * save state; loading, cleaning and the disk write go through `PyodideActions`.
+ */
 export default function Clean(props: Props) {
+  const { epochArrays, cleanedEpochsSave, navigate } = props;
   const [view, setView] = useState<'select' | 'review'>('select');
-  const [subjects, setSubjects] = useState<Array<DropdownOption>>([]);
-  const [eegFilePaths, setEegFilePaths] = useState<Array<DropdownOption>>([
-    { key: '', text: '', value: '' },
-  ]);
-  const [selectedSubject, setSelectedSubject] = useState(props.subject);
-  const [selectedFilePaths, setSelectedFilePaths] = useState<Array<string>>([]);
-  const [rejectedEpochs, setRejectedEpochs] = useState<Set<number>>(new Set());
+  const [recordings, setRecordings] = useState<RawRecording[]>([]);
+  /** Bumped to list the workspace's recordings again (after a delete). */
+  const [listRevision, setListRevision] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [showIncomplete, setShowIncomplete] = useState(false);
+  const [deletingRecording, setDeletingRecording] =
+    useState<RawRecording | null>(null);
+  /** ABSOLUTE indices into `rejectedFor`, including accepted suggestions. */
+  const [rejected, setRejected] = useState<Set<number>>(new Set());
+  /** The arrays `rejected` indexes; arrays are re-fetched after every load and save, which invalidates the indices. */
+  const [rejectedFor, setRejectedFor] = useState(epochArrays);
+  /** Channel names stay valid across saves, so the flags persist and each save sends the full set. */
   const [badChannels, setBadChannels] = useState<Set<string>>(new Set());
   const [autoFlagThreshold, setAutoFlagThreshold] = useState(
     PTP_THRESHOLD.default
   );
-  const [showAutoFlagSettings, setShowAutoFlagSettings] = useState(false);
-  const [isWaitingForCleanedSave, setIsWaitingForCleanedSave] = useState(false);
-  const [icons] = useState(() =>
-    props.type === EXPERIMENTS.N170
-      ? ['😊', '🏠', '✕', '📖']
-      : ['★', '☆', '✕', '📖']
-  );
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  /** Where a settled save goes: stay on Clean, or on to Analyze. */
+  const destination = useRef<'clean' | 'analyze'>('clean');
+  const [confirm, setConfirm] = useState<CleanConfirm | null>(null);
+  const [primerOpen, setPrimerOpen] = useState(true);
+  const [primerStep, setPrimerStep] = useState<PrimerStep>(1);
+  const prevRevision = useRef(cleanedEpochsSave.revision);
 
-  // Track previous revision so we can detect changes in cleanedEpochsSave.
-  const prevRevisionRef = useRef(props.cleanedEpochsSave.revision);
+  if (rejectedFor !== epochArrays) {
+    setRejectedFor(epochArrays);
+    setRejected(new Set());
+  }
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const workspaceRawData = await readWorkspaceRawEEGData(props.title);
+      const [raw, incomplete] = await Promise.all([
+        readWorkspaceRawEEGData(props.title),
+        readWorkspaceIncompleteEEGData(props.title),
+      ]);
       if (cancelled) return;
-      setSubjects(
-        workspaceRawData
-          .map(
-            (filepath) =>
-              filepath.path.split(path.sep)[
-                filepath.path.split(path.sep).length - 3
-              ]
-          )
-          .reduce((acc, curr) => {
-            if (acc.find((subject) => subject.key === curr)) {
-              return acc;
-            }
-            return acc.concat({ key: curr, text: curr, value: curr });
-          }, [] as DropdownOption[])
-      );
-      setEegFilePaths(
-        workspaceRawData.map((filepath) => ({
-          key: filepath.name,
-          text: filepath.name,
-          value: filepath.path,
-        }))
+      const listed: Array<{
+        file: { name: string; path: string };
+        incomplete: boolean;
+      }> = [
+        ...raw.map((file) => ({ file, incomplete: false })),
+        ...incomplete.map((file) => ({ file, incomplete: true })),
+      ];
+      setRecordings(
+        listed.map(({ file, incomplete: isIncomplete }) => {
+          const segments = file.path.split(path.sep);
+          return {
+            key: file.path,
+            name: file.name,
+            subject: segments[segments.length - 3],
+            incomplete: isIncomplete,
+          };
+        })
       );
     })();
     return () => {
       cancelled = true;
     };
-  }, [props.title]);
+  }, [props.title, listRevision]);
 
   useEffect(() => {
-    if (props.suggestedRejections.length > 0) {
-      setRejectedEpochs((prev) => {
-        const next = new Set(prev);
-        for (const s of props.suggestedRejections) next.add(s.index);
-        return next;
-      });
+    if (cleanedEpochsSave.revision === prevRevision.current) return;
+    prevRevision.current = cleanedEpochsSave.revision;
+    if (!cleanedEpochsSave.ok) {
+      setSaveState('failed');
+    } else if (destination.current === 'analyze') {
+      navigate(SCREENS.ANALYZE.route);
+    } else {
+      setSaveState('saved');
     }
-  }, [props.suggestedRejections]);
+  }, [cleanedEpochsSave, navigate]);
 
-  // componentDidUpdate equivalent: watch cleanedEpochsSave.revision changes.
-  const { cleanedEpochsSave, navigate } = props;
-  useEffect(() => {
-    if (
-      isWaitingForCleanedSave &&
-      cleanedEpochsSave.revision !== prevRevisionRef.current
-    ) {
-      setIsWaitingForCleanedSave(false);
-      // On failure the epic has already surfaced a toast; stay put so the
-      // student doesn't land on an Analyze screen missing their dataset.
-      if (cleanedEpochsSave.ok) {
-        navigate(SCREENS.ANALYZE.route);
-      }
-    }
-    prevRevisionRef.current = cleanedEpochsSave.revision;
-  }, [
-    isWaitingForCleanedSave,
-    cleanedEpochsSave.revision,
-    cleanedEpochsSave.ok,
-    navigate,
-  ]);
+  const chosen = recordings.find((r) => r.key === selected) ?? null;
+  const total = epochArrays?.meta.n_epochs ?? 0;
+  const allRejected = total > 0 && rejected.size >= total;
 
-  function handleRecordingChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const filePaths = Array.from(e.target.selectedOptions, (o) => o.value);
-    setSelectedFilePaths(filePaths);
+  /** Any exclusion edit makes a finished save stale and retires the primer. */
+  function edited() {
+    setSaveState((state) => (state === 'saving' ? state : 'idle'));
+    setPrimerOpen(false);
   }
 
-  function handleSubjectChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = e.target;
-    if (!isNil(value) && isString(value)) {
-      setSelectedSubject(value);
-      setSelectedFilePaths([]);
-    }
-  }
-
-  function handleLoadData() {
-    props.ExperimentActions.SetSubject(selectedSubject);
-    props.PyodideActions.LoadEpochs(selectedFilePaths[0]);
-    setView('review');
-    setRejectedEpochs(new Set());
-    setBadChannels(new Set());
-  }
-
-  function handleToggleEpoch(index: number) {
-    setRejectedEpochs((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
+  /** Cleans the worker's current epochs, then saves them; `dropIndices` index those epochs. */
+  function save(dropIndices: number[]) {
+    props.PyodideActions.CleanEpochs({
+      dropIndices,
+      badChannels: [...badChannels],
     });
+    setSaveState('saving');
+  }
+
+  function handleStart() {
+    if (!chosen) return;
+    props.ExperimentActions.SetSubject(chosen.subject);
+    props.PyodideActions.LoadEpochs(chosen.key);
+    setBadChannels(new Set());
+    setSaveState('idle');
+    setView('review');
+  }
+
+  async function handleDeleteConfirm() {
+    if (!deletingRecording) return;
+    const { key, name } = deletingRecording;
+    setDeletingRecording(null);
+    try {
+      await deleteIncompleteRecording(props.title, key);
+    } catch (e) {
+      toast.error(`Couldn't delete ${name}: ${(e as Error).message}`);
+    }
+    setListRevision((n) => n + 1);
   }
 
   function handleToggleChannel(name: string) {
+    edited();
     const next = new Set(badChannels);
-    const adding = !next.has(name);
-    if (adding) {
-      next.add(name);
-    } else {
-      next.delete(name);
-    }
+    const adding = !next.delete(name);
+    if (adding) next.add(name);
     setBadChannels(next);
-
-    // Dropping >1 of a 4-channel (Muse) recording loses a lot of signal —
-    // informational only; they can still proceed.
-    if (adding && next.size > 1 && props.epochArrays?.meta.n_channels === 4) {
-      window.electronAPI.showMessageBox({
-        buttons: ['Got it'],
-        message:
-          "You've marked more than one bad channel on a 4-channel recording. " +
-          'That removes a big chunk of your data — if the signal is really this ' +
-          'noisy, consider collecting another dataset.',
-      });
+    if (adding && next.size > 1 && epochArrays?.meta.n_channels === 4) {
+      setConfirm('dropChannels');
     }
   }
 
-  function handleAutoFlag() {
-    props.PyodideActions.GetSuggestedRejections(autoFlagThreshold);
-  }
-
-  /**
-   * Applies the pending selection. Returns false when the student backed out,
-   * so callers know nothing was dispatched.
-   *
-   * `destination` only affects the wording of the one confirmation dialog —
-   * "Apply exclusions & save" has always applied a partial selection without
-   * asking, while "Save cleaned dataset & analyze" confirms because it also
-   * leaves the screen.
-   */
-  async function handleCleanData(
-    destination: 'clean' | 'analyze' = 'clean'
-  ): Promise<boolean> {
-    const total = props.epochArrays?.meta.n_epochs ?? 0;
-    const nDropped = rejectedEpochs.size;
-    const nBadChannels = badChannels.size;
-
-    // Exactly one prompt, whatever the trigger. Rejecting every epoch produces
-    // an empty dataset that can't be analyzed (and previously wrote a
-    // degenerate .fif with no error), so that warning always wins.
-    let confirmation: { confirmLabel: string; message: string } | null = null;
-    if (total > 0 && nDropped >= total) {
-      confirmation = {
-        confirmLabel: 'Reject all anyway',
-        message: `This will reject all ${total} epochs, leaving nothing to analyze. Are you sure?`,
-      };
-    } else if (destination === 'analyze' && nDropped > 0) {
-      confirmation = {
-        confirmLabel: 'Remove selected and analyze',
-        message: `This will remove ${nDropped} selected epoch${nDropped === 1 ? '' : 's'} before analysis. Continue?`,
-      };
-    } else if (destination === 'analyze' && nBadChannels > 0) {
-      confirmation = {
-        confirmLabel: 'Apply and analyze',
-        message:
-          'This will apply flagged bad channels before analysis. Continue?',
-      };
-    }
-
-    if (confirmation) {
-      const response = await window.electronAPI.showMessageBox({
-        buttons: ['Cancel', confirmation.confirmLabel],
-        message: confirmation.message,
-      });
-      if (response.response !== 1) {
-        return false;
-      }
-    }
-
-    props.PyodideActions.CleanEpochs({
-      dropIndices: [...rejectedEpochs],
-      badChannels: [...badChannels],
-    });
-    // After Clean, raw_epochs is re-fetched with fewer epochs, so the old
-    // absolute indices no longer apply.
-    setRejectedEpochs(new Set());
-    setBadChannels(new Set());
-    return true;
-  }
-
-  async function handleAnalyzeClick() {
-    if (!(await handleCleanData('analyze'))) return;
-    // The cleaned .fif is written by the worker well after CleanEpochs is
-    // dispatched, and Analyze lists that directory on mount — navigating now
-    // would show a picker without the dataset that was just produced.
-    setIsWaitingForCleanedSave(true);
-  }
-
-  function handleThresholdChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const parsed = parseFloat(e.target.value);
-    if (!Number.isNaN(parsed)) {
-      setAutoFlagThreshold(parsed);
+  function handleApply() {
+    destination.current = 'clean';
+    if (allRejected) {
+      setConfirm('rejectAll');
+    } else {
+      save([...rejected]);
     }
   }
 
-  function renderStats() {
-    const { epochsInfo, epochArrays } = props;
-    if (isNil(epochsInfo) || epochsInfo.length === 0) {
-      return null;
+  function handleSave() {
+    destination.current = 'analyze';
+    if (allRejected) {
+      setConfirm('rejectAll');
+    } else if (rejected.size > 0) {
+      setConfirm('removeSelected');
+    } else if (badChannels.size > 0) {
+      setConfirm('applyChannels');
+    } else {
+      save([]);
     }
-    // MNE's "Drop Percentage" only counts epochs already dropped, so it can't
-    // move while the student is still selecting. Report the pending selection
-    // alongside it rather than overwriting it with a number that resets to 0
-    // after every clean.
-    const total = epochArrays?.meta.n_epochs ?? 0;
-    const nSelected = rejectedEpochs.size;
-    const selectedPercent =
-      total > 0 ? Math.round((nSelected / total) * 1000) / 10 : 0;
+  }
+
+  function handleConfirmAccept() {
+    setConfirm(null);
+    if (confirm !== 'dropChannels') save([...rejected]);
+  }
+
+  if (view === 'select') {
     return (
-      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-        {epochsInfo.map((infoObj, index) => (
-          <span key={String(infoObj.name)} className="whitespace-nowrap">
-            <span className="mr-1">{icons[index]}</span>
-            <span className="text-gray-500">{String(infoObj.name)}:</span>{' '}
-            <span className="font-medium">{infoObj.value}</span>
-          </span>
-        ))}
-        {nSelected > 0 && (
-          <span className="whitespace-nowrap text-brand">
-            <span className="mr-1">🚫</span>
-            <span>Selected for rejection:</span>{' '}
-            <span className="font-medium">
-              {nSelected} ({selectedPercent}%)
-            </span>
-          </span>
-        )}
-      </div>
+      <CleanDatasetSelect
+        recordings={recordings}
+        selected={selected}
+        onSelectChange={setSelected}
+        showIncomplete={showIncomplete}
+        onShowIncompleteChange={setShowIncomplete}
+        deletingRecording={deletingRecording}
+        onDeleteRequest={setDeletingRecording}
+        onDeleteConfirm={() => void handleDeleteConfirm()}
+        onDeleteCancel={() => setDeletingRecording(null)}
+        onStart={handleStart}
+      />
     );
   }
-
-  function renderAnalyzeButton() {
-    const { epochsInfo } = props;
-    if (isNil(epochsInfo) || epochsInfo.length === 0) {
-      return null;
-    }
-    const hasSelection = rejectedEpochs.size + badChannels.size > 0;
-    const isSaving = isWaitingForCleanedSave;
-    return (
-      <Button
-        variant="default"
-        disabled={isSaving}
-        onClick={() =>
-          hasSelection
-            ? void handleAnalyzeClick()
-            : props.navigate(SCREENS.ANALYZE.route)
-        }
-      >
-        {isSaving
-          ? 'Saving cleaned data…'
-          : hasSelection
-            ? 'Save cleaned dataset & analyze →'
-            : 'Go to Analyze →'}
-      </Button>
-    );
-  }
-
-  function renderSelect(filteredFilePaths: DropdownOption[]) {
-    return (
-      <div className="max-w-2xl text-left">
-        <h1>Clean your data</h1>
-        <p className="mt-2">
-          Remove the noisy bits of a recording and save a cleaned copy. Analyze
-          uses that cleaned copy to make your results.
-        </p>
-        <CleanExplainer defaultOpen />
-        <h4 className="mt-4">Select Subject</h4>
-        <select
-          className="w-full border border-gray-300 rounded p-1 mb-2"
-          value={selectedSubject}
-          onChange={handleSubjectChange}
-        >
-          {subjects.map((s) => (
-            <option key={s.key} value={s.value}>
-              {s.text}
-            </option>
-          ))}
-        </select>
-        <h4>Select Recordings</h4>
-        <select
-          multiple
-          className="w-full border border-gray-300 rounded p-1"
-          value={selectedFilePaths}
-          onChange={handleRecordingChange}
-        >
-          {filteredFilePaths.map((fp) => (
-            <option key={fp.key} value={fp.value}>
-              {fp.text}
-            </option>
-          ))}
-        </select>
-        <Button
-          variant="default"
-          className="mt-4 w-full"
-          disabled={selectedFilePaths.length === 0}
-          onClick={handleLoadData}
-        >
-          Start cleaning →
-        </Button>
-      </div>
-    );
-  }
-
-  function renderReview(
-    codeToLabel: Record<number, string>,
-    suggestedRejections: SuggestedRejection[]
-  ) {
-    const hasEpochs = !isNil(props.epochArrays);
-    const nRecordings = selectedFilePaths.length;
-    return (
-      <>
-        <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" onClick={() => setView('select')}>
-            ← Pick different data
-          </Button>
-          <h1 className="m-0">Clean your data</h1>
-          <span className="text-sm text-gray-500">
-            {selectedSubject} · {nRecordings} recording
-            {nRecordings === 1 ? '' : 's'}
-          </span>
-        </div>
-
-        <CleanExplainer defaultOpen={false} />
-
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <Button
-            variant="default"
-            disabled={isNil(props.epochsInfo)}
-            onClick={() => void handleCleanData('clean')}
-          >
-            Apply exclusions &amp; save
-          </Button>
-          <Button
-            variant="secondary"
-            disabled={isNil(props.epochsInfo)}
-            onClick={handleAutoFlag}
-          >
-            Auto-flag artifacts
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Auto-flag settings"
-            onClick={() => setShowAutoFlagSettings((prev) => !prev)}
-          >
-            ⚙︎
-          </Button>
-          <div className="ml-auto">{renderAnalyzeButton()}</div>
-        </div>
-
-        {showAutoFlagSettings && (
-          <div className="mb-3 text-left">
-            <label
-              className="text-sm font-medium block"
-              htmlFor="autoflag-sensitivity"
-            >
-              Auto-flag threshold
-            </label>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-gray-500">More flags</span>
-              <input
-                id="autoflag-sensitivity"
-                type="range"
-                min={PTP_THRESHOLD.min}
-                max={PTP_THRESHOLD.max}
-                step={PTP_THRESHOLD.step}
-                value={autoFlagThreshold}
-                aria-valuetext={`${autoFlagThreshold} µV peak-to-peak`}
-                onChange={handleThresholdChange}
-                className="flex-1"
-              />
-              <span className="text-xs text-gray-500">Fewer flags</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Flag epochs whose peak-to-peak amplitude exceeds{' '}
-              <span className="font-medium">{autoFlagThreshold} µV</span>.
-            </p>
-          </div>
-        )}
-        {suggestedRejections.length > 0 && (
-          <div className="mb-3 text-left text-sm text-brand">
-            <p className="font-medium">
-              Flagged {suggestedRejections.length}{' '}
-              {suggestedRejections.length === 1 ? 'epoch' : 'epochs'}
-            </p>
-            <ul className="text-xs text-gray-600 list-disc list-inside">
-              {suggestedRejections.slice(0, 3).map((s, i) => (
-                <li key={`${s.index}-${i}`}>{s.reason}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="mb-4">{renderStats()}</div>
-
-        {hasEpochs ? (
-          <div className="flex flex-wrap gap-6">
-            <EpochReviewer
-              epochArrays={props.epochArrays}
-              rejected={rejectedEpochs}
-              onToggleEpoch={handleToggleEpoch}
-              badChannels={badChannels}
-              onToggleChannel={handleToggleChannel}
-              codeToLabel={codeToLabel}
-            />
-            <LiveErpPane
-              epochArrays={props.epochArrays}
-              rejected={rejectedEpochs}
-              codeToLabel={codeToLabel}
-            />
-          </div>
-        ) : (
-          <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-brand/40 bg-white/50 text-brand">
-            Loading your epochs… 🧠
-          </div>
-        )}
-      </>
-    );
-  }
-
-  const filteredFilePaths = eegFilePaths.filter((filepath) => {
-    const strVal = filepath.value;
-    const subjectFromFilepath = strVal.split(path.sep)[
-      strVal.split(path.sep).length - 3
-    ];
-    return selectedSubject === subjectFromFilepath;
-  });
-
-  const codeToLabel = codeToLabelFor(props.params);
-  const { suggestedRejections } = props;
 
   return (
-    <div className="h-full overflow-y-auto bg-app p-[3%]">
-      {view === 'select'
-        ? renderSelect(filteredFilePaths)
-        : renderReview(codeToLabel, suggestedRejections)}
-    </div>
+    <CleanReview
+      dataset={{ subject: chosen?.subject ?? '', recording: chosen?.name ?? '' }}
+      epochArrays={epochArrays}
+      status={
+        epochArrays === null
+          ? 'loading'
+          : epochArrays.meta.n_epochs === 0
+            ? 'no-epochs'
+            : 'ready'
+      }
+      codeToLabel={codeToLabelFor(props.params)}
+      rejected={rejected}
+      badChannels={badChannels}
+      onToggleEpoch={(index) => {
+        edited();
+        setRejected((prev) => {
+          const next = new Set(prev);
+          if (!next.delete(index)) next.add(index);
+          return next;
+        });
+      }}
+      onToggleChannel={handleToggleChannel}
+      autoFlagThreshold={autoFlagThreshold}
+      onThresholdChange={setAutoFlagThreshold}
+      suggestions={props.suggestedRejections.map((s) => ({
+        ...s,
+        accepted: rejected.has(s.index),
+      }))}
+      onAcceptSuggestion={(index) => {
+        edited();
+        setRejected((prev) => new Set(prev).add(index));
+      }}
+      onRestoreSuggestion={(index) => {
+        edited();
+        setRejected((prev) => {
+          const next = new Set(prev);
+          next.delete(index);
+          return next;
+        });
+      }}
+      onSuggest={() =>
+        props.PyodideActions.GetSuggestedRejections(autoFlagThreshold)
+      }
+      saveState={saveState}
+      onApply={handleApply}
+      onSave={handleSave}
+      onRetrySave={() => save([])}
+      onGoToAnalyze={() => navigate(SCREENS.ANALYZE.route)}
+      onGoToCollect={() => navigate(AREA_ROUTES.collect)}
+      onBackToSelection={() => setView('select')}
+      confirm={confirm}
+      onConfirmAccept={handleConfirmAccept}
+      onConfirmCancel={() => setConfirm(null)}
+      primerOpen={primerOpen}
+      primerStep={primerStep}
+      onPrimerOpenChange={setPrimerOpen}
+      onPrimerStepChange={setPrimerStep}
+    />
   );
 }

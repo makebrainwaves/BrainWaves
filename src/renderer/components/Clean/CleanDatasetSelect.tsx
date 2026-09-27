@@ -127,9 +127,6 @@ export default function CleanDatasetSelect({
                   />
                   <span className="font-bold text-ink">{recording.subject}</span>
                   <span className="text-[14px] text-ink">{recording.name}</span>
-                  <span className="ml-auto text-[13px] text-ink-muted">
-                    {recording.duration}
-                  </span>
                 </label>
               </li>
             );
@@ -184,7 +181,7 @@ export default function CleanDatasetSelect({
       <ConfirmDialog
         open={deletingRecording !== null}
         title="Delete this ended-early recording?"
-        body={`${deletingRecording?.name ?? ''} will be deleted from your workspace. This can't be undone.`}
+        body={`${deletingRecording?.name ?? ''} will be moved to your computer's Trash.`}
         confirmLabel="Delete recording"
         destructive
         onConfirm={onDeleteConfirm}
