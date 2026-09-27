@@ -129,12 +129,17 @@ export const requestChannelInfo = (worker: Worker) => {
 
 // Fetch epoch data arrays for the interactive reviewer. get_epochs_arrays writes
 // a float32 buffer to a MEMFS path and returns metadata; the worker reads the
-// buffer back (readFileAfter) and posts it zero-copy on dataKey 'epochArrays'.
-export const requestEpochArrays = (worker: Worker, variableName: string) => {
+// buffer back (readFileAfter) and posts it zero-copy on `dataKey` ('epochArrays'
+// for Clean's raw epochs, 'cleanedEpochArrays' for Analyze).
+export const requestEpochArrays = (
+  worker: Worker,
+  variableName: string,
+  dataKey = 'epochArrays'
+) => {
   const outPath = '/tmp/epoch_arrays.f32';
   worker.postMessage({
     data: `get_epochs_arrays(${variableName}, "${outPath}")`,
-    dataKey: 'epochArrays',
+    dataKey,
     readFileAfter: outPath,
   });
 };

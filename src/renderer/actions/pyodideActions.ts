@@ -54,6 +54,14 @@ export const PyodideActions = {
     { buffer: ArrayBuffer; meta: EpochArraysMeta },
     'SET_EPOCH_ARRAYS'
   >('SET_EPOCH_ARRAYS'),
+  SetCleanedEpochArrays: createAction<
+    { buffer: ArrayBuffer; meta: EpochArraysMeta },
+    'SET_CLEANED_EPOCH_ARRAYS'
+  >('SET_CLEANED_EPOCH_ARRAYS'),
+  // A worker plot request raised in Python; the key is the plot that failed.
+  PlotFailed: createAction<'psd' | 'topo' | 'erp', 'PLOT_FAILED'>(
+    'PLOT_FAILED'
+  ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetPSDPlot: createAction<any, 'SET_PSD_PLOT'>('SET_PSD_PLOT'), // Pyodide WASM runtime result — shape is dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -94,7 +94,9 @@ const pyodideMessageEpic: Epic<
       const { results, error, plotKey, dataKey } = e.data;
       if (error) {
         toast.error(`Pyodide: ${error}`);
-        return EMPTY;
+        return plotKey === 'psd' || plotKey === 'topo' || plotKey === 'erp'
+          ? of(PyodideActions.PlotFailed(plotKey))
+          : EMPTY;
       }
 
       // Route data results (tagged with dataKey, not plotKey). These come back
@@ -116,6 +118,14 @@ const pyodideMessageEpic: Epic<
       if (dataKey === 'epochArrays') {
         return of(
           PyodideActions.SetEpochArrays({
+            buffer: e.data.buffer as ArrayBuffer,
+            meta: results as EpochArraysMeta,
+          })
+        );
+      }
+      if (dataKey === 'cleanedEpochArrays') {
+        return of(
+          PyodideActions.SetCleanedEpochArrays({
             buffer: e.data.buffer as ArrayBuffer,
             meta: results as EpochArraysMeta,
           })
@@ -216,7 +226,13 @@ const loadCleanedEpochsEpic: Epic<
       // .fif epochs live on the host OS; stage them in Pyodide's MEMFS first
       // (the WASM filesystem can't reach host paths).
       const { memfsPaths, fsFiles } = await writeEpochsToMemfs(epochsArray);
-      loadCleanedEpochs(state$.value.pyodide.worker!, memfsPaths, fsFiles);
+      const worker = state$.value.pyodide.worker!;
+      loadCleanedEpochs(worker, memfsPaths, fsFiles);
+      requestEpochArrays(
+        worker,
+        PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS,
+        'cleanedEpochArrays'
+      );
     }),
     mergeMap(() =>
       of(
