@@ -17,6 +17,8 @@ import {
   COMPARISON_RATIO,
   EYES_CLOSED_LIVE,
   LIVE_SNAPSHOT,
+  NO_AF8_SENSORS,
+  NO_AF8_SNAPSHOT,
   NO_SIGNAL_SNAPSHOT,
   QUALITY_SCENARIOS,
   QualityState,
@@ -358,7 +360,7 @@ export const AlphaNoEffect: Story = {
   ),
 };
 
-/** X03 — Stream error and unsupported channels: both say exactly what to do. */
+/** X03 — StreamError: the stream stopped; the message says exactly what to do. */
 export const StreamError: Story = {
   render: () => (
     <Surface
@@ -369,7 +371,26 @@ export const StreamError: Story = {
           body="The headset is still connected, but its data stream ended. Disconnect and reconnect to start it again."
           actionLabel="Reconnect headset"
           onAction={fn()}
-          unsupported="Blink detection needs both AF7 and AF8, and this headset is not reporting AF8. The blink steps will watch AF7 only — or pick a headset with both forehead sensors. The eyes-closed activity works either way."
+        />
+      }
+    />
+  ),
+};
+
+/** X04 — UnsupportedChannels: this headset reports no AF8; the fixture agrees. */
+export const UnsupportedChannels: Story = {
+  render: () => (
+    <Surface
+      state="ready"
+      sensors={NO_AF8_SENSORS}
+      snapshot={NO_AF8_SNAPSHOT}
+      colors={qualityColors(NO_AF8_SENSORS)}
+      banner={
+        <ErrorBanner
+          title="This headset is not reporting AF8."
+          body="Blink detection needs both AF7 and AF8. The blink steps will watch AF7 only — or pick a headset with both forehead sensors. The eyes-closed activity works either way."
+          actionLabel="Switch headset"
+          onAction={fn()}
         />
       }
     />

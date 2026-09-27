@@ -765,42 +765,32 @@ export function ErrorBanner({
   body,
   actionLabel,
   onAction,
-  unsupported,
 }: {
   title: string;
   body: string;
   actionLabel: string;
   onAction(): void;
-  /** Unsupported-channel note, when the headset reports unusable channels. */
-  unsupported?: string;
 }) {
   return (
     <div
       role="alert"
-      className="flex flex-none flex-col gap-[8px] rounded-lg border-2 border-red-200 bg-white px-[18px] py-[8px]"
+      className="flex flex-none items-center justify-between gap-[16px] rounded-lg border-2 border-red-200 bg-white px-[18px] py-[8px]"
     >
-      <div className="flex items-center justify-between gap-[16px]">
-        <div className="flex items-start gap-[12px]">
-          <span
-            aria-hidden
-            className="flex h-[28px] w-[28px] flex-none items-center justify-center rounded-full bg-red-50 text-[16px] font-bold text-red-700"
-          >
-            !
-          </span>
-          <div>
-            <div className="text-[16px] text-ink">{title}</div>
-            <div className="text-[14px] leading-[1.4] text-ink-muted">{body}</div>
-          </div>
+      <div className="flex items-start gap-[12px]">
+        <span
+          aria-hidden
+          className="flex h-[28px] w-[28px] flex-none items-center justify-center rounded-full bg-red-50 text-[16px] font-bold text-red-700"
+        >
+          !
+        </span>
+        <div>
+          <div className="text-[16px] text-ink">{title}</div>
+          <div className="text-[14px] leading-[1.4] text-ink-muted">{body}</div>
         </div>
-        <Button variant="outline-brand" className="flex-none" onClick={onAction}>
-          {actionLabel}
-        </Button>
       </div>
-      {unsupported && (
-        <div className="border-t border-red-100 pt-[6px] text-[14px] leading-[1.45] text-ink-muted">
-          {unsupported}
-        </div>
-      )}
+      <Button variant="outline-brand" className="flex-none" onClick={onAction}>
+        {actionLabel}
+      </Button>
     </div>
   );
 }

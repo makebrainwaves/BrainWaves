@@ -113,6 +113,15 @@ export const NO_SIGNAL_SNAPSHOT = makeSnapshot(EXPLORE_CHANNELS, 5000, {
   gain: 0.04,
 });
 
+/** A headset that reports no AF8: the unsupported-channel state. */
+export const NO_AF8_CHANNELS = ['TP9', 'AF7', 'TP10'];
+export const NO_AF8_SENSORS: SensorStatus[] = NO_AF8_CHANNELS.map(
+  (channel) => ({ channel, quality: SIGNAL_QUALITY.GREAT })
+);
+export const NO_AF8_SNAPSHOT = makeSnapshot(NO_AF8_CHANNELS, 5000, {
+  seed: 13,
+});
+
 /** Blink step 1: one blink, one marked response. */
 export const BLINK_ONE = makeSnapshot(FRONTAL_CHANNELS, 5000, {
   seed: 21,
@@ -280,7 +289,7 @@ export const BLINK_STEPS: {
   {
     title: 'Blink once and find the marked response',
     action: 'Blink once, then keep still and watch AF7 and AF8.',
-    body: 'A blink drops one big slow hump onto the two front sensors — your eyelid muscle moving, not your brain thinking. When we spot one, the plot marks it with a gold band.',
+    body: 'A blink drops one big slow hump onto the two front sensors — from your eyes moving, not your brain thinking. When we spot one, the plot marks it with a gold band.',
   },
   {
     title: 'Predict what another blink will do',
