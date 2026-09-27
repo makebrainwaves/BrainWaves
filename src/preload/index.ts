@@ -12,6 +12,7 @@ import type {
   LSLMarker,
   LSLStatus,
 } from '../shared/lslTypes';
+import type { LLMEvent, LLMRequest } from '../shared/llmTypes';
 
 // Inject the resource path synchronously so renderer module-level code can use it
 // (The main process passes it as --resource-path in additionalArguments)
@@ -257,5 +258,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const listener = (_event: unknown, status: LSLStatus) => handler(status);
     ipcRenderer.on('lsl:status', listener);
     return () => ipcRenderer.removeListener('lsl:status', listener);
+  },
+
+  // ------------------------------------------------------------------
+  // Local LLM — utility-process inference, events stream back on llm:event
+  // ------------------------------------------------------------------
+  generateLLM: (request: LLMRequest): void =>
+    ipcRenderer.send('llm:generate', request),
+
+  abortLLM: (): void => ipcRenderer.send('llm:abort'),
+
+  onLLMEvent: (handler: (event: LLMEvent) => void): (() => void) => {
+    const listener = (_event: unknown, event: LLMEvent) => handler(event);
+    ipcRenderer.on('llm:event', listener);
+    return () => ipcRenderer.removeListener('llm:event', listener);
   },
 });

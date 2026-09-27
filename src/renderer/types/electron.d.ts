@@ -11,6 +11,7 @@ import type {
   LSLMarker,
   LSLStatus,
 } from '../../shared/lslTypes';
+import type { LLMEvent, LLMRequest } from '../../shared/llmTypes';
 
 export {};
 
@@ -124,6 +125,11 @@ declare global {
       handler: (payload: { uid: string }) => void
     ) => () => void;
     onLSLStatus: (handler: (status: LSLStatus) => void) => () => void;
+
+    // Local LLM
+    generateLLM: (request: LLMRequest) => void;
+    abortLLM: () => void;
+    onLLMEvent: (handler: (event: LLMEvent) => void) => () => void;
   }
 
   interface Window {

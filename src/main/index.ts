@@ -50,6 +50,8 @@ import {
   markRecordingIncomplete,
   recordingExists,
 } from './recordings';
+import { abortLLM, generateLLM, stopLLM } from './llm';
+import type { LLMRequest } from '../shared/llmTypes';
 
 // Playtest harness: isolate smoke-test state from the user's Electron profile.
 // Clear the env after reading so child processes don't inherit it.
@@ -238,12 +240,10 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
     const files = fs.readdirSync(getWorkspaceDir(title), {
       recursive: true,
     }) as string[];
-    return files
-      .filter(isRawEEGFile)
-      .map((filepath) => {
-        const fullPath = path.join(getWorkspaceDir(title), filepath);
-        return { name: path.basename(filepath), path: fullPath };
-      });
+    return files.filter(isRawEEGFile).map((filepath) => {
+      const fullPath = path.join(getWorkspaceDir(title), filepath);
+      return { name: path.basename(filepath), path: fullPath };
+    });
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
@@ -272,12 +272,10 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
     const files = fs.readdirSync(getWorkspaceDir(title), {
       recursive: true,
     }) as string[];
-    return files
-      .filter(isBehaviorFile)
-      .map((filepath) => {
-        const fullPath = path.join(getWorkspaceDir(title), filepath);
-        return { name: path.basename(filepath), path: fullPath };
-      });
+    return files.filter(isBehaviorFile).map((filepath) => {
+      const fullPath = path.join(getWorkspaceDir(title), filepath);
+      return { name: path.basename(filepath), path: fullPath };
+    });
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
@@ -431,10 +429,8 @@ ipcMain.handle(
 );
 
 /** True when any artifact of a subject/group/session run is on disk, including ended-early ones. */
-ipcMain.handle(
-  'fs:recordingExists',
-  (_event, title, subject, group, session) =>
-    recordingExists(getWorkspaceDir(title), subject, group, session)
+ipcMain.handle('fs:recordingExists', (_event, title, subject, group, session) =>
+  recordingExists(getWorkspaceDir(title), subject, group, session)
 );
 
 /** Hides an ended-early run from Clean, Analyze and badges; the files stay on disk. */
@@ -619,6 +615,15 @@ ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {
   lslInlets.unsubscribeStream(payload.uid);
 });
 
+// Local LLM — generation runs in a utility process; events stream back on llm:event.
+ipcMain.on('llm:generate', (_event, request: LLMRequest) =>
+  generateLLM(request, (event) =>
+    mainWindow?.webContents.send('llm:event', event)
+  )
+);
+
+ipcMain.on('llm:abort', () => abortLLM());
+
 // Viewer URL — used by ViewerComponent to load the EEG viewer in a webview
 ipcMain.handle('getViewerUrl', () => {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -747,6 +752,7 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   lslOutlets.destroyAll();
   lslInlets.destroyAll();
+  stopLLM();
 });
 
 app.whenReady().then(async () => {
