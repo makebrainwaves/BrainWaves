@@ -92,6 +92,11 @@ export default createReducer(initialState, (builder) =>
         erpPlot: action.payload,
       };
     })
+    .addCase(PyodideActions.LoadEpochs, (state) => ({
+      ...state,
+      epochArrays: null,
+      suggestedRejections: [],
+    }))
     .addCase(PyodideActions.SetEpochArrays, (state, action) => {
       // New epoch arrays → any prior auto-flag suggestions are stale.
       return { ...state, epochArrays: action.payload, suggestedRejections: [] };

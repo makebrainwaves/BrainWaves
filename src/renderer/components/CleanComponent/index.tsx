@@ -189,7 +189,7 @@ export default function Clean(props: Props) {
 
   function handleLoadData() {
     props.ExperimentActions.SetSubject(selectedSubject);
-    props.PyodideActions.LoadEpochs(selectedFilePaths);
+    props.PyodideActions.LoadEpochs(selectedFilePaths[0]);
     setView('review');
     setRejectedEpochs(new Set());
     setBadChannels(new Set());
