@@ -1,23 +1,22 @@
 import React from 'react';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EXPERIMENTS, DEVICES } from '../../../constants/constants';
 import type { SuggestedRejection } from '../../../actions';
 import Clean, { Props as CleanProps } from '../index';
 
-// We mock the children to capture the `rejected` prop sent to EpochReviewer.
-let mockRejected: Set<number> = new Set();
+// The mocked reviewer captures the exclusion state Clean passes down and its
+// toggle callbacks, so tests can click trials/sensors without a canvas.
+let reviewer: {
+  rejected: Set<number>;
+  badChannels: Set<string>;
+  onToggleEpoch(index: number): void;
+  onToggleChannel(name: string): void;
+};
 
 vi.mock('../EpochReviewer', () => ({
-  default: (props: { rejected: Set<number> }) => {
-    mockRejected = props.rejected;
+  default: (props: typeof reviewer) => {
+    reviewer = props;
     return <div data-testid="epoch-reviewer" />;
   },
 }));
@@ -28,11 +27,23 @@ vi.mock('../LiveErpPane', () => ({
 
 vi.mock('lab.js', () => ({}));
 
+const RECORDING = '/ws/Data/P1/EEG/P1-A-1-raw.csv';
+
 vi.mock('../../../utils/filesystem/storage', () => ({
   readWorkspaceRawEEGData: vi.fn(async () => [
-    { name: 'session_1.fif', path: '/sub-01/session_1.fif' },
+    { name: 'P1-A-1-raw.csv', path: RECORDING },
   ]),
+  readWorkspaceIncompleteEEGData: vi.fn(async () => []),
+  deleteIncompleteRecording: vi.fn(),
 }));
+
+vi.stubGlobal(
+  'ResizeObserver',
+  class {
+    observe() {}
+    disconnect() {}
+  }
+);
 
 const fakeEpochArrays = {
   buffer: new ArrayBuffer(8),
@@ -46,80 +57,114 @@ const fakeEpochArrays = {
   },
 };
 
-const baseProps: Record<string, unknown> = {
-  type: EXPERIMENTS.N170,
-  title: 'Test_Experiment',
-  deviceType: DEVICES.MUSE,
-  epochsInfo: [{ name: 'N170', value: 100 }],
-  epochArrays: fakeEpochArrays,
-  PyodideActions: { LoadEpochs: vi.fn() },
-  ExperimentActions: { SetSubject: vi.fn() },
-  subject: '',
-  session: 0,
-  params: null,
-  suggestedRejections: [] as SuggestedRejection[],
-  cleanedEpochsSave: { revision: 0, ok: false },
-  navigate: vi.fn(),
-};
+let props: CleanProps;
 
-describe('Clean suggestedRejections merge', () => {
-  beforeEach(() => {
-    mockRejected = new Set();
+beforeEach(() => {
+  props = {
+    title: 'Test_Experiment',
+    epochArrays: fakeEpochArrays,
+    PyodideActions: {
+      LoadEpochs: vi.fn(),
+      CleanEpochs: vi.fn(),
+      GetSuggestedRejections: vi.fn(),
+    },
+    ExperimentActions: { SetSubject: vi.fn() },
+    params: null,
+    suggestedRejections: [] as SuggestedRejection[],
+    cleanedEpochsSave: { revision: 0, ok: false },
+    navigate: vi.fn(),
+  } as unknown as CleanProps;
+});
+
+const ui = (overrides: Partial<CleanProps> = {}) => (
+  <MemoryRouter>
+    <Clean {...props} {...overrides} />
+  </MemoryRouter>
+);
+
+async function startCleaning() {
+  const view = render(ui());
+  fireEvent.click(await screen.findByRole('radio', { name: /P1-A-1-raw.csv/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start cleaning' }));
+  return view;
+}
+
+describe('Clean', () => {
+  it('loads the one chosen recording', async () => {
+    await startCleaning();
+
+    expect(props.ExperimentActions.SetSubject).toHaveBeenCalledWith('P1');
+    expect(props.PyodideActions.LoadEpochs).toHaveBeenCalledWith(RECORDING);
+    expect(screen.getByTestId('epoch-reviewer')).toBeInTheDocument();
   });
 
-  it('merges suggestedRejections indices into rejectedEpochs', async () => {
-    const { rerender } = render(
-      <MemoryRouter>
-        <Clean {...(baseProps as unknown as CleanProps)} />
-      </MemoryRouter>
-    );
+  it('never applies suggestions on their own; Accept and Restore do', async () => {
+    const { rerender } = await startCleaning();
 
-    // The mount effect reads workspace data and sets subjects/file paths.
-    // After that, the user selects a file and loads the dataset.
-    // The file-path multi-select fires onChange via handleRecordingChange.
-    // Wait for the mount effect to populate the select options.
-
-    await waitFor(() => {
-      expect(screen.getByText('Start cleaning →')).toBeInTheDocument();
-    });
-
-    // Select the first (and only) file path.
-    const select = screen.getByRole('listbox') as HTMLSelectElement;
-    const option = screen.getByRole('option', {
-      name: 'session_1.fif',
-    }) as HTMLOptionElement;
-    option.selected = true;
-    await act(async () => {
-      fireEvent.change(select);
-    });
-
-    // Click "Start cleaning" to switch to review view.
-    await act(async () => {
-      fireEvent.click(screen.getByText('Start cleaning →'));
-    });
-
-    // Now EpochReviewer should be rendered.
-    expect(screen.getByTestId('epoch-reviewer')).toBeInTheDocument();
-
-    // Rerender with suggestedRejections.
-    const suggestions: SuggestedRejection[] = [
-      { index: 2, reason: 'High peak-to-peak' },
-      { index: 5, reason: 'Muscle artifact' },
-    ];
     rerender(
-      <MemoryRouter>
-        <Clean
-          {...(baseProps as unknown as CleanProps)}
-          suggestedRejections={suggestions}
-        />
-      </MemoryRouter>
+      ui({ suggestedRejections: [{ index: 2, reason: '212 µV at Fp1' }] })
+    );
+    expect(reviewer.rejected.size).toBe(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+    expect([...reviewer.rejected]).toEqual([2]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+    expect(reviewer.rejected.size).toBe(0);
+  });
+
+  it('new epoch arrays clear left-out trials but keep flagged sensors', async () => {
+    const { rerender } = await startCleaning();
+    act(() => reviewer.onToggleEpoch(1));
+    act(() => reviewer.onToggleChannel('Fp1'));
+    expect([...reviewer.rejected]).toEqual([1]);
+
+    rerender(ui({ epochArrays: { ...fakeEpochArrays } }));
+
+    expect(reviewer.rejected.size).toBe(0);
+    expect([...reviewer.badChannels]).toEqual(['Fp1']);
+  });
+
+  it('Save & analyze confirms the removal, saves, then navigates once saved', async () => {
+    const { rerender } = await startCleaning();
+    act(() => reviewer.onToggleEpoch(0));
+    act(() => reviewer.onToggleEpoch(2));
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save cleaned dataset & analyze' })
+    );
+    expect(screen.getByText('Remove the selected trials?')).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remove selected and analyze' })
     );
 
-    // The componentDidUpdate in the class (and later the useEffect in the
-    // function component) merges the new indices into rejectedEpochs.
-    expect(mockRejected.has(2)).toBe(true);
-    expect(mockRejected.has(5)).toBe(true);
-    // The set should not contain an index that was never suggested (1).
-    expect(mockRejected.size).toBe(2);
+    expect(props.PyodideActions.CleanEpochs).toHaveBeenCalledWith({
+      dropIndices: [0, 2],
+      badChannels: [],
+    });
+    expect(props.navigate).not.toHaveBeenCalled();
+
+    rerender(ui({ cleanedEpochsSave: { revision: 1, ok: true } }));
+    expect(props.navigate).toHaveBeenCalledWith('/analyze');
+  });
+
+  it('Try again after a failed save does not drop the trials a second time', async () => {
+    const { rerender } = await startCleaning();
+    act(() => reviewer.onToggleEpoch(1));
+    act(() => reviewer.onToggleChannel('Fp1'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Apply exclusions' }));
+    expect(props.PyodideActions.CleanEpochs).toHaveBeenLastCalledWith({
+      dropIndices: [1],
+      badChannels: ['Fp1'],
+    });
+
+    rerender(ui({ cleanedEpochsSave: { revision: 1, ok: false } }));
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+    expect(props.PyodideActions.CleanEpochs).toHaveBeenLastCalledWith({
+      dropIndices: [],
+      badChannels: ['Fp1'],
+    });
   });
 });
