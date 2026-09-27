@@ -186,7 +186,6 @@ function Behavior(props: Partial<AnalyzeBehaviorProps>) {
         selected.map((path) => BEHAVIOR_CSVS[path]),
         dependentVariable,
         removeOutliers,
-        showDataPoints,
         displayMode
       ) as BehaviorPlot | undefined) ?? null,
     [selected, dependentVariable, removeOutliers, showDataPoints, displayMode]

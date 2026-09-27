@@ -139,7 +139,6 @@ export default function Analyze(props: Props) {
       await readBehaviorData(values),
       selectedDependentVariable,
       removeOutliers,
-      showDataPoints,
       displayMode
     );
     if (!aggregatedData) return;
@@ -171,7 +170,6 @@ export default function Analyze(props: Props) {
       await readBehaviorData(selectedBehaviorFilePaths),
       value,
       removeOutliers,
-      showDataPoints,
       displayMode
     );
     if (!aggregatedData) return;
@@ -186,7 +184,6 @@ export default function Analyze(props: Props) {
       await readBehaviorData(selectedBehaviorFilePaths),
       selectedDependentVariable,
       !removeOutliers,
-      showDataPoints,
       displayMode
     );
     if (!aggregatedData) return;
@@ -202,7 +199,6 @@ export default function Analyze(props: Props) {
       await readBehaviorData(selectedBehaviorFilePaths),
       selectedDependentVariable,
       removeOutliers,
-      showDataPoints,
       value
     );
     if (!aggregatedData) return;
@@ -218,7 +214,6 @@ export default function Analyze(props: Props) {
       await readBehaviorData(selectedBehaviorFilePaths),
       selectedDependentVariable,
       removeOutliers,
-      !showDataPoints,
       displayMode
     );
     if (!aggregatedData) return;
