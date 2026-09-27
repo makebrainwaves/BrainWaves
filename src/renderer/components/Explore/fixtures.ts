@@ -1,24 +1,19 @@
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
-import { SIGNAL_QUALITY } from '../../constants/constants';
+import {
+  MUSE_SAMPLING_RATE,
+  SIGNAL_QUALITY,
+} from '../../constants/constants';
+import type { SignalQualityData } from '../../constants/interfaces';
 
 /** Muse montage order, matching the live viewer's channel order. */
 export const EXPLORE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10'];
 export const FRONTAL_CHANNELS = ['AF7', 'AF8'];
 export const POSTERIOR_CHANNELS = ['TP9', 'TP10'];
-export const SAMPLING_RATE = 256;
+export const SAMPLING_RATE = MUSE_SAMPLING_RATE;
 
-/**
- * Stable per-channel trace colors for the noise demonstration. Signal-quality
- * colors would repaint the lines while the student is watching them move, so
- * the demo uses these fixed hues instead (plan §5.2).
- */
-export const STABLE_TRACE_COLORS = ['#4263eb', '#9c36b5', '#f08c00', '#1098ad'];
-export const STABLE_COLOR_BY_CHANNEL: Record<string, string> = {
-  TP9: STABLE_TRACE_COLORS[0],
-  AF7: STABLE_TRACE_COLORS[1],
-  AF8: STABLE_TRACE_COLORS[2],
-  TP10: STABLE_TRACE_COLORS[3],
-};
+/** Device identity for the plot legend; integration reads both from deviceInfo. */
+export const DEVICE_NAME = 'Muse-1A2B';
+export const PLOT_LEGEND = `${DEVICE_NAME} · ${SAMPLING_RATE} Hz`;
 
 /** Deterministic PRNG so every screenshot of the synthetic signal is identical. */
 function mulberry32(seed: number) {
@@ -47,7 +42,8 @@ export interface TraceSpec {
 /**
  * Synthetic multi-channel EEG for the fixture plot: background 10 Hz / 5 Hz
  * rhythms with random phase, sensor noise, blink humps weighted to the frontal
- * sensors, and an alpha burst weighted to TP9/TP10. Not recorded data.
+ * sensors, and a steady back-of-head rhythm weighted to TP9/TP10 while the
+ * eyes are closed. Not recorded data.
  */
 export function makeSnapshot(
   channels: string[],
@@ -78,7 +74,7 @@ export function makeSnapshot(
           (spec.alphaMs[1] - t) / 400
         );
         value +=
-          posterior * 22 * edge * Math.sin((2 * Math.PI * 10.5 * t) / 1000);
+          posterior * 15 * edge * Math.sin((2 * Math.PI * 10.5 * t) / 1000);
       }
       samples[n] = value * (spec.gain ?? 1);
     }
@@ -90,13 +86,15 @@ export function makeSnapshot(
     data,
     channels,
     samplingRate: SAMPLING_RATE,
-    peakToPeak: Math.max(
-      ...data.map((s) => Math.max(...s) - Math.min(...s))
-    ),
+    peakToPeak: Math.max(...data.map((s) => Math.max(...s) - Math.min(...s))),
   };
 }
 
-const blinkBand = (id: string, startTime: number, endTime: number): PlotAnnotation => ({
+const blinkBand = (
+  id: string,
+  startTime: number,
+  endTime: number
+): PlotAnnotation => ({
   id: `blink-${id}`,
   startTime,
   endTime,
@@ -109,7 +107,7 @@ export const LIVE_SNAPSHOT = makeSnapshot(EXPLORE_CHANNELS, 5000, {
   seed: 11,
 });
 
-/** Flat traces for the `No signal detected` state: contact, not data. */
+/** Flat traces for the `No signal detected` state: no contact, not data. */
 export const NO_SIGNAL_SNAPSHOT = makeSnapshot(EXPLORE_CHANNELS, 5000, {
   seed: 12,
   gain: 0.04,
@@ -141,7 +139,7 @@ export const BLINK_MANY_ANNOTATIONS = [
   blinkBand('m4', 3950, 4750),
 ];
 
-/** Stable-color demo: all four sensors while blinking, for the §5.2 story. */
+/** Stable-color demo: all four sensors while blinking (plan §5.2). */
 export const BLINK_MANY_ALL = makeSnapshot(EXPLORE_CHANNELS, 5000, {
   seed: 24,
   blinksMs: [900, 2050, 3250, 4350],
@@ -155,45 +153,62 @@ export const BLINKING_SNAPSHOT = makeSnapshot(FRONTAL_CHANNELS, 5000, {
   seed: 32,
   blinksMs: [1150, 2350, 3650],
 });
-export const COMPARISON_SHARED_SCALE = 150;
 export const COMPARISON_RATIO =
   BLINKING_SNAPSHOT.peakToPeak / CALM_SNAPSHOT.peakToPeak;
-
-/** Eyes-closed review: the marked interval with an alpha burst on TP9/TP10. */
-export const EYES_CLOSED_SNAPSHOT = makeSnapshot(EXPLORE_CHANNELS, 15500, {
-  seed: 41,
-  alphaMs: [3000, 13000],
-});
-export const EYES_CLOSED_ANNOTATIONS: PlotAnnotation[] = [
-  {
-    id: 'eyes-closed',
-    startTime: 3000,
-    endTime: 13000,
-    label: 'eyes closed',
-    endLabel: 'eyes open',
-    tone: 'eyes-closed',
-  },
-];
 
 /** Live window shown during the countdown and interval. */
 export const EYES_CLOSED_LIVE = makeSnapshot(EXPLORE_CHANNELS, 5000, {
   seed: 42,
 });
 
-/** Measured 8–12 Hz comparison for the result stories (eyes-closed ÷ before). */
-export const ALPHA_INCREASE_RATIO = 2.4;
-export const ALPHA_NO_EFFECT_RATIO = 0.9;
+/**
+ * The review view: equal 3-second segments from the eyes-open and eyes-closed
+ * parts of the marked interval, on one shared µV scale. At this length a
+ * ~10 Hz rhythm is ~29 px per cycle at 1366×768 — visible with real Muse
+ * amplitudes; 10-second segments would compress it to ~9 px (mush).
+ */
+export const REVIEW_SEGMENT_MS = 3000;
+export const REVIEW_SEGMENT_SCALE = 50;
+export const OPEN_SEGMENT = makeSnapshot(POSTERIOR_CHANNELS, REVIEW_SEGMENT_MS, {
+  seed: 51,
+  gain: 0.6,
+});
+export const CLOSED_SEGMENT = makeSnapshot(POSTERIOR_CHANNELS, REVIEW_SEGMENT_MS, {
+  seed: 52,
+  alphaMs: [0, REVIEW_SEGMENT_MS],
+});
+
+/** Measured comparison (eyes-closed ÷ before) for the result stories. */
+export const RHYTHM_INCREASE_RATIO = 2.4;
+export const RHYTHM_NO_EFFECT_RATIO = 0.9;
 
 export interface SensorStatus {
   channel: string;
   quality: SIGNAL_QUALITY;
 }
 
+/** A one-emission fixture stream for `SignalQualityIndicatorComponent`. */
+export function qualitySample(sensors: SensorStatus[]): SignalQualityData {
+  return {
+    data: sensors.map(() => []),
+    info: {
+      samplingRate: SAMPLING_RATE,
+      startTime: 0,
+      signalQuality: Object.fromEntries(sensors.map((s) => [s.channel, 2])),
+    },
+    signalQuality: Object.fromEntries(
+      sensors.map((s) => [s.channel, s.quality])
+    ),
+  };
+}
+
 export type QualityState = 'ready' | 'settling' | 'adjust' | 'no-signal';
 
 /**
  * Overall status above the plot (plan §5.1). The four headings are the
- * product's wording; `action` names what to do where an action exists.
+ * product's wording; `action` names what to do where an action exists. The
+ * ready state stays light — the card mainly earns its place in the yellow and
+ * red states, where it gives real instructions.
  */
 export const QUALITY_SCENARIOS: Record<
   QualityState,
@@ -201,7 +216,7 @@ export const QUALITY_SCENARIOS: Record<
 > = {
   ready: {
     heading: 'Ready to explore',
-    action: 'Sit still and watch your signal, then start a lesson below.',
+    action: '',
     sensors: EXPLORE_CHANNELS.map((channel) => ({
       channel,
       quality: SIGNAL_QUALITY.GREAT,
@@ -210,11 +225,10 @@ export const QUALITY_SCENARIOS: Record<
   settling: {
     heading: 'Sensors are still settling',
     action:
-      'Contact can improve over several minutes. Sit still and let the measurements calm down.',
+      'Better contact means less static. Give the sensors a few minutes to settle, and keep still.',
     sensors: EXPLORE_CHANNELS.map((channel) => ({
       channel,
-      quality:
-        channel === 'TP10' ? SIGNAL_QUALITY.GREAT : SIGNAL_QUALITY.OK,
+      quality: channel === 'TP10' ? SIGNAL_QUALITY.GREAT : SIGNAL_QUALITY.OK,
     })),
   },
   adjust: {
@@ -234,7 +248,7 @@ export const QUALITY_SCENARIOS: Record<
   'no-signal': {
     heading: 'No signal detected',
     action:
-      'Check that the headset is on your head and every sensor is touching your skin.',
+      'Your headset is off or disconnected. Turn it on or reconnect it, then check that the sensors touch your skin.',
     sensors: EXPLORE_CHANNELS.map((channel) => ({
       channel,
       quality: SIGNAL_QUALITY.DISCONNECTED,
@@ -255,7 +269,7 @@ export const NOISE_DEFINITION =
   'Noise is electrical activity the headset records that did not come from the brain signal we are trying to measure. Blinks, jaw tension, movement, and poor sensor contact can all create noise.';
 
 export const NOISE_SETTLING_NOTE =
-  'Not a sound — think of it as static in the recording. Sensor contact often improves over several minutes while the sensors sit on your skin; there is no fixed warm-up time. The live measurements tell you when you are ready.';
+  'Not a sound — think of it as static in the recording. Better contact means less static: it usually improves over several minutes as the sensors settle onto your skin, and there is no fixed warm-up time.';
 
 /** Blink lesson steps (plan §5.3). `action` is the expected step at a glance. */
 export const BLINK_STEPS: {
@@ -274,39 +288,35 @@ export const BLINK_STEPS: {
     body: 'The lines are flat again. Before you blink, decide what the next blink will look like — then blink once and see whether you were right.',
   },
   {
-    title: 'Blink several times so it is unmistakable',
+    title: 'Now blink several times in a row!',
     action: 'Blink hard, three or four times in a row.',
-    body: 'Each blink slams another hump into the front sensors. This is the loudest thing in most student recordings — and seeing it land every time is how you know your headset is really hearing you.',
+    body: 'Blinks are one of the loudest things in your signal. Seeing each one land clearly is good news: it means the front sensors are touching your skin and really picking you up.',
   },
   {
     title: 'Compare the blinking interval with a quiet interval',
-    action: 'Look at both windows, same sensors and same scale.',
+    action: 'Now sit still, eyes open, for 5 seconds.',
     body: 'One frozen five seconds while you were blinking, one while you sat still. Your brain signal is in both — the blinks just tower over it. This is why researchers ask you to hold still.',
   },
 ];
 
 export const BLINK_NOT_DETECTED =
-  'We cannot see your blinks yet. Check that AF7 and AF8 sit flat against your forehead, then try again. Detection is not required — Next stays open whenever you are ready to move on.';
+  'We cannot see your blinks yet. Check that AF7 and AF8 sit flat against your forehead, then try again.';
 
+export const EYES_INTRO_OPENER =
+  'Let’s look at how your brain signal changes when you close your eyes.';
 export const EYES_INTRO_BODY =
   'Two sounds guide this activity. One chime means close your eyes now. Two chimes, about ten seconds later, mean open them again. Nothing on screen needs watching in between.';
-export const EYES_INTRO_BODY_2 =
-  'When you press Begin, a visible 3–2–1 countdown comes first, so the start never surprises you.';
-
-export const EYES_INTERVAL_BODY =
-  'Keep them closed until you hear two chimes. Sitting still is fine — the screen can wait.';
-
-export const EYES_END_BODY =
-  'Two chimes just ended the activity. Your marked interval is saved on the plot below — take a look.';
-
-export const ALPHA_RESULT_BODY =
-  'The teal band marks the ten seconds your eyes were closed. The back of your head hums a steady rhythm when it has nothing to look at — that hum is alpha, and it is the seeing part of your brain getting louder.';
-
-export const ALPHA_NO_EFFECT_BODY =
-  'Alpha did not increase in this interval. That is a real result, not a failed lesson — alpha is clearest in some people and nearly invisible in others. Blinking still worked, and that one really was your eyelid.';
 
 export const EYES_PROXY_NOTE =
-  'Muse has no sensors over the visual cortex — TP9 and TP10 behind the ears are the closest available posterior-side look at alpha.';
+  'Muse has no sensors over the visual cortex — TP9 and TP10 behind the ears are the closest look at the back of your head.';
 
+export const EYES_INTERVAL_BODY = 'Keep them closed until you hear two chimes.';
+
+export const EYES_END_BODY = 'Let’s look at your brainwaves.';
+
+export const ALPHA_RESULT_BODY =
+  'With your eyes closed, the seeing part of your brain has nothing to look at — and it gets louder.';
+export const ALPHA_NO_EFFECT_BODY =
+  'That is a real result, not a failed lesson — this change is clearest in some people and nearly invisible in others.';
 export const ALPHA_EXAMPLE_CAPTION =
   'Some recordings look like this. Yours will be yours.';

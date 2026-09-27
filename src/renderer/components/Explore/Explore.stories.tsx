@@ -5,8 +5,6 @@ import { fn } from 'storybook/test';
 import AppShell from '../AppShell/AppShell';
 import type { DeviceState } from '../AppShell/types';
 import {
-  ALPHA_INCREASE_RATIO,
-  ALPHA_NO_EFFECT_RATIO,
   BLINK_MANY,
   BLINK_MANY_ALL,
   BLINK_MANY_ANNOTATIONS,
@@ -17,14 +15,13 @@ import {
   BLINKING_SNAPSHOT,
   CALM_SNAPSHOT,
   COMPARISON_RATIO,
-  COMPARISON_SHARED_SCALE,
-  EYES_CLOSED_ANNOTATIONS,
   EYES_CLOSED_LIVE,
-  EYES_CLOSED_SNAPSHOT,
   LIVE_SNAPSHOT,
   NO_SIGNAL_SNAPSHOT,
   QUALITY_SCENARIOS,
   QualityState,
+  RHYTHM_INCREASE_RATIO,
+  RHYTHM_NO_EFFECT_RATIO,
   SensorStatus,
 } from './fixtures';
 import {
@@ -86,7 +83,7 @@ function Surface({
   );
 }
 
-/** X01 — Redesigned landing: what Explore is, one primary action, what waits once connected. Nothing is recorded. */
+/** X01 — Redesigned landing: what Explore is, one primary action, what waits once connected. */
 export const Disconnected: Story = {
   parameters: { device: 'none' },
   render: () => <ExploreDisconnected onConnect={fn()} />,
@@ -97,12 +94,12 @@ export const Waiting: Story = {
   render: () => <Surface state="waiting" snapshot={null} />,
 };
 
-/** Q01 — Overall status above the plot: `Ready to explore`, per-sensor words at left. */
+/** Q01 — Ready: a light status row; the card only earns its weight in the yellow/red states. */
 export const QualitySummaryReady: Story = {
   render: () => <Surface state="ready" />,
 };
 
-/** Q02 — `Sensors are still settling`: contact can improve over several minutes, never a fixed warm-up. */
+/** Q02 — `Sensors are still settling`: better contact means less static; no fixed warm-up promise. */
 export const QualitySummarySettling: Story = {
   render: () => <Surface state="settling" />,
 };
@@ -112,7 +109,7 @@ export const QualitySummaryAdjustSensors: Story = {
   render: () => <Surface state="adjust" />,
 };
 
-/** Q04 — `No signal detected`: flat traces, and what to check. */
+/** Q04 — `No signal detected`: headset off or disconnected, and the fix. */
 export const QualitySummaryNoSignal: Story = {
   render: () => <Surface state="no-signal" snapshot={NO_SIGNAL_SNAPSHOT} />,
 };
@@ -122,7 +119,6 @@ export const NoiseDefinition: Story = {
   render: () => (
     <BlinkLessonView
       step={0}
-      showLegend
       snapshot={BLINK_MANY_ALL}
       onBack={fn()}
       onNext={fn()}
@@ -164,6 +160,21 @@ export const BlinkStep2: Story = {
   ),
 };
 
+/** B02b — The answered state: choosing either option immediately shows the expected answer. */
+export const BlinkStep2PredictionAnswered: Story = {
+  render: () => (
+    <BlinkLessonView
+      step={2}
+      defaultPrediction="hump"
+      snapshot={BLINK_PREDICT}
+      annotations={BLINK_PREDICT_ANNOTATIONS}
+      onBack={fn()}
+      onNext={fn()}
+      onExit={fn()}
+    />
+  ),
+};
+
 /** B03 — Blink step 3/4: blink several times so the difference is unmistakable. */
 export const BlinkStep3: Story = {
   render: () => (
@@ -178,7 +189,7 @@ export const BlinkStep3: Story = {
   ),
 };
 
-/** B04 — Blink step 4/4: a blinking interval beside a quiet one, same sensors, same scale. */
+/** B04 — Blink step 4/4: a blinking interval beside a quiet one, same sensors, same scale; the range is adjustable. */
 export const BlinkStep4: Story = {
   render: () => (
     <BlinkLessonView
@@ -187,9 +198,23 @@ export const BlinkStep4: Story = {
       comparison={{
         calm: CALM_SNAPSHOT,
         blinking: BLINKING_SNAPSHOT,
-        sharedScale: COMPARISON_SHARED_SCALE,
         ratio: COMPARISON_RATIO,
       }}
+      onBack={fn()}
+      onNext={fn()}
+      onExit={fn()}
+    />
+  ),
+};
+
+/** B06 — Fallback marker style: a tick at the detection time, for detectors that report an instant instead of an interval. */
+export const BlinkTickMarker: Story = {
+  render: () => (
+    <BlinkLessonView
+      step={1}
+      markerStyle="tick"
+      snapshot={BLINK_ONE}
+      annotations={BLINK_ONE_ANNOTATIONS}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -217,7 +242,6 @@ export const NoiseLessonStableColors: Story = {
   render: () => (
     <BlinkLessonView
       step={3}
-      showLegend
       snapshot={BLINK_MANY_ALL}
       annotations={BLINK_MANY_ANNOTATIONS}
       onBack={fn()}
@@ -227,13 +251,13 @@ export const NoiseLessonStableColors: Story = {
   ),
 };
 
-/** E01 — Eyes-closed 1/5: the start and end sounds explained, `Begin eyes-closed activity`, Example reference. */
+/** E01 — Eyes-closed 1/5: what the sounds mean, `Begin eyes-closed activity`, Example reference. */
 export const EyesClosedIntro: Story = {
   render: () => (
     <EyesClosedView
       phase="intro"
       showExample
-      alphaRatio={null}
+      rhythmRatio={null}
       snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
@@ -248,7 +272,7 @@ export const EyesClosedCountdown: Story = {
     <EyesClosedView
       phase="countdown"
       countdown={2}
-      alphaRatio={null}
+      rhythmRatio={null}
       snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
@@ -262,7 +286,7 @@ export const EyesClosedInterval: Story = {
   render: () => (
     <EyesClosedView
       phase="interval"
-      alphaRatio={null}
+      rhythmRatio={null}
       snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
@@ -276,7 +300,7 @@ export const EyesClosedEndCue: Story = {
   render: () => (
     <EyesClosedView
       phase="end"
-      alphaRatio={null}
+      rhythmRatio={null}
       snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
@@ -285,14 +309,13 @@ export const EyesClosedEndCue: Story = {
   ),
 };
 
-/** E05 — Eyes-closed 5/5: the marked interval reviewed with the measured 8–12 Hz comparison. */
+/** E05 — Eyes-closed 5/5: two equal segments from the marked interval on one scale, with the measured comparison. */
 export const EyesClosedReview: Story = {
   render: () => (
     <EyesClosedView
       phase="review"
-      alphaRatio={ALPHA_INCREASE_RATIO}
-      snapshot={EYES_CLOSED_SNAPSHOT}
-      annotations={EYES_CLOSED_ANNOTATIONS}
+      rhythmRatio={RHYTHM_INCREASE_RATIO}
+      snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -300,15 +323,14 @@ export const EyesClosedReview: Story = {
   ),
 };
 
-/** A01 — AlphaResult: the student's real comparison as the result, with the ideal reference labelled `Example`. */
+/** A01 — AlphaResult: the student's own comparison as the result, with the ideal reference labelled `Example`. */
 export const AlphaResult: Story = {
   render: () => (
     <EyesClosedView
       phase="review"
-      alphaRatio={ALPHA_INCREASE_RATIO}
+      rhythmRatio={RHYTHM_INCREASE_RATIO}
       showExample
-      snapshot={EYES_CLOSED_SNAPSHOT}
-      annotations={EYES_CLOSED_ANNOTATIONS}
+      snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -316,15 +338,14 @@ export const AlphaResult: Story = {
   ),
 };
 
-/** A02 — AlphaNoEffect: a valid, encouraging outcome — alpha is subtle for many people. */
+/** A02 — AlphaNoEffect: a valid, encouraging outcome — the change is clearest in some people. */
 export const AlphaNoEffect: Story = {
   render: () => (
     <EyesClosedView
       phase="review"
-      alphaRatio={ALPHA_NO_EFFECT_RATIO}
+      rhythmRatio={RHYTHM_NO_EFFECT_RATIO}
       showExample
-      snapshot={EYES_CLOSED_SNAPSHOT}
-      annotations={EYES_CLOSED_ANNOTATIONS}
+      snapshot={EYES_CLOSED_LIVE}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}

@@ -1,7 +1,11 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo, useState } from 'react';
+import { of } from 'rxjs';
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
+import { PLOTTING_INTERVAL } from '../../constants/constants';
 import { EXPLORE_LESSONS } from '../../constants/exploreLessons';
 import eegArt from '../../assets/common/EEG.png';
+import { traceColors } from '../../utils/eeg/traceColors';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
@@ -9,14 +13,18 @@ import {
   ALPHA_RESULT_BODY,
   BLINK_NOT_DETECTED,
   BLINK_STEPS,
+  CLOSED_SEGMENT,
   EYES_END_BODY,
   EYES_INTRO_BODY,
-  EYES_INTRO_BODY_2,
+  EYES_INTRO_OPENER,
   EYES_INTERVAL_BODY,
   EYES_PROXY_NOTE,
+  OPEN_SEGMENT,
+  PLOT_LEGEND,
   QualityState,
-  STABLE_COLOR_BY_CHANNEL,
+  REVIEW_SEGMENT_SCALE,
   SensorStatus,
+  qualitySample,
 } from './fixtures';
 import {
   AlphaExampleCard,
@@ -26,9 +34,9 @@ import {
   LessonStepPanel,
   NoiseDefinitionCard,
   PlotCard,
+  PredictionQuiz,
   QualitySummary,
-  SensorList,
-  TraceLegend,
+  SegmentComparison,
   stepLabel,
 } from './ExploreParts';
 
@@ -37,14 +45,9 @@ const SECTION_LABEL =
 const BODY_TEXT =
   'm-0 !text-[16px] leading-normal !tracking-normal [text-wrap:pretty]';
 
-/** Four or more call sites across the lesson screens keep these lockstep. */
-const stableColors = (channels: string[]) =>
-  channels.map((channel) => STABLE_COLOR_BY_CHANNEL[channel]);
-
 /**
  * Redesigned disconnected landing: what Explore is, one primary action, and
- * what waits on the other side. Pairs with Home's Explore card. Explore never
- * records or creates a workspace, and the landing says so.
+ * what waits on the other side. Pairs with Home's Explore card.
  */
 export function ExploreDisconnected({ onConnect }: { onConnect(): void }) {
   return (
@@ -62,7 +65,7 @@ export function ExploreDisconnected({ onConnect }: { onConnect(): void }) {
           <p className={BODY_TEXT}>
             Put on a headset and watch the EEG (electroencephalogram) signal in
             real time — your own brain&apos;s electricity, arriving live. No
-            experiment to set up, nothing recorded, no workspace created.
+            experiment to set up.
           </p>
           <div className="flex flex-wrap items-center gap-[16px]">
             <Button size="lg" onClick={onConnect}>
@@ -142,9 +145,9 @@ export interface ExploreSurfaceProps {
 }
 
 /**
- * The connected Explore surface: overall status above the plot, per-sensor
- * detail on the left, live plot and lesson choices on the right. Fills the
- * window without page scroll at 1366×768 and 1280×720.
+ * The connected Explore surface: overall status above the plot, the head
+ * diagram at left, live plot and lesson choices at right. Fills the window
+ * without page scroll at 1366×768 and 1280×720.
  */
 export function ExploreSurface({
   quality,
@@ -155,6 +158,10 @@ export function ExploreSurface({
   banner,
 }: ExploreSurfaceProps) {
   const waiting = quality === 'waiting';
+  const head = useMemo(
+    () => (waiting ? null : of(qualitySample(sensors))),
+    [waiting, sensors]
+  );
   return (
     <div className="flex h-full min-h-0 flex-col gap-[12px] px-[24px] py-[16px]">
       {banner}
@@ -175,15 +182,20 @@ export function ExploreSurface({
           </span>
         </div>
       ) : (
-        <QualitySummary state={quality} sensors={sensors} />
+        <QualitySummary state={quality} />
       )}
       <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[20px] max-[980px]:grid-cols-1">
-        <div className="flex min-h-0 min-w-0 flex-col gap-[12px]">
-          <SensorList sensors={sensors} />
+        <div className="flex min-h-0 min-w-0 flex-col items-center justify-start rounded-lg border border-gray-200 bg-white px-[16px] py-[12px]">
+          <SignalQualityIndicatorComponent
+            signalQualityObservable={head}
+            plottingInterval={PLOTTING_INTERVAL}
+            height={190}
+            channels={sensors.map((s) => s.channel)}
+          />
         </div>
         <div className="flex min-h-0 min-w-0 flex-col gap-[12px]">
           <PlotCard
-            caption={snapshot ? 'your signal, live' : 'no signal yet'}
+            caption={snapshot ? PLOT_LEGEND : 'no signal yet'}
             className="min-h-[120px]"
           >
             {snapshot ? (
@@ -209,16 +221,17 @@ export function ExploreSurface({
 export interface BlinkLessonViewProps {
   /** 0 is the noise-definition intro; 1–4 are the blink steps (plan §5.3). */
   step: 0 | 1 | 2 | 3 | 4;
-  /** Adds the stable-color legend (the four-sensor demonstration, §5.2). */
-  showLegend?: boolean;
+  /** Band markers, or the detection-time tick fallback. */
+  markerStyle?: 'band' | 'tick';
   /** The lesson continues gracefully when detection misses (plan §5.3). */
   notDetected?: boolean;
+  /** Pre-answered prediction, for the answered-state story. */
+  defaultPrediction?: 'hump' | 'flat';
   snapshot: EEGSnapshot;
   annotations?: PlotAnnotation[];
   comparison?: {
     calm: EEGSnapshot;
     blinking: EEGSnapshot;
-    sharedScale: number;
     ratio: number;
   };
   onBack(): void;
@@ -233,8 +246,9 @@ export interface BlinkLessonViewProps {
  */
 export function BlinkLessonView({
   step,
-  showLegend,
+  markerStyle = 'band',
   notDetected,
+  defaultPrediction,
   snapshot,
   annotations,
   comparison,
@@ -242,7 +256,8 @@ export function BlinkLessonView({
   onNext,
   onExit,
 }: BlinkLessonViewProps) {
-  const channels = snapshot.channels;
+  const [range, setRange] = useState<'wide' | 'narrow'>('wide');
+  const colors = traceColors(snapshot.channels.length);
   const caught = (annotations ?? []).length;
   return (
     <div className="flex h-full min-h-0 gap-[20px] px-[24px] py-[16px]">
@@ -257,14 +272,7 @@ export function BlinkLessonView({
         }
         action={step > 0 ? BLINK_STEPS[step - 1].action : undefined}
         body={
-          step === 0 ? (
-            <div className="flex flex-col gap-[10px]">
-              <NoiseDefinitionCard />
-              <span>{EYES_INTRO_BODY_2}</span>
-            </div>
-          ) : (
-            BLINK_STEPS[step - 1].body
-          )
+          step === 0 ? <NoiseDefinitionCard /> : BLINK_STEPS[step - 1].body
         }
         backLabel={step === 0 ? 'Exit' : 'Back'}
         nextLabel={
@@ -278,19 +286,7 @@ export function BlinkLessonView({
         onNext={onNext}
         onExit={onExit}
       >
-        {step === 2 && (
-          <div className="flex flex-col gap-[6px]">
-            <span className={stepLabel}>Your prediction</span>
-            <div className="flex gap-[8px]">
-              <Button variant="outline" aria-pressed={false}>
-                A big slow hump
-              </Button>
-              <Button variant="outline" aria-pressed={false}>
-                Not much change
-              </Button>
-            </div>
-          </div>
-        )}
+        {step === 2 && <PredictionQuiz defaultAnswer={defaultPrediction} />}
         {notDetected && (
           <div
             role="status"
@@ -303,19 +299,53 @@ export function BlinkLessonView({
       <div className="flex min-w-0 flex-1 flex-col gap-[12px]">
         {comparison ? (
           <>
+            {step === 4 && (
+              <div
+                role="radiogroup"
+                aria-label="Plot range"
+                className="flex flex-none items-center gap-[10px]"
+              >
+                <span className={stepLabel}>Plot range</span>
+                {(
+                  [
+                    { value: 'wide', text: '±150 µV' },
+                    { value: 'narrow', text: '±50 µV' },
+                  ] as const
+                ).map((option) => {
+                  const active = range === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setRange(option.value)}
+                      className={cn(
+                        'rounded-md border-2 px-[10px] py-[4px] text-[13px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                        active
+                          ? 'border-brand bg-brand-light text-brand'
+                          : 'border-gray-200 bg-white text-ink-muted hover:border-brand hover:text-ink'
+                      )}
+                    >
+                      {option.text}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <FrozenStrip
               label="Sitting still · 5 seconds, frozen"
               sublabel="measured on AF7 · AF8"
               snapshot={comparison.calm}
-              colors={stableColors(channels)}
-              scale={comparison.sharedScale}
+              colors={colors}
+              scale={range === 'wide' ? 150 : 50}
             />
             <FrozenStrip
               label="While you were blinking · frozen"
               sublabel="same sensors, same scale"
               snapshot={comparison.blinking}
-              colors={stableColors(channels)}
-              scale={comparison.sharedScale}
+              colors={colors}
+              scale={range === 'wide' ? 150 : 50}
               blinking
               ratio={comparison.ratio}
             />
@@ -323,12 +353,10 @@ export function BlinkLessonView({
         ) : (
           <PlotCard
             caption={
-              step === 1
-                ? 'watching the frontal sensors (AF7, AF8)'
-                : 'your signal, live'
+              step === 1 ? 'watching the frontal sensors (AF7, AF8)' : PLOT_LEGEND
             }
             aside={
-              step > 0 && step < 4 ? (
+              step > 0 && step < 3 ? (
                 <span role="status">
                   {caught} {caught === 1 ? 'blink' : 'blinks'} marked
                 </span>
@@ -338,17 +366,12 @@ export function BlinkLessonView({
             <FixturePlot
               snapshot={snapshot}
               annotations={annotations}
-              colors={stableColors(channels)}
+              colors={colors}
+              markerStyle={markerStyle}
               width={860}
               height={430}
             />
           </PlotCard>
-        )}
-        {showLegend && (
-          <TraceLegend
-            channels={channels}
-            colors={stableColors(channels)}
-          />
         )}
       </div>
     </div>
@@ -366,11 +389,10 @@ export interface EyesClosedViewProps {
   phase: EyesClosedPhase;
   /** 3–2–1 position during the countdown. */
   countdown?: 3 | 2 | 1;
-  /** Measured 8–12 Hz ratio (eyes-closed ÷ before); null = not enough data. */
-  alphaRatio: number | null;
+  /** Measured comparison (eyes-closed ÷ before); null = not enough data. */
+  rhythmRatio: number | null;
   showExample?: boolean;
   snapshot: EEGSnapshot;
-  annotations?: PlotAnnotation[];
   onBack(): void;
   onNext(): void;
   onExit(): void;
@@ -384,19 +406,19 @@ export interface EyesClosedViewProps {
 export function EyesClosedView({
   phase,
   countdown = 3,
-  alphaRatio,
+  rhythmRatio,
   showExample,
   snapshot,
-  annotations,
   onBack,
   onNext,
   onExit,
 }: EyesClosedViewProps) {
   const running = phase === 'countdown' || phase === 'interval';
+  const increase = rhythmRatio != null && rhythmRatio > 1;
   const resultBody =
-    alphaRatio == null
-      ? 'There is not enough continuous posterior-channel data to compare alpha power. The marked interval is still saved below.'
-      : alphaRatio > 1
+    rhythmRatio == null
+      ? 'There is not enough continuous data from the back of your head to compare. The marked interval is still saved below.'
+      : increase
         ? ALPHA_RESULT_BODY
         : ALPHA_NO_EFFECT_BODY;
   return (
@@ -407,7 +429,7 @@ export function EyesClosedView({
         steps={0}
         title={
           {
-            intro: 'Close your eyes until the two chimes',
+            intro: 'Keep your eyes closed until you hear two chimes',
             countdown: 'Starting…',
             interval: 'Close your eyes',
             end: 'Open your eyes',
@@ -424,8 +446,8 @@ export function EyesClosedView({
         body={
           phase === 'intro' ? (
             <div className="flex flex-col gap-[10px]">
+              <span>{EYES_INTRO_OPENER}</span>
               <span>{EYES_INTRO_BODY}</span>
-              <span>{EYES_INTRO_BODY_2}</span>
             </div>
           ) : phase === 'countdown' ? (
             'Close your eyes when you hear the single chime.'
@@ -456,11 +478,11 @@ export function EyesClosedView({
         {phase === 'review' && (
           <>
             <div className="text-[14px] font-bold leading-[1.5] text-ink">
-              {alphaRatio == null
-                ? 'Measured 8–12 Hz power: not enough data this time.'
-                : alphaRatio > 1
-                  ? `Measured 8–12 Hz power: ${alphaRatio.toFixed(1)}× the five seconds before you closed your eyes.`
-                  : 'Measured 8–12 Hz power: about the same as the five seconds before.'}
+              {rhythmRatio == null
+                ? 'Comparison: not enough data this time.'
+                : increase
+                  ? `The steady rhythm from the back of your head was ${rhythmRatio.toFixed(1)}× as strong with your eyes closed.`
+                  : 'The steady rhythm from the back of your head was about as strong as before.'}
             </div>
             {showExample && <AlphaExampleCard />}
             <div className="text-[13px] leading-[1.45] text-ink-muted">
@@ -470,22 +492,28 @@ export function EyesClosedView({
         )}
       </LessonStepPanel>
       <div className="relative flex min-w-0 flex-1 flex-col gap-[12px]">
-        <PlotCard
-          caption={
-            phase === 'review'
-              ? 'the marked interval · frozen copy'
-              : 'your signal, live'
-          }
-          className={running || phase === 'end' ? 'opacity-40' : undefined}
-        >
-          <FixturePlot
-            snapshot={snapshot}
-            annotations={annotations}
-            colors={stableColors(snapshot.channels)}
-            width={860}
-            height={430}
-          />
-        </PlotCard>
+        {phase === 'review' ? (
+          <PlotCard caption="from your marked interval · same scale">
+            <SegmentComparison
+              open={OPEN_SEGMENT}
+              closed={CLOSED_SEGMENT}
+              colors={traceColors(OPEN_SEGMENT.channels.length)}
+              scale={REVIEW_SEGMENT_SCALE}
+            />
+          </PlotCard>
+        ) : (
+          <PlotCard
+            caption={PLOT_LEGEND}
+            className={running || phase === 'end' ? 'opacity-40' : undefined}
+          >
+            <FixturePlot
+              snapshot={snapshot}
+              colors={traceColors(snapshot.channels.length)}
+              width={860}
+              height={430}
+            />
+          </PlotCard>
+        )}
         {(running || phase === 'end') && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-[16px]">
             {phase === 'countdown' ? (

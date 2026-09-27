@@ -1,22 +1,19 @@
-import React, { ReactNode, useEffect, useId, useRef } from 'react';
+import React, { ReactNode, useEffect, useId, useRef, useState } from 'react';
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
-import { SIGNAL_QUALITY } from '../../constants/constants';
-import {
-  ELECTRODES,
-  QUALITY_LABELS,
-  UNKNOWN_ELECTRODE,
-} from '../../constants/electrodes';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
   ALPHA_EXAMPLE_CAPTION,
+  CLOSED_SEGMENT,
   NOISE_DEFINITION,
   NOISE_SETTLING_NOTE,
+  OPEN_SEGMENT,
   QUALITY_SCENARIOS,
   QUALITY_STATE_TONE,
   QualityState,
-  SensorStatus,
+  REVIEW_SEGMENT_SCALE,
 } from './fixtures';
+import { traceColors } from '../../utils/eeg/traceColors';
 
 /** Small uppercase label for lesson step counters and section titles. */
 export const stepLabel =
@@ -57,6 +54,15 @@ interface FixturePlotProps {
   amplitudeScale?: number;
   width?: number;
   height?: number;
+  /**
+   * `band` draws the real viewer's annotation bands; `tick` is the fallback
+   * marker for detectors that report a detection time instead of an interval.
+   */
+  markerStyle?: 'band' | 'tick';
+  /** Off for compact example plots. */
+  showAxis?: boolean;
+  /** Near-zero margins for compact example plots. */
+  tight?: boolean;
 }
 
 /**
@@ -73,10 +79,14 @@ export function FixturePlot({
   amplitudeScale = 200,
   width = 900,
   height = 420,
+  markerStyle = 'band',
+  showAxis = true,
+  tight = false,
 }: FixturePlotProps) {
   const clipId = useId();
-  const plotW = width - PLOT_MARGIN.left - PLOT_MARGIN.right;
-  const plotH = height - PLOT_MARGIN.top - PLOT_MARGIN.bottom;
+  const margin = tight ? { top: 2, right: 2, bottom: 2, left: 2 } : PLOT_MARGIN;
+  const plotW = width - margin.left - margin.right;
+  const plotH = height - margin.top - margin.bottom;
   const count = snapshot.channels.length;
   const bandH = plotH / count;
   const span = snapshot.endTime - snapshot.startTime;
@@ -128,7 +138,7 @@ export function FixturePlot({
       role="img"
       aria-label="Live EEG trace, four channels stacked over time"
     >
-      <g transform={`translate(${PLOT_MARGIN.left},${PLOT_MARGIN.top})`}>
+      <g transform={`translate(${margin.left},${margin.top})`}>
         <g clipPath={`url(#${clipId})`}>
           {paths.map((d, i) => (
             <path
@@ -140,7 +150,26 @@ export function FixturePlot({
             />
           ))}
         </g>
-        {bands.map(({ annotation, x, width: bandWidth, ended }) => {
+        {markerStyle === 'tick' &&
+          annotations
+            .filter(
+              (a) =>
+                a.startTime >= snapshot.startTime &&
+                a.startTime <= snapshot.endTime
+            )
+            .map((a) => (
+              <rect
+                key={a.id}
+                x={xAt(a.startTime) - 1.5}
+                y={0}
+                width={3}
+                height={plotH}
+                rx={1.5}
+                fill={TONE_STYLES[a.tone].stroke}
+              />
+            ))}
+        {markerStyle !== 'tick' &&
+          bands.map(({ annotation, x, width: bandWidth, ended }) => {
           const style = TONE_STYLES[annotation.tone];
           const solid = annotation.tone === 'eyes-closed';
           const pillW = (text: string) =>
@@ -231,6 +260,8 @@ export function FixturePlot({
             </g>
           );
         })}
+        {showAxis && (
+          <>
         <line
           x1={0}
           x2={plotW}
@@ -267,6 +298,8 @@ export function FixturePlot({
             </text>
           </g>
         ))}
+          </>
+        )}
         <clipPath id={clipId}>
           <rect x={0} y={-LABEL_GUTTER} width={plotW} height={plotH + 2 * LABEL_GUTTER} />
         </clipPath>
@@ -312,92 +345,39 @@ export function PlotCard({
  */
 export function QualitySummary({
   state,
-  sensors,
   className,
 }: {
   state: QualityState;
-  sensors: SensorStatus[];
   className?: string;
 }) {
   const scenario = QUALITY_SCENARIOS[state];
+  // The card earns its place in the yellow/red states; ready stays a light row.
+  const light = scenario.action === '';
   return (
     <section
       aria-label="Signal status"
       className={cn(
-        'flex flex-none flex-col gap-[6px] rounded-lg border border-gray-200 bg-white px-[18px] py-[12px]',
+        'flex flex-none flex-wrap items-baseline gap-x-[14px] gap-y-[2px]',
+        !light &&
+          'rounded-lg border border-gray-200 bg-white px-[18px] py-[12px]',
         className
       )}
     >
-      <div className="flex flex-wrap items-baseline gap-x-[14px] gap-y-[2px]">
-        <span className="flex items-center gap-[8px]">
-          <span
-            aria-hidden
-            className="h-[10px] w-[10px] flex-none rounded-full"
-            style={{ background: QUALITY_STATE_TONE[state] }}
-          />
-          <h2 className="m-0 text-[18px] font-normal text-ink">
-            {scenario.heading}
-          </h2>
-        </span>
+      <span className="flex items-center gap-[8px]">
+        <span
+          aria-hidden
+          className="h-[10px] w-[10px] flex-none rounded-full"
+          style={{ background: QUALITY_STATE_TONE[state] }}
+        />
+        <h2 className="m-0 text-[18px] font-normal text-ink">
+          {scenario.heading}
+        </h2>
+      </span>
+      {scenario.action && (
         <span className="text-[14px] leading-[1.4] text-ink-muted">
           {scenario.action}
         </span>
-      </div>
-      <div className="flex flex-wrap gap-x-[16px] gap-y-[2px] text-[13px] text-ink-muted">
-        {sensors.map(({ channel, quality }) => (
-          <span key={channel}>
-            <strong className="text-ink">{channel}</strong>{' '}
-            {QUALITY_LABELS[quality]}
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
- * Per-sensor detail as color plus a word plus a fix, so nothing needs color
- * interpretation (same idiom as `SignalPrep`). Variability is not impedance.
- */
-export function SensorList({ sensors }: { sensors: SensorStatus[] }) {
-  return (
-    <section
-      aria-label="Sensor detail"
-      className="flex flex-none flex-col gap-[8px] rounded-lg border border-gray-200 bg-white px-[16px] py-[12px]"
-    >
-      <h2 className={cn('m-0', stepLabel)}>Each sensor</h2>
-      <ul className="m-0 flex flex-col gap-[8px] p-0">
-        {sensors.map(({ channel, quality }) => {
-          const meta = ELECTRODES[channel] ?? UNKNOWN_ELECTRODE;
-          return (
-            <li key={channel} className="flex items-start gap-[8px]">
-              <span
-                aria-hidden
-                className={cn(
-                  'mt-[4px] h-[12px] w-[12px] flex-none rounded-full border-2',
-                  {
-                    [SIGNAL_QUALITY.GREAT]:
-                      'bg-signal-great border-signal-great',
-                    [SIGNAL_QUALITY.OK]: 'bg-signal-ok border-signal-ok',
-                    [SIGNAL_QUALITY.BAD]: 'bg-signal-bad border-signal-bad',
-                    [SIGNAL_QUALITY.DISCONNECTED]:
-                      'bg-white border-signal-none',
-                  }[quality]
-                )}
-              />
-              <span className="flex flex-col gap-[2px]">
-                <span className="text-[14px] text-ink">
-                  <strong>{channel}</strong> · {meta.location} —{' '}
-                  <strong>{QUALITY_LABELS[quality]}</strong>
-                </span>
-                <span className="text-[13px] leading-[1.4] text-ink-muted">
-                  {meta.fixes[quality]}
-                </span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+      )}
     </section>
   );
 }
@@ -534,31 +514,6 @@ export function LessonStepPanel({
   );
 }
 
-/** Color legend for the noise demonstration's stable trace colors (§5.2). */
-export function TraceLegend({
-  channels,
-  colors,
-}: {
-  channels: string[];
-  colors: string[];
-}) {
-  return (
-    <div className="flex flex-none flex-wrap items-center gap-x-[14px] gap-y-[2px] text-[13px] text-ink-muted">
-      {channels.map((channel, i) => (
-        <span key={channel} className="flex items-center gap-[6px]">
-          <span
-            aria-hidden
-            className="h-[3px] w-[16px] rounded-full"
-            style={{ background: colors[i] }}
-          />
-          {channel}
-        </span>
-      ))}
-      <span>— colors stay the same through this lesson</span>
-    </div>
-  );
-}
-
 /**
  * Frozen five-second comparison window with its peak-to-peak readout, like the
  * lesson flow's frozen strips.
@@ -658,28 +613,144 @@ export function Countdown({ value }: { value: 3 | 2 | 1 }) {
 }
 
 /**
- * Optional ideal alpha reference. Labelled `Example`, visually separated by a
- * dashed border, and never presented as the expected outcome.
+ * The review view: an eyes-open segment above an eyes-closed segment of equal
+ * length, both on one µV scale so the change is directly comparable. `compact`
+ * renders the same picture small for the `Example` card.
+ */
+export function SegmentComparison({
+  open,
+  closed,
+  colors,
+  scale,
+  compact,
+}: {
+  open: EEGSnapshot;
+  closed: EEGSnapshot;
+  colors: string[];
+  scale: number;
+  compact?: boolean;
+}) {
+  const duration = `${Math.round((open.endTime - open.startTime) / 1000)} SECONDS`;
+  return (
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 flex-col',
+        compact ? 'gap-[4px]' : 'gap-[10px]'
+      )}
+    >
+      {(
+        [
+          { snapshot: open, label: 'EYES OPEN' },
+          { snapshot: closed, label: 'EYES CLOSED' },
+        ] as const
+      ).map(({ snapshot, label }) => (
+        <div key={label} className="flex min-h-0 flex-1 flex-col">
+          <div className={cn('m-0 flex-none', stepLabel)}>
+            {label} · {duration}
+          </div>
+          <div className="min-h-0 flex-1">
+            <FixturePlot
+              snapshot={snapshot}
+              colors={colors}
+              amplitudeScale={scale}
+              width={compact ? 276 : 860}
+              height={compact ? 50 : 236}
+              showAxis={!compact}
+              tight={compact}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const QUIZ_OPTIONS = [
+  { value: 'hump', text: 'A big, slow hump' },
+  { value: 'flat', text: 'Not much change' },
+] as const;
+
+/**
+ * Prediction options styled as radios (not actions); choosing one immediately
+ * reveals the expected answer. Nothing is recorded.
+ */
+export function PredictionQuiz({
+  defaultAnswer,
+}: {
+  /** Pre-answered state, for the answered-state story. */
+  defaultAnswer?: (typeof QUIZ_OPTIONS)[number]['value'];
+}) {
+  const [answer, setAnswer] = useState<
+    (typeof QUIZ_OPTIONS)[number]['value'] | null
+  >(defaultAnswer ?? null);
+  return (
+    <div
+      className="flex flex-col gap-[8px]"
+      role="radiogroup"
+      aria-label="Your prediction"
+    >
+      <span className={stepLabel}>Your prediction</span>
+      <div className="flex flex-col gap-[6px]">
+        {QUIZ_OPTIONS.map((option) => {
+          const active = answer === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setAnswer(option.value)}
+              className={cn(
+                'flex items-center gap-[10px] rounded-md border-2 px-[12px] py-[8px] text-left text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                active
+                  ? 'border-brand bg-brand-light text-ink'
+                  : 'border-gray-200 bg-white text-ink-muted hover:border-brand hover:text-ink'
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  'h-[14px] w-[14px] flex-none rounded-full border-2',
+                  active ? 'border-brand bg-brand' : 'border-gray-300'
+                )}
+              />
+              {option.text}
+            </button>
+          );
+        })}
+      </div>
+      {answer && (
+        <div role="status" className="text-[14px] leading-[1.45] text-ink">
+          The expected answer is <strong>“a big, slow hump”</strong> — every
+          blink drops one onto the two front sensors. Check the plot to see
+          yours.
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Optional ideal reference. Labelled `Example`, visually separated by a dashed
+ * border, and never presented as the expected outcome. Same picture as the
+ * review view, just small.
  */
 export function AlphaExampleCard() {
   return (
     <section
-      aria-label="Example alpha comparison"
+      aria-label="Example comparison"
       className="flex flex-none flex-col gap-[6px] rounded-lg border-2 border-dashed border-gray-300 px-[14px] py-[10px]"
     >
       <span className={cn('m-0', stepLabel)}>Example</span>
-      <svg viewBox="0 0 260 78" aria-hidden className="h-[64px] w-full">
-        <rect x={20} y={38} width={64} height={24} fill="#bfbfbf" />
-        <rect x={150} y={10} width={64} height={52} fill="#666" />
-        <text x={52} y={74} textAnchor="middle" fill="#666" style={{ font: AXIS_FONT }}>
-          before
-        </text>
-        <text x={182} y={74} textAnchor="middle" fill="#666" style={{ font: AXIS_FONT }}>
-          eyes closed
-        </text>
-      </svg>
+      <SegmentComparison
+        compact
+        open={OPEN_SEGMENT}
+        closed={CLOSED_SEGMENT}
+        colors={traceColors(OPEN_SEGMENT.channels.length)}
+        scale={REVIEW_SEGMENT_SCALE}
+      />
       <p className="m-0 !text-[13px] !tracking-normal leading-[1.45] text-ink-muted">
-        A clear alpha increase. {ALPHA_EXAMPLE_CAPTION}
+        {ALPHA_EXAMPLE_CAPTION}
       </p>
     </section>
   );
