@@ -46,7 +46,6 @@ describe('EpochReviewer', () => {
       />
     );
 
-    // The overlay for epoch 1 is labelled "Reject trial 1".
     const target = screen.getByLabelText('Reject trial 1');
     fireEvent.click(target);
 

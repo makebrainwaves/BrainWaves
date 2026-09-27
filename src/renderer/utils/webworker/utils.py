@@ -278,12 +278,12 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
 def get_epochs_arrays(epochs, out_path):
     """Serialize epoch data to a float32 buffer file plus a metadata dict.
 
-    Writes the raw EEG epoch samples (Marker/stim channel excluded) as a flat
-    little-endian float32 buffer to `out_path` and returns metadata describing
-    the buffer's shape and per-epoch/per-channel labels. Channels in
-    `info['bads']` stay in the buffer so the viewer can show them flagged (and
-    the student can un-flag them). `out_path` is a Pyodide MEMFS path in-app and
-    a real filesystem path in the native tests.
+    Writes the raw EEG epoch samples (Marker/stim channel excluded) in
+    microvolts as a flat little-endian float32 buffer to `out_path` and returns
+    metadata describing the buffer's shape and per-epoch/per-channel labels.
+    Channels in `info['bads']` stay in the buffer so the viewer can show them
+    flagged (and the student can un-flag them). `out_path` is a Pyodide MEMFS
+    path in-app and a real filesystem path in the native tests.
 
     # buffer (float32, C-order):  epoch0[ch0[t0..tN] ch1[..] ..] epoch1[..] ..
     # byte length == n_epochs * n_channels * n_times * 4
@@ -300,12 +300,7 @@ def get_epochs_arrays(epochs, out_path):
     meta : dict
         Buffer metadata (see keys below).
     """
-    # EEG only — the Marker channel is type 'stim' (set in load_data), so
-    # pick_types(eeg=True) drops it while keeping the EEG channels in order;
-    # exclude=[] keeps bad channels, which pick_types drops by default.
     picks = pick_types(epochs.info, eeg=True, exclude=[])
-    # get_data() is volts (load_data scales eeg uV -> V). This buffer drives the
-    # epoch viewer, which works in microvolts, so convert back to uV here.
     data = epochs.get_data(picks=picks) * 1e6  # (n_epochs, n_channels, n_times)
     data = np.ascontiguousarray(data.astype(np.float32))
 
@@ -361,7 +356,7 @@ def suggest_rejections(epochs, threshold_uv):
     For each epoch, compute the per-channel peak-to-peak (max-min over time) on the
     EEG channels only (Marker/stim excluded), take the worst channel, and if it
     exceeds threshold_uv microvolts, suggest that epoch. Advisory only — the UI
-    pre-marks these but the user can override; the real drop goes through
+    requires the user to accept each one; the real drop goes through
     apply_rejection so the saved data stays MNE-exact.
 
     Returns list[dict] with keys: index (int, 0-based into the CURRENT epochs,

@@ -7,11 +7,7 @@ import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
 import { RailSection, ResultStatus, railLabel } from '../Analyze/AnalyzeParts';
 import { CleanLayout, ConfirmDialog, FitPane } from './CleanParts';
-import {
-  CleanPrimerPanel,
-  PrimerPointer,
-  PrimerStep,
-} from './CleanPrimer';
+import { CleanPrimerPanel, PrimerPointer, PrimerStep } from './CleanPrimer';
 import type { EpochArrays } from './fixtures';
 
 /** Which `CleanComponent` confirmation is open, restyled as an in-app dialog. */
@@ -35,7 +31,7 @@ export interface CleanReviewProps {
   dataset: { subject: string; recording: string };
   /** Epochs as `pyodide.epochArrays` holds them; null while loading. */
   epochArrays: EpochArrays | null;
-  /** `loading` and `no-epochs` replace the review area; the rail stays usable. */
+  /** `loading` and `no-epochs` replace the review area and disable saving; the rail stays usable. */
   status: 'ready' | 'loading' | 'no-epochs';
   codeToLabel: Record<number, string>;
   /** ABSOLUTE epoch indices left out, including accepted suggestions. */
@@ -50,8 +46,6 @@ export interface CleanReviewProps {
   onRestoreSuggestion(index: number): void;
   onSuggest(): void;
   saveState: SaveState;
-  /** Disables Save and Apply, e.g. until the recording's trials have loaded. */
-  saveDisabled?: boolean;
   onApply(): void;
   onSave(): void;
   onRetrySave(): void;
@@ -94,7 +88,10 @@ export default function CleanReview(props: CleanReviewProps) {
           ← Pick different data
         </Button>
       </RailSection>
-      <RailSection label="Auto-flag" className="border-t border-gray-200 pt-[10px]">
+      <RailSection
+        label="Auto-flag"
+        className="border-t border-gray-200 pt-[10px]"
+      >
         <div className="flex items-center gap-[8px]">
           <span className="text-[11px] text-ink-muted">More flags</span>
           <input
@@ -119,7 +116,10 @@ export default function CleanReview(props: CleanReviewProps) {
           Suggest noisy trials
         </Button>
       </RailSection>
-      <RailSection label="Exclusions" className="border-t border-gray-200 pt-[10px]">
+      <RailSection
+        label="Exclusions"
+        className="border-t border-gray-200 pt-[10px]"
+      >
         {total === 0 ? (
           <div className="text-[13px] text-ink-muted">
             Counts show up once the trials are loaded.
@@ -175,7 +175,7 @@ export default function CleanReview(props: CleanReviewProps) {
               <Button
                 size="sm"
                 variant="outline-brand"
-                disabled={props.saveDisabled}
+                disabled={props.status !== 'ready'}
                 onClick={props.onApply}
               >
                 Apply exclusions
@@ -192,20 +192,28 @@ export default function CleanReview(props: CleanReviewProps) {
               Your original recording is unchanged. The cleaned copy is ready to
               use in Analyze.
             </div>
-            <Button size="sm" className="mt-[6px] w-full" onClick={props.onGoToAnalyze}>
+            <Button
+              size="sm"
+              className="mt-[6px] w-full"
+              onClick={props.onGoToAnalyze}
+            >
               Go to Analyze →
             </Button>
           </div>
         )}
         {props.saveState === 'idle' && (
           <div className="flex flex-col gap-[6px]">
-            <Button size="sm" disabled={props.saveDisabled} onClick={props.onSave}>
+            <Button
+              size="sm"
+              disabled={props.status !== 'ready'}
+              onClick={props.onSave}
+            >
               Save cleaned dataset &amp; analyze
             </Button>
             <Button
               size="sm"
               variant="outline-brand"
-              disabled={props.saveDisabled}
+              disabled={props.status !== 'ready'}
               onClick={props.onApply}
             >
               Apply exclusions
@@ -240,7 +248,11 @@ export default function CleanReview(props: CleanReviewProps) {
           <Button size="lg" onClick={props.onBackToSelection}>
             ← Pick different data
           </Button>
-          <Button size="lg" variant="outline-brand" onClick={props.onGoToCollect}>
+          <Button
+            size="lg"
+            variant="outline-brand"
+            onClick={props.onGoToCollect}
+          >
             Go to Collect
           </Button>
         </div>

@@ -267,7 +267,6 @@ export default function Clean(props: Props) {
         props.PyodideActions.GetSuggestedRejections(autoFlagThreshold)
       }
       saveState={saveState}
-      saveDisabled={status !== 'ready'}
       onApply={handleApply}
       onSave={handleSave}
       onRetrySave={() => save([])}

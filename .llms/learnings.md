@@ -304,8 +304,8 @@ Redux, so it never lands in the persisted `appState.json`.
 ## Global `li { list-style: none }` hides `list-decimal`/`list-disc`
 
 `app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
-lose and numbered lists render bare. Write the numbers as text (see
-`CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
+lose and numbered lists render bare. Write the numbers as text (see the
+loop list in `Clean/CleanDatasetSelect.tsx`) or add a scoped class.
 
 ## Headset setup: discovery is time-limited and gesture-bound
 
