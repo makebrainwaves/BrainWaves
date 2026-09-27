@@ -499,3 +499,15 @@ It also replayed its CSV's own marker column, which is how an earlier run
 loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
 grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
 with practice skipped should load as exactly 120 epochs.
+
+## Root `vite.config.ts` is not loaded by electron-vite
+
+electron-vite 5 only discovers `electron.vite.config.*` (`CONFIG_FILE_NAME` in
+`node_modules/electron-vite/dist/chunks/lib-*.js`); with none present it builds
+with built-in defaults. So edits to root `vite.config.ts` (aliases, renderer
+`publicDir`, `optimizeDeps`, the react plugin) have no effect on `npm run dev`
+or `npm run build`. Proof: `out/renderer/` contains no `pyodide/` despite the
+`publicDir` setting. Renaming it would suddenly activate all of it, so do that
+deliberately. For an extra main-process entry (e.g. a utility-process worker),
+use electron-vite's `import workerPath from './worker?modulePath'` instead of
+config — see `src/main/llm/index.ts` and `docs/feasibility-coach.md`.

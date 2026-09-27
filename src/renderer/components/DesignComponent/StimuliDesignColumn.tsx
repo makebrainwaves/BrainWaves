@@ -11,6 +11,8 @@ import { loadFromSystemDialog } from '../../utils/filesystem/select';
 import { FILE_TYPES } from '../../constants/constants';
 
 interface Props {
+  /** plan: name and response key (design steps). assets: name and stimulus folders. */
+  mode: 'plan' | 'assets';
   num: number;
   title: string;
   response: string;
@@ -102,60 +104,66 @@ function StimuliDesignColumn(props: Props) {
         </div>
       </TableCell>
 
-      <TableCell className="pl-6 pr-2.5">
-        <select
-          className="w-full border border-gray-300 rounded px-2 py-1"
-          value={props.response}
-          onChange={(event) => {
-            const val = event.target.value;
-            if (val && isString(val)) {
-              props.onChange('response', val, `stimulus${props.num}`);
-            }
-          }}
-        >
-          <option value="">Select</option>
-          {RESPONSE_OPTIONS.map((o) => (
-            <option key={o.key} value={o.value}>
-              {o.text}
-            </option>
-          ))}
-        </select>
-      </TableCell>
+      {props.mode === 'plan' ? (
+        <TableCell className="pl-6 pr-2.5">
+          <select
+            className="w-full border border-gray-300 rounded px-2 py-1"
+            value={props.response}
+            onChange={(event) => {
+              const val = event.target.value;
+              if (val && isString(val)) {
+                props.onChange('response', val, `stimulus${props.num}`);
+              }
+            }}
+          >
+            <option value="">Select</option>
+            {RESPONSE_OPTIONS.map((o) => (
+              <option key={o.key} value={o.value}>
+                {o.text}
+              </option>
+            ))}
+          </select>
+        </TableCell>
+      ) : (
+        <>
+          <TableCell className="pl-6 pr-2.5">
+            {props.dir ? (
+              <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
+                <div>Folder {lastSegment(props.dir)}</div>
+                <div>( {numberImages || props.numberImages} images )</div>
+                <button onClick={handleRemoveFolder} aria-label="Remove">
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <Button variant="secondary" onClick={handleSelectFolder}>
+                Select folder
+              </Button>
+            )}
+          </TableCell>
 
-      <TableCell className="pl-6 pr-2.5">
-        {props.dir ? (
-          <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
-            <div>Folder {lastSegment(props.dir)}</div>
-            <div>( {numberImages || props.numberImages} images )</div>
-            <button onClick={handleRemoveFolder} aria-label="Remove">
-              ✕
-            </button>
-          </div>
-        ) : (
-          <Button variant="secondary" onClick={handleSelectFolder}>
-            Select folder
-          </Button>
-        )}
-      </TableCell>
-
-      <TableCell className="pl-6 pr-2.5">
-        {props.audioDir ? (
-          <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
-            <div>🔊 {lastSegment(props.audioDir)}</div>
-            {numberSounds !== undefined && <div>( {numberSounds} sounds )</div>}
-            <button
-              onClick={handleRemoveAudioFolder}
-              aria-label="Remove sounds"
-            >
-              ✕
-            </button>
-          </div>
-        ) : (
-          <Button variant="secondary" onClick={handleSelectAudioFolder}>
-            Select sound folder
-          </Button>
-        )}
-      </TableCell>
+          <TableCell className="pl-6 pr-2.5">
+            {props.audioDir ? (
+              <div className="inline-grid grid-cols-[auto_auto_1fr] gap-2.5 border-2 border-gray-300 p-2 rounded w-fit items-center">
+                <div>🔊 {lastSegment(props.audioDir)}</div>
+                {numberSounds !== undefined && (
+                  <div>( {numberSounds} sounds )</div>
+                )}
+                <button
+                  onClick={handleRemoveAudioFolder}
+                  aria-label="Remove sounds"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <Button variant="secondary" onClick={handleSelectAudioFolder}>
+                Select sound folder
+              </Button>
+            )}
+          </TableCell>
+        </>
+      )}
     </TableRow>
   );
 }
@@ -167,6 +175,7 @@ export default React.memo(StimuliDesignColumn, (prev, next) => {
     prev.dir === next.dir &&
     prev.audioDir === next.audioDir &&
     prev.num === next.num &&
+    prev.mode === next.mode &&
     prev.numberImages === next.numberImages
   );
 });

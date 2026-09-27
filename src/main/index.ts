@@ -55,6 +55,8 @@ import {
   sessionFile,
   writeSessionFile,
 } from './recordings';
+import { abortLLM, generateLLM, stopLLM } from './llm';
+import type { LLMRequest } from '../shared/llmTypes';
 
 // Playtest harness: isolate smoke-test state from the user's Electron profile.
 // Clear the env after reading so child processes don't inherit it.
@@ -652,6 +654,15 @@ ipcMain.on('lsl:unsubscribeStream', (_event, payload: { uid: string }) => {
   lslInlets.unsubscribeStream(payload.uid);
 });
 
+// Local LLM — generation runs in a utility process; events stream back on llm:event.
+ipcMain.on('llm:generate', (_event, request: LLMRequest) =>
+  generateLLM(request, (event) =>
+    mainWindow?.webContents.send('llm:event', event)
+  )
+);
+
+ipcMain.on('llm:abort', () => abortLLM());
+
 // Viewer URL — used by ViewerComponent to load the EEG viewer in a webview
 ipcMain.handle('getViewerUrl', () => {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -780,6 +791,7 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   lslOutlets.destroyAll();
   lslInlets.destroyAll();
+  stopLLM();
 });
 
 app.whenReady().then(async () => {
