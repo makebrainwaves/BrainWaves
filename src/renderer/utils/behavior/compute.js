@@ -163,12 +163,7 @@ const filterData = (data, removeOutliers) => {
   return filteredData;
 };
 
-const computeRT = (
-  data,
-  dependentVariable,
-  conditions,
-  displayMode
-) => {
+const computeRT = (data, dependentVariable, conditions, displayMode) => {
   let dataToPlot = 0;
   let maxValue = 0;
   switch (displayMode) {
@@ -179,14 +174,18 @@ const computeRT = (
         const xRaw = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
         const y = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.reaction_time);
@@ -204,11 +203,7 @@ const computeRT = (
       dataToPlot['ticktext'] = tickTextX;
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + 100 : 1000;
-      return makeDataPointsGraph(
-        dataToPlot,
-        conditions,
-        dependentVariable
-      );
+      return makeDataPointsGraph(dataToPlot, conditions, dependentVariable);
 
     case 'errorbars':
       let maxValueSE = 0;
@@ -216,7 +211,9 @@ const computeRT = (
         const xRaw = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
@@ -224,7 +221,9 @@ const computeRT = (
         const data_condition = data.map((d) =>
           d
             .filter(
-              (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+              (r) =>
+                isResponseGiven(r.response_given) &&
+                isCorrectTrial(r.correct_response)
             )
             .filter((e) => e.condition == condition)
         );
@@ -265,14 +264,18 @@ const computeRT = (
         const x = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
         const y = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.reaction_time);
@@ -286,12 +289,7 @@ const computeRT = (
   }
 };
 
-const computeAccuracy = (
-  data,
-  dependentVariable,
-  conditions,
-  displayMode
-) => {
+const computeAccuracy = (data, dependentVariable, conditions, displayMode) => {
   let dataToPlot;
 
   switch (displayMode) {
@@ -335,11 +333,7 @@ const computeAccuracy = (
       dataToPlot['ticktext'] = tickTextX;
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = 105;
-      return makeDataPointsGraph(
-        dataToPlot,
-        conditions,
-        dependentVariable
-      );
+      return makeDataPointsGraph(dataToPlot, conditions, dependentVariable);
 
     case 'errorbars':
       dataToPlot = conditions.reduce((obj, condition, i) => {

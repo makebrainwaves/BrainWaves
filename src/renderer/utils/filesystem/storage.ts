@@ -105,10 +105,11 @@ export const getImages = (params: ExperimentParameters): Promise<string[]> =>
 export const readBehaviorData = (files: string[]) =>
   api().readBehaviorData(files);
 
+/** Resolves true once written, false when the user cancels the save dialog. */
 export const storeAggregatedBehaviorData = (
   data: unknown,
   title: string
-): Promise<void> => api().storeAggregatedBehaviorData(data, title);
+): Promise<boolean> => api().storeAggregatedBehaviorData(data, title);
 
 // ---------------------------------------------------------------------------------------------
 // Util

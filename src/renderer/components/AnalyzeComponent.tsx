@@ -68,13 +68,10 @@ export default function Analyze(props: Props) {
   );
   /** Null until the cleaned listing is read, so "Clean first" never flashes. */
   const [eegDatasets, setEegDatasets] = useState<DatasetOption[] | null>(null);
-  const [behaviorDatasets, setBehaviorDatasets] = useState<DatasetOption[]>(
-    []
-  );
+  const [behaviorDatasets, setBehaviorDatasets] = useState<DatasetOption[]>([]);
   const [selectedFilePaths, setSelectedFilePaths] = useState<string[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
-  const [walkthroughStep, setWalkthroughStep] =
-    useState<ErpWalkthroughStep>(0);
+  const [walkthroughStep, setWalkthroughStep] = useState<ErpWalkthroughStep>(0);
   const [selectedBehaviorFilePaths, setSelectedBehaviorFilePaths] = useState<
     string[]
   >([]);
@@ -136,7 +133,12 @@ export default function Analyze(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [selectedBehaviorFilePaths, dependentVariable, removeOutliers, displayMode]);
+  }, [
+    selectedBehaviorFilePaths,
+    dependentVariable,
+    removeOutliers,
+    displayMode,
+  ]);
 
   function handleDatasetChange(values: string[]) {
     setSelectedFilePaths(values);
@@ -168,8 +170,11 @@ export default function Analyze(props: Props) {
         setExportStatus('error');
         return;
       }
-      await storeAggregatedBehaviorData(aggregatedData, props.title);
-      setExportStatus('success');
+      const saved = await storeAggregatedBehaviorData(
+        aggregatedData,
+        props.title
+      );
+      setExportStatus(saved ? 'success' : 'idle');
     } catch {
       setExportStatus('error');
     }
@@ -222,7 +227,7 @@ export default function Analyze(props: Props) {
             channelInfo={hasSelection ? props.channelInfo : []}
             selectedChannel={selectedChannel}
             erpPlot={props.erpPlot ?? null}
-            epochsInfo={props.epochsInfo}
+            epochsInfo={hasSelection ? props.epochsInfo : []}
             epochArrays={props.cleanedEpochArrays}
             codeToLabel={codeToLabel}
             walkthroughStep={walkthroughStep}

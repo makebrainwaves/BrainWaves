@@ -173,7 +173,8 @@ function Erp(props: Partial<AnalyzeErpProps>) {
 /** Behavior plotted by the real `aggregateDataForPlot` from the example CSVs. */
 function Behavior(props: Partial<AnalyzeBehaviorProps>) {
   const [selected, setSelected] = useState(
-    props.selectedDatasets ?? BEHAVIOR_DATASET_OPTIONS.slice(0, 3).map((o) => o.value)
+    props.selectedDatasets ??
+      BEHAVIOR_DATASET_OPTIONS.slice(0, 3).map((o) => o.value)
   );
   const [dependentVariable, setDependentVariable] =
     useState<DependentVariable>('Response Time');
