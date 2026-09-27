@@ -9,7 +9,7 @@ const SvgComponent = ({ channelinfo, onChannelClick }: Props) => (
   <svg
     id="SignalQualityIndicator"
     data-name="SignalQualityIndicator"
-    style={{ minHeight: 250, minWidth: 250 }}
+    style={{ display: 'block', width: '100%' }}
     viewBox="0 0 674.44 610.29"
   >
     <title>Signal Quality Indicator</title>

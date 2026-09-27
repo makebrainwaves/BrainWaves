@@ -166,7 +166,7 @@ def plot_topo(epochs, conditions, palette):
     evoked_topo = viz.plot_evoked_topo(
         evokeds, vline=None, color=palette[0:len(conditions)], show=False)
     evoked_topo.patch.set_alpha(0)
-    evoked_topo.set_size_inches(10, 8)
+    evoked_topo.set_size_inches(9, 9)
     for axis in evoked_topo.axes:
         for line in axis.lines:
             line.set_linewidth(2)

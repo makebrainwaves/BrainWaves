@@ -183,7 +183,8 @@ export const plotPSD = async (worker: Worker) => {
     data: [
       'import io',
       '_data = clean_epochs if "clean_epochs" in globals() else raw',
-      '_fig = _data.compute_psd(fmin=1, fmax=30).plot(show=False)',
+      '_fig, _ax = plt.subplots(figsize=(5.5, 5.5))',
+      '_data.compute_psd(fmin=1, fmax=30).plot(axes=_ax, show=False)',
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
