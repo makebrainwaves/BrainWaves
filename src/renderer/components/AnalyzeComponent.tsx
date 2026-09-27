@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { EpochArraysMeta } from '../actions';
+import type { EpochArraysMeta, EpochInfoRow } from '../actions';
 import { ExperimentActions, PyodideActions } from '../actions';
 import { ExperimentParameters } from '../constants/interfaces';
 import {
@@ -22,11 +22,7 @@ import AnalyzeBehavior, {
   DependentVariable,
   DisplayMode,
 } from './Analyze/AnalyzeBehavior';
-import type {
-  BehaviorPlot,
-  DatasetOption,
-  EpochInfoRow,
-} from './Analyze/fixtures';
+import type { BehaviorPlot, DatasetOption } from './Analyze/fixtures';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',

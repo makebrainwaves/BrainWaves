@@ -10,9 +10,6 @@ export interface DatasetOption {
   value: string;
 }
 
-/** One row of Python `get_epochs_info`, as `pyodide.epochsInfo` holds it. */
-export type { EpochInfoRow };
-
 /** `aggregateDataForPlot`'s return shape. */
 export interface BehaviorPlot {
   dataToPlot: PlotlyData[];

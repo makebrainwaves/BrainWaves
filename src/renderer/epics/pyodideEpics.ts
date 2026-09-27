@@ -221,6 +221,13 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     mergeMap(() => EMPTY)
   );
 
+/**
+ * Stages the selected cleaned `.fif` files in Pyodide's MEMFS, loads them, and
+ * requests Analyze's plots and cleaned epoch arrays. A newer selection cancels a
+ * staging that has not posted yet.
+ * ponytail: replies already posted still land first (worker FIFO) and briefly
+ * show the previous selection until the new replies overwrite them.
+ */
 const loadCleanedEpochsEpic: Epic<
   PyodideActionType,
   PyodideActionType,
@@ -229,11 +236,6 @@ const loadCleanedEpochsEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadCleanedEpochs)),
     pluck('payload'),
-    // .fif epochs live on the host OS; stage them in Pyodide's MEMFS first
-    // (the WASM filesystem can't reach host paths). switchMap drops a staging
-    // that a newer selection (or clearing it) superseded before it posts.
-    // ponytail: replies already posted still land first (worker FIFO) and
-    // briefly show the previous selection until the new replies overwrite them.
     switchMap((filePathsArray) =>
       filePathsArray.length >= 1
         ? from(writeEpochsToMemfs(filePathsArray))

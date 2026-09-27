@@ -10,7 +10,8 @@ import {
   RailSection,
   ResultStatus,
 } from './AnalyzeParts';
-import type { DatasetOption, EpochInfoRow } from './fixtures';
+import type { EpochInfoRow } from '../../actions';
+import type { DatasetOption } from './fixtures';
 
 export interface AnalyzeOverviewProps {
   /** Result of loading the selected datasets and plotting PSD + topography. */
