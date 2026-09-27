@@ -17,6 +17,7 @@ import {
   PyodideActions,
   ExperimentActions,
   EpochArraysMeta,
+  EpochInfoRow,
   SuggestedRejection,
 } from '../../actions';
 
@@ -30,9 +31,7 @@ export interface Props {
   type?: EXPERIMENTS;
   title: string;
   deviceType: DEVICES;
-  epochsInfo: Array<{
-    [key: string]: number | string;
-  }>;
+  epochsInfo: EpochInfoRow[];
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
   PyodideActions: typeof PyodideActions;
   ExperimentActions: typeof ExperimentActions;

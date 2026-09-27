@@ -12,6 +12,12 @@ export interface EpochArraysMeta {
   event_codes: number[];
 }
 
+/** One `get_epochs_info` row as pyodideMessageEpic flattens it, e.g. `{ name: 'Face', value: 40 }`. */
+export interface EpochInfoRow {
+  name: string;
+  value: number | string;
+}
+
 // Auto-flag: a single artifact suggestion returned by Python's
 // suggest_rejections(epochs, threshold_uv) — one epoch/channel over threshold.
 export interface SuggestedRejection {
@@ -46,8 +52,9 @@ export const PyodideActions = {
     'GET_EPOCHS_INFO'
   ),
   GetChannelInfo: createAction('GET_CHANNEL_INFO'),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SetEpochInfo: createAction<any, 'SET_EPOCH_INFO'>('SET_EPOCH_INFO'), // Pyodide WASM runtime result — shape is dynamic
+  SetEpochInfo: createAction<EpochInfoRow[], 'SET_EPOCH_INFO'>(
+    'SET_EPOCH_INFO'
+  ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetChannelInfo: createAction<any, 'SET_CHANNEL_INFO'>('SET_CHANNEL_INFO'), // Pyodide WASM runtime result — shape is dynamic
   SetEpochArrays: createAction<

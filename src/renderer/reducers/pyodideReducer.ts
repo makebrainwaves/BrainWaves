@@ -3,6 +3,7 @@ import {
   PyodideActions,
   ExperimentActions,
   EpochArraysMeta,
+  EpochInfoRow,
   SuggestedRejection,
 } from '../actions';
 
@@ -10,9 +11,7 @@ export interface PyodideStateType {
   // ponytail: shared with Clean; a Clean re-fetch in flight during Save &
   // analyze can land first (Analyze's own reply lands last, FIFO). Give
   // Analyze its own slot if that flash matters.
-  readonly epochsInfo: Array<{
-    [key: string]: number | string;
-  }>;
+  readonly epochsInfo: EpochInfoRow[];
   readonly channelInfo: string[];
   readonly psdPlot:
     | {
