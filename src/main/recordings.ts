@@ -33,28 +33,48 @@ export const isIncompleteRawEEGFile = (file: string) =>
 /**
  * Files `fs:deleteIncompleteRecording` trashes for one ended-early run: the EEG
  * file plus its `Behavior/<stem>-behavior.incomplete.csv` sibling when present.
- * Throws for anything that is not an ended-early raw EEG file inside
- * `<workspaceDir>/Data/`, since `eegPath` comes from the renderer.
+ * `eegPath` comes from the renderer, so after resolving symlinks it must be a
+ * regular file at exactly `<workspaceDir>/Data/<subject>/EEG/<stem>-raw.incomplete.csv`
+ * (and the sibling a regular file in that subject's `Behavior/`); otherwise throws.
  */
 export const incompleteRecordingFiles = (
   workspaceDir: string,
   eegPath: string
 ) => {
-  const eeg = path.resolve(eegPath);
-  if (
-    !eeg.startsWith(path.resolve(workspaceDir, 'Data') + path.sep) ||
-    !isIncompleteRawEEGFile(eeg)
-  ) {
+  const reject = (): never => {
     throw new Error(
       `Not an ended-early recording in this workspace: ${eegPath}`
     );
+  };
+  const dataDir = fs.realpathSync(path.join(workspaceDir, 'Data'));
+  const eeg = fs.realpathSync(eegPath);
+  const [subject, folder, file, ...rest] = path
+    .relative(dataDir, eeg)
+    .split(path.sep);
+  if (
+    rest.length > 0 ||
+    !file ||
+    subject === '..' ||
+    folder !== 'EEG' ||
+    !isIncompleteRawEEGFile(file) ||
+    !fs.statSync(eeg).isFile()
+  ) {
+    reject();
   }
+  const behaviorDir = path.join(dataDir, subject, 'Behavior');
   const behavior = path.join(
-    path.dirname(path.dirname(eeg)),
-    'Behavior',
-    path.basename(eeg).replace(`-raw${INCOMPLETE}`, `-behavior${INCOMPLETE}`)
+    behaviorDir,
+    file.replace(`-raw${INCOMPLETE}`, `-behavior${INCOMPLETE}`)
   );
-  return fs.existsSync(behavior) ? [eeg, behavior] : [eeg];
+  if (!fs.existsSync(behavior)) return [eeg];
+  const realBehavior = fs.realpathSync(behavior);
+  if (
+    path.dirname(realBehavior) !== behaviorDir ||
+    !fs.statSync(realBehavior).isFile()
+  ) {
+    reject();
+  }
+  return [eeg, realBehavior];
 };
 
 /** True when any artifact of this session exists, complete or ended early. */

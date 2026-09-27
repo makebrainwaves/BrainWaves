@@ -13,7 +13,9 @@ import {
 
 let dir: string;
 beforeEach(() => {
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-recordings-'));
+  dir = fs.realpathSync(
+    fs.mkdtempSync(path.join(os.tmpdir(), 'bw-recordings-'))
+  );
 });
 afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
 
@@ -96,5 +98,27 @@ describe('recordings', () => {
         `${dir}/Data/../Other/P1-A-1-raw.incomplete.csv`
       )
     ).toThrow();
+  });
+
+  it('refuses symlinks out of Data, the wrong depth, and directories', () => {
+    write('Other/P1-A-1-raw.incomplete.csv');
+    write('Data/P1-A-1-raw.incomplete.csv');
+    fs.mkdirSync(path.join(dir, 'Data/P1/EEG/P1-A-2-raw.incomplete.csv'), {
+      recursive: true,
+    });
+    fs.symlinkSync(
+      path.join(dir, 'Other/P1-A-1-raw.incomplete.csv'),
+      path.join(dir, 'Data/P1/EEG/P1-A-1-raw.incomplete.csv')
+    );
+
+    for (const rel of [
+      'Data/P1/EEG/P1-A-1-raw.incomplete.csv',
+      'Data/P1-A-1-raw.incomplete.csv',
+      'Data/P1/EEG/P1-A-2-raw.incomplete.csv',
+    ]) {
+      expect(() =>
+        incompleteRecordingFiles(dir, path.join(dir, rel))
+      ).toThrow();
+    }
   });
 });

@@ -121,7 +121,13 @@ const getStimulusFileAccess = () => {
   return stimulusFileAccess;
 };
 
-const getWorkspaceDir = (title: string) => path.join(workspaces, title);
+/** A workspace's folder; `title` comes from the renderer, so it must be one path segment. */
+const getWorkspaceDir = (title: string) => {
+  if (!title || title === '.' || title === '..' || title !== path.basename(title)) {
+    throw new Error(`Invalid workspace title: ${title}`);
+  }
+  return path.join(workspaces, title);
+};
 
 const mkdirPathSync = (dirPath: string) =>
   fs.mkdirSync(dirPath, { recursive: true });
@@ -376,7 +382,7 @@ ipcMain.handle(
 );
 
 ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
-  shell.trashItem(path.join(workspaces, title))
+  shell.trashItem(getWorkspaceDir(title))
 );
 
 /** Moves one ended-early run (EEG file and behavior sibling) to the Trash. */

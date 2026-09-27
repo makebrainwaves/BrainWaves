@@ -280,8 +280,10 @@ def get_epochs_arrays(epochs, out_path):
 
     Writes the raw EEG epoch samples (Marker/stim channel excluded) as a flat
     little-endian float32 buffer to `out_path` and returns metadata describing
-    the buffer's shape and per-epoch/per-channel labels. `out_path` is a Pyodide
-    MEMFS path in-app and a real filesystem path in the native tests.
+    the buffer's shape and per-epoch/per-channel labels. Channels in
+    `info['bads']` stay in the buffer so the viewer can show them flagged (and
+    the student can un-flag them). `out_path` is a Pyodide MEMFS path in-app and
+    a real filesystem path in the native tests.
 
     # buffer (float32, C-order):  epoch0[ch0[t0..tN] ch1[..] ..] epoch1[..] ..
     # byte length == n_epochs * n_channels * n_times * 4
@@ -299,8 +301,9 @@ def get_epochs_arrays(epochs, out_path):
         Buffer metadata (see keys below).
     """
     # EEG only — the Marker channel is type 'stim' (set in load_data), so
-    # pick_types(eeg=True) drops it while keeping the EEG channels in order.
-    picks = pick_types(epochs.info, eeg=True)
+    # pick_types(eeg=True) drops it while keeping the EEG channels in order;
+    # exclude=[] keeps bad channels, which pick_types drops by default.
+    picks = pick_types(epochs.info, eeg=True, exclude=[])
     # get_data() is volts (load_data scales eeg uV -> V). This buffer drives the
     # epoch viewer, which works in microvolts, so convert back to uV here.
     data = epochs.get_data(picks=picks) * 1e6  # (n_epochs, n_channels, n_times)

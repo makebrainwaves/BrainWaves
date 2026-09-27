@@ -124,6 +124,13 @@ export default function Clean(props: Props) {
   const chosen = recordings.find((r) => r.key === selected) ?? null;
   const total = epochArrays?.meta.n_epochs ?? 0;
   const allRejected = total > 0 && rejected.size >= total;
+  const status =
+    epochArrays === null
+      ? 'loading'
+      : epochArrays.meta.n_epochs === 0
+        ? 'no-epochs'
+        : 'ready';
+  const saving = saveState === 'saving';
 
   /** Any exclusion edit makes a finished save stale and retires the primer. */
   function edited() {
@@ -162,6 +169,7 @@ export default function Clean(props: Props) {
   }
 
   function handleToggleChannel(name: string) {
+    if (saving) return;
     edited();
     const next = new Set(badChannels);
     const adding = !next.delete(name);
@@ -223,17 +231,12 @@ export default function Clean(props: Props) {
         recording: chosen?.name ?? '',
       }}
       epochArrays={epochArrays}
-      status={
-        epochArrays === null
-          ? 'loading'
-          : epochArrays.meta.n_epochs === 0
-            ? 'no-epochs'
-            : 'ready'
-      }
+      status={status}
       codeToLabel={codeToLabelFor(props.params)}
       rejected={rejected}
       badChannels={badChannels}
       onToggleEpoch={(index) => {
+        if (saving) return;
         edited();
         setRejected((prev) => {
           const next = new Set(prev);
@@ -264,6 +267,7 @@ export default function Clean(props: Props) {
         props.PyodideActions.GetSuggestedRejections(autoFlagThreshold)
       }
       saveState={saveState}
+      saveDisabled={status !== 'ready'}
       onApply={handleApply}
       onSave={handleSave}
       onRetrySave={() => save([])}

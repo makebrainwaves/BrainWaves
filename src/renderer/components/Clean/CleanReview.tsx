@@ -50,6 +50,8 @@ export interface CleanReviewProps {
   onRestoreSuggestion(index: number): void;
   onSuggest(): void;
   saveState: SaveState;
+  /** Disables Save and Apply, e.g. until the recording's trials have loaded. */
+  saveDisabled?: boolean;
   onApply(): void;
   onSave(): void;
   onRetrySave(): void;
@@ -79,6 +81,7 @@ export default function CleanReview(props: CleanReviewProps) {
   const acceptedCount = props.suggestions.filter((s) => s.accepted).length;
   const kept = total - props.rejected.size;
   const { dataset } = props;
+  const busy = props.saveState === 'saving';
 
   const rail = (
     <>
@@ -103,6 +106,7 @@ export default function CleanReview(props: CleanReviewProps) {
             value={props.autoFlagThreshold}
             aria-valuetext={`${props.autoFlagThreshold} µV peak-to-peak`}
             onChange={(e) => props.onThresholdChange(Number(e.target.value))}
+            disabled={busy}
             className="flex-1 accent-brand"
           />
           <span className="text-[11px] text-ink-muted">Fewer</span>
@@ -168,7 +172,12 @@ export default function CleanReview(props: CleanReviewProps) {
               <Button size="sm" onClick={props.onRetrySave}>
                 Try again
               </Button>
-              <Button size="sm" variant="outline-brand" onClick={props.onApply}>
+              <Button
+                size="sm"
+                variant="outline-brand"
+                disabled={props.saveDisabled}
+                onClick={props.onApply}
+              >
                 Apply exclusions
               </Button>
             </div>
@@ -190,10 +199,15 @@ export default function CleanReview(props: CleanReviewProps) {
         )}
         {props.saveState === 'idle' && (
           <div className="flex flex-col gap-[6px]">
-            <Button size="sm" onClick={props.onSave}>
+            <Button size="sm" disabled={props.saveDisabled} onClick={props.onSave}>
               Save cleaned dataset &amp; analyze
             </Button>
-            <Button size="sm" variant="outline-brand" onClick={props.onApply}>
+            <Button
+              size="sm"
+              variant="outline-brand"
+              disabled={props.saveDisabled}
+              onClick={props.onApply}
+            >
               Apply exclusions
             </Button>
           </div>
@@ -281,7 +295,7 @@ export default function CleanReview(props: CleanReviewProps) {
           {props.suggestions.length > 0 && (
             <section
               aria-label="Auto-flag suggestions"
-              className="flex min-w-0 flex-1 flex-col gap-[6px] rounded-lg border border-gray-200 bg-white p-[14px]"
+              className="flex min-h-0 min-w-0 flex-1 flex-col gap-[6px] rounded-lg border border-gray-200 bg-white p-[14px]"
             >
               <div className="flex items-baseline gap-[10px]">
                 <span className={railLabel}>Suggested by auto-flag</span>
@@ -289,7 +303,7 @@ export default function CleanReview(props: CleanReviewProps) {
                   Suggestions, not decisions — you decide.
                 </div>
               </div>
-              <ul className="m-0 flex flex-col gap-[4px] p-0">
+              <ul className="m-0 flex min-h-0 flex-1 flex-col gap-[4px] overflow-y-auto p-0">
                 {props.suggestions.map((suggestion) => (
                   <li
                     key={suggestion.index}
@@ -298,18 +312,19 @@ export default function CleanReview(props: CleanReviewProps) {
                     <span className="flex-none text-[13px] font-bold text-ink">
                       Trial {suggestion.index}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-[13px] text-ink-muted">
+                    <span className="min-w-0 flex-1 text-[13px] text-ink-muted">
                       {suggestion.reason}
                     </span>
                     {suggestion.accepted ? (
                       <>
                         <span className="flex-none text-[12px] font-bold text-ink">
-                          ✓ Left out (from a suggestion)
+                          ✓ Left out
                         </span>
                         <Button
                           size="sm"
                           variant="outline"
                           className="flex-none"
+                          disabled={busy}
                           onClick={() =>
                             props.onRestoreSuggestion(suggestion.index)
                           }
@@ -322,6 +337,7 @@ export default function CleanReview(props: CleanReviewProps) {
                         size="sm"
                         variant="outline-brand"
                         className="flex-none"
+                        disabled={busy}
                         onClick={() =>
                           props.onAcceptSuggestion(suggestion.index)
                         }

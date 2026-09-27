@@ -71,3 +71,16 @@ def test_byte_length_matches_shape(tmp_path):
     assert n_bytes == (
         meta["n_epochs"] * meta["n_channels"] * meta["n_times"] * 4
     )
+
+
+def test_bad_channels_stay_in_the_buffer(tmp_path):
+    epochs = _build_epochs()
+    n_channels = utils.get_epochs_arrays(epochs, str(tmp_path / "a.f32"))[
+        "n_channels"
+    ]
+    epochs.info["bads"] = ["AF7"]
+
+    meta = utils.get_epochs_arrays(epochs, str(tmp_path / "b.f32"))
+
+    assert "AF7" in meta["ch_names"]
+    assert meta["n_channels"] == n_channels
