@@ -233,7 +233,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     X = epochs.get_data() * 1e6
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 3.9))
 
     for (cond_name, cond), color in zip(conditions.items(), palette):
         cond_data = X[y.isin(cond), ch_ind]
@@ -270,8 +270,6 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
 
     if title:
         fig.suptitle(title, fontsize=20)
-
-    fig.set_size_inches(10, 8)
 
     return fig, ax
 
