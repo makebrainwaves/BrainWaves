@@ -178,7 +178,6 @@ function Behavior(props: Partial<AnalyzeBehaviorProps>) {
   const [dependentVariable, setDependentVariable] =
     useState<DependentVariable>('Response Time');
   const [removeOutliers, setRemoveOutliers] = useState(true);
-  const [showDataPoints, setShowDataPoints] = useState(false);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('errorbars');
   const plot = useMemo(
     () =>
@@ -188,7 +187,7 @@ function Behavior(props: Partial<AnalyzeBehaviorProps>) {
         removeOutliers,
         displayMode
       ) as BehaviorPlot | undefined) ?? null,
-    [selected, dependentVariable, removeOutliers, showDataPoints, displayMode]
+    [selected, dependentVariable, removeOutliers, displayMode]
   );
   return (
     <AnalyzeBehavior
@@ -199,13 +198,11 @@ function Behavior(props: Partial<AnalyzeBehaviorProps>) {
       selectedDatasets={selected}
       dependentVariable={dependentVariable}
       removeOutliers={removeOutliers}
-      showDataPoints={showDataPoints}
       displayMode={displayMode}
       plot={plot}
       onDatasetChange={setSelected}
       onDependentVariableChange={setDependentVariable}
       onToggleOutliers={() => setRemoveOutliers((v) => !v)}
-      onToggleDataPoints={() => setShowDataPoints((v) => !v)}
       onDisplayModeChange={setDisplayMode}
     />
   );
@@ -244,11 +241,6 @@ export const BehaviorBeforeCleaningBehaviorTab: Story = {
 /** A03 — Rail: tick recordings (P01 here, whose example epochs feed every EEG story), see who's included. Results: PSD and per-sensor ERPs side by side. */
 export const OverviewResults: Story = {
   render: () => <Overview />,
-};
-
-/** A03b — Comparison for review: plots on top, a compact recordings strip below. One of A03/A03b gets deleted. */
-export const CompareOverviewPlotsFirst: Story = {
-  render: () => <Overview arrangement="plotsFirst" />,
 };
 
 /** A04 — Loading in the results area; the rail stays usable. */
