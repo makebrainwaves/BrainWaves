@@ -32,10 +32,11 @@ export const isIncompleteRawEEGFile = (file: string) =>
 
 /**
  * Files `fs:deleteIncompleteRecording` trashes for one ended-early run: the EEG
- * file plus its `Behavior/<stem>-behavior.incomplete.csv` sibling when present.
- * `eegPath` comes from the renderer, so after resolving symlinks it must be a
- * regular file at exactly `<workspaceDir>/Data/<subject>/EEG/<stem>-raw.incomplete.csv`
- * (and the sibling a regular file in that subject's `Behavior/`); otherwise throws.
+ * file plus, when present, its `Behavior/<stem>-behavior.incomplete.csv` and
+ * `EEG/<stem>-events.json` siblings. `eegPath` comes from the renderer, so after
+ * resolving symlinks it must be a regular file at exactly
+ * `<workspaceDir>/Data/<subject>/EEG/<stem>-raw.incomplete.csv` (and each sibling
+ * a regular file in its expected folder); otherwise throws.
  */
 export const incompleteRecordingFiles = (
   workspaceDir: string,
@@ -61,20 +62,22 @@ export const incompleteRecordingFiles = (
   ) {
     reject();
   }
-  const behaviorDir = path.join(dataDir, subject, 'Behavior');
-  const behavior = path.join(
-    behaviorDir,
-    file.replace(`-raw${INCOMPLETE}`, `-behavior${INCOMPLETE}`)
-  );
-  if (!fs.existsSync(behavior)) return [eeg];
-  const realBehavior = fs.realpathSync(behavior);
-  if (
-    path.dirname(realBehavior) !== behaviorDir ||
-    !fs.statSync(realBehavior).isFile()
-  ) {
-    reject();
-  }
-  return [eeg, realBehavior];
+  const stem = file.slice(0, -`-raw${INCOMPLETE}`.length);
+  const siblings = [
+    path.join(dataDir, subject, 'Behavior', `${stem}-behavior${INCOMPLETE}`),
+    path.join(dataDir, subject, 'EEG', `${stem}-events.json`),
+  ].filter((sibling) => fs.existsSync(sibling));
+  const realSiblings = siblings.map((sibling) => {
+    const real = fs.realpathSync(sibling);
+    if (
+      path.dirname(real) !== path.dirname(sibling) ||
+      !fs.statSync(real).isFile()
+    ) {
+      reject();
+    }
+    return real;
+  });
+  return [eeg, ...realSiblings];
 };
 
 /** True when any artifact of this session exists, complete or ended early. */

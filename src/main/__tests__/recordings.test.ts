@@ -60,9 +60,10 @@ describe('recordings', () => {
     expect(recordingExists(dir, 'P1', 'A', 1)).toBe(true);
   });
 
-  it('an ended-early run is listed as incomplete and deletes with its behavior sibling', () => {
+  it('an ended-early run is listed as incomplete and deletes with its behavior and events siblings', () => {
     write('Data/P1/Behavior/P1-A-1-behavior.csv');
     write('Data/P1/EEG/P1-A-1-raw.csv');
+    write('Data/P1/EEG/P1-A-1-events.json');
 
     markRecordingIncomplete(dir, 'P1', 'A', 1);
 
@@ -73,6 +74,7 @@ describe('recordings', () => {
     expect(incompleteRecordingFiles(dir, eeg)).toEqual([
       eeg,
       path.join(dir, 'Data/P1/Behavior/P1-A-1-behavior.incomplete.csv'),
+      path.join(dir, 'Data/P1/EEG/P1-A-1-events.json'),
     ]);
   });
 
