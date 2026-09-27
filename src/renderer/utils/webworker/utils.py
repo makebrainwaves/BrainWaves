@@ -339,14 +339,14 @@ def apply_rejection(epochs, drop_indices, bad_channels):
 
     drop_indices : list[int]  -- 0-based indices into the CURRENT epochs (same
         order as get_epochs_arrays produced), the epochs the user marked bad.
-    bad_channels : list[str]  -- channel names to add to info['bads'].
+    bad_channels : list[str]  -- the full set of bad channel names; replaces
+        info['bads'], so an empty list clears sensors un-flagged since the last save.
 
     The result is exactly what MNE produces from epochs.drop(...) / info['bads'] —
     the science is unchanged; only the UI that chooses the indices is new.
     Returns epochs (the same, mutated object).
     """
-    if bad_channels:
-        epochs.info['bads'] = list(bad_channels)
+    epochs.info['bads'] = list(bad_channels)
     if drop_indices:
         epochs.drop(list(drop_indices))
     return epochs
