@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EpochArraysMeta } from '../actions';
 import { ExperimentActions, PyodideActions } from '../actions';
 import { ExperimentParameters } from '../constants/interfaces';
@@ -82,6 +82,8 @@ export default function Analyze(props: Props) {
   const [behaviorPlot, setBehaviorPlot] = useState<BehaviorPlot | null>(null);
   const [exportStatus, setExportStatus] =
     useState<AnalyzeBehaviorProps['exportStatus']>('idle');
+  /** Bumped whenever the behavior inputs change, so a slow export can't report on a newer selection. */
+  const exportInputsRevision = useRef(0);
 
   const codeToLabel = useMemo(
     () => resolveMarkerRegistry(props.params).codeToLabel,
@@ -115,6 +117,7 @@ export default function Analyze(props: Props) {
   }, [props.title]);
 
   useEffect(() => {
+    exportInputsRevision.current += 1;
     setExportStatus('idle');
     if (selectedBehaviorFilePaths.length === 0) {
       setBehaviorPlot(null);
@@ -160,6 +163,10 @@ export default function Analyze(props: Props) {
   }
 
   async function handleExport() {
+    const revision = exportInputsRevision.current;
+    const settle = (status: AnalyzeBehaviorProps['exportStatus']) => {
+      if (exportInputsRevision.current === revision) setExportStatus(status);
+    };
     setExportStatus('saving');
     try {
       const aggregatedData = aggregateBehaviorDataToSave(
@@ -167,16 +174,16 @@ export default function Analyze(props: Props) {
         removeOutliers
       );
       if (!aggregatedData) {
-        setExportStatus('error');
+        settle('error');
         return;
       }
       const saved = await storeAggregatedBehaviorData(
         aggregatedData,
         props.title
       );
-      setExportStatus(saved ? 'success' : 'idle');
+      settle(saved ? 'success' : 'idle');
     } catch {
-      setExportStatus('error');
+      settle('error');
     }
   }
 
