@@ -1,11 +1,9 @@
 import React, { ReactNode, useMemo, useState } from 'react';
 import { of } from 'rxjs';
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
-import { PLOTTING_INTERVAL } from '../../constants/constants';
 import { EXPLORE_LESSONS } from '../../constants/exploreLessons';
 import eegArt from '../../assets/common/EEG.png';
 import { traceColors } from '../../utils/eeg/traceColors';
-import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
@@ -31,6 +29,7 @@ import {
   Countdown,
   FixturePlot,
   FrozenStrip,
+  HeadDiagram,
   LessonStepPanel,
   NoiseDefinitionCard,
   PlotCard,
@@ -81,8 +80,8 @@ export function ExploreDisconnected({ onConnect }: { onConnect(): void }) {
               <span>1. See whether your signal is usable.</span>
               <span>2. Learn what “noise” means here — it is not a sound.</span>
               <span>
-                3. Make your own blink, then your alpha rhythm, show up on the
-                plot.
+                3. Make your own blink show up on the plot — then watch the
+                seeing part of your brain get louder when you close your eyes.
               </span>
             </div>
           </div>
@@ -184,14 +183,9 @@ export function ExploreSurface({
       ) : (
         <QualitySummary state={quality} />
       )}
-      <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[20px] max-[980px]:grid-cols-1">
-        <div className="flex min-h-0 min-w-0 flex-col items-center justify-start rounded-lg border border-gray-200 bg-white px-[16px] py-[12px]">
-          <SignalQualityIndicatorComponent
-            signalQualityObservable={head}
-            plottingInterval={PLOTTING_INTERVAL}
-            height={190}
-            channels={sensors.map((s) => s.channel)}
-          />
+      <div className="grid min-h-0 flex-1 grid-cols-[256px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[20px] max-[980px]:grid-cols-1">
+        <div className="flex min-w-0 flex-none self-start rounded-lg border border-gray-200 bg-white px-[16px] py-[12px]">
+          <HeadDiagram sensors={sensors} observable={head} height={200} />
         </div>
         <div className="flex min-h-0 min-w-0 flex-col gap-[12px]">
           <PlotCard
@@ -429,7 +423,7 @@ export function EyesClosedView({
         steps={0}
         title={
           {
-            intro: 'Keep your eyes closed until you hear two chimes',
+            intro: EYES_INTRO_OPENER,
             countdown: 'Starting…',
             interval: 'Close your eyes',
             end: 'Open your eyes',
@@ -445,10 +439,7 @@ export function EyesClosedView({
         }
         body={
           phase === 'intro' ? (
-            <div className="flex flex-col gap-[10px]">
-              <span>{EYES_INTRO_OPENER}</span>
-              <span>{EYES_INTRO_BODY}</span>
-            </div>
+            EYES_INTRO_BODY
           ) : phase === 'countdown' ? (
             'Close your eyes when you hear the single chime.'
           ) : phase === 'interval' ? (
@@ -461,7 +452,7 @@ export function EyesClosedView({
         }
         nextLabel={
           {
-            intro: 'Begin eyes-closed activity',
+            intro: 'Begin',
             countdown: 'Starting…',
             interval: 'Recording…',
             end: 'See your result',

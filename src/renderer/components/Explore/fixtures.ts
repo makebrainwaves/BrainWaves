@@ -98,7 +98,7 @@ const blinkBand = (
   id: `blink-${id}`,
   startTime,
   endTime,
-  label: 'blink · eye muscle, not brain',
+  label: 'blink · from your eyes, not your brain',
   tone: 'blink',
 });
 
@@ -303,7 +303,7 @@ export const BLINK_NOT_DETECTED =
   'We cannot see your blinks yet. Check that AF7 and AF8 sit flat against your forehead, then try again.';
 
 export const EYES_INTRO_OPENER =
-  'Let’s look at how your brain signal changes when you close your eyes.';
+  'Let’s look at how your brain signal changes when you close your eyes';
 export const EYES_INTRO_BODY =
   'Two sounds guide this activity. One chime means close your eyes now. Two chimes, about ten seconds later, mean open them again. Nothing on screen needs watching in between.';
 

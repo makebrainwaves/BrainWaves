@@ -1,5 +1,7 @@
 import React, { ReactNode, useEffect, useId, useRef, useState } from 'react';
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
+import { PLOTTING_INTERVAL, SIGNAL_QUALITY } from '../../constants/constants';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
@@ -12,6 +14,7 @@ import {
   QUALITY_STATE_TONE,
   QualityState,
   REVIEW_SEGMENT_SCALE,
+  SensorStatus,
 } from './fixtures';
 import { traceColors } from '../../utils/eeg/traceColors';
 
@@ -608,6 +611,88 @@ export function Countdown({ value }: { value: 3 | 2 | 1 }) {
           </span>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * The existing head diagram with a shape cue next to each electrode (check /
+ * dash / cross / ring), so per-sensor state never depends on color alone. The
+ * coordinates mirror `SignalQualityIndicatorSVG`'s Muse electrode positions.
+ */
+const ELECTRODE_XY: Record<string, { x: number; y: number }> = {
+  TP9: { x: 98.87, y: 455.81 },
+  AF7: { x: 208.33, y: 166.08 },
+  AF8: { x: 467.66, y: 166.08 },
+  TP10: { x: 571.87, y: 455.81 },
+};
+
+function StateGlyph({
+  x,
+  y,
+  quality,
+}: {
+  x: number;
+  y: number;
+  quality: SIGNAL_QUALITY;
+}) {
+  const stroke = {
+    stroke: '#1a1a1a',
+    strokeWidth: 7,
+    fill: 'none',
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  const gx = x + 34;
+  const gy = y - 34;
+  if (quality === SIGNAL_QUALITY.GREAT)
+    return (
+      <polyline points={`${gx - 11},${gy} ${gx - 3},${gy + 9} ${gx + 12},${gy - 9}`} {...stroke} />
+    );
+  if (quality === SIGNAL_QUALITY.OK)
+    return <line x1={gx - 11} y1={gy} x2={gx + 11} y2={gy} {...stroke} />;
+  if (quality === SIGNAL_QUALITY.BAD)
+    return (
+      <g {...stroke}>
+        <line x1={gx - 9} y1={gy - 9} x2={gx + 9} y2={gy + 9} />
+        <line x1={gx - 9} y1={gy + 9} x2={gx + 9} y2={gy - 9} />
+      </g>
+    );
+  return <circle cx={gx} cy={gy} r={9} {...stroke} />;
+}
+
+export function HeadDiagram({
+  sensors,
+  observable,
+  height = 200,
+}: {
+  sensors: SensorStatus[];
+  observable: Parameters<typeof SignalQualityIndicatorComponent>[0]['signalQualityObservable'];
+  height?: number;
+}) {
+  return (
+    <div
+      className="relative flex-none"
+      style={{ width: Math.round(height * (674.44 / 610.29)) }}
+    >
+      <SignalQualityIndicatorComponent
+        signalQualityObservable={observable}
+        plottingInterval={PLOTTING_INTERVAL}
+        height={height}
+        channels={sensors.map((s) => s.channel)}
+      />
+      <svg
+        viewBox="0 0 674.44 610.29"
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full"
+      >
+        {sensors.map(({ channel, quality }) => {
+          const at = ELECTRODE_XY[channel];
+          return at ? (
+            <StateGlyph key={channel} x={at.x} y={at.y} quality={quality} />
+          ) : null;
+        })}
+      </svg>
     </div>
   );
 }
