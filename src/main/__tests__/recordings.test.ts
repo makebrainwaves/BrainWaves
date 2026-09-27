@@ -3,7 +3,9 @@ import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  incompleteRecordingFiles,
   isBehaviorFile,
+  isIncompleteRawEEGFile,
   isRawEEGFile,
   markRecordingIncomplete,
   recordingExists,
@@ -54,5 +56,42 @@ describe('recordings', () => {
 
     expect(csvFiles().filter(isBehaviorFile)).toEqual([]);
     expect(recordingExists(dir, 'P1', 'A', 1)).toBe(true);
+  });
+
+  it('an ended-early run is listed as incomplete and deletes with its behavior sibling', () => {
+    write('Data/P1/Behavior/P1-A-1-behavior.csv');
+    write('Data/P1/EEG/P1-A-1-raw.csv');
+
+    markRecordingIncomplete(dir, 'P1', 'A', 1);
+
+    const eeg = path.join(dir, 'Data/P1/EEG/P1-A-1-raw.incomplete.csv');
+    expect(csvFiles().filter(isIncompleteRawEEGFile)).toEqual([
+      path.join('Data/P1/EEG/P1-A-1-raw.incomplete.csv'),
+    ]);
+    expect(incompleteRecordingFiles(dir, eeg)).toEqual([
+      eeg,
+      path.join(dir, 'Data/P1/Behavior/P1-A-1-behavior.incomplete.csv'),
+    ]);
+  });
+
+  it('refuses to delete anything but an ended-early EEG file inside Data', () => {
+    write('Data/P1/EEG/P1-A-1-raw.csv');
+    write('Other/P1-A-1-raw.incomplete.csv');
+
+    expect(() =>
+      incompleteRecordingFiles(dir, path.join(dir, 'Data/P1/EEG/P1-A-1-raw.csv'))
+    ).toThrow();
+    expect(() =>
+      incompleteRecordingFiles(
+        dir,
+        path.join(dir, 'Other/P1-A-1-raw.incomplete.csv')
+      )
+    ).toThrow();
+    expect(() =>
+      incompleteRecordingFiles(
+        dir,
+        `${dir}/Data/../Other/P1-A-1-raw.incomplete.csv`
+      )
+    ).toThrow();
   });
 });
