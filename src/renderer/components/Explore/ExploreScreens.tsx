@@ -1,9 +1,12 @@
 import React, { ReactNode, useMemo, useState } from 'react';
 import { of } from 'rxjs';
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
+import { PLOTTING_INTERVAL } from '../../constants/constants';
 import { EXPLORE_LESSONS } from '../../constants/exploreLessons';
 import eegArt from '../../assets/common/EEG.png';
-import { traceColors } from '../../utils/eeg/traceColors';
+import { channelColor } from '../../utils/eeg/traceColors';
+import ExploreSensorCard from '../ExploreSensorCard';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
@@ -12,6 +15,7 @@ import {
   BLINK_NOT_DETECTED,
   BLINK_STEPS,
   CLOSED_SEGMENT,
+  EXPLORE_CHANNELS,
   EYES_END_BODY,
   EYES_INTRO_BODY,
   EYES_INTRO_OPENER,
@@ -29,7 +33,6 @@ import {
   Countdown,
   FixturePlot,
   FrozenStrip,
-  HeadDiagram,
   LessonStepPanel,
   NoiseDefinitionCard,
   PlotCard,
@@ -39,10 +42,12 @@ import {
   stepLabel,
 } from './ExploreParts';
 
-const SECTION_LABEL =
-  'm-0 text-[14px] font-bold uppercase tracking-[0.5px] text-ink-muted';
 const BODY_TEXT =
   'm-0 !text-[16px] leading-normal !tracking-normal [text-wrap:pretty]';
+
+/** Channel colors from the full device list, so down-selected views agree. */
+const colorsFor = (channels: string[]) =>
+  channels.map((channel) => channelColor(channel, EXPLORE_CHANNELS));
 
 /**
  * Redesigned disconnected landing: what Explore is, one primary action, and
@@ -73,17 +78,6 @@ export function ExploreDisconnected({ onConnect }: { onConnect(): void }) {
             <span className="text-[14px] text-ink-muted">
               Takes about 30 seconds
             </span>
-          </div>
-          <div className="flex w-full flex-col gap-[8px] border-t border-gray-200 pt-[16px]">
-            <h2 className={SECTION_LABEL}>Once you&apos;re connected</h2>
-            <div className="flex flex-col gap-[4px] text-[16px] leading-[1.5] text-ink">
-              <span>1. See whether your signal is usable.</span>
-              <span>2. Learn what “noise” means here — it is not a sound.</span>
-              <span>
-                3. Make your own blink show up on the plot — then watch the
-                seeing part of your brain get louder when you close your eyes.
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -138,6 +132,9 @@ export interface ExploreSurfaceProps {
   snapshot: EEGSnapshot | null;
   /** Quality colors per channel: the main surface teaches signal quality. */
   colors: string[];
+  /** Shared hover state between the head diagram and the sensor card. */
+  hoveredChannel: string | null;
+  onHoveredChannelChange(channel: string | null): void;
   onStartLesson(): void;
   /** Above the status summary, e.g. the stream-error banner. */
   banner?: ReactNode;
@@ -153,16 +150,19 @@ export function ExploreSurface({
   sensors,
   snapshot,
   colors,
+  hoveredChannel,
+  onHoveredChannelChange,
   onStartLesson,
   banner,
 }: ExploreSurfaceProps) {
   const waiting = quality === 'waiting';
-  const head = useMemo(
-    () => (waiting ? null : of(qualitySample(sensors))),
+  const sample = useMemo(
+    () => (waiting ? null : qualitySample(sensors)),
     [waiting, sensors]
   );
+  const head = useMemo(() => (sample ? of(sample) : null), [sample]);
   return (
-    <div className="flex h-full min-h-0 flex-col gap-[12px] px-[24px] py-[16px]">
+    <div className="flex h-full min-h-0 flex-col gap-[10px] px-[24px] py-[10px]">
       {banner}
       {waiting ? (
         <div
@@ -183,9 +183,22 @@ export function ExploreSurface({
       ) : (
         <QualitySummary state={quality} />
       )}
-      <div className="grid min-h-0 flex-1 grid-cols-[256px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[20px] max-[980px]:grid-cols-1">
-        <div className="flex min-w-0 flex-none self-start rounded-lg border border-gray-200 bg-white px-[16px] py-[12px]">
-          <HeadDiagram sensors={sensors} observable={head} height={200} />
+      <div className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[20px] max-[980px]:grid-cols-1">
+        <div className="flex min-w-0 flex-col gap-[14px]">
+          <SignalQualityIndicatorComponent
+            signalQualityObservable={head}
+            plottingInterval={PLOTTING_INTERVAL}
+            height={250}
+            channels={sensors.map((s) => s.channel)}
+            hoveredChannel={hoveredChannel}
+            onHoveredChannelChange={onHoveredChannelChange}
+          />
+          <ExploreSensorCard
+            channels={sensors.map((s) => s.channel)}
+            sample={sample}
+            hoveredChannel={hoveredChannel}
+            onHoveredChannelChange={onHoveredChannelChange}
+          />
         </div>
         <div className="flex min-h-0 min-w-0 flex-col gap-[12px]">
           <PlotCard
@@ -251,7 +264,7 @@ export function BlinkLessonView({
   onExit,
 }: BlinkLessonViewProps) {
   const [range, setRange] = useState<'wide' | 'narrow'>('wide');
-  const colors = traceColors(snapshot.channels.length);
+  const colors = colorsFor(snapshot.channels);
   const caught = (annotations ?? []).length;
   return (
     <div className="flex h-full min-h-0 gap-[20px] px-[24px] py-[16px]">
@@ -488,7 +501,7 @@ export function EyesClosedView({
             <SegmentComparison
               open={OPEN_SEGMENT}
               closed={CLOSED_SEGMENT}
-              colors={traceColors(OPEN_SEGMENT.channels.length)}
+              colors={colorsFor(OPEN_SEGMENT.channels)}
               scale={REVIEW_SEGMENT_SCALE}
             />
           </PlotCard>
@@ -499,7 +512,7 @@ export function EyesClosedView({
           >
             <FixturePlot
               snapshot={snapshot}
-              colors={traceColors(snapshot.channels.length)}
+              colors={colorsFor(snapshot.channels)}
               width={860}
               height={430}
             />

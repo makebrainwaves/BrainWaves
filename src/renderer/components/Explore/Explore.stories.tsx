@@ -71,12 +71,17 @@ function Surface({
 } & Partial<React.ComponentProps<typeof ExploreSurface>>) {
   const sensors =
     QUALITY_SCENARIOS[state === 'waiting' ? 'ready' : state].sensors;
+  const [hoveredChannel, setHoveredChannel] = React.useState<string | null>(
+    null
+  );
   return (
     <ExploreSurface
       quality={state}
       sensors={sensors}
       snapshot={LIVE_SNAPSHOT}
       colors={qualityColors(sensors)}
+      hoveredChannel={hoveredChannel}
+      onHoveredChannelChange={setHoveredChannel}
       onStartLesson={fn()}
       {...props}
     />
