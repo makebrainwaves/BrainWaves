@@ -64,7 +64,10 @@ declare global {
       rawData: ArrayBuffer
     ) => Promise<void>;
     deleteWorkspaceDir: (title: string) => Promise<void>;
-    deleteIncompleteRecording: (title: string, eegPath: string) => Promise<void>;
+    deleteIncompleteRecording: (
+      title: string,
+      eegPath: string
+    ) => Promise<void>;
     importExperimentFile: (
       title: string,
       sourcePath: string

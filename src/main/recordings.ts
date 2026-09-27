@@ -45,7 +45,9 @@ export const incompleteRecordingFiles = (
     !eeg.startsWith(path.resolve(workspaceDir, 'Data') + path.sep) ||
     !isIncompleteRawEEGFile(eeg)
   ) {
-    throw new Error(`Not an ended-early recording in this workspace: ${eegPath}`);
+    throw new Error(
+      `Not an ended-early recording in this workspace: ${eegPath}`
+    );
   }
   const behavior = path.join(
     path.dirname(path.dirname(eeg)),

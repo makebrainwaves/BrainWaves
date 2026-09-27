@@ -431,3 +431,15 @@ deadlock the flip (the previous screen's `lock` frame is cancelled), so wait
 ~700 ms before each automated response. Native `showMessageBox` dialogs can be
 auto-answered by re-registering `dialog:showMessage` from that inspector
 (`process.getBuiltinModule('module').createRequire(...)('electron')`).
+
+## Dev playtests: worktrees lack Pyodide, and a Vite dep reload empties the workspace
+
+`src/renderer/utils/webworker/src/` is gitignored, so a fresh git worktree has
+no Pyodide runtime: `pyodide://` requests fail with `ERR_FILE_NOT_FOUND` in the
+main log and Clean never gets epochs. Clone it from the main checkout
+(`cp -Rc <main>/src/renderer/utils/webworker/src …`) when the installer scripts
+match. Separately, the first visit to Collect can trigger Vite's "optimized
+dependencies changed. reloading": Redux resets but the hash route stays on
+`/collect`, so a run started then has `title: ''` and writes to
+`~/BrainWaves_Workspaces/Data/`. Reopen the workspace from Home after any dev
+reload before recording.

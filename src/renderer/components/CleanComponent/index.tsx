@@ -218,7 +218,10 @@ export default function Clean(props: Props) {
 
   return (
     <CleanReview
-      dataset={{ subject: chosen?.subject ?? '', recording: chosen?.name ?? '' }}
+      dataset={{
+        subject: chosen?.subject ?? '',
+        recording: chosen?.name ?? '',
+      }}
       epochArrays={epochArrays}
       status={
         epochArrays === null

@@ -79,7 +79,10 @@ describe('recordings', () => {
     write('Other/P1-A-1-raw.incomplete.csv');
 
     expect(() =>
-      incompleteRecordingFiles(dir, path.join(dir, 'Data/P1/EEG/P1-A-1-raw.csv'))
+      incompleteRecordingFiles(
+        dir,
+        path.join(dir, 'Data/P1/EEG/P1-A-1-raw.csv')
+      )
     ).toThrow();
     expect(() =>
       incompleteRecordingFiles(
