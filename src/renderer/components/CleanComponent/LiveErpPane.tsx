@@ -17,7 +17,7 @@ import { meanTrace } from './epochArrays';
 //   │          0ms                                   │
 //   └──────────────────────────────────────────────┘
 //   ■ Condition 1 (42)   ■ Condition 2 (39)
-//   Averaged over 81 epochs — reject noisy ones to clean it up
+//   Averaged over 81 trials
 // ---------------------------------------------------------------------------
 
 interface Props {
@@ -267,7 +267,7 @@ export default function LiveErpPane({
       </div>
 
       <p className="mt-1 text-xs text-gray-500">
-        Averaged over {includedCount} epochs — reject noisy ones to clean it up
+        Averaged over {includedCount} trials
       </p>
     </div>
   );

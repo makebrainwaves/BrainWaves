@@ -45,6 +45,10 @@ export function CleanLayout({
  * its box — `zoom`, so layout and click targets scale together — so the real
  * panes use the space they are given instead of sitting at their hand-coded
  * 640px width.
+ *
+ * ponytail: canvases go soft below 1× zoom (the Live ERP sits near 0.6); make
+ * `EpochReviewer`/`LiveErpPane` draw at their box size (resize-aware canvases)
+ * and drop this when that matters.
  */
 export function FitPane({
   logicalWidth,
