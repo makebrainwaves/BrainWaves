@@ -166,7 +166,7 @@ def plot_topo(epochs, conditions, palette):
     evoked_topo = viz.plot_evoked_topo(
         evokeds, vline=None, color=palette[0:len(conditions)], show=False)
     evoked_topo.patch.set_alpha(0)
-    evoked_topo.set_size_inches(10, 8)
+    evoked_topo.set_size_inches(9, 9)
     for axis in evoked_topo.axes:
         for line in axis.lines:
             line.set_linewidth(2)
@@ -233,7 +233,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     X = epochs.get_data() * 1e6
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 3.9))
 
     for (cond_name, cond), color in zip(conditions.items(), palette):
         cond_data = X[y.isin(cond), ch_ind]
@@ -271,17 +271,17 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     if title:
         fig.suptitle(title, fontsize=20)
 
-    fig.set_size_inches(10, 8)
-
     return fig, ax
 
 def get_epochs_arrays(epochs, out_path):
     """Serialize epoch data to a float32 buffer file plus a metadata dict.
 
-    Writes the raw EEG epoch samples (Marker/stim channel excluded) as a flat
-    little-endian float32 buffer to `out_path` and returns metadata describing
-    the buffer's shape and per-epoch/per-channel labels. `out_path` is a Pyodide
-    MEMFS path in-app and a real filesystem path in the native tests.
+    Writes the raw EEG epoch samples (Marker/stim channel excluded) in
+    microvolts as a flat little-endian float32 buffer to `out_path` and returns
+    metadata describing the buffer's shape and per-epoch/per-channel labels.
+    Channels in `info['bads']` stay in the buffer so the viewer can show them
+    flagged (and the student can un-flag them). `out_path` is a Pyodide MEMFS
+    path in-app and a real filesystem path in the native tests.
 
     # buffer (float32, C-order):  epoch0[ch0[t0..tN] ch1[..] ..] epoch1[..] ..
     # byte length == n_epochs * n_channels * n_times * 4
@@ -298,11 +298,7 @@ def get_epochs_arrays(epochs, out_path):
     meta : dict
         Buffer metadata (see keys below).
     """
-    # EEG only — the Marker channel is type 'stim' (set in load_data), so
-    # pick_types(eeg=True) drops it while keeping the EEG channels in order.
-    picks = pick_types(epochs.info, eeg=True)
-    # get_data() is volts (load_data scales eeg uV -> V). This buffer drives the
-    # epoch viewer, which works in microvolts, so convert back to uV here.
+    picks = pick_types(epochs.info, eeg=True, exclude=[])
     data = epochs.get_data(picks=picks) * 1e6  # (n_epochs, n_channels, n_times)
     data = np.ascontiguousarray(data.astype(np.float32))
 
@@ -339,14 +335,14 @@ def apply_rejection(epochs, drop_indices, bad_channels):
 
     drop_indices : list[int]  -- 0-based indices into the CURRENT epochs (same
         order as get_epochs_arrays produced), the epochs the user marked bad.
-    bad_channels : list[str]  -- channel names to add to info['bads'].
+    bad_channels : list[str]  -- the full set of bad channel names; replaces
+        info['bads'], so an empty list clears sensors un-flagged since the last save.
 
     The result is exactly what MNE produces from epochs.drop(...) / info['bads'] —
     the science is unchanged; only the UI that chooses the indices is new.
     Returns epochs (the same, mutated object).
     """
-    if bad_channels:
-        epochs.info['bads'] = list(bad_channels)
+    epochs.info['bads'] = list(bad_channels)
     if drop_indices:
         epochs.drop(list(drop_indices))
     return epochs
@@ -358,7 +354,7 @@ def suggest_rejections(epochs, threshold_uv):
     For each epoch, compute the per-channel peak-to-peak (max-min over time) on the
     EEG channels only (Marker/stim excluded), take the worst channel, and if it
     exceeds threshold_uv microvolts, suggest that epoch. Advisory only — the UI
-    pre-marks these but the user can override; the real drop goes through
+    requires the user to accept each one; the real drop goes through
     apply_rejection so the saved data stays MNE-exact.
 
     Returns list[dict] with keys: index (int, 0-based into the CURRENT epochs,

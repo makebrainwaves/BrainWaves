@@ -35,7 +35,12 @@ export default function WorkspaceAreaGate({ area, children }: Props) {
   const navigate = useNavigate();
 
   const modality = experiment.isEEGEnabled ? 'eeg' : 'behavior';
-  const { counts } = useWorkspaceProgress(experiment.title, modality, pathname);
+  const { counts } = useWorkspaceProgress(
+    experiment.title,
+    modality,
+    pathname,
+    0
+  );
 
   if (counts === null) return null;
 

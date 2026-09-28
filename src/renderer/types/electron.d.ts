@@ -32,6 +32,9 @@ declare global {
     readWorkspaceRawEEGData: (
       title: string
     ) => Promise<Array<{ name: string; path: string }>>;
+    readWorkspaceIncompleteEEGData: (
+      title: string
+    ) => Promise<Array<{ name: string; path: string }>>;
     readWorkspaceCleanedEEGData: (
       title: string
     ) => Promise<Array<{ name: string; path: string }>>;
@@ -61,6 +64,10 @@ declare global {
       rawData: ArrayBuffer
     ) => Promise<void>;
     deleteWorkspaceDir: (title: string) => Promise<void>;
+    deleteIncompleteRecording: (
+      title: string,
+      eegPath: string
+    ) => Promise<void>;
     importExperimentFile: (
       title: string,
       sourcePath: string
@@ -72,7 +79,7 @@ declare global {
     storeAggregatedBehaviorData: (
       data: unknown,
       title: string
-    ) => Promise<void>;
+    ) => Promise<boolean>;
     recordingExists: (
       title: string,
       subject: string,

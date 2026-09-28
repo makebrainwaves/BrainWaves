@@ -105,11 +105,13 @@ Custom experiments add Conditions / Trials / Parameters / Instructions. Pick 1�
 
 Shown when EEG is enabled.
 
-1. Select a subject and one or more recordings.
-2. **Load Dataset** — Pyodide epochs + interactive `EpochReviewer` / `LiveErpPane`.
-3. **Clean Data** — reject artifacts, write `.fif`. **Analyze Dataset** is available once `epochsInfo` exists; it is not gated on a drop-percentage threshold.
+Pick **one** complete raw recording (ended-early recordings stay hidden until revealed, and can only be deleted to the Trash) → review its trials in `EpochReviewer` / `LiveErpPane` → leave out trials, flag sensors, and **Accept** or **Restore** each auto-flag suggestion (nothing is applied automatically) → **Apply exclusions** saves in place, and **Save cleaned dataset & analyze** always saves before opening Analyze.
 
 ### 5. Analyze (`/analyze`)
 
-- **EEG mode** — topoplot (Pyodide/matplotlib SVG), ERP waveforms, behavioral plots (Plotly).
-- **Behavior-only mode** — RT / accuracy (bar, box, scatter), outlier removal, export.
+Tabs follow the EEG toggle:
+- **Overview** (EEG): cleaned-recording checklist, an "Included" summary, and PSD and topography side by side.
+- **ERP** (EEG): head-diagram sensor picker, the MNE ERP figure, and the "Walk me through it" walkthrough, drawn from the cleaned epochs.
+- **Behavior** (always): response time or accuracy as bars, dots or box plots, outlier removal, and summary CSV export.
+
+EEG tabs show "Clean first" until a cleaned recording exists. Behavior never gates.

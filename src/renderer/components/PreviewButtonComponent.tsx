@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
+import PreviewLabel from './PreviewLabel';
 
 interface Props {
   isPreviewing: boolean;
@@ -11,7 +12,7 @@ interface Props {
   onRunAndRecord?: () => void;
 }
 
-/** Preview toggle plus the persistent "nothing is recorded" preview status. */
+/** Preview toggle plus the shared preview status: `PreviewLabel` while previewing, a "nothing is recorded" note otherwise. */
 export default function PreviewButton({
   isPreviewing,
   onClick,
@@ -43,16 +44,13 @@ export default function PreviewButton({
           </Button>
         </>
       )}
-      <span role="status" className="text-[15px] text-ink-muted">
-        {isPreviewing ? (
-          <>
-            <b className="tracking-[0.5px] text-ink">PREVIEW</b> · nothing is
-            being recorded
-          </>
-        ) : (
-          'Nothing is recorded during a preview.'
-        )}
-      </span>
+      {isPreviewing ? (
+        <PreviewLabel />
+      ) : (
+        <span className="text-[15px] text-ink-muted">
+          Nothing is recorded during a preview.
+        </span>
+      )}
     </div>
   );
 }

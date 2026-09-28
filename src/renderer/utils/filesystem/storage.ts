@@ -83,6 +83,12 @@ export const readWorkspaces = (): Promise<string[]> => api().readWorkspaces();
 export const readWorkspaceRawEEGData = (title: string) =>
   api().readWorkspaceRawEEGData(title);
 
+/** Ended-early runs (`*-raw.incomplete.csv`), which the raw listing leaves out. */
+export const readWorkspaceIncompleteEEGData = (
+  title: string
+): Promise<Array<{ name: string; path: string }>> =>
+  api().readWorkspaceIncompleteEEGData(title);
+
 export const readWorkspaceCleanedEEGData = (title: string) =>
   api().readWorkspaceCleanedEEGData(title);
 
@@ -105,10 +111,11 @@ export const getImages = (params: ExperimentParameters): Promise<string[]> =>
 export const readBehaviorData = (files: string[]) =>
   api().readBehaviorData(files);
 
+/** Resolves true once written, false when the user cancels the save dialog. */
 export const storeAggregatedBehaviorData = (
   data: unknown,
   title: string
-): Promise<void> => api().storeAggregatedBehaviorData(data, title);
+): Promise<boolean> => api().storeAggregatedBehaviorData(data, title);
 
 // ---------------------------------------------------------------------------------------------
 // Util
@@ -120,6 +127,12 @@ export const getSubjectNamesFromFiles = (filePaths: string[]): string[] =>
 
 export const deleteWorkspaceDir = (title: string): Promise<void> =>
   api().deleteWorkspaceDir(title);
+
+/** Moves one ended-early run and its behavior sibling to the Trash. */
+export const deleteIncompleteRecording = (
+  title: string,
+  eegPath: string
+): Promise<void> => api().deleteIncompleteRecording(title, eegPath);
 
 /** First session number, starting at `session`, with no behavior or EEG file on disk. */
 export const nextFreeSession = async (

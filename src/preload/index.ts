@@ -67,6 +67,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readWorkspaceRawEEGData: (title: string) =>
     ipcRenderer.invoke('fs:readWorkspaceRawEEGData', title),
 
+  readWorkspaceIncompleteEEGData: (title: string) =>
+    ipcRenderer.invoke('fs:readWorkspaceIncompleteEEGData', title),
+
   readWorkspaceCleanedEEGData: (title: string) =>
     ipcRenderer.invoke('fs:readWorkspaceCleanedEEGData', title),
 
@@ -118,6 +121,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteWorkspaceDir: (title: string): Promise<void> =>
     ipcRenderer.invoke('fs:deleteWorkspaceDir', title),
 
+  deleteIncompleteRecording: (title: string, eegPath: string): Promise<void> =>
+    ipcRenderer.invoke('fs:deleteIncompleteRecording', title, eegPath),
+
   importExperimentFile: (
     title: string,
     sourcePath: string
@@ -136,7 +142,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readBehaviorData: (files: string[]) =>
     ipcRenderer.invoke('fs:readBehaviorData', files),
 
-  storeAggregatedBehaviorData: (data: unknown, title: string): Promise<void> =>
+  storeAggregatedBehaviorData: (
+    data: unknown,
+    title: string
+  ): Promise<boolean> =>
     ipcRenderer.invoke('fs:storeAggregatedBehaviorData', data, title),
 
   recordingExists: (

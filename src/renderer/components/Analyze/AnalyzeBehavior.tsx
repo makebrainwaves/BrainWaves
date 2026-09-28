@@ -22,7 +22,6 @@ export interface AnalyzeBehaviorProps {
   selectedDatasets: string[];
   dependentVariable: DependentVariable;
   removeOutliers: boolean;
-  showDataPoints: boolean;
   displayMode: DisplayMode;
   /** `aggregateDataForPlot` output for the current choices; null before any selection. */
   plot: BehaviorPlot | null;
@@ -31,7 +30,6 @@ export interface AnalyzeBehaviorProps {
   onDatasetChange(values: string[]): void;
   onDependentVariableChange(value: DependentVariable): void;
   onToggleOutliers(): void;
-  onToggleDataPoints(): void;
   onDisplayModeChange(mode: DisplayMode): void;
   onExport(): void;
 }
@@ -75,14 +73,12 @@ export default function AnalyzeBehavior({
   selectedDatasets,
   dependentVariable,
   removeOutliers,
-  showDataPoints,
   displayMode,
   plot,
   exportStatus,
   onDatasetChange,
   onDependentVariableChange,
   onToggleOutliers,
-  onToggleDataPoints,
   onDisplayModeChange,
   onExport,
 }: AnalyzeBehaviorProps) {
@@ -128,15 +124,6 @@ export default function AnalyzeBehavior({
               Skips times far from the average (over 2 SD)
             </span>
           </span>
-        </label>
-        <label className="flex items-center gap-[8px] text-[14px] text-ink">
-          <input
-            type="checkbox"
-            className="h-[16px] w-[16px] accent-brand"
-            checked={showDataPoints}
-            onChange={onToggleDataPoints}
-          />
-          Show data points
         </label>
       </RailSection>
       <RailSection

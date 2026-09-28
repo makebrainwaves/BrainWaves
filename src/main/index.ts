@@ -45,7 +45,9 @@ import type {
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
 import {
+  incompleteRecordingFiles,
   isBehaviorFile,
+  isIncompleteRawEEGFile,
   isRawEEGFile,
   markRecordingIncomplete,
   recordingExists,
@@ -119,7 +121,13 @@ const getStimulusFileAccess = () => {
   return stimulusFileAccess;
 };
 
-const getWorkspaceDir = (title: string) => path.join(workspaces, title);
+/** A workspace's folder; `title` comes from the renderer, so it must be one path segment. */
+const getWorkspaceDir = (title: string) => {
+  if (!title || title === '.' || title === '..' || title !== path.basename(title)) {
+    throw new Error(`Invalid workspace title: ${title}`);
+  }
+  return path.join(workspaces, title);
+};
 
 const mkdirPathSync = (dirPath: string) =>
   fs.mkdirSync(dirPath, { recursive: true });
@@ -238,8 +246,24 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
     const files = fs.readdirSync(getWorkspaceDir(title), {
       recursive: true,
     }) as string[];
+    return files.filter(isRawEEGFile).map((filepath) => {
+      const fullPath = path.join(getWorkspaceDir(title), filepath);
+      return { name: path.basename(filepath), path: fullPath };
+    });
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
+    return [];
+  }
+});
+
+/** Ended-early raw EEG runs, which `fs:readWorkspaceRawEEGData` leaves out. */
+ipcMain.handle('fs:readWorkspaceIncompleteEEGData', (_event, title) => {
+  try {
+    const files = fs.readdirSync(getWorkspaceDir(title), {
+      recursive: true,
+    }) as string[];
     return files
-      .filter(isRawEEGFile)
+      .filter(isIncompleteRawEEGFile)
       .map((filepath) => {
         const fullPath = path.join(getWorkspaceDir(title), filepath);
         return { name: path.basename(filepath), path: fullPath };
@@ -272,12 +296,10 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
     const files = fs.readdirSync(getWorkspaceDir(title), {
       recursive: true,
     }) as string[];
-    return files
-      .filter(isBehaviorFile)
-      .map((filepath) => {
-        const fullPath = path.join(getWorkspaceDir(title), filepath);
-        return { name: path.basename(filepath), path: fullPath };
-      });
+    return files.filter(isBehaviorFile).map((filepath) => {
+      const fullPath = path.join(getWorkspaceDir(title), filepath);
+      return { name: path.basename(filepath), path: fullPath };
+    });
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
@@ -356,7 +378,20 @@ ipcMain.handle(
 );
 
 ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
-  shell.trashItem(path.join(workspaces, title))
+  shell.trashItem(getWorkspaceDir(title))
+);
+
+/** Moves one ended-early run (EEG file and behavior sibling) to the Trash. */
+ipcMain.handle(
+  'fs:deleteIncompleteRecording',
+  async (_event, title: string, eegPath: string) => {
+    for (const file of incompleteRecordingFiles(
+      getWorkspaceDir(title),
+      eegPath
+    )) {
+      await shell.trashItem(file);
+    }
+  }
 );
 
 ipcMain.handle(
@@ -415,6 +450,7 @@ ipcMain.handle('fs:readBehaviorData', (_event, files: string[]) => {
   }
 });
 
+/** Resolves true once the CSV is written, false when the save dialog is cancelled. */
 ipcMain.handle(
   'fs:storeAggregatedBehaviorData',
   async (_event, data, title) => {
@@ -424,17 +460,15 @@ ipcMain.handle(
       title: 'Select a folder to save the data',
       defaultPath: path.join(getWorkspaceDir(title), 'Data', 'aggregated.csv'),
     });
-    if (!result.canceled && result.filePath) {
-      fs.writeFileSync(result.filePath, csv);
-    }
+    if (result.canceled || !result.filePath) return false;
+    fs.writeFileSync(result.filePath, csv);
+    return true;
   }
 );
 
 /** True when any artifact of a subject/group/session run is on disk, including ended-early ones. */
-ipcMain.handle(
-  'fs:recordingExists',
-  (_event, title, subject, group, session) =>
-    recordingExists(getWorkspaceDir(title), subject, group, session)
+ipcMain.handle('fs:recordingExists', (_event, title, subject, group, session) =>
+  recordingExists(getWorkspaceDir(title), subject, group, session)
 );
 
 /** Hides an ended-early run from Clean, Analyze and badges; the files stay on disk. */

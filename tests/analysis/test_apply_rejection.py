@@ -65,6 +65,16 @@ def test_empty_args_are_no_ops():
     assert result.info["bads"] == []
 
 
+def test_bad_channels_replace_existing_bads():
+    epochs = _build_epochs()
+    epochs.info["bads"] = ["TP9"]
+
+    assert utils.apply_rejection(epochs, [], []).info["bads"] == []
+
+    epochs.info["bads"] = ["TP9"]
+    assert utils.apply_rejection(epochs, [], ["AF7"]).info["bads"] == ["AF7"]
+
+
 def test_returns_the_same_object():
     e = _build_epochs().copy()
     assert utils.apply_rejection(e, [], []) is e

@@ -3,13 +3,15 @@ import {
   PyodideActions,
   ExperimentActions,
   EpochArraysMeta,
+  EpochInfoRow,
   SuggestedRejection,
 } from '../actions';
 
 export interface PyodideStateType {
-  readonly epochsInfo: Array<{
-    [key: string]: number | string;
-  }>;
+  // ponytail: shared with Clean; a Clean re-fetch in flight during Save &
+  // analyze can land first (Analyze's own reply lands last, FIFO). Give
+  // Analyze its own slot if that flash matters.
+  readonly epochsInfo: EpochInfoRow[];
   readonly channelInfo: string[];
   readonly psdPlot:
     | {
@@ -30,6 +32,13 @@ export interface PyodideStateType {
     | null
     | undefined;
   readonly epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
+  // Analyze's cleaned epochs (`clean_epochs`), kept apart from Clean's raw slot.
+  readonly cleanedEpochArrays: {
+    buffer: ArrayBuffer;
+    meta: EpochArraysMeta;
+  } | null;
+  // Plot keys ('psd' | 'topo' | 'erp') whose last request raised in Python.
+  readonly failedPlots: string[];
   readonly suggestedRejections: SuggestedRejection[];
   readonly worker: Worker | null;
   readonly isWorkerReady: boolean;
@@ -48,6 +57,8 @@ const initialState: PyodideStateType = {
   topoPlot: null,
   erpPlot: null,
   epochArrays: null,
+  cleanedEpochArrays: null,
+  failedPlots: [],
   suggestedRejections: [],
   worker: null,
   isWorkerReady: false,
@@ -78,24 +89,57 @@ export default createReducer(initialState, (builder) =>
       return {
         ...state,
         psdPlot: action.payload,
+        failedPlots: state.failedPlots.filter((key) => key !== 'psd'),
       };
     })
     .addCase(PyodideActions.SetTopoPlot, (state, action) => {
       return {
         ...state,
         topoPlot: action.payload,
+        failedPlots: state.failedPlots.filter((key) => key !== 'topo'),
       };
     })
     .addCase(PyodideActions.SetERPPlot, (state, action) => {
       return {
         ...state,
         erpPlot: action.payload,
+        failedPlots: state.failedPlots.filter((key) => key !== 'erp'),
       };
     })
+    .addCase(PyodideActions.LoadEpochs, (state) => ({
+      ...state,
+      epochArrays: null,
+      suggestedRejections: [],
+    }))
     .addCase(PyodideActions.SetEpochArrays, (state, action) => {
       // New epoch arrays → any prior auto-flag suggestions are stale.
       return { ...state, epochArrays: action.payload, suggestedRejections: [] };
     })
+    .addCase(PyodideActions.SetCleanedEpochArrays, (state, action) => ({
+      ...state,
+      cleanedEpochArrays: action.payload,
+    }))
+    .addCase(PyodideActions.PlotFailed, (state, action) => ({
+      ...state,
+      failedPlots: [
+        ...state.failedPlots.filter((key) => key !== action.payload),
+        action.payload,
+      ],
+    }))
+    .addCase(PyodideActions.LoadCleanedEpochs, (state) => ({
+      ...state,
+      psdPlot: null,
+      topoPlot: null,
+      erpPlot: null,
+      epochsInfo: [],
+      cleanedEpochArrays: null,
+      failedPlots: [],
+    }))
+    .addCase(PyodideActions.LoadERP, (state) => ({
+      ...state,
+      erpPlot: null,
+      failedPlots: state.failedPlots.filter((key) => key !== 'erp'),
+    }))
     .addCase(PyodideActions.SetSuggestedRejections, (state, action) => ({
       ...state,
       suggestedRejections: action.payload,
@@ -116,6 +160,8 @@ export default createReducer(initialState, (builder) =>
         epochsInfo: [],
         channelInfo: [],
         epochArrays: null,
+        cleanedEpochArrays: null,
+        failedPlots: [],
         suggestedRejections: [],
         psdPlot: null,
         topoPlot: null,

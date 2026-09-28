@@ -72,17 +72,14 @@ export function DatasetChecklist({
   options,
   selected,
   onChange,
-  inline = false,
 }: {
   options: DatasetOption[];
   selected: string[];
   onChange(values: string[]): void;
-  /** Horizontal chips for the plots-first strip. */
-  inline?: boolean;
 }) {
   const subjects = getSubjectNamesFromFiles(options.map((o) => o.value));
   return (
-    <ul className={cn('m-0 flex gap-[4px] p-0', inline ? 'flex-row flex-wrap' : 'flex-col')}>
+    <ul className="m-0 flex flex-col gap-[4px] p-0">
       {options.map((option, i) => {
         const checked = selected.includes(option.value);
         return (
@@ -108,11 +105,9 @@ export function DatasetChecklist({
                 }
               />
               <span className="font-bold text-ink">{subjects[i]}</span>
-              {!inline && (
-                <span className="min-w-0 truncate text-[12px] text-ink-muted">
-                  {option.text}
-                </span>
-              )}
+              <span className="min-w-0 truncate text-[12px] text-ink-muted">
+                {option.text}
+              </span>
             </label>
           </li>
         );

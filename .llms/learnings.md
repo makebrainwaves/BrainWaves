@@ -304,8 +304,8 @@ Redux, so it never lands in the persisted `appState.json`.
 ## Global `li { list-style: none }` hides `list-decimal`/`list-disc`
 
 `app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
-lose and numbered lists render bare. Write the numbers as text (see
-`CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
+lose and numbered lists render bare. Write the numbers as text (see the
+loop list in `Clean/CleanDatasetSelect.tsx`) or add a scoped class.
 
 ## Headset setup: discovery is time-limited and gesture-bound
 
@@ -431,3 +431,47 @@ deadlock the flip (the previous screen's `lock` frame is cancelled), so wait
 ~700 ms before each automated response. Native `showMessageBox` dialogs can be
 auto-answered by re-registering `dialog:showMessage` from that inspector
 (`process.getBuiltinModule('module').createRequire(...)('electron')`).
+
+## Playtesting from a git worktree: Pyodide runtime, orphaned Electron, native dialogs
+
+- `src/renderer/utils/webworker/src` (Pyodide + MNE wheels) is gitignored, so a
+  fresh `.worktrees/<branch>` has none: every `pyodide://` fetch logs
+  `net::ERR_FILE_NOT_FOUND` in the main log and Clean sits on "Loading your
+  epochs…" forever with no renderer error. Symlink the main checkout's copy
+  (same `InstallPyodide.mjs`/`InstallMNE.mjs`) or run `npm run install-pyodide`.
+- SIGTERM to the `npm run dev` process group does not reliably stop Electron:
+  its main process re-parents to launchd and keeps the CDP port. Kill it by
+  `--remote-debugging-port=<port>` after stopping the group.
+- `fs:storeAggregatedBehaviorData` opens a native save sheet that CDP cannot
+  click. Launch with `npm run dev -- --inspect=<port>` and stub
+  `dialog.showSaveDialog` over the main-process inspector to drive Export.
+- Browser-tool clicks can leave `:hover` styles stuck on clicked tabs in
+  screenshots; `element.click()` via `evaluate` avoids it.
+- The first visit to Collect can trigger Vite's "optimized dependencies
+  changed. reloading": Redux resets but the hash route stays on `/collect`, so a
+  run started then has `title: ''` and writes to `~/BrainWaves_Workspaces/Data/`.
+  Reopen the workspace from Home after any dev reload before recording.
+
+## Prepare: `PrepareSteps` owns the built-in step chrome
+
+`DesignComponent` renders `PrepareSteps` for the four built-in studies;
+Custom and Imported keep `SecondaryNavComponent` and their authoring steps.
+The switch is `Experiment.prepare`: an experiment with a `prepare.ts` gets the
+lesson, one without authors its own. Per-experiment data lives in each
+experiment's `prepare.ts` (`responses` + `flow`, plus Faces/Houses'
+`mediaFallback`), re-exported by `PrepareSteps/fixtures.ts`, so Storybook shows
+what runs. Trial counts come from `flowFromStructure` and the experiment's real
+loops — never `params.nbTrials`, which is stale for Stroop (real 8/96) and
+Search (real 8/80). `experiments/__tests__/prepareContent.test.ts` runs each
+loop's `before:prepare` hook to check the counts, and checks the diagram's keys
+against every key the study accepts. `PreviewLabel` is the single preview
+status, used by `PreviewButtonComponent` (Custom, Imported, Collect) and
+`PrepareSteps`. Multitasking puts the same key under two rules, so response
+rows are keyed by `label`, not `key`.
+
+The running preview draws the participant screen at `zoom: 0.55` inside an
+`absolute inset-0` stage. Both halves matter: the lab.js mount sizes itself with
+`height: 100%`, which only resolves against a definite height (inside the
+`min-h-full` scroll column it fell back to content height, so the box grew and
+the page scrolled), and at the 800px column width an unzoomed screen is
+550–750px tall.

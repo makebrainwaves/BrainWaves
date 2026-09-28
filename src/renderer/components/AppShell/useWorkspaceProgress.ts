@@ -47,12 +47,15 @@ export function summarize(
 
 /**
  * Reads the workspace folder and derives AppShell's `badges` / `nextArea`.
- * Refreshes on navigation; an unreadable or missing folder counts as zero.
+ * Refreshes on navigation and whenever `refresh` changes (e.g. a cleaned save
+ * lands without leaving the screen); an unreadable or missing folder counts as
+ * zero.
  */
 export function useWorkspaceProgress(
   title: string | undefined,
   modality: Modality,
-  pathname: string
+  pathname: string,
+  refresh: number
 ): WorkspaceProgress {
   const [progress, setProgress] = useState<WorkspaceProgress>(EMPTY);
 
@@ -83,7 +86,7 @@ export function useWorkspaceProgress(
     return () => {
       cancelled = true;
     };
-  }, [title, modality, pathname]);
+  }, [title, modality, pathname, refresh]);
 
   return progress;
 }
