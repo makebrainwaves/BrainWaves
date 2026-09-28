@@ -304,8 +304,8 @@ Redux, so it never lands in the persisted `appState.json`.
 ## Global `li { list-style: none }` hides `list-decimal`/`list-disc`
 
 `app.global.css` resets `li` unlayered, so Tailwind list utilities on `<ol>`/`<li>`
-lose and numbered lists render bare. Write the numbers as text (see
-`CleanExplainer` in `CleanComponent/index.tsx`) or add a scoped class.
+lose and numbered lists render bare. Write the numbers as text (see the
+loop list in `Clean/CleanDatasetSelect.tsx`) or add a scoped class.
 
 ## Headset setup: discovery is time-limited and gesture-bound
 
@@ -447,6 +447,10 @@ auto-answered by re-registering `dialog:showMessage` from that inspector
   `dialog.showSaveDialog` over the main-process inspector to drive Export.
 - Browser-tool clicks can leave `:hover` styles stuck on clicked tabs in
   screenshots; `element.click()` via `evaluate` avoids it.
+- The first visit to Collect can trigger Vite's "optimized dependencies
+  changed. reloading": Redux resets but the hash route stays on `/collect`, so a
+  run started then has `title: ''` and writes to `~/BrainWaves_Workspaces/Data/`.
+  Reopen the workspace from Home after any dev reload before recording.
 
 ## Prepare: `PrepareSteps` owns the built-in step chrome
 

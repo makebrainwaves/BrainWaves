@@ -196,12 +196,11 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadEpochs)),
     pluck('payload'),
-    filter((filePathsArray: string[]) => filePathsArray.length >= 1),
-    mergeMap(async (filePathsArray) => {
+    mergeMap(async (filePath) => {
       const worker = state$.value.pyodide.worker!;
       // readFiles is async — await before posting csvArray to the worker.
       // (An unresolved Promise into postMessage throws DataCloneError.)
-      const csvArray = await readFiles(filePathsArray);
+      const csvArray = await readFiles([filePath]);
       // Queue processing messages in order; the worker runs them sequentially.
       loadCSV(worker, csvArray);
       filterIIR(worker, 1, 30);

@@ -27,7 +27,7 @@ const PRIMER_COPY: Record<
 > = {
   1: {
     title: 'Leave out noisy trials',
-    body: 'Every column in the Epochs panel is one trial. Click a noisy one to leave it out — click it again to bring it back.',
+    body: 'Every column in the Trials panel is one trial. Click a noisy one to leave it out — click it again to bring it back.',
     pointer: 'Click a noisy trial column to leave it out',
   },
   2: {

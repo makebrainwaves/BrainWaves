@@ -14,8 +14,6 @@ export interface RawRecording {
   subject: string;
   /** File name shown in the list. */
   name: string;
-  /** How long the run lasted. */
-  duration: string;
   /** Ended-early runs are renamed `*.incomplete.csv` and hidden from ordinary selection. */
   incomplete: boolean;
 }
@@ -30,35 +28,30 @@ export const RAW_RECORDINGS: RawRecording[] = [
     key: 'P01-A-1',
     subject: 'P01',
     name: 'P01-A-1-raw.csv',
-    duration: '4 min · 84 trials',
     incomplete: false,
   },
   {
     key: 'P01-A-2',
     subject: 'P01',
     name: 'P01-A-2-raw.csv',
-    duration: '4 min · 84 trials',
     incomplete: false,
   },
   {
     key: 'P02-A-1',
     subject: 'P02',
     name: 'P02-A-1-raw.csv',
-    duration: '3 min · 62 trials',
     incomplete: false,
   },
   {
     key: 'P02-A-2',
     subject: 'P02',
     name: 'P02-A-2-raw.incomplete.csv',
-    duration: '2 min · experiment ended early',
     incomplete: true,
   },
   {
     key: 'P03-A-1',
     subject: 'P03',
     name: 'P03-A-1-raw.incomplete.csv',
-    duration: '30 s · experiment ended early',
     incomplete: true,
   },
 ];

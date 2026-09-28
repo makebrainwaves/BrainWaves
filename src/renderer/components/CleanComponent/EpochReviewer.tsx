@@ -231,7 +231,7 @@ export default function EpochReviewer({
   if (!epochArrays || !meta || meta.n_epochs === 0) {
     return (
       <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-brand/40 bg-white/50 p-4 text-center text-brand">
-        Load a dataset to see your epochs here 🧠
+        Load a dataset to see your trials here 🧠
       </div>
     );
   }
@@ -245,7 +245,7 @@ export default function EpochReviewer({
   return (
     <div className="text-left">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-brand">Epochs</h4>
+        <h4 className="text-brand">Trials</h4>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -316,8 +316,8 @@ export default function EpochReviewer({
               key={absolute}
               type="button"
               aria-pressed={isRejected}
-              aria-label={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
-              title={`${isRejected ? 'Restore' : 'Reject'} epoch ${absolute}`}
+              aria-label={`${isRejected ? 'Restore' : 'Reject'} trial ${absolute}`}
+              title={`${isRejected ? 'Restore' : 'Reject'} trial ${absolute}`}
               className="absolute cursor-pointer bg-transparent border-0 p-0 appearance-none"
               style={{
                 left: LABEL_GUTTER + c * colWidth,
@@ -374,7 +374,7 @@ export default function EpochReviewer({
       )}
 
       <p className="mt-1 text-xs text-gray-500">
-        showing {firstShown}–{lastShown} of {meta.n_epochs} epochs
+        showing {firstShown}–{lastShown} of {meta.n_epochs} trials
         {rejected.size > 0 && ` · ${rejected.size} marked for rejection`}
       </p>
     </div>

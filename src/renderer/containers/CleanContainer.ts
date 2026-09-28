@@ -8,13 +8,9 @@ import { RootState } from '../store';
 
 function mapStateToProps(state: RootState) {
   return {
-    type: state.experiment.type,
     title: state.experiment.title,
-    subject: state.experiment.subject,
     group: state.experiment.group,
-    session: state.experiment.session,
     params: state.experiment.params,
-    deviceType: state.device.deviceType,
     ...state.pyodide,
   };
 }

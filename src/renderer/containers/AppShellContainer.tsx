@@ -66,6 +66,9 @@ export default function AppShellContainer({
   const experiment = useSelector((state: RootState) => state.experiment);
   const device = useSelector((state: RootState) => state.device);
   const recordsEEG = useSelector(selectRecordsEEG);
+  const cleanedSaveRevision = useSelector(
+    (state: RootState) => state.pyodide.cleanedEpochsSave.revision
+  );
 
   const modality: Modality = experiment.isEEGEnabled ? 'eeg' : 'behavior';
   const workspace = experiment.title
@@ -79,7 +82,8 @@ export default function AppShellContainer({
   const { badges, next } = useWorkspaceProgress(
     workspace?.name,
     modality,
-    pathname
+    pathname,
+    cleanedSaveRevision
   );
 
   const { isRunning } = experiment;

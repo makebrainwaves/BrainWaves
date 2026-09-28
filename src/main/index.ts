@@ -45,7 +45,9 @@ import type {
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
 import {
+  incompleteRecordingFiles,
   isBehaviorFile,
+  isIncompleteRawEEGFile,
   isRawEEGFile,
   markRecordingIncomplete,
   recordingExists,
@@ -119,7 +121,13 @@ const getStimulusFileAccess = () => {
   return stimulusFileAccess;
 };
 
-const getWorkspaceDir = (title: string) => path.join(workspaces, title);
+/** A workspace's folder; `title` comes from the renderer, so it must be one path segment. */
+const getWorkspaceDir = (title: string) => {
+  if (!title || title === '.' || title === '..' || title !== path.basename(title)) {
+    throw new Error(`Invalid workspace title: ${title}`);
+  }
+  return path.join(workspaces, title);
+};
 
 const mkdirPathSync = (dirPath: string) =>
   fs.mkdirSync(dirPath, { recursive: true });
@@ -248,6 +256,24 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
   }
 });
 
+/** Ended-early raw EEG runs, which `fs:readWorkspaceRawEEGData` leaves out. */
+ipcMain.handle('fs:readWorkspaceIncompleteEEGData', (_event, title) => {
+  try {
+    const files = fs.readdirSync(getWorkspaceDir(title), {
+      recursive: true,
+    }) as string[];
+    return files
+      .filter(isIncompleteRawEEGFile)
+      .map((filepath) => {
+        const fullPath = path.join(getWorkspaceDir(title), filepath);
+        return { name: path.basename(filepath), path: fullPath };
+      });
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
+    return [];
+  }
+});
+
 ipcMain.handle('fs:readWorkspaceCleanedEEGData', (_event, title) => {
   try {
     const files = fs.readdirSync(getWorkspaceDir(title), {
@@ -352,7 +378,20 @@ ipcMain.handle(
 );
 
 ipcMain.handle('fs:deleteWorkspaceDir', (_event, title) =>
-  shell.trashItem(path.join(workspaces, title))
+  shell.trashItem(getWorkspaceDir(title))
+);
+
+/** Moves one ended-early run (EEG file and behavior sibling) to the Trash. */
+ipcMain.handle(
+  'fs:deleteIncompleteRecording',
+  async (_event, title: string, eegPath: string) => {
+    for (const file of incompleteRecordingFiles(
+      getWorkspaceDir(title),
+      eegPath
+    )) {
+      await shell.trashItem(file);
+    }
+  }
 );
 
 ipcMain.handle(

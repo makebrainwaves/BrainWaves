@@ -37,7 +37,8 @@ export const PyodideActions = {
   SetPyodideWorker: createAction<Worker, 'SET_PYODIDE_WORKER'>(
     'SET_PYODIDE_WORKER'
   ),
-  LoadEpochs: createAction<string[], 'LOAD_EPOCHS'>('LOAD_EPOCHS'),
+  /** One raw recording path: a flagged sensor belongs to one recording. */
+  LoadEpochs: createAction<string, 'LOAD_EPOCHS'>('LOAD_EPOCHS'),
   LoadCleanedEpochs: createAction<string[], 'LOAD_CLEANED_EPOCHS'>(
     'LOAD_CLEANED_EPOCHS'
   ),
