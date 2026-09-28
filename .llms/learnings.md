@@ -208,8 +208,6 @@ All four surfaced in one Explore playtest and all live in
   rounded to duplicate labels ("-4s -4s -3s -3s").
 - **`rx: 999` is not a pill.** SVG clamps `rx` to half the box, so a 22 px-tall
   annotation label rendered as an oval. Use `LABEL_RADIUS = LABEL_HEIGHT / 2`.
-  The annotation clip-path must also extend `LABEL_GUTTER` above and below the
-  plot box, or the end label (drawn at `plotHeight + 6`) is clipped away.
 - **Data arrives at 4 Hz; motion does not have to.** `PLOTTING_INTERVAL` is
   250 ms and is load-bearing for the filter/signal-quality windows, so do not
   lower it to make the plot smoother. `slideIn()` instead offsets the line and

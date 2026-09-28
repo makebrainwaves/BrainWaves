@@ -63,12 +63,6 @@ const lessonPlot = (
 
 const REVIEW_SEGMENTS = { open: OPEN_SEGMENT, closed: CLOSED_SEGMENT };
 
-/**
- * Explore in the real AppShell with no workspace (Explore is workspace-free;
- * the shell bar is the only chrome). All signal traces are synthetic fixture
- * series — labelled "example" in these descriptions only, exactly as the app
- * copy will read once the real webview is wired in.
- */
 const withExploreChrome: Decorator = (Story, { parameters }) => (
   <MemoryRouter>
     <AppShell

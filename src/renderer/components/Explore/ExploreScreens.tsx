@@ -226,7 +226,7 @@ export function ExploreSurface({
   );
 }
 
-export interface CleanSignalViewProps {
+interface CleanSignalViewProps {
   tip: 1 | 2 | 3;
   /** The live plot in quality colors: this lesson is about signal quality. */
   livePlot: ReactNode;
@@ -343,8 +343,20 @@ export function BlinkLessonView({
             ? 'First — what does “noise” mean?'
             : BLINK_STEPS[step - 1].title
         }
-        action={step > 0 ? BLINK_STEPS[step - 1].action : undefined}
-        body={step === 0 ? <NoiseDefinitionCard /> : BLINK_STEPS[step - 1].body}
+        action={
+          step > 0 && !(step === 4 && !comparison)
+            ? BLINK_STEPS[step - 1].action
+            : undefined
+        }
+        body={
+          step === 0 ? (
+            <NoiseDefinitionCard />
+          ) : step === 4 && !comparison ? (
+            BLINK_STEPS[3].action
+          ) : (
+            BLINK_STEPS[step - 1].body
+          )
+        }
         backLabel={step === 0 ? 'Exit' : 'Back'}
         nextLabel={
           step === 0 ? 'Start the steps' : step === 4 ? 'Finish lesson' : 'Next'

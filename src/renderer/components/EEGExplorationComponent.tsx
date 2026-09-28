@@ -84,58 +84,66 @@ function ConnectedExplore({
   }
 
   const legend = `${device?.name ?? ''} · ${samplingRate} Hz`;
-  if (activeLesson)
-    return (
-      <ExploreLessonFlow
-        lesson={activeLesson}
-        stream={stream}
-        channels={channels}
-        legend={legend}
-        session={session}
-        sample={sample}
-        onExit={() => setActiveLesson(null)}
-      />
-    );
-
   const { state, sensors } = summarizeQuality(sample?.signalQuality, channels);
   const missing = FRONTAL.filter((channel) => !channels.includes(channel));
   return (
-    <ExploreSurface
-      quality={sample ? state : 'waiting'}
-      sensors={sensors}
-      channels={channels}
-      sample={sample}
-      head={stream}
-      livePlot={
-        <ViewerComponent
-          signalQualityObservable={stream}
-          channels={channels}
-          plottingInterval={PLOTTING_INTERVAL}
-          height="100%"
-        />
-      }
-      legend={legend}
-      hoveredChannel={hoveredChannel}
-      onHoveredChannelChange={setHoveredChannel}
-      onStartLesson={startLesson}
-      banner={
-        streamStopped ? (
+    <div className="flex h-full min-h-0 flex-col">
+      {streamStopped && (
+        <div className="flex flex-none flex-col px-[24px] pt-[10px]">
           <ErrorBanner
             title="The signal stream stopped."
             body="The headset is still connected, but its data stream ended. Disconnect and reconnect to start it again."
             actionLabel="Reconnect headset"
             onAction={onReconnect}
           />
-        ) : !session.status().supported && missing.length ? (
-          <ErrorBanner
-            title={`This headset is not reporting ${new Intl.ListFormat('en').format(missing)}.`}
-            body="Blink detection needs both AF7 and AF8, so the blink steps will show your signal without blink marks — or pick a headset with both forehead sensors. The eyes-closed activity works either way."
-            actionLabel="Switch headset"
-            onAction={onSwitchHeadset}
+        </div>
+      )}
+      <div className="min-h-0 flex-1">
+        {activeLesson ? (
+          <ExploreLessonFlow
+            lesson={activeLesson}
+            stream={stream}
+            channels={channels}
+            legend={legend}
+            session={session}
+            sample={sample}
+            onExit={() => setActiveLesson(null)}
           />
-        ) : undefined
-      }
-    />
+        ) : (
+          <ExploreSurface
+            quality={sample ? state : 'waiting'}
+            sensors={sensors}
+            channels={channels}
+            sample={sample}
+            head={stream}
+            livePlot={
+              <ViewerComponent
+                signalQualityObservable={stream}
+                channels={channels}
+                plottingInterval={PLOTTING_INTERVAL}
+                height="100%"
+              />
+            }
+            legend={legend}
+            hoveredChannel={hoveredChannel}
+            onHoveredChannelChange={setHoveredChannel}
+            onStartLesson={startLesson}
+            banner={
+              !streamStopped &&
+              !session.status().supported &&
+              missing.length ? (
+                <ErrorBanner
+                  title={`This headset is not reporting ${new Intl.ListFormat('en').format(missing)}.`}
+                  body="Blink detection needs both AF7 and AF8, so the blink steps will show your signal without blink marks — or pick a headset with both forehead sensors. The eyes-closed activity works either way."
+                  actionLabel="Switch headset"
+                  onAction={onSwitchHeadset}
+                />
+              ) : undefined
+            }
+          />
+        )}
+      </div>
+    </div>
   );
 }
 

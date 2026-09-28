@@ -557,10 +557,6 @@ export function LessonStepPanel({
   );
 }
 
-/**
- * Frozen five-second comparison window with its peak-to-peak readout, like the
- * lesson flow's frozen strips.
- */
 export function FrozenStrip({
   label,
   sublabel,

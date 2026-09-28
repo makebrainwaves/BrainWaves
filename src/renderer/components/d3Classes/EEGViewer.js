@@ -42,7 +42,6 @@ export default class EEGViewer {
     this.channels = parameters.channels;
     this.plottingInterval = parameters.plottingInterval;
     this.domain = parameters.domain;
-    // Fixed colors (e.g. a lesson's stable palette) are never recolored by quality.
     this.fixedColours = parameters.channelColours != null;
     this.channelColours =
       parameters.channelColours ?? this.channels.map(() => DEFAULT_COLOUR);
@@ -141,8 +140,6 @@ export default class EEGViewer {
       .append('rect')
       .attr('class', 'annotation-clip')
       .attr('x', 0)
-      // Bands stay inside the plot box, but their pills sit just above and
-      // below it — a plot-height clip would hide the end label entirely.
       .attr('y', -LABEL_GUTTER)
       .attr('width', this.width)
       .attr('height', this.height + 2 * LABEL_GUTTER);

@@ -15,7 +15,6 @@ export interface BlinkEvent {
 }
 
 export interface ExploreStatus {
-  baselineStable: boolean;
   blinkEvents: BlinkEvent[];
   latestTime: number | null;
   supported: boolean;
@@ -24,7 +23,6 @@ export interface ExploreStatus {
 export interface FrozenComparison {
   calm: EEGSnapshot;
   blink: EEGSnapshot;
-  sharedScale: number;
   ratio: number;
 }
 
@@ -370,7 +368,6 @@ export class ExploreSession {
   status(): ExploreStatus {
     const latestTime = this.size ? this.timeAt(this.size - 1) : null;
     return {
-      baselineStable: this.stable,
       blinkEvents: this.events.map((event) => ({
         ...event,
         channels: [...event.channels],
@@ -551,7 +548,7 @@ export class ExploreSession {
       sharedScale <= 0
     )
       return null;
-    return { calm, blink, sharedScale, ratio };
+    return { calm, blink, ratio };
   }
 
   /** Posterior 8–12 Hz band power versus the preceding five seconds, not an alpha-rise prediction. */
