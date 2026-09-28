@@ -15,7 +15,6 @@ export interface BlinkEvent {
 }
 
 export interface ExploreStatus {
-  baselineStable: boolean;
   blinkEvents: BlinkEvent[];
   latestTime: number | null;
   supported: boolean;
@@ -24,13 +23,16 @@ export interface ExploreStatus {
 export interface FrozenComparison {
   calm: EEGSnapshot;
   blink: EEGSnapshot;
-  sharedScale: number;
   ratio: number;
 }
 
 const BUFFER_MS = 60000;
 const WINDOW_MS = 5000;
-const FRONTAL = ['AF7', 'AF8'];
+/** The forehead pair blink detection needs. */
+export const FRONTAL = ['AF7', 'AF8'];
+
+/** Channels over the back of the head: TP9/TP10 on Muse, O and PO sites elsewhere. */
+export const POSTERIOR = /^(?:TP9|TP10|(?:O|PO)(?:\d+|z))$/i;
 
 /** Causal second-order Butterworth section; unlike offline zero-phase filters, it delays peaks. */
 class Butterworth {
@@ -366,7 +368,6 @@ export class ExploreSession {
   status(): ExploreStatus {
     const latestTime = this.size ? this.timeAt(this.size - 1) : null;
     return {
-      baselineStable: this.stable,
       blinkEvents: this.events.map((event) => ({
         ...event,
         channels: [...event.channels],
@@ -547,15 +548,13 @@ export class ExploreSession {
       sharedScale <= 0
     )
       return null;
-    return { calm, blink, sharedScale, ratio };
+    return { calm, blink, ratio };
   }
 
   /** Posterior 8–12 Hz band power versus the preceding five seconds, not an alpha-rise prediction. */
   alphaRatio(startTime: number, endTime: number): number | null {
     if (this.samplingRate <= 24 || endTime - startTime < 1000) return null;
-    const posterior = this.channels.filter((name) =>
-      /^(?:TP9|TP10|(?:O|PO)(?:\d+|z))$/i.test(name)
-    );
+    const posterior = this.channels.filter((name) => POSTERIOR.test(name));
     if (!posterior.length) return null;
     const before = this.snapshot(startTime - WINDOW_MS, startTime, posterior);
     const during = this.snapshot(startTime, endTime, posterior);

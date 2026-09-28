@@ -1,25 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Observable } from 'rxjs';
-import { EEGSnapshot, PlotAnnotation } from '../../shared/eegVizTypes';
-import {
-  CLEAN_SIGNAL_LESSON,
-  LessonId,
-  NOISE_LESSON,
-} from '../constants/exploreLessons';
+import type { EEGSnapshot, PlotAnnotation } from '../../shared/eegVizTypes';
+import { LessonId } from '../constants/exploreLessons';
 import { PLOTTING_INTERVAL } from '../constants/constants';
 import { SignalQualityData } from '../constants/interfaces';
-import { ExploreSession, FrozenComparison } from '../utils/eeg/exploreSignal';
+import {
+  ExploreSession,
+  FRONTAL,
+  FrozenComparison,
+  POSTERIOR,
+} from '../utils/eeg/exploreSignal';
 import { LessonAudio } from '../utils/eeg/lessonAudio';
-import SignalQualityIndicatorComponent from './SignalQualityIndicatorComponent';
+import { channelColors } from '../utils/eeg/traceColors';
 import ViewerComponent from './ViewerComponent';
-import { Button } from './ui/button';
-import { cn } from './ui/utils';
+import {
+  BlinkLessonView,
+  CleanSignalView,
+  EyesClosedPhase,
+  EyesClosedView,
+} from './Explore/ExploreScreens';
+import { REVIEW_SEGMENT_MS } from './Explore/fixtures';
 
 interface Props {
   lesson: LessonId;
   stream?: Observable<SignalQualityData>;
+  /** The device's full channel list. */
   channels: string[];
-  samplingRate: number;
+  /** Plot caption: `device name · sampling rate Hz`. */
+  legend: string;
   session: ExploreSession;
   sample: SignalQualityData | null;
   onExit: () => void;
@@ -30,96 +38,50 @@ interface CueWindow {
   endTime: number | null;
 }
 
-const FRONTAL_CHANNELS = ['AF7', 'AF8'];
-const labelClass = 'text-[13px] font-bold tracking-[0.5px] text-ink-muted';
+/** Blink steps 1–3 say no blink was seen after this long without one. */
+const NO_BLINK_MS = 8000;
+/** Step 4 asks for five still seconds before freezing the comparison. */
+const STILL_MS = 5000;
+/** A stream older than this cannot time the eyes-closed interval. */
+const STALE_MS = 1500;
 
-function FrozenStrip({
-  snapshot,
-  scale,
-  blinking,
-  ratio,
-}: {
-  snapshot: EEGSnapshot;
-  scale: number;
-  blinking?: boolean;
-  ratio?: number;
-}) {
-  return (
-    <section
-      className={cn(
-        'h-[180px] flex-none rounded-lg border bg-white px-[18px] py-4',
-        blinking ? 'border-2 border-accent' : 'border-gray-200'
-      )}
-    >
-      <div className="flex items-center justify-between gap-3 text-[13px] text-ink-muted">
-        <span className="font-bold tracking-[0.5px]">
-          {blinking
-            ? 'WHILE YOU WERE BLINKING · FROZEN'
-            : 'SITTING STILL · 5 SECONDS, FROZEN'}
-        </span>
-        <span className="max-[700px]:hidden">
-          {blinking ? 'same sensors, same scale' : 'measured on AF7 · AF8'}
-        </span>
-      </div>
-      <div className="flex h-[120px] items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <ViewerComponent
-            signalQualityObservable={null}
-            plottingInterval={PLOTTING_INTERVAL}
-            channels={snapshot.channels}
-            snapshot={snapshot}
-            amplitudeScale={scale}
-            height={120}
-          />
-        </div>
-        <div className="flex w-[118px] flex-none items-center gap-2.5">
-          <div
-            className={cn(
-              'w-[9px] flex-none rounded-r border border-l-0',
-              blinking ? 'border-accent' : 'border-signal-great'
-            )}
-            style={{
-              height: Math.max(1, (snapshot.peakToPeak / (2 * scale)) * 96),
-            }}
-          />
-          <div>
-            <div className="text-lg">{snapshot.peakToPeak.toFixed(0)} µV</div>
-            <div className="text-xs text-ink-muted">
-              {blinking && ratio !== undefined
-                ? `${Math.round(ratio)}× the still signal`
-                : 'peak to peak'}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** The live viewer stays mounted across steps; comparison/review use owned copies. */
-export default function ExploreLessonFlow(props: Props) {
-  const { lesson, stream, channels, samplingRate, session, sample, onExit } =
-    props;
+/**
+ * Runs one Explore lesson in the design's views, all state local: the
+ * cleaner-signal tips 1–3, the noise lesson's blink steps 0–4, and the
+ * eyes-closed activity (intro → 3-2-1 → the chime-bounded interval → review).
+ * One live viewer stays mounted across a lesson's steps; frozen copies come
+ * from `session`. Arrow keys and Escape, from the page or the focused viewer,
+ * go Back / Next / Exit.
+ */
+export default function ExploreLessonFlow({
+  lesson,
+  stream,
+  channels,
+  legend,
+  session,
+  sample,
+  onExit,
+}: Props) {
   const noise = lesson === 'noise-sources';
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(lesson === 'clean-signal' ? 1 : 0);
+  const [waited, setWaited] = useState(false);
   const [comparison, setComparison] = useState<FrozenComparison | null>(null);
-  const [comparisonSkipped, setComparisonSkipped] = useState(false);
-  const [waitedForBaseline, setWaitedForBaseline] = useState(false);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
-  const [audioBusy, setAudioBusy] = useState(false);
-  const [running, setRunning] = useState(false);
+  const [range, setRange] = useState(150);
+  const [phase, setPhase] = useState<EyesClosedPhase>('intro');
+  const [countdown, setCountdown] = useState<3 | 2 | 1>(3);
   const [cue, setCue] = useState<CueWindow | null>(null);
-  const [review, setReview] = useState<EEGSnapshot | null>(null);
-  const [alphaRatio, setAlphaRatio] = useState<number | null>(null);
+  const [review, setReview] = useState<{
+    segments: { open: EEGSnapshot; closed: EEGSnapshot } | null;
+    ratio: number | null;
+  } | null>(null);
   const [cueError, setCueError] = useState('');
   const audio = useRef<LessonAudio | null>(null);
-  const mounted = useRef(true);
   const cueGeneration = useRef(0);
-  const heading = useRef<HTMLHeadingElement>(null);
+  const stepStart = useRef<number | null>(null);
   const signalClock = useRef({ sampleTime: 0, wallTime: 0 });
+  const lastSample = useRef<SignalQualityData | null>(null);
   const status = session.status();
   const { latestTime } = status;
-  const lastSample = useRef<SignalQualityData | null>(null);
   if (sample && sample !== lastSample.current) {
     lastSample.current = sample;
     signalClock.current = {
@@ -129,24 +91,45 @@ export default function ExploreLessonFlow(props: Props) {
       wallTime: Date.now(),
     };
   }
+  const running = phase === 'countdown' || phase === 'interval';
 
   useEffect(() => {
-    mounted.current = true;
     audio.current = new LessonAudio();
     return () => {
-      mounted.current = false;
       cueGeneration.current++;
       audio.current?.dispose();
     };
   }, []);
 
   useEffect(() => {
-    heading.current?.focus({ preventScroll: true });
-    setWaitedForBaseline(false);
-    if (!noise || step !== 1) return;
-    const timer = window.setTimeout(() => setWaitedForBaseline(true), 8000);
+    stepStart.current = session.status().latestTime;
+    setWaited(false);
+    if (!noise || step < 1 || step > 3) return;
+    const timer = window.setTimeout(() => setWaited(true), NO_BLINK_MS);
     return () => window.clearTimeout(timer);
-  }, [noise, step]);
+  }, [noise, step, session]);
+
+  useEffect(() => {
+    if (
+      !noise ||
+      step !== 4 ||
+      comparison ||
+      latestTime == null ||
+      stepStart.current == null ||
+      latestTime < stepStart.current + STILL_MS
+    )
+      return;
+    setComparison(session.comparison());
+  }, [noise, step, comparison, latestTime, session]);
+
+  useEffect(() => {
+    if (phase !== 'countdown') return;
+    const timer = window.setTimeout(() => {
+      if (countdown > 1) setCountdown((countdown - 1) as 2 | 1);
+      else void startInterval();
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [phase, countdown]);
 
   useEffect(() => {
     if (
@@ -156,21 +139,90 @@ export default function ExploreLessonFlow(props: Props) {
       review
     )
       return;
-    const frozen = session.snapshot(cue.startTime - 2000, cue.endTime + 250);
-    if (!frozen) return;
-    setReview(frozen);
-    setAlphaRatio(session.alphaRatio(cue.startTime, cue.endTime));
-  }, [cue, latestTime, review, session]);
+    const { startTime, endTime } = cue;
+    const posterior = channels.filter((name) => POSTERIOR.test(name));
+    const middle = (startTime + endTime) / 2;
+    const open = posterior.length
+      ? session.snapshot(startTime - REVIEW_SEGMENT_MS, startTime, posterior)
+      : null;
+    const closed = posterior.length
+      ? session.snapshot(
+          middle - REVIEW_SEGMENT_MS / 2,
+          middle + REVIEW_SEGMENT_MS / 2,
+          posterior
+        )
+      : null;
+    setReview({
+      segments: open && closed ? { open, closed } : null,
+      ratio: session.alphaRatio(startTime, endTime),
+    });
+  }, [cue, latestTime, review, session, channels]);
 
   function stopCues() {
     cueGeneration.current++;
     audio.current?.cancel();
-    setRunning(false);
-    setAudioBusy(false);
+    setCountdown(3);
     setCue(null);
     setReview(null);
-    setAlphaRatio(null);
     setCueError('');
+  }
+
+  function sampleTimeAt(wallTime: number) {
+    return (
+      signalClock.current.sampleTime + wallTime - signalClock.current.wallTime
+    );
+  }
+
+  /** Begin: unlock audio inside the click (autoplay needs the gesture), then count down. */
+  async function begin() {
+    if (
+      latestTime == null ||
+      Date.now() - signalClock.current.wallTime > STALE_MS
+    ) {
+      setCueError('Wait for a live signal before starting the interval.');
+      return;
+    }
+    stopCues();
+    const generation = cueGeneration.current;
+    try {
+      await audio.current?.preview();
+    } catch (error) {
+      if (generation === cueGeneration.current)
+        setCueError(
+          error instanceof Error ? error.message : 'Check your sound output.'
+        );
+      return;
+    }
+    if (generation === cueGeneration.current) setPhase('countdown');
+  }
+
+  async function startInterval() {
+    const generation = cueGeneration.current;
+    setPhase('interval');
+    try {
+      await audio.current?.start(
+        (wallTime) => {
+          if (generation === cueGeneration.current)
+            setCue({ startTime: sampleTimeAt(wallTime), endTime: null });
+        },
+        (wallTime) => {
+          if (generation !== cueGeneration.current) return;
+          setCue(
+            (current) =>
+              current && { ...current, endTime: sampleTimeAt(wallTime) }
+          );
+          setPhase('end');
+        }
+      );
+    } catch (error) {
+      if (generation !== cueGeneration.current) return;
+      setPhase('intro');
+      setCueError(
+        error instanceof Error
+          ? error.message
+          : 'Audio could not start. Check your sound output.'
+      );
+    }
   }
 
   function exit() {
@@ -179,23 +231,28 @@ export default function ExploreLessonFlow(props: Props) {
   }
 
   function back() {
-    stopCues();
-    if (step === 0) onExit();
-    else setStep(noise && step === 3 && comparisonSkipped ? 1 : step - 1);
+    if (running) return;
+    if (lesson === 'eyes-closed') {
+      if (phase === 'intro') exit();
+      else {
+        stopCues();
+        setPhase('intro');
+      }
+    } else if (step === (noise ? 0 : 1)) exit();
+    else {
+      setComparison(null);
+      setStep(step - 1);
+    }
   }
 
   function next() {
-    if (running || audioBusy) return;
-    if (step === 3) {
-      exit();
-      return;
-    }
-    if (noise && step === 1) {
-      const result = session.comparison();
-      setComparison(result);
-      setComparisonSkipped(result === null);
-      setStep(result ? 2 : 3);
-    } else setStep(step + 1);
+    if (running) return;
+    if (lesson === 'eyes-closed') {
+      if (phase === 'intro') void begin();
+      else if (phase === 'end') setPhase('review');
+      else exit();
+    } else if (step === (noise ? 4 : 3)) exit();
+    else setStep(step + 1);
   }
 
   const navigation = useRef({ back, next, exit });
@@ -230,340 +287,107 @@ export default function ExploreLessonFlow(props: Props) {
     else navigation.current.exit();
   }
 
-  function rerecord() {
-    stopCues();
-    session.reset();
-    setComparison(null);
-    setComparisonSkipped(false);
-    setWaitedForBaseline(false);
-    setStep(1);
-  }
-
-  function sampleTimeAt(wallTime: number) {
-    return (
-      signalClock.current.sampleTime + wallTime - signalClock.current.wallTime
-    );
-  }
-
-  async function hearChime() {
-    if (!audio.current) return;
-    setAudioBusy(true);
-    setCueError('');
-    const generation = cueGeneration.current;
-    try {
-      const played = await audio.current.preview();
-      if (mounted.current && generation === cueGeneration.current)
-        setAudioUnlocked(played);
-    } catch (error) {
-      if (mounted.current && generation === cueGeneration.current)
-        setCueError(
-          error instanceof Error ? error.message : 'Check your sound output.'
-        );
-    } finally {
-      if (mounted.current && generation === cueGeneration.current)
-        setAudioBusy(false);
-    }
-  }
-
-  async function startInterval() {
-    if (
-      latestTime == null ||
-      Date.now() - signalClock.current.wallTime > 1500
-    ) {
-      setCueError('Wait for a live signal before starting the interval.');
-      return;
-    }
-    stopCues();
-    const generation = cueGeneration.current;
-    setRunning(true);
-    const startAt = (wallTime: number) => {
-      if (!mounted.current || generation !== cueGeneration.current) return;
-      setCue({ startTime: sampleTimeAt(wallTime), endTime: null });
-    };
-    const endAt = (wallTime: number) => {
-      if (!mounted.current || generation !== cueGeneration.current) return;
-      setCue(
-        (current) => current && { ...current, endTime: sampleTimeAt(wallTime) }
-      );
-      setRunning(false);
-    };
-    try {
-      await audio.current?.start(startAt, endAt);
-    } catch (error) {
-      if (mounted.current && generation === cueGeneration.current) {
-        setRunning(false);
-        setCueError(
-          error instanceof Error
-            ? error.message
-            : 'Audio could not start. Check your sound output.'
-        );
-      }
-    }
-  }
-
+  const shown = noise && step >= 1 && status.supported ? FRONTAL : channels;
+  const colors = useMemo(
+    () => channelColors(shown, channels),
+    [shown, channels]
+  );
   const visibleBlinks =
-    latestTime == null
-      ? []
-      : status.blinkEvents.filter(
-          (event) => event.endTime >= latestTime - 5000
-        );
-  const annotations: PlotAnnotation[] =
-    noise && step === 1
-      ? visibleBlinks.map((event) => ({
-          id: `blink-${event.startTime}`,
-          startTime: event.startTime,
-          endTime: event.endTime,
-          label: 'blink · eye muscle, not brain',
-          tone: 'blink',
-        }))
-      : noise && step === 3 && cue
-        ? [
-            {
-              id: 'eyes-closed',
-              ...cue,
-              label: 'eyes closed',
-              endLabel: 'eyes open',
-              tone: 'eyes-closed',
-            },
-          ]
-        : [];
-  const caption =
-    !noise || step === 0
-      ? 'your signal, live'
-      : step === 1
-        ? 'watching the frontal sensors (AF7, AF8)'
-        : running
-          ? 'recording'
-          : 'your signal, live';
-  const title = noise
-    ? NOISE_LESSON[step].title
-    : CLEAN_SIGNAL_LESSON[step].title;
-  const displayChannels =
-    noise && step === 1 && status.supported ? FRONTAL_CHANNELS : channels;
+    noise && step >= 1 && latestTime != null
+      ? status.blinkEvents.filter((event) => event.endTime >= latestTime - 5000)
+      : [];
+  const annotations: PlotAnnotation[] = noise
+    ? visibleBlinks.map((event) => ({
+        id: `blink-${event.startTime}`,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        label: 'blink · from your eyes, not your brain',
+        tone: 'blink',
+      }))
+    : lesson === 'eyes-closed' && cue
+      ? [
+          {
+            id: 'eyes-closed',
+            ...cue,
+            label: 'eyes closed',
+            endLabel: 'eyes open',
+            tone: 'eyes-closed',
+          },
+        ]
+      : [];
+  const livePlot = (
+    <ViewerComponent
+      signalQualityObservable={stream}
+      plottingInterval={PLOTTING_INTERVAL}
+      channels={shown}
+      channelColors={lesson === 'clean-signal' ? undefined : colors}
+      annotations={annotations}
+      amplitudeScale={noise && step === 4 ? range : undefined}
+      windowDuration={lesson === 'eyes-closed' ? 20000 : undefined}
+      height="100%"
+      onNavigate={navigateFromViewer}
+    />
+  );
 
-  return (
-    <section
-      className="flex min-h-full flex-1 flex-col gap-5 text-ink"
-      aria-label={
-        noise
-          ? 'Where is this noise coming from?'
-          : 'How do I get a cleaner signal?'
-      }
-    >
-      <header className="flex flex-none flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3.5">
-        <div className={labelClass} role="status">
-          {noise
-            ? 'WHERE IS THIS NOISE COMING FROM?'
-            : 'HOW DO I GET A CLEANER SIGNAL?'}{' '}
-          · STEP {step + 1} OF 4
-        </div>
-        <div className="flex gap-2" aria-hidden="true">
-          {[0, 1, 2, 3].map((index) => (
-            <span
-              key={index}
-              className={cn(
-                'h-1.5 w-7 rounded-full',
-                index === step
-                  ? 'bg-accent'
-                  : index < step
-                    ? 'bg-accent-light'
-                    : 'bg-ink-faint'
-              )}
-            />
-          ))}
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-ink-muted"
-          onClick={exit}
-        >
-          Exit lesson ✕
-        </Button>
-      </header>
-      <div
-        className={
-          noise && step === 2
-            ? 'hidden'
-            : cn(
-                'flex flex-none gap-[18px] rounded-lg border border-gray-200 bg-white p-[18px]',
-                noise && step === 3 ? 'h-[340px]' : 'h-[360px]'
-              )
+  if (lesson === 'clean-signal')
+    return (
+      <CleanSignalView
+        tip={step as 1 | 2 | 3}
+        livePlot={livePlot}
+        legend={legend}
+        head={stream}
+        channels={channels}
+        onBack={back}
+        onNext={next}
+        onExit={exit}
+      />
+    );
+  if (noise)
+    return (
+      <BlinkLessonView
+        step={step as 0 | 1 | 2 | 3 | 4}
+        notDetected={
+          waited &&
+          step >= 1 &&
+          step <= 3 &&
+          !status.blinkEvents.some(
+            (event) =>
+              stepStart.current != null && event.endTime >= stepStart.current
+          )
         }
-      >
-        <div className="min-w-0 flex-1">
-          <div className="mb-2.5 flex min-h-5 items-center justify-between gap-3 text-[13px] text-ink-muted">
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-brand" />
-              {caption}
-            </span>
-            {noise && step === 1 && (
-              <span aria-live="polite">
-                {visibleBlinks.length}{' '}
-                {visibleBlinks.length === 1 ? 'blink' : 'blinks'} caught
-              </span>
-            )}
-          </div>
-          <ViewerComponent
-            signalQualityObservable={stream}
-            plottingInterval={PLOTTING_INTERVAL}
-            channels={displayChannels}
-            annotations={annotations}
-            height={noise && step === 3 ? 250 : 290}
-            windowDuration={noise && step === 3 ? 20000 : 5000}
-            onNavigate={navigateFromViewer}
-          />
-        </div>
-        {(!noise || step === 0) && (
-          <div className="w-[150px] flex-none max-[650px]:hidden">
-            <SignalQualityIndicatorComponent
-              signalQualityObservable={stream}
-              plottingInterval={PLOTTING_INTERVAL}
-              channels={channels}
-              height={140}
-            />
-          </div>
-        )}
-      </div>
-      {noise && step === 2 && comparison && (
-        <div className="flex flex-none flex-col gap-4">
-          <FrozenStrip
-            snapshot={comparison.calm}
-            scale={comparison.sharedScale}
-          />
-          <FrozenStrip
-            snapshot={comparison.blink}
-            scale={comparison.sharedScale}
-            blinking
-            ratio={comparison.ratio}
-          />
-        </div>
-      )}
-      {noise && step === 1 && (
-        <div role="status" className="text-sm text-ink-muted">
-          {!status.supported
-            ? 'Blink detection needs both AF7 and AF8. You can still watch your signal and continue to the eyes-closed step.'
-            : !status.baselineStable
-              ? waitedForBaseline
-                ? 'We cannot see your blinks yet, check the forehead sensors.'
-                : 'Sit still for a moment while the forehead sensors settle, then try blinking.'
-              : 'Forehead baseline ready. Blink a few times, then sit still so we can compare.'}
-        </div>
-      )}
-      {noise && step === 3 && comparisonSkipped && (
-        <div className="flex flex-wrap items-center gap-3 text-sm text-ink-muted">
-          <span>
-            We don&apos;t have a blink window and five quiet seconds to compare.
-          </span>
-          <Button variant="outline-brand" size="sm" onClick={rerecord}>
-            Try the blink step again
-          </Button>
-        </div>
-      )}
-      {noise && step === 3 && review && (
-        <details className="rounded-lg border border-gray-200 bg-white px-[18px] py-3">
-          <summary className="cursor-pointer text-sm text-brand">
-            Review your marked interval · frozen copy
-          </summary>
-          <ViewerComponent
-            signalQualityObservable={null}
-            plottingInterval={PLOTTING_INTERVAL}
-            channels={review.channels}
-            snapshot={review}
-            annotations={annotations}
-            height={160}
-          />
-          <div className="text-sm text-ink-muted">
-            {alphaRatio === null
-              ? 'There is not enough continuous posterior-channel data to compare alpha power.'
-              : alphaRatio > 1
-                ? `Measured alpha power was ${alphaRatio.toFixed(1)}× the preceding five seconds.`
-                : 'Alpha did not increase in this interval. That is a real result, not a failed lesson.'}
-          </div>
-        </details>
-      )}
-      <div
-        key={step}
-        className="explore-step-copy flex min-h-0 flex-1 flex-wrap items-start justify-between gap-x-10 gap-y-5 pb-3"
-      >
-        <div className="flex max-w-[620px] flex-col gap-2.5">
-          <h2
-            ref={heading}
-            tabIndex={-1}
-            className="text-[36px] font-light leading-tight tracking-[-0.025em] outline-none"
-          >
-            {title}
-          </h2>
-          {!noise ? (
-            <p className="leading-7">{CLEAN_SIGNAL_LESSON[step].body}</p>
-          ) : step === 0 ? (
-            <p className="leading-7">
-              Those wiggles are real voltage picked up off your scalp — a few
-              millionths of a volt, arriving {samplingRate} times a second.
-              Watch them for a moment before we start poking at them.
-            </p>
-          ) : step === 1 ? (
-            <p className="leading-7">{NOISE_LESSON[1].body}</p>
-          ) : step === 2 ? (
-            <p className="leading-7">
-              {comparison && Math.round(comparison.ratio) >= 2
-                ? `This is why researchers ask you to hold still: the noise is not small and shy, it’s ${Math.round(comparison.ratio)} times louder than the thing we came to measure.`
-                : 'Same sensors, same scale. These windows are close in size: try re-recording while sitting still, then blinking clearly.'}
-            </p>
-          ) : (
-            <>
-              <p className="leading-7">{NOISE_LESSON[3].body}</p>
-              <p className="leading-7">
-                The back of your head starts humming a steady rhythm when it has
-                nothing to look at. That is the paradox of alpha waves: the
-                seeing part of your brain gets louder once you stop giving it
-                anything to see. Unlike the blink, this one really is your
-                brain.
-              </p>
-            </>
-          )}
-          {cueError && (
-            <span role="alert" className="text-sm text-ink-muted">
-              {cueError}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-none flex-col items-stretch gap-3">
-          {noise && step === 2 && (
-            <Button variant="outline-brand" size="lg" onClick={rerecord}>
-              Re-record
-            </Button>
-          )}
-          {noise && step === 3 && (
-            <>
-              <Button
-                variant="outline-brand"
-                size="lg"
-                onClick={hearChime}
-                disabled={running || audioBusy}
-              >
-                Hear the chime
-              </Button>
-              <Button
-                variant="outline-brand"
-                size="lg"
-                onClick={startInterval}
-                disabled={audioBusy || !audioUnlocked}
-              >
-                {cue?.endTime != null && !running
-                  ? 'Record again'
-                  : 'Start · eyes closed'}
-              </Button>
-            </>
-          )}
-          <Button variant="outline-brand" size="lg" onClick={back}>
-            Back
-          </Button>
-          <Button size="lg" onClick={next} disabled={running || audioBusy}>
-            {step === 3 ? 'Finish lesson' : 'Next'}
-          </Button>
-        </div>
-      </div>
-    </section>
+        livePlot={livePlot}
+        blinkCount={visibleBlinks.length}
+        legend={legend}
+        deviceChannels={channels}
+        comparison={
+          comparison
+            ? {
+                calm: comparison.calm,
+                blinking: comparison.blink,
+                ratio: comparison.ratio,
+              }
+            : undefined
+        }
+        onRangeChange={setRange}
+        onBack={back}
+        onNext={next}
+        onExit={exit}
+      />
+    );
+  return (
+    <EyesClosedView
+      phase={phase}
+      countdown={countdown}
+      rhythmRatio={review?.ratio ?? null}
+      showExample={phase === 'intro' || phase === 'review'}
+      livePlot={livePlot}
+      segments={review?.segments}
+      legend={legend}
+      deviceChannels={channels}
+      error={cueError || undefined}
+      onBack={back}
+      onNext={next}
+      onExit={exit}
+    />
   );
 }

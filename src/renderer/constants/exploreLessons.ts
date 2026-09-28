@@ -1,4 +1,4 @@
-export type LessonId = 'clean-signal' | 'noise-sources';
+export type LessonId = 'clean-signal' | 'noise-sources' | 'eyes-closed';
 
 /** Shared with Collect's existing help; the noise lesson there remains unchanged. */
 export const CLEAN_SIGNAL_LESSON = [
@@ -20,19 +20,6 @@ export const CLEAN_SIGNAL_LESSON = [
   },
 ] as const;
 
-export const NOISE_LESSON = [
-  { title: 'Your brain is making electricity right now' },
-  {
-    title: 'Now blink — hard, a few times',
-    body: 'Every blink drops a big slow hump onto the two front sensors. That is your eyelid muscle moving, not your brain thinking, and it is the loudest thing in most student recordings.',
-  },
-  { title: 'Same brain, same sensors, five seconds apart' },
-  {
-    title: 'Close your eyes until the second chime',
-    body: 'One chime starts the ten seconds, two chimes end them. Nothing on screen needs watching in between.',
-  },
-] as const;
-
 export const EXPLORE_LESSONS = [
   {
     id: 'clean-signal',
@@ -43,5 +30,10 @@ export const EXPLORE_LESSONS = [
     id: 'noise-sources',
     title: 'Where is this noise coming from?',
     detail: '4 steps · about 2 minutes',
+  },
+  {
+    id: 'eyes-closed',
+    title: 'Eyes-closed activity',
+    detail: 'about 1 minute',
   },
 ] as const;

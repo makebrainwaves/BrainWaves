@@ -10,7 +10,7 @@ export default class EEGViewer {
   constructor(svg: SVGSVGElement, parameters: ViewerGraphParameters);
   destroy(): void;
   updateData(epoch: ViewerEpoch): void;
-  updateChannels(channels: string[]): void;
+  updateChannels(channels: string[], channelColours?: string[]): void;
   updateDomain(domain: number): void;
   zoomIn(): void;
   zoomOut(): void;

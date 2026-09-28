@@ -147,6 +147,10 @@ export default function HeadsetSetupDialog({ open, onClose, onDone }: Props) {
               onDone(device);
               close();
             }}
+            onDisconnect={() => {
+              dispatch(DeviceActions.DisconnectFromDevice());
+              close();
+            }}
             onClose={close}
           />
         </DialogPrimitive.Content>

@@ -71,6 +71,8 @@ interface Props {
   onStartSoftwareSource(): void;
   /** Leave pairing for signal preparation on Explore/Collect. */
   onDone(): void;
+  /** Connected screen: disconnect the headset. */
+  onDisconnect(): void;
   /** Closing must also cancel any pending search. */
   onClose(): void;
 }
@@ -532,6 +534,9 @@ export default function HeadsetSetup(props: Props) {
               when you run an experiment.
             </p>
             <Actions>
+              <Button variant="outline" size="lg" onClick={props.onDisconnect}>
+                Disconnect
+              </Button>
               <Button size="lg" onClick={props.onDone}>
                 Check my signal
               </Button>

@@ -14,7 +14,8 @@ export interface ViewerGraphParameters {
   channels: string[];
   plottingInterval: number;
   domain: number;
-  channelColours: string[];
+  /** Fixed trace colors, index-aligned with `channels`; absent = each epoch's quality colors. */
+  channelColours?: string[];
   annotations: PlotAnnotation[];
   snapshot: EEGSnapshot | null;
   amplitudeScale?: number;
@@ -25,12 +26,18 @@ export interface ViewerSnapshotUpdate {
   amplitudeScale?: number;
 }
 
+export interface ViewerChannelsUpdate {
+  channels: string[];
+  /** Same contract as `ViewerGraphParameters.channelColours`. */
+  channelColours?: string[];
+}
+
 export interface ViewerMessages {
   initGraph: ViewerGraphParameters;
   newData: ViewerEpoch;
   zoomIn: undefined;
   zoomOut: undefined;
-  updateChannels: string[];
+  updateChannels: ViewerChannelsUpdate;
   updateDomain: number;
   updateAnnotations: PlotAnnotation[];
   updateSnapshot: ViewerSnapshotUpdate;

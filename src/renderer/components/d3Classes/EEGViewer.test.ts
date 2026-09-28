@@ -25,7 +25,6 @@ function createGraph(overrides: Partial<ViewerGraphParameters> = {}) {
     channels: ['AF7', 'AF8'],
     plottingInterval: 250,
     domain: 5000,
-    channelColours: ['#66B0A9', '#66B0A9'],
     annotations: [],
     snapshot: null,
     ...overrides,
@@ -224,6 +223,85 @@ describe('EEGViewer time and amplitude coordinates', () => {
     const height = Number(pill.getAttribute('height'));
     expect(Number(pill.getAttribute('rx'))).toBeLessThanOrEqual(height / 2);
     expect(Number(pill.getAttribute('width'))).toBeGreaterThan(2 * height);
+  });
+
+  it('draws the end pill inside the plot box, clear of the time axis', () => {
+    const { graph, svg } = createGraph();
+    graph.updateAnnotations([
+      {
+        id: 'alpha',
+        startTime: -1000,
+        endTime: 1000,
+        label: 'eyes closed',
+        endLabel: 'eyes open',
+        tone: 'eyes-closed',
+      },
+    ]);
+    graph.updateData(
+      epoch(1000, [
+        [0, 0],
+        [0, 1],
+        [0, -1],
+        [0, 0],
+      ])
+    );
+    const end = svg.querySelector('.annotation-end-label')!;
+    const y = Number(
+      /,\s*(-?[\d.]+)\)/.exec(end.getAttribute('transform')!)![1]
+    );
+    const pillHeight = Number(
+      end.querySelector('rect')!.getAttribute('height')
+    );
+    const plotHeight = 256 - 20 - 30;
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(y + pillHeight).toBeLessThanOrEqual(plotHeight);
+  });
+
+  it('keeps fixed channel colors when epochs report quality', () => {
+    const badEpoch = {
+      ...epoch(1000, [
+        [0, 0],
+        [0, 1],
+        [0, -1],
+        [0, 0],
+      ]),
+      signalQuality: { AF7: '#ed5a5a', AF8: '#ed5a5a' },
+    };
+    const fixed = createGraph({ channelColours: ['#123456', '#abcdef'] });
+    const quality = createGraph();
+    fixed.graph.updateData(badEpoch);
+    quality.graph.updateData(badEpoch);
+    expect(fixed.svg.querySelector('#line-AF7')!.getAttribute('stroke')).toBe(
+      '#123456'
+    );
+    expect(quality.svg.querySelector('#line-AF7')!.getAttribute('stroke')).toBe(
+      '#ed5a5a'
+    );
+  });
+
+  it('applies a new amplitude scale to live data without clearing it', () => {
+    const { graph, svg } = createGraph();
+    graph.updateData(
+      epoch(1000, [
+        [0, 0],
+        [0, 10],
+        [0, -10],
+        [0, 0],
+      ])
+    );
+    const span = () => {
+      const ys = svg
+        .querySelector('#line-AF7')!
+        .getAttribute('d')!
+        .split(/[ML]/)
+        .filter(Boolean)
+        .map((point) => Number(point.split(',')[1]));
+      return Math.max(...ys) - Math.min(...ys);
+    };
+    const wide = span();
+    graph.updateSnapshot(null, 50);
+    expect(wide).toBeGreaterThan(0);
+    expect(span()).toBeCloseTo(wide * 4, 5);
   });
 
   it('slides new data in without leaving the transform to d3-interpolate', async () => {

@@ -35,6 +35,7 @@ const meta: Meta<typeof HeadsetSetup> = {
     onConnect: fn(),
     onStartSoftwareSource: fn(),
     onDone: fn(),
+    onDisconnect: fn(),
     onClose: fn(),
   },
 };

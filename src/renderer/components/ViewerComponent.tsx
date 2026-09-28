@@ -19,8 +19,10 @@ interface Props {
   windowDuration?: number;
   annotations?: PlotAnnotation[];
   snapshot?: EEGSnapshot | null;
-  /** Symmetric microvolt half-range; snapshots are centered on each channel's mean. */
+  /** Symmetric microvolt half-range, live or frozen; snapshots are centered on each channel's mean. */
   amplitudeScale?: number;
+  /** Fixed trace colors, index-aligned with `channels`; absent = quality colors. Pass a stable array. */
+  channelColors?: string[];
   /** Forward Left/Right/Escape from a focused webview guest to surrounding lesson UI. */
   onNavigate?: (action: 'left' | 'right' | 'escape') => void;
 }
@@ -31,7 +33,7 @@ function graphParameters(props: Props): ViewerGraphParameters {
     channels,
     plottingInterval: props.plottingInterval,
     domain: props.windowDuration ?? VIEWER_DEFAULTS.domain,
-    channelColours: channels.map(() => '#66B0A9'),
+    channelColours: props.channelColors,
     annotations: props.annotations ?? [],
     snapshot: props.snapshot ?? null,
     amplitudeScale: props.amplitudeScale,
@@ -96,8 +98,8 @@ export default function ViewerComponent(props: Props) {
   }, [viewerUrl]);
 
   useEffect(() => {
-    send('updateChannels', channels);
-  }, [ready, channels]);
+    send('updateChannels', { channels, channelColours: props.channelColors });
+  }, [ready, channels, props.channelColors]);
 
   useEffect(() => {
     send('updateDomain', props.windowDuration ?? VIEWER_DEFAULTS.domain);
@@ -110,9 +112,9 @@ export default function ViewerComponent(props: Props) {
   useEffect(() => {
     send('updateSnapshot', {
       snapshot: props.snapshot ?? null,
-      amplitudeScale: propsRef.current.amplitudeScale,
+      amplitudeScale: props.amplitudeScale,
     });
-  }, [ready, props.snapshot]);
+  }, [ready, props.snapshot, props.amplitudeScale]);
 
   useEffect(() => {
     if (!ready || frozen || !props.signalQualityObservable) return;

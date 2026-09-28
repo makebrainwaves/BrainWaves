@@ -11,3 +11,9 @@ export function channelColor(
 ): string {
   return interpolateRainbow(allChannels.indexOf(name) / allChannels.length);
 }
+
+/** `channelColor` for each shown channel, index-aligned with `names`. */
+export const channelColors = (
+  names: readonly string[],
+  allChannels: readonly string[]
+) => names.map((name) => channelColor(name, allChannels));
