@@ -431,3 +431,27 @@ deadlock the flip (the previous screen's `lock` frame is cancelled), so wait
 ~700 ms before each automated response. Native `showMessageBox` dialogs can be
 auto-answered by re-registering `dialog:showMessage` from that inspector
 (`process.getBuiltinModule('module').createRequire(...)('electron')`).
+
+## Prepare: `PrepareSteps` owns the built-in step chrome
+
+`DesignComponent` renders `PrepareSteps` for the four built-in studies;
+Custom and Imported keep `SecondaryNavComponent` and their authoring steps.
+The switch is `Experiment.prepare`: an experiment with a `prepare.ts` gets the
+lesson, one without authors its own. Per-experiment data lives in each
+experiment's `prepare.ts` (`responses` + `flow`, plus Faces/Houses'
+`mediaFallback`), re-exported by `PrepareSteps/fixtures.ts`, so Storybook shows
+what runs. Trial counts come from `flowFromStructure` and the experiment's real
+loops — never `params.nbTrials`, which is stale for Stroop (real 8/96) and
+Search (real 8/80). `experiments/__tests__/prepareContent.test.ts` runs each
+loop's `before:prepare` hook to check the counts, and checks the diagram's keys
+against every key the study accepts. `PreviewLabel` is the single preview
+status, used by `PreviewButtonComponent` (Custom, Imported, Collect) and
+`PrepareSteps`. Multitasking puts the same key under two rules, so response
+rows are keyed by `label`, not `key`.
+
+The running preview draws the participant screen at `zoom: 0.55` inside an
+`absolute inset-0` stage. Both halves matter: the lab.js mount sizes itself with
+`height: 100%`, which only resolves against a definite height (inside the
+`min-h-full` scroll column it fell back to content height, so the box grew and
+the page scrolled), and at the 800px column width an unzoomed screen is
+550–750px tall.

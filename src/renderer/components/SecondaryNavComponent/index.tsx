@@ -34,7 +34,6 @@ interface SettingsDropdownProps {
   enableEEGToggle?: JSX.Element;
   isEEGEnabled?: boolean;
   onEEGEnabledChange?: (enabled: boolean) => void;
-  onCustomize?: () => void;
   saveButton?: JSX.Element;
   homeRoute: string;
 }
@@ -43,7 +42,6 @@ function SettingsDropdown({
   enableEEGToggle,
   isEEGEnabled,
   onEEGEnabledChange,
-  onCustomize,
   saveButton,
   homeRoute,
 }: SettingsDropdownProps) {
@@ -131,14 +129,6 @@ function SettingsDropdown({
             )
           )}
           <DropdownMenuSeparator className="mx-1 my-2 bg-[#ececf1]" />
-          {onCustomize && (
-            <DropdownMenuItem
-              onSelect={onCustomize}
-              className="p-2.5 text-[15px]"
-            >
-              Customize this experiment
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem asChild className="p-2.5 text-[15px]">
             <NavLink to={homeRoute}>Back to Home</NavLink>
           </DropdownMenuItem>
@@ -157,9 +147,13 @@ interface Props {
   enableEEGToggle?: JSX.Element;
   isEEGEnabled?: boolean;
   onEEGEnabledChange?: (enabled: boolean) => void;
-  onCustomize?: () => void;
 }
 
+/**
+ * Tab bar with experiment settings for the Custom and Imported authoring
+ * flows (and Analyze). Built-in experiments' Prepare lesson uses
+ * `PrepareSteps` instead.
+ */
 export default function SecondaryNavComponent(props: Props) {
   const redesigned = props.isEEGEnabled !== undefined;
 
@@ -196,7 +190,6 @@ export default function SecondaryNavComponent(props: Props) {
             enableEEGToggle={props.enableEEGToggle}
             isEEGEnabled={props.isEEGEnabled}
             onEEGEnabledChange={props.onEEGEnabledChange}
-            onCustomize={props.onCustomize}
             saveButton={props.saveButton}
             homeRoute={SCREENS.HOME.route}
           />

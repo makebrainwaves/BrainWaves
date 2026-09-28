@@ -5,11 +5,13 @@ import { protocol } from './content_protocol';
 import { overview } from './content_overview';
 import { multitaskingExperimentObject as experimentObject } from './experiment';
 import icon from './icon.png';
+import { prepare } from './prepare';
 
 export default {
   icon,
   experimentObject,
   params,
+  prepare,
   text: {
     protocol,
     background,
