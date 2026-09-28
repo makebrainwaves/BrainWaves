@@ -1,4 +1,4 @@
-export type LessonId = 'clean-signal' | 'noise-sources';
+export type LessonId = 'clean-signal' | 'noise-sources' | 'eyes-closed';
 
 /** Shared with Collect's existing help; the noise lesson there remains unchanged. */
 export const CLEAN_SIGNAL_LESSON = [
@@ -43,5 +43,10 @@ export const EXPLORE_LESSONS = [
     id: 'noise-sources',
     title: 'Where is this noise coming from?',
     detail: '4 steps · about 2 minutes',
+  },
+  {
+    id: 'eyes-closed',
+    title: 'Eyes-closed activity',
+    detail: 'about 1 minute',
   },
 ] as const;

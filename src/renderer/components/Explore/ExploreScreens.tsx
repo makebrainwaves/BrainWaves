@@ -95,7 +95,7 @@ export function LessonPicker({
   return (
     <section aria-label="Lessons" className="flex flex-none flex-col gap-[8px]">
       <h2 className={cn('m-0', stepLabel)}>Learn with this signal</h2>
-      <div className="grid grid-cols-2 gap-[12px] max-[980px]:grid-cols-1">
+      <div className="grid grid-cols-3 gap-[12px] max-[980px]:grid-cols-1">
         {EXPLORE_LESSONS.map((lesson) => (
           <div
             key={lesson.id}
