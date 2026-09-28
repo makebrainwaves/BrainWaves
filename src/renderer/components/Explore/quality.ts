@@ -41,7 +41,9 @@ export const QUALITY_STATE_TONE: Record<QualityState, SIGNAL_QUALITY> = {
 export function qualityCopy(state: QualityState, sensors: SensorStatus[]) {
   if (state !== 'adjust') return QUALITY_COPY[state];
   const names = new Intl.ListFormat('en').format(
-    sensors.filter((s) => s.quality === SIGNAL_QUALITY.BAD).map((s) => s.channel)
+    sensors
+      .filter((s) => s.quality === SIGNAL_QUALITY.BAD)
+      .map((s) => s.channel)
   );
   return {
     heading: `Adjust ${names}`,

@@ -246,7 +246,9 @@ describe('EEGViewer time and amplitude coordinates', () => {
       ])
     );
     const end = svg.querySelector('.annotation-end-label')!;
-    const y = Number(/,\s*(-?[\d.]+)\)/.exec(end.getAttribute('transform')!)![1]);
+    const y = Number(
+      /,\s*(-?[\d.]+)\)/.exec(end.getAttribute('transform')!)![1]
+    );
     const pillHeight = Number(
       end.querySelector('rect')!.getAttribute('height')
     );
@@ -269,12 +271,12 @@ describe('EEGViewer time and amplitude coordinates', () => {
     const quality = createGraph();
     fixed.graph.updateData(badEpoch);
     quality.graph.updateData(badEpoch);
-    expect(
-      fixed.svg.querySelector('#line-AF7')!.getAttribute('stroke')
-    ).toBe('#123456');
-    expect(
-      quality.svg.querySelector('#line-AF7')!.getAttribute('stroke')
-    ).toBe('#ed5a5a');
+    expect(fixed.svg.querySelector('#line-AF7')!.getAttribute('stroke')).toBe(
+      '#123456'
+    );
+    expect(quality.svg.querySelector('#line-AF7')!.getAttribute('stroke')).toBe(
+      '#ed5a5a'
+    );
   });
 
   it('applies a new amplitude scale to live data without clearing it', () => {

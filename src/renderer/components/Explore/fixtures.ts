@@ -1,8 +1,5 @@
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
-import {
-  MUSE_SAMPLING_RATE,
-  SIGNAL_QUALITY,
-} from '../../constants/constants';
+import { MUSE_SAMPLING_RATE, SIGNAL_QUALITY } from '../../constants/constants';
 import type { SignalQualityData } from '../../constants/interfaces';
 import type { QualityState, SensorStatus } from './quality';
 
@@ -179,14 +176,22 @@ export const EYES_CLOSED_LIVE = makeSnapshot(EXPLORE_CHANNELS, 5000, {
  */
 export const REVIEW_SEGMENT_MS = 3000;
 export const REVIEW_SEGMENT_SCALE = 50;
-export const OPEN_SEGMENT = makeSnapshot(POSTERIOR_CHANNELS, REVIEW_SEGMENT_MS, {
-  seed: 51,
-  gain: 0.6,
-});
-export const CLOSED_SEGMENT = makeSnapshot(POSTERIOR_CHANNELS, REVIEW_SEGMENT_MS, {
-  seed: 52,
-  alphaMs: [0, REVIEW_SEGMENT_MS],
-});
+export const OPEN_SEGMENT = makeSnapshot(
+  POSTERIOR_CHANNELS,
+  REVIEW_SEGMENT_MS,
+  {
+    seed: 51,
+    gain: 0.6,
+  }
+);
+export const CLOSED_SEGMENT = makeSnapshot(
+  POSTERIOR_CHANNELS,
+  REVIEW_SEGMENT_MS,
+  {
+    seed: 52,
+    alphaMs: [0, REVIEW_SEGMENT_MS],
+  }
+);
 
 /** Measured comparison (eyes-closed ÷ before) for the result stories. */
 export const RHYTHM_INCREASE_RATIO = 2.4;

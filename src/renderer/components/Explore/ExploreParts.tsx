@@ -12,7 +12,12 @@ import {
   REVIEW_SEGMENT_SCALE,
 } from './fixtures';
 import { channelColor } from '../../utils/eeg/traceColors';
-import { QUALITY_STATE_TONE, QualityState, SensorStatus, qualityCopy } from './quality';
+import {
+  QUALITY_STATE_TONE,
+  QualityState,
+  SensorStatus,
+  qualityCopy,
+} from './quality';
 
 /** Small uppercase label for lesson step counters and section titles. */
 export const stepLabel =
@@ -115,13 +120,13 @@ export function SnapshotPlot({
   const bands = annotations
     .filter(
       (annotation) =>
-        (annotation.endTime == null || annotation.endTime >= snapshot.startTime) &&
+        (annotation.endTime == null ||
+          annotation.endTime >= snapshot.startTime) &&
         annotation.startTime <= snapshot.endTime
     )
     .map((annotation) => {
       const startX = xAt(annotation.startTime);
-      const endX =
-        annotation.endTime != null ? xAt(annotation.endTime) : plotW;
+      const endX = annotation.endTime != null ? xAt(annotation.endTime) : plotW;
       return {
         annotation,
         x: Math.max(0, Math.min(plotW, startX)),
@@ -170,138 +175,155 @@ export function SnapshotPlot({
             ))}
         {markerStyle !== 'tick' &&
           bands.map(({ annotation, x, width: bandWidth, ended }) => {
-          const style = TONE_STYLES[annotation.tone];
-          const solid = annotation.tone === 'eyes-closed';
-          const pillW = (text: string) =>
-            text.length * (PILL_FONT * 0.55) + 18;
-          const startW = pillW(annotation.label);
-          const endW = annotation.endLabel ? pillW(annotation.endLabel) : 0;
-          return (
-            <g key={annotation.id}>
-              <rect
-                x={x}
-                y={0}
-                width={bandWidth}
-                height={plotH}
-                fill={style.fill}
-              />
-              <line
-                x1={x}
-                x2={x}
-                y1={0}
-                y2={plotH}
-                stroke={style.stroke}
-                strokeWidth={solid ? 2 : 1}
-                strokeDasharray={solid ? undefined : '4 3'}
-              />
-              {ended && (
+            const style = TONE_STYLES[annotation.tone];
+            const solid = annotation.tone === 'eyes-closed';
+            const pillW = (text: string) =>
+              text.length * (PILL_FONT * 0.55) + 18;
+            const startW = pillW(annotation.label);
+            const endW = annotation.endLabel ? pillW(annotation.endLabel) : 0;
+            return (
+              <g key={annotation.id}>
+                <rect
+                  x={x}
+                  y={0}
+                  width={bandWidth}
+                  height={plotH}
+                  fill={style.fill}
+                />
                 <line
-                  x1={x + bandWidth}
-                  x2={x + bandWidth}
+                  x1={x}
+                  x2={x}
                   y1={0}
                   y2={plotH}
                   stroke={style.stroke}
                   strokeWidth={solid ? 2 : 1}
                   strokeDasharray={solid ? undefined : '4 3'}
                 />
-              )}
-              {bandWidth > 40 && (
-                <>
-                  <g
-                    transform={`translate(${Math.max(
-                      0,
-                      Math.min(plotW - startW, x + 6 - startW)
-                    )},-6)`}
-                  >
-                    <rect
-                      width={startW}
-                      height={LABEL_HEIGHT}
-                      rx={LABEL_RADIUS}
-                      fill={style.stroke}
-                    />
-                    <text
-                      x={startW / 2}
-                      y={LABEL_HEIGHT / 2}
-                      dy="0.35em"
-                      textAnchor="middle"
-                      fill={style.text}
-                      style={{ font: PILL_FONT_STACK }}
-                    >
-                      {annotation.label}
-                    </text>
-                  </g>
-                  {ended && annotation.endLabel && (
+                {ended && (
+                  <line
+                    x1={x + bandWidth}
+                    x2={x + bandWidth}
+                    y1={0}
+                    y2={plotH}
+                    stroke={style.stroke}
+                    strokeWidth={solid ? 2 : 1}
+                    strokeDasharray={solid ? undefined : '4 3'}
+                  />
+                )}
+                {bandWidth > 40 && (
+                  <>
                     <g
                       transform={`translate(${Math.max(
                         0,
-                        Math.min(plotW - endW, x + bandWidth + 6)
-                      )},${plotH - LABEL_HEIGHT - 4})`}
+                        Math.min(plotW - startW, x + 6 - startW)
+                      )},-6)`}
                     >
                       <rect
-                        width={endW}
+                        width={startW}
                         height={LABEL_HEIGHT}
                         rx={LABEL_RADIUS}
                         fill={style.stroke}
                       />
                       <text
-                        x={endW / 2}
+                        x={startW / 2}
                         y={LABEL_HEIGHT / 2}
                         dy="0.35em"
                         textAnchor="middle"
                         fill={style.text}
                         style={{ font: PILL_FONT_STACK }}
                       >
-                        {annotation.endLabel}
+                        {annotation.label}
                       </text>
                     </g>
-                  )}
-                </>
-              )}
-            </g>
-          );
-        })}
+                    {ended && annotation.endLabel && (
+                      <g
+                        transform={`translate(${Math.max(
+                          0,
+                          Math.min(plotW - endW, x + bandWidth + 6)
+                        )},${plotH - LABEL_HEIGHT - 4})`}
+                      >
+                        <rect
+                          width={endW}
+                          height={LABEL_HEIGHT}
+                          rx={LABEL_RADIUS}
+                          fill={style.stroke}
+                        />
+                        <text
+                          x={endW / 2}
+                          y={LABEL_HEIGHT / 2}
+                          dy="0.35em"
+                          textAnchor="middle"
+                          fill={style.text}
+                          style={{ font: PILL_FONT_STACK }}
+                        >
+                          {annotation.endLabel}
+                        </text>
+                      </g>
+                    )}
+                  </>
+                )}
+              </g>
+            );
+          })}
         {showAxis && (
           <>
-        <line
-          x1={0}
-          x2={plotW}
-          y1={plotH}
-          y2={plotH}
-          stroke="#bfbfbf"
-          strokeWidth={1}
-        />
-        {ticks.map((offset) => (
-          <g key={offset} transform={`translate(${xAt(snapshot.endTime + offset)},0)`}>
-            <line x1={0} x2={0} y1={plotH} y2={plotH + 6} stroke="#bfbfbf" />
-            <text
-              x={0}
-              y={plotH + 18}
-              textAnchor="middle"
-              fill="#666"
-              style={{ font: AXIS_FONT }}
-            >
-              {Math.round(offset / 1000)}s
-            </text>
-          </g>
-        ))}
-        {snapshot.channels.map((channel, i) => (
-          <g key={channel} transform={`translate(0,${i * bandH + bandH / 2})`}>
-            <line x1={-2} x2={0} y1={0} y2={0} stroke="#bfbfbf" />
-            <text
-              x={-6}
-              dy="0.32em"
-              textAnchor="end"
-              fill="#666"
-              style={{ font: AXIS_FONT }}
-            >
-              {channel}
-            </text>
-          </g>
-        ))}
+            <line
+              x1={0}
+              x2={plotW}
+              y1={plotH}
+              y2={plotH}
+              stroke="#bfbfbf"
+              strokeWidth={1}
+            />
+            {ticks.map((offset) => (
+              <g
+                key={offset}
+                transform={`translate(${xAt(snapshot.endTime + offset)},0)`}
+              >
+                <line
+                  x1={0}
+                  x2={0}
+                  y1={plotH}
+                  y2={plotH + 6}
+                  stroke="#bfbfbf"
+                />
+                <text
+                  x={0}
+                  y={plotH + 18}
+                  textAnchor="middle"
+                  fill="#666"
+                  style={{ font: AXIS_FONT }}
+                >
+                  {Math.round(offset / 1000)}s
+                </text>
+              </g>
+            ))}
+            {snapshot.channels.map((channel, i) => (
+              <g
+                key={channel}
+                transform={`translate(0,${i * bandH + bandH / 2})`}
+              >
+                <line x1={-2} x2={0} y1={0} y2={0} stroke="#bfbfbf" />
+                <text
+                  x={-6}
+                  dy="0.32em"
+                  textAnchor="end"
+                  fill="#666"
+                  style={{ font: AXIS_FONT }}
+                >
+                  {channel}
+                </text>
+              </g>
+            ))}
           </>
         )}
         <clipPath id={clipId}>
-          <rect x={0} y={-LABEL_GUTTER} width={plotW} height={plotH + 2 * LABEL_GUTTER} />
+          <rect
+            x={0}
+            y={-LABEL_GUTTER}
+            width={plotW}
+            height={plotH + 2 * LABEL_GUTTER}
+          />
         </clipPath>
       </g>
     </svg>
@@ -522,7 +544,12 @@ export function LessonStepPanel({
         >
           {backLabel}
         </Button>
-        <Button size="lg" className="flex-1" onClick={onNext} disabled={nextDisabled}>
+        <Button
+          size="lg"
+          className="flex-1"
+          onClick={onNext}
+          disabled={nextDisabled}
+        >
           {nextLabel}
         </Button>
       </div>

@@ -16,15 +16,15 @@ describe('summarizeQuality', () => {
         CHANNELS
       ).state
     ).toBe('no-signal');
-    expect(summarizeQuality(sample(OK, BAD, GREAT, DISCONNECTED), CHANNELS).state).toBe(
-      'adjust'
-    );
-    expect(summarizeQuality(sample(OK, GREAT, GREAT, DISCONNECTED), CHANNELS).state).toBe(
-      'settling'
-    );
-    expect(summarizeQuality(sample(GREAT, GREAT, GREAT, GREAT), CHANNELS).state).toBe(
-      'ready'
-    );
+    expect(
+      summarizeQuality(sample(OK, BAD, GREAT, DISCONNECTED), CHANNELS).state
+    ).toBe('adjust');
+    expect(
+      summarizeQuality(sample(OK, GREAT, GREAT, DISCONNECTED), CHANNELS).state
+    ).toBe('settling');
+    expect(
+      summarizeQuality(sample(GREAT, GREAT, GREAT, GREAT), CHANNELS).state
+    ).toBe('ready');
   });
 
   it('treats a channel missing from the epoch as disconnected', () => {

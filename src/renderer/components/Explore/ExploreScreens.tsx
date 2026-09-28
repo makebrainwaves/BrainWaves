@@ -344,16 +344,10 @@ export function BlinkLessonView({
             : BLINK_STEPS[step - 1].title
         }
         action={step > 0 ? BLINK_STEPS[step - 1].action : undefined}
-        body={
-          step === 0 ? <NoiseDefinitionCard /> : BLINK_STEPS[step - 1].body
-        }
+        body={step === 0 ? <NoiseDefinitionCard /> : BLINK_STEPS[step - 1].body}
         backLabel={step === 0 ? 'Exit' : 'Back'}
         nextLabel={
-          step === 0
-            ? 'Start the steps'
-            : step === 4
-              ? 'Finish lesson'
-              : 'Next'
+          step === 0 ? 'Start the steps' : step === 4 ? 'Finish lesson' : 'Next'
         }
         onBack={step === 0 ? onExit : onBack}
         onNext={onNext}
@@ -520,17 +514,15 @@ export function EyesClosedView({
               : undefined
         }
         body={
-          phase === 'intro' ? (
-            EYES_INTRO_BODY
-          ) : phase === 'countdown' ? (
-            'Close your eyes when you hear the single chime.'
-          ) : phase === 'interval' ? (
-            EYES_INTERVAL_BODY
-          ) : phase === 'end' ? (
-            EYES_END_BODY
-          ) : (
-            resultBody
-          )
+          phase === 'intro'
+            ? EYES_INTRO_BODY
+            : phase === 'countdown'
+              ? 'Close your eyes when you hear the single chime.'
+              : phase === 'interval'
+                ? EYES_INTERVAL_BODY
+                : phase === 'end'
+                  ? EYES_END_BODY
+                  : resultBody
         }
         nextLabel={
           {
@@ -571,7 +563,10 @@ export function EyesClosedView({
       </LessonStepPanel>
       <div className="relative flex min-w-0 flex-1 flex-col gap-[12px]">
         {phase === 'review' ? (
-          <PlotCard paused caption="your eyes-closed interval, paused · same scale">
+          <PlotCard
+            paused
+            caption="your eyes-closed interval, paused · same scale"
+          >
             {segments ? (
               <SegmentComparison
                 open={segments.open}
