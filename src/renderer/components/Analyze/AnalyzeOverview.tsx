@@ -9,9 +9,9 @@ import {
   PlotFigure,
   RailSection,
   ResultStatus,
-  railLabel,
 } from './AnalyzeParts';
-import type { DatasetOption, EpochInfoRow } from './fixtures';
+import type { EpochInfoRow } from '../../actions';
+import type { DatasetOption } from './fixtures';
 
 export interface AnalyzeOverviewProps {
   /** Result of loading the selected datasets and plotting PSD + topography. */
@@ -25,8 +25,6 @@ export interface AnalyzeOverviewProps {
   epochsInfo: EpochInfoRow[];
   psdPlot: { [key: string]: string } | null;
   topoPlot: { [key: string]: string } | null;
-  /** `rail` (controls left) or `plotsFirst` (plots on top, datasets strip below). */
-  arrangement?: 'rail' | 'plotsFirst';
   onDatasetChange(values: string[]): void;
   onRetry(): void;
   onGoToClean(): void;
@@ -36,23 +34,15 @@ export interface AnalyzeOverviewProps {
 function IncludedSummary({
   selectedDatasets,
   epochsInfo,
-  inline,
 }: {
   selectedDatasets: string[];
   epochsInfo: EpochInfoRow[];
-  inline?: boolean;
 }) {
   const participants = getSubjectNamesFromFiles(selectedDatasets);
   const conditions = epochsInfo.filter((row) => !EPOCH_TOTAL_ROWS[row.name]);
   const dropped = epochsInfo.find((row) => row.name === 'Drop Percentage');
   return (
-    <div
-      className={
-        inline
-          ? 'flex flex-wrap items-center gap-x-[18px] gap-y-[4px] text-[14px] text-ink'
-          : 'flex flex-col gap-[6px] text-[14px] text-ink'
-      }
-    >
+    <div className="flex flex-col gap-[6px] text-[14px] text-ink">
       <span>
         {participants.length} participant
         {participants.length === 1 ? '' : 's'}: {participants.join(', ')}
@@ -89,7 +79,6 @@ export default function AnalyzeOverview({
   epochsInfo,
   psdPlot,
   topoPlot,
-  arrangement = 'rail',
   onDatasetChange,
   onRetry,
   onGoToClean,
@@ -140,39 +129,6 @@ export default function AnalyzeOverview({
         )}
       </div>
     );
-
-  if (arrangement === 'plotsFirst') {
-    return (
-      <div className="flex h-full min-h-0 flex-col gap-[14px] px-[24px] py-[20px]">
-        <h1 className="sr-only">Overview</h1>
-        {results}
-        <aside
-          aria-label="Analysis controls"
-          className="flex flex-none items-center gap-[24px] rounded-lg border border-gray-200 bg-white px-[16px] py-[12px]"
-        >
-          <div className="flex flex-none flex-col gap-[6px]">
-            <h2 className={`m-0 ${railLabel}`}>Cleaned recordings</h2>
-            <DatasetChecklist
-              inline
-              options={eegDatasets}
-              selected={selectedDatasets}
-              onChange={onDatasetChange}
-            />
-          </div>
-          {selectedDatasets.length > 0 && status === 'results' && (
-            <div className="flex min-w-0 flex-col gap-[6px] border-l border-gray-200 pl-[24px]">
-              <h2 className={`m-0 ${railLabel}`}>Included</h2>
-              <IncludedSummary
-                inline
-                selectedDatasets={selectedDatasets}
-                epochsInfo={epochsInfo}
-              />
-            </div>
-          )}
-        </aside>
-      </div>
-    );
-  }
 
   return (
     <AnalyzeLayout

@@ -88,6 +88,8 @@ const rootState = (title: string): RootState =>
       topoPlot: null,
       erpPlot: null,
       epochArrays: null,
+      cleanedEpochArrays: null,
+      failedPlots: [],
       suggestedRejections: [],
       worker: null,
       isWorkerReady: false,

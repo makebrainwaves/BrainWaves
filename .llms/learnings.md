@@ -432,6 +432,22 @@ deadlock the flip (the previous screen's `lock` frame is cancelled), so wait
 auto-answered by re-registering `dialog:showMessage` from that inspector
 (`process.getBuiltinModule('module').createRequire(...)('electron')`).
 
+## Playtesting from a git worktree: Pyodide runtime, orphaned Electron, native dialogs
+
+- `src/renderer/utils/webworker/src` (Pyodide + MNE wheels) is gitignored, so a
+  fresh `.worktrees/<branch>` has none: every `pyodide://` fetch logs
+  `net::ERR_FILE_NOT_FOUND` in the main log and Clean sits on "Loading your
+  epochs…" forever with no renderer error. Symlink the main checkout's copy
+  (same `InstallPyodide.mjs`/`InstallMNE.mjs`) or run `npm run install-pyodide`.
+- SIGTERM to the `npm run dev` process group does not reliably stop Electron:
+  its main process re-parents to launchd and keeps the CDP port. Kill it by
+  `--remote-debugging-port=<port>` after stopping the group.
+- `fs:storeAggregatedBehaviorData` opens a native save sheet that CDP cannot
+  click. Launch with `npm run dev -- --inspect=<port>` and stub
+  `dialog.showSaveDialog` over the main-process inspector to drive Export.
+- Browser-tool clicks can leave `:hover` styles stuck on clicked tabs in
+  screenshots; `element.click()` via `evaluate` avoids it.
+
 ## Prepare: `PrepareSteps` owns the built-in step chrome
 
 `DesignComponent` renders `PrepareSteps` for the four built-in studies;

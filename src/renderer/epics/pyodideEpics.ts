@@ -1,6 +1,14 @@
 import { combineEpics, Epic } from 'redux-observable';
 import { EMPTY, from, fromEvent, Observable, of } from 'rxjs';
-import { map, mergeMap, tap, pluck, filter, catchError } from 'rxjs/operators';
+import {
+  map,
+  mergeMap,
+  switchMap,
+  tap,
+  pluck,
+  filter,
+  catchError,
+} from 'rxjs/operators';
 import { toast } from 'react-toastify';
 import { isActionOf } from '../utils/redux';
 import {
@@ -94,7 +102,9 @@ const pyodideMessageEpic: Epic<
       const { results, error, plotKey, dataKey } = e.data;
       if (error) {
         toast.error(`Pyodide: ${error}`);
-        return EMPTY;
+        return plotKey === 'psd' || plotKey === 'topo' || plotKey === 'erp'
+          ? of(PyodideActions.PlotFailed(plotKey))
+          : EMPTY;
       }
 
       // Route data results (tagged with dataKey, not plotKey). These come back
@@ -116,6 +126,14 @@ const pyodideMessageEpic: Epic<
       if (dataKey === 'epochArrays') {
         return of(
           PyodideActions.SetEpochArrays({
+            buffer: e.data.buffer as ArrayBuffer,
+            meta: results as EpochArraysMeta,
+          })
+        );
+      }
+      if (dataKey === 'cleanedEpochArrays') {
+        return of(
+          PyodideActions.SetCleanedEpochArrays({
             buffer: e.data.buffer as ArrayBuffer,
             meta: results as EpochArraysMeta,
           })
@@ -203,6 +221,13 @@ const loadEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
     mergeMap(() => EMPTY)
   );
 
+/**
+ * Stages the selected cleaned `.fif` files in Pyodide's MEMFS, loads them, and
+ * requests Analyze's plots and cleaned epoch arrays. A newer selection cancels a
+ * staging that has not posted yet.
+ * ponytail: replies already posted still land first (worker FIFO) and briefly
+ * show the previous selection until the new replies overwrite them.
+ */
 const loadCleanedEpochsEpic: Epic<
   PyodideActionType,
   PyodideActionType,
@@ -211,12 +236,19 @@ const loadCleanedEpochsEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.LoadCleanedEpochs)),
     pluck('payload'),
-    filter((filePathsArray) => filePathsArray.length >= 1),
-    mergeMap(async (epochsArray) => {
-      // .fif epochs live on the host OS; stage them in Pyodide's MEMFS first
-      // (the WASM filesystem can't reach host paths).
-      const { memfsPaths, fsFiles } = await writeEpochsToMemfs(epochsArray);
-      loadCleanedEpochs(state$.value.pyodide.worker!, memfsPaths, fsFiles);
+    switchMap((filePathsArray) =>
+      filePathsArray.length >= 1
+        ? from(writeEpochsToMemfs(filePathsArray))
+        : EMPTY
+    ),
+    tap(({ memfsPaths, fsFiles }) => {
+      const worker = state$.value.pyodide.worker!;
+      loadCleanedEpochs(worker, memfsPaths, fsFiles);
+      requestEpochArrays(
+        worker,
+        PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS,
+        'cleanedEpochArrays'
+      );
     }),
     mergeMap(() =>
       of(

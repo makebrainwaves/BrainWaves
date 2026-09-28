@@ -12,6 +12,12 @@ export interface EpochArraysMeta {
   event_codes: number[];
 }
 
+/** One `get_epochs_info` row as pyodideMessageEpic flattens it, e.g. `{ name: 'Face', value: 40 }`. */
+export interface EpochInfoRow {
+  name: string;
+  value: number | string;
+}
+
 // Auto-flag: a single artifact suggestion returned by Python's
 // suggest_rejections(epochs, threshold_uv) — one epoch/channel over threshold.
 export interface SuggestedRejection {
@@ -46,14 +52,23 @@ export const PyodideActions = {
     'GET_EPOCHS_INFO'
   ),
   GetChannelInfo: createAction('GET_CHANNEL_INFO'),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  SetEpochInfo: createAction<any, 'SET_EPOCH_INFO'>('SET_EPOCH_INFO'), // Pyodide WASM runtime result — shape is dynamic
+  SetEpochInfo: createAction<EpochInfoRow[], 'SET_EPOCH_INFO'>(
+    'SET_EPOCH_INFO'
+  ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetChannelInfo: createAction<any, 'SET_CHANNEL_INFO'>('SET_CHANNEL_INFO'), // Pyodide WASM runtime result — shape is dynamic
   SetEpochArrays: createAction<
     { buffer: ArrayBuffer; meta: EpochArraysMeta },
     'SET_EPOCH_ARRAYS'
   >('SET_EPOCH_ARRAYS'),
+  SetCleanedEpochArrays: createAction<
+    { buffer: ArrayBuffer; meta: EpochArraysMeta },
+    'SET_CLEANED_EPOCH_ARRAYS'
+  >('SET_CLEANED_EPOCH_ARRAYS'),
+  // A worker plot request raised in Python; the key is the plot that failed.
+  PlotFailed: createAction<'psd' | 'topo' | 'erp', 'PLOT_FAILED'>(
+    'PLOT_FAILED'
+  ),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SetPSDPlot: createAction<any, 'SET_PSD_PLOT'>('SET_PSD_PLOT'), // Pyodide WASM runtime result — shape is dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

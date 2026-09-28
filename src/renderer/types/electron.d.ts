@@ -72,7 +72,7 @@ declare global {
     storeAggregatedBehaviorData: (
       data: unknown,
       title: string
-    ) => Promise<void>;
+    ) => Promise<boolean>;
     recordingExists: (
       title: string,
       subject: string,

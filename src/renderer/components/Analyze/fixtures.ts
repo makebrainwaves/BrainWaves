@@ -1,5 +1,5 @@
 import type { Data as PlotlyData } from 'plotly.js';
-import type { EpochArraysMeta } from '../../actions';
+import type { EpochArraysMeta, EpochInfoRow } from '../../actions';
 import { cssColorForIndex } from '../../utils/eeg/conditionPalette';
 import { epochChannelSeries, meanTrace } from '../CleanComponent/epochArrays';
 
@@ -8,12 +8,6 @@ export interface DatasetOption {
   key: string;
   text: string;
   value: string;
-}
-
-/** One row of Python `get_epochs_info`: `{ name, value }` after the reducer flattens it. */
-export interface EpochInfoRow {
-  name: string;
-  value: number | string;
 }
 
 /** `aggregateDataForPlot`'s return shape. */
