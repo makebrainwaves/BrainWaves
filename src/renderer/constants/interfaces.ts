@@ -4,6 +4,7 @@
 
 import { ChildProcess } from 'child_process';
 import { EVENTS, EXPERIMENTS, SIGNAL_QUALITY } from './constants';
+import type { PrepareFixture } from '../components/PrepareSteps/PrepareSteps';
 
 // --------------------------------------------------------------------
 // Experiment
@@ -133,14 +134,6 @@ interface BackgroundText {
 interface ProtocolText {
   title: string;
   protocol: string;
-  condition_first_img: string; // image URL from Vite import
-  condition_first_title: string;
-  condition_first: string;
-  condition_second_img: string; // image URL from Vite import
-  condition_second_title: string;
-  condition_second: string;
-  condition_first_key?: string;
-  condition_second_key?: string;
   /**
    * Pre-run pacing coaching. Only set where the protocol allows it: reaction
    * time is an analysed outcome in several experiments.
@@ -158,6 +151,8 @@ export interface Experiment {
     overview: OverviewText;
     protocol: ProtocolText;
   };
+  /** Built-ins only: what the Prepare lesson shows (keys, trial timeline). Custom and Imported author their own. */
+  prepare?: PrepareFixture;
 }
 
 // --------------------------------------------------------------------

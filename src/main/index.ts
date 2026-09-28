@@ -246,12 +246,10 @@ ipcMain.handle('fs:readWorkspaceRawEEGData', (_event, title) => {
     const files = fs.readdirSync(getWorkspaceDir(title), {
       recursive: true,
     }) as string[];
-    return files
-      .filter(isRawEEGFile)
-      .map((filepath) => {
-        const fullPath = path.join(getWorkspaceDir(title), filepath);
-        return { name: path.basename(filepath), path: fullPath };
-      });
+    return files.filter(isRawEEGFile).map((filepath) => {
+      const fullPath = path.join(getWorkspaceDir(title), filepath);
+      return { name: path.basename(filepath), path: fullPath };
+    });
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
@@ -298,12 +296,10 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
     const files = fs.readdirSync(getWorkspaceDir(title), {
       recursive: true,
     }) as string[];
-    return files
-      .filter(isBehaviorFile)
-      .map((filepath) => {
-        const fullPath = path.join(getWorkspaceDir(title), filepath);
-        return { name: path.basename(filepath), path: fullPath };
-      });
+    return files.filter(isBehaviorFile).map((filepath) => {
+      const fullPath = path.join(getWorkspaceDir(title), filepath);
+      return { name: path.basename(filepath), path: fullPath };
+    });
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') console.log(e);
     return [];
@@ -454,6 +450,7 @@ ipcMain.handle('fs:readBehaviorData', (_event, files: string[]) => {
   }
 });
 
+/** Resolves true once the CSV is written, false when the save dialog is cancelled. */
 ipcMain.handle(
   'fs:storeAggregatedBehaviorData',
   async (_event, data, title) => {
@@ -463,17 +460,15 @@ ipcMain.handle(
       title: 'Select a folder to save the data',
       defaultPath: path.join(getWorkspaceDir(title), 'Data', 'aggregated.csv'),
     });
-    if (!result.canceled && result.filePath) {
-      fs.writeFileSync(result.filePath, csv);
-    }
+    if (result.canceled || !result.filePath) return false;
+    fs.writeFileSync(result.filePath, csv);
+    return true;
   }
 );
 
 /** True when any artifact of a subject/group/session run is on disk, including ended-early ones. */
-ipcMain.handle(
-  'fs:recordingExists',
-  (_event, title, subject, group, session) =>
-    recordingExists(getWorkspaceDir(title), subject, group, session)
+ipcMain.handle('fs:recordingExists', (_event, title, subject, group, session) =>
+  recordingExists(getWorkspaceDir(title), subject, group, session)
 );
 
 /** Hides an ended-early run from Clean, Analyze and badges; the files stay on disk. */

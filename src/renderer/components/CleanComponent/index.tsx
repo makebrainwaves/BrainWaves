@@ -19,6 +19,7 @@ import {
   PyodideActions,
   ExperimentActions,
   EpochArraysMeta,
+  EpochInfoRow,
   SuggestedRejection,
 } from '../../actions';
 
@@ -30,6 +31,7 @@ const codeToLabelFor = memoize(
 
 export interface Props {
   title: string;
+
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
   PyodideActions: typeof PyodideActions;
   ExperimentActions: typeof ExperimentActions;

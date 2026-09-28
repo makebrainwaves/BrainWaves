@@ -1,5 +1,7 @@
+import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Analyze from '../components/AnalyzeComponent';
 import { PyodideActions, ExperimentActions } from '../actions';
 import { RootState } from '../store';
@@ -7,13 +9,9 @@ import { RootState } from '../store';
 function mapStateToProps(state: RootState) {
   return {
     title: state.experiment.title,
-    type: state.experiment.type,
-    deviceType: state.device.deviceType,
     isEEGEnabled: state.experiment.isEEGEnabled,
+    params: state.experiment.params,
     ...state.pyodide,
-    psdPlot: state.pyodide.psdPlot ?? {},
-    topoPlot: state.pyodide.topoPlot ?? {},
-    erpPlot: state.pyodide.erpPlot ?? {},
   };
 }
 
@@ -24,4 +22,9 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Analyze);
+const ConnectedAnalyze = connect(mapStateToProps, mapDispatchToProps)(Analyze);
+
+export default function AnalyzeContainer(props: Record<string, unknown>) {
+  const navigate = useNavigate();
+  return React.createElement(ConnectedAnalyze, { ...props, navigate });
+}

@@ -129,12 +129,17 @@ export const requestChannelInfo = (worker: Worker) => {
 
 // Fetch epoch data arrays for the interactive reviewer. get_epochs_arrays writes
 // a float32 buffer to a MEMFS path and returns metadata; the worker reads the
-// buffer back (readFileAfter) and posts it zero-copy on dataKey 'epochArrays'.
-export const requestEpochArrays = (worker: Worker, variableName: string) => {
+// buffer back (readFileAfter) and posts it zero-copy on `dataKey` ('epochArrays'
+// for Clean's raw epochs, 'cleanedEpochArrays' for Analyze).
+export const requestEpochArrays = (
+  worker: Worker,
+  variableName: string,
+  dataKey = 'epochArrays'
+) => {
   const outPath = '/tmp/epoch_arrays.f32';
   worker.postMessage({
     data: `get_epochs_arrays(${variableName}, "${outPath}")`,
-    dataKey: 'epochArrays',
+    dataKey,
     readFileAfter: outPath,
   });
 };
@@ -178,7 +183,8 @@ export const plotPSD = async (worker: Worker) => {
     data: [
       'import io',
       '_data = clean_epochs if "clean_epochs" in globals() else raw',
-      '_fig = _data.compute_psd(fmin=1, fmax=30).plot(show=False)',
+      '_fig, _ax = plt.subplots(figsize=(5.5, 5.5))',
+      '_data.compute_psd(fmin=1, fmax=30).plot(axes=_ax, show=False)',
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',

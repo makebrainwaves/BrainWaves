@@ -25,7 +25,7 @@ Outbound (JS → worker): `worker.postMessage({ data: "<python>", plotKey?, csvA
 Inbound (worker → JS, on the `message` event): `{ results, plotKey, error }`. `pyodideMessageEpic` switches on `plotKey`:
 - `'ready'` → `SetWorkerReady`
 - `'topo' | 'psd' | 'erp'` → `Set*Plot` with `results` (an SVG string) wrapped as a MIME bundle
-- `error` set → toast, response dropped
+- `error` set → toast; when `plotKey` is `'psd' | 'topo' | 'erp'` it also dispatches `PlotFailed(plotKey)` (Analyze shows its error state); otherwise dropped
 - else → response dropped (unknown keys are ignored)
 
 ## Adding an analysis step

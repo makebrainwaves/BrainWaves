@@ -14,7 +14,7 @@ import {
   railLabel,
 } from './AnalyzeParts';
 import ErpTraceChart, { CONDITION_DASH, ErpChartStep } from './ErpTraceChart';
-import type { EpochInfoRow } from './fixtures';
+import type { EpochInfoRow } from '../../actions';
 
 /** 0 shows the MNE ERP plot; 1–4 are walkthrough steps drawn from the epoch arrays. */
 export type ErpWalkthroughStep = 0 | ErpChartStep;
@@ -118,7 +118,10 @@ function WalkthroughStrip({
       aria-label="Reading an ERP"
       className="flex h-[148px] flex-none gap-[24px] rounded-lg border border-gray-200 bg-white px-[20px] py-[14px]"
     >
-      <div key={step} className="explore-step-copy flex min-w-0 flex-1 flex-col gap-[6px]">
+      <div
+        key={step}
+        className="explore-step-copy flex min-w-0 flex-1 flex-col gap-[6px]"
+      >
         <div className="flex items-center gap-[12px]">
           <span className={railLabel} role="status">
             Reading an ERP{step > 0 && ` · Step ${step} of 4`}

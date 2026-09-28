@@ -5,11 +5,13 @@ import { protocol } from './content_protocol';
 import { overview } from './content_overview';
 import { searchExperimentObject } from './experiment';
 import icon from './icon.png';
+import { prepare } from './prepare';
 
 export default {
   icon,
   experimentObject: searchExperimentObject,
   params,
+  prepare,
   text: {
     protocol,
     background,

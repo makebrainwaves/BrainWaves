@@ -142,7 +142,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readBehaviorData: (files: string[]) =>
     ipcRenderer.invoke('fs:readBehaviorData', files),
 
-  storeAggregatedBehaviorData: (data: unknown, title: string): Promise<void> =>
+  storeAggregatedBehaviorData: (
+    data: unknown,
+    title: string
+  ): Promise<boolean> =>
     ipcRenderer.invoke('fs:storeAggregatedBehaviorData', data, title),
 
   recordingExists: (

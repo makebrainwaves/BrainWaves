@@ -166,7 +166,7 @@ def plot_topo(epochs, conditions, palette):
     evoked_topo = viz.plot_evoked_topo(
         evokeds, vline=None, color=palette[0:len(conditions)], show=False)
     evoked_topo.patch.set_alpha(0)
-    evoked_topo.set_size_inches(10, 8)
+    evoked_topo.set_size_inches(9, 9)
     for axis in evoked_topo.axes:
         for line in axis.lines:
             line.set_linewidth(2)
@@ -233,7 +233,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     X = epochs.get_data() * 1e6
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 3.9))
 
     for (cond_name, cond), color in zip(conditions.items(), palette):
         cond_data = X[y.isin(cond), ch_ind]
@@ -270,8 +270,6 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
 
     if title:
         fig.suptitle(title, fontsize=20)
-
-    fig.set_size_inches(10, 8)
 
     return fig, ax
 

@@ -1,6 +1,7 @@
 /* eslint-disable */
 import * as ss from 'simple-statistics';
 import path from 'pathe';
+import { cssColorForIndex } from '../eeg/conditionPalette';
 
 const isCorrectTrial = (value) =>
   value === true || value === 'true' || value === 'True';
@@ -67,7 +68,6 @@ export const aggregateDataForPlot = (
   data,
   dependentVariable,
   removeOutliers,
-  showDataPoints,
   displayMode
 ) => {
   if (!Array.isArray(data) || data.length < 1) {
@@ -79,7 +79,6 @@ export const aggregateDataForPlot = (
     }
     return filterData(result, removeOutliers);
   });
-  const colors = ['#28619E', '#3DBBDB'];
   const conditions = [
     ...new Set(processedData[0].map((row) => row.condition)),
   ].sort((a, b) => parseInt(a) - parseInt(b));
@@ -91,8 +90,6 @@ export const aggregateDataForPlot = (
         processedData,
         dependentVariable,
         conditions,
-        showDataPoints,
-        colors,
         displayMode
       );
     case 'Accuracy':
@@ -100,8 +97,6 @@ export const aggregateDataForPlot = (
         processedData,
         dependentVariable,
         conditions,
-        showDataPoints,
-        colors,
         displayMode
       );
   }
@@ -168,14 +163,7 @@ const filterData = (data, removeOutliers) => {
   return filteredData;
 };
 
-const computeRT = (
-  data,
-  dependentVariable,
-  conditions,
-  showDataPoints,
-  colors,
-  displayMode
-) => {
+const computeRT = (data, dependentVariable, conditions, displayMode) => {
   let dataToPlot = 0;
   let maxValue = 0;
   switch (displayMode) {
@@ -186,14 +174,18 @@ const computeRT = (
         const xRaw = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
         const y = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.reaction_time);
@@ -211,12 +203,7 @@ const computeRT = (
       dataToPlot['ticktext'] = tickTextX;
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + 100 : 1000;
-      return makeDataPointsGraph(
-        dataToPlot,
-        conditions,
-        colors,
-        dependentVariable
-      );
+      return makeDataPointsGraph(dataToPlot, conditions, dependentVariable);
 
     case 'errorbars':
       let maxValueSE = 0;
@@ -224,7 +211,9 @@ const computeRT = (
         const xRaw = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
@@ -232,7 +221,9 @@ const computeRT = (
         const data_condition = data.map((d) =>
           d
             .filter(
-              (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+              (r) =>
+                isResponseGiven(r.response_given) &&
+                isCorrectTrial(r.correct_response)
             )
             .filter((e) => e.condition == condition)
         );
@@ -266,21 +257,25 @@ const computeRT = (
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] =
         maxValue + maxValueSE > 1000 ? maxValue + maxValueSE + 100 : 1000;
-      return makeBarGraph(dataToPlot, conditions, colors, dependentVariable);
+      return makeBarGraph(dataToPlot, conditions, dependentVariable);
 
     case 'whiskers':
       dataToPlot = conditions.reduce((obj, condition, i) => {
         const x = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.subject);
         const y = data
           .reduce((a, b) => a.concat(b), [])
           .filter(
-            (r) => isResponseGiven(r.response_given) && isCorrectTrial(r.correct_response)
+            (r) =>
+              isResponseGiven(r.response_given) &&
+              isCorrectTrial(r.correct_response)
           )
           .filter((e) => e.condition === condition)
           .map((r) => r.reaction_time);
@@ -290,18 +285,11 @@ const computeRT = (
       }, {});
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = maxValue > 1000 ? maxValue + 100 : 1000;
-      return makeBoxPlot(dataToPlot, conditions, colors, dependentVariable);
+      return makeBoxPlot(dataToPlot, conditions, dependentVariable);
   }
 };
 
-const computeAccuracy = (
-  data,
-  dependentVariable,
-  conditions,
-  showDataPoints,
-  colors,
-  displayMode
-) => {
+const computeAccuracy = (data, dependentVariable, conditions, displayMode) => {
   let dataToPlot;
 
   switch (displayMode) {
@@ -345,12 +333,7 @@ const computeAccuracy = (
       dataToPlot['ticktext'] = tickTextX;
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = 105;
-      return makeDataPointsGraph(
-        dataToPlot,
-        conditions,
-        colors,
-        dependentVariable
-      );
+      return makeDataPointsGraph(dataToPlot, conditions, dependentVariable);
 
     case 'errorbars':
       dataToPlot = conditions.reduce((obj, condition, i) => {
@@ -398,7 +381,7 @@ const computeAccuracy = (
       }, {});
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = 105;
-      return makeBarGraph(dataToPlot, conditions, colors, dependentVariable);
+      return makeBarGraph(dataToPlot, conditions, dependentVariable);
 
     case 'whiskers':
       dataToPlot = conditions.reduce((obj, condition, i) => {
@@ -427,12 +410,12 @@ const computeAccuracy = (
       }, {});
       dataToPlot['lowerLimit'] = 0;
       dataToPlot['upperLimit'] = 105;
-      return makeBoxPlot(dataToPlot, conditions, colors, dependentVariable);
+      return makeBoxPlot(dataToPlot, conditions, dependentVariable);
   }
 };
 
 // Rendering functions
-const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
+const makeDataPointsGraph = (data, conditions, dependentVariable) => {
   let dataForCondition;
   const symbols = ['circle', 'cross', 'diamond', 'square'];
   const dataToPlot = conditions.map((condition, i) => {
@@ -443,9 +426,9 @@ const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
       name: condition,
       type: 'scatter',
       marker: {
-        color: colors[i],
+        color: cssColorForIndex(i),
         size: 7,
-        symbol: symbols[i],
+        symbol: symbols[i % symbols.length],
       },
       mode: 'markers',
     };
@@ -471,7 +454,7 @@ const makeDataPointsGraph = (data, conditions, colors, dependentVariable) => {
   };
 };
 
-const makeBarGraph = (data, conditions, colors, dependentVariable) => {
+const makeBarGraph = (data, conditions, dependentVariable) => {
   const dataToPlot = conditions.map((condition, i) => {
     const dataForCondition = data[condition];
     return {
@@ -480,7 +463,7 @@ const makeBarGraph = (data, conditions, colors, dependentVariable) => {
       name: condition,
       type: 'bar',
       marker: {
-        color: colors[i],
+        color: cssColorForIndex(i),
         size: 7,
       },
       error_y: {
@@ -509,7 +492,7 @@ const makeBarGraph = (data, conditions, colors, dependentVariable) => {
   };
 };
 
-const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
+const makeBoxPlot = (data, conditions, dependentVariable) => {
   const symbols = ['circle', 'cross', 'diamond', 'square'];
   const dataToPlot = conditions.map((condition, i) => {
     const dataForCondition = data[condition];
@@ -519,9 +502,9 @@ const makeBoxPlot = (data, conditions, colors, dependentVariable) => {
       name: condition,
       type: 'box',
       marker: {
-        color: colors[i],
+        color: cssColorForIndex(i),
         size: 7,
-        symbol: symbols[i],
+        symbol: symbols[i % symbols.length],
       },
       boxpoints: 'false',
       pointpos: 0,
