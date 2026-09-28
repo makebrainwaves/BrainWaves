@@ -8,50 +8,13 @@ import { customExperiment } from '../custom/experiment';
 import { customInstructionsScreen } from '../../utils/labjs/customStimuli';
 import { skipPracticeOnRequest } from '../../utils/labjs/functions';
 import type { ExperimentParameters } from '../../constants/interfaces';
+import { acceptedKeys, findNode, StudyNode } from './studyTree';
 
 vi.mock('lab.js', () => ({}));
 
-type Node = {
-  title?: string;
-  content?: unknown;
-  responses?: Record<string, string>;
-  hooks?: Record<string, unknown>;
-};
-
-/** Every non-Space, non-skip key any screen in the study responds to. */
-const acceptedKeys = (node: unknown, out = new Set<string>()): Set<string> => {
-  if (Array.isArray(node)) node.forEach((child) => acceptedKeys(child, out));
-  else if (node && typeof node === 'object') {
-    for (const key of Object.keys((node as Node).responses ?? {})) {
-      const match = /^key(?:press|down)\((.+)\)$/.exec(key);
-      if (match && match[1] !== 'Space' && match[1] !== 'q')
-        out.add(match[1].toLowerCase());
-    }
-    Object.values(node).forEach((child) => acceptedKeys(child, out));
-  }
-  return out;
-};
-
 /** The first screen with this title and string content. */
-const findScreen = (node: unknown, title: string): Node | undefined => {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const found = findScreen(child, title);
-      if (found) return found;
-    }
-  } else if (node && typeof node === 'object') {
-    if (
-      (node as Node).title === title &&
-      typeof (node as Node).content === 'string'
-    )
-      return node as Node;
-    for (const child of Object.values(node)) {
-      const found = findScreen(child, title);
-      if (found) return found;
-    }
-  }
-  return undefined;
-};
+const findScreen = (node: unknown, title: string): StudyNode | undefined =>
+  findNode(node, title, (screen) => typeof screen.content === 'string');
 
 /** Response keycaps on a participant screen (Space and the Q skip hint excluded). */
 const shownKeys = (html: string) =>

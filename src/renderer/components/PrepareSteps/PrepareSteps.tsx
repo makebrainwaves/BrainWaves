@@ -2,18 +2,14 @@ import React from 'react';
 import PreviewLabel from '../PreviewLabel';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
+import type { FlowPhase } from './flow';
 
 export type PrepareStepId = 'overview' | 'background' | 'protocol' | 'preview';
-
-export interface FlowPhase {
-  label: string;
-  count?: number;
-}
 
 /** One stimulus → key pair, drawn in the Protocol diagram and the Preview key legend. */
 export interface ResponseMapping {
   key: string;
-  /** What the participant is looking for, e.g. "Face" or "Red ink". */
+  /** What the participant is looking for, e.g. "Face" or "Red ink". Rule-dependent tasks fold the rule in, e.g. "Top: diamond". */
   label: string;
   /** An example stimulus: an image, or a word in colored ink (Stroop). */
   stimulus: { src: string; alt: string } | { word: string; color: string };
@@ -21,7 +17,11 @@ export interface ResponseMapping {
 
 export interface PrepareStepsProps {
   step: PrepareStepId;
-  overview: { title: string; overview: string; links: { address: string; name: string }[] };
+  overview: {
+    title: string;
+    overview: string;
+    links: { address: string; name: string }[];
+  };
   background: {
     links: { address: string; name: string }[];
     title?: string;
@@ -46,7 +46,26 @@ export interface PrepareStepsProps {
   onPreviewAgain: () => void;
   isPreviewing: boolean;
   hasPreviewed: boolean;
+  /** Workspace EEG setting; with `onEEGEnabledChange`, the action row shows an "EEG recording" switch. */
+  isEEGEnabled?: boolean;
+  onEEGEnabledChange?: (enabled: boolean) => void;
+  /** Offers "Customize": start a new Custom experiment (Design asks for its name). */
+  onCustomize?: () => void;
+  /** The live participant screen shown while previewing (Design passes `PreviewExperimentComponent`); a placeholder when absent. */
+  preview?: React.ReactNode;
 }
+
+/** One built-in experiment's Prepare content, defined in its `experiments/<name>/prepare.ts`. */
+export type PrepareFixture = Pick<
+  PrepareStepsProps,
+  | 'overview'
+  | 'background'
+  | 'protocol'
+  | 'responses'
+  | 'flow'
+  | 'icon'
+  | 'mediaFallback'
+>;
 
 /** The single centered reading column shared by the stepper, step content and action row. */
 const COLUMN = 'mx-auto w-full max-w-[800px] px-6';
@@ -127,7 +146,7 @@ function KeyLegend({ responses }: { responses: ResponseMapping[] }) {
   return (
     <ul className="m-0 flex flex-wrap items-center gap-x-5 gap-y-2 p-0">
       {responses.map(({ label, key }) => (
-        <li key={key} className="flex items-center gap-2">
+        <li key={label} className="flex items-center gap-2">
           <kbd className={KEYCAP}>{key}</kbd>
           <span className="text-[16px] text-ink">{label}</span>
         </li>
@@ -154,7 +173,7 @@ function ResponseDiagram({ responses }: { responses: ResponseMapping[] }) {
           <span className={rail}>Presses</span>
         </li>
         {responses.map(({ key, label, stimulus }) => (
-          <li key={key} className="contents">
+          <li key={label} className="contents">
             {'src' in stimulus ? (
               <img
                 src={stimulus.src}
@@ -219,7 +238,9 @@ function FlowTimeline({ phases }: { phases: FlowPhase[] }) {
               aria-hidden
               className={cn(
                 'mt-[6px] h-[12px] w-[12px] flex-none rounded-full border-2',
-                phase.count ? 'border-brand bg-brand' : 'border-ink-muted bg-white'
+                phase.count
+                  ? 'border-brand bg-brand'
+                  : 'border-ink-muted bg-white'
               )}
             />
             <span className="text-[16px] leading-[24px] text-ink">
@@ -276,7 +297,9 @@ function BackgroundView({
     <section className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <span className={EYEBROW}>BACKGROUND · 2 MIN READ</span>
-        <h1 className="m-0 [text-wrap:pretty]">{background.title ?? 'Background'}</h1>
+        <h1 className="m-0 [text-wrap:pretty]">
+          {background.title ?? 'Background'}
+        </h1>
       </header>
       <p className="experiment-design-copy m-0 !leading-snug">
         {background.first_column_statement}
@@ -298,20 +321,28 @@ function BackgroundView({
           </div>
         </div>
       )}
-      {(background.second_column_statement || background.second_column_question) && (
+      {(background.second_column_statement ||
+        background.second_column_question) && (
         <div className="flex items-center gap-4 rounded-lg border border-[#e3def7] bg-[#f4f2ff] px-4 py-3">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-[13px] font-bold tracking-[0.5px] text-[#4a3fa8]">
               FUN FACT
             </span>
             <p className="experiment-design-card-copy m-0 !leading-snug">
-              {[background.second_column_statement, background.second_column_question]
+              {[
+                background.second_column_statement,
+                background.second_column_question,
+              ]
                 .filter(Boolean)
                 .join(' ')}
             </p>
           </div>
           {background.fun_fact_image && (
-            <img src={background.fun_fact_image} alt="" className="w-[60px] flex-none" />
+            <img
+              src={background.fun_fact_image}
+              alt=""
+              className="w-[60px] flex-none"
+            />
           )}
         </div>
       )}
@@ -327,7 +358,9 @@ function BackgroundView({
               {link.name}
             </Button>
             {background.link_meta && (
-              <span className="text-[15px] text-ink-muted">{background.link_meta}</span>
+              <span className="text-[15px] text-ink-muted">
+                {background.link_meta}
+              </span>
             )}
           </div>
         ))
@@ -336,27 +369,79 @@ function BackgroundView({
   );
 }
 
-/** The video slot in Background's column, holding the local Sacks stand-in and its transcript-length text. */
-function OliverSacksFallback({ media }: { media: { caption: string; alt: string } }) {
+/** Hair shapes for the face-crowd illustration, drawn above a head centred at (0, 0). */
+const HAIR = [
+  'M-34 -4a34 34 0 0 1 68 0c-10-12-24-16-34-16s-24 4-34 16z',
+  'M-34 0a34 34 0 0 1 68 0l-6-10-10 6-8-10-10 8-10-8-8 10-10-6z',
+  'M-36 6a36 38 0 0 1 72 0c-6-20-20-26-36-26S-30-14-36 6z',
+];
+
+/**
+ * Background's local stand-in for the Oliver Sacks clip (§6.3): a flat
+ * two-tone illustration of a crowd in which one familiar face reads as blank
+ * with a "?", then the transcript-length explanation and its source.
+ */
+function OliverSacksFallback({
+  media,
+}: {
+  media: { caption: string; alt: string };
+}) {
   return (
     <section className="flex flex-col gap-3 pt-2">
       <h2 className="m-0 text-[22px] font-normal">{media.caption}</h2>
-      <div
+      <svg
         role="img"
-        aria-label={`Illustration placeholder: ${media.alt}`}
-        className="flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white"
+        aria-label={media.alt}
+        viewBox="0 0 520 150"
+        className="h-auto w-full rounded-lg border border-[#f6ead3] bg-[#fffaf0] stroke-ink text-ink"
+        strokeWidth="1.5"
       >
-        <span
-          aria-hidden
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-xl"
-        >
-          🎬
-        </span>
-        <span className="text-[15px] font-bold text-ink-muted">
-          Illustration placeholder (video slot, 16:9)
-        </span>
-        <span className="text-[14px] text-ink-muted">{media.alt}</span>
-      </div>
+        {[0, 1, 2, 3, 4].map((i) => {
+          const unknown = i === 2;
+          return (
+            <g key={i} transform={`translate(${60 + i * 100} 86)`}>
+              <path
+                d="M-46 64c0-24 20-36 46-36s46 12 46 36z"
+                className="fill-accent"
+              />
+              <circle r="34" className="fill-accent-light" />
+              <path d={HAIR[i % HAIR.length]} className="fill-accent" />
+              {unknown ? (
+                <>
+                  <path
+                    d="M-24 -78h48a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H6l-6 8-6-8h-18a10 10 0 0 1-10-10v-20a10 10 0 0 1 10-10z"
+                    className="fill-white"
+                  />
+                  <text
+                    x="0"
+                    y="-50"
+                    textAnchor="middle"
+                    className="fill-ink stroke-none text-[24px] font-bold"
+                  >
+                    ?
+                  </text>
+                </>
+              ) : (
+                <>
+                  <circle
+                    cx="-11"
+                    cy="2"
+                    r="2.5"
+                    className="fill-ink stroke-none"
+                  />
+                  <circle
+                    cx="11"
+                    cy="2"
+                    r="2.5"
+                    className="fill-ink stroke-none"
+                  />
+                  <path d="M-9 15q9 7 18 0" fill="none" />
+                </>
+              )}
+            </g>
+          );
+        })}
+      </svg>
       <p className="experiment-design-copy m-0 !leading-snug">
         Some people cannot recognize faces — even faces they have seen thousands
         of times. Neurologist Oliver Sacks described this in himself: he might
@@ -365,14 +450,14 @@ function OliverSacksFallback({ media }: { media: { caption: string; alt: string 
       </p>
       <p className="experiment-design-copy m-0 !leading-snug">
         Scientists call this condition <b>prosopagnosia</b>, from the Greek for
-        &quot;face&quot; and &quot;not knowing.&quot; It is not poor eyesight; the
-        brain&apos;s face-recognition system doesn&apos;t process faces the usual
-        way.
+        &quot;face&quot; and &quot;not knowing.&quot; It is not poor eyesight;
+        the brain&apos;s face-recognition system doesn&apos;t process faces the
+        usual way.
       </p>
       <p className="experiment-design-copy m-0 !leading-snug">
-        Sacks wrote about what this feels like, and about the idea that the brain
-        has a dedicated &quot;face area.&quot; That idea led researchers to
-        compare the brain&apos;s responses to faces and to other objects.
+        Sacks wrote about what this feels like, and about the idea that the
+        brain has a dedicated &quot;face area.&quot; That idea led researchers
+        to compare the brain&apos;s responses to faces and to other objects.
       </p>
       <p className="experiment-design-copy m-0 !leading-snug">
         <b>Source:</b> Oliver Sacks, &quot;Face-Blind&quot; (2010),{' '}
@@ -396,7 +481,9 @@ function ProtocolView({
       <header className="flex flex-col gap-1">
         <span className={EYEBROW}>PROTOCOL</span>
         <h1 className="m-0 [text-wrap:pretty]">{protocol.title}</h1>
-        <p className="experiment-design-copy m-0 !leading-snug">{protocol.protocol}</p>
+        <p className="experiment-design-copy m-0 !leading-snug">
+          {protocol.protocol}
+        </p>
       </header>
       <div className="grid grid-cols-[minmax(0,1fr)_240px] gap-4">
         <ResponseDiagram responses={responses} />
@@ -418,15 +505,30 @@ const PREVIEW_INTRO = {
   },
 };
 
-function PreviewRunningView({ responses }: { responses: ResponseMapping[] }) {
+/**
+ * The running preview fills the free height (at least 420px) and draws the
+ * participant screen at 0.55 zoom, so a screen laid out for a ~1366px-wide run
+ * area shows whole, without scrolling, in the 800px lesson column.
+ */
+function PreviewRunningView({
+  responses,
+  preview,
+}: {
+  responses: ResponseMapping[];
+  preview?: React.ReactNode;
+}) {
   return (
     <section className="flex flex-1 flex-col gap-3">
-      <div className="flex flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white p-4">
+      <div className="flex min-h-[420px] flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white p-4">
         <span className={EYEBROW}>EXPERIMENT AREA</span>
-        <div className="flex flex-1 items-center justify-center rounded-md bg-[#f9f9f9]">
-          <span className="text-[15px] text-ink-muted">
-            Participant screen would appear here
-          </span>
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-md bg-[#f9f9f9]">
+          {preview ? (
+            <div className="absolute inset-0 flex [zoom:0.55]">{preview}</div>
+          ) : (
+            <span className="absolute inset-0 m-auto h-fit w-fit text-[15px] text-ink-muted">
+              Participant screen would appear here
+            </span>
+          )}
         </div>
       </div>
       <KeyLegend responses={responses} />
@@ -469,6 +571,36 @@ function ActionBack({
     <Button size="lg" variant="outline" onClick={onClick}>
       {children}
     </Button>
+  );
+}
+
+/** The workspace's EEG recording switch: a native checkbox named "EEG recording", drawn as a toggle. */
+function EEGSwitch({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (enabled: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2 rounded-full p-1 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="sr-only"
+      />
+      <span
+        aria-hidden
+        className={cn(
+          'flex h-[22px] w-10 flex-none items-center rounded-full px-[3px]',
+          checked ? 'justify-end bg-brand' : 'justify-start bg-ink-faint'
+        )}
+      >
+        <span className="h-4 w-4 rounded-full bg-white" />
+      </span>
+      <span className="text-[14px] text-ink">EEG recording</span>
+    </label>
   );
 }
 
@@ -515,7 +647,9 @@ export default function PrepareSteps(props: PrepareStepsProps) {
               <section className="flex flex-col gap-4">
                 <header className="flex flex-col gap-1">
                   <span className={EYEBROW}>PREVIEW</span>
-                  <h1 className="m-0 [text-wrap:pretty]">{previewIntro.title}</h1>
+                  <h1 className="m-0 [text-wrap:pretty]">
+                    {previewIntro.title}
+                  </h1>
                   <p className="experiment-design-copy m-0 !leading-snug">
                     {previewIntro.body}
                   </p>
@@ -523,41 +657,81 @@ export default function PrepareSteps(props: PrepareStepsProps) {
                 <KeyLegend responses={props.responses} />
               </section>
             )}
-            {previewRunning && <PreviewRunningView responses={props.responses} />}
+            {previewRunning && (
+              <PreviewRunningView
+                responses={props.responses}
+                preview={props.preview}
+              />
+            )}
           </div>
           <StepActions>
             {step === 'overview' && (
-              <ActionNext onClick={() => onStep('background')}>Next: Background →</ActionNext>
+              <ActionNext onClick={() => onStep('background')}>
+                Next: Background →
+              </ActionNext>
             )}
             {step === 'background' && (
               <>
-                <ActionBack onClick={() => onStep('overview')}>← Back</ActionBack>
-                <ActionNext onClick={() => onStep('protocol')}>Next: Protocol →</ActionNext>
+                <ActionBack onClick={() => onStep('overview')}>
+                  ← Back
+                </ActionBack>
+                <ActionNext onClick={() => onStep('protocol')}>
+                  Next: Protocol →
+                </ActionNext>
               </>
             )}
             {step === 'protocol' && (
               <>
-                <ActionBack onClick={() => onStep('background')}>← Back</ActionBack>
-                <ActionNext onClick={() => onStep('preview')}>Try the experiment →</ActionNext>
+                <ActionBack onClick={() => onStep('background')}>
+                  ← Back
+                </ActionBack>
+                <ActionNext onClick={() => onStep('preview')}>
+                  Try the experiment →
+                </ActionNext>
               </>
             )}
             {previewStopped && (
               <>
-                <ActionBack onClick={() => onStep('protocol')}>← Back</ActionBack>
-                <ActionNext onClick={props.onPreviewStart}>Try the experiment →</ActionNext>
+                <ActionBack onClick={() => onStep('protocol')}>
+                  ← Back
+                </ActionBack>
+                <ActionNext onClick={props.onPreviewStart}>
+                  Try the experiment →
+                </ActionNext>
               </>
             )}
             {previewRunning && (
               <>
-                <ActionBack onClick={props.onPreviewStop}>Stop preview</ActionBack>
+                <ActionBack onClick={props.onPreviewStop}>
+                  Stop preview
+                </ActionBack>
                 <PreviewLabel />
               </>
             )}
             {previewFinished && (
               <>
-                <ActionBack onClick={props.onPreviewAgain}>Preview again</ActionBack>
-                <ActionNext onClick={props.onCollect}>Run &amp; record →</ActionNext>
+                <ActionBack onClick={props.onPreviewAgain}>
+                  Preview again
+                </ActionBack>
+                <ActionNext onClick={props.onCollect}>
+                  Run &amp; record →
+                </ActionNext>
               </>
+            )}
+            {(props.onEEGEnabledChange || props.onCustomize) && (
+              <div className="ml-auto flex items-center gap-2">
+                {props.onEEGEnabledChange && (
+                  <EEGSwitch
+                    checked={Boolean(props.isEEGEnabled)}
+                    onChange={props.onEEGEnabledChange}
+                  />
+                )}
+                {props.onCustomize && (
+                  <Button variant="link" onClick={props.onCustomize}>
+                    Customize
+                  </Button>
+                )}
+              </div>
             )}
           </StepActions>
         </div>
