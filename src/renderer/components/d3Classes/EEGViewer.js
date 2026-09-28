@@ -5,6 +5,9 @@ import simplify from 'simplify-js';
 
 const ZOOM_SCALAR = 1.5;
 
+/** Trace color before the first epoch reports quality. */
+const DEFAULT_COLOUR = '#66B0A9';
+
 const TONE_STYLES = {
   blink: {
     fill: 'rgba(255, 193, 7, 0.18)',
@@ -39,7 +42,10 @@ export default class EEGViewer {
     this.channels = parameters.channels;
     this.plottingInterval = parameters.plottingInterval;
     this.domain = parameters.domain;
-    this.channelColours = parameters.channelColours;
+    // Fixed colors (e.g. a lesson's stable palette) are never recolored by quality.
+    this.fixedColours = parameters.channelColours != null;
+    this.channelColours =
+      parameters.channelColours ?? this.channels.map(() => DEFAULT_COLOUR);
     this.annotations = parameters.annotations ?? [];
     this.snapshot = parameters.snapshot ?? null;
     this.amplitudeScale = parameters.amplitudeScale;
@@ -304,12 +310,13 @@ export default class EEGViewer {
         );
     }
 
-    this.channelColours = this.channels.map(
-      (channelName) =>
-        epoch.signalQuality?.[channelName] ??
-        this.channelColours[this.channels.indexOf(channelName)] ??
-        '#66B0A9'
-    );
+    if (!this.fixedColours)
+      this.channelColours = this.channels.map(
+        (channelName) =>
+          epoch.signalQuality?.[channelName] ??
+          this.channelColours[this.channels.indexOf(channelName)] ??
+          DEFAULT_COLOUR
+      );
 
     this.redraw();
     this.slideIn(this.lastTimestamp - previousLast);
@@ -351,8 +358,11 @@ export default class EEGViewer {
     return this.channels.map((name) => sourceNames.indexOf(name));
   }
 
-  updateChannels(channels) {
+  updateChannels(channels, channelColours) {
     this.channels = channels;
+    this.fixedColours = channelColours != null;
+    this.channelColours =
+      channelColours ?? this.channels.map(() => DEFAULT_COLOUR);
     this.data = new Array(this.channels.length).fill(null).map(() => []);
     this.channelMeans = new Array(this.channels.length).fill(0);
     this.init();
@@ -370,10 +380,15 @@ export default class EEGViewer {
     );
   }
 
+  /** `null` returns to live mode; an already-live viewer keeps its data and only rescales. */
   updateSnapshot(snapshot, amplitudeScale) {
     if (snapshot == null) {
-      this.snapshot = null;
       this.amplitudeScale = amplitudeScale;
+      if (this.snapshot == null) {
+        this.redraw();
+        return;
+      }
+      this.snapshot = null;
       this.resetData();
       this.init();
       return;
@@ -529,7 +544,7 @@ export default class EEGViewer {
           'end',
           band.endLabel ?? '',
           band.x + band.width + 6,
-          this.height + 6,
+          this.height - LABEL_HEIGHT - 4,
           style
         );
     }

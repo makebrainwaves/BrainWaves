@@ -37,7 +37,9 @@ const unsubscribe = [
   api.onNewData((epoch) => graph?.updateData(epoch)),
   api.onZoomIn(() => graph?.zoomIn()),
   api.onZoomOut(() => graph?.zoomOut()),
-  api.onUpdateChannels((channels) => graph?.updateChannels(channels)),
+  api.onUpdateChannels(({ channels, channelColours }) =>
+    graph?.updateChannels(channels, channelColours)
+  ),
   api.onUpdateDomain((domain) => graph?.updateDomain(domain)),
   api.onUpdateAnnotations((annotations) =>
     graph?.updateAnnotations(annotations)
