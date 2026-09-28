@@ -6,100 +6,58 @@ User flow through the BrainWaves Electron app. If this disagrees with the runnin
 
 ```mermaid
 flowchart TD
-    HOME["HOME"]
-    HOME --> MY_EXP["MY EXPERIMENTS\n(saved workspaces)"]
-    HOME --> EXP_BANK["EXPERIMENT BANK\n(4 built-in cards)"]
-    HOME --> EXPLORE["EXPLORE EEG DATA\n(raw streaming)"]
+    HOME["HOME  /\n(Continue your work · Start Faces/Houses · Explore EEG)"]
+    HOME -->|"Browse all experiments →"| BANK["EXPERIMENT BANK  /home"]
+    HOME -->|"Open live view"| EXPLORE
+    HOME -->|"Continue / Start"| PREPARE
+    BANK -->|"Pick a card, name the workspace"| PREPARE
 
-    MY_EXP -->|"Open Experiment"| DESIGN
-    EXP_BANK -->|"Pick card → Design"| DESIGN
-
-    EXPLORE --> CONNECT_MODAL_EXP["Headset setup\n(Muse / Neurosity / LSL)"]
-    CONNECT_MODAL_EXP --> SIGNAL_PREP_EXP["Signal prep\n(worn headsets)"]
-    SIGNAL_PREP_EXP --> EEG_EXPLORE["Live EEG Viewer\n(signal quality + waveform)"]
-
-    subgraph DESIGN ["DESIGN  /design"]
+    subgraph EXPLORE ["EXPLORE  /explore (no workspace, nothing recorded)"]
         direction TB
-        D_OV["OVERVIEW"]
-        D_BG["BACKGROUND"]
-        D_PR["PROTOCOL"]
-        D_PV["PREVIEW\n(lab.js)"]
-        D_OV --> D_BG --> D_PR --> D_PV
-        EEG_TOGGLE["Enable/Disable EEG"]
+        EX_SETUP["Headset setup → signal prep"]
+        EX_LIVE["Live signal + quality summary"]
+        EX_LESSONS["Lessons: cleaner signal · noise sources · eyes-closed"]
+        EX_SETUP --> EX_LIVE --> EX_LESSONS
     end
 
-    DESIGN -->|"Top nav: Collect"| COLLECT
-
-    subgraph COLLECT ["COLLECT  /collect"]
-        direction TB
-        PRE_TEST["PRE-TEST\n(signal quality + EEG viewer)"]
-        CONNECT_MODAL["Headset setup\n① pick Muse / Neurosity / LSL\n② wear + power on\n③ Find my headset → select → connect"]
-        SIGNAL_PREP["Signal prep\n(per-sensor quality, never gates)"]
-        PRE_TEST -->|"EEG enabled & not connected"| CONNECT_MODAL
-        CONNECT_MODAL -->|"Check my signal"| SIGNAL_PREP
-        SIGNAL_PREP -->|"Continue"| PRE_TEST
-        PRE_TEST -->|"Run & Record"| RUN
-        RUN["RUN\n(subject ID / group / session)"]
-        EXP_WINDOW["ExperimentWindow\n(lab.js + EEG markers)"]
-        RUN -->|"Run Experiment"| EXP_WINDOW
-        EXP_WINDOW -->|"complete"| DONE_COLLECT["Recording saved"]
+    subgraph SHELL ["Workspace shell: PREPARE → COLLECT → CLEAN → ANALYZE"]
+        direction LR
+        PREPARE["PREPARE  /design"]
+        COLLECT["COLLECT  /collect"]
+        CLEAN["CLEAN  /clean\n(EEG only)"]
+        ANALYZE["ANALYZE  /analyze"]
+        PREPARE --> COLLECT
+        COLLECT -->|"EEG"| CLEAN
+        COLLECT -->|"Behavior only"| ANALYZE
+        CLEAN -->|"Save cleaned dataset & analyze"| ANALYZE
     end
-
-    DONE_COLLECT -->|"EEG enabled\nTop nav: Clean"| CLEAN
-    DONE_COLLECT -->|"Behavior only\nTop nav: Analyze"| ANALYZE
-
-    subgraph CLEAN ["CLEAN  /clean\n(EEG only)"]
-        direction TB
-        CL_SEL["Select subject + recording(s)"]
-        CL_LOAD["Load Dataset\n(Pyodide epochs + reviewer)"]
-        CL_CLEAN["Clean Data\n(reject artifacts → .fif)"]
-        CL_SEL --> CL_LOAD --> CL_CLEAN
-    end
-
-    CLEAN -->|"Analyze Dataset"| ANALYZE
-
-    subgraph ANALYZE ["ANALYZE  /analyze"]
-        direction TB
-        AN_OV["OVERVIEW\n(topoplot)"]
-        AN_ERP["ERP"]
-        AN_BEH["BEHAVIOR"]
-        AN_EXP["Export"]
-        AN_OV --> AN_ERP --> AN_BEH --> AN_EXP
-    end
-
-    DESIGN -->|"Home"| HOME
-    COLLECT -->|"Home"| HOME
-    CLEAN -->|"Home"| HOME
-    ANALYZE -->|"Home"| HOME
 ```
+
+The shell bar shows the current area (gold underline), one recommended `NEXT →`, and truthful data badges (`N recordings`, `N cleaned`). Any area can be opened; Clean and Analyze explain what they need when there is no data. During a recorded run the bar is replaced by the RunBar (`EEG recording` / `Behavior only`, elapsed time, `End experiment early`).
 
 ## Stage Descriptions
 
-### 1. Home (`/` and `/home`)
+### 1. Home (`/`), Experiment Bank (`/home`)
 
-Three tabs:
+- **Home** — `Welcome back` (or `Welcome to BrainWaves` on first run): Continue your work (saved workspaces, newest first, with Open, Show in folder and a confirmed Delete), Start Faces/Houses (the recommended first experiment; a naming dialog suggests the next free name), and Explore EEG.
+- **Experiment Bank** — Faces/Houses (N170), Stroop, Multi-tasking, Visual Search, Custom, and imported jsPsych / lab.js studies. Built-in cards start a uniquely named workspace and open Prepare.
 
-- **My Experiments** — saved workspaces; Delete, Go to Folder, Open Experiment.
-- **Experiment Bank** — five cards: Faces/Houses (N170), Stroop, Multi-tasking, Visual Search, and **Custom**. Built-in cards start a workspace and go to Design. Custom opens a title prompt, then Design with extra authoring tabs.
-- **Explore EEG Data** — connect a headset and stream live EEG with no experiment.
+### 2. Prepare (`/design`)
 
-### 2. Design (`/design`)
+Built-in experiments show `PrepareSteps`: **Overview → Background → Protocol → Preview**, each with one forward action. Protocol shows the condition cards, keycaps and a flow diagram with the experiment's real trial counts. Preview runs the participant screens in a labelled preview box. Nothing here gates Collect.
 
-| Tab | Content |
-|---|---|
-| **Overview** | Title and experiment description |
-| **Background** | Framing questions and external reading |
-| **Protocol** | Step-by-step instructions with condition images |
-| **Preview** | Live lab.js preview |
+Settings → EEG on/off controls whether Clean appears downstream.
 
-**Enable EEG** (gear / toggle) controls whether Clean appears downstream.
-
-Custom experiments add Conditions / Trials / Parameters / Instructions. Pick 1–4 image folders and key responses; the first image of each condition is a practice trial. Runtime is the Faces/Houses lab.js template parameterized by those stimuli (`filepath` URLs). `experiments/custom/experiment.js` is kept on disk but is not the runtime (it still uses the pre-Vite `this.files[dir/filename]` lookup).
+Custom experiments keep their authoring steps (Overview, Conditions, Trials, Parameters, Instructions, Preview); imported studies show Overview, Markers and Preview. Custom: pick 1–4 image folders and key responses; the first image of each condition is a practice trial. Runtime is the Faces/Houses lab.js template parameterized by those stimuli (`filepath` URLs). `experiments/custom/experiment.js` is kept on disk but is not the runtime (it still uses the pre-Vite `this.files[dir/filename]` lookup).
 
 ### 3. Collect (`/collect`)
 
-- **Pre-Test** — headset setup opens automatically when EEG is on and nothing is connected (also from the header device chip): pick **Muse**, **Neurosity Crown**, or an **LSL stream** if liblsl loaded → wear/power-on tips → `Find my headset` (the only thing that starts a search; it runs until a headset is found, the student cancels, or one minute passes, which asks "Is your Muse turned on?") → connect → `Check my signal` → signal prep → pre-run screen with signal quality + live waveform. Muse/Neurosity are Web Bluetooth. There is no USB receiver (that was Emotiv).
-- **Run** — subject ID, group, session → full-screen lab.js. Markers go through `injectMarker()` (active BLE driver) and, when LSL is available, `sendMarker()` to the outlet. Behavioral CSV is saved on end.
+- **Pre-Test** — headset setup opens when EEG is on and nothing is connected (also from the shell's device chip, whose Connected screen offers Disconnect): pick **Muse**, **Neurosity Crown**, or an **LSL stream** if liblsl loaded → wear/power-on tips → `Find my headset` (the only thing that starts a search; it ends when a headset is found, the student cancels, or after one minute: "Is your Muse turned on?") → connect → `Check my signal` → signal prep → the pre-run screen with signal quality, the live waveform and the Ready-to-run card. Muse and Neurosity use Web Bluetooth.
+- **Run** — subject ID, group, session (a taken session is never overwritten) → SPACE to begin → BrainWaves instruction, practice and main-task screens → end screen. `End experiment early` or a held Escape ends the run with no confirm and keeps what was recorded as `*.incomplete.csv`, which Clean and Analyze leave out. Markers go through `injectMarker()` (active BLE driver) and, when LSL is available, `sendMarker()` to the outlet.
+
+### Explore (`/explore`) — no workspace
+
+Connect a headset and watch the live signal. The quality summary names the action (Ready / Settling / Adjust sensors / No signal) beside the head diagram and sensor card. Three activities: **How do I get a cleaner signal?** (3 tips), **Where is this noise coming from?** (blink steps: noise defined, blink bands, a prediction, several blinks, then paused calm-vs-blinking strips), and the **eyes-closed activity** (a countdown and chimes mark ten seconds eyes closed; the review compares paused eyes-open and eyes-closed segments). Nothing is recorded.
 
 ### 4. Clean (`/clean`) — EEG only
 
