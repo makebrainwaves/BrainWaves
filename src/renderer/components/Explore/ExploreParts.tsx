@@ -9,12 +9,10 @@ import {
   NOISE_DEFINITION,
   NOISE_SETTLING_NOTE,
   OPEN_SEGMENT,
-  QUALITY_SCENARIOS,
-  QUALITY_STATE_TONE,
-  QualityState,
   REVIEW_SEGMENT_SCALE,
 } from './fixtures';
 import { channelColor } from '../../utils/eeg/traceColors';
+import { QUALITY_STATE_TONE, QualityState, SensorStatus, qualityCopy } from './quality';
 
 /** Small uppercase label for lesson step counters and section titles. */
 export const stepLabel =
@@ -45,8 +43,8 @@ const PILL_FONT = 12;
 const AXIS_FONT = '11px Lato, "Helvetica Neue", sans-serif';
 const PILL_FONT_STACK = `${PILL_FONT}px Lato, "Helvetica Neue", sans-serif`;
 
-interface FixturePlotProps {
-  /** Synthetic stand-in data; the real viewer renders this from the webview. */
+interface SnapshotPlotProps {
+  /** A frozen snapshot, or a synthetic series standing in for the live viewer in Storybook. */
   snapshot: EEGSnapshot;
   annotations?: PlotAnnotation[];
   /** Per-channel stroke colors, index-aligned with `snapshot.channels`. */
@@ -67,13 +65,14 @@ interface FixturePlotProps {
 }
 
 /**
- * Storybook stand-in for the live `<webview>` plot (`ViewerComponent` /
- * `EEGViewer`, which cannot run outside Electron). Same geometry as the real
- * viewer: 20/10/30/44 margins, channels stacked in equal bands, channel labels
- * on the left, time running left→right with a whole-second offset axis, and
- * annotation bands with pill labels. Drawn from a synthetic fixture series.
+ * Static SVG plot of one `EEGSnapshot`: the app's frozen plots (comparison
+ * strips, review segments, the example) and Storybook's stand-in for the live
+ * `<webview>` viewer (`ViewerComponent` / `EEGViewer`, Electron-only). Same
+ * geometry as the real viewer: 20/10/30/44 margins, channels stacked in equal
+ * bands, channel labels on the left, a whole-second offset axis, and
+ * annotation bands with pill labels.
  */
-export function FixturePlot({
+export function SnapshotPlot({
   snapshot,
   annotations = [],
   colors,
@@ -83,7 +82,7 @@ export function FixturePlot({
   markerStyle = 'band',
   showAxis = true,
   tight = false,
-}: FixturePlotProps) {
+}: SnapshotPlotProps) {
   const clipId = useId();
   const margin = tight ? { top: 2, right: 2, bottom: 2, left: 2 } : PLOT_MARGIN;
   const plotW = width - margin.left - margin.right;
@@ -137,7 +136,7 @@ export function FixturePlot({
       preserveAspectRatio="xMidYMid meet"
       className="h-full w-full"
       role="img"
-      aria-label="Live EEG trace, four channels stacked over time"
+      aria-label={`EEG trace, ${count} channels stacked over time`}
     >
       <g transform={`translate(${margin.left},${margin.top})`}>
         <g clipPath={`url(#${clipId})`}>
@@ -346,12 +345,15 @@ export function PlotCard({
  */
 export function QualitySummary({
   state,
+  sensors,
   className,
 }: {
   state: QualityState;
+  /** Adjust names the sensors whose quality is BAD. */
+  sensors: SensorStatus[];
   className?: string;
 }) {
-  const scenario = QUALITY_SCENARIOS[state];
+  const scenario = qualityCopy(state, sensors);
   // The card earns its place in the yellow/red states; ready stays a light row.
   const light = scenario.action === '';
   return (
@@ -418,6 +420,7 @@ export function LessonStepPanel({
   onExit,
   backLabel = 'Back',
   nextLabel = 'Next',
+  unit = 'Step',
   backDisabled,
   nextDisabled,
 }: {
@@ -426,6 +429,8 @@ export function LessonStepPanel({
   /** Current step; 0 hides the counter and pips (pre-step screens). */
   step: number;
   steps: number;
+  /** Counter noun: `Step 2 of 4`, `Tip 2 of 3`. */
+  unit?: string;
   title: string;
   /** The expected action at a glance (plan §5.2). */
   action?: string;
@@ -451,7 +456,7 @@ export function LessonStepPanel({
       <div className="flex items-center justify-between gap-[8px]">
         <span className={stepLabel} role="status">
           {label}
-          {step > 0 && ` · Step ${step} of ${steps}`}
+          {step > 0 && ` · ${unit} ${step} of ${steps}`}
         </span>
         <Button
           variant="ghost"
@@ -549,7 +554,7 @@ export function FrozenStrip({
       </div>
       <div className="flex items-center gap-[12px]">
         <div className="min-w-0 flex-1">
-          <FixturePlot
+          <SnapshotPlot
             snapshot={snapshot}
             colors={colors}
             amplitudeScale={scale}
@@ -650,7 +655,7 @@ export function SegmentComparison({
             {label} · {duration}
           </div>
           <div className="min-h-0 flex-1">
-            <FixturePlot
+            <SnapshotPlot
               snapshot={snapshot}
               colors={colors}
               amplitudeScale={scale}

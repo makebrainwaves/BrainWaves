@@ -2,6 +2,8 @@ import React from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import { MemoryRouter } from 'react-router-dom';
 import { fn } from 'storybook/test';
+import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
+import { channelColors } from '../../utils/eeg/traceColors';
 import AppShell from '../AppShell/AppShell';
 import type { DeviceState } from '../AppShell/types';
 import {
@@ -14,29 +16,51 @@ import {
   BLINK_PREDICT_ANNOTATIONS,
   BLINKING_SNAPSHOT,
   CALM_SNAPSHOT,
+  CLOSED_SEGMENT,
   COMPARISON_RATIO,
+  EXPLORE_CHANNELS,
   EYES_CLOSED_LIVE,
   LIVE_SNAPSHOT,
   NO_AF8_SENSORS,
   NO_AF8_SNAPSHOT,
   NO_SIGNAL_SNAPSHOT,
-  QUALITY_SCENARIOS,
-  QualityState,
+  OPEN_SEGMENT,
+  QUALITY_SENSORS,
   RHYTHM_INCREASE_RATIO,
   RHYTHM_NO_EFFECT_RATIO,
-  SensorStatus,
+  qualitySample,
 } from './fixtures';
+import type { QualityState, SensorStatus } from './quality';
 import {
   BlinkLessonView,
+  CleanSignalView,
   EyesClosedView,
   ExploreDisconnected,
   ExploreSurface,
 } from './ExploreScreens';
-import { ErrorBanner } from './ExploreParts';
+import { ErrorBanner, SnapshotPlot } from './ExploreParts';
 
 /** SIGNAL_QUALITY values are the trace colors, one per sensor. */
 const qualityColors = (sensors: SensorStatus[]) =>
   sensors.map((sensor) => sensor.quality);
+
+/** Stand-in for a lesson's live `ViewerComponent`, in stable channel colors. */
+const lessonPlot = (
+  snapshot: EEGSnapshot,
+  annotations?: PlotAnnotation[],
+  markerStyle?: 'band' | 'tick'
+) => (
+  <SnapshotPlot
+    snapshot={snapshot}
+    annotations={annotations}
+    colors={channelColors(snapshot.channels, EXPLORE_CHANNELS)}
+    markerStyle={markerStyle}
+    width={860}
+    height={430}
+  />
+);
+
+const REVIEW_SEGMENTS = { open: OPEN_SEGMENT, closed: CLOSED_SEGMENT };
 
 /**
  * Explore in the real AppShell with no workspace (Explore is workspace-free;
@@ -58,7 +82,21 @@ const withExploreChrome: Decorator = (Story, { parameters }) => (
 
 const meta: Meta = {
   title: 'Domain/Explore',
-  parameters: { layout: 'fullscreen' },
+  parameters: {
+    layout: 'fullscreen',
+    viewport: {
+      options: {
+        rule1366: {
+          name: 'Rule A 1366×768',
+          styles: { width: '1366px', height: '768px' },
+        },
+        rule1280: {
+          name: 'Rule A 1280×720',
+          styles: { width: '1280px', height: '720px' },
+        },
+      },
+    },
+  },
   decorators: [withExploreChrome],
 };
 export default meta;
@@ -67,12 +105,14 @@ type Story = StoryObj;
 /** The connected surface in one of the four quality states. */
 function Surface({
   state,
+  snapshot = LIVE_SNAPSHOT,
+  sensors = QUALITY_SENSORS[state === 'waiting' ? 'ready' : state],
   ...props
 }: {
   state: QualityState | 'waiting';
+  snapshot?: EEGSnapshot;
+  sensors?: SensorStatus[];
 } & Partial<React.ComponentProps<typeof ExploreSurface>>) {
-  const sensors =
-    QUALITY_SCENARIOS[state === 'waiting' ? 'ready' : state].sensors;
   const [hoveredChannel, setHoveredChannel] = React.useState<string | null>(
     null
   );
@@ -80,8 +120,15 @@ function Surface({
     <ExploreSurface
       quality={state}
       sensors={sensors}
-      snapshot={LIVE_SNAPSHOT}
-      colors={qualityColors(sensors)}
+      sample={state === 'waiting' ? null : qualitySample(sensors)}
+      livePlot={
+        <SnapshotPlot
+          snapshot={snapshot}
+          colors={qualityColors(sensors)}
+          width={760}
+          height={330}
+        />
+      }
       hoveredChannel={hoveredChannel}
       onHoveredChannelChange={setHoveredChannel}
       onStartLesson={fn()}
@@ -98,7 +145,7 @@ export const Disconnected: Story = {
 
 /** X02 — Connected, no data yet: an explicit waiting state; lessons stay disabled until signal arrives. */
 export const Waiting: Story = {
-  render: () => <Surface state="waiting" snapshot={null} />,
+  render: () => <Surface state="waiting" />,
 };
 
 /** Q01 — Ready: a light status row; the card only earns its weight in the yellow/red states. */
@@ -126,7 +173,7 @@ export const NoiseDefinition: Story = {
   render: () => (
     <BlinkLessonView
       step={0}
-      snapshot={BLINK_MANY_ALL}
+      livePlot={lessonPlot(BLINK_MANY_ALL)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -134,9 +181,38 @@ export const NoiseDefinition: Story = {
   ),
 };
 
-/** L01 — The two lessons as clear, local choices; no competing global nav. */
+/** L01 — The lessons as clear, local choices; no competing global nav. */
 export const LessonPicker: Story = {
   render: () => <Surface state="ready" />,
+};
+
+/** C01 — Cleaner-signal tips at 1366×768: the tips beside the live plot (quality colors) and head diagram. */
+export const CleanSignalTips: Story = {
+  globals: { viewport: { value: 'rule1366', isRotated: false } },
+  render: () => (
+    <CleanSignalView
+      tip={1}
+      livePlot={
+        <SnapshotPlot
+          snapshot={LIVE_SNAPSHOT}
+          colors={qualityColors(QUALITY_SENSORS.settling)}
+          width={860}
+          height={430}
+        />
+      }
+      sample={qualitySample(QUALITY_SENSORS.settling)}
+      channels={EXPLORE_CHANNELS}
+      onBack={fn()}
+      onNext={fn()}
+      onExit={fn()}
+    />
+  ),
+};
+
+/** C01b — Cleaner-signal tips at 1280×720. */
+export const CleanSignalTips720: Story = {
+  ...CleanSignalTips,
+  globals: { viewport: { value: 'rule1280', isRotated: false } },
 };
 
 /** B01 — Blink step 1/4: blink once and find the marked response on the plot. */
@@ -144,8 +220,8 @@ export const BlinkStep1: Story = {
   render: () => (
     <BlinkLessonView
       step={1}
-      snapshot={BLINK_ONE}
-      annotations={BLINK_ONE_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_ONE, BLINK_ONE_ANNOTATIONS)}
+      blinkCount={BLINK_ONE_ANNOTATIONS.length}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -158,8 +234,8 @@ export const BlinkStep2: Story = {
   render: () => (
     <BlinkLessonView
       step={2}
-      snapshot={BLINK_PREDICT}
-      annotations={BLINK_PREDICT_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_PREDICT, BLINK_PREDICT_ANNOTATIONS)}
+      blinkCount={BLINK_PREDICT_ANNOTATIONS.length}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -173,8 +249,8 @@ export const BlinkStep2PredictionAnswered: Story = {
     <BlinkLessonView
       step={2}
       defaultPrediction="hump"
-      snapshot={BLINK_PREDICT}
-      annotations={BLINK_PREDICT_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_PREDICT, BLINK_PREDICT_ANNOTATIONS)}
+      blinkCount={BLINK_PREDICT_ANNOTATIONS.length}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -187,8 +263,7 @@ export const BlinkStep3: Story = {
   render: () => (
     <BlinkLessonView
       step={3}
-      snapshot={BLINK_MANY}
-      annotations={BLINK_MANY_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_MANY, BLINK_MANY_ANNOTATIONS)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -201,7 +276,7 @@ export const BlinkStep4: Story = {
   render: () => (
     <BlinkLessonView
       step={4}
-      snapshot={BLINKING_SNAPSHOT}
+      livePlot={lessonPlot(BLINKING_SNAPSHOT)}
       comparison={{
         calm: CALM_SNAPSHOT,
         blinking: BLINKING_SNAPSHOT,
@@ -219,9 +294,8 @@ export const BlinkTickMarker: Story = {
   render: () => (
     <BlinkLessonView
       step={1}
-      markerStyle="tick"
-      snapshot={BLINK_ONE}
-      annotations={BLINK_ONE_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_ONE, BLINK_ONE_ANNOTATIONS, 'tick')}
+      blinkCount={BLINK_ONE_ANNOTATIONS.length}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -235,8 +309,8 @@ export const BlinkNotDetected: Story = {
     <BlinkLessonView
       step={2}
       notDetected
-      snapshot={BLINK_PREDICT}
-      annotations={BLINK_PREDICT_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_PREDICT, BLINK_PREDICT_ANNOTATIONS)}
+      blinkCount={BLINK_PREDICT_ANNOTATIONS.length}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -249,8 +323,7 @@ export const NoiseLessonStableColors: Story = {
   render: () => (
     <BlinkLessonView
       step={3}
-      snapshot={BLINK_MANY_ALL}
-      annotations={BLINK_MANY_ANNOTATIONS}
+      livePlot={lessonPlot(BLINK_MANY_ALL, BLINK_MANY_ANNOTATIONS)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -265,7 +338,7 @@ export const EyesClosedIntro: Story = {
       phase="intro"
       showExample
       rhythmRatio={null}
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -280,7 +353,7 @@ export const EyesClosedCountdown: Story = {
       phase="countdown"
       countdown={2}
       rhythmRatio={null}
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -294,7 +367,7 @@ export const EyesClosedInterval: Story = {
     <EyesClosedView
       phase="interval"
       rhythmRatio={null}
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -308,7 +381,7 @@ export const EyesClosedEndCue: Story = {
     <EyesClosedView
       phase="end"
       rhythmRatio={null}
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -322,7 +395,8 @@ export const EyesClosedReview: Story = {
     <EyesClosedView
       phase="review"
       rhythmRatio={RHYTHM_INCREASE_RATIO}
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
+      segments={REVIEW_SEGMENTS}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -337,7 +411,8 @@ export const AlphaResult: Story = {
       phase="review"
       rhythmRatio={RHYTHM_INCREASE_RATIO}
       showExample
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
+      segments={REVIEW_SEGMENTS}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -352,7 +427,8 @@ export const AlphaNoEffect: Story = {
       phase="review"
       rhythmRatio={RHYTHM_NO_EFFECT_RATIO}
       showExample
-      snapshot={EYES_CLOSED_LIVE}
+      livePlot={lessonPlot(EYES_CLOSED_LIVE)}
+      segments={REVIEW_SEGMENTS}
       onBack={fn()}
       onNext={fn()}
       onExit={fn()}
@@ -384,7 +460,6 @@ export const UnsupportedChannels: Story = {
       state="ready"
       sensors={NO_AF8_SENSORS}
       snapshot={NO_AF8_SNAPSHOT}
-      colors={qualityColors(NO_AF8_SENSORS)}
       banner={
         <ErrorBanner
           title="This headset is not reporting AF8."

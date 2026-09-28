@@ -1,10 +1,15 @@
 import React, { ReactNode, useMemo, useState } from 'react';
 import { of } from 'rxjs';
-import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
+import type { EEGSnapshot } from '../../../shared/eegVizTypes';
 import { PLOTTING_INTERVAL } from '../../constants/constants';
-import { EXPLORE_LESSONS } from '../../constants/exploreLessons';
+import type { SignalQualityData } from '../../constants/interfaces';
+import {
+  CLEAN_SIGNAL_LESSON,
+  EXPLORE_LESSONS,
+  LessonId,
+} from '../../constants/exploreLessons';
 import eegArt from '../../assets/common/EEG.png';
-import { channelColor } from '../../utils/eeg/traceColors';
+import { channelColors } from '../../utils/eeg/traceColors';
 import ExploreSensorCard from '../ExploreSensorCard';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import { Button } from '../ui/button';
@@ -14,24 +19,19 @@ import {
   ALPHA_RESULT_BODY,
   BLINK_NOT_DETECTED,
   BLINK_STEPS,
-  CLOSED_SEGMENT,
   EXPLORE_CHANNELS,
   EYES_END_BODY,
   EYES_INTRO_BODY,
   EYES_INTRO_OPENER,
   EYES_INTERVAL_BODY,
   EYES_PROXY_NOTE,
-  OPEN_SEGMENT,
   PLOT_LEGEND,
-  QualityState,
   REVIEW_SEGMENT_SCALE,
-  SensorStatus,
-  qualitySample,
 } from './fixtures';
+import type { QualityState, SensorStatus } from './quality';
 import {
   AlphaExampleCard,
   Countdown,
-  FixturePlot,
   FrozenStrip,
   LessonStepPanel,
   NoiseDefinitionCard,
@@ -45,9 +45,8 @@ import {
 const BODY_TEXT =
   'm-0 !text-[16px] leading-normal !tracking-normal [text-wrap:pretty]';
 
-/** Channel colors from the full device list, so down-selected views agree. */
-const colorsFor = (channels: string[]) =>
-  channels.map((channel) => channelColor(channel, EXPLORE_CHANNELS));
+const LESSON_NOTICE =
+  'rounded-md border-2 border-accent px-[12px] py-[8px] text-[14px] leading-[1.45] text-ink';
 
 /**
  * Redesigned disconnected landing: what Explore is, one primary action, and
@@ -85,13 +84,13 @@ export function ExploreDisconnected({ onConnect }: { onConnect(): void }) {
   );
 }
 
-/** The two lessons as equal, local choices; both actions stay outlined. */
+/** The lessons as equal, local choices; every action stays outlined. */
 export function LessonPicker({
   disabled,
   onStart,
 }: {
   disabled?: boolean;
-  onStart(): void;
+  onStart(id: LessonId): void;
 }) {
   return (
     <section aria-label="Lessons" className="flex flex-none flex-col gap-[8px]">
@@ -113,7 +112,7 @@ export function LessonPicker({
               className="ml-auto flex-none"
               disabled={disabled}
               aria-label={`Start ${lesson.title}`}
-              onClick={onStart}
+              onClick={() => onStart(lesson.id)}
             >
               Start
             </Button>
@@ -128,14 +127,19 @@ export interface ExploreSurfaceProps {
   /** `waiting` = connected but no data yet; the four quality states after. */
   quality: QualityState | 'waiting';
   sensors: SensorStatus[];
-  /** Null shows the explicit waiting state in the plot area. */
-  snapshot: EEGSnapshot | null;
-  /** Quality colors per channel: the main surface teaches signal quality. */
-  colors: string[];
+  /** Latest epoch for the head diagram and sensor card; null while waiting. */
+  sample: SignalQualityData | null;
+  /**
+   * The live plot, drawn in quality colors: the main surface teaches signal
+   * quality. `ViewerComponent` in the app, a `SnapshotPlot` in stories.
+   */
+  livePlot: ReactNode;
+  /** Plot caption: `device name · sampling rate Hz`. */
+  legend?: string;
   /** Shared hover state between the head diagram and the sensor card. */
   hoveredChannel: string | null;
   onHoveredChannelChange(channel: string | null): void;
-  onStartLesson(): void;
+  onStartLesson(id: LessonId): void;
   /** Above the status summary, e.g. the stream-error banner. */
   banner?: ReactNode;
 }
@@ -148,18 +152,15 @@ export interface ExploreSurfaceProps {
 export function ExploreSurface({
   quality,
   sensors,
-  snapshot,
-  colors,
+  sample,
+  livePlot,
+  legend = PLOT_LEGEND,
   hoveredChannel,
   onHoveredChannelChange,
   onStartLesson,
   banner,
 }: ExploreSurfaceProps) {
   const waiting = quality === 'waiting';
-  const sample = useMemo(
-    () => (waiting ? null : qualitySample(sensors)),
-    [waiting, sensors]
-  );
   const head = useMemo(() => (sample ? of(sample) : null), [sample]);
   return (
     <div className="flex h-full min-h-0 flex-col gap-[10px] px-[24px] py-[10px]">
@@ -181,7 +182,7 @@ export function ExploreSurface({
           </span>
         </div>
       ) : (
-        <QualitySummary state={quality} />
+        <QualitySummary state={quality} sensors={sensors} />
       )}
       <div className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[20px] max-[980px]:grid-cols-1">
         <div className="flex min-w-0 flex-col gap-[14px]">
@@ -202,23 +203,76 @@ export function ExploreSurface({
         </div>
         <div className="flex min-h-0 min-w-0 flex-col gap-[12px]">
           <PlotCard
-            caption={snapshot ? PLOT_LEGEND : 'no signal yet'}
+            caption={waiting ? 'no signal yet' : legend}
             className="min-h-[120px]"
           >
-            {snapshot ? (
-              <FixturePlot
-                snapshot={snapshot}
-                colors={colors}
-                width={760}
-                height={330}
-              />
-            ) : (
+            {waiting ? (
               <div className="flex h-full items-center justify-center text-[16px] text-ink-muted">
                 Waiting for the headset signal…
               </div>
+            ) : (
+              livePlot
             )}
           </PlotCard>
-          <LessonPicker disabled={!snapshot} onStart={onStartLesson} />
+          <LessonPicker disabled={waiting} onStart={onStartLesson} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export interface CleanSignalViewProps {
+  tip: 1 | 2 | 3;
+  /** The live plot in quality colors: this lesson is about signal quality. */
+  livePlot: ReactNode;
+  legend?: string;
+  /** Latest epoch for the head diagram; null before the first sample. */
+  sample: SignalQualityData | null;
+  channels: string[];
+  onBack(): void;
+  onNext(): void;
+  onExit(): void;
+}
+
+/**
+ * The cleaner-signal lesson: the three tips shared with Collect's lesson
+ * sidebar, in the lesson step panel, beside the live plot and head diagram.
+ */
+export function CleanSignalView({
+  tip,
+  livePlot,
+  legend = PLOT_LEGEND,
+  sample,
+  channels,
+  onBack,
+  onNext,
+  onExit,
+}: CleanSignalViewProps) {
+  const head = useMemo(() => (sample ? of(sample) : null), [sample]);
+  return (
+    <div className="flex h-full min-h-0 gap-[20px] px-[24px] py-[16px]">
+      <LessonStepPanel
+        label="How do I get a cleaner signal?"
+        unit="Tip"
+        step={tip}
+        steps={3}
+        title={CLEAN_SIGNAL_LESSON[tip].title}
+        body={CLEAN_SIGNAL_LESSON[tip].body}
+        backLabel={tip === 1 ? 'Exit' : 'Back'}
+        nextLabel={tip === 3 ? 'Finish lesson' : 'Next'}
+        onBack={tip === 1 ? onExit : onBack}
+        onNext={onNext}
+        onExit={onExit}
+      />
+      <div className="flex min-w-0 flex-1 gap-[20px]">
+        <PlotCard caption={legend}>{livePlot}</PlotCard>
+        <div className="w-[260px] flex-none">
+          <SignalQualityIndicatorComponent
+            signalQualityObservable={head}
+            plottingInterval={PLOTTING_INTERVAL}
+            height={250}
+            channels={channels}
+          />
         </div>
       </div>
     </div>
@@ -228,19 +282,24 @@ export function ExploreSurface({
 export interface BlinkLessonViewProps {
   /** 0 is the noise-definition intro; 1–4 are the blink steps (plan §5.3). */
   step: 0 | 1 | 2 | 3 | 4;
-  /** Band markers, or the detection-time tick fallback. */
-  markerStyle?: 'band' | 'tick';
   /** The lesson continues gracefully when detection misses (plan §5.3). */
   notDetected?: boolean;
   /** Pre-answered prediction, for the answered-state story. */
   defaultPrediction?: 'hump' | 'flat';
-  snapshot: EEGSnapshot;
-  annotations?: PlotAnnotation[];
+  /** The live plot, until step 4's comparison freezes. */
+  livePlot: ReactNode;
+  /** Blinks marked on the live plot, counted on steps 1–2. */
+  blinkCount?: number;
+  legend?: string;
+  /** The device's full channel list, so frozen strips keep each channel's color. */
+  deviceChannels?: string[];
   comparison?: {
     calm: EEGSnapshot;
     blinking: EEGSnapshot;
     ratio: number;
   };
+  /** Step 4's plot range as a µV half-range, for the live plot to follow. */
+  onRangeChange?(halfRange: number): void;
   onBack(): void;
   onNext(): void;
   onExit(): void;
@@ -253,19 +312,22 @@ export interface BlinkLessonViewProps {
  */
 export function BlinkLessonView({
   step,
-  markerStyle = 'band',
   notDetected,
   defaultPrediction,
-  snapshot,
-  annotations,
+  livePlot,
+  blinkCount = 0,
+  legend = PLOT_LEGEND,
+  deviceChannels = EXPLORE_CHANNELS,
   comparison,
+  onRangeChange,
   onBack,
   onNext,
   onExit,
 }: BlinkLessonViewProps) {
-  const [range, setRange] = useState<'wide' | 'narrow'>('wide');
-  const colors = colorsFor(snapshot.channels);
-  const caught = (annotations ?? []).length;
+  const [range, setRange] = useState(150);
+  const colors = comparison
+    ? channelColors(comparison.calm.channels, deviceChannels)
+    : [];
   return (
     <div className="flex h-full min-h-0 gap-[20px] px-[24px] py-[16px]">
       <LessonStepPanel
@@ -295,64 +357,62 @@ export function BlinkLessonView({
       >
         {step === 2 && <PredictionQuiz defaultAnswer={defaultPrediction} />}
         {notDetected && (
-          <div
-            role="status"
-            className="rounded-md border-2 border-accent px-[12px] py-[8px] text-[14px] leading-[1.45] text-ink"
-          >
+          <div role="status" className={LESSON_NOTICE}>
             {BLINK_NOT_DETECTED}
           </div>
         )}
       </LessonStepPanel>
       <div className="flex min-w-0 flex-1 flex-col gap-[12px]">
+        {step === 4 && (
+          <div
+            role="radiogroup"
+            aria-label="Plot range"
+            className="flex flex-none items-center gap-[10px]"
+          >
+            <span className={stepLabel}>Plot range</span>
+            {[
+              { value: 150, text: '±150 µV' },
+              { value: 50, text: '±50 µV' },
+            ].map((option) => {
+              const active = range === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => {
+                    setRange(option.value);
+                    onRangeChange?.(option.value);
+                  }}
+                  className={cn(
+                    'rounded-md border-2 px-[10px] py-[4px] text-[13px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                    active
+                      ? 'border-brand bg-brand-light text-brand'
+                      : 'border-gray-200 bg-white text-ink-muted hover:border-brand hover:text-ink'
+                  )}
+                >
+                  {option.text}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {comparison ? (
           <>
-            {step === 4 && (
-              <div
-                role="radiogroup"
-                aria-label="Plot range"
-                className="flex flex-none items-center gap-[10px]"
-              >
-                <span className={stepLabel}>Plot range</span>
-                {(
-                  [
-                    { value: 'wide', text: '±150 µV' },
-                    { value: 'narrow', text: '±50 µV' },
-                  ] as const
-                ).map((option) => {
-                  const active = range === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => setRange(option.value)}
-                      className={cn(
-                        'rounded-md border-2 px-[10px] py-[4px] text-[13px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-                        active
-                          ? 'border-brand bg-brand-light text-brand'
-                          : 'border-gray-200 bg-white text-ink-muted hover:border-brand hover:text-ink'
-                      )}
-                    >
-                      {option.text}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
             <FrozenStrip
               label="Sitting still · 5 seconds, frozen"
               sublabel="measured on AF7 · AF8"
               snapshot={comparison.calm}
               colors={colors}
-              scale={range === 'wide' ? 150 : 50}
+              scale={range}
             />
             <FrozenStrip
               label="While you were blinking · frozen"
               sublabel="same sensors, same scale"
               snapshot={comparison.blinking}
               colors={colors}
-              scale={range === 'wide' ? 150 : 50}
+              scale={range}
               blinking
               ratio={comparison.ratio}
             />
@@ -360,24 +420,17 @@ export function BlinkLessonView({
         ) : (
           <PlotCard
             caption={
-              step === 1 ? 'watching the frontal sensors (AF7, AF8)' : PLOT_LEGEND
+              step === 1 ? 'watching the frontal sensors (AF7, AF8)' : legend
             }
             aside={
               step > 0 && step < 3 ? (
                 <span role="status">
-                  {caught} {caught === 1 ? 'blink' : 'blinks'} marked
+                  {blinkCount} {blinkCount === 1 ? 'blink' : 'blinks'} marked
                 </span>
               ) : undefined
             }
           >
-            <FixturePlot
-              snapshot={snapshot}
-              annotations={annotations}
-              colors={colors}
-              markerStyle={markerStyle}
-              width={860}
-              height={430}
-            />
+            {livePlot}
           </PlotCard>
         )}
       </div>
@@ -399,7 +452,15 @@ export interface EyesClosedViewProps {
   /** Measured comparison (eyes-closed ÷ before); null = not enough data. */
   rhythmRatio: number | null;
   showExample?: boolean;
-  snapshot: EEGSnapshot;
+  /** The live plot for every phase before review. */
+  livePlot: ReactNode;
+  /** Frozen equal-length review segments; null = not enough data to show. */
+  segments?: { open: EEGSnapshot; closed: EEGSnapshot } | null;
+  legend?: string;
+  /** The device's full channel list, so the segments keep each channel's color. */
+  deviceChannels?: string[];
+  /** Why the activity could not start, shown in the step panel. */
+  error?: string;
   onBack(): void;
   onNext(): void;
   onExit(): void;
@@ -415,7 +476,11 @@ export function EyesClosedView({
   countdown = 3,
   rhythmRatio,
   showExample,
-  snapshot,
+  livePlot,
+  segments,
+  legend = PLOT_LEGEND,
+  deviceChannels = EXPLORE_CHANNELS,
+  error,
   onBack,
   onNext,
   onExit,
@@ -478,6 +543,11 @@ export function EyesClosedView({
         onNext={onNext}
         onExit={onExit}
       >
+        {error && (
+          <div role="alert" className={LESSON_NOTICE}>
+            {error}
+          </div>
+        )}
         {phase === 'intro' && showExample && <AlphaExampleCard />}
         {phase === 'review' && (
           <>
@@ -498,24 +568,25 @@ export function EyesClosedView({
       <div className="relative flex min-w-0 flex-1 flex-col gap-[12px]">
         {phase === 'review' ? (
           <PlotCard caption="from your marked interval · same scale">
-            <SegmentComparison
-              open={OPEN_SEGMENT}
-              closed={CLOSED_SEGMENT}
-              colors={colorsFor(OPEN_SEGMENT.channels)}
-              scale={REVIEW_SEGMENT_SCALE}
-            />
+            {segments ? (
+              <SegmentComparison
+                open={segments.open}
+                closed={segments.closed}
+                colors={channelColors(segments.open.channels, deviceChannels)}
+                scale={REVIEW_SEGMENT_SCALE}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-[16px] text-ink-muted">
+                Not enough continuous data to show this interval.
+              </div>
+            )}
           </PlotCard>
         ) : (
           <PlotCard
-            caption={PLOT_LEGEND}
+            caption={legend}
             className={running || phase === 'end' ? 'opacity-40' : undefined}
           >
-            <FixturePlot
-              snapshot={snapshot}
-              colors={colorsFor(snapshot.channels)}
-              width={860}
-              height={430}
-            />
+            {livePlot}
           </PlotCard>
         )}
         {(running || phase === 'end') && (

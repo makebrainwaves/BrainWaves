@@ -4,6 +4,7 @@ import {
   SIGNAL_QUALITY,
 } from '../../constants/constants';
 import type { SignalQualityData } from '../../constants/interfaces';
+import type { QualityState, SensorStatus } from './quality';
 
 /** Muse montage order, matching the live viewer's channel order. */
 export const EXPLORE_CHANNELS = ['TP9', 'AF7', 'AF8', 'TP10'];
@@ -191,11 +192,6 @@ export const CLOSED_SEGMENT = makeSnapshot(POSTERIOR_CHANNELS, REVIEW_SEGMENT_MS
 export const RHYTHM_INCREASE_RATIO = 2.4;
 export const RHYTHM_NO_EFFECT_RATIO = 0.9;
 
-export interface SensorStatus {
-  channel: string;
-  quality: SIGNAL_QUALITY;
-}
-
 /** A one-emission fixture stream for `SignalQualityIndicatorComponent`. */
 export function qualitySample(sensors: SensorStatus[]): SignalQualityData {
   return {
@@ -211,66 +207,29 @@ export function qualitySample(sensors: SensorStatus[]): SignalQualityData {
   };
 }
 
-export type QualityState = 'ready' | 'settling' | 'adjust' | 'no-signal';
-
-/**
- * Overall status above the plot (plan §5.1). The four headings are the
- * product's wording; `action` names what to do where an action exists. The
- * ready state stays light — the card mainly earns its place in the yellow and
- * red states, where it gives real instructions.
- */
-export const QUALITY_SCENARIOS: Record<
-  QualityState,
-  { heading: string; action: string; sensors: SensorStatus[] }
-> = {
-  ready: {
-    heading: 'Ready to explore',
-    action: '',
-    sensors: EXPLORE_CHANNELS.map((channel) => ({
-      channel,
-      quality: SIGNAL_QUALITY.GREAT,
-    })),
-  },
-  settling: {
-    heading: 'Sensors are still settling',
-    action:
-      'Better contact means less static. Give the sensors a few minutes to settle, and keep still.',
-    sensors: EXPLORE_CHANNELS.map((channel) => ({
-      channel,
-      quality: channel === 'TP10' ? SIGNAL_QUALITY.GREAT : SIGNAL_QUALITY.OK,
-    })),
-  },
-  adjust: {
-    heading: 'Adjust AF7 and TP10',
-    action:
-      'Press AF7 and TP10 gently against your skin — or move hair aside — and hold for 10 seconds.',
-    sensors: EXPLORE_CHANNELS.map((channel) => ({
-      channel,
-      quality:
-        channel === 'AF7' || channel === 'TP10'
-          ? SIGNAL_QUALITY.BAD
-          : channel === 'AF8'
-            ? SIGNAL_QUALITY.OK
-            : SIGNAL_QUALITY.GREAT,
-    })),
-  },
-  'no-signal': {
-    heading: 'No signal detected',
-    action:
-      'Your headset is off or disconnected. Turn it on or reconnect it, then check that the sensors touch your skin.',
-    sensors: EXPLORE_CHANNELS.map((channel) => ({
-      channel,
-      quality: SIGNAL_QUALITY.DISCONNECTED,
-    })),
-  },
-};
-
-/** Overall dot color; supporting signal only — the words carry the meaning. */
-export const QUALITY_STATE_TONE: Record<QualityState, SIGNAL_QUALITY> = {
-  ready: SIGNAL_QUALITY.GREAT,
-  settling: SIGNAL_QUALITY.OK,
-  adjust: SIGNAL_QUALITY.BAD,
-  'no-signal': SIGNAL_QUALITY.DISCONNECTED,
+/** Per-sensor quality for each overall state's story (copy lives in `quality.ts`). */
+export const QUALITY_SENSORS: Record<QualityState, SensorStatus[]> = {
+  ready: EXPLORE_CHANNELS.map((channel) => ({
+    channel,
+    quality: SIGNAL_QUALITY.GREAT,
+  })),
+  settling: EXPLORE_CHANNELS.map((channel) => ({
+    channel,
+    quality: channel === 'TP10' ? SIGNAL_QUALITY.GREAT : SIGNAL_QUALITY.OK,
+  })),
+  adjust: EXPLORE_CHANNELS.map((channel) => ({
+    channel,
+    quality:
+      channel === 'AF7' || channel === 'TP10'
+        ? SIGNAL_QUALITY.BAD
+        : channel === 'AF8'
+          ? SIGNAL_QUALITY.OK
+          : SIGNAL_QUALITY.GREAT,
+  })),
+  'no-signal': EXPLORE_CHANNELS.map((channel) => ({
+    channel,
+    quality: SIGNAL_QUALITY.DISCONNECTED,
+  })),
 };
 
 /** Plan §5.1 wording, shown before the student judges anything. */
