@@ -401,15 +401,15 @@ export function BlinkLessonView({
         {comparison ? (
           <>
             <FrozenStrip
-              label="Sitting still · 5 seconds, frozen"
-              sublabel="measured on AF7 · AF8"
+              label="Sitting still · 5 seconds"
+              sublabel="your recent signal, paused · AF7 · AF8"
               snapshot={comparison.calm}
               colors={colors}
               scale={range}
             />
             <FrozenStrip
-              label="While you were blinking · frozen"
-              sublabel="same sensors, same scale"
+              label="While you were blinking · 5 seconds"
+              sublabel="your recent signal, paused · same scale"
               snapshot={comparison.blinking}
               colors={colors}
               scale={range}
@@ -567,7 +567,7 @@ export function EyesClosedView({
       </LessonStepPanel>
       <div className="relative flex min-w-0 flex-1 flex-col gap-[12px]">
         {phase === 'review' ? (
-          <PlotCard caption="from your marked interval · same scale">
+          <PlotCard paused caption="your eyes-closed interval, paused · same scale">
             {segments ? (
               <SegmentComparison
                 open={segments.open}

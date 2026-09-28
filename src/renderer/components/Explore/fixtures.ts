@@ -263,7 +263,7 @@ export const BLINK_STEPS: {
   {
     title: 'Compare the blinking interval with a quiet interval',
     action: 'Now sit still, eyes open, for 5 seconds.',
-    body: 'One frozen five seconds while you were blinking, one while you sat still. Your brain signal is in both — the blinks just tower over it. This is why researchers ask you to hold still.',
+    body: 'Five paused seconds while you were blinking, five while you sat still. Your brain signal is in both — the blinks just tower over it. This is why researchers ask you to hold still.',
   },
 ];
 

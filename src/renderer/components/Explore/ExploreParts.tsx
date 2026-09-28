@@ -308,17 +308,22 @@ export function SnapshotPlot({
   );
 }
 
-/** A plot card: one caption line above a plot that fills the given space. */
+/**
+ * A plot card: one caption line above a plot that fills the given space. The
+ * dot marks a live plot; a `paused` capture of the student's signal has none.
+ */
 export function PlotCard({
   caption,
   aside,
   children,
   className,
+  paused,
 }: {
   caption: string;
   aside?: ReactNode;
   children: ReactNode;
   className?: string;
+  paused?: boolean;
 }) {
   return (
     <figure
@@ -329,7 +334,12 @@ export function PlotCard({
     >
       <figcaption className="flex min-h-[20px] flex-none items-center justify-between gap-[12px] text-[13px] text-ink-muted">
         <span className="flex items-center gap-[8px]">
-          <span aria-hidden className="h-[8px] w-[8px] rounded-full bg-brand" />
+          {!paused && (
+            <span
+              aria-hidden
+              className="h-[8px] w-[8px] rounded-full bg-brand"
+            />
+          )}
           {caption}
         </span>
         {aside}
