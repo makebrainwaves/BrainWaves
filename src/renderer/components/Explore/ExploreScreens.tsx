@@ -1,5 +1,5 @@
-import React, { ReactNode, useMemo, useState } from 'react';
-import { of } from 'rxjs';
+import React, { ReactNode, useState } from 'react';
+import type { Observable } from 'rxjs';
 import type { EEGSnapshot } from '../../../shared/eegVizTypes';
 import { PLOTTING_INTERVAL } from '../../constants/constants';
 import type { SignalQualityData } from '../../constants/interfaces';
@@ -127,8 +127,12 @@ export interface ExploreSurfaceProps {
   /** `waiting` = connected but no data yet; the four quality states after. */
   quality: QualityState | 'waiting';
   sensors: SensorStatus[];
-  /** Latest epoch for the head diagram and sensor card; null while waiting. */
+  /** The device's channels. Pass a stable array: a new one resets the head diagram. */
+  channels: string[];
+  /** Latest epoch for the sensor card; null while waiting. */
   sample: SignalQualityData | null;
+  /** The head diagram's stream: the live stream in the app. */
+  head: Observable<SignalQualityData> | null | undefined;
   /**
    * The live plot, drawn in quality colors: the main surface teaches signal
    * quality. `ViewerComponent` in the app, a `SnapshotPlot` in stories.
@@ -152,7 +156,9 @@ export interface ExploreSurfaceProps {
 export function ExploreSurface({
   quality,
   sensors,
+  channels,
   sample,
+  head,
   livePlot,
   legend = PLOT_LEGEND,
   hoveredChannel,
@@ -161,7 +167,6 @@ export function ExploreSurface({
   banner,
 }: ExploreSurfaceProps) {
   const waiting = quality === 'waiting';
-  const head = useMemo(() => (sample ? of(sample) : null), [sample]);
   return (
     <div className="flex h-full min-h-0 flex-col gap-[10px] px-[24px] py-[10px]">
       {banner}
@@ -190,12 +195,12 @@ export function ExploreSurface({
             signalQualityObservable={head}
             plottingInterval={PLOTTING_INTERVAL}
             height={250}
-            channels={sensors.map((s) => s.channel)}
+            channels={channels}
             hoveredChannel={hoveredChannel}
             onHoveredChannelChange={onHoveredChannelChange}
           />
           <ExploreSensorCard
-            channels={sensors.map((s) => s.channel)}
+            channels={channels}
             sample={sample}
             hoveredChannel={hoveredChannel}
             onHoveredChannelChange={onHoveredChannelChange}
@@ -226,8 +231,8 @@ export interface CleanSignalViewProps {
   /** The live plot in quality colors: this lesson is about signal quality. */
   livePlot: ReactNode;
   legend?: string;
-  /** Latest epoch for the head diagram; null before the first sample. */
-  sample: SignalQualityData | null;
+  /** The head diagram's stream: the live stream in the app. */
+  head: Observable<SignalQualityData> | null | undefined;
   channels: string[];
   onBack(): void;
   onNext(): void;
@@ -242,13 +247,12 @@ export function CleanSignalView({
   tip,
   livePlot,
   legend = PLOT_LEGEND,
-  sample,
+  head,
   channels,
   onBack,
   onNext,
   onExit,
 }: CleanSignalViewProps) {
-  const head = useMemo(() => (sample ? of(sample) : null), [sample]);
   return (
     <div className="flex h-full min-h-0 gap-[20px] px-[24px] py-[16px]">
       <LessonStepPanel

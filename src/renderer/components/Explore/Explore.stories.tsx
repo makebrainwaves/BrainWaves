@@ -2,6 +2,7 @@ import React from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import { MemoryRouter } from 'react-router-dom';
 import { fn } from 'storybook/test';
+import { of } from 'rxjs';
 import type { EEGSnapshot, PlotAnnotation } from '../../../shared/eegVizTypes';
 import { channelColors } from '../../utils/eeg/traceColors';
 import AppShell from '../AppShell/AppShell';
@@ -120,7 +121,9 @@ function Surface({
     <ExploreSurface
       quality={state}
       sensors={sensors}
+      channels={sensors.map((sensor) => sensor.channel)}
       sample={state === 'waiting' ? null : qualitySample(sensors)}
+      head={state === 'waiting' ? null : of(qualitySample(sensors))}
       livePlot={
         <SnapshotPlot
           snapshot={snapshot}
@@ -200,7 +203,7 @@ export const CleanSignalTips: Story = {
           height={430}
         />
       }
-      sample={qualitySample(QUALITY_SENSORS.settling)}
+      head={of(qualitySample(QUALITY_SENSORS.settling))}
       channels={EXPLORE_CHANNELS}
       onBack={fn()}
       onNext={fn()}

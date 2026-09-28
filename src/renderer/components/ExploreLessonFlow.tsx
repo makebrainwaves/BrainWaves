@@ -335,7 +335,7 @@ export default function ExploreLessonFlow({
         tip={step as 1 | 2 | 3}
         livePlot={livePlot}
         legend={legend}
-        sample={sample}
+        head={stream}
         channels={channels}
         onBack={back}
         onNext={next}

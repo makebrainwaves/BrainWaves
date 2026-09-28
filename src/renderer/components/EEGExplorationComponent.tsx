@@ -103,7 +103,9 @@ function ConnectedExplore({
     <ExploreSurface
       quality={sample ? state : 'waiting'}
       sensors={sensors}
+      channels={channels}
       sample={sample}
+      head={stream}
       livePlot={
         <ViewerComponent
           signalQualityObservable={stream}
