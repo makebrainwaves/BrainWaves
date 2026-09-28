@@ -186,7 +186,7 @@ function ConnectedExplore({
           lesson={activeLesson}
           stream={stream}
           channels={channels}
-          samplingRate={samplingRate}
+          legend={`${device?.name ?? ''} · ${samplingRate} Hz`}
           session={session}
           sample={sample}
           onExit={() => setActiveLesson(null)}
