@@ -505,3 +505,25 @@ button:active {
   fill: var(--color-brand);
   cursor: pointer;
 }
+
+/* Explore (WS3) design pass: eyes-closed countdown pulse. Scoped to the
+   countdown digit; the only animation this surface needs. */
+.explore-countdown-active {
+  animation: explore-countdown-pulse 1s ease-in-out infinite;
+}
+
+@keyframes explore-countdown-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-countdown-active {
+    animation: none;
+  }
+}
