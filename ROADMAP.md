@@ -9,7 +9,7 @@ Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze,
 - [x] Cut Emotiv SDK
 - [x] Muse + Neurosity first-party drivers (`EEGDriver` registry)
 - [x] LSL outlets for connected first-party devices (epochs + stimulus markers)
-- [x] External LSL inlet in ConnectModal (when liblsl is available)
+- [x] External LSL inlet in headset setup (when liblsl is available)
 - [x] Restore custom-experiment authoring (see TODOS — P0)
 - [x] QA built-in + custom experiments on Muse hardware
 - [x] First release dry-run (`v1.0.0-rc.1`) + packaged-app smoke
@@ -17,9 +17,22 @@ Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze,
 
 CSV is still the system of record. Using LSL *internally* for recording is not a V1 goal.
 
-## V1.5 — visual polish
+## V1.5 — playtest-driven redesign
 
-Epoch-reviewer onboarding (plain language, guided mode). See TODOS "Next".
+Fix what the first naive playtest (`docs/uxr/playtest_naive_1.md`, 2026-09-18) showed: unclear starting point and next action, headset setup, the Explore lessons, and a Clean → Analyze workflow that did not hold together. Plan: `docs/uxr/playtest_naive_1_design_implementation_plan.md` (gitignored). Each surface went Storybook design → approval → integration.
+
+- [x] WS1 Navigation shell and Home (#269)
+- [x] WS2 Headset setup and connection (#272, #274)
+- [x] WS3 Explore lessons, including the eyes-closed activity (#282, #286)
+- [x] WS4 Prepare steps and preview (#276, #281)
+- [x] WS5 Participant screens, early exit and incomplete runs (#273, #275, #279)
+- [x] WS6 Clean (#280, #285)
+- [x] WS7 Analyze (#277, #284)
+- [ ] WS8 Full manual QA on real hardware, then a second naive playtest (see TODOS "Next")
+- [ ] Fixes and language PR from WS8, then release v1.5
+
+Known gap going in: the Collect pre-run screen never got its own redesign.
+Epoch-reviewer guided mode stays a V1.5+ item, contingent on the playtest.
 
 ## V2 — lesson content
 
