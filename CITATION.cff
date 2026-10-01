@@ -3,6 +3,7 @@ message: "If you use BrainWaves in your research or teaching, please cite it as 
 title: "BrainWaves"
 type: software
 license: MIT
+doi: "10.5281/zenodo.23085809"
 repository-code: "https://github.com/makebrainwaves/BrainWaves"
 url: "https://github.com/makebrainwaves/BrainWaves"
 

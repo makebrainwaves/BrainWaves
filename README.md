@@ -4,6 +4,9 @@
 <p align="center" href="">
   An easy-to-use platform for EEG experimentation in the classroom
 </p>
+<p align="center">
+  <a href="https://doi.org/10.5281/zenodo.23085809"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.23085809.svg"></a>
+</p>
 
 ## Features
 
