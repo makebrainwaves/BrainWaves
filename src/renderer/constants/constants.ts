@@ -120,10 +120,16 @@ export enum SIGNAL_QUALITY {
   DISCONNECTED = '#BFBFBF',
 }
 
+/**
+ * Per-channel signal variability (µV standard deviation per 250 ms epoch) at
+ * which a sensor reads noisy (BAD) or settling (OK); below GREAT it reads as not
+ * touching anything. Calibration knob: raised 50% after the v1.1 QA found
+ * decent TP9/TP10 contact marked noisy on a real Muse.
+ */
 export enum SIGNAL_QUALITY_THRESHOLDS {
-  BAD = 15,
-  OK = 10,
-  GREAT = 1.5, // Below 1.5 usually indicates not connected to anything
+  BAD = 22.5,
+  OK = 15,
+  GREAT = 1.5,
 }
 
 export enum FILE_TYPES {

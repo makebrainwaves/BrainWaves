@@ -2,6 +2,8 @@ from collections import OrderedDict
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle, Ellipse, Polygon
 import pandas as pd  # maybe we can remove this dependency
 
 from mne import (concatenate_raws, concatenate_epochs, create_info, viz,
@@ -161,21 +163,39 @@ def load_clean_epochs(file_paths):
 
 
 def plot_topo(epochs, conditions, palette):
+    """Per-sensor condition ERPs laid out on a head outline.
+
+    MNE's plot_evoked_topo places the traces by sensor position but draws no
+    head, so the outline (circle, nose, ears) is added in figure coordinates on
+    the square figure. The legend gets explicit handles so each swatch matches
+    its condition.
+    """
     evokeds = [epochs[name].average() for name in (conditions)]
+    colors = palette[0:len(conditions)]
 
     evoked_topo = viz.plot_evoked_topo(
-        evokeds, vline=None, color=palette[0:len(conditions)], show=False)
+        evokeds, vline=None, color=colors, show=False)
     evoked_topo.patch.set_alpha(0)
     evoked_topo.set_size_inches(9, 9)
     for axis in evoked_topo.axes:
         for line in axis.lines:
             line.set_linewidth(2)
 
-    legend_loc = 0
+    ax = evoked_topo.axes[0]
+    center, radius = (0.5, 0.5), 0.45
+    outline = dict(transform=evoked_topo.transFigure, fill=False,
+                   edgecolor='0.55', linewidth=1.5, zorder=1.5, clip_on=False)
+    ax.add_patch(Circle(center, radius, **outline))
+    ax.add_patch(Polygon([(0.46, 0.5 + radius * 0.99), (0.5, 0.5 + radius * 1.09),
+                          (0.54, 0.5 + radius * 0.99)], closed=False, **outline))
+    for side in (-1, 1):
+        ax.add_patch(Ellipse((0.5 + side * radius * 1.02, 0.5), 0.04, 0.12,
+                             **outline))
+
     labels = [e.comment if e.comment else 'Unknown' for e in evokeds]
-    legend = plt.legend(labels, loc=legend_loc, prop={'size': 20})
-    txts = legend.get_texts()
-    for txt, col in zip(txts, palette):
+    handles = [Line2D([], [], color=c, linewidth=2) for c in colors]
+    legend = plt.legend(handles, labels, loc='lower left', prop={'size': 20})
+    for txt, col in zip(legend.get_texts(), colors):
         txt.set_color(col)
 
     return evoked_topo
