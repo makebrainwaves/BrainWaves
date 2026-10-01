@@ -1,3 +1,39 @@
+# 1.1.0 (October 1, 2026) - Playtest-driven redesign
+
+Every screen a student touches was redesigned after the first naive-user playtest, so the app shows where to start and what to do next at each step. Includes the unreleased 1.0.3 changes below.
+
+## Getting around
+
+- New Home: continue your work, start Faces/Houses, or explore live EEG. Every new experiment gets its own name.
+- One shell bar across the app shows where you are, the recommended next step, and how many recordings and cleaned datasets exist.
+- Clean and Analyze explain what they need when there is no data yet.
+
+## Headset and Explore
+
+- Headset setup walks through choosing, wearing and finding the headset. Searching only starts when you press `Find my headset`, and stops after a minute with a tip if nothing turns up.
+- Disconnect from the device chip's setup dialog.
+- Explore summarizes signal quality in words, keeps the head diagram and sensor help, and offers three activities: getting a cleaner signal, finding where noise comes from (blinks), and an eyes-closed activity with a countdown and chimes.
+
+## Running experiments
+
+- Prepare walks through Overview, Background, Protocol and Preview, with each built-in's real trial counts.
+- BrainWaves instruction, practice and main-task screens show the response keys, and a run starts on SPACE.
+- During a run the bar shows `EEG recording` or `Behavior only`, progress, and `End experiment early`. An ended-early run is kept as incomplete data and left out of Clean and Analyze.
+- An existing session is never overwritten.
+
+## Cleaning and analysis
+
+- Clean works on one recording at a time. Click trials to leave them out, flag a bad sensor, and accept or restore each auto-flag suggestion while the live ERP updates. Ended-early recordings can be revealed and moved to the Trash.
+- Un-flagging a sensor after saving now reaches the saved file, and flagged sensors stay visible.
+- Analyze has Overview, ERP (with a "Walk me through it" walkthrough built from your own trials) and Behavior tabs. Behavior stays available before cleaning, every condition gets its own color, and failed plots offer Try again.
+- Summary CSV export reports whether it saved.
+
+## Fixes
+
+- `Q` skips practice again (lab.js 23).
+- Marker codes are unified between collection and analysis.
+- Removed dead help panels and stray Analyze elements.
+
 # 1.0.3 (September 22, 2026) - Explore lessons, design system, marker timing
 
 - New EEG exploration lessons with a sensor card and smoother live plotting.
