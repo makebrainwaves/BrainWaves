@@ -1,47 +1,104 @@
 # 1.1.0 (October 1, 2026) - Playtest-driven redesign
 
-Every screen a student touches was redesigned after the first naive-user playtest, so the app shows where to start and what to do next at each step. Includes the unreleased 1.0.3 changes below.
+Every screen a student touches was redesigned after a naive-user playtest, so the app shows where to start and what to do next at each step, from putting on the headset to reading an ERP. This release covers everything since 1.0.2 (190 commits, #256–#289), including the 1.0.3 work that was never released on its own.
 
 ## Getting around
 
-- New Home: continue your work, start Faces/Houses, or explore live EEG. Every new experiment gets its own name.
-- One shell bar across the app shows where you are, the recommended next step, and how many recordings and cleaned datasets exist.
-- Clean and Analyze explain what they need when there is no data yet.
+- **New Home**:
+  - Continue your work (your workspaces, newest first, with Open, Show in folder and a confirmed Delete);
+  - Start Faces/Houses, the recommended first experiment;
+  - Explore EEG.
+  - Every new experiment gets its own unique name, so you never reopen an old one by accident.
+- **One shell bar across the app**:
+  - shows where you are (gold underline) and the one recommended next step;
+  - shows truthful counts such as "4 recordings" and "1 cleaned";
+  - hides Clean for behavior-only experiments.
+- **Empty areas explain themselves**: Clean and Analyze say what they need, and how to get it, when there is no data yet.
 
-## Headset and Explore
+## Headset setup
 
-- Headset setup walks through choosing, wearing and finding the headset. Searching only starts when you press `Find my headset`, and stops after a minute with a tip if nothing turns up.
-- Disconnect from the device chip's setup dialog.
-- Explore summarizes signal quality in words, keeps the head diagram and sensor help, and offers three activities: getting a cleaner signal, finding where noise comes from (blinks), and an eyes-closed activity with a countdown and chimes.
+- **A guided setup dialog**: choose Muse, Neurosity Crown or an LSL stream, see how to wear it, then press `Find my headset`. Searching only starts when you ask.
+- **Search time limit**: a search stops after one minute and asks whether the headset is turned on.
+- **Signal prep**: after pairing, a signal check walks through skin contact, fit and staying still. It never blocks you from continuing.
+- **The device chip in the top bar** opens setup from any screen. When a headset is connected, it now offers **Disconnect**.
+- **More reliable connections**:
+  - setup reopens if the headset drops;
+  - stale search results are discarded;
+  - a failed connection no longer breaks later attempts;
+  - a failed LSL connection fails gently.
+- **Gentler signal-quality thresholds**: a sensor now reads "noisy" above 22.5 µV and "settling" above 15 µV. Decent contact was being shown as red.
+
+## Explore EEG
+
+- **The live view leads with a plain-words status**: Ready, Sensors are still settling, Adjust AF7 and TP10, or No signal. It sits beside the interactive head diagram and sensor help.
+- **The plot legend** shows your headset's name and its real sampling rate.
+- **Three activities**:
+  - *How do I get a cleaner signal?* — three tips beside your live signal.
+  - *Where is this noise coming from?* — defines noise, marks each blink on the plot, asks you to predict, then compares a still moment with a blinking one on the same scale.
+  - *Eyes-closed activity* — a countdown and chimes mark ten seconds with your eyes closed, then your eyes-open and eyes-closed signal are compared side by side.
+- **Paused copies** of your own signal are clearly labelled as paused.
+- **Stable trace colors**: each channel keeps the same color in every view.
+- **Clear error banners**: Explore says so, and offers a fix, if the signal stream stops or a headset lacks the sensors a lesson needs.
+- **No workspace**: Explore never creates a workspace or records anything.
+
+## Preparing an experiment
+
+- **Built-in experiments walk through four steps**: Overview → Background → Protocol → Preview, each with one forward action. You can go to Collect at any time.
+- **Protocol** shows the response keys, the conditions, and a flow diagram with each experiment's real trial counts.
+- **Faces/Houses' Background** has a face-crowd illustration in place of the old external video, plus a fun-fact illustration.
+- **Preview** is clearly labelled and shows a whole participant screen.
 
 ## Running experiments
 
-- Prepare walks through Overview, Background, Protocol and Preview, with each built-in's real trial counts.
-- BrainWaves instruction, practice and main-task screens show the response keys, and a run starts on SPACE.
-- During a run the bar shows `EEG recording` or `Behavior only`, progress, and `End experiment early`. An ended-early run is kept as incomplete data and left out of Clean and Analyze.
-- An existing session is never overwritten.
+- **BrainWaves participant screens** for the built-in and custom experiments:
+  - large instructions with keycaps;
+  - a practice → main-task transition;
+  - an end screen.
+  - The stillness reminder appears only when EEG is recording.
+- **Starting a run**:
+  - after a preview, `Run & record` starts the real run;
+  - a run starts when you press SPACE;
+  - an existing session is never overwritten.
+- **During a run** the top bar shows `EEG recording` or `Behavior only`, the elapsed time, trial progress and `End experiment early`.
+- **Ending early** (the button, or holding Escape) keeps what was recorded as incomplete data. Incomplete data never appears as a finished run in Clean or Analyze.
+- **Custom experiments**: condition names and keys show exactly as typed, and `Q` on the instruction screen skips practice again.
 
-## Cleaning and analysis
+## Cleaning data
 
-- Clean works on one recording at a time. Click trials to leave them out, flag a bad sensor, and accept or restore each auto-flag suggestion while the live ERP updates. Ended-early recordings can be revealed and moved to the Trash.
-- Un-flagging a sensor after saving now reaches the saved file, and flagged sensors stay visible.
-- Analyze has Overview, ERP (with a "Walk me through it" walkthrough built from your own trials) and Behavior tabs. Behavior stays available before cleaning, every condition gets its own color, and failed plots offer Try again.
-- Summary CSV export reports whether it saved.
+- **One recording at a time**, with a short explanation of what cleaning does and its five steps.
+- **Leave out trials and flag sensors**: click trials to leave them out and click a sensor to flag it. The Live ERP updates as you go.
+- **Auto-flag suggestions are only suggestions**: Accept or Restore each one. Clicking a suggestion jumps to that trial and outlines it.
+- **Sharper trial traces**, and flagged sensors stay visible so you can un-flag them. Un-flagging after a save now reaches the saved file.
+- **Saving**: `Apply exclusions` saves in place. `Save cleaned dataset & analyze` always saves, then opens Analyze. Confirmations appear in the app.
+- **Ended-early recordings** stay hidden until you reveal them. Once revealed, they can be moved to the Trash.
 
-## Fixes
+## Analyzing data
 
-- `Q` skips practice again (lab.js 23).
-- Marker codes are unified between collection and analysis.
-- Removed dead help panels and stray Analyze elements.
+- **Overview**: a cleaned-recording checklist, a summary of what is included, and the power spectrum and topography side by side.
+- **ERPs across the scalp** now draws a head outline under the traces, and its legend colors match each condition.
+- **ERP tab**:
+  - a head-diagram sensor picker and a readable ERP figure;
+  - *Walk me through it*, which builds the average step by step from your own trials.
+- **Behavior tab**:
+  - response time or accuracy as bars, dots or box plots, with outlier removal;
+  - every condition gets its own color;
+  - Behavior works before any cleaning.
+  - Export summary CSV reports whether the file was saved.
+- **Errors and loading**:
+  - plots that fail to load offer Try again;
+  - EEG tabs say "Clean first" until a cleaned recording exists;
+  - stray help panels and broken layouts are gone.
 
-# 1.0.3 (September 22, 2026) - Explore lessons, design system, marker timing
+## Under the hood
 
-- New EEG exploration lessons with a sensor card and smoother live plotting.
-- Design system applied to the presentation layer; Storybook catalog and design tokens.
-- Muse markers align to the sample clock; analysis epoching hardened.
-- Pyodide: pinned compatible Python wheels.
-- Collect: HelpSidebar renamed to LessonSidebar.
-- Dependency updates (vitest, protobufjs, js-yaml).
+- **One marker pipeline**: condition labels become numeric codes in one place, and the same codes are used from collection to analysis. Muse markers align to the EEG sample clock.
+- **More robust epoching**: recordings missing a condition no longer fail to epoch.
+- **Pyodide** uses pinned, compatible Python packages.
+- **A design system** with tokens and a Storybook catalog. Every redesigned screen was reviewed there first.
+- **Releases need a manual approval step.**
+- **Citation**: `CITATION.cff` adds citation metadata, so Zenodo archives each release with its authors.
+- **Cleanup**: about 1,100 lines of dead code removed, plus dependency updates (js-yaml, protobufjs, vitest).
+- **Single-instance lock removed**: BrainWaves no longer stops a second copy from opening.
 
 # 1.0.2 (September 8, 2026) - Dependency updates
 
