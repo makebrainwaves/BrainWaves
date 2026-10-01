@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { SuggestedRejection } from '../../actions';
 import { PTP_THRESHOLD } from '../../constants/constants';
 import EpochReviewer from '../CleanComponent/EpochReviewer';
@@ -76,6 +76,8 @@ export default function CleanReview(props: CleanReviewProps) {
   const kept = total - props.rejected.size;
   const { dataset } = props;
   const busy = props.saveState === 'saving';
+  const [focus, setFocus] = useState<{ index: number } | null>(null);
+  useEffect(() => setFocus(null), [props.epochArrays]);
 
   const rail = (
     <>
@@ -271,6 +273,7 @@ export default function CleanReview(props: CleanReviewProps) {
                 badChannels={props.badChannels}
                 onToggleChannel={props.onToggleChannel}
                 codeToLabel={props.codeToLabel}
+                focus={focus}
               />
             </FitPane>
             {props.primerOpen && <PrimerPointer step={props.primerStep} />}
@@ -321,9 +324,14 @@ export default function CleanReview(props: CleanReviewProps) {
                     key={suggestion.index}
                     className="flex items-center gap-[10px] rounded-md border border-gray-200 px-[10px] py-[4px]"
                   >
-                    <span className="flex-none text-[13px] font-bold text-ink">
+                    <button
+                      type="button"
+                      className="flex-none cursor-pointer border-0 bg-transparent p-0 text-[13px] font-bold text-ink underline decoration-dotted underline-offset-2 hover:text-brand"
+                      aria-label={`Show trial ${suggestion.index}`}
+                      onClick={() => setFocus({ index: suggestion.index })}
+                    >
                       Trial {suggestion.index}
-                    </span>
+                    </button>
                     <span className="min-w-0 flex-1 text-[13px] text-ink-muted">
                       {suggestion.reason}
                     </span>
@@ -337,9 +345,10 @@ export default function CleanReview(props: CleanReviewProps) {
                           variant="outline"
                           className="flex-none"
                           disabled={busy}
-                          onClick={() =>
-                            props.onRestoreSuggestion(suggestion.index)
-                          }
+                          onClick={() => {
+                            setFocus({ index: suggestion.index });
+                            props.onRestoreSuggestion(suggestion.index);
+                          }}
                         >
                           Restore
                         </Button>
@@ -350,9 +359,10 @@ export default function CleanReview(props: CleanReviewProps) {
                         variant="outline-brand"
                         className="flex-none"
                         disabled={busy}
-                        onClick={() =>
-                          props.onAcceptSuggestion(suggestion.index)
-                        }
+                        onClick={() => {
+                          setFocus({ index: suggestion.index });
+                          props.onAcceptSuggestion(suggestion.index);
+                        }}
                       >
                         Accept
                       </Button>

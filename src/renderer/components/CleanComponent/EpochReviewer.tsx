@@ -21,6 +21,9 @@ interface Props {
   onToggleChannel: (name: string) => void;
   // Optional map from numeric event code to a human-readable condition label.
   codeToLabel?: Record<number, string>;
+  // A trial to page to and outline, e.g. a clicked auto-flag suggestion. A new
+  // object re-focuses the same trial after the student paged away.
+  focus?: { index: number } | null;
 }
 
 // Logical canvas size (scaled up for devicePixelRatio at draw time).
@@ -46,6 +49,7 @@ export default function EpochReviewer({
   badChannels,
   onToggleChannel,
   codeToLabel,
+  focus,
 }: Props): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // First epoch of the current page (absolute index).
@@ -68,6 +72,9 @@ export default function EpochReviewer({
     [meta]
   );
 
+  useEffect(() => {
+    if (focus) setStartEpoch(Math.floor(focus.index / perPage) * perPage);
+  }, [focus, perPage]);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !epochArrays || !meta || meta.n_epochs === 0) {
@@ -139,7 +146,8 @@ export default function EpochReviewer({
       ctx.stroke();
     }
 
-    const cols = Math.max(1, Math.floor(colWidth));
+    // One bucket per device pixel, so the envelope is as sharp as the screen.
+    const cols = Math.max(1, Math.floor(colWidth * dpr));
 
     for (let c = 0; c < visibleCount; c += 1) {
       const absolute = clampedStart + c;
@@ -187,14 +195,15 @@ export default function EpochReviewer({
         };
 
         if (n_times > cols) {
-          // More samples than pixels: draw a vertical min→max line per column
-          // so sharp transients survive downsampling.
+          // More samples than pixels: trace each column's min and max as one
+          // connected path, so sharp transients survive downsampling.
           const buckets = downsampleMinMax(series, cols);
           ctx.beginPath();
           for (let col = 0; col < buckets.length; col += 1) {
             const x = colLeft + (col * colWidth) / buckets.length;
             const [lo, hi] = buckets[col];
-            ctx.moveTo(x, toY(hi));
+            if (col === 0) ctx.moveTo(x, toY(hi));
+            else ctx.lineTo(x, toY(hi));
             ctx.lineTo(x, toY(lo));
           }
           ctx.stroke();
@@ -311,14 +320,18 @@ export default function EpochReviewer({
         {Array.from({ length: visibleCount }, (_, c) => {
           const absolute = clampedStart + c;
           const isRejected = rejected.has(absolute);
+          const isFocused = focus?.index === absolute;
           return (
             <button
               key={absolute}
               type="button"
               aria-pressed={isRejected}
+              aria-current={isFocused || undefined}
               aria-label={`${isRejected ? 'Restore' : 'Reject'} trial ${absolute}`}
               title={`${isRejected ? 'Restore' : 'Reject'} trial ${absolute}`}
-              className="absolute cursor-pointer bg-transparent border-0 p-0 appearance-none"
+              className={`absolute cursor-pointer bg-transparent border-0 p-0 appearance-none ${
+                isFocused ? 'rounded-[2px] ring-2 ring-inset ring-accent' : ''
+              }`}
               style={{
                 left: LABEL_GUTTER + c * colWidth,
                 width: colWidth,

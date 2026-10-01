@@ -162,16 +162,17 @@ export default function HomeLanding({
   );
 
   return (
-    <div className="mx-auto flex max-w-[1120px] flex-col gap-[40px] px-[56px] pb-[64px] pt-[48px] text-ink">
+    <div className="mx-auto flex max-w-[1120px] flex-col gap-[28px] px-[56px] pb-[64px] pt-[36px] text-ink">
       <div className="flex flex-col gap-[10px]">
         <h1 className="m-0 !text-[40px] !font-light !leading-tight !tracking-[0.4px]">
           {firstTime ? 'Welcome to BrainWaves' : 'Welcome back'}
         </h1>
-        <p className="m-0 max-w-[640px] !text-[18px] leading-normal !tracking-normal [text-wrap:pretty]">
-          {firstTime
-            ? 'Run your first brain experiment today. Most classes start with Faces/Houses — it takes about 15 minutes.'
-            : 'Pick up where you left off, or start something new.'}
-        </p>
+        {firstTime && (
+          <p className="m-0 max-w-[640px] !text-[18px] leading-normal !tracking-normal [text-wrap:pretty]">
+            Run your first brain experiment today. Most classes start with
+            Faces/Houses — it takes about 15 minutes.
+          </p>
+        )}
       </div>
       {!firstTime && continueSection}
       <div
