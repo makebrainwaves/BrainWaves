@@ -50,6 +50,15 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # One draft for all three platforms. Without it every electron-builder
+      # job sees "release doesn't exist" at the same moment, each creates its own
+      # draft, and the assets split across them (v1.1.0 did this).
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag }}
+        run: gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --draft --verify-tag --title "${TAG#v}"
+
   release:
     needs: verify
     runs-on: ${{ matrix.os }}
