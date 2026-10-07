@@ -6,7 +6,7 @@
  * Analyze) without a physical headset on the desk.
  *
  * The CSV is bundled at build time via Vite's ?raw import and parsed on first
- * use. Samples are emitted at real-time speed (256 Hz) via setInterval so the
+ * use. Samples are stamped on a 256 Hz grid anchored to Date.now(), so the
  * signal-quality pipeline and marker-injection contract work identically to a
  * live BLE device.
  *
@@ -15,6 +15,8 @@
  * - scan() returns a synthetic device instantly (no BLE needed).
  * - connect() resolves immediately with a fixed DeviceInfo (4 ch, 256 Hz).
  * - createRawObservable() loops the CSV continuously so the stream never dries.
+ *   Each timer tick emits every sample now due, so a late or throttled timer
+ *   never lets the stream clock fall behind the wall-clock marker timestamps.
  * - The CSV's marker column is ignored: replaying it would add events the app
  *   never sent, so a run's markers are exactly the ones injectMarker() stamps.
  * - injectMarker() queues a code onto the next emitted sample (Neurosity-style).
@@ -149,23 +151,18 @@ export const createRawFixtureObservable = async (): Promise<
   markerStamper = stamper;
 
   const startTime = Date.now();
-  let index = 0;
   let sampleCount = 0;
 
   activeInterval = setInterval(() => {
-    if (index >= rows.length) {
-      index = 0; // loop
+    const due = Math.round((Date.now() - startTime) / SAMPLE_INTERVAL_MS);
+    for (; sampleCount < due; sampleCount++) {
+      subject.next(
+        stamper.stamp({
+          data: [...rows[sampleCount % rows.length]],
+          timestamp: startTime + sampleCount * SAMPLE_INTERVAL_MS,
+        })
+      );
     }
-
-    const row = rows[index];
-    subject.next(
-      stamper.stamp({
-        data: [...row],
-        timestamp: startTime + sampleCount * SAMPLE_INTERVAL_MS,
-      })
-    );
-    index++;
-    sampleCount++;
   }, SAMPLE_INTERVAL_MS);
 
   return subject.asObservable().pipe(share()) as Observable<EEGData>;

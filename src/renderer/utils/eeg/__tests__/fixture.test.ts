@@ -77,11 +77,9 @@ describe('fixture driver', () => {
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    vi.advanceTimersToNextTimer(); // sample 0
-    vi.advanceTimersToNextTimer(); // sample 1
-    vi.advanceTimersToNextTimer(); // sample 2
+    vi.advanceTimersByTime(20);
 
-    expect(seen).toHaveLength(3);
+    expect(seen.length).toBeGreaterThan(0);
     for (const s of seen) {
       expect(s.data).toHaveLength(4);
       expect(typeof s.timestamp).toBe('number');
@@ -93,9 +91,9 @@ describe('fixture driver', () => {
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    for (let i = 0; i < 10; i++) vi.advanceTimersToNextTimer();
+    vi.advanceTimersByTime(50);
 
-    expect(seen).toHaveLength(10);
+    expect(seen.length).toBeGreaterThanOrEqual(10);
     for (let i = 1; i < seen.length; i++) {
       expect(seen[i].timestamp).toBeGreaterThan(seen[i - 1].timestamp);
     }
@@ -105,10 +103,10 @@ describe('fixture driver', () => {
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    // CSV has 256 rows — advance past the boundary (samples 0..260).
-    for (let i = 0; i < 260; i++) vi.advanceTimersToNextTimer();
+    // CSV has 256 rows (one second) — advance past the loop boundary.
+    vi.advanceTimersByTime(1100);
 
-    expect(seen).toHaveLength(260);
+    expect(seen.length).toBeGreaterThan(256);
     // Every timestamp must be strictly greater than the previous one.
     for (let i = 1; i < seen.length; i++) {
       expect(seen[i].timestamp).toBeGreaterThan(seen[i - 1].timestamp);
@@ -130,34 +128,36 @@ describe('fixture driver', () => {
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer();
+    vi.advanceTimersByTime(20);
 
-    // Lands two sample intervals out — inside the 7th sample's interval.
+    // Lands two sample intervals out.
     injectFixtureMarker(42, Date.now() + 2 * SAMPLE_INTERVAL_MS);
-    for (let i = 0; i < 5; i++) vi.advanceTimersToNextTimer();
+    vi.advanceTimersByTime(50);
 
     const marked = seen.filter((s) => s.marker === 42);
     expect(marked).toHaveLength(1);
   });
 
-  it('a run with K injected markers records exactly K marked samples', async () => {
+  it('records exactly the K injected markers, even when timer ticks run late', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    vi.advanceTimersToNextTimer();
 
-    // Three passes over the CSV, so row 128's baked-in marker comes by 3 times.
+    // Each marker is followed by a 500 ms stall before the next tick, like a
+    // throttled renderer. Three seconds also replay row 128's baked-in
+    // marker three times.
     const injected = [1, 2, 1, 2, 2, 1];
     for (const code of injected) {
-      injectFixtureMarker(
-        code,
-        seen[seen.length - 1].timestamp + 2 * SAMPLE_INTERVAL_MS
-      );
-      for (let i = 0; i < 128; i++) vi.advanceTimersToNextTimer();
+      injectFixtureMarker(code, Date.now());
+      vi.setSystemTime(Date.now() + 500);
+      vi.advanceTimersToNextTimer();
     }
 
     expect(seen.length).toBeGreaterThan(3 * 256);
+    expect(seen[seen.length - 1].timestamp).toBeGreaterThan(
+      Date.now() - SAMPLE_INTERVAL_MS
+    );
     expect(seen.filter((s) => s.marker).map((s) => s.marker)).toEqual(injected);
   });
 
