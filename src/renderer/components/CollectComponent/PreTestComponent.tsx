@@ -5,6 +5,7 @@ import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent'
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
 import { LessonSidebar, HelpButton } from './LessonSidebar';
+import { NO_WORKSPACE_REASON } from './RunComponent';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
 import {
@@ -48,6 +49,7 @@ export default function PreTestComponent(props: Props) {
   }
 
   function handlePreview(e) {
+    if (!props.title && !isPreviewing) return;
     e.target.blur();
     setIsSidebarVisible(false);
     setIsPreviewing((prev) => !prev);
@@ -109,16 +111,25 @@ export default function PreTestComponent(props: Props) {
             <PreviewButton
               isPreviewing={isPreviewing}
               onClick={(e) => handlePreview(e)}
+              disabled={!props.title}
             />
             <Button
               variant="default"
-              disabled={props.connectionStatus !== CONNECTION_STATUS.CONNECTED}
-              onClick={props.openRunComponent}
+              disabled={
+                !props.title ||
+                props.connectionStatus !== CONNECTION_STATUS.CONNECTED
+              }
+              onClick={() => props.title && props.openRunComponent()}
             >
               Run &amp; record
             </Button>
           </div>
         </div>
+        {!props.title && (
+          <p className="mb-4 text-[15px] text-ink-muted">
+            {NO_WORKSPACE_REASON}
+          </p>
+        )}
         <div className="flex gap-4">
           <div className="w-1/2 h-full items-center mb-5">
             {renderSignalQualityOrPreview()}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CONNECTION_STATUS, EXPERIMENTS } from '../../../constants/constants';
 import Run from '../RunComponent';
@@ -29,8 +29,12 @@ vi.mock('../../../utils/eeg/markerRegistry', () => ({
   resolveMarkerRegistry: () => ({}),
 }));
 vi.mock('../../InputCollect', () => ({ default: () => null }));
+vi.mock('../../../utils/filesystem/storage', () => ({
+  nextFreeSession: async (...args: unknown[]) => args[3],
+}));
 
 const Stop = vi.fn();
+const Start = vi.fn();
 const props = {
   type: EXPERIMENTS.N170,
   title: 'Study',
@@ -45,7 +49,7 @@ const props = {
   session: 1,
   isEEGEnabled: true,
   connectionStatus: CONNECTION_STATUS.CONNECTED,
-  ExperimentActions: { Stop, Start: vi.fn(), SetSession: vi.fn() } as never,
+  ExperimentActions: { Stop, Start, SetSession: vi.fn() } as never,
 };
 
 describe('ending a run early', () => {
@@ -82,5 +86,34 @@ describe('ending a run early', () => {
       screen.getByRole('button', { name: 'Analyze results →' })
     ).toBeInTheDocument();
     expect(screen.queryByText(/Clean this recording/)).toBeNull();
+  });
+});
+
+describe('Ready card without a workspace', () => {
+  afterEach(() => vi.clearAllMocks());
+  const ready = { ...props, isRunning: false };
+  const runButton = () => screen.getByRole('button', { name: 'Run & record' });
+
+  it('cannot arm or start a run, and says why', () => {
+    render(<Run {...ready} title="" params={null as never} />, {
+      wrapper: MemoryRouter,
+    });
+
+    expect(runButton()).toBeDisabled();
+    expect(screen.getByText(/No experiment is open/)).toBeInTheDocument();
+    fireEvent.click(runButton());
+    fireEvent.keyDown(window, { code: 'Space' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(Start).not.toHaveBeenCalled();
+  });
+
+  it('arms and starts a run when a workspace is open', async () => {
+    render(<Run {...ready} />, { wrapper: MemoryRouter });
+
+    expect(screen.queryByText(/No experiment is open/)).toBeNull();
+    fireEvent.click(runButton());
+    await screen.findByRole('dialog', { name: 'Press space to begin' });
+    fireEvent.keyDown(window, { code: 'Space' });
+    expect(Start).toHaveBeenCalledTimes(1);
   });
 });
