@@ -4,7 +4,7 @@ Summer 2026: BrainWaves revival for high school. Execution detail lives in `TODO
 
 ## V1 / V1.1 — classroom MVP
 
-Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze, including **custom experiments** (P0; they worked in the 2017–2020 app and must work again). **Shipped as v1.0.0 on 2026-08-11.**
+Ship a signed-off Muse classroom loop: Design → Collect → Clean → Analyze, including **custom experiments** (P0; they worked in the 2017–2020 app and must work again). **Shipped as v1.0.0 on 2026-08-11.** v1.1.0 (2026-10-01) shipped the V1.5 redesign surfaces below.
 
 - [x] Cut Emotiv SDK
 - [x] Muse + Neurosity first-party drivers (`EEGDriver` registry)
@@ -28,8 +28,11 @@ Fix what the first naive playtest (`docs/uxr/playtest_naive_1.md`, 2026-09-18) s
 - [x] WS5 Participant screens, early exit and incomplete runs (#273, #275, #279)
 - [x] WS6 Clean (#280, #285)
 - [x] WS7 Analyze (#277, #284)
-- [ ] WS8 Full manual QA on real hardware, then a second naive playtest (see TODOS "Next")
-- [ ] Fixes and language PR from WS8, then release v1.5
+- [x] WS8 manual QA on real hardware (2026-10: Explore and Faces/Houses on a Muse)
+- [ ] Full UXR playtest (replaces the "second naive playtest")
+- [ ] Fixes and language PR from the playtest, then the next release
+
+**Demo (early Nov 2026, controlled Apple Silicon hardware):** the V1.5 journey plus the AI feasibility coach (PR #283, pulled forward from the V2 "LLM coach" item in TODOS). Coach work for the demo: rebase, QA, and maybe a redesign of the feedback screen.
 
 Known gap going in: the Collect pre-run screen never got its own redesign.
 Epoch-reviewer guided mode stays a V1.5+ item, contingent on the playtest.
