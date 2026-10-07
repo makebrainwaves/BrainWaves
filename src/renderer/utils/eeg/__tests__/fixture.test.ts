@@ -19,7 +19,7 @@ import {
 const SAMPLE_INTERVAL_MS = 1000 / 256;
 
 // Mock CSV: 256 rows, 4 channels. Row i has data [i, i+1, i+2, i+3].
-// Row 128 has baked-in marker 1; all others have no marker.
+// Row 128 has a baked-in marker 1, which the driver must not replay.
 vi.mock('../fixture_data.csv?raw', () => {
   const header = 'timestamp_ms,TP9,AF7,AF8,TP10,marker';
   const rows: string[] = [];
@@ -140,35 +140,25 @@ describe('fixture driver', () => {
     expect(marked).toHaveLength(1);
   });
 
-  it('replays a baked-in CSV marker on its own row only', async () => {
+  it('a run with K injected markers records exactly K marked samples', async () => {
     vi.useFakeTimers();
     const obs = await createRawFixtureObservable();
     const seen: EEGData[] = [];
     obs.subscribe((d) => seen.push(d));
-    for (let i = 0; i < 135; i++) vi.advanceTimersToNextTimer();
+    vi.advanceTimersToNextTimer();
 
-    const marked = seen.filter((s) => s.marker !== undefined);
-    expect(marked).toHaveLength(1);
-    expect(marked[0].data[0]).toBe(128);
-    expect(marked[0].marker).toBe(1);
-  });
+    // Three passes over the CSV, so row 128's baked-in marker comes by 3 times.
+    const injected = [1, 2, 1, 2, 2, 1];
+    for (const code of injected) {
+      injectFixtureMarker(
+        code,
+        seen[seen.length - 1].timestamp + 2 * SAMPLE_INTERVAL_MS
+      );
+      for (let i = 0; i < 128; i++) vi.advanceTimersToNextTimer();
+    }
 
-  it('an injected marker wins over the baked-in marker on its sample', async () => {
-    vi.useFakeTimers();
-    const obs = await createRawFixtureObservable();
-    const seen: EEGData[] = [];
-    obs.subscribe((d) => seen.push(d));
-
-    // Advance to just before row 128. seen[0].timestamp is the stream's
-    // synthetic base, so this lands the marker inside row 128's interval.
-    for (let i = 0; i < 128; i++) vi.advanceTimersToNextTimer();
-    injectFixtureMarker(99, seen[0].timestamp + 128 * SAMPLE_INTERVAL_MS);
-    vi.advanceTimersToNextTimer(); // row 128
-
-    const row128 = seen.find((s) => s.data[0] === 128);
-    expect(row128).toBeDefined();
-    expect(row128!.marker).toBe(99);
-    expect(seen.filter((s) => s.marker === 99)).toHaveLength(1);
+    expect(seen.length).toBeGreaterThan(3 * 256);
+    expect(seen.filter((s) => s.marker).map((s) => s.marker)).toEqual(injected);
   });
 
   it('injectMarker before stream starts does not leak into first sample', async () => {
