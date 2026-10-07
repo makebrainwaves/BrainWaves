@@ -473,3 +473,15 @@ The running preview draws the participant screen at `zoom: 0.55` inside an
 `min-h-full` scroll column it fell back to content height, so the box grew and
 the page scrolled), and at the 800px column width an unzoomed screen is
 550–750px tall.
+
+## Release builds race to create the GitHub release
+
+The three platform jobs in `release.yml` publish in parallel. When no release
+exists at the tag, each electron-builder run logs `creating GitHub release
+reason=release doesn't exist` at the same moment and creates its **own** draft,
+so the assets split across two or three drafts with the same tag. Every job
+still exits green. `gh release view <tag>` shows only one of the drafts; list
+them with `gh api repos/OWNER/REPO/releases --jq '.[] | select(.tag_name=="TAG")'`.
+v1.1.0 hit this. The `verify` job now creates the draft once, before the
+matrix starts, and electron-builder uploads into it (its `releaseType: draft`
+matches).
