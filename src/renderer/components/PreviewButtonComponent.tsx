@@ -10,6 +10,8 @@ interface Props {
    * a preview has been started and stopped (or ran to the end).
    */
   onRunAndRecord?: () => void;
+  /** Turns off starting a preview; Stop preview always stays available. */
+  disabled?: boolean;
 }
 
 /** Preview toggle plus the shared preview status: `PreviewLabel` while previewing, a "nothing is recorded" note otherwise. */
@@ -17,6 +19,7 @@ export default function PreviewButton({
   isPreviewing,
   onClick,
   onRunAndRecord,
+  disabled,
 }: Props) {
   const [hasPreviewed, setHasPreviewed] = useState(false);
   if (isPreviewing && !hasPreviewed) setHasPreviewed(true);
@@ -39,6 +42,7 @@ export default function PreviewButton({
             size="lg"
             variant={onRunAndRecord && !hasPreviewed ? 'default' : 'outline'}
             onClick={onClick}
+            disabled={disabled}
           >
             {hasPreviewed ? 'Preview again' : 'Preview experiment'}
           </Button>

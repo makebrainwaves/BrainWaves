@@ -112,8 +112,9 @@ while uploading nothing. Users keep downloading whatever binaries were attached 
 
 That is how issue #239 happened: v1.0.0's assets were a March build, five months older
 than the tag, so they predated `2197925 fix: pyodide asset resolution in packaged
-builds`. Symptom was a Pyodide error, cause was the release pipeline. Set to
-`"release"` so re-tagging over a published release is compatible. When a release
+builds`. Symptom was a Pyodide error, cause was the release pipeline. `releaseType`
+stays `"draft"` (a human publishes), so never re-tag over a published release; delete or
+unpublish it first. When a release
 looks wrong, check asset `created_at` against the tag date before debugging the app:
 `gh api repos/OWNER/REPO/releases/tags/TAG --jq '.assets[] | "\(.name) \(.created_at)"'`
 
@@ -485,3 +486,16 @@ them with `gh api repos/OWNER/REPO/releases --jq '.[] | select(.tag_name=="TAG")
 v1.1.0 hit this. The `verify` job now creates the draft once, before the
 matrix starts, and electron-builder uploads into it (its `releaseType: draft`
 matches).
+
+## Marker times are wall clock; a driver's sample clock must keep up
+
+Runtimes stamp markers with `Date.now()`, and `createMarkerStamper` holds one
+pending marker until a sample's interval reaches its time. If a driver's sample
+timestamps fall behind the wall clock, each marker waits in the stream's future
+and the next one overwrites it. The fixture used to emit one sample per
+`setInterval(3.9 ms)` tick, which Chromium runs at 4 ms or slower: its clock
+fell ~20 s behind over a run and a 120-trial Faces/Houses run kept 2 markers.
+It also replayed its CSV's own marker column, which is how an earlier run
+loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
+grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
+with practice skipped should load as exactly 120 epochs.

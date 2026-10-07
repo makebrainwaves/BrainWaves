@@ -32,6 +32,10 @@ import { ExperimentActions as globalExperimentActions } from '../../actions';
 import type { RunOutcome } from '../../actions/experimentActions';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 
+/** Shown wherever a Collect action is off because no workspace is open (`title` is empty). */
+export const NO_WORKSPACE_REASON =
+  "No experiment is open, so there's nowhere to save a run. Open one from Home first!";
+
 interface Props {
   type: EXPERIMENTS;
   title: string;
@@ -77,11 +81,13 @@ const Run: React.FC<Props> = ({
   // 'starting': SPACE pressed, Start dispatched; the gate stays up until the
   // run is live so the Ready card doesn't flash, and SPACE can't start twice.
   // Esc still leaves it, in case the recording can't be created.
-  const [gate, setGate] = useState<'off' | 'armed' | 'starting'>('off');
+  const [gateState, setGate] = useState<'off' | 'armed' | 'starting'>('off');
+  const gate = title ? gateState : 'off';
   const reportProgress = useContext(RunProgressContext);
   const { pacing } = getExperimentFromType(type).text.protocol;
 
   const handleStartExperiment = useCallback(async () => {
+    if (!title) return;
     // Warn before a run that won't capture brain data: EEG turned off, or on
     // but no device connected. Either way it silently records behavior only.
     const eegConnected =
@@ -266,10 +272,15 @@ const Run: React.FC<Props> = ({
                   size="lg"
                   className="w-full"
                   onClick={handleStartExperiment}
-                  disabled={!subject}
+                  disabled={!subject || !title}
                 >
                   Run &amp; record
                 </Button>
+                {!title && (
+                  <p className="m-0 text-center text-[15px] text-ink-muted">
+                    {NO_WORKSPACE_REASON}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
