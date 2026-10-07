@@ -9,6 +9,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Lato, the --font-sans face every design was approved in, bundled because
+   classrooms may be offline (assets/fonts/OFL-Lato.txt). `swap`, unlike the
+   participant display faces below, so app text is never hidden while loading. */
+@font-face {
+  font-family: Lato;
+  src: url('./assets/fonts/Lato-Light-latin.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Lato;
+  src: url('./assets/fonts/Lato-Regular-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Lato;
+  src: url('./assets/fonts/Lato-Italic-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Lato;
+  src: url('./assets/fonts/Lato-Bold-latin.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
 body {
   position: relative;
   height: 100vh;
