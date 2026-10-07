@@ -112,8 +112,9 @@ while uploading nothing. Users keep downloading whatever binaries were attached 
 
 That is how issue #239 happened: v1.0.0's assets were a March build, five months older
 than the tag, so they predated `2197925 fix: pyodide asset resolution in packaged
-builds`. Symptom was a Pyodide error, cause was the release pipeline. Set to
-`"release"` so re-tagging over a published release is compatible. When a release
+builds`. Symptom was a Pyodide error, cause was the release pipeline. `releaseType`
+stays `"draft"` (a human publishes), so never re-tag over a published release; delete or
+unpublish it first. When a release
 looks wrong, check asset `created_at` against the tag date before debugging the app:
 `gh api repos/OWNER/REPO/releases/tags/TAG --jq '.assets[] | "\(.name) \(.created_at)"'`
 
