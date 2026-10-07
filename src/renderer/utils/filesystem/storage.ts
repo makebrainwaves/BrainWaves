@@ -134,7 +134,11 @@ export const deleteIncompleteRecording = (
   eegPath: string
 ): Promise<void> => api().deleteIncompleteRecording(title, eegPath);
 
-/** First session number, starting at `session`, with no behavior or EEG file on disk. */
+/**
+ * Lowest session number, starting at `session`, that main's `recordingExists`
+ * reports free (no artifact, complete or ended early). Deterministic: the same
+ * files always give the same answer.
+ */
 export const nextFreeSession = async (
   title: string,
   subject: string,

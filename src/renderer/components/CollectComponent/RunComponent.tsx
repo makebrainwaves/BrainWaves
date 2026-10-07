@@ -80,6 +80,7 @@ const Run: React.FC<Props> = ({
   // 'armed': checks passed, waiting for SPACE; nothing is recorded yet.
   // 'starting': SPACE pressed, Start dispatched; the gate stays up until the
   // run is live so the Ready card doesn't flash, and SPACE can't start twice.
+  // Esc still leaves it, in case the recording can't be created.
   const [gateState, setGate] = useState<'off' | 'armed' | 'starting'>('off');
   const gate = title ? gateState : 'off';
   const reportProgress = useContext(RunProgressContext);
@@ -133,9 +134,9 @@ const Run: React.FC<Props> = ({
   }, [isRunning]);
 
   useEffect(() => {
-    if (gate !== 'armed') return undefined;
+    if (gate === 'off') return undefined;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space' && !event.repeat) {
+      if (event.code === 'Space' && !event.repeat && gate === 'armed') {
         event.preventDefault();
         setGate('starting');
         ExperimentActions.Start();

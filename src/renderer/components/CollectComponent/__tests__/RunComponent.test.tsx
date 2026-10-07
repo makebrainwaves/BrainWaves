@@ -1,8 +1,13 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CONNECTION_STATUS, EXPERIMENTS } from '../../../constants/constants';
+import { recordingExists } from '../../../../main/recordings';
+import { nextFreeSession } from '../../../utils/filesystem/storage';
 import Run from '../RunComponent';
 
 type RuntimeProps = { onAbort?(csv: string): void };
@@ -30,7 +35,7 @@ vi.mock('../../../utils/eeg/markerRegistry', () => ({
 }));
 vi.mock('../../InputCollect', () => ({ default: () => null }));
 vi.mock('../../../utils/filesystem/storage', () => ({
-  nextFreeSession: async (...args: unknown[]) => args[3],
+  nextFreeSession: vi.fn(async (...args: unknown[]) => args[3]),
 }));
 
 const Stop = vi.fn();
@@ -51,6 +56,56 @@ const props = {
   connectionStatus: CONNECTION_STATUS.CONNECTED,
   ExperimentActions: { Stop, Start, SetSession: vi.fn() } as never,
 };
+
+describe('starting a run in a taken session', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('an ended-early session moves the run to the next free session and starts it', async () => {
+    const actual = await vi.importActual<{
+      nextFreeSession: typeof nextFreeSession;
+    }>('../../../utils/filesystem/storage');
+    vi.mocked(nextFreeSession).mockImplementationOnce(actual.nextFreeSession);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-run-'));
+    const eeg = path.join(dir, 'Data/P1/EEG');
+    fs.mkdirSync(eeg, { recursive: true });
+    fs.writeFileSync(path.join(eeg, 'P1-A-1-raw.incomplete.csv'), 'x');
+    const showMessageBox = vi.fn().mockResolvedValue({ response: 1 });
+    vi.stubGlobal('electronAPI', {
+      recordingExists: async (
+        _title: string,
+        subject: string,
+        group: string,
+        session: number
+      ) => recordingExists(dir, subject, group, session),
+      showMessageBox,
+    });
+    const Start = vi.fn();
+    const SetSession = vi.fn();
+    render(
+      <Run
+        {...props}
+        isRunning={false}
+        ExperimentActions={{ Start, SetSession } as never}
+      />,
+      { wrapper: MemoryRouter }
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run & record' }));
+    await screen.findByRole('dialog', { name: 'Press space to begin' });
+    expect(showMessageBox).toHaveBeenCalledWith(
+      expect.objectContaining({ buttons: ['Cancel', 'Record as session 2'] })
+    );
+    expect(SetSession).toHaveBeenCalledWith(2);
+
+    fireEvent.keyDown(window, { code: 'Space' });
+    fireEvent.keyDown(window, { code: 'Space' });
+    expect(Start).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(window, { code: 'Escape' });
+    expect(screen.getByRole('heading', { name: 'Ready to run' })).toBeVisible();
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+});
 
 describe('ending a run early', () => {
   afterEach(() => vi.clearAllMocks());
