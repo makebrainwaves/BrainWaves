@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../ui/button';
 import {
   Table,
@@ -18,6 +18,7 @@ import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import { ParamSlider } from './ParamSlider';
 import PreviewButton from '../PreviewButtonComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
+import FeasibilityDialog, { FeasibilityChip } from './FeasibilityDialog';
 import { StimuliRow } from './StimuliRow';
 import { readImages, readAudioFiles } from '../../utils/filesystem/storage';
 import {
@@ -25,7 +26,6 @@ import {
   ConditionSlotName,
   assignDefaultResponses,
   conditionTitle,
-  countPhases,
   emptyConditionSlot,
   rebuildStimuliFromSlots,
   titleFromFolder,
@@ -37,21 +37,47 @@ import {
 import researchQuestionImage from '../../assets/common/ResearchQuestion2.png';
 import methodsImage from '../../assets/common/Methods2.png';
 import hypothesisImage from '../../assets/common/Hypothesis2.png';
+import {
+  assessFeasibility,
+  plannedConditions,
+} from '../../utils/feasibility/rules';
+import { phrasingPrompt } from '../../utils/feasibility/prompt';
 
+/**
+ * Two phases: the student designs the experiment (question → parameters), then
+ * passes the feasibility check, then gathers stimuli and previews. Stimuli come
+ * last because finding and downloading assets is the time-consuming part.
+ */
 const CUSTOM_STEPS = {
   OVERVIEW: 'OVERVIEW',
   CONDITIONS: 'CONDITIONS',
   TRIALS: 'TRIALS',
   PARAMETERS: 'PARAMETERS',
+  STIMULI: 'STIMULI',
   INSTRUCTIONS: 'INSTRUCTIONS',
   PREVIEW: 'PREVIEW',
 };
+const STEP_ORDER = Object.values(CUSTOM_STEPS);
+/** Steps after the feasibility check. Entering one from a changed design opens it. */
+const BUILD_STEPS = [
+  CUSTOM_STEPS.STIMULI,
+  CUSTOM_STEPS.INSTRUCTIONS,
+  CUSTOM_STEPS.PREVIEW,
+];
 
 export default function CustomDesign(props: DesignProps) {
   const [activeStep, setActiveStep] = useState(CUSTOM_STEPS.OVERVIEW);
   const [isPreviewing, setIsPreviewing] = useState(true);
   const [params, setParams] = useState(() => mergeCustomParams(props.params));
   const [saved, setSaved] = useState(false);
+  /** Build step the student asked for while the check is open. */
+  const [gateTarget, setGateTarget] = useState<string | null>(null);
+
+  const feasibility = useMemo(() => {
+    const assessment = assessFeasibility(params, props.isEEGEnabled);
+    return { assessment, prompt: phrasingPrompt(params, assessment) };
+  }, [params, props.isEEGEnabled]);
+  const hasValidCheck = params.feasibilityCheckedPrompt === feasibility.prompt;
 
   // Keep a ref always in sync with the latest params so async handlers and
   // unmount effects read current state instead of a stale closure value.
@@ -85,7 +111,21 @@ export default function CustomDesign(props: DesignProps) {
 
   function handleStepClick(step: string) {
     handleSaveParams();
+    if (BUILD_STEPS.includes(step) && !hasValidCheck) {
+      setGateTarget(step);
+      return;
+    }
     setActiveStep(step);
+  }
+
+  /** Continue is the only way past the check; it records this design as checked. */
+  function handleContinueFeasibility() {
+    handleSaveParams({
+      ...paramsRef.current,
+      feasibilityCheckedPrompt: feasibility.prompt,
+    });
+    setActiveStep(gateTarget ?? CUSTOM_STEPS.STIMULI);
+    setGateTarget(null);
   }
 
   function handleProgressBar(e: React.ChangeEvent<HTMLInputElement>) {
@@ -227,25 +267,13 @@ export default function CustomDesign(props: DesignProps) {
           }
         : stimulus;
     });
-    const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    handleSaveParams({
-      ...latestParams,
-      stimuli,
-      nbTrials,
-      nbPracticeTrials,
-    });
+    handleSaveParams({ ...latestParams, stimuli });
   };
 
   const handleDeleteTrial = (deletedNum: number) => {
     const stimuli = [...(params.stimuli ?? [])];
     stimuli.splice(deletedNum, 1);
-    const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const newParams: ExperimentParameters = {
-      ...params,
-      stimuli,
-      nbTrials,
-      nbPracticeTrials,
-    };
+    const newParams: ExperimentParameters = { ...params, stimuli };
     setParams(newParams);
     setSaved(false);
     handleSaveParams(newParams);
@@ -256,17 +284,35 @@ export default function CustomDesign(props: DesignProps) {
     const current = stimuli[changedNum];
     if (!current) return;
     stimuli[changedNum] = { ...current, [key]: data };
-    const { nbTrials, nbPracticeTrials } = countPhases(stimuli);
-    const newParams: ExperimentParameters = {
-      ...params,
-      stimuli,
-      nbTrials,
-      nbPracticeTrials,
-    };
+    const newParams: ExperimentParameters = { ...params, stimuli };
     setParams(newParams);
     setSaved(false);
     handleSaveParams(newParams);
   };
+
+  const perConditionTrials = plannedConditions(params)[0]?.trials ?? 0;
+  const nextStep = STEP_ORDER[STEP_ORDER.indexOf(activeStep) + 1];
+
+  function renderConditionRows(mode: 'plan' | 'assets') {
+    return CONDITION_SLOTS.map(({ name, number, type }) => {
+      const slot = params[name] ?? emptyConditionSlot(type, '');
+      return (
+        <StimuliDesignColumn
+          key={name}
+          mode={mode}
+          num={number}
+          title={slot.title}
+          response={slot.response}
+          dir={slot.dir ?? ''}
+          audioDir={slot.audioDir ?? ''}
+          numberImages={
+            params.stimuli?.filter((trial) => trial.type === number).length
+          }
+          onChange={handleConditionChange}
+        />
+      );
+    });
+  }
 
   function renderSectionContent() {
     switch (activeStep) {
@@ -325,8 +371,9 @@ export default function CustomDesign(props: DesignProps) {
             <div className="mb-4">
               <h1>Conditions</h1>
               <p>
-                {`Select the folder with images for each condition and choose
-                the correct response.`}
+                Name each condition you want to compare and choose the key
+                participants press for it. You&apos;ll add pictures and sounds
+                after the feasibility check.
               </p>
             </div>
             <Table>
@@ -334,43 +381,82 @@ export default function CustomDesign(props: DesignProps) {
                 <TableRow>
                   <TableHead className="pl-[60px]">Condition</TableHead>
                   <TableHead>Default Key Response</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>{renderConditionRows('plan')}</TableBody>
+            </Table>
+          </div>
+        );
+
+      case CUSTOM_STEPS.STIMULI:
+        return (
+          <div className="p-4">
+            <div className="mb-4">
+              <h1>Stimuli</h1>
+              <p>
+                Choose a folder of images, sounds, or both for each condition.
+                Your trials are drawn from these files.
+              </p>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-[60px]">Condition</TableHead>
                   <TableHead>Image Folder</TableHead>
                   <TableHead>Sound Folder (optional)</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {CONDITION_SLOTS.map(({ name, number, type }) => {
-                  const slot = params[name] ?? emptyConditionSlot(type, '');
-                  return (
-                    <StimuliDesignColumn
-                      key={name}
-                      num={number}
-                      title={slot.title}
-                      response={slot.response}
-                      dir={slot.dir ?? ''}
-                      audioDir={slot.audioDir ?? ''}
-                      numberImages={
-                        params.stimuli?.filter((trial) => trial.type === number)
-                          .length
-                      }
-                      onChange={handleConditionChange}
-                    />
-                  );
-                })}
-              </TableBody>
+              <TableBody>{renderConditionRows('assets')}</TableBody>
             </Table>
+            {(params.stimuli?.length ?? 0) > 0 && (
+              <Table className="mt-6">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-[60px]">Name</TableHead>
+                    <TableHead>Sound</TableHead>
+                    <TableHead>Condition</TableHead>
+                    <TableHead>Default Key Response</TableHead>
+                    <TableHead>Image File</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {params.stimuli?.map((stimulus, i) => (
+                    <StimuliRow
+                      key={`${stimulus.filename ?? stimulus.title}-${i}`}
+                      num={i}
+                      name={stimulus.filename ?? stimulus.title}
+                      audioFilename={stimulus.audioFilename}
+                      response={stimulus.response ?? ''}
+                      dir={stimulus.dir ?? ''}
+                      condition={stimulus.condition ?? ''}
+                      phase={stimulus.phase ?? 'main'}
+                      onDelete={() => handleDeleteTrial(i)}
+                      onChange={(num, key, data) =>
+                        handleChangeTrial(num, key, data)
+                      }
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         );
 
       case CUSTOM_STEPS.TRIALS:
         return (
           <div className="p-4">
-            <div className="grid grid-cols-[auto_1fr] w-full">
+            <div className="flex flex-col gap-4">
               <div>
                 <h1>Trials</h1>
-                <p>Edit the correct key response and type of each trial.</p>
+                <p>
+                  Choose how many trials to run. They are split evenly across
+                  your conditions
+                  {perConditionTrials > 0 &&
+                    `: about ${perConditionTrials} per condition`}
+                  .
+                </p>
               </div>
-              <div className="grid grid-cols-3 gap-2.5 self-end justify-self-end">
+              <div className="grid w-fit grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="trial-order" className="block text-sm mb-1">
                     Order
@@ -430,35 +516,6 @@ export default function CustomDesign(props: DesignProps) {
                 </div>
               </div>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-[60px]">Name</TableHead>
-                  <TableHead>Sound</TableHead>
-                  <TableHead>Condition</TableHead>
-                  <TableHead>Default Key Response</TableHead>
-                  <TableHead>Image File</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {params.stimuli?.map((stimulus, i) => (
-                  <StimuliRow
-                    key={`${stimulus.filename ?? stimulus.title}-${i}`}
-                    num={i}
-                    name={stimulus.filename ?? stimulus.title}
-                    audioFilename={stimulus.audioFilename}
-                    response={stimulus.response ?? ''}
-                    dir={stimulus.dir ?? ''}
-                    condition={stimulus.condition ?? ''}
-                    phase={stimulus.phase ?? 'main'}
-                    onDelete={() => handleDeleteTrial(i)}
-                    onChange={(num, key, data) =>
-                      handleChangeTrial(num, key, data)
-                    }
-                  />
-                ))}
-              </TableBody>
-            </Table>
           </div>
         );
 
@@ -630,16 +687,38 @@ export default function CustomDesign(props: DesignProps) {
           />
         }
         saveButton={
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => handleSaveParams()}
-          >
-            Save
-          </Button>
+          <>
+            {hasValidCheck && (
+              <FeasibilityChip verdict={feasibility.assessment.verdict} />
+            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleSaveParams()}
+            >
+              Save
+            </Button>
+          </>
         }
       />
       {renderSectionContent()}
+      {nextStep && (
+        <Button
+          className="fixed bottom-[24px] right-[24px] z-40 shadow-lg"
+          onClick={() => handleStepClick(nextStep)}
+        >
+          {activeStep === CUSTOM_STEPS.PARAMETERS
+            ? 'Check feasibility →'
+            : `Next: ${nextStep[0]}${nextStep.slice(1).toLowerCase()} →`}
+        </Button>
+      )}
+      <FeasibilityDialog
+        open={gateTarget !== null}
+        assessment={feasibility.assessment}
+        prompt={feasibility.prompt}
+        onRevise={() => setGateTarget(null)}
+        onContinue={handleContinueFeasibility}
+      />
     </div>
   );
 }
