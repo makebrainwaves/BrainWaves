@@ -222,6 +222,54 @@ describe('experiment stop', () => {
   });
 });
 
+describe('starting a run', () => {
+  const start = () => {
+    const actions = new Subject<ExperimentActionType>();
+    const out: ExperimentActionType[] = [];
+    const state = { value: recording(new Subject<EEGData>()) };
+    const sub = experimentEpics(
+      actions,
+      state as unknown as StateObservable<RootState>,
+      undefined
+    ).subscribe((a) => out.push(a));
+    return { actions, out, sub };
+  };
+
+  afterEach(() => vi.clearAllMocks());
+
+  it('a repeated Start opens one recording', async () => {
+    vi.mocked(createEEGWriteStream).mockResolvedValue('stream-1');
+    const { actions, out, sub } = start();
+
+    actions.next(ExperimentActions.Start());
+    actions.next(ExperimentActions.Start());
+    await vi.waitFor(() =>
+      expect(out).toContainEqual(ExperimentActions.SetIsRunning(true))
+    );
+    expect(createEEGWriteStream).toHaveBeenCalledTimes(1);
+    sub.unsubscribe();
+  });
+
+  it('a recording main refuses does not start the run, and a later Start still works', async () => {
+    vi.mocked(createEEGWriteStream)
+      .mockRejectedValueOnce(
+        new Error('Session 1 for P1 (A) is already recorded')
+      )
+      .mockResolvedValueOnce('stream-2');
+    const { actions, out, sub } = start();
+
+    actions.next(ExperimentActions.Start());
+    await vi.waitFor(() =>
+      expect(out).toEqual([ExperimentActions.SetIsRunning(false)])
+    );
+    actions.next(ExperimentActions.Start());
+    await vi.waitFor(() =>
+      expect(out.at(-1)).toEqual(ExperimentActions.SetIsRunning(true))
+    );
+    sub.unsubscribe();
+  });
+});
+
 describe('ending a run early', () => {
   const live = () => {
     const s = recording();

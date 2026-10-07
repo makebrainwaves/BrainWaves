@@ -45,12 +45,15 @@ import type {
 } from '../shared/lslTypes';
 import { importExperimentFile } from './importExperimentFile';
 import {
+  createRawEEGStream,
   incompleteRecordingFiles,
   isBehaviorFile,
   isIncompleteRawEEGFile,
   isRawEEGFile,
   markRecordingIncomplete,
   recordingExists,
+  sessionFile,
+  writeSessionFile,
 } from './recordings';
 
 // Playtest harness: isolate smoke-test state from the user's Electron profile.
@@ -306,19 +309,14 @@ ipcMain.handle('fs:readWorkspaceBehaviorData', (_event, title) => {
   }
 });
 
+/** Writes a run's behavior CSV; rejects instead of overwriting an existing one. */
 ipcMain.handle(
   'fs:storeBehavioralData',
-  (_event, csv, title, subject, group, session) => {
-    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'Behavior');
-    const filename = `${subject}-${group}-${session}-behavior.csv`;
-    mkdirPathSync(dir);
-    return new Promise<void>((resolve, reject) => {
-      fs.writeFile(path.join(dir, filename), csv, (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
-  }
+  (_event, csv, title, subject, group, session) =>
+    writeSessionFile(
+      sessionFile(getWorkspaceDir(title), subject, group, session, 'behavior'),
+      csv
+    )
 );
 
 ipcMain.handle(
@@ -491,14 +489,16 @@ ipcMain.handle('fs:readFileAsBytes', (_event, filePath: string) => {
   return fs.readFileSync(filePath);
 });
 
-// EEG streaming — main process holds write streams for performance
+/** Opens a new run's raw EEG file; rejects when the session is already taken. */
 ipcMain.handle(
   'eeg:createWriteStream',
   (_event, title, subject, group, session) => {
-    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
-    const filename = `${subject}-${group}-${session}-raw.csv`;
-    mkdirPathSync(dir);
-    const stream = fs.createWriteStream(path.join(dir, filename));
+    const stream = createRawEEGStream(
+      getWorkspaceDir(title),
+      subject,
+      group,
+      session
+    );
     const streamId = `${Date.now()}-${Math.random()}`;
     activeStreams.set(streamId, stream);
     return streamId;
@@ -539,12 +539,11 @@ ipcMain.on(
 // the recording is self-describing for external/downstream analysis.
 ipcMain.handle(
   'eeg:writeEvents',
-  (_event, title, subject, group, session, events: Record<number, string>) => {
-    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
-    const filename = `${subject}-${group}-${session}-events.json`;
-    mkdirPathSync(dir);
-    fs.writeFileSync(path.join(dir, filename), JSON.stringify(events, null, 2));
-  }
+  (_event, title, subject, group, session, events: Record<number, string>) =>
+    writeSessionFile(
+      sessionFile(getWorkspaceDir(title), subject, group, session, 'events'),
+      JSON.stringify(events, null, 2)
+    )
 );
 
 ipcMain.handle('eeg:closeStream', (_event, streamId) => {

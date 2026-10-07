@@ -3,12 +3,15 @@ import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  createRawEEGStream,
   incompleteRecordingFiles,
   isBehaviorFile,
   isIncompleteRawEEGFile,
   isRawEEGFile,
   markRecordingIncomplete,
   recordingExists,
+  sessionFile,
+  writeSessionFile,
 } from '../recordings';
 
 let dir: string;
@@ -59,6 +62,56 @@ describe('recordings', () => {
 
     expect(csvFiles().filter(isBehaviorFile)).toEqual([]);
     expect(recordingExists(dir, 'P1', 'A', 1)).toBe(true);
+  });
+
+  it('a run never writes into a taken session, so starting twice opens one file', () => {
+    write('Data/P1/EEG/P1-A-1-raw.incomplete.csv');
+    write('Data/P1/EEG/P1-A-3-events.json');
+
+    expect(() => createRawEEGStream(dir, 'P1', 'A', 1)).toThrow(
+      'Session 1 for P1 (A) is already recorded'
+    );
+    expect(recordingExists(dir, 'P1', 'A', 3)).toBe(true);
+    createRawEEGStream(dir, 'P1', 'A', 2).close();
+    expect(() => createRawEEGStream(dir, 'P1', 'A', 2)).toThrow(
+      'already recorded'
+    );
+    expect(csvFiles().sort()).toEqual([
+      path.normalize('Data/P1/EEG/P1-A-1-raw.incomplete.csv'),
+      path.normalize('Data/P1/EEG/P1-A-2-raw.csv'),
+    ]);
+  });
+
+  it('writes a session file only when neither it nor its ended-early copy exists', () => {
+    write('Data/P1/Behavior/P1-A-1-behavior.incomplete.csv');
+    write('Data/P1/EEG/P1-A-1-events.json');
+    const behavior = sessionFile(dir, 'P1', 'A', 1, 'behavior');
+    const events = sessionFile(dir, 'P1', 'A', 1, 'events');
+
+    expect(() => writeSessionFile(behavior, 'new')).toThrow('already exists');
+    expect(() => writeSessionFile(events, 'new')).toThrow('already exists');
+    expect(fs.existsSync(behavior)).toBe(false);
+    expect(fs.readFileSync(events, 'utf8')).toBe('x');
+  });
+
+  it('marking incomplete never overwrites an earlier ended-early run', () => {
+    write('Data/P1/Behavior/P1-A-1-behavior.csv');
+    write('Data/P1/EEG/P1-A-1-raw.csv');
+    fs.writeFileSync(
+      path.join(dir, 'Data/P1/EEG/P1-A-1-raw.incomplete.csv'),
+      'earlier'
+    );
+
+    expect(() => markRecordingIncomplete(dir, 'P1', 'A', 1)).toThrow(
+      'P1-A-1-raw.incomplete.csv already exists'
+    );
+    expect(
+      fs.readFileSync(
+        path.join(dir, 'Data/P1/EEG/P1-A-1-raw.incomplete.csv'),
+        'utf8'
+      )
+    ).toBe('earlier');
+    expect(csvFiles().filter(isBehaviorFile)).toHaveLength(1);
   });
 
   it('an ended-early run is listed as incomplete and deletes with its behavior and events siblings', () => {

@@ -74,60 +74,66 @@ const createNewWorkspaceEpic: Epic<
 /** The open raw-EEG write stream of the current run; closed by the stop epic. */
 let activeEEGStream: string | null = null;
 
+/**
+ * Starts a run once: Starts arriving while one is starting are ignored. When
+ * the recording can't be created (e.g. main refuses a taken session), the run
+ * does not start and nothing is overwritten.
+ */
 const startEpic = (action$, state$) =>
   action$.pipe(
     filter(isActionOf(ExperimentActions.Start)),
     filter(() => !state$.value.experiment.isRunning),
-    mergeMap(async () => {
+    exhaustMap(async () => {
       activeEEGStream = null;
-      await createWorkspaceDir(state$.value.experiment.title);
-      if (
-        state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
-      ) {
-        const streamId = await createEEGWriteStream(
-          state$.value.experiment.title,
-          state$.value.experiment.subject,
-          state$.value.experiment.group,
-          state$.value.experiment.session
-        );
+      const { title, subject, group, session, params } =
+        state$.value.experiment;
+      try {
+        await createWorkspaceDir(title);
+        if (
+          state$.value.device.connectionStatus === CONNECTION_STATUS.CONNECTED
+        ) {
+          const streamId = await createEEGWriteStream(
+            title,
+            subject,
+            group,
+            session
+          );
 
-        if (!streamId) {
-          return true;
-        }
-        activeEEGStream = streamId;
-        writeHeader(
-          streamId,
-          state$.value.device.connectedDevice?.channels ?? MUSE_CHANNELS
-        );
+          if (!streamId) {
+            return true;
+          }
+          activeEEGStream = streamId;
+          writeHeader(
+            streamId,
+            state$.value.device.connectedDevice?.channels ?? MUSE_CHANNELS
+          );
 
-        // Persist the code->label event map next to the CSV so the numeric
-        // Marker codes are self-describing. Same registry the analysis uses,
-        // so the recording and its interpretation can never drift apart.
-        const { codeToLabel } = resolveMarkerRegistry(
-          state$.value.experiment.params
-        );
-        void writeEEGEvents(
-          state$.value.experiment.title,
-          state$.value.experiment.subject,
-          state$.value.experiment.group,
-          state$.value.experiment.session,
-          codeToLabel
-        );
+          // Persist the code->label event map next to the CSV so the numeric
+          // Marker codes are self-describing. Same registry the analysis uses,
+          // so the recording and its interpretation can never drift apart.
+          const { codeToLabel } = resolveMarkerRegistry(params);
+          void writeEEGEvents(title, subject, group, session, codeToLabel);
 
-        state$.value.device.rawObservable
-          .pipe(
-            takeUntil(
-              action$.pipe(
-                ofType(
-                  ExperimentActions.Stop.type,
-                  ExperimentActions.ExperimentCleanup.type
+          state$.value.device.rawObservable
+            .pipe(
+              takeUntil(
+                action$.pipe(
+                  ofType(
+                    ExperimentActions.Stop.type,
+                    ExperimentActions.ExperimentCleanup.type
+                  )
                 )
               )
             )
-          )
-          .subscribe((eegData) => writeEEGData(streamId, eegData));
+            .subscribe((eegData) => writeEEGData(streamId, eegData));
+        }
+        return true;
+      } catch (error) {
+        toast.error(
+          `Couldn't start recording: ${(error as Error).message}. Press Esc to go back.`
+        );
+        return false;
       }
-      return true;
     }),
     map(ExperimentActions.SetIsRunning)
   );
