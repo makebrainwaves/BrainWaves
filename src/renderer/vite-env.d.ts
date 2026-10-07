@@ -22,3 +22,9 @@ declare module '*.py' {
   const content: string;
   export default content;
 }
+
+/** Plotly's cartesian-only bundle (no map traces) shares the full plotly.js API. */
+declare module 'plotly.js-cartesian-dist' {
+  import * as Plotly from 'plotly.js';
+  export default Plotly;
+}

@@ -1,5 +1,5 @@
-import React from 'react';
-import Plot from 'react-plotly.js';
+import React, { useEffect, useRef } from 'react';
+import Plotly from 'plotly.js-cartesian-dist';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
@@ -32,6 +32,29 @@ export interface AnalyzeBehaviorProps {
   onToggleOutliers(): void;
   onDisplayModeChange(mode: DisplayMode): void;
   onExport(): void;
+}
+
+/** Draws a Plotly figure into a div that fills its parent; `config.responsive` keeps it sized. */
+function Plot({
+  data,
+  layout,
+  config,
+}: {
+  data: Plotly.Data[];
+  layout: Partial<Plotly.Layout>;
+  config: Partial<Plotly.Config>;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current) void Plotly.react(ref.current, data, layout, config);
+  }, [data, layout, config]);
+  useEffect(() => {
+    const el = ref.current;
+    return () => {
+      if (el) Plotly.purge(el);
+    };
+  }, []);
+  return <div ref={ref} className="h-full w-full" />;
 }
 
 /** What each plot type communicates, per measure. */
@@ -185,8 +208,6 @@ export default function AnalyzeBehavior({
                 plot_bgcolor: 'rgba(0,0,0,0)',
               }}
               config={{ displayModeBar: false, responsive: true }}
-              useResizeHandler
-              style={{ width: '100%', height: '100%' }}
             />
           </div>
         </figure>
