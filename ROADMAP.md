@@ -32,7 +32,9 @@ Fix what the first naive playtest (`docs/uxr/playtest_naive_1.md`, 2026-09-18) s
 - [ ] Full UXR playtest (replaces the "second naive playtest")
 - [ ] Fixes and language PR from the playtest, then the next release
 
-**Demo (early Nov 2026, controlled Apple Silicon hardware):** the V1.5 journey plus the AI feasibility coach (PR #283, pulled forward from the V2 "LLM coach" item in TODOS). Coach work for the demo: rebase, QA, and maybe a redesign of the feedback screen.
+**Demo (early Nov 2026, controlled Apple Silicon hardware):** the V1.5 journey plus the AI feasibility coach (PR #283, pulled forward from the V2 "LLM coach" item in TODOS). Coach work for the demo: rebase (done), QA, and maybe a redesign of the feedback screen.
+
+**Mozilla Human-Scale AI Incubator application (deadline Nov 20, 2026):** the demo serves as source material for the grant's 2-minute video. See `docs/Mozilla Human-Scale AI — Strategic Analysis.md` for the full strategy. In short: Mozilla funds the core technology half of V3 (hardening the local-AI layer, open reusable components and documentation, deployment engineering), while the Humanity AI fellowship funds the teacher fellows and classroom adoption. The application reframes our V3 architecture — rules decide, model phrases; teacher-governable Socratic questioning; structured-specification compilation — as a genuinely novel Human-Scale AI system, not a generic chatbot. Four-week sprint before Nov 20; evidence tracked in TODOS.
 
 Known gap going in: the Collect pre-run screen never got its own redesign.
 Epoch-reviewer guided mode stays a V1.5+ item, contingent on the playtest.
@@ -43,7 +45,9 @@ Epoch-reviewer guided mode stays a V1.5+ item, contingent on the playtest.
 - [ ] Data-science content from Teon Brooks
 - [ ] In-app lesson surface (static markdown first)
 
-## V3 - AI-powered data analysis
+## V3 — AI-powered data analysis (Mozilla-funded core technology layer)
+
+The V3 architecture is the technology story in the Mozilla Human-Scale AI Incubator application. See `docs/Mozilla Human-Scale AI — Strategic Analysis.md` for the full design: rules-decide/model-phrases, three constrained modes (intention-to-code translator, Socratic questioner, in-lab troubleshooter), teacher-governable content via context/retrieval rather than weight fine-tuning, and local open-weight models benchmarked on school hardware. Year-one funding ($300k) hardens this layer and ships it across fellows' classrooms; years 2–3 expand to per-teacher adapters and cross-science transfer.
 - [ ] **Emit tidy trial-level data from the collection layer.** De-specialize from ERP-only averaged waveforms. Blocks everything below. *(Scope first — likely the largest hidden work item.)*
 - [ ] **Write/audit the statistical curriculum.** Normal vs. non-normal, categorical vs. ordinal, paired vs. independent, p-values. The analysis UI is unusable without it and does not teach it.
 - [ ] **Build the specification → compiler loop.** Four-slot structure declaration with custom iconography → unfiltered test palette (6 tests + non-parametric siblings) → generated Python, visible and editable, run client-side in Pyodide. Predict-before-you-run enforced and logged; effect size always adjacent to p. No free-text input; no output that narrows, ranks, or recommends a test.
