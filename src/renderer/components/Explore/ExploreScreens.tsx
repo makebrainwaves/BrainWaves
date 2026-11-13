@@ -173,7 +173,7 @@ export function ExploreSurface({
       {waiting ? (
         <div
           role="status"
-          className="flex flex-none items-center gap-[10px] rounded-lg border border-gray-200 bg-white px-[18px] py-[12px]"
+          className="flex min-h-[72px] flex-none items-center gap-[10px] rounded-lg border border-gray-200 bg-white px-[18px] py-[12px]"
         >
           <span
             aria-hidden

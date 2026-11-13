@@ -1,7 +1,4 @@
-/* eslint prefer-template: 0 */
-import * as d3 from 'd3';
 import throttle from 'lodash/throttle';
-import simplify from 'simplify-js';
 
 const ZOOM_SCALAR = 1.5;
 
@@ -26,19 +23,18 @@ function mean(values) {
 }
 
 const LABEL_HEIGHT = 22;
-// SVG clamps rx to half the box, so an oversized rx renders an oval, not a pill.
+// Canvas roundRect, like SVG, clamps radius to half the box; exactly half is a pill.
 const LABEL_RADIUS = LABEL_HEIGHT / 2;
 
-const LABEL_GUTTER = LABEL_HEIGHT + 8;
-
-/** getBBox is unavailable before layout (and in jsdom); fall back to glyph width. */
-function pillWidth(text) {
-  const measured = text.node()?.getBBox?.()?.width ?? 0;
-  return Math.max(measured, (text.text() ?? '').length * 6.5) + 20;
-}
-
+/** Static-plot oscilloscope: fixed axes, data sweeps left→right overwriting the previous sweep. */
 export default class EEGViewer {
-  constructor(svg, parameters) {
+  constructor(element, parameters) {
+    this.element = element;
+    try {
+      this.ctx = element.getContext?.('2d') ?? null;
+    } catch {
+      this.ctx = null;
+    }
     this.channels = parameters.channels;
     this.plottingInterval = parameters.plottingInterval;
     this.domain = parameters.domain;
@@ -48,306 +44,265 @@ export default class EEGViewer {
     this.annotations = parameters.annotations ?? [];
     this.snapshot = parameters.snapshot ?? null;
     this.amplitudeScale = parameters.amplitudeScale;
-    this.downsampling = 2;
     this.lineWidth = 1.75;
     this.zoom = 1;
-    this.canvas = d3.select(svg);
-
     this.margin = { top: 20, right: 10, bottom: 30, left: 44 };
-    this.lastTimestamp = Date.now();
-    this.firstTimestamp = this.lastTimestamp - this.domain;
-
-    this.data = new Array(this.channels.length).fill(null).map(() => []);
-    this.channelMeans = new Array(this.channels.length).fill(0);
+    this.data = this.channels.map(() => []);
+    this.channelMeans = this.channels.map(() => 0);
     this.amplitudeRange = 200;
+    // Sweep anchor: sample time that maps to x=0. Null until the first live
+    // epoch — never seeded from Date.now() (device clocks can lag wall time).
+    this.sweepStart = null;
+    this.headTime = null;
+    // Revealed up to here; advances in real time via rAF so the sweep moves
+    // smoothly even though data arrives in 250 ms chunks (PLOTTING_INTERVAL
+    // itself is load-bearing for signal-quality epoching and stays 250 ms).
+    this.displayTime = null;
+    this.rafId = null;
+    this.lastFrame = null;
+    this.firstTimestamp = null;
+    this.lastTimestamp = null;
+    this.destroyed = false;
 
     this.resize = this.resize.bind(this);
-    if (this.snapshot) {
-      this.updateSnapshot(this.snapshot, this.amplitudeScale);
-    } else {
-      this.init();
-    }
+    if (this.snapshot) this.updateSnapshot(this.snapshot, this.amplitudeScale);
+    else this.init();
+
     this.windowResizeHandler = throttle(this.resize, 200);
     window.addEventListener('resize', this.windowResizeHandler);
     if (typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(([entry]) => {
+        if (this.destroyed) return;
         const { width, height } = entry.contentRect;
-        if (!this.graph) return;
-        if (width === this.lastWidth && height === this.lastHeight) return;
+        if (width === this.totalWidth && height === this.totalHeight) return;
         this.init();
       });
-      this.resizeObserver.observe(svg);
+      this.resizeObserver.observe(element);
     }
   }
 
   destroy() {
+    this.destroyed = true;
     window.removeEventListener('resize', this.windowResizeHandler);
+    this.windowResizeHandler.cancel?.();
     this.resizeObserver?.disconnect();
-    this.canvas.selectAll('*').remove();
+    if (this.rafId != null) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
+    if (this.ctx && this.totalWidth)
+      this.ctx.clearRect(0, 0, this.totalWidth, this.totalHeight);
   }
 
   computeGeometry() {
-    const svgElement = this.canvas.node();
-    let width = 0;
-    let height = 0;
-    if (svgElement) {
-      const rect = svgElement.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
-    }
-    this.lastWidth = width;
-    this.lastHeight = height;
-    this.width = Math.max(0, width - (this.margin.left + this.margin.right));
-    this.height = Math.max(0, height - (this.margin.top + this.margin.bottom));
+    const rect = this.element?.getBoundingClientRect?.() ?? {
+      width: 0,
+      height: 0,
+    };
+    this.totalWidth = rect.width || 0;
+    this.totalHeight = rect.height || 0;
+    this.width = Math.max(
+      0,
+      this.totalWidth - (this.margin.left + this.margin.right)
+    );
+    this.height = Math.max(
+      0,
+      this.totalHeight - (this.margin.top + this.margin.bottom)
+    );
+    this.dpr = window.devicePixelRatio || 1;
   }
 
   init() {
+    this.draw();
+  }
+
+  resize() {
+    if (!this.destroyed) this.draw();
+  }
+
+  redraw() {
+    this.draw();
+  }
+
+  /**
+   * Erase the proximate next step ahead of the write head, in the same draw
+   * pass as the incoming trace: a full-height slice of background (clearRect,
+   * the canvas is transparent) roughly one frame-step wide. Old data is wiped
+   * just before the head overwrites it — incoming and overwriting stay on the
+   * one rAF timescale, not split between chunk arrival and reveal.
+   */
+  drawEraseBar() {
+    if (this.snapshot || this.sweepStart == null || this.displayTime == null)
+      return;
+    const { ctx } = this;
+    const offset =
+      (((this.displayTime - this.sweepStart) % this.domain) + this.domain) %
+      this.domain;
+    const headX = this.margin.left + (offset / this.domain) * this.width;
+    const barWidth = Math.max(2, (1000 / 60 / this.domain) * this.width);
+    ctx.clearRect(headX, this.margin.top, barWidth, this.height);
+    // The head wraps: erase at the left edge with whatever crosses over.
+    const overflow = headX + barWidth - (this.margin.left + this.width);
+    if (overflow > 0)
+      ctx.clearRect(this.margin.left, this.margin.top, overflow, this.height);
+  }
+
+  /**
+   * Reveal buffered points in real time (rAF, ~60 fps): the display head
+   * advances by frame elapsed time toward the latest data head, so a chunk
+   * draws as a smooth sweep instead of a 250 ms jump.
+   */
+  startReveal() {
+    if (
+      this.rafId != null ||
+      this.destroyed ||
+      this.snapshot ||
+      this.displayTime == null ||
+      this.headTime == null ||
+      typeof requestAnimationFrame === 'undefined'
+    )
+      return;
+    this.rafId = requestAnimationFrame((timestamp) => {
+      this.rafId = null;
+      if (
+        this.destroyed ||
+        this.snapshot ||
+        this.displayTime == null ||
+        this.headTime == null
+      )
+        return;
+      if (this.lastFrame == null) this.lastFrame = timestamp;
+      const elapsed = Math.max(0, timestamp - this.lastFrame);
+      this.lastFrame = timestamp;
+      // Fell a full window behind (hidden guest throttles rAF): resync
+      // instead of sweeping empty plot for seconds.
+      this.displayTime =
+        this.headTime - this.displayTime > this.domain
+          ? this.headTime
+          : Math.min(this.headTime, this.displayTime + elapsed);
+      this.draw();
+      if (this.displayTime < this.headTime) this.startReveal();
+      else this.lastFrame = null;
+    });
+  }
+  draw() {
     this.computeGeometry();
-    this.canvas.selectAll('*').remove();
-    this.canvas
-      .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('height', this.height + this.margin.top + this.margin.bottom);
-
-    this.graph = this.canvas
-      .append('g')
-      .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
-
-    this.addDefs();
-    this.addScales();
-    this.addAxes();
-    this.addLines();
-    this.addAnnotationsLayer();
+    const { ctx } = this;
+    if (!ctx || !(this.domain > 0)) return;
+    const totalW = this.width + this.margin.left + this.margin.right;
+    const totalH = this.height + this.margin.top + this.margin.bottom;
+    if (this.element.width !== Math.round(totalW * this.dpr))
+      this.element.width = Math.round(totalW * this.dpr);
+    if (this.element.height !== Math.round(totalH * this.dpr))
+      this.element.height = Math.round(totalH * this.dpr);
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.clearRect(0, 0, totalW, totalH);
+    if (this.width <= 0 || this.height <= 0) return;
+    this.drawAxes();
+    this.drawAnnotations();
+    this.drawTraces();
+    this.drawEraseBar();
   }
 
-  addDefs() {
-    this.defs = this.canvas.append('defs');
-
-    this.plotClipPath = this.defs
-      .append('clipPath')
-      .attr('id', this.uniqueId('plot-clip'));
-    this.plotClipPath
-      .append('rect')
-      .attr('class', 'plot-clip')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', this.width)
-      .attr('height', this.height);
-
-    this.annotationClipPath = this.defs
-      .append('clipPath')
-      .attr('id', this.uniqueId('annotation-clip'));
-    this.annotationClipPath
-      .append('rect')
-      .attr('class', 'annotation-clip')
-      .attr('x', 0)
-      .attr('y', -LABEL_GUTTER)
-      .attr('width', this.width)
-      .attr('height', this.height + 2 * LABEL_GUTTER);
-  }
-
-  uniqueId(prefix) {
-    return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
-  }
-
-  addScales() {
-    this.xScale = d3
-      .scaleTime()
-      .domain([this.firstTimestamp, this.lastTimestamp])
-      .range([0, this.width]);
-
-    // Time labels are offsets from "now" ("-4s"), so the axis gets its own
-    // fixed scale and never moves as timestamps advance.
-    this.xAxisScale = d3
-      .scaleLinear()
-      .domain([-this.domain, 0])
-      .range([0, this.width]);
-
-    this.yScaleLines = d3.scaleLinear();
-    this.yScaleLabels = d3
-      .scaleLinear()
-      .domain([this.channels.length - 1, 0])
-      .range([
-        (this.channels.length - 1) * (this.height / this.channels.length) +
-          this.height / this.channels.length / 2,
-        this.height / this.channels.length / 2,
-      ]);
-  }
-
-  addAxes() {
-    this.yAxis = d3
-      .axisLeft()
-      .scale(this.yScaleLabels)
-      .tickSize(2)
-      .tickFormat((d, i) => String(this.channels[i]))
-      .tickValues(d3.range(this.channels.length));
-
-    this.axisY = this.graph.append('g').attr('class', 'axis').call(this.yAxis);
-
-    this.axisX = this.graph.append('g').attr('class', 'axis x-axis');
-    this.renderTimeAxis();
-  }
-
-  /** Ticks change only with geometry or domain, never with incoming data. */
-  renderTimeAxis() {
-    this.xAxisScale.domain([-this.domain, 0]).range([0, this.width]);
-    this.axisX
-      .attr('transform', `translate(0,${this.height})`)
-      .call(this.buildTimeAxis());
-    this.axisWidth = this.width;
-    this.axisHeight = this.height;
-  }
-
-  buildTimeAxis() {
+  /** Fixed geometry: labels and whole-second offset ticks depend only on size/domain, never on data. */
+  drawAxes() {
+    const { ctx } = this;
+    ctx.fillStyle = '#484848';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'right';
+    ctx.font = '14px "Helvetica Neue", serif';
+    const band = this.height / Math.max(1, this.channels.length);
+    this.channels.forEach((name, i) => {
+      ctx.fillText(
+        String(name),
+        this.margin.left - 8,
+        this.margin.top + band * (i + 0.5)
+      );
+    });
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = '12px "Helvetica Neue", serif';
     // Whole-second ticks only: sub-second steps would round to duplicate labels.
     const maxTicks = Math.max(2, Math.floor(this.width / 80));
     const step = Math.max(1, Math.ceil(this.domain / 1000 / maxTicks)) * 1000;
-    const offsets = [];
-    for (let offset = 0; offset >= -this.domain; offset -= step)
-      offsets.push(offset);
-    return d3
-      .axisBottom()
-      .scale(this.xAxisScale)
-      .tickValues(offsets)
-      .tickFormat((offset) => `${Math.round(Number(offset) / 1000)}s`);
+    for (let offset = 0; offset >= -this.domain; offset -= step) {
+      const x =
+        this.margin.left + ((offset + this.domain) / this.domain) * this.width;
+      ctx.fillText(
+        `${Math.round(offset / 1000)}s`,
+        x,
+        this.margin.top + this.height + 8
+      );
+    }
   }
 
-  addLines() {
-    if (this.graph) this.graph.select('#lines').remove();
-    this.lines = this.graph
-      .append('g')
-      .attr('id', 'lines')
-      .attr('clip-path', `url(#${this.plotClipPath.attr('id')})`);
-
-    this.line = d3
-      .line()
-      .x((d) => this.xScale(d.x))
-      .y((d) => this.yScaleLines(d.y))
-      .curve(d3.curveLinear)
-      .defined((d) => d && typeof d.y === 'number' && !Number.isNaN(d.y));
-
-    this.paths = this.channels.map((channelName, i) => {
-      this.getYScaleForChannel(i);
-
-      return this.lines
-        .append('path')
-        .attr('class', 'line')
-        .attr('id', `line-${channelName}`)
-        .datum(this.data[i])
-        .attr('d', this.line)
-        .attr('stroke', this.channelColours[i])
-        .attr('stroke-width', this.lineWidth)
-        .attr('fill', 'none');
-    });
+  yFor(value, i) {
+    const half = (this.amplitudeScale ?? this.amplitudeRange) / this.zoom;
+    if (!(half > 0)) return this.margin.top;
+    const [bottom, top] = EEGViewer.getLineRange(
+      i,
+      this.channels.length,
+      this.height
+    );
+    return (
+      this.margin.top +
+      bottom +
+      ((value - this.channelMeans[i] - half) * (top - bottom)) / (-2 * half)
+    );
   }
 
-  addAnnotationsLayer() {
-    this.annotationsGroup = this.graph
-      .append('g')
-      .attr('class', 'annotations')
-      .attr('clip-path', `url(#${this.annotationClipPath.attr('id')})`);
-    this.annotationGroup = this.annotationsGroup
-      .append('g')
-      .attr('class', 'annotation-bands');
-    this.labelsGroup = this.annotationsGroup
-      .append('g')
-      .attr('class', 'annotation-labels');
-    this.renderAnnotations();
-  }
-
-  getYScaleForChannel(i) {
-    const halfRange = (this.amplitudeScale ?? this.amplitudeRange) / this.zoom;
-    const center = this.channelMeans[i];
-    this.yScaleLines
-      .domain([center + halfRange, center - halfRange])
-      .range(EEGViewer.getLineRange(i, this.channels.length, this.height));
-    return this.yScaleLines;
-  }
-
-  zoomIn() {
-    this.zoom *= ZOOM_SCALAR;
-    this.redraw();
-  }
-
-  zoomOut() {
-    this.zoom /= ZOOM_SCALAR;
-    this.redraw();
+  /** X in plot coordinates for a visible time, or null when erased/not yet written. */
+  xFor(time) {
+    if (this.snapshot) {
+      const x = ((time - this.firstTimestamp) / this.domain) * this.width;
+      return x >= 0 && x <= this.width ? x : null;
+    }
+    if (this.sweepStart == null || this.displayTime == null) return null;
+    if (time > this.displayTime || time <= this.displayTime - this.domain)
+      return null;
+    const offset =
+      (((time - this.sweepStart) % this.domain) + this.domain) % this.domain;
+    return (offset / this.domain) * this.width;
   }
 
   updateData(epoch) {
     if (this.snapshot) return;
-    const {
-      info: { samplingRate, startTime },
-    } = epoch;
-    const channelNames = epoch.info.channelNames ?? [];
-    const mapped = this.mapChannels(channelNames);
+    const { samplingRate, startTime } = epoch.info;
+    const mapped = this.mapChannels(epoch.info.channelNames ?? []);
     const sampleCount = epoch.data[0]?.length ?? 0;
     const endTime = startTime + sampleCount / (samplingRate / 1000);
-    const previousLast = this.lastTimestamp;
-    this.lastTimestamp = endTime;
-    this.firstTimestamp = this.lastTimestamp - this.domain;
+    if (this.sweepStart == null) this.sweepStart = startTime;
+    else if (endTime >= this.sweepStart + this.domain)
+      this.sweepStart +=
+        Math.floor((endTime - this.sweepStart) / this.domain) * this.domain;
+    this.headTime =
+      this.headTime == null ? endTime : Math.max(this.headTime, endTime);
+    this.firstTimestamp = this.sweepStart;
+    this.lastTimestamp = this.headTime;
+    if (this.displayTime == null) this.displayTime = startTime;
 
     for (let i = 0; i < this.channels.length; i++) {
-      const sourceIndex = mapped[i];
-      const source = epoch.data[sourceIndex];
-      if (sourceIndex < 0 || !source) continue;
-      const points = simplify(
-        source.map((dataPoint, index) => ({
+      const source = epoch.data[mapped[i]];
+      if (mapped[i] < 0 || !source) continue;
+      const points = source
+        .map((y, index) => ({
           x: startTime + index / (samplingRate / 1000),
-          y: dataPoint,
-        })),
-        this.downsampling
-      );
+          y,
+        }))
+        .filter((p) => Number.isFinite(p.y));
+      // Prune on the display clock (what's visible), not the data head: old
+      // points then leave in xFor / the erase bar, on the reveal timescale.
       this.data[i] = this.data[i]
-        .concat(points)
-        .filter(
-          (sample) =>
-            sample != null &&
-            sample.x >= this.firstTimestamp &&
-            sample.x <= this.lastTimestamp
-        );
+        .filter((p) => p.x > this.displayTime - this.domain)
+        .concat(points);
     }
-
     if (!this.fixedColours)
       this.channelColours = this.channels.map(
-        (channelName) =>
-          epoch.signalQuality?.[channelName] ??
-          this.channelColours[this.channels.indexOf(channelName)] ??
+        (name, i) =>
+          epoch.signalQuality?.[name] ??
+          this.channelColours[i] ??
           DEFAULT_COLOUR
       );
-
-    this.redraw();
-    this.slideIn(this.lastTimestamp - previousLast);
-  }
-
-  /**
-   * Data arrives once per plotting interval; slide the traces in over that
-   * interval so the plot moves continuously instead of stepping.
-   */
-  slideIn(elapsed) {
-    if (!this.lines || !this.annotationsGroup) return;
-    const groups = [this.lines, this.annotationsGroup];
-    const shift = (elapsed / this.domain) * this.width;
-    const reduced =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced || !(shift > 0) || elapsed > this.plottingInterval * 4) {
-      groups.forEach((group) => group.interrupt().attr('transform', null));
-      return;
-    }
-    groups.forEach((group) =>
-      group
-        .interrupt()
-        .attr('transform', `translate(${shift},0)`)
-        .transition()
-        .duration(elapsed)
-        .ease(d3.easeLinear)
-        // Interpolate the offset ourselves: d3-interpolate would parse the
-        // transform string via SVGElement.transform.baseVal.
-        .attrTween(
-          'transform',
-          () => (progress) => `translate(${shift * (1 - progress)},0)`
-        )
-    );
+    this.draw();
+    this.startReveal();
   }
 
   mapChannels(sourceNames) {
@@ -355,20 +310,211 @@ export default class EEGViewer {
     return this.channels.map((name) => sourceNames.indexOf(name));
   }
 
+  drawTraces() {
+    const { ctx } = this;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(this.margin.left, this.margin.top, this.width, this.height);
+    ctx.clip();
+    for (let i = 0; i < this.channels.length; i++) {
+      ctx.strokeStyle = this.channelColours[i] ?? DEFAULT_COLOUR;
+      ctx.lineWidth = this.lineWidth;
+      ctx.beginPath();
+      let pen = false;
+      let prevX = -Infinity;
+      for (const point of this.data[i] ?? []) {
+        const x = this.xFor(point.x);
+        if (x == null) {
+          pen = false;
+          continue;
+        }
+        const absX = this.margin.left + x;
+        const y = this.yFor(point.y, i);
+        // Break the path at the wrap (x jumps back) — never connect across it or the gap.
+        if (!pen || x < prevX) ctx.moveTo(absX, y);
+        else ctx.lineTo(absX, y);
+        pen = true;
+        prevX = x;
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /** Visible [{x,width,drawLeft,drawRight}] segments for an annotation interval, split at the wrap. */
+  annotationSegments(annotation) {
+    const style = TONE_STYLES[annotation.tone] ?? TONE_STYLES.blink;
+    const solid = annotation.tone === 'eyes-closed';
+    if (this.snapshot) {
+      const start = Math.max(this.firstTimestamp, annotation.startTime);
+      const end = Math.min(
+        this.lastTimestamp,
+        annotation.endTime ?? this.lastTimestamp
+      );
+      if (end < start) return { style, segments: [] };
+      const x = ((start - this.firstTimestamp) / this.domain) * this.width;
+      const width = ((end - start) / this.domain) * this.width;
+      return {
+        style,
+        segments: [
+          {
+            x,
+            width,
+            drawLeft: true,
+            drawRight: !(solid && annotation.endTime == null),
+          },
+        ],
+      };
+    }
+    if (this.sweepStart == null || this.displayTime == null)
+      return { style, segments: [] };
+    const visibleStart = this.displayTime - this.domain;
+    const start = Math.max(annotation.startTime, visibleStart);
+    const end = Math.min(
+      annotation.endTime ?? this.displayTime,
+      this.displayTime
+    );
+    if (end < start) return { style, segments: [] };
+    const spans =
+      start < this.sweepStart && end >= this.sweepStart
+        ? [
+            [start, this.sweepStart],
+            [this.sweepStart, end],
+          ]
+        : [[start, end]];
+    const segments = spans.map(([a, b], index) => {
+      const offset =
+        (((a - this.sweepStart) % this.domain) + this.domain) % this.domain;
+      return {
+        x: (offset / this.domain) * this.width,
+        width: ((b - a) / this.domain) * this.width,
+        drawLeft: index === 0,
+        drawRight:
+          index === spans.length - 1 && !(solid && annotation.endTime == null),
+      };
+    });
+    // A span ending exactly at the wrap gets full remaining width from toX math; clamp.
+    segments.forEach((s) => {
+      s.width = Math.min(s.width, this.width - s.x);
+    });
+    return { style, segments };
+  }
+
+  drawAnnotations() {
+    const { ctx } = this;
+    for (const annotation of this.annotations) {
+      const { style, segments } = this.annotationSegments(annotation);
+      if (!segments.length) continue;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(this.margin.left, this.margin.top, this.width, this.height);
+      ctx.clip();
+      for (const seg of segments) {
+        ctx.fillStyle = style.fill;
+        ctx.fillRect(
+          this.margin.left + seg.x,
+          this.margin.top,
+          seg.width,
+          this.height
+        );
+        for (const [draw, x] of [
+          [seg.drawLeft, seg.x],
+          [seg.drawRight, seg.x + seg.width],
+        ]) {
+          if (!draw) continue;
+          ctx.strokeStyle = style.stroke;
+          ctx.lineWidth = annotation.tone === 'eyes-closed' ? 2 : 1;
+          ctx.setLineDash(annotation.tone === 'eyes-closed' ? [] : [4, 3]);
+          ctx.beginPath();
+          ctx.moveTo(this.margin.left + x, this.margin.top);
+          ctx.lineTo(this.margin.left + x, this.margin.top + this.height);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+      ctx.setLineDash([]);
+      const totalWidth = segments.reduce((sum, s) => sum + s.width, 0);
+      if (totalWidth <= 40) continue;
+      this.drawLabel('start', annotation.label, segments[0].x + 6, -6, style);
+      if (annotation.endTime != null) {
+        const last = segments[segments.length - 1];
+        this.drawLabel(
+          'end',
+          annotation.endLabel ?? '',
+          last.x + last.width + 6,
+          this.height - LABEL_HEIGHT - 4,
+          style
+        );
+      }
+    }
+  }
+
+  /** Pill label clamped inside the plot; a start label ends at its anchor, an end label begins there. */
+  drawLabel(kind, text, anchorX, y, style) {
+    const { ctx } = this;
+    const measured = ctx.measureText?.(text)?.width ?? 0;
+    const width = Math.max(measured, (text ?? '').length * 6.5) + 20;
+    const left = Math.max(
+      0,
+      Math.min(
+        Math.max(0, this.width - width),
+        kind === 'start' ? anchorX - width : anchorX
+      )
+    );
+    const absX = this.margin.left + left;
+    const absY = this.margin.top + y;
+    ctx.fillStyle = style.stroke;
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function')
+      ctx.roundRect(absX, absY, width, LABEL_HEIGHT, LABEL_RADIUS);
+    else ctx.rect(absX, absY, width, LABEL_HEIGHT);
+    ctx.fill();
+    ctx.fillStyle = style.text;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '14px "Helvetica Neue", serif';
+    ctx.fillText(text, absX + width / 2, absY + LABEL_HEIGHT / 2);
+  }
+
+  renderAnnotations() {
+    this.draw();
+  }
+
+  updateAnnotations(annotations) {
+    this.annotations = annotations ?? [];
+    this.draw();
+  }
+
   updateChannels(channels, channelColours) {
     this.channels = channels;
     this.fixedColours = channelColours != null;
     this.channelColours =
       channelColours ?? this.channels.map(() => DEFAULT_COLOUR);
-    this.data = new Array(this.channels.length).fill(null).map(() => []);
-    this.channelMeans = new Array(this.channels.length).fill(0);
-    this.init();
+    this.resetSweep();
+    this.draw();
   }
 
   updateDomain(domain) {
     this.domain = domain;
-    this.firstTimestamp = this.lastTimestamp - this.domain;
-    this.init();
+    this.draw();
+  }
+
+  resetSweep() {
+    this.data = this.channels.map(() => []);
+    this.channelMeans = this.channels.map(() => 0);
+    this.sweepStart = null;
+    this.headTime = null;
+    this.displayTime = null;
+    if (this.rafId != null) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
+    this.firstTimestamp = null;
+    this.lastTimestamp = null;
+  }
+
+  resetData() {
+    // Never seed a wall-clock point: device timestamps can lag Date.now().
+    this.resetSweep();
+    this.amplitudeRange = 200;
   }
 
   centerChannelsForSnapshot() {
@@ -377,17 +523,17 @@ export default class EEGViewer {
     );
   }
 
-  /** `null` returns to live mode; an already-live viewer keeps its data and only rescales. */
+  /** `null` returns to live mode; an already-live viewer keeps its sweep and only rescales. */
   updateSnapshot(snapshot, amplitudeScale) {
     if (snapshot == null) {
       this.amplitudeScale = amplitudeScale;
       if (this.snapshot == null) {
-        this.redraw();
+        this.draw();
         return;
       }
       this.snapshot = null;
       this.resetData();
-      this.init();
+      this.draw();
       return;
     }
     this.snapshot = snapshot;
@@ -395,190 +541,33 @@ export default class EEGViewer {
     this.domain = snapshot.endTime - snapshot.startTime;
     this.amplitudeScale =
       amplitudeScale != null ? amplitudeScale : this.amplitudeRange;
-    this.data = snapshot.data.map((channelSamples) => {
-      const startTime = snapshot.startTime;
-      const count = channelSamples.length;
-      const step = count ? (snapshot.endTime - startTime) / count : 0;
-      return channelSamples.map((value, index) => ({
-        x: startTime + index * step,
+    this.data = snapshot.data.map((samples) =>
+      samples.map((value, index) => ({
+        x:
+          snapshot.startTime +
+          (index * (snapshot.endTime - snapshot.startTime)) /
+            Math.max(1, samples.length),
         y: value,
-      }));
-    });
-    this.lastTimestamp = snapshot.endTime;
+      }))
+    );
+    this.sweepStart = snapshot.startTime;
+    this.headTime = snapshot.endTime;
+    this.displayTime = snapshot.endTime;
+    if (this.rafId != null) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
     this.firstTimestamp = snapshot.startTime;
     this.centerChannelsForSnapshot();
-    this.init();
+    this.draw();
   }
 
-  resetData() {
-    const now = Date.now();
-    this.lastTimestamp = now;
-    this.firstTimestamp = now - this.domain;
-    // Never seed a wall-clock point: device timestamps can lag Date.now(), and
-    // a future point survives window pruning and draws a line across the plot.
-    this.data = new Array(this.channels.length).fill(null).map(() => []);
-    this.amplitudeRange = 200;
-    this.channelMeans = new Array(this.channels.length).fill(0);
+  zoomIn() {
+    this.zoom *= ZOOM_SCALAR;
+    this.draw();
   }
 
-  redraw() {
-    this.computeGeometry();
-
-    this.plotClipPath
-      .select('rect')
-      .attr('width', this.width)
-      .attr('height', this.height);
-    this.annotationClipPath
-      .select('rect')
-      .attr('width', this.width)
-      .attr('height', this.height + 2 * LABEL_GUTTER);
-
-    this.canvas
-      .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('height', this.height + this.margin.top + this.margin.bottom);
-
-    this.graph.attr(
-      'transform',
-      `translate(${this.margin.left},${this.margin.top})`
-    );
-
-    this.xScale
-      .range([0, this.width])
-      .domain([this.firstTimestamp, this.lastTimestamp]);
-    this.yScaleLabels.range([
-      (this.channels.length - 1) * (this.height / this.channels.length) +
-        this.height / this.channels.length / 2,
-      this.height / this.channels.length / 2,
-    ]);
-
-    this.axisY.call(this.yAxis);
-    if (this.width !== this.axisWidth || this.height !== this.axisHeight)
-      this.renderTimeAxis();
-
-    for (let i = 0; i < this.channels.length; i++) {
-      this.getYScaleForChannel(i);
-      this.paths[i]
-        .datum(this.data[i])
-        .attr('d', this.line)
-        .attr('stroke', this.channelColours[i])
-        .attr('transform', null);
-    }
-
-    this.renderAnnotations();
-  }
-
-  resize() {
-    if (this.graph) this.init();
-  }
-
-  updateAnnotations(annotations) {
-    this.annotations = annotations ?? [];
-    this.renderAnnotations();
-  }
-
-  renderAnnotations() {
-    if (!this.annotationGroup || !this.labelsGroup) return;
-
-    const bands = this.annotations
-      .filter(
-        (annotation) =>
-          (annotation.endTime == null ||
-            annotation.endTime >= this.firstTimestamp) &&
-          annotation.startTime <= this.lastTimestamp
-      )
-      .map((annotation) => {
-        const startX = this.xScale(annotation.startTime);
-        const endX =
-          annotation.endTime != null
-            ? this.xScale(annotation.endTime)
-            : this.width;
-        return {
-          ...annotation,
-          x: Math.max(0, Math.min(this.width, startX)),
-          width: Math.max(0, Math.min(this.width, endX) - Math.max(0, startX)),
-        };
-      });
-
-    // A handful of annotations redrawn at 4 Hz: cheaper to re-append them than
-    // to maintain a keyed join, and the slide transform lives on the parent.
-    this.annotationGroup.selectAll('*').remove();
-    this.labelsGroup.selectAll('*').remove();
-
-    for (const band of bands) {
-      const style = TONE_STYLES[band.tone];
-      const solid = band.tone === 'eyes-closed';
-      const group = this.annotationGroup
-        .append('g')
-        .attr('class', `annotation-band annotation-band--${band.tone}`);
-      group
-        .append('rect')
-        .attr('class', 'annotation-band')
-        .attr('y', 0)
-        .attr('height', this.height)
-        .attr('fill', style.fill)
-        .attr('x', band.x)
-        .attr('width', band.width);
-      for (const [side, x, visible] of [
-        ['left', band.x, true],
-        ['right', band.x + band.width, !(solid && band.endTime == null)],
-      ]) {
-        group
-          .append('line')
-          .attr('class', `annotation-band-edge annotation-band-edge--${side}`)
-          .attr('y1', 0)
-          .attr('y2', this.height)
-          .attr('stroke', style.stroke)
-          .attr('stroke-width', solid ? 2 : 1)
-          .attr('stroke-dasharray', solid ? null : '4 3')
-          .attr('visibility', visible ? 'visible' : 'hidden')
-          .attr('x1', x)
-          .attr('x2', x);
-      }
-      if (band.width <= 40) continue;
-      this.addLabel('start', band.label, band.x + 6, -6, style);
-      if (band.endTime != null)
-        this.addLabel(
-          'end',
-          band.endLabel ?? '',
-          band.x + band.width + 6,
-          this.height - LABEL_HEIGHT - 4,
-          style
-        );
-    }
-  }
-
-  /**
-   * Pill label clamped inside the plot. A start label ends at `x` (it points at
-   * the band's left edge); an end label begins there.
-   */
-  addLabel(kind, text, x, y, style) {
-    const group = this.labelsGroup
-      .append('g')
-      .attr('class', `annotation-label annotation-${kind}-label`);
-    const label = group
-      .append('text')
-      .attr('class', 'annotation-label-text')
-      .attr('dy', '0.35em')
-      .text(text);
-    const width = pillWidth(label);
-    const left = Math.max(
-      0,
-      Math.min(this.width - width, kind === 'start' ? x - width : x)
-    );
-    group.attr('transform', `translate(${left},${y})`);
-    group
-      .insert('rect', 'text')
-      .attr('class', 'annotation-label-bg')
-      .attr('rx', LABEL_RADIUS)
-      .attr('height', LABEL_HEIGHT)
-      .attr('width', width)
-      .attr('fill', style.stroke)
-      .attr('x', 0);
-    label
-      .attr('x', width / 2)
-      .attr('y', 11)
-      .attr('text-anchor', 'middle')
-      .attr('fill', style.text);
+  zoomOut() {
+    this.zoom /= ZOOM_SCALAR;
+    this.draw();
   }
 
   static getLineRange(index, nbChannels, height) {

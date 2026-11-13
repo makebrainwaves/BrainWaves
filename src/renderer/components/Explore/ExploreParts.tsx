@@ -387,14 +387,15 @@ export function QualitySummary({
 }) {
   const scenario = qualityCopy(state, sensors);
   // The card earns its place in the yellow/red states; ready stays a light row.
+  // Every state reserves the same box (padding, border, min height) so the
+  // status appearing/disappearing never reflows the plot below it.
   const light = scenario.action === '';
   return (
     <section
       aria-label="Signal status"
       className={cn(
-        'flex flex-none flex-wrap items-baseline gap-x-[14px] gap-y-[2px]',
-        !light &&
-          'rounded-lg border border-gray-200 bg-white px-[18px] py-[10px]',
+        'flex min-h-[72px] flex-none flex-wrap items-center gap-x-[14px] gap-y-[2px] rounded-lg border px-[18px] py-[10px]',
+        light ? 'border-transparent' : 'border-gray-200 bg-white',
         className
       )}
     >

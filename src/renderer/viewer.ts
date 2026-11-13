@@ -1,4 +1,4 @@
-/** D3 guest receiving data from its own host webview. */
+/** Canvas guest receiving data from its own host webview. */
 import EEGGraph from './components/d3Classes/EEGViewer';
 import type { ViewerAPI, ViewerNavigateMessage } from '../shared/viewerTypes';
 
@@ -29,10 +29,10 @@ function sendNavigation(type: ViewerNavigateMessage['type']) {
 }
 const unsubscribe = [
   api.onInitGraph((parameters) => {
-    const svg = document.getElementById('graph');
-    if (!(svg instanceof SVGSVGElement)) return;
+    const canvas = document.getElementById('graph');
+    if (!(canvas instanceof HTMLCanvasElement)) return;
     graph?.destroy();
-    graph = new EEGGraph(svg, parameters);
+    graph = new EEGGraph(canvas, parameters);
   }),
   api.onNewData((epoch) => graph?.updateData(epoch)),
   api.onZoomIn(() => graph?.zoomIn()),

@@ -5,12 +5,131 @@ import type { ViewerGraphParameters } from '../../../shared/viewerTypes';
 
 const graphs: EEGViewer[] = [];
 
-function createGraph(overrides: Partial<ViewerGraphParameters> = {}) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  document.body.appendChild(svg);
+interface Call {
+  method: string;
+  args: unknown[];
+}
+
+/** jsdom's canvas has no 2d context, so record the calls EEGViewer makes on a fake one. */
+function fakeContext() {
+  const calls: Call[] = [];
+  const record =
+    (method: string) =>
+    (...args: unknown[]) => {
+      calls.push({ method, args });
+    };
+  const ctx: Record<string, unknown> = {
+    canvas: null,
+    fillStyle: '',
+    textAlign: '',
+    textBaseline: '',
+    font: '',
+    setTransform: record('setTransform'),
+    clearRect: record('clearRect'),
+    save: record('save'),
+    restore: record('restore'),
+    beginPath: record('beginPath'),
+    rect: record('rect'),
+    clip: record('clip'),
+    fillRect: record('fillRect'),
+    fillText: record('fillText'),
+    moveTo: record('moveTo'),
+    lineTo: record('lineTo'),
+    stroke: record('stroke'),
+    fill: record('fill'),
+    roundRect: record('roundRect'),
+    setLineDash: record('setLineDash'),
+    measureText: (text: string) => ({ width: text.length * 6.5 }),
+  };
+  let strokeStyle = '';
+  let lineWidth = 1;
+  Object.defineProperties(ctx, {
+    strokeStyle: {
+      get: () => strokeStyle,
+      set: (v: string) => {
+        strokeStyle = v;
+        calls.push({ method: 'set:strokeStyle', args: [v] });
+      },
+    },
+    lineWidth: {
+      get: () => lineWidth,
+      set: (v: number) => {
+        lineWidth = v;
+        calls.push({ method: 'set:lineWidth', args: [v] });
+      },
+    },
+  });
+  return { ctx: ctx as unknown as CanvasRenderingContext2D, calls };
+}
+
+/** Calls since the full-canvas clearRect (the latest redraw; the erase bar's small clearRect comes later in the same pass). */
+function lastDraw(calls: Call[]) {
+  const start = calls.findLastIndex(
+    (c) =>
+      c.method === 'clearRect' &&
+      (c.args as number[])[0] === 0 &&
+      (c.args as number[])[1] === 0
+  );
+  return calls.slice(start);
+}
+
+interface PathPoint {
+  kind: 'moveTo' | 'lineTo';
+  x: number;
+  y: number;
+}
+
+/** Trace paths only (lineWidth 1.75), grouped by stroke, with move/line distinction. */
+function tracePaths(calls: Call[]): PathPoint[][] {
+  const paths: PathPoint[][] = [];
+  let current: PathPoint[] = [];
+  let width = 0;
+  for (const call of lastDraw(calls)) {
+    if (call.method === 'set:lineWidth') width = call.args[0] as number;
+    else if (call.method === 'beginPath') current = [];
+    else if (call.method === 'moveTo' || call.method === 'lineTo')
+      current.push({
+        kind: call.method,
+        x: call.args[0] as number,
+        y: call.args[1] as number,
+      });
+    else if (call.method === 'stroke' && width === 1.75 && current.length)
+      paths.push(current);
+  }
+  return paths;
+}
+
+function traceColours(calls: Call[]): string[] {
+  const colours: string[] = [];
+  let width = 0;
+  let stroke = '';
+  for (const call of lastDraw(calls)) {
+    if (call.method === 'set:lineWidth') width = call.args[0] as number;
+    else if (call.method === 'set:strokeStyle') stroke = call.args[0] as string;
+    else if (call.method === 'stroke' && width === 1.75) colours.push(stroke);
+  }
+  return colours;
+}
+
+function axisLabels(calls: Call[]) {
+  return lastDraw(calls)
+    .filter(
+      (c) => c.method === 'fillText' && /^-?\d+s$/.test(c.args[0] as string)
+    )
+    .map((c) => [c.args[0], c.args[1], c.args[2]]);
+}
+
+function createGraph(
+  overrides: Partial<ViewerGraphParameters> = {},
+  instant = true
+) {
+  const canvas = document.createElement('canvas');
+  const { ctx, calls } = fakeContext();
+  canvas.getContext = (() => ctx) as unknown as typeof canvas.getContext;
+  document.body.appendChild(canvas);
   let width = 548;
   let height = 256;
-  vi.spyOn(svg, 'getBoundingClientRect').mockImplementation(() => ({
+  vi.spyOn(canvas, 'getBoundingClientRect').mockImplementation(() => ({
     x: 0,
     y: 0,
     left: 0,
@@ -21,7 +140,7 @@ function createGraph(overrides: Partial<ViewerGraphParameters> = {}) {
     height,
     toJSON: () => ({}),
   }));
-  const graph = new EEGViewer(svg, {
+  const graph = new EEGViewer(canvas, {
     channels: ['AF7', 'AF8'],
     plottingInterval: 250,
     domain: 5000,
@@ -29,10 +148,24 @@ function createGraph(overrides: Partial<ViewerGraphParameters> = {}) {
     snapshot: null,
     ...overrides,
   });
-  graphs.push(graph);
+  if (instant) {
+    // Existing assertions inspect the fully revealed state; the smooth
+    // rAF reveal is covered by its own test with manual frame stepping.
+    const rawUpdate = graph.updateData.bind(graph);
+    const state = graph as unknown as {
+      displayTime: number | null;
+      headTime: number | null;
+    };
+    graph.updateData = (epochData: Parameters<typeof rawUpdate>[0]) => {
+      rawUpdate(epochData);
+      state.displayTime = state.headTime;
+      graph.redraw();
+    };
+  }
   return {
     graph,
-    svg,
+    canvas,
+    calls,
     resize: (nextWidth: number, nextHeight: number) => {
       width = nextWidth;
       height = nextHeight;
@@ -53,15 +186,24 @@ function epoch(startTime: number, data: number[][]) {
   };
 }
 
+function epochFor(startTime: number, af7: number[]) {
+  return epoch(startTime, [
+    af7.map(() => 0),
+    af7,
+    af7.map(() => 0),
+    af7.map(() => 0),
+  ]);
+}
+
 afterEach(() => {
   graphs.splice(0).forEach((graph) => graph.destroy());
   document.body.replaceChildren();
   vi.restoreAllMocks();
 });
 
-describe('EEGViewer time and amplitude coordinates', () => {
-  it('selects named channels and draws them in the moving time window', () => {
-    const { graph, svg } = createGraph();
+describe('EEGViewer canvas sweep', () => {
+  it('selects named channels and draws annotation bands', () => {
+    const { graph, calls } = createGraph();
     graph.updateAnnotations([
       {
         id: 'blink',
@@ -79,44 +221,69 @@ describe('EEGViewer time and amplitude coordinates', () => {
         [999, 999],
       ])
     );
-    expect(svg.querySelector('.line')?.getAttribute('d')).toContain('L');
-    expect(svg.querySelector('.annotation-band')).not.toBeNull();
+    const paths = tracePaths(calls);
+    expect(paths).toHaveLength(2);
+    expect(paths[0].length).toBeGreaterThan(1);
+    expect(lastDraw(calls).some((c) => c.method === 'fillRect')).toBe(true);
   });
 
-  it('uses a solid left edge and hides the open eyes-closed right edge', () => {
-    const { graph, svg } = createGraph();
-    const open = {
-      id: 'alpha',
-      startTime: 1000,
-      endTime: null,
-      label: 'Eyes closed',
-      endLabel: 'Eyes open',
-      tone: 'eyes-closed' as const,
-    };
-    graph.updateAnnotations([open]);
+  it('sweep overwrites the old point at the same x and erases ahead of the head in the same draw', () => {
+    const { graph, calls } = createGraph({ channels: ['AF7'] });
+    graph.updateData(epochFor(1000, [0, 20, 0, 20, 0, 20, 0, 20]));
+    // Next sweep: starts exactly one domain later, overwriting x=0 onwards.
+    graph.updateData(epochFor(6000, [100, 100]));
+    const [path] = tracePaths(calls);
+    const atLeftEdge = path.filter((p) => p.x === 44);
+    // New value 100 at x=0, not the previous sweep's 0 there.
+    expect(atLeftEdge.map((p) => p.y)).toEqual([174.5]);
+    // Old sweep still shows beyond the head (e.g. t=3000, offset 2000ms);
+    // it leaves via the erase bar, not a hidden time window.
+    expect(path.some((p) => Math.abs(p.x - (44 + 197.6)) < 0.01)).toBe(true);
+    // Same draw pass clears a full-height slice just ahead of the head
+    // (head at offset 1000ms -> x=142.8; the full-canvas clear is [0,0,...]).
+    const erases = lastDraw(calls).filter(
+      (c) => c.method === 'clearRect' && (c.args as number[])[2] < 10
+    );
+    expect(erases).toHaveLength(1);
+    const [eraseX, eraseY, eraseW, eraseH] = erases[0].args as number[];
+    expect(eraseX).toBeCloseTo(44 + 98.8, 1);
+    expect(eraseY).toBe(20);
+    expect(eraseW).toBeGreaterThanOrEqual(2);
+    expect(eraseH).toBe(206);
+    // Never a connecting line backwards across the wrap.
+    for (let i = 1; i < path.length; i++)
+      if (path[i].kind === 'lineTo')
+        expect(path[i].x).toBeGreaterThanOrEqual(path[i - 1].x);
+    expect(path.some((p, i) => i > 0 && p.kind === 'moveTo')).toBe(true);
+  });
+
+  it('keeps time axis labels fixed as wild data advances, with no slide transform', () => {
+    const { graph, calls } = createGraph();
+    const flat = [
+      [0, 0],
+      [0, 1],
+      [0, -1],
+      [0, 0],
+    ];
+    graph.updateData(epoch(1000, flat));
+    const before = axisLabels(calls);
     graph.updateData(
-      epoch(1000, [
+      epoch(2000, [
         [0, 0],
-        [0, 0],
-        [0, 0],
+        [99999, -99999],
+        [-99999, 99999],
         [0, 0],
       ])
     );
-    const left = svg.querySelector('line.annotation-band-edge--left');
-    const right = svg.querySelector('line.annotation-band-edge--right');
-    expect(left?.getAttribute('stroke-width')).toBe('2');
-    expect(left?.getAttribute('stroke-dasharray')).toBeNull();
-    expect(right?.getAttribute('visibility')).toBe('hidden');
-
-    graph.updateAnnotations([{ ...open, endTime: 1800 }]);
-    expect(
-      svg
-        .querySelector('line.annotation-band-edge--right')
-        ?.getAttribute('visibility')
-    ).toBe('visible');
+    expect(axisLabels(calls)).toEqual(before);
+    expect(before.length).toBeGreaterThan(1);
+    expect(before.map(([label]) => label)).toContain('0s');
+    const labels = before.map(([label]) => label);
+    expect(new Set(labels).size).toBe(labels.length);
+    expect(lastDraw(calls).some((c) => c.method === 'translate')).toBe(false);
   });
 
-  it('renders snapshots without subscribing to live data', () => {
+  it('renders snapshots as a full static plot', () => {
     const calm: EEGSnapshot = {
       channels: ['AF7'],
       data: [[100, 110, 100, 90, 100]],
@@ -125,18 +292,38 @@ describe('EEGViewer time and amplitude coordinates', () => {
       endTime: 6000,
       peakToPeak: 20,
     };
-    const { svg } = createGraph({
+    const { calls } = createGraph({
       channels: ['AF7'],
       snapshot: calm,
       amplitudeScale: 100,
     });
-    const line = svg.querySelector('.line');
-    expect(line).not.toBeNull();
-    expect(line!.getAttribute('d')).toContain('L');
+    const [path] = tracePaths(calls);
+    expect(path.length).toBeGreaterThan(1);
+    expect(
+      path.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+    ).toBe(true);
+    expect(path[0].x).toBeLessThan(path[path.length - 1].x);
+  });
+
+  it('never plots outside the plot after a snapshot reset with lagging device time', () => {
+    const { graph, calls } = createGraph();
+    graph.updateSnapshot(null, undefined);
+    graph.updateData(
+      epoch(Date.now() - 90_000, [
+        [0, 0],
+        [0, 10],
+        [0, -10],
+        [0, 0],
+      ])
+    );
+    const xs = tracePaths(calls).flatMap((p) => p.map((pt) => pt.x));
+    expect(xs.length).toBeGreaterThan(1);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(44 + 494);
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(44);
   });
 
   it('recovers plot geometry when a hidden viewer is revealed', () => {
-    const { graph, svg, resize } = createGraph();
+    const { graph, calls, resize } = createGraph();
     resize(0, 0);
     graph.updateData(
       epoch(1000, [
@@ -147,60 +334,13 @@ describe('EEGViewer time and amplitude coordinates', () => {
       ])
     );
     resize(548, 256);
-    expect(svg.querySelector('.line')!.getAttribute('d')).not.toContain('NaN');
-    expect(
-      Number(svg.querySelector('.plot-clip')!.getAttribute('width'))
-    ).toBeGreaterThan(0);
+    const points = tracePaths(calls).flat();
+    expect(points.length).toBeGreaterThan(1);
+    expect(points.every((p) => Number.isFinite(p.x))).toBe(true);
   });
 
-  it('never plots a point outside the live window after a snapshot reset', () => {
-    const { graph, svg } = createGraph();
-    // ViewerComponent sends updateSnapshot(null) as soon as a live guest is
-    // ready; device timestamps can trail wall time by a long way.
-    graph.updateSnapshot(null, undefined);
-    graph.updateData(
-      epoch(Date.now() - 90_000, [
-        [0, 0],
-        [0, 10],
-        [0, -10],
-        [0, 0],
-      ])
-    );
-    const xs = svg
-      .querySelector('.line')!
-      .getAttribute('d')!
-      .split(/[ML]/)
-      .filter(Boolean)
-      .map((point) => Number(point.split(',')[0]));
-    expect(xs.length).toBeGreaterThan(1);
-    expect(Math.max(...xs)).toBeLessThanOrEqual(494);
-  });
-
-  it('keeps relative time labels fixed as data advances', () => {
-    const { graph, svg } = createGraph();
-    const flat: number[][] = [
-      [0, 0],
-      [0, 1],
-      [0, -1],
-      [0, 0],
-    ];
-    graph.updateData(epoch(1000, flat));
-    const before = Array.from(svg.querySelectorAll('.x-axis .tick')).map(
-      (tick) => [tick.getAttribute('transform'), tick.textContent]
-    );
-    graph.updateData(epoch(2000, flat));
-    const after = Array.from(svg.querySelectorAll('.x-axis .tick')).map(
-      (tick) => [tick.getAttribute('transform'), tick.textContent]
-    );
-    expect(before.length).toBeGreaterThan(1);
-    expect(after).toEqual(before);
-    const labels = before.map(([, label]) => label);
-    expect(labels).toContain('0s');
-    expect(new Set(labels).size).toBe(labels.length);
-  });
-
-  it('draws annotation labels as pills, not clamped ovals', () => {
-    const { graph, svg } = createGraph();
+  it('draws annotation labels as pills and keeps the end pill inside the plot', () => {
+    const { graph, calls } = createGraph();
     graph.updateAnnotations([
       {
         id: 'alpha',
@@ -219,42 +359,42 @@ describe('EEGViewer time and amplitude coordinates', () => {
         [0, 0],
       ])
     );
-    const pill = svg.querySelector('rect.annotation-label-bg')!;
-    const height = Number(pill.getAttribute('height'));
-    expect(Number(pill.getAttribute('rx'))).toBeLessThanOrEqual(height / 2);
-    expect(Number(pill.getAttribute('width'))).toBeGreaterThan(2 * height);
+    const pills = lastDraw(calls).filter((c) => c.method === 'roundRect');
+    expect(pills.length).toBeGreaterThanOrEqual(2);
+    for (const pill of pills) {
+      const [, , width, height, radius] = pill.args as number[];
+      expect(radius).toBeLessThanOrEqual(height / 2);
+      expect(width).toBeGreaterThan(2 * height);
+    }
+    const [, endY, , endHeight] = pills[pills.length - 1].args as number[];
+    expect(endY).toBeGreaterThanOrEqual(0);
+    expect(endY + endHeight).toBeLessThanOrEqual(20 + 206);
   });
 
-  it('draws the end pill inside the plot box, clear of the time axis', () => {
-    const { graph, svg } = createGraph();
-    graph.updateAnnotations([
-      {
-        id: 'alpha',
-        startTime: -1000,
-        endTime: 1000,
-        label: 'eyes closed',
-        endLabel: 'eyes open',
-        tone: 'eyes-closed',
-      },
-    ]);
-    graph.updateData(
-      epoch(1000, [
-        [0, 0],
-        [0, 1],
-        [0, -1],
-        [0, 0],
-      ])
-    );
-    const end = svg.querySelector('.annotation-end-label')!;
-    const y = Number(
-      /,\s*(-?[\d.]+)\)/.exec(end.getAttribute('transform')!)![1]
-    );
-    const pillHeight = Number(
-      end.querySelector('rect')!.getAttribute('height')
-    );
-    const plotHeight = 256 - 20 - 30;
-    expect(y).toBeGreaterThanOrEqual(0);
-    expect(y + pillHeight).toBeLessThanOrEqual(plotHeight);
+  it('uses a solid left edge and hides the open eyes-closed right edge', () => {
+    const { graph, calls } = createGraph();
+    const open = {
+      id: 'alpha',
+      startTime: 1000,
+      endTime: null,
+      label: 'Eyes closed',
+      endLabel: 'Eyes open',
+      tone: 'eyes-closed' as const,
+    };
+    graph.updateAnnotations([open]);
+    graph.updateData(epochFor(1000, [0, 0]));
+    const solidEdges = () =>
+      lastDraw(calls).filter(
+        (c, i, all) =>
+          c.method === 'stroke' &&
+          all
+            .slice(0, i)
+            .filter((p) => p.method === 'set:lineWidth')
+            .pop()?.args[0] === 2
+      ).length;
+    expect(solidEdges()).toBe(1);
+    graph.updateAnnotations([{ ...open, endTime: 1800 }]);
+    expect(solidEdges()).toBe(2);
   });
 
   it('keeps fixed channel colors when epochs report quality', () => {
@@ -271,16 +411,12 @@ describe('EEGViewer time and amplitude coordinates', () => {
     const quality = createGraph();
     fixed.graph.updateData(badEpoch);
     quality.graph.updateData(badEpoch);
-    expect(fixed.svg.querySelector('#line-AF7')!.getAttribute('stroke')).toBe(
-      '#123456'
-    );
-    expect(quality.svg.querySelector('#line-AF7')!.getAttribute('stroke')).toBe(
-      '#ed5a5a'
-    );
+    expect(traceColours(fixed.calls)).toEqual(['#123456', '#abcdef']);
+    expect(traceColours(quality.calls)).toEqual(['#ed5a5a', '#ed5a5a']);
   });
 
   it('applies a new amplitude scale to live data without clearing it', () => {
-    const { graph, svg } = createGraph();
+    const { graph, calls } = createGraph();
     graph.updateData(
       epoch(1000, [
         [0, 0],
@@ -290,12 +426,7 @@ describe('EEGViewer time and amplitude coordinates', () => {
       ])
     );
     const span = () => {
-      const ys = svg
-        .querySelector('#line-AF7')!
-        .getAttribute('d')!
-        .split(/[ML]/)
-        .filter(Boolean)
-        .map((point) => Number(point.split(',')[1]));
+      const ys = tracePaths(calls)[0].map((p) => p.y);
       return Math.max(...ys) - Math.min(...ys);
     };
     const wide = span();
@@ -304,25 +435,27 @@ describe('EEGViewer time and amplitude coordinates', () => {
     expect(span()).toBeCloseTo(wide * 4, 5);
   });
 
-  it('slides new data in without leaving the transform to d3-interpolate', async () => {
-    const { graph, svg } = createGraph();
-    const flat: number[][] = [
-      [0, 0],
-      [0, 1],
-      [0, -1],
-      [0, 0],
-    ];
-    graph.updateData(epoch(1000, flat));
-    graph.updateData(epoch(2000, flat));
-    const lines = svg.querySelector('#lines')!;
-    // d3-interpolate's transform parser needs SVGElement.transform.baseVal,
-    // which jsdom does not implement: running the frames proves the slide
-    // interpolates without it.
-    for (let frame = 0; frame < 2; frame++) {
-      const { promise, resolve } = Promise.withResolvers<void>();
-      requestAnimationFrame(() => resolve());
-      await promise;
-    }
-    expect(lines.getAttribute('transform')).toMatch(/^translate\(/);
+  it('reveals a chunk smoothly over animation frames, not in one jump', () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    });
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    const { graph, calls } = createGraph({ channels: ['AF7'] }, false);
+    // One 2 s chunk (samples every 500 ms at 2 Hz): 1000, 1500, 2000, 2500.
+    graph.updateData(epochFor(1000, [0, 10, 0, -10]));
+    const revealed = () => tracePaths(calls)[0]?.length ?? 0;
+    expect(revealed()).toBe(1);
+    const step = (timestamp: number) => frames.shift()?.(timestamp);
+    step(0);
+    expect(revealed()).toBe(1);
+    step(500);
+    expect(revealed()).toBe(2);
+    step(1000);
+    expect(revealed()).toBe(3);
+    step(1500);
+    expect(revealed()).toBe(4);
+    vi.unstubAllGlobals();
   });
 });

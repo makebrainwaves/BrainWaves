@@ -499,3 +499,38 @@ It also replayed its CSV's own marker column, which is how an earlier run
 loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
 grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
 with practice skipped should load as exactly 120 epochs.
+
+## EEGViewer is now a canvas sweep plot, not a scrolling D3 plot
+
+`EEGViewer.js` renders to Canvas 2D in the viewer guest (`viewer.html` has
+`<canvas id="graph">`); axes/labels are static and the signal sweeps
+left→right, overwriting the previous sweep with a ~250 ms erased gap ahead of
+the write head (`xFor` hides points older than `headTime - domain + gap`).
+No `slideIn`, no shifting data, no d3/simplify in the guest. The older
+EEGViewer traps above (SVG pill clamping, `xAxisScale`, slide transform) no
+longer apply; keep the no-wall-clock-seed rule (`sweepStart` anchors on the
+first epoch, never `Date.now()`). Drawing is synchronous per epoch — no rAF
+loop.
+Update: the sweep reveal is decoupled from chunk arrival — a rAF loop
+advances `displayTime` in real time toward the data head (~60 fps redraw),
+and the erased gap ahead of the head is 5 ms. `PLOTTING_INTERVAL` (250 ms)
+still governs data chunking/filtering and must not be lowered for frame
+rate; only rendering is faster. If the guest is hidden long enough that the
+display falls a full domain behind, it resyncs to the data head.
+Correction to the above: there is no time-window gap anymore. The same
+`draw()` pass that strokes the traces finishes with `drawEraseBar()` — a
+full-height `clearRect` slice (~one frame-step, min 2 px) just ahead of the
+write head, wrapping at the right edge. Old points are pruned on the
+display clock (`displayTime - domain`), never the data head, so removal and
+reveal share the rAF timescale.
+
+## Signal quality: windowed median + persistence, fixed-height status box
+
+Per-epoch SDs (250 ms, `@neurosity/pipes` `addSignalQuality`) flicker across
+the GREAT/OK/BAD thresholds; classifying them instantaneously made the
+Explore status box change height/state every epoch and the plot jumped.
+`parseMuseSignalQuality` now reports the median epoch SD over a rolling 3 s
+window (`SIGNAL_QUALITY_WINDOW_MS`, the tuning knob: 2 s snappier, 5 s
+calmer) plus asymmetric persistence (500 ms to worsen, 1 s to improve,
+flat-line immediate), and `QualitySummary` reserves one fixed-height box
+for every state so status changes never reflow the plot.

@@ -7,7 +7,7 @@ import type {
 export default class EEGViewer {
   private resizeObserver?: ResizeObserver;
 
-  constructor(svg: SVGSVGElement, parameters: ViewerGraphParameters);
+  constructor(element: HTMLCanvasElement, parameters: ViewerGraphParameters);
   destroy(): void;
   updateData(epoch: ViewerEpoch): void;
   updateChannels(channels: string[], channelColours?: string[]): void;
@@ -16,5 +16,12 @@ export default class EEGViewer {
   zoomOut(): void;
   updateAnnotations(annotations: PlotAnnotation[]): void;
   updateSnapshot(snapshot: EEGSnapshot | null, amplitudeScale?: number): void;
+  resetData(): void;
+  redraw(): void;
   resize(): void;
+  static getLineRange(
+    index: number,
+    nbChannels: number,
+    height: number
+  ): [number, number];
 }

@@ -14,7 +14,7 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Preview toggle plus the shared preview status: `PreviewLabel` while previewing, a "nothing is recorded" note otherwise. */
+/** Preview toggle plus the shared preview status: `PreviewLabel` while previewing. */
 export default function PreviewButton({
   isPreviewing,
   onClick,
@@ -48,13 +48,7 @@ export default function PreviewButton({
           </Button>
         </>
       )}
-      {isPreviewing ? (
-        <PreviewLabel />
-      ) : (
-        <span className="text-[15px] text-ink-muted">
-          Nothing is recorded during a preview.
-        </span>
-      )}
+      {isPreviewing && <PreviewLabel />}
     </div>
   );
 }

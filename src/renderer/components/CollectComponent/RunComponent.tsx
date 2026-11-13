@@ -260,11 +260,12 @@ const Run: React.FC<Props> = ({
                 {isEEGEnabled &&
                 connectionStatus === CONNECTION_STATUS.CONNECTED &&
                 signalQualityObservable ? (
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">Signal quality</p>
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="m-0 text-sm text-gray-500">Signal quality</p>
                     <SignalQualityIndicatorComponent
                       signalQualityObservable={signalQualityObservable}
                       plottingInterval={PLOTTING_INTERVAL}
+                      height={140}
                     />
                   </div>
                 ) : null}

@@ -26,6 +26,9 @@ export interface PrepareStepsProps {
     links: { address: string; name: string }[];
     title?: string;
     definition_title?: string;
+    definition_image?: string;
+    definition_image_alt?: string;
+    video?: { caption: string; embedUrl: string };
     link_meta?: string;
     fun_fact_image?: string;
     first_column_statement: string;
@@ -33,12 +36,11 @@ export interface PrepareStepsProps {
     second_column_statement: string;
     second_column_question: string;
   };
-  protocol: { title: string; protocol: string };
+  protocol: { title: string; protocol: string; recording?: string };
   responses: ResponseMapping[];
   flow: FlowPhase[];
   icon?: string;
-  /** Local stand-in for the Oliver Sacks clip (§6.3: no remote player, rights unconfirmed); replaces Background's video link. */
-  mediaFallback?: { caption: string; alt: string };
+  /** Embedded video shown on Background instead of the link buttons (Faces/Houses: Oliver Sacks). */
   onStep: (step: PrepareStepId) => void;
   onCollect: () => void;
   onPreviewStart: () => void;
@@ -58,13 +60,7 @@ export interface PrepareStepsProps {
 /** One built-in experiment's Prepare content, defined in its `experiments/<name>/prepare.ts`. */
 export type PrepareFixture = Pick<
   PrepareStepsProps,
-  | 'overview'
-  | 'background'
-  | 'protocol'
-  | 'responses'
-  | 'flow'
-  | 'icon'
-  | 'mediaFallback'
+  'overview' | 'background' | 'protocol' | 'responses' | 'flow' | 'icon'
 >;
 
 /** The single centered reading column shared by the stepper, step content and action row. */
@@ -269,7 +265,6 @@ function OverviewView({
   return (
     <section className="flex items-start gap-8">
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <span className={EYEBROW}>THE BIG QUESTION</span>
         <h1 className="m-0 [text-wrap:pretty]">{overview.title}</h1>
         {overview.overview.split(/\n\s*\n/).map((paragraph) => (
           <p key={paragraph} className="experiment-design-copy m-0">
@@ -287,16 +282,13 @@ function OverviewView({
 function BackgroundView({
   background,
   icon,
-  media,
 }: {
   background: PrepareStepsProps['background'];
   icon?: string;
-  media?: PrepareStepsProps['mediaFallback'];
 }) {
   return (
     <section className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
-        <span className={EYEBROW}>BACKGROUND · 2 MIN READ</span>
         <h1 className="m-0 [text-wrap:pretty]">
           {background.title ?? 'Background'}
         </h1>
@@ -311,7 +303,7 @@ function BackgroundView({
               <img src={icon} alt="" className="max-w-9" />
             </div>
           )}
-          <div className="flex flex-col gap-0.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <h2 className="text-base font-normal">
               {background.definition_title ?? 'What researchers found'}
             </h2>
@@ -319,6 +311,13 @@ function BackgroundView({
               {background.first_column_question}
             </p>
           </div>
+          {background.definition_image && (
+            <img
+              src={background.definition_image}
+              alt={background.definition_image_alt ?? ''}
+              className="w-[160px] flex-none rounded-md"
+            />
+          )}
         </div>
       )}
       {(background.second_column_statement ||
@@ -346,8 +345,8 @@ function BackgroundView({
           )}
         </div>
       )}
-      {media ? (
-        <OliverSacksFallback media={media} />
+      {background.video ? (
+        <VideoEmbed video={background.video} />
       ) : (
         background.links.map((link) => (
           <div key={link.address} className="flex flex-wrap items-center gap-4">
@@ -369,100 +368,24 @@ function BackgroundView({
   );
 }
 
-/** Hair shapes for the face-crowd illustration, drawn above a head centred at (0, 0). */
-const HAIR = [
-  'M-34 -4a34 34 0 0 1 68 0c-10-12-24-16-34-16s-24 4-34 16z',
-  'M-34 0a34 34 0 0 1 68 0l-6-10-10 6-8-10-10 8-10-8-8 10-10-6z',
-  'M-36 6a36 38 0 0 1 72 0c-6-20-20-26-36-26S-30-14-36 6z',
-];
-
-/**
- * Background's local stand-in for the Oliver Sacks clip (§6.3): a flat
- * two-tone illustration of a crowd in which one familiar face reads as blank
- * with a "?", then the transcript-length explanation and its source.
- */
-function OliverSacksFallback({
-  media,
+/** Embedded video on Background (Faces/Houses: Oliver Sacks on face blindness). */
+function VideoEmbed({
+  video,
 }: {
-  media: { caption: string; alt: string };
+  video: { caption: string; embedUrl: string };
 }) {
   return (
     <section className="flex flex-col gap-3 pt-2">
-      <h2 className="m-0 text-[22px] font-normal">{media.caption}</h2>
-      <svg
-        role="img"
-        aria-label={media.alt}
-        viewBox="0 0 520 150"
-        className="h-auto w-full rounded-lg border border-[#f6ead3] bg-[#fffaf0] stroke-ink text-ink"
-        strokeWidth="1.5"
-      >
-        {[0, 1, 2, 3, 4].map((i) => {
-          const unknown = i === 2;
-          return (
-            <g key={i} transform={`translate(${60 + i * 100} 86)`}>
-              <path
-                d="M-46 64c0-24 20-36 46-36s46 12 46 36z"
-                className="fill-accent"
-              />
-              <circle r="34" className="fill-accent-light" />
-              <path d={HAIR[i % HAIR.length]} className="fill-accent" />
-              {unknown ? (
-                <>
-                  <path
-                    d="M-24 -78h48a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H6l-6 8-6-8h-18a10 10 0 0 1-10-10v-20a10 10 0 0 1 10-10z"
-                    className="fill-white"
-                  />
-                  <text
-                    x="0"
-                    y="-50"
-                    textAnchor="middle"
-                    className="fill-ink stroke-none text-[24px] font-bold"
-                  >
-                    ?
-                  </text>
-                </>
-              ) : (
-                <>
-                  <circle
-                    cx="-11"
-                    cy="2"
-                    r="2.5"
-                    className="fill-ink stroke-none"
-                  />
-                  <circle
-                    cx="11"
-                    cy="2"
-                    r="2.5"
-                    className="fill-ink stroke-none"
-                  />
-                  <path d="M-9 15q9 7 18 0" fill="none" />
-                </>
-              )}
-            </g>
-          );
-        })}
-      </svg>
-      <p className="experiment-design-copy m-0 !leading-snug">
-        Some people cannot recognize faces — even faces they have seen thousands
-        of times. Neurologist Oliver Sacks described this in himself: he might
-        walk past a close friend, or his own reflection, without knowing who it
-        was.
-      </p>
-      <p className="experiment-design-copy m-0 !leading-snug">
-        Scientists call this condition <b>prosopagnosia</b>, from the Greek for
-        &quot;face&quot; and &quot;not knowing.&quot; It is not poor eyesight;
-        the brain&apos;s face-recognition system doesn&apos;t process faces the
-        usual way.
-      </p>
-      <p className="experiment-design-copy m-0 !leading-snug">
-        Sacks wrote about what this feels like, and about the idea that the
-        brain has a dedicated &quot;face area.&quot; That idea led researchers
-        to compare the brain&apos;s responses to faces and to other objects.
-      </p>
-      <p className="experiment-design-copy m-0 !leading-snug">
-        <b>Source:</b> Oliver Sacks, &quot;Face-Blind&quot; (2010),{' '}
-        <i>The New Yorker</i> / <i>The Mind&apos;s Eye</i>.
-      </p>
+      <h2 className="m-0 text-[22px] font-normal">{video.caption}</h2>
+      <div className="aspect-video w-full">
+        <iframe
+          src={video.embedUrl}
+          title={video.caption}
+          className="h-full w-full rounded-lg border border-[#ececf1]"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
     </section>
   );
 }
@@ -479,7 +402,6 @@ function ProtocolView({
   return (
     <section className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
-        <span className={EYEBROW}>PROTOCOL</span>
         <h1 className="m-0 [text-wrap:pretty]">{protocol.title}</h1>
         <p className="experiment-design-copy m-0 !leading-snug">
           {protocol.protocol}
@@ -489,6 +411,16 @@ function ProtocolView({
         <ResponseDiagram responses={responses} />
         <FlowTimeline phases={flow} />
       </div>
+      {protocol.recording && (
+        <div className="flex flex-col gap-0.5 rounded-lg border border-[#ececf1] bg-white p-4">
+          <h2 className="text-base font-normal">
+            What we&apos;re recording: EEG
+          </h2>
+          <p className="experiment-design-card-copy m-0 !leading-snug">
+            {protocol.recording}
+          </p>
+        </div>
+      )}
     </section>
   );
 }
@@ -630,11 +562,7 @@ export default function PrepareSteps(props: PrepareStepsProps) {
               <OverviewView overview={props.overview} icon={props.icon} />
             )}
             {step === 'background' && (
-              <BackgroundView
-                background={props.background}
-                icon={props.icon}
-                media={props.mediaFallback}
-              />
+              <BackgroundView background={props.background} icon={props.icon} />
             )}
             {step === 'protocol' && (
               <ProtocolView
@@ -646,7 +574,6 @@ export default function PrepareSteps(props: PrepareStepsProps) {
             {previewIntro && (
               <section className="flex flex-col gap-4">
                 <header className="flex flex-col gap-1">
-                  <span className={EYEBROW}>PREVIEW</span>
                   <h1 className="m-0 [text-wrap:pretty]">
                     {previewIntro.title}
                   </h1>

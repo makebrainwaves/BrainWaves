@@ -55,7 +55,7 @@ describe('Design — built-in Prepare', () => {
   it('walks Overview → Background → Protocol → Preview and offers Try the experiment', () => {
     render(<Design {...baseProps} />);
     fireEvent.click(screen.getByRole('button', { name: /Next: Background/ }));
-    expect(screen.getByText(/BACKGROUND/)).toBeInTheDocument();
+    expect(screen.getByText('Why faces are special')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Next: Protocol/ }));
     expect(screen.getByText('WHAT HAPPENS IN THIS TASK')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Try the experiment/ }));
