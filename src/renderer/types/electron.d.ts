@@ -61,6 +61,8 @@ declare global {
     writeCleanedEpochs: (
       title: string,
       subject: string,
+      group: string,
+      session: number,
       rawData: ArrayBuffer
     ) => Promise<void>;
     deleteWorkspaceDir: (title: string) => Promise<void>;

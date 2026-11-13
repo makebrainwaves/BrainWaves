@@ -500,6 +500,7 @@ loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
 grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
 with practice skipped should load as exactly 120 epochs.
 
+<<<<<<< HEAD
 ## EEGViewer is now a canvas sweep plot, not a scrolling D3 plot
 
 `EEGViewer.js` renders to Canvas 2D in the viewer guest (`viewer.html` has
@@ -534,3 +535,17 @@ window (`SIGNAL_QUALITY_WINDOW_MS`, the tuning knob: 2 s snappier, 5 s
 calmer) plus asymmetric persistence (500 ms to worsen, 1 s to improve,
 flat-line immediate), and `QualitySummary` reserves one fixed-height box
 for every state so status changes never reflow the plot.
+=======
+## Cleaned epochs are one file per session, named by the raw recording's stem
+
+Raw, behavior, and cleaned artifacts all share the
+`<subject>-<group>-<session>` stem from `sessionFile` (`src/main/recordings.ts`).
+The cleaned write once used only `<subject>-cleaned-epo.fif`, so cleaning
+session 2 silently overwrote session 1 and Analyze (which already multi-selects
+and pools via `concatenate_epochs`) only ever saw one file per participant.
+`cleanedEpochsPath` now gives `<subject>-<group>-<session>-cleaned-epo.fif`;
+Clean sets group/session in Redux from the chosen recording's filename at
+`handleStart`, since the store's Collect values may be stale. Old
+`<subject>-cleaned-epo.fif` files still list in Analyze but are superseded —
+re-clean the session to get its per-session file; don't select both.
+>>>>>>> 7fcffa9 (fix: write one cleaned epochs file per session)

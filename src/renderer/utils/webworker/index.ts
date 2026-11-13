@@ -224,8 +224,8 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
 // Cleaned epochs are saved into the worker's in-memory MEMFS, then read back and
 // shipped to the renderer (dataKey 'savedEpochs') which writes them to host disk
 // via the fs:writeCleanedEpochs IPC bridge — Pyodide's FS can't reach host paths.
-export const saveEpochs = (worker: Worker, subject: string) => {
-  const memfsPath = `/tmp/${subject}-cleaned-epo.fif`;
+export const saveEpochs = (worker: Worker, fileStem: string) => {
+  const memfsPath = `/tmp/${fileStem}-cleaned-epo.fif`;
   worker.postMessage({
     // save() returns the Epochs/filename object — append None so only the MEMFS
     // bytes (readFileAfter) cross postMessage, not the Python return value.
