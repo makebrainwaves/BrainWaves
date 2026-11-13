@@ -154,11 +154,13 @@ const pyodideMessageEpic: Epic<
           );
           return of(PyodideActions.CleanedEpochsSaveSettled({ ok: false }));
         }
-        const { title, subject } = state$.value.experiment;
+        const { title, subject, group, session } = state$.value.experiment;
         return from(
           window.electronAPI.writeCleanedEpochs(
             title,
             subject,
+            group,
+            session,
             savedEpochsBuffer
           )
         ).pipe(
@@ -275,7 +277,8 @@ const cleanEpochsEpic: Epic<PyodideActionType, PyodideActionType, RootState> = (
         dropIndices,
         badChannels
       );
-      saveEpochs(worker, state$.value.experiment.subject);
+      const { subject, group, session } = state$.value.experiment;
+      saveEpochs(worker, `${subject}-${group}-${session}`);
       requestEpochArrays(worker, PYODIDE_VARIABLE_NAMES.RAW_EPOCHS);
     }),
     map(() => PyodideActions.GetEpochsInfo(PYODIDE_VARIABLE_NAMES.RAW_EPOCHS))

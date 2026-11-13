@@ -68,7 +68,11 @@ beforeEach(() => {
       CleanEpochs: vi.fn(),
       GetSuggestedRejections: vi.fn(),
     },
-    ExperimentActions: { SetSubject: vi.fn() },
+    ExperimentActions: {
+      SetSubject: vi.fn(),
+      SetGroup: vi.fn(),
+      SetSession: vi.fn(),
+    },
     params: null,
     suggestedRejections: [] as SuggestedRejection[],
     cleanedEpochsSave: { revision: 0, ok: false },
@@ -94,6 +98,8 @@ describe('Clean', () => {
     await startCleaning();
 
     expect(props.ExperimentActions.SetSubject).toHaveBeenCalledWith('P1');
+    expect(props.ExperimentActions.SetGroup).toHaveBeenCalledWith('A');
+    expect(props.ExperimentActions.SetSession).toHaveBeenCalledWith(1);
     expect(props.PyodideActions.LoadEpochs).toHaveBeenCalledWith(RECORDING);
     expect(screen.getByTestId('epoch-reviewer')).toBeInTheDocument();
   });
