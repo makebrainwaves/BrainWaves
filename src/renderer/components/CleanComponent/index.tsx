@@ -154,8 +154,9 @@ export default function Clean(props: Props) {
     props.ExperimentActions.SetSubject(chosen.subject);
     // Raw names are `<subject>-<group>-<session>-raw.csv` (see `sessionFile`);
     // the cleaned save keys its file off this group/session, so set them from
-    // the recording actually being cleaned, not a stale Collect run.
-    const sessionMatch = chosen.name.match(/-([^-]+)-(\d+)-raw\.csv$/);
+    // the recording actually being cleaned, not a stale Collect run. The
+    // group may be empty (`dano--3-raw.csv`).
+    const sessionMatch = chosen.name.match(/-([^-]*)-(\d+)-raw\.csv$/);
     if (sessionMatch) {
       props.ExperimentActions.SetGroup(sessionMatch[1]);
       props.ExperimentActions.SetSession(Number(sessionMatch[2]));

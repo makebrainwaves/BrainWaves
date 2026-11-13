@@ -32,6 +32,7 @@ const RECORDING = '/ws/Data/P1/EEG/P1-A-1-raw.csv';
 vi.mock('../../../utils/filesystem/storage', () => ({
   readWorkspaceRawEEGData: vi.fn(async () => [
     { name: 'P1-A-1-raw.csv', path: RECORDING },
+    { name: 'P1--3-raw.csv', path: '/ws/Data/P1/EEG/P1--3-raw.csv' },
   ]),
   readWorkspaceIncompleteEEGData: vi.fn(async () => []),
   deleteIncompleteRecording: vi.fn(),
@@ -102,6 +103,15 @@ describe('Clean', () => {
     expect(props.ExperimentActions.SetSession).toHaveBeenCalledWith(1);
     expect(props.PyodideActions.LoadEpochs).toHaveBeenCalledWith(RECORDING);
     expect(screen.getByTestId('epoch-reviewer')).toBeInTheDocument();
+  });
+
+  it('keys the cleaned save to the chosen session even when the group is empty', async () => {
+    render(ui());
+    fireEvent.click(await screen.findByRole('radio', { name: /P1--3-raw.csv/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start cleaning' }));
+
+    expect(props.ExperimentActions.SetGroup).toHaveBeenCalledWith('');
+    expect(props.ExperimentActions.SetSession).toHaveBeenCalledWith(3);
   });
 
   it('never applies suggestions on their own; Accept and Restore do', async () => {
