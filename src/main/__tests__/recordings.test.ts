@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  cleanedEpochsPath,
   createRawEEGStream,
   incompleteRecordingFiles,
   isBehaviorFile,
@@ -40,6 +41,18 @@ describe('recordings', () => {
 
     expect(csvFiles().filter(isRawEEGFile)).toHaveLength(1);
     expect(csvFiles().filter(isBehaviorFile)).toHaveLength(1);
+  });
+
+  it('cleaned epochs are one file per session, so sessions never overwrite each other', () => {
+    const session1 = cleanedEpochsPath(dir, 'P1', 'A', 1);
+    const session2 = cleanedEpochsPath(dir, 'P1', 'A', 2);
+
+    expect(session1).not.toBe(session2);
+    expect(path.basename(session1)).toBe('P1-A-1-cleaned-epo.fif');
+    expect(path.basename(session2)).toBe('P1-A-2-cleaned-epo.fif');
+    // Re-cleaning the same session targets its own file again.
+    expect(cleanedEpochsPath(dir, 'P1', 'A', 1)).toBe(session1);
+    expect(path.dirname(session1)).toBe(path.join(dir, 'Data', 'P1', 'EEG'));
   });
 
   it('an ended-early run keeps its files and its session, but drops out of discovery', () => {

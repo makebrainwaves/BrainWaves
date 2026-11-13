@@ -35,16 +35,19 @@ export const FACES_HOUSES_CODE_TO_LABEL: Record<number, string> = {
 /** Where `readWorkspace*Data` finds a participant's files. */
 const WORKSPACE_DATA_DIR = `/Users/student/BrainWaves_Workspaces/${WORKSPACE_TITLE}/Data`;
 
-export const EEG_DATASET_OPTIONS: DatasetOption[] = ['P01', 'P02', 'P03'].map(
-  (subject) => {
-    const name = `${subject}-cleaned-epo.fif`;
-    return {
-      key: name,
-      text: name,
-      value: `${WORKSPACE_DATA_DIR}/${subject}/EEG/${name}`,
-    };
-  }
-);
+/** One cleaned file per session: P01 has two sessions, P02 one. */
+export const EEG_DATASET_OPTIONS: DatasetOption[] = [
+  'P01-A-1',
+  'P01-A-2',
+  'P02-A-1',
+].map((stem) => {
+  const name = `${stem}-cleaned-epo.fif`;
+  return {
+    key: name,
+    text: name,
+    value: `${WORKSPACE_DATA_DIR}/${stem.split('-')[0]}/EEG/${name}`,
+  };
+});
 
 export const BEHAVIOR_DATASET_OPTIONS: DatasetOption[] = [
   'P01',

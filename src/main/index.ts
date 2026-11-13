@@ -46,6 +46,7 @@ import type {
 import { importExperimentFile } from './importExperimentFile';
 import {
   createRawEEGStream,
+  cleanedEpochsPath,
   incompleteRecordingFiles,
   isBehaviorFile,
   isIncompleteRawEEGFile,
@@ -354,23 +355,33 @@ ipcMain.handle(
 );
 
 // Writes the cleaned epochs .fif from the Pyodide worker's in-memory MEMFS to
-// host disk (the worker filesystem cannot reach host paths on its own). Analyze's
+// host disk (the worker filesystem cannot reach host paths on its own). One
+// file per subject/group/session, mirroring the raw recording's stem, so
+// cleaning one session never overwrites another. Analyze's
 // `readWorkspaceCleanedEEGData` scans for the `epo.fif` suffix this produces.
 ipcMain.handle(
   'fs:writeCleanedEpochs',
-  (_event, title: string, subject: string, rawData: ArrayBuffer) => {
-    const dir = path.join(getWorkspaceDir(title), 'Data', subject, 'EEG');
-    mkdirPathSync(dir);
+  (
+    _event,
+    title: string,
+    subject: string,
+    group: string,
+    session: number,
+    rawData: ArrayBuffer
+  ) => {
+    const file = cleanedEpochsPath(
+      getWorkspaceDir(title),
+      subject,
+      group,
+      session
+    );
+    mkdirPathSync(path.dirname(file));
     const buffer = Buffer.from(rawData);
     return new Promise<void>((resolve, reject) => {
-      fs.writeFile(
-        path.join(dir, `${subject}-cleaned-epo.fif`),
-        buffer,
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
+      fs.writeFile(file, buffer, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
     });
   }
 );
