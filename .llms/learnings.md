@@ -499,6 +499,7 @@ It also replayed its CSV's own marker column, which is how an earlier run
 loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
 grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
 with practice skipped should load as exactly 120 epochs.
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 ## EEGViewer is now a canvas sweep plot, not a scrolling D3 plot
@@ -549,3 +550,5 @@ Clean sets group/session in Redux from the chosen recording's filename at
 `<subject>-cleaned-epo.fif` files still list in Analyze but are superseded —
 re-clean the session to get its per-session file; don't select both.
 >>>>>>> 7fcffa9 (fix: write one cleaned epochs file per session)
+=======
+>>>>>>> 97415dd (fix: parse session from raw names with an empty group; drop learnings entry)
