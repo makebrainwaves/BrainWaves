@@ -40,7 +40,7 @@ export function getExperimentFromType(type: EXPERIMENTS): Experiment {
 
 // `phase` in the recorded data means "which block did this trial run in", and
 // only the running loop knows that — the value on a stimulus is just how the
-// designer counted the trial list up (see countPhases). Both loops draw from
+// designer tagged in the trial list. Both loops draw from
 // the same pool, so each stamps its own block on. Passing the stimulus tag
 // through instead made behavior/compute mis-bin trials: custom tags the first
 // image of each condition 'practice', so a slice of the real task was dropped,

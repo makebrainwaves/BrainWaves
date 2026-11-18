@@ -40,7 +40,9 @@
     "asarUnpack": [
       "**/*.node",
       "node_modules/node-labstreaminglayer/prebuild/**",
-      "node_modules/koffi/**/*.node"
+      "node_modules/koffi/**/*.node",
+      "node_modules/node-llama-cpp/**",
+      "node_modules/@node-llama-cpp/**"
     ],
     "files": [
       "out/**/*",
@@ -240,6 +242,7 @@
     "lodash": "^4.18.1",
     "muse-js": "^3.1.0",
     "node-labstreaminglayer": "^0.3.0",
+    "node-llama-cpp": "^3.21.1",
     "papaparse": "^5.5.3",
     "pathe": "^2.0.3",
     "plotly.js-cartesian-dist": "^3.7.0",
