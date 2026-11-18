@@ -278,6 +278,15 @@ export default class EEGViewer {
     this.firstTimestamp = this.sweepStart;
     this.lastTimestamp = this.headTime;
     if (this.displayTime == null) this.displayTime = startTime;
+    // Prune on the display clock (what's visible), not the data head: old
+    // points then leave in xFor / the erase bar, on the reveal timescale.
+    // While rAF is suspended (hidden window) the display clock freezes, so
+    // also drop anything older than two domains behind the head: once the
+    // display lags a full domain it resyncs to the head and never draws it.
+    const cutoff = Math.max(
+      this.displayTime - this.domain,
+      this.headTime - 2 * this.domain
+    );
 
     for (let i = 0; i < this.channels.length; i++) {
       const source = epoch.data[mapped[i]];
@@ -288,11 +297,7 @@ export default class EEGViewer {
           y,
         }))
         .filter((p) => Number.isFinite(p.y));
-      // Prune on the display clock (what's visible), not the data head: old
-      // points then leave in xFor / the erase bar, on the reveal timescale.
-      this.data[i] = this.data[i]
-        .filter((p) => p.x > this.displayTime - this.domain)
-        .concat(points);
+      this.data[i] = this.data[i].filter((p) => p.x > cutoff).concat(points);
     }
     if (!this.fixedColours)
       this.channelColours = this.channels.map(
@@ -556,6 +561,7 @@ export default class EEGViewer {
     if (this.rafId != null) cancelAnimationFrame(this.rafId);
     this.rafId = null;
     this.firstTimestamp = snapshot.startTime;
+    this.lastTimestamp = snapshot.endTime;
     this.centerChannelsForSnapshot();
     this.draw();
   }

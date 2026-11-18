@@ -305,6 +305,32 @@ describe('EEGViewer canvas sweep', () => {
     expect(path[0].x).toBeLessThan(path[path.length - 1].x);
   });
 
+  it('draws annotations that fall inside a snapshot', () => {
+    const snapshot: EEGSnapshot = {
+      channels: ['AF7'],
+      data: [[100, 110, 100, 90, 100]],
+      samplingRate: 1,
+      startTime: 1000,
+      endTime: 6000,
+      peakToPeak: 20,
+    };
+    const { calls } = createGraph({
+      channels: ['AF7'],
+      snapshot,
+      amplitudeScale: 100,
+      annotations: [
+        {
+          id: 'blink',
+          startTime: 2000,
+          endTime: 3000,
+          label: 'Blink',
+          tone: 'blink',
+        },
+      ],
+    });
+    expect(lastDraw(calls).some((c) => c.method === 'roundRect')).toBe(true);
+  });
+
   it('never plots outside the plot after a snapshot reset with lagging device time', () => {
     const { graph, calls } = createGraph();
     graph.updateSnapshot(null, undefined);
@@ -456,6 +482,18 @@ describe('EEGViewer canvas sweep', () => {
     expect(revealed()).toBe(3);
     step(1500);
     expect(revealed()).toBe(4);
+    vi.unstubAllGlobals();
+  });
+
+  it('bounds buffered points while animation frames are suspended (hidden window)', () => {
+    vi.stubGlobal('requestAnimationFrame', () => 1);
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    const { graph } = createGraph({ channels: ['AF7'] }, false);
+    for (let s = 0; s < 120; s++) graph.updateData(epochFor(1000 * s, [0, 1]));
+    const { data } = graph as unknown as { data: unknown[][] };
+    // 2 Hz: at most two 5 s domains of points (the drawable window before or
+    // after the resync), not the whole two minutes of backlog.
+    expect(data[0].length).toBeLessThanOrEqual(22);
     vi.unstubAllGlobals();
   });
 });
