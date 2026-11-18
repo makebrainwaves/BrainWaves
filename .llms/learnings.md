@@ -182,9 +182,11 @@ skill) — `header, footer, main` shows up as the winning rule.
 Fix used by the Experiment Design screen: scoped classes in `app.global.css`
 (`.experiment-design-content` and `.experiment-design-content header`) that reset
 `padding`/`text-align`. Do not reach for `!important`, and do not un-layer lab.css.
-The same trap covers body copy — global `p { font-size: 18px !important }` is why
-the redesign's 19px/17px text uses `.experiment-design-copy` /
-`.experiment-design-card-copy` instead of Tailwind text utilities.
+The same trap covers body copy, but there `!important` is unavoidable: global
+`p { font-size: 18px !important }` beats any non-important class, so the old
+`.experiment-design-copy { font-size: 19px }` silently rendered at 18px. The
+Prepare type scale (`.experiment-design-content h1`, `-lead`, `-copy`,
+`-card-copy`) therefore sets size/spacing with `!important`, scoped to Prepare.
 
 Note: `.llms/learnings.md` is not Prettier-formatted; running `prettier --write` on
 it rewraps unrelated entries. Append by hand.
@@ -499,9 +501,7 @@ It also replayed its CSV's own marker column, which is how an earlier run
 loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
 grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
 with practice skipped should load as exactly 120 epochs.
-<<<<<<< HEAD
 
-<<<<<<< HEAD
 ## EEGViewer is now a canvas sweep plot, not a scrolling D3 plot
 
 `EEGViewer.js` renders to Canvas 2D in the viewer guest (`viewer.html` has
@@ -536,19 +536,15 @@ window (`SIGNAL_QUALITY_WINDOW_MS`, the tuning knob: 2 s snappier, 5 s
 calmer) plus asymmetric persistence (500 ms to worsen, 1 s to improve,
 flat-line immediate), and `QualitySummary` reserves one fixed-height box
 for every state so status changes never reflow the plot.
-=======
-## Cleaned epochs are one file per session, named by the raw recording's stem
 
-Raw, behavior, and cleaned artifacts all share the
-`<subject>-<group>-<session>` stem from `sessionFile` (`src/main/recordings.ts`).
-The cleaned write once used only `<subject>-cleaned-epo.fif`, so cleaning
-session 2 silently overwrote session 1 and Analyze (which already multi-selects
-and pools via `concatenate_epochs`) only ever saw one file per participant.
-`cleanedEpochsPath` now gives `<subject>-<group>-<session>-cleaned-epo.fif`;
-Clean sets group/session in Redux from the chosen recording's filename at
-`handleStart`, since the store's Collect values may be stale. Old
-`<subject>-cleaned-epo.fif` files still list in Analyze but are superseded —
-re-clean the session to get its per-session file; don't select both.
->>>>>>> 7fcffa9 (fix: write one cleaned epochs file per session)
-=======
->>>>>>> 97415dd (fix: parse session from raw names with an empty group; drop learnings entry)
+## Stroop behavior fields come from the stimulus screen's `end` hook
+
+Stroop's analysis fields (`trial_number`, `reaction_time`, `correct_response`,
+`response_given`, `condition`) are written by `initStroopResponse`, an `end`
+hook on both "Stroop screen"s: lab.js has set `response`, `correct` and
+`duration` (show → response) by then, and the row is committed after the hook.
+The old `initStroopTrial` sat on the Inter-trial interval, read
+`this.options.id` (undefined on loop clones, so it never ran) and would have
+used the ITI's own duration as the RT. CSVs recorded before the fix are mapped
+at read time by `normalizeLegacyStroopRow` in `behavior/compute.js` (rows with
+no `trial_number`, `sender === 'Stroop screen'` and a `congruent` value).
