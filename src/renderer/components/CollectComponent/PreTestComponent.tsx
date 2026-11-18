@@ -4,7 +4,6 @@ import ViewerComponent from '../ViewerComponent';
 import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
 import PreviewExperimentComponent from '../PreviewExperimentComponent';
 import PreviewButton from '../PreviewButtonComponent';
-import { LessonSidebar, HelpButton } from './LessonSidebar';
 import { NO_WORKSPACE_REASON } from './RunComponent';
 import { getExperimentFromType } from '../../utils/labjs/functions';
 import { ExperimentActions, DeviceActions } from '../../actions';
@@ -42,7 +41,6 @@ interface Props {
 
 export default function PreTestComponent(props: Props) {
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   function endPreview() {
     setIsPreviewing(false);
@@ -51,12 +49,7 @@ export default function PreTestComponent(props: Props) {
   function handlePreview(e) {
     if (!props.title && !isPreviewing) return;
     e.target.blur();
-    setIsSidebarVisible(false);
     setIsPreviewing((prev) => !prev);
-  }
-
-  function handleSidebarToggle() {
-    setIsSidebarVisible((prev) => !prev);
   }
 
   function renderSignalQualityOrPreview() {
@@ -96,12 +89,6 @@ export default function PreTestComponent(props: Props) {
     );
   }
 
-  function renderHelpButton() {
-    if (!isSidebarVisible) {
-      return <HelpButton onClick={handleSidebarToggle} />;
-    }
-  }
-
   return (
     <div className="flex h-full bg-app">
       <div className="min-w-0 flex-1 overflow-y-auto p-[3%]">
@@ -131,24 +118,18 @@ export default function PreTestComponent(props: Props) {
           </p>
         )}
         <div className="flex gap-4">
-          <div className="w-1/2 h-full items-center mb-5">
+          <div className="w-[300px] flex-none items-center mb-5">
             {renderSignalQualityOrPreview()}
           </div>
-          <div className="w-1/2">
+          <div className="min-w-0 flex-1">
             <ViewerComponent
               signalQualityObservable={props.signalQualityObservable}
               channels={props.connectedDevice?.channels}
               plottingInterval={PLOTTING_INTERVAL}
             />
-            {renderHelpButton()}
           </div>
         </div>
       </div>
-      {isSidebarVisible && (
-        <div className="w-64 flex-none">
-          <LessonSidebar handleClose={handleSidebarToggle} />
-        </div>
-      )}
     </div>
   );
 }

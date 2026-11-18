@@ -4,6 +4,7 @@ import {
   initLoopWithStimuli,
   initPracticeLoopWithStimuli,
   initResponseHandlers,
+  initStroopResponse,
 } from '../functions';
 import type { Stimulus } from '../../../constants/interfaces';
 
@@ -178,5 +179,25 @@ describe('initResponseHandlers', () => {
     expect(screen.data.response_given).toBe('yes');
     expect(consoleError).toHaveBeenCalledOnce();
     consoleError.mockRestore();
+  });
+});
+
+describe('initStroopResponse', () => {
+  it('scores the stimulus screen from its own response and duration', () => {
+    // A loop-cloned screen: `this.id` is set, `this.options.id` is not.
+    const screen = {
+      id: '0_3_0_4_1',
+      options: {},
+      parameters: { color: 'red', congruent: 'no' },
+      data: { response: 'blue', duration: 612.4 },
+    };
+    initStroopResponse.call(screen as never);
+    expect(screen.data).toMatchObject({
+      trial_number: 5,
+      response_given: 'yes',
+      reaction_time: 612.4,
+      correct_response: false,
+      condition: 'Mismatch',
+    });
   });
 });

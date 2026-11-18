@@ -13,12 +13,12 @@ export const instructions: InstructionsScreenParams = {
     {
       stimulus: '<span style="color: red">green</span>',
       label: 'Red ink',
-      detail: `The word says “green”. Press ${keycap('r')}`,
+      detail: `The ink is red. Press ${keycap('r')}`,
     },
     {
       stimulus: '<span style="color: blue">yellow</span>',
       label: 'Blue ink',
-      detail: `The word says “yellow”. Press ${keycap('b')}`,
+      detail: `The ink is blue. Press ${keycap('b')}`,
     },
   ]),
   rules: [

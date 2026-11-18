@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
+import { of } from 'rxjs';
 import HeadsetSetup from './HeadsetSetup';
 import SignalPrepPanel from './SignalPrep';
-import { DEVICES } from '../../constants/constants';
+import { DEVICES, SIGNAL_QUALITY } from '../../constants/constants';
+import { qualitySample } from '../Explore/fixtures';
 import { CROWN_SENSORS, FOUND_MUSE, MIXED_MUSE_SENSORS } from './fixtures';
 
 const meta: Meta<typeof HeadsetSetup> = {
@@ -106,8 +108,8 @@ export const FixtureIntro: Story = {
 export const LSLIntro: Story = { args: { step: 'wear', device: DEVICES.LSL } };
 
 /**
- * S01 — Phase 2, on Explore/Collect rather than the modal: prep checklist,
- * then what quality and noise mean, then per-sensor color + word + fix.
+ * S01 — On Explore/Collect rather than the modal: live head map and a short
+ * checklist beside compact per-sensor rows; fixes only for sensors not good.
  */
 export const SignalPrep: Story = {
   parameters: { surface: 'page' },
@@ -115,18 +117,54 @@ export const SignalPrep: Story = {
     <SignalPrepPanel
       device={DEVICES.MUSE}
       sensors={MIXED_MUSE_SENSORS}
+      head={of(qualitySample(MIXED_MUSE_SENSORS))}
       onContinue={fn()}
     />
   ),
 };
 
-/** S02 — Crown: no snug-band step; all eight sensors show their scalp location. */
+/** S02 — Crown: no snug-band step; all eight sensors on the map and listed. */
 export const SignalPrepCrown: Story = {
   parameters: { surface: 'page' },
   render: () => (
     <SignalPrepPanel
       device={DEVICES.NEUROSITY}
       sensors={CROWN_SENSORS}
+      head={of(qualitySample(CROWN_SENSORS))}
+      onContinue={fn()}
+    />
+  ),
+};
+
+/** S03 — Paired, but no quality sample yet: Continue waits for the first one. */
+export const SignalPrepWaiting: Story = {
+  parameters: { surface: 'page' },
+  render: () => (
+    <SignalPrepPanel
+      device={DEVICES.MUSE}
+      sensors={MIXED_MUSE_SENSORS.map(({ channel }) => ({
+        channel,
+        quality: SIGNAL_QUALITY.DISCONNECTED,
+      }))}
+      head={null}
+      signal="waiting"
+      onContinue={fn()}
+    />
+  ),
+};
+
+/** S04 — Still no sample after 15 s: Continue opens with a check-the-headset note. */
+export const SignalPrepStalled: Story = {
+  parameters: { surface: 'page' },
+  render: () => (
+    <SignalPrepPanel
+      device={DEVICES.MUSE}
+      sensors={MIXED_MUSE_SENSORS.map(({ channel }) => ({
+        channel,
+        quality: SIGNAL_QUALITY.DISCONNECTED,
+      }))}
+      head={null}
+      signal="stalled"
       onContinue={fn()}
     />
   ),

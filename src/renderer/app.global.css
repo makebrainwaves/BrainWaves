@@ -68,19 +68,37 @@ p {
   letter-spacing: 0.64px !important;
 }
 
+/* Prepare (PrepareSteps) type scale. The global h1/p rules above are
+   !important, so these overrides, scoped to Prepare, have to be too. */
+.experiment-design-content h1 {
+  font-size: 40px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  text-wrap: pretty;
+}
+
+.experiment-design-lead {
+  margin: 0;
+  font-size: 21px !important;
+  line-height: 1.5;
+  letter-spacing: normal !important;
+  text-wrap: pretty;
+}
+
 .experiment-design-copy {
   margin: 0;
-  font-size: 19px;
-  line-height: 1.8;
-  letter-spacing: 0.3px;
+  font-size: 18px !important;
+  line-height: 1.6;
+  letter-spacing: 0.1px !important;
   text-wrap: pretty;
 }
 
 .experiment-design-card-copy {
   margin: 0;
-  font-size: 17px;
-  line-height: 1.7;
-  letter-spacing: 0.3px;
+  font-size: 16px !important;
+  line-height: 1.6;
+  letter-spacing: 0.1px !important;
   text-wrap: pretty;
 }
 

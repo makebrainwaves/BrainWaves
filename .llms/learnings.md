@@ -182,9 +182,11 @@ skill) — `header, footer, main` shows up as the winning rule.
 Fix used by the Experiment Design screen: scoped classes in `app.global.css`
 (`.experiment-design-content` and `.experiment-design-content header`) that reset
 `padding`/`text-align`. Do not reach for `!important`, and do not un-layer lab.css.
-The same trap covers body copy — global `p { font-size: 18px !important }` is why
-the redesign's 19px/17px text uses `.experiment-design-copy` /
-`.experiment-design-card-copy` instead of Tailwind text utilities.
+The same trap covers body copy, but there `!important` is unavoidable: global
+`p { font-size: 18px !important }` beats any non-important class, so the old
+`.experiment-design-copy { font-size: 19px }` silently rendered at 18px. The
+Prepare type scale (`.experiment-design-content h1`, `-lead`, `-copy`,
+`-card-copy`) therefore sets size/spacing with `!important`, scoped to Prepare.
 
 Note: `.llms/learnings.md` is not Prettier-formatted; running `prettier --write` on
 it rewraps unrelated entries. Append by hand.
@@ -499,3 +501,63 @@ It also replayed its CSV's own marker column, which is how an earlier run
 loaded as 193 epochs. Now each tick emits every sample due on a `Date.now()`
 grid, and the CSV marker column is ignored. A fixture-headset Faces/Houses run
 with practice skipped should load as exactly 120 epochs.
+
+## EEGViewer is now a canvas sweep plot, not a scrolling D3 plot
+
+`EEGViewer.js` renders to Canvas 2D in the viewer guest (`viewer.html` has
+`<canvas id="graph">`); axes/labels are static and the signal sweeps
+left→right, overwriting the previous sweep with a ~250 ms erased gap ahead of
+the write head (`xFor` hides points older than `headTime - domain + gap`).
+No `slideIn`, no shifting data, no d3/simplify in the guest. The older
+EEGViewer traps above (SVG pill clamping, `xAxisScale`, slide transform) no
+longer apply; keep the no-wall-clock-seed rule (`sweepStart` anchors on the
+first epoch, never `Date.now()`). Drawing is synchronous per epoch — no rAF
+loop.
+Update: the sweep reveal is decoupled from chunk arrival — a rAF loop
+advances `displayTime` in real time toward the data head (~60 fps redraw),
+and the erased gap ahead of the head is 5 ms. `PLOTTING_INTERVAL` (250 ms)
+still governs data chunking/filtering and must not be lowered for frame
+rate; only rendering is faster. If the guest is hidden long enough that the
+display falls a full domain behind, it resyncs to the data head.
+Correction to the above: there is no time-window gap anymore. The same
+`draw()` pass that strokes the traces finishes with `drawEraseBar()` — a
+full-height `clearRect` slice (~one frame-step, min 2 px) just ahead of the
+write head, wrapping at the right edge. Old points are pruned on the
+display clock (`displayTime - domain`), never the data head, so removal and
+reveal share the rAF timescale.
+Exception: ingest also drops points older than `headTime - 2 * domain`.
+A hidden window suspends rAF, freezing `displayTime`, and the display-clock
+prune alone then buffered every epoch until the window was shown again.
+Snapshots must set both `firstTimestamp` and `lastTimestamp`; annotation
+clipping uses both, and a null end silently dropped every snapshot marker.
+
+## Signal quality: windowed median + persistence, fixed-height status box
+
+Per-epoch SDs (250 ms, `@neurosity/pipes` `addSignalQuality`) flicker across
+the GREAT/OK/BAD thresholds; classifying them instantaneously made the
+Explore status box change height/state every epoch and the plot jumped.
+`parseMuseSignalQuality` now reports the median epoch SD over a rolling 3 s
+window (`SIGNAL_QUALITY_WINDOW_MS`, the tuning knob: 2 s snappier, 5 s
+calmer) plus asymmetric persistence (500 ms to worsen, 1 s to improve,
+flat-line immediate), and `QualitySummary` reserves one fixed-height box
+for every state so status changes never reflow the plot.
+The window/persistence state is allocated per subscription (`defer` inside
+the operator). The stored observable is subscribed by several views at
+once (head map, viewer, signal prep) without multicasting, so shared
+counters advanced once per subscriber and halved every time constant.
+Related: `SignalQualityIndicatorComponent` resets its circles when the
+channel *names* change, not the `channels` array identity. Callers that
+pass `channels={x.map(...)}` otherwise repaint "no signal" after every
+update.
+
+## Stroop behavior fields come from the stimulus screen's `end` hook
+
+Stroop's analysis fields (`trial_number`, `reaction_time`, `correct_response`,
+`response_given`, `condition`) are written by `initStroopResponse`, an `end`
+hook on both "Stroop screen"s: lab.js has set `response`, `correct` and
+`duration` (show → response) by then, and the row is committed after the hook.
+The old `initStroopTrial` sat on the Inter-trial interval, read
+`this.options.id` (undefined on loop clones, so it never ran) and would have
+used the ITI's own duration as the RT. CSVs recorded before the fix are mapped
+at read time by `normalizeLegacyStroopRow` in `behavior/compute.js` (rows with
+no `trial_number`, `sender === 'Stroop screen'` and a `congruent` value).

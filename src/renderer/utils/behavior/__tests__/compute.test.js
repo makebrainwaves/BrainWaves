@@ -54,4 +54,48 @@ describe('aggregateDataForPlot', () => {
       expect(new Set(colors).size).toBe(3);
     }
   );
+
+  it('plots legacy Stroop rows that only carry lab.js fields', () => {
+    // Shape of a real pre-fix Stroop CSV (dano-test-1-behavior.csv): no
+    // trial_number / reaction_time / correct_response / response_given.
+    const stroopRow = (i, congruent, correct, phase = 'task') => ({
+      sender: 'Stroop screen',
+      sender_id: `0_3_0_${i}_1`,
+      color: 'red',
+      ...(phase === 'task' ? { congruent } : {}),
+      correct,
+      correctResponse: 'red',
+      duration: String(600 + i * 10 + 0.4000000022352),
+      ended_on: 'response',
+      phase,
+      response: correct === 'true' ? 'red' : 'blue',
+      response_action: 'keydown(r)',
+    });
+    const rows = [
+      stroopRow(0, undefined, 'true', 'practice'),
+      { sender: 'Inter-trial interval', sender_id: '0_3_0_0_2', phase: 'task' },
+      ...[0, 1, 2, 3, 4, 5].map((i) =>
+        stroopRow(i, i % 2 ? 'yes' : 'no', i === 4 ? 'false' : 'true')
+      ),
+    ];
+    const dataset = [
+      { meta: { datafile: '/tmp/dano-test-1-behavior.csv' }, data: rows },
+    ];
+    const rt = aggregateDataForPlot(dataset, 'RT', false, 'datapoints');
+    const ys = Object.fromEntries(
+      rt.dataToPlot.map((trace) => [trace.name, trace.y])
+    );
+    expect(ys).toEqual({ Match: [610, 630, 650], Mismatch: [600, 620] });
+
+    const accuracy = aggregateDataForPlot(
+      dataset,
+      'Accuracy',
+      false,
+      'errorbars'
+    );
+    expect(accuracy.dataToPlot.map((trace) => trace.name).sort()).toEqual([
+      'Match',
+      'Mismatch',
+    ]);
+  });
 });

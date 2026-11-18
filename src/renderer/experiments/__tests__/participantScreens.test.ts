@@ -78,3 +78,18 @@ it('Custom skips practice on Q, as its screen offers', () => {
     skipPracticeOnRequest
   );
 });
+
+it('Stroop examples name the ink and its key, never the printed word', () => {
+  const html = String(findScreen(stroopExperiment, 'Instruction')?.content);
+  const examples = [
+    ...html.matchAll(
+      /<span style="color: (\w+)">(\w+)<\/span>.*?<figcaption>.*?<span>(.*?)<\/span><\/figcaption>/g
+    ),
+  ];
+  expect(examples.length).toBeGreaterThan(0);
+  for (const [, ink, word, detail] of examples) {
+    expect(detail).toContain(`ink is ${ink}`);
+    expect(detail).not.toContain(word);
+    expect(shownKeys(detail)).toEqual(new Set([ink[0]]));
+  }
+});

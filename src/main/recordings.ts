@@ -25,6 +25,21 @@ export const sessionFile = (
   );
 };
 
+/** Path of one session's cleaned epochs; one file per session so sessions never overwrite each other. */
+export const cleanedEpochsPath = (
+  workspaceDir: string,
+  subject: string,
+  group: string,
+  session: number
+) =>
+  path.join(
+    workspaceDir,
+    'Data',
+    subject,
+    'EEG',
+    `${subject}-${group}-${session}-cleaned-epo.fif`
+  );
+
 const incomplete = (file: string) => file.replace(/\.csv$/, INCOMPLETE);
 
 /**

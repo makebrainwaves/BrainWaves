@@ -132,6 +132,19 @@ export enum SIGNAL_QUALITY_THRESHOLDS {
   GREAT = 1.5,
 }
 
+/**
+ * Signal quality is classified from per-epoch SDs pooled over this rolling
+ * window (see `parseMuseSignalQuality`): at 3 s a blink or electrode pop is a
+ * minority of epochs, while a genuinely lost sensor still shows within ~2 s.
+ * Shorten toward 2 s for snappier feedback, lengthen toward 5 s for calmer
+ * classifications; this is the knob to tune.
+ */
+export const SIGNAL_QUALITY_WINDOW_MS = 3000;
+/** Sustained worse windowed quality required before the reported class drops. */
+export const SIGNAL_QUALITY_WORSEN_MS = 500;
+/** Sustained better windowed quality required before the reported class recovers. */
+export const SIGNAL_QUALITY_IMPROVE_MS = 1000;
+
 export enum FILE_TYPES {
   STIMULUS_DIR = 'STIMULUS_DIR',
   AUDIO_DIR = 'AUDIO_DIR',

@@ -114,9 +114,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   writeCleanedEpochs: (
     title: string,
     subject: string,
+    group: string,
+    session: number,
     rawData: ArrayBuffer
   ): Promise<void> =>
-    ipcRenderer.invoke('fs:writeCleanedEpochs', title, subject, rawData),
+    ipcRenderer.invoke(
+      'fs:writeCleanedEpochs',
+      title,
+      subject,
+      group,
+      session,
+      rawData
+    ),
 
   deleteWorkspaceDir: (title: string): Promise<void> =>
     ipcRenderer.invoke('fs:deleteWorkspaceDir', title),

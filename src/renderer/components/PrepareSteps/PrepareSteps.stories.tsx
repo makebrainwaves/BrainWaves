@@ -296,8 +296,8 @@ export const EEGOff: Story = {
   ),
 };
 
-/** P10 — OliverSacksFallback. Background's Sacks stand-in: a local face-crowd illustration (one familiar face blank, with a "?") and transcript-length text; no remote player. */
-export const OliverSacksFallback: Story = {
+/** P10 — Faces/Houses Background: FFA definition with brain image, plus the embedded Oliver Sacks YouTube clip. */
+export const FacesHousesBackground: Story = {
   render: () => (
     <PrepareSteps
       {...FACES_HOUSES}
