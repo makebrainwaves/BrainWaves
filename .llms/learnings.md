@@ -525,6 +525,11 @@ full-height `clearRect` slice (~one frame-step, min 2 px) just ahead of the
 write head, wrapping at the right edge. Old points are pruned on the
 display clock (`displayTime - domain`), never the data head, so removal and
 reveal share the rAF timescale.
+Exception: ingest also drops points older than `headTime - 2 * domain`.
+A hidden window suspends rAF, freezing `displayTime`, and the display-clock
+prune alone then buffered every epoch until the window was shown again.
+Snapshots must set both `firstTimestamp` and `lastTimestamp`; annotation
+clipping uses both, and a null end silently dropped every snapshot marker.
 
 ## Signal quality: windowed median + persistence, fixed-height status box
 
@@ -536,6 +541,14 @@ window (`SIGNAL_QUALITY_WINDOW_MS`, the tuning knob: 2 s snappier, 5 s
 calmer) plus asymmetric persistence (500 ms to worsen, 1 s to improve,
 flat-line immediate), and `QualitySummary` reserves one fixed-height box
 for every state so status changes never reflow the plot.
+The window/persistence state is allocated per subscription (`defer` inside
+the operator). The stored observable is subscribed by several views at
+once (head map, viewer, signal prep) without multicasting, so shared
+counters advanced once per subscriber and halved every time constant.
+Related: `SignalQualityIndicatorComponent` resets its circles when the
+channel *names* change, not the `channels` array identity. Callers that
+pass `channels={x.map(...)}` otherwise repaint "no signal" after every
+update.
 
 ## Stroop behavior fields come from the stimulus screen's `end` hook
 

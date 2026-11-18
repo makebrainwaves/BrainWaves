@@ -27,8 +27,11 @@ interface Props {
   sensors: SensorReading[];
   /** The head diagram's stream: the live stream in the app, `of(...)` in stories. */
   head: Observable<SignalQualityData> | null | undefined;
-  /** No quality sample has arrived yet; Continue stays off until one does. */
-  waiting?: boolean;
+  /**
+   * `waiting`: no quality sample yet, Continue stays off. `stalled`: still none
+   * after a while, so Continue opens with a check-the-headset note.
+   */
+  signal?: 'live' | 'waiting' | 'stalled';
   onContinue(): void;
 }
 
@@ -43,13 +46,14 @@ const DOT: Record<SIGNAL_QUALITY, string> = {
  * Signal preparation, shown on Explore/Collect after pairing — not inside the
  * pairing modal. Live head map and a short checklist beside one compact row
  * per sensor (a fix appears only while a sensor is not good). Continue opens
- * once the first quality sample arrives and never gates on quality.
+ * once the first quality sample arrives (or the stream stalls) and never
+ * gates on quality.
  */
 export default function SignalPrep({
   device,
   sensors,
   head,
-  waiting = false,
+  signal = 'live',
   onContinue,
 }: Props) {
   const ids = { prep: useId(), sensors: useId() };
@@ -142,14 +146,20 @@ export default function SignalPrep({
             role="status"
             className="m-0 !text-[15px] !leading-snug !tracking-normal text-ink-muted"
           >
-            {waiting
+            {signal === 'waiting'
               ? 'Waiting for the headset signal…'
-              : allGood
-                ? 'All sensors look good.'
-                : 'Signal still settling. Dry sensors can take a few minutes; you can continue anytime.'}
+              : signal === 'stalled'
+                ? 'No signal yet. Check that the headset is on and fits snugly, or continue without it.'
+                : allGood
+                  ? 'All sensors look good.'
+                  : 'Signal still settling. Dry sensors can take a few minutes; you can continue anytime.'}
           </p>
           <div className="flex">
-            <Button size="lg" onClick={onContinue} disabled={waiting}>
+            <Button
+              size="lg"
+              onClick={onContinue}
+              disabled={signal === 'waiting'}
+            >
               Continue
             </Button>
           </div>

@@ -147,7 +147,24 @@ export const SignalPrepWaiting: Story = {
         quality: SIGNAL_QUALITY.DISCONNECTED,
       }))}
       head={null}
-      waiting
+      signal="waiting"
+      onContinue={fn()}
+    />
+  ),
+};
+
+/** S04 — Still no sample after 15 s: Continue opens with a check-the-headset note. */
+export const SignalPrepStalled: Story = {
+  parameters: { surface: 'page' },
+  render: () => (
+    <SignalPrepPanel
+      device={DEVICES.MUSE}
+      sensors={MIXED_MUSE_SENSORS.map(({ channel }) => ({
+        channel,
+        quality: SIGNAL_QUALITY.DISCONNECTED,
+      }))}
+      head={null}
+      signal="stalled"
       onContinue={fn()}
     />
   ),
