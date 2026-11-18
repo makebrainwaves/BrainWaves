@@ -19,7 +19,9 @@ export default function LiveSignalPrep({
   channels,
   onContinue,
 }: Props) {
-  const [quality, setQuality] = useState<Record<string, SIGNAL_QUALITY>>({});
+  const [quality, setQuality] = useState<Record<string, SIGNAL_QUALITY> | null>(
+    null
+  );
 
   useEffect(() => {
     const sub = observable?.subscribe((chunk) =>
@@ -29,13 +31,15 @@ export default function LiveSignalPrep({
   }, [observable]);
 
   return (
-    <div className="flex h-full justify-center overflow-auto py-[40px]">
+    <div className="flex h-full justify-center overflow-auto py-[32px]">
       <SignalPrep
         device={device}
         sensors={channels.map((channel) => ({
           channel,
-          quality: quality[channel] ?? SIGNAL_QUALITY.DISCONNECTED,
+          quality: quality?.[channel] ?? SIGNAL_QUALITY.DISCONNECTED,
         }))}
+        head={observable}
+        waiting={quality === null}
         onContinue={onContinue}
       />
     </div>

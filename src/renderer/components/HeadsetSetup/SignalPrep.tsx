@@ -1,7 +1,14 @@
 import React, { useId } from 'react';
+import { Observable } from 'rxjs';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
-import { DEVICES, SIGNAL_QUALITY } from '../../constants/constants';
+import SignalQualityIndicatorComponent from '../SignalQualityIndicatorComponent';
+import {
+  DEVICES,
+  PLOTTING_INTERVAL,
+  SIGNAL_QUALITY,
+} from '../../constants/constants';
+import { SignalQualityData } from '../../constants/interfaces';
 import {
   ELECTRODES,
   QUALITY_LABELS,
@@ -18,6 +25,10 @@ export interface SensorReading {
 interface Props {
   device: DEVICES.MUSE | DEVICES.NEUROSITY;
   sensors: SensorReading[];
+  /** The head diagram's stream: the live stream in the app, `of(...)` in stories. */
+  head: Observable<SignalQualityData> | null | undefined;
+  /** No quality sample has arrived yet; Continue stays off until one does. */
+  waiting?: boolean;
   onContinue(): void;
 }
 
@@ -28,129 +39,121 @@ const DOT: Record<SIGNAL_QUALITY, string> = {
   [SIGNAL_QUALITY.DISCONNECTED]: 'bg-white border-signal-none',
 };
 
-const HEADING = 'm-0 !text-[18px] font-bold !tracking-normal';
-const BODY =
-  'm-0 !text-[15px] leading-[1.55] !tracking-normal [text-wrap:pretty]';
-
 /**
  * Signal preparation, shown on Explore/Collect after pairing — not inside the
- * pairing modal. Prep checklist first, then what signal quality means, then
- * per-sensor quality as color plus a word plus a fix. Never gates: the
- * student can continue at any quality.
+ * pairing modal. Live head map and a short checklist beside one compact row
+ * per sensor (a fix appears only while a sensor is not good). Continue opens
+ * once the first quality sample arrives and never gates on quality.
  */
-export default function SignalPrep({ device, sensors, onContinue }: Props) {
-  const ids = { prep: useId(), meaning: useId(), sensors: useId() };
+export default function SignalPrep({
+  device,
+  sensors,
+  head,
+  waiting = false,
+  onContinue,
+}: Props) {
+  const ids = { prep: useId(), sensors: useId() };
   const prep = [
-    'Sensors need clean, bare skin. Move hair out of the way.',
+    'Move hair so each sensor touches bare skin.',
     ...(device === DEVICES.MUSE
-      ? [
-          'Tighten the band so the forehead strip and the tips behind your ears sit snugly.',
-        ]
+      ? ['Snug the band on your forehead and behind your ears.']
       : []),
-    'Sit comfortably and keep still — moving, talking and clenching your jaw all show up as noise.',
+    'Sit still: talking, moving and clenching your jaw add noise.',
   ];
+  const allGood = sensors.every((s) => s.quality === SIGNAL_QUALITY.GREAT);
 
   return (
-    <div className="flex w-[880px] flex-col gap-[28px] text-left">
+    <div className="flex w-[880px] flex-col gap-[20px] text-left">
       <h1 className="m-0 !text-[32px] !font-light !leading-tight !tracking-[0.3px]">
         Get a clear signal
       </h1>
-      <div className="grid grid-cols-2 gap-[24px]">
+      <div className="grid grid-cols-[300px_minmax(0,1fr)] items-start gap-[24px]">
+        <div className="flex flex-col gap-[16px]">
+          <div className="flex justify-center rounded-[6px] bg-white p-[16px] shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+            <SignalQualityIndicatorComponent
+              signalQualityObservable={head}
+              plottingInterval={PLOTTING_INTERVAL}
+              height={220}
+              channels={sensors.map((s) => s.channel)}
+            />
+          </div>
+          <section aria-labelledby={ids.prep}>
+            <h2
+              id={ids.prep}
+              className="m-0 mb-[8px] !text-[15px] font-bold !tracking-normal text-ink-muted"
+            >
+              Before you start
+            </h2>
+            <ul className="m-0 flex list-none flex-col gap-[6px] p-0">
+              {prep.map((t) => (
+                <li
+                  key={t}
+                  className="flex gap-[8px] text-[15px] leading-snug text-ink"
+                >
+                  <span aria-hidden className="text-brand">
+                    ✓
+                  </span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
         <section
-          aria-labelledby={ids.prep}
-          className="flex flex-col gap-[12px] rounded-[6px] bg-white p-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          aria-labelledby={ids.sensors}
+          className="flex flex-col gap-[12px]"
         >
-          <h2 id={ids.prep} className={HEADING}>
-            1. Get comfortable
-          </h2>
-          <ol className="m-0 flex flex-col gap-[8px] pl-[20px]">
-            {prep.map((t) => (
-              <li key={t} className="list-decimal !text-[15px] leading-normal">
-                {t}
-              </li>
-            ))}
-          </ol>
-        </section>
-        <section
-          aria-labelledby={ids.meaning}
-          className="flex flex-col gap-[12px] rounded-[6px] bg-white p-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
-        >
-          <h2 id={ids.meaning} className={HEADING}>
-            2. What is signal quality?
-          </h2>
-          <p className={BODY}>
-            Each sensor picks up tiny electrical signals from your brain.{' '}
-            <strong>Signal quality</strong> is how clearly a sensor hears them.
-          </p>
-          <p className={BODY}>
-            <strong>Noise</strong> is everything else that sneaks in — hair
-            under a sensor, a loose fit, blinking or moving.
-          </p>
-          <ul
-            aria-label="Signal quality key"
-            className="m-0 flex list-none flex-wrap gap-x-[16px] gap-y-[6px] p-0 text-[14px]"
+          <h2
+            id={ids.sensors}
+            className="m-0 !text-[15px] font-bold !tracking-normal text-ink-muted"
           >
-            {(Object.keys(QUALITY_LABELS) as SIGNAL_QUALITY[]).map((q) => (
-              <li key={q} className="flex items-center gap-[6px]">
-                <span
-                  aria-hidden
-                  className={cn(
-                    'h-[12px] w-[12px] rounded-full border-2',
-                    DOT[q]
+            Sensors
+          </h2>
+          <ul className="m-0 flex list-none flex-col divide-y divide-[#ececf1] rounded-[6px] bg-white p-0 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+            {sensors.map(({ channel, quality }) => {
+              const meta = ELECTRODES[channel] ?? UNKNOWN_ELECTRODE;
+              return (
+                <li key={channel} className="px-[16px] py-[10px]">
+                  <div className="flex items-center gap-[10px] text-[16px]">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'h-[14px] w-[14px] flex-none rounded-full border-2',
+                        DOT[quality]
+                      )}
+                    />
+                    <strong>{channel}</strong>
+                    <span className="text-ink-muted">{meta.location}</span>
+                    <span className="ml-auto font-bold">
+                      {QUALITY_LABELS[quality]}
+                    </span>
+                  </div>
+                  {quality !== SIGNAL_QUALITY.GREAT && (
+                    <p className="m-0 mt-[2px] pl-[24px] !text-[14px] !leading-snug !tracking-normal text-ink-muted">
+                      {meta.fixes[quality]}
+                    </p>
                   )}
-                />
-                <span className="capitalize">{QUALITY_LABELS[q]}</span>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
+          <p
+            role="status"
+            className="m-0 !text-[15px] !leading-snug !tracking-normal text-ink-muted"
+          >
+            {waiting
+              ? 'Waiting for the headset signal…'
+              : allGood
+                ? 'All sensors look good.'
+                : 'Signal still settling. Dry sensors can take a few minutes; you can continue anytime.'}
+          </p>
+          <div className="flex">
+            <Button size="lg" onClick={onContinue} disabled={waiting}>
+              Continue
+            </Button>
+          </div>
         </section>
-      </div>
-
-      <section
-        aria-labelledby={ids.sensors}
-        className="flex flex-col gap-[12px]"
-      >
-        <h2 id={ids.sensors} className={HEADING}>
-          3. Check each sensor
-        </h2>
-        <ul className="m-0 grid list-none grid-cols-2 gap-[10px] p-0">
-          {sensors.map(({ channel, quality }) => {
-            const meta = ELECTRODES[channel] ?? UNKNOWN_ELECTRODE;
-            return (
-              <li
-                key={channel}
-                className="flex items-start gap-[12px] rounded-[6px] bg-white px-[16px] py-[14px] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    'mt-[4px] h-[16px] w-[16px] flex-none rounded-full border-2',
-                    DOT[quality]
-                  )}
-                />
-                <span className="flex flex-col gap-[2px]">
-                  <span className="text-[16px] text-ink">
-                    <strong>{channel}</strong> · {meta.location} —{' '}
-                    <span className="font-bold">{QUALITY_LABELS[quality]}</span>
-                  </span>
-                  <span className="text-[14px] leading-normal text-ink-muted">
-                    {meta.fixes[quality]}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="m-0 !text-[15px] !tracking-normal text-ink-muted">
-          Dry sensors often settle in over several minutes. If a sensor is still
-          settling, give it time and stay still.
-        </p>
-      </section>
-
-      <div className="flex">
-        <Button size="lg" onClick={onContinue}>
-          Start exploring
-        </Button>
       </div>
     </div>
   );

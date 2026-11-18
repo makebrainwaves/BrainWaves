@@ -1,5 +1,17 @@
 import React from 'react';
 
+/** Neurosity Crown sites: MNE standard_1005 positions, azimuthally projected onto this head. */
+const CROWN_ELECTRODES: [string, number, number][] = [
+  ['F5', 201.3, 205],
+  ['F6', 470.1, 205],
+  ['C3', 228.7, 329],
+  ['C4', 442.7, 329],
+  ['CP3', 235.7, 390],
+  ['CP4', 435.7, 390],
+  ['PO3', 273.2, 481],
+  ['PO4', 398.2, 481],
+];
+
 const SvgComponent = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     data-name="SignalQualityIndicator"
@@ -447,6 +459,29 @@ const SvgComponent = (props: React.SVGProps<SVGSVGElement>) => (
         AF8
       </text>
     </g>
+    {CROWN_ELECTRODES.map(([name, cx, cy]) => (
+      <g key={name} data-electrode={name} visibility="hidden">
+        <circle
+          cx={cx}
+          cy={cy}
+          r={30}
+          stroke="#000"
+          strokeMiterlimit={10}
+          strokeWidth={2}
+        />
+        <text
+          x={cx}
+          y={cy + 7.5}
+          textAnchor="middle"
+          fontSize={22}
+          fontFamily="Lato-Bold,Lato"
+          fontWeight={700}
+          fill="#000"
+        >
+          {name}
+        </text>
+      </g>
+    ))}
   </svg>
 );
 
