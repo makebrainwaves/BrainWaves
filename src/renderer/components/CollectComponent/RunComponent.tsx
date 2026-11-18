@@ -8,7 +8,6 @@ import React, {
 import { Observable } from 'rxjs';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { Card, CardHeader, CardContent } from '../ui/card';
 import RunResult from './RunResult';
 import InputCollect from '../InputCollect';
 import { emitMarker } from '../../utils/eeg';
@@ -224,66 +223,84 @@ const Run: React.FC<Props> = ({
         )}
 
         {!isRunning && !runOutcome && gate === 'off' && (
-          <div className="flex items-center justify-center h-full">
-            <Card className="w-full max-w-lg">
-              <CardHeader>
-                <h2 className="m-0 text-lg font-semibold">Ready to run</h2>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="rounded-lg border border-[#ececf1] bg-white p-4">
-                  <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-[17px]">
-                    <dt className="text-ink-muted">Participant</dt>
-                    <dd className="m-0 font-bold">{subject || '—'}</dd>
-                    <dt className="text-ink-muted">Group</dt>
-                    <dd className="m-0 font-bold">{group || '—'}</dd>
-                    <dt className="text-ink-muted">Session</dt>
-                    <dd className="m-0 font-bold">{session}</dd>
-                  </dl>
-                  <Button
-                    variant="outline"
-                    className="mt-3 w-full"
-                    onClick={() => setIsInputCollectOpen(true)}
-                  >
-                    ✏ Edit participant, group or session
-                  </Button>
-                </div>
-                {(pacing || isEEGEnabled) && (
-                  <ul className="m-0 list-disc space-y-1 pl-5 text-[15px]">
-                    {pacing && <li>{pacing}</li>}
-                    {isEEGEnabled && (
-                      <li>
-                        Remain still and avoid talking while trials are running.
-                      </li>
-                    )}
-                  </ul>
-                )}
-                {isEEGEnabled &&
-                connectionStatus === CONNECTION_STATUS.CONNECTED &&
-                signalQualityObservable ? (
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="m-0 text-sm text-gray-500">Signal quality</p>
+          <div className="flex h-full items-center justify-center">
+            <section className="flex w-full max-w-[560px] flex-col gap-6 rounded-xl border border-[#ececf1] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+              <h2 className="m-0 text-[28px] font-bold tracking-normal text-ink">
+                Ready to run
+              </h2>
+              <div className="flex items-center gap-4 rounded-lg border border-[#ececf1] bg-[#f7f7f9] px-5 py-4">
+                <dl className="m-0 grid flex-1 grid-cols-3 gap-4">
+                  {[
+                    ['Participant', subject || '—'],
+                    ['Group', group || '—'],
+                    ['Session', session],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-[12px] font-bold uppercase tracking-[1px] text-ink-muted">
+                        {label}
+                      </dt>
+                      <dd className="m-0 truncate text-[18px] font-bold text-ink">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <Button
+                  variant="outline"
+                  aria-label="Edit participant, group or session"
+                  onClick={() => setIsInputCollectOpen(true)}
+                >
+                  ✏ Edit
+                </Button>
+              </div>
+              {isEEGEnabled &&
+              connectionStatus === CONNECTION_STATUS.CONNECTED &&
+              signalQualityObservable ? (
+                <div className="flex flex-col gap-3">
+                  <h3 className="m-0 text-[16px] font-bold text-ink">
+                    Signal quality
+                  </h3>
+                  <div className="flex justify-center rounded-lg border border-[#ececf1] px-4 py-6">
                     <SignalQualityIndicatorComponent
                       signalQualityObservable={signalQualityObservable}
                       plottingInterval={PLOTTING_INTERVAL}
-                      height={140}
+                      height={160}
                     />
                   </div>
-                ) : null}
+                </div>
+              ) : null}
+              <div className="flex flex-col gap-3">
+                {(pacing || isEEGEnabled) && (
+                  <div className="flex items-start gap-2 text-[14px] text-ink">
+                    <span aria-hidden className="text-ink-muted">
+                      ⓘ
+                    </span>
+                    <span>
+                      {[
+                        pacing,
+                        isEEGEnabled &&
+                          'Remain still and avoid talking while trials are running.',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    </span>
+                  </div>
+                )}
                 <Button
                   size="lg"
-                  className="w-full"
+                  className="h-[52px] w-full text-[18px] font-bold"
                   onClick={handleStartExperiment}
                   disabled={!subject || !title}
                 >
                   Run &amp; record
                 </Button>
                 {!title && (
-                  <p className="m-0 text-center text-[15px] text-ink-muted">
+                  <p className="m-0 text-center !text-[15px] text-ink-muted">
                     {NO_WORKSPACE_REASON}
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           </div>
         )}
 
