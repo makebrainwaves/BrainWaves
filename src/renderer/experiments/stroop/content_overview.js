@@ -1,10 +1,12 @@
 export const overview = {
-  title: `Stroop Experiment`,
-  overview: `The stroop effect occurs when different properties of something
-  you see or hear contradict one another. The most common example is a
-  mismatch between the meaning and color of a word (e.g., the word BLUE
-  written in red ink). In the Stroop task, you will explore how these types
-  of mismatches affect your behavior and what that may tell us about
-  how your brain processes information.`,
+  title: `The Stroop experiment`,
+  overview: `The Stroop effect happens when two properties of the same thing
+  — what you see and what you read — contradict each other.
+
+  The most common example is a mismatch between a word’s meaning and its ink
+  color: the word BLUE printed in red.
+
+  In this task you’ll explore how these mismatches affect your behavior, and
+  what that may tell us about how your brain processes information.`,
   links: [],
 };
