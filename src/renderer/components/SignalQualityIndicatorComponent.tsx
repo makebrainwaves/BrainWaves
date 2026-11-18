@@ -21,6 +21,9 @@ export default function SignalQualityIndicatorComponent(props: Props) {
   const propsRef = useRef(props);
   propsRef.current = props;
   const interactive = props.onHoveredChannelChange !== undefined;
+  // Callers often pass a fresh `channels` array each render; resetting on its
+  // identity repainted every sensor "no signal" after each quality update.
+  const channelsKey = props.channels?.join(',');
 
   useEffect(() => {
     const electrodes = electrodesRef.current;
@@ -33,7 +36,7 @@ export default function SignalQualityIndicatorComponent(props: Props) {
   useEffect(() => {
     const electrodes = electrodesRef.current;
     electrodes.forEach((node, channel) => {
-      const visible = props.channels?.includes(channel) ?? false;
+      const visible = propsRef.current.channels?.includes(channel) ?? false;
       node.setAttribute('visibility', visible ? 'visible' : 'hidden');
       node.setAttribute('aria-label', `${channel} · no signal`);
       node.setAttribute('role', interactive ? 'button' : 'img');
@@ -42,7 +45,7 @@ export default function SignalQualityIndicatorComponent(props: Props) {
       const circle = node.querySelector('circle');
       if (circle) circle.style.fill = SIGNAL_QUALITY.DISCONNECTED;
     });
-  }, [props.channels, props.signalQualityObservable, interactive]);
+  }, [channelsKey, props.signalQualityObservable, interactive]);
 
   useEffect(() => {
     const subscription = props.signalQualityObservable?.subscribe({
