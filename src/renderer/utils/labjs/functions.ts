@@ -223,28 +223,21 @@ export function skipPracticeOnRequest(this: lab.core.Component) {
 // -------------------------------------------------------------
 // Stroop
 
-// Initializes the data required to compute response accuracy in the stroop experiment
-export function initStroopTrial(this: lab.core.Component) {
-  if (!this.options.id) {
-    return;
+/**
+ * Stroop stimulus-screen `end` hook: writes the behavior-analysis fields
+ * (`trial_number`, `response_given`, `reaction_time`, `correct_response`,
+ * `condition`) onto the screen's own row. Runs after lab.js has stored the
+ * response and `duration` (show → response), and before the row is committed.
+ */
+export function initStroopResponse(this: lab.core.Component) {
+  const parts = this.id?.split('_') ?? [];
+  if (parts.length < 2) return;
+  this.data.trial_number = 1 + parseInt(parts[parts.length - 2], 10);
+  this.data.response_given = this.data.response === undefined ? 'no' : 'yes';
+  this.data.reaction_time = this.data.duration;
+  this.data.correct_response = this.data.response === this.parameters.color;
+  if (this.parameters.congruent !== undefined) {
+    this.data.condition =
+      this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch';
   }
-  this.data.trial_number =
-    1 +
-    parseInt(
-      this.options.id.split('_')[this.options.id.split('_').length - 2],
-      10
-    );
-
-  this.data.condition =
-    this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch';
-
-  this.data.reaction_time = this.state.duration;
-
-  if (this.state.response === this.parameters.color) {
-    this.data.correct_response = true;
-  } else {
-    this.data.correct_response = false;
-  }
-
-  this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
 }

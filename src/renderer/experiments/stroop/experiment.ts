@@ -1,6 +1,6 @@
 import { core } from 'lab.js';
 import {
-  initStroopTrial,
+  initStroopResponse,
   emitStroopCondition,
   skipPracticeOnRequest,
 } from '../../utils/labjs/functions';
@@ -237,7 +237,9 @@ export const stroopExperiment = {
                     'keydown(b)': 'blue',
                     'keydown(y)': '#ffe32a',
                   },
-                  hooks: {},
+                  hooks: {
+                    end: initStroopResponse,
+                  },
                   viewport: [800, 600],
                   title: 'Stroop screen',
                   correctResponse: '${ this.parameters.color }',
@@ -297,9 +299,7 @@ export const stroopExperiment = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  hooks: {
-                    'before:prepare': initStroopTrial,
-                  },
+                  hooks: {},
                   viewport: [800, 600],
                   title: 'Inter-trial interval',
                   timeout: "${ parameters.phase == 'practice' ? 1000 : 500 }",
@@ -622,6 +622,7 @@ export const stroopExperiment = {
                   },
                   hooks: {
                     run: emitStroopCondition,
+                    end: initStroopResponse,
                   },
                   viewport: [800, 600],
                   title: 'Stroop screen',
@@ -682,9 +683,7 @@ export const stroopExperiment = {
                   files: {},
                   parameters: {},
                   responses: {},
-                  hooks: {
-                    'before:prepare': initStroopTrial,
-                  },
+                  hooks: {},
                   viewport: [800, 600],
                   title: 'Inter-trial interval',
                   timeout: "${ parameters.phase == 'practice' ? 1000 : 500 }",

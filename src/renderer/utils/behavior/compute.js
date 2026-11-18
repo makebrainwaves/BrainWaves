@@ -126,8 +126,35 @@ const transformAggregated = (result) => {
   return data;
 };
 
+/**
+ * Stroop CSVs recorded before `initStroopResponse` carry only lab.js's own
+ * stimulus-screen fields (`duration`, `correct`, `response`, `congruent`);
+ * map them onto the analysis fields. Rows that already have `trial_number`
+ * pass through untouched.
+ */
+const normalizeLegacyStroopRow = (row) => {
+  if (
+    row.trial_number ||
+    row.sender !== 'Stroop screen' ||
+    row.congruent === undefined ||
+    row.congruent === ''
+  ) {
+    return row;
+  }
+  const idParts = String(row.sender_id ?? '').split('_');
+  return {
+    ...row,
+    trial_number: String(1 + parseInt(idParts[idParts.length - 2], 10)),
+    reaction_time: row.duration,
+    correct_response: row.correct,
+    response_given: row.correct === 'empty' || !row.response ? 'no' : 'yes',
+    condition: row.congruent === 'yes' ? 'Match' : 'Mismatch',
+  };
+};
+
 const filterData = (data, removeOutliers) => {
   let filteredData = data.data
+    .map(normalizeLegacyStroopRow)
     .filter((row) => row.trial_number && row.phase !== 'practice')
     .map((row) => ({
       condition: row.condition,
