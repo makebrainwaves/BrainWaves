@@ -1,4 +1,4 @@
-import { pipe } from 'rxjs';
+import { defer, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   PLOTTING_INTERVAL,
@@ -8,7 +8,7 @@ import {
   SIGNAL_QUALITY_WINDOW_MS,
   SIGNAL_QUALITY_WORSEN_MS,
 } from '../../constants/constants';
-import { PipesEpoch } from '../../constants/interfaces';
+import { PipesEpoch, SignalQualityData } from '../../constants/interfaces';
 
 const WINDOW_EPOCHS = Math.max(
   1,
@@ -60,70 +60,75 @@ interface ChannelState {
  * blinks/pops a minority of the window instead of a 250 ms BAD flash, and the
  * persistence keeps borderline sensors from flickering between classes.
  * The reported `info.signalQuality` is the windowed SD, not the raw epoch SD.
+ * State is per subscription: the stored observable is subscribed by several
+ * views at once, and shared counters would advance once per subscriber.
  */
-export const parseMuseSignalQuality = () => {
-  const channels = new Map<string, ChannelState>();
-  return pipe(
-    map((epoch: PipesEpoch) => {
-      const windowed: Record<string, number> = {};
-      const signalQuality: Record<string, SIGNAL_QUALITY> = {};
-      // @neurosity/pipes >=5 puts addSignalQuality()'s output under
-      // info.signalQuality (older versions used a top-level field). Reading the
-      // old top-level path yielded undefined → Object.entries() threw, which
-      // killed the whole signal-quality/EEG stream to the viewer.
-      for (const [name, sd] of Object.entries(epoch.info.signalQuality)) {
-        let state = channels.get(name);
-        if (!state) {
-          state = {
-            window: [],
-            current: null,
-            candidate: null,
-            candidateCount: 0,
+export const parseMuseSignalQuality =
+  () =>
+  (source: Observable<PipesEpoch>): Observable<SignalQualityData> =>
+    defer(() => {
+      const channels = new Map<string, ChannelState>();
+      return source.pipe(
+        map((epoch) => {
+          const windowed: Record<string, number> = {};
+          const signalQuality: Record<string, SIGNAL_QUALITY> = {};
+          // @neurosity/pipes >=5 puts addSignalQuality()'s output under
+          // info.signalQuality (older versions used a top-level field). Reading the
+          // old top-level path yielded undefined → Object.entries() threw, which
+          // killed the whole signal-quality/EEG stream to the viewer.
+          for (const [name, sd] of Object.entries(epoch.info.signalQuality)) {
+            let state = channels.get(name);
+            if (!state) {
+              state = {
+                window: [],
+                current: null,
+                candidate: null,
+                candidateCount: 0,
+              };
+              channels.set(name, state);
+            }
+            if (Number.isFinite(sd)) {
+              state.window.push(sd);
+              if (state.window.length > WINDOW_EPOCHS) state.window.shift();
+            }
+            const pooled = state.window.length ? median(state.window) : NaN;
+            windowed[name] = pooled;
+            const raw = classify(pooled);
+            if (state.current === null || raw === state.current) {
+              state.current = raw;
+              state.candidate = null;
+              state.candidateCount = 0;
+            } else if (
+              raw === SIGNAL_QUALITY.DISCONNECTED ||
+              state.current === SIGNAL_QUALITY.DISCONNECTED
+            ) {
+              state.current = raw;
+              state.candidate = null;
+              state.candidateCount = 0;
+            } else {
+              if (state.candidate !== raw) {
+                state.candidate = raw;
+                state.candidateCount = 1;
+              } else {
+                state.candidateCount += 1;
+              }
+              const required =
+                (SEVERITY[raw] ?? 0) > (SEVERITY[state.current] ?? 0)
+                  ? WORSEN_EPOCHS
+                  : IMPROVE_EPOCHS;
+              if (state.candidateCount >= required) {
+                state.current = raw;
+                state.candidate = null;
+                state.candidateCount = 0;
+              }
+            }
+            signalQuality[name] = state.current;
+          }
+          return {
+            ...epoch,
+            info: { ...epoch.info, signalQuality: windowed },
+            signalQuality,
           };
-          channels.set(name, state);
-        }
-        if (Number.isFinite(sd)) {
-          state.window.push(sd);
-          if (state.window.length > WINDOW_EPOCHS) state.window.shift();
-        }
-        const pooled = state.window.length ? median(state.window) : NaN;
-        windowed[name] = pooled;
-        const raw = classify(pooled);
-        if (state.current === null || raw === state.current) {
-          state.current = raw;
-          state.candidate = null;
-          state.candidateCount = 0;
-        } else if (
-          raw === SIGNAL_QUALITY.DISCONNECTED ||
-          state.current === SIGNAL_QUALITY.DISCONNECTED
-        ) {
-          state.current = raw;
-          state.candidate = null;
-          state.candidateCount = 0;
-        } else {
-          if (state.candidate !== raw) {
-            state.candidate = raw;
-            state.candidateCount = 1;
-          } else {
-            state.candidateCount += 1;
-          }
-          const required =
-            (SEVERITY[raw] ?? 0) > (SEVERITY[state.current] ?? 0)
-              ? WORSEN_EPOCHS
-              : IMPROVE_EPOCHS;
-          if (state.candidateCount >= required) {
-            state.current = raw;
-            state.candidate = null;
-            state.candidateCount = 0;
-          }
-        }
-        signalQuality[name] = state.current;
-      }
-      return {
-        ...epoch,
-        info: { ...epoch.info, signalQuality: windowed },
-        signalQuality,
-      };
-    })
-  );
-};
+        })
+      );
+    });

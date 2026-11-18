@@ -1,4 +1,4 @@
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 import { SIGNAL_QUALITY } from '../../../constants/constants';
 import type {
@@ -33,6 +33,33 @@ function run(sds: number[]): SignalQualityData[] {
 const classes = (sds: number[]) => run(sds).map((e) => e.signalQuality.AF7);
 
 describe('parseMuseSignalQuality (windowed, with persistence)', () => {
+  it('keeps window and persistence state per subscription', () => {
+    const sds = [4, 4, 4, 40, 40, 40, 40, 40, 40];
+    const source = new Subject<PipesEpoch>();
+    const quality = source.pipe(parseMuseSignalQuality());
+    const a: string[] = [];
+    const b: string[] = [];
+    quality.subscribe((e) =>
+      a.push((e as SignalQualityData).signalQuality.AF7)
+    );
+    quality.subscribe((e) =>
+      b.push((e as SignalQualityData).signalQuality.AF7)
+    );
+    sds.forEach((sd, i) =>
+      source.next({
+        data: [[]],
+        info: {
+          samplingRate: 256,
+          startTime: i * 250,
+          channelNames: ['AF7'],
+          signalQuality: { AF7: sd },
+        },
+      } as PipesEpoch)
+    );
+    expect(a).toEqual(classes(sds));
+    expect(b).toEqual(classes(sds));
+  });
+
   it('reports the windowed SD in info.signalQuality', () => {
     const out = run([4, 4, 4, 40]);
     // Median of [4, 4, 4, 40] is 4: the pop is a minority of the window.
