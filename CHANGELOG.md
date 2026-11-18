@@ -1,3 +1,49 @@
+# 1.2.0 (November 18, 2026) - Feasibility check, per-session cleaning, Stroop fixes
+
+Custom experiments now get a feasibility check between designing and building. Cleaning keeps one file per session, Stroop data can be analyzed, and several screens follow the November QA review. This release covers everything since 1.1.0 (#283, #290–#317).
+
+## Designing a custom experiment
+
+- **Feasibility check**: when you finish the design steps (Overview, Conditions, Trials, Parameters), a check reviews the plan before you build it. It looks at trials per condition, session length, movement, and whether you wrote a hypothesis.
+  - The verdict is green, yellow or red. It stays visible in the design steps until you change something the check depends on.
+  - **Revise my design** returns to editing. **Continue** is always offered, so the check never blocks you.
+  - Rules decide the verdict. If a small local language model is installed (Qwen3, not bundled with the app), it phrases the feedback; without one, the rules' own wording is shown. Nothing leaves the computer.
+- **A Stimuli step** in Build (image or sound folders plus the trial list). Choosing a folder no longer overwrites your trial counts.
+- **New defaults**: 100 experimental and 10 practice trials.
+
+## Collecting data
+
+- **Get a clear signal** after pairing is shorter. It shows the live head map, a three-line checklist, and one row per sensor, with a fix only for sensors that aren't good yet. Continue turns on with the first reading. If no reading arrives within 15 seconds, it turns on anyway with a note to check the headset.
+- **Neurosity Crown sensors now appear on the head map** in signal prep and Explore.
+- **Ready to run** is one panel: participant, group and session with an Edit button, the signal-quality head map, one note line, and Run & record.
+- **Recordings are never overwritten.** A session that ended early counts as taken, and the next free session number is offered.
+- **No workspace, no run**: Preview and Run & record are disabled, with the reason shown, when no experiment is open.
+- **The fixture headset records exactly the markers the experiment sends.** A 120-trial fixture run now loads as 120 epochs.
+
+## Explore EEG and signal quality
+
+- **The live plot sweeps** left to right over the previous pass, instead of scrolling. It animates smoothly at the screen's refresh rate.
+- **Calmer signal-quality colors**: each sensor is judged over a rolling 3-second window, so a blink no longer flashes it red. A sensor has to stay worse for half a second, or better for a second, before its color changes.
+- Paused snapshots keep their blink and eyes-closed markers.
+
+## Preparing and running Stroop
+
+- **Stroop behavior data can be analyzed.** Reaction time and accuracy were never written to Stroop's behavior files, so Analyze → Behavior showed nothing. They are now recorded on each trial, and Stroop files recorded with earlier versions are read correctly too, without changing them.
+- **Stroop instructions name the ink**, as in "The ink is red. Press R". They used to quote the printed word, the opposite of the task.
+- **Prepare** uses the new type scale, with a "Step N of 4" label. The duplicate key reminders under Preview are gone; the Protocol diagram already shows them. Stroop's Overview and Background text was rewritten, and its fun fact and research finding now sit in the right boxes.
+
+## Cleaning and analyzing
+
+- **One cleaned file per session.** Cleaning session 2 used to overwrite session 1. Cleaned files are now named like the recording (`P01-A-2-cleaned-epo.fif`), so Analyze can pool every session. Older `P01-cleaned-epo.fif` files still appear in Analyze; re-clean those sessions rather than selecting old and new copies together.
+
+## Under the hood
+
+- **Smaller plotting library**: Analyze → Behavior uses Plotly's cartesian-only build, which halves the app's main script.
+- **Lato is bundled**, so the app looks the same offline as in its approved designs.
+- **The local model runs in its own background process**, started only when the feasibility check first needs it and stopped when the app quits.
+- **Releases**: the three platform builds upload into one draft release instead of racing to create their own.
+- **Dependencies**: Dependabot security updates (axios, undici, follow-redirects, fast-uri, brace-expansion, source-map-js, probe-image-size and others). Electron stays on 39 for now: the Electron 44 bump was reverted because it broke the dev and playtest tooling.
+
 # 1.1.0 (October 1, 2026) - Playtest-driven redesign
 
 Every screen a student touches was redesigned after a naive-user playtest, so the app shows where to start and what to do next at each step, from putting on the headset to reading an ERP. This release covers everything since 1.0.2 (190 commits, #256–#289), including the 1.0.3 work that was never released on its own.
