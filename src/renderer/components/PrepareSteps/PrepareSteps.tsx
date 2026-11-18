@@ -6,7 +6,7 @@ import type { FlowPhase } from './flow';
 
 export type PrepareStepId = 'overview' | 'background' | 'protocol' | 'preview';
 
-/** One stimulus → key pair, drawn in the Protocol diagram and the Preview key legend. */
+/** One stimulus → key pair, drawn in the Protocol response diagram. */
 export interface ResponseMapping {
   key: string;
   /** What the participant is looking for, e.g. "Face" or "Red ink". Rule-dependent tasks fold the rule in, e.g. "Top: diamond". */
@@ -68,6 +68,16 @@ const COLUMN = 'mx-auto w-full max-w-[800px] px-6';
 
 const EYEBROW = 'text-[13px] font-bold tracking-[0.5px] text-ink-muted';
 
+/** Heading inside a Prepare card (definition, recording, video). */
+const CARD_TITLE = 'm-0 text-[18px] font-bold tracking-normal text-ink';
+
+const STEPS: { id: PrepareStepId; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'background', label: 'Background' },
+  { id: 'protocol', label: 'Protocol' },
+  { id: 'preview', label: 'Preview' },
+];
+
 /** Keycap in the #273 participant-screen look (ink outline, heavy bottom edge), sized for lesson pages. */
 const KEYCAP =
   'inline-flex h-[40px] min-w-[40px] flex-none items-center justify-center rounded-[8px] border-2 border-b-[5px] border-ink bg-white px-2 font-sans text-[20px] font-bold uppercase text-ink';
@@ -84,16 +94,10 @@ function Stepper({
   current: PrepareStepId;
   onStep: (step: PrepareStepId) => void;
 }) {
-  const steps: { id: PrepareStepId; label: string }[] = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'background', label: 'Background' },
-    { id: 'protocol', label: 'Protocol' },
-    { id: 'preview', label: 'Preview' },
-  ];
-  const currentIndex = steps.findIndex((s) => s.id === current);
+  const currentIndex = STEPS.findIndex((s) => s.id === current);
   return (
     <nav aria-label="Prepare steps" className="flex items-center gap-2">
-      {steps.map((s, i) => {
+      {STEPS.map((s, i) => {
         const isCurrent = s.id === current;
         const isPast = i < currentIndex;
         return (
@@ -125,7 +129,7 @@ function Stepper({
               </span>
               {s.label}
             </button>
-            {i < steps.length - 1 && (
+            {i < STEPS.length - 1 && (
               <span
                 aria-hidden
                 className={`w-4 border-t-2 ${isPast ? 'border-brand' : 'border-ink-faint'}`}
@@ -135,19 +139,6 @@ function Stepper({
         );
       })}
     </nav>
-  );
-}
-
-function KeyLegend({ responses }: { responses: ResponseMapping[] }) {
-  return (
-    <ul className="m-0 flex flex-wrap items-center gap-x-5 gap-y-2 p-0">
-      {responses.map(({ label, key }) => (
-        <li key={label} className="flex items-center gap-2">
-          <kbd className={KEYCAP}>{key}</kbd>
-          <span className="text-[16px] text-ink">{label}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -264,10 +255,15 @@ function OverviewView({
 }) {
   return (
     <section className="flex items-start gap-8">
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <h1 className="m-0 [text-wrap:pretty]">{overview.title}</h1>
-        {overview.overview.split(/\n\s*\n/).map((paragraph) => (
-          <p key={paragraph} className="experiment-design-copy m-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <h1 className="m-0">{overview.title}</h1>
+        {overview.overview.split(/\n\s*\n/).map((paragraph, i) => (
+          <p
+            key={paragraph}
+            className={
+              i === 0 ? 'experiment-design-lead' : 'experiment-design-copy'
+            }
+          >
             {paragraph}
           </p>
         ))}
@@ -287,27 +283,23 @@ function BackgroundView({
   icon?: string;
 }) {
   return (
-    <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="m-0 [text-wrap:pretty]">
-          {background.title ?? 'Background'}
-        </h1>
-      </header>
-      <p className="experiment-design-copy m-0 !leading-snug">
+    <section className="flex flex-col gap-5">
+      <h1 className="m-0">{background.title ?? 'Background'}</h1>
+      <p className="experiment-design-lead">
         {background.first_column_statement}
       </p>
       {background.first_column_question && (
-        <div className="flex items-start gap-4 rounded-lg border border-[#ececf1] bg-white p-4">
+        <div className="flex items-start gap-4 rounded-lg border border-[#ececf1] bg-white p-5">
           {icon && (
             <div className="flex h-[56px] w-[56px] flex-none items-center justify-center rounded-lg border border-[#f6ead3] bg-[#fffaf0]">
               <img src={icon} alt="" className="max-w-9" />
             </div>
           )}
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h2 className="text-base font-normal">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 className={CARD_TITLE}>
               {background.definition_title ?? 'What researchers found'}
             </h2>
-            <p className="experiment-design-card-copy m-0 !leading-snug">
+            <p className="experiment-design-card-copy">
               {background.first_column_question}
             </p>
           </div>
@@ -322,12 +314,10 @@ function BackgroundView({
       )}
       {(background.second_column_statement ||
         background.second_column_question) && (
-        <div className="flex items-center gap-4 rounded-lg border border-[#e3def7] bg-[#f4f2ff] px-4 py-3">
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[13px] font-bold tracking-[0.5px] text-[#4a3fa8]">
-              FUN FACT
-            </span>
-            <p className="experiment-design-card-copy m-0 !leading-snug">
+        <div className="flex items-center gap-4 rounded-lg border border-accent-light bg-[#fff8e1] p-5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className={cn(EYEBROW, 'text-[#7a5b00]')}>FUN FACT</span>
+            <p className="experiment-design-card-copy">
               {[
                 background.second_column_statement,
                 background.second_column_question,
@@ -351,10 +341,11 @@ function BackgroundView({
         background.links.map((link) => (
           <div key={link.address} className="flex flex-wrap items-center gap-4">
             <Button
-              variant="outline-brand"
+              variant="link"
+              className="h-auto px-0 text-[16px] font-bold underline"
               onClick={() => window.open(link.address, '_blank')}
             >
-              {link.name}
+              {link.name} ↗
             </Button>
             {background.link_meta && (
               <span className="text-[15px] text-ink-muted">
@@ -376,7 +367,7 @@ function VideoEmbed({
 }) {
   return (
     <section className="flex flex-col gap-3 pt-2">
-      <h2 className="m-0 text-[22px] font-normal">{video.caption}</h2>
+      <h2 className={CARD_TITLE}>{video.caption}</h2>
       <div className="aspect-video w-full">
         <iframe
           src={video.embedUrl}
@@ -400,25 +391,19 @@ function ProtocolView({
   flow: FlowPhase[];
 }) {
   return (
-    <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="m-0 [text-wrap:pretty]">{protocol.title}</h1>
-        <p className="experiment-design-copy m-0 !leading-snug">
-          {protocol.protocol}
-        </p>
+    <section className="flex flex-col gap-5">
+      <header className="flex flex-col gap-4">
+        <h1 className="m-0">{protocol.title}</h1>
+        <p className="experiment-design-copy">{protocol.protocol}</p>
       </header>
       <div className="grid grid-cols-[minmax(0,1fr)_240px] gap-4">
         <ResponseDiagram responses={responses} />
         <FlowTimeline phases={flow} />
       </div>
       {protocol.recording && (
-        <div className="flex flex-col gap-0.5 rounded-lg border border-[#ececf1] bg-white p-4">
-          <h2 className="text-base font-normal">
-            What we&apos;re recording: EEG
-          </h2>
-          <p className="experiment-design-card-copy m-0 !leading-snug">
-            {protocol.recording}
-          </p>
+        <div className="flex flex-col gap-1 rounded-lg border border-[#ececf1] bg-white p-5">
+          <h2 className={CARD_TITLE}>What we&apos;re recording: EEG</h2>
+          <p className="experiment-design-card-copy">{protocol.recording}</p>
         </div>
       )}
     </section>
@@ -442,15 +427,9 @@ const PREVIEW_INTRO = {
  * participant screen at 0.55 zoom, so a screen laid out for a ~1366px-wide run
  * area shows whole, without scrolling, in the 800px lesson column.
  */
-function PreviewRunningView({
-  responses,
-  preview,
-}: {
-  responses: ResponseMapping[];
-  preview?: React.ReactNode;
-}) {
+function PreviewRunningView({ preview }: { preview?: React.ReactNode }) {
   return (
-    <section className="flex flex-1 flex-col gap-3">
+    <section className="flex flex-1 flex-col">
       <div className="flex min-h-[420px] flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-[#d4d4de] bg-white p-4">
         <span className={EYEBROW}>EXPERIMENT AREA</span>
         <div className="relative min-h-0 flex-1 overflow-hidden rounded-md bg-[#f9f9f9]">
@@ -463,7 +442,6 @@ function PreviewRunningView({
           )}
         </div>
       </div>
-      <KeyLegend responses={responses} />
     </section>
   );
 }
@@ -547,6 +525,7 @@ export default function PrepareSteps(props: PrepareStepsProps) {
     : previewFinished
       ? PREVIEW_INTRO.finished
       : undefined;
+  const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
@@ -557,7 +536,19 @@ export default function PrepareSteps(props: PrepareStepsProps) {
       </div>
       <main className="experiment-design-content min-h-0 flex-1 overflow-y-auto bg-app">
         <div className="flex min-h-full flex-col">
-          <div className={cn(COLUMN, 'flex flex-1 flex-col pb-5 pt-5')}>
+          <div
+            className={cn(
+              COLUMN,
+              'flex flex-1 flex-col pb-5',
+              previewRunning ? 'pt-5' : 'pt-10'
+            )}
+          >
+            {!previewRunning && (
+              <span className={cn(EYEBROW, 'mb-2 uppercase tracking-[1px]')}>
+                Step {stepIndex + 1} of {STEPS.length} ·{' '}
+                {STEPS[stepIndex].label}
+              </span>
+            )}
             {step === 'overview' && (
               <OverviewView overview={props.overview} icon={props.icon} />
             )}
@@ -572,24 +563,12 @@ export default function PrepareSteps(props: PrepareStepsProps) {
               />
             )}
             {previewIntro && (
-              <section className="flex flex-col gap-4">
-                <header className="flex flex-col gap-1">
-                  <h1 className="m-0 [text-wrap:pretty]">
-                    {previewIntro.title}
-                  </h1>
-                  <p className="experiment-design-copy m-0 !leading-snug">
-                    {previewIntro.body}
-                  </p>
-                </header>
-                <KeyLegend responses={props.responses} />
-              </section>
+              <header className="flex flex-col gap-4">
+                <h1 className="m-0">{previewIntro.title}</h1>
+                <p className="experiment-design-copy">{previewIntro.body}</p>
+              </header>
             )}
-            {previewRunning && (
-              <PreviewRunningView
-                responses={props.responses}
-                preview={props.preview}
-              />
-            )}
+            {previewRunning && <PreviewRunningView preview={props.preview} />}
           </div>
           <StepActions>
             {step === 'overview' && (
