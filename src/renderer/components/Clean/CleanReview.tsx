@@ -19,7 +19,7 @@ export type CleanConfirm =
 
 /** One auto-flag suggestion with its review state. */
 export interface CleanSuggestion extends SuggestedRejection {
-  /** Accepted suggestions are excluded like the student's own clicks. */
+  /** Left out by accepting this suggestion. A trial the student left out themselves is not accepted, even when a later list suggests it. */
   accepted: boolean;
 }
 
@@ -42,6 +42,8 @@ export interface CleanReviewProps {
   autoFlagThreshold: number;
   onThresholdChange(value: number): void;
   suggestions: CleanSuggestion[];
+  /** Threshold the current suggestion list was computed at; null before the first list. */
+  suggestedAt: number | null;
   onAcceptSuggestion(index: number): void;
   onRestoreSuggestion(index: number): void;
   onSuggest(): void;
@@ -113,8 +115,17 @@ export default function CleanReview(props: CleanReviewProps) {
         <div className="text-[11px] leading-[1.4] text-ink-muted">
           Suggests trials whose peak-to-peak amplitude goes over{' '}
           {props.autoFlagThreshold} µV.
+          {props.suggestions.length > 0 &&
+            props.suggestedAt !== null &&
+            props.suggestedAt !== props.autoFlagThreshold &&
+            ` The list below is for ${props.suggestedAt} µV — press Suggest to update it.`}
         </div>
-        <Button variant="outline-brand" size="sm" onClick={props.onSuggest}>
+        <Button
+          variant="outline-brand"
+          size="sm"
+          disabled={busy}
+          onClick={props.onSuggest}
+        >
           Suggest noisy trials
         </Button>
       </RailSection>
@@ -353,6 +364,10 @@ export default function CleanReview(props: CleanReviewProps) {
                           Restore
                         </Button>
                       </>
+                    ) : props.rejected.has(suggestion.index) ? (
+                      <span className="flex-none text-[12px] font-bold text-ink">
+                        ✓ Left out by you
+                      </span>
                     ) : (
                       <Button
                         size="sm"
