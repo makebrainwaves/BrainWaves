@@ -104,8 +104,8 @@ describe('Muse driver', () => {
 
   /**
    * A simulated headset: its crystal runs `ppm` fast, each packet is sent the
-   * moment its last sample is acquired and arrives after the assumed minimum
-   * Bluetooth latency (`MUSE_LATENCY_MS`) plus 0–30 ms of jitter (40 ms for the
+   * moment its last sample is acquired and arrives after the fixed lag the
+   * driver assumes (`MUSE_LATENCY_MS`) plus 0–30 ms of jitter (40 ms for the
    * first packet after a connect or a gap), and the packet index starts 300
    * packets before its 16-bit wrap.
    * Errors are measured from 5 s after each start of delivery.

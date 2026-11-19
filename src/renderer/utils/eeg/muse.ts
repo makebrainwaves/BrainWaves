@@ -34,13 +34,16 @@ const CLOCK_BUCKET_PACKETS = 64;
 const CLOCK_WINDOW_BUCKETS = 5;
 
 /**
- * Assumed minimum Bluetooth and firmware delivery latency, subtracted so
- * sample times are acquisition times. Uncalibrated: 20 ms is the middle of the
- * usual 10–30 ms range, chosen so a real run's Face dip (215 ms before the
- * correction) lines up with the N170. Measure it with a photodiode or a
- * flash-evoked run and replace this value.
+ * Assumed lag between a marker and the stimulus reaching the eye, subtracted
+ * from sample times so markers land on the sample acquired as the image
+ * appeared. Uncalibrated (see TODOS.md, "Calibrate marker latency"):
+ * - 20 ms minimum Bluetooth and firmware delivery latency, the middle of the
+ *   usual 10–30 ms range, which packet arrival times cannot reveal;
+ * - 16.5 ms from lab.js `run` (when markers fire) to `show` (the image drawn),
+ *   measured on a 120 Hz display; panel response is not included.
+ * Chosen so a real run's Face dip at 215 ms lines up with the N170.
  */
-export const MUSE_LATENCY_MS = 20;
+export const MUSE_LATENCY_MS = 20 + 16.5;
 /**
  * Puts Muse samples on this computer's clock using packet arrival times.
  *
