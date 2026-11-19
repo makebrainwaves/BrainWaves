@@ -34,6 +34,14 @@ const CLOCK_BUCKET_PACKETS = 64;
 const CLOCK_WINDOW_BUCKETS = 5;
 
 /**
+ * Assumed minimum Bluetooth and firmware delivery latency, subtracted so
+ * sample times are acquisition times. Uncalibrated: 20 ms is the middle of the
+ * usual 10–30 ms range, chosen so a real run's Face dip (215 ms before the
+ * correction) lines up with the N170. Measure it with a photodiode or a
+ * flash-evoked run and replace this value.
+ */
+export const MUSE_LATENCY_MS = 20;
+/**
  * Puts Muse samples on this computer's clock using packet arrival times.
  *
  * muse-js stamps the first packet's arrival and then counts samples, so its
@@ -47,10 +55,9 @@ const CLOCK_WINDOW_BUCKETS = 5;
  * sample of a packet is placed on that floor. In simulation (0–30 ms jitter)
  * it is within one sample a second after the stream (re)starts.
  *
- * Sample times are therefore acquisition time plus the *minimum* Bluetooth
- * and firmware latency, which is not measured: markers still land that much
- * early. Correcting it needs a photodiode or flash-evoked calibration
- * (a future MUSE_LATENCY_MS), not a guess.
+ * The floor is acquisition time plus the *minimum* Bluetooth and firmware
+ * latency, which this data cannot see; `MUSE_LATENCY_MS` subtracts an assumed
+ * value for it.
  */
 const createMuseClock = () => {
   let lastIndex: number | null = null;
@@ -89,7 +96,8 @@ const createMuseClock = () => {
       return headsetTime;
     },
     /** Headset time in ms → this computer's clock. */
-    toWallClock: (headsetTime: number) => headsetTime + offset,
+    toWallClock: (headsetTime: number) =>
+      headsetTime + offset - MUSE_LATENCY_MS,
   };
 };
 

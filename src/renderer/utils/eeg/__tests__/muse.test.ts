@@ -97,13 +97,17 @@ const seededRandom = (seed: number) => () => {
 
 describe('Muse driver', () => {
   const loadMuse = () => import('../muse');
+  let minLatencyMs = 0;
+  beforeEach(async () => {
+    ({ MUSE_LATENCY_MS: minLatencyMs } = await loadMuse());
+  });
 
   /**
    * A simulated headset: its crystal runs `ppm` fast, each packet is sent the
-   * moment its last sample is acquired and arrives after 0–30 ms of Bluetooth
-   * jitter (40 ms for the first packet after a connect or a gap), and the
-   * packet index starts 300 packets before its 16-bit wrap. The minimum
-   * Bluetooth latency is 0 here: that remainder needs hardware calibration.
+   * moment its last sample is acquired and arrives after the assumed minimum
+   * Bluetooth latency (`MUSE_LATENCY_MS`) plus 0–30 ms of jitter (40 ms for the
+   * first packet after a connect or a gap), and the packet index starts 300
+   * packets before its 16-bit wrap.
    * Errors are measured from 5 s after each start of delivery.
    */
   const simulateMuse = async ({
@@ -148,6 +152,7 @@ describe('Muse driver', () => {
       if (resumed) countErrorsFrom = acquiredAt(PACKET_SAMPLES * p) + 5000;
       const arrival = Math.floor(
         acquiredAt(PACKET_SAMPLES * p + PACKET_SAMPLES - 1) +
+          minLatencyMs +
           (resumed ? 40 : random() * 30)
       );
       while (nextStimulus <= arrival) {
