@@ -4,7 +4,7 @@ import { toStimulusFileUrl } from '../../../shared/stimulusUrl';
 import {
   initMultitaskingResponseHandlers,
   initTasks,
-  initTaskScreen,
+  scoreTaskResponse,
   triggerEEGCallback,
 } from './utils';
 import { endScreen, instructionsScreen } from '../shared/participantScreens';
@@ -1562,6 +1562,7 @@ export const multitaskingExperimentObject = {
                         },
                         hooks: {
                           run: triggerEEGCallback,
+                          end: scoreTaskResponse,
                         },
                         viewport: [800, 600],
                         title: 'Stimulus',
@@ -1843,9 +1844,7 @@ export const multitaskingExperimentObject = {
                         files: {},
                         parameters: {},
                         responses: {},
-                        hooks: {
-                          'before:prepare': initTaskScreen,
-                        },
+                        hooks: {},
                         viewport: [800, 600],
                         title: 'Feedback',
                         timeout: '${this.parameters.iti}',

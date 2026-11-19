@@ -123,24 +123,21 @@ export function triggerEEGCallback(this: lab.core.Component) {
   this.data.correct = 'empty';
 }
 
-export function initTaskScreen(this: lab.core.Component) {
-  const { id } = this.options;
-  if (!id) return;
-
-  this.data.trial_number =
-    1 + parseInt(id.split('_')[id.split('_').length - 2], 10);
+/**
+ * Stimulus-screen `end` hook: writes the behavior-analysis fields
+ * (`trial_number`, `condition`, `reaction_time`, `correct_response`,
+ * `response_given`) on the trial's own row. lab.js has stored `response`
+ * and `duration` (show → response) by then and commits the row after the
+ * hook. Uses `this.id`: loop clones have no `this.options.id`.
+ */
+export function scoreTaskResponse(this: lab.core.Component) {
+  const parts = this.id?.split('_') ?? [];
+  if (parts.length < 2) return;
+  this.data.trial_number = 1 + parseInt(parts[parts.length - 2], 10);
   this.data.condition = this.parameters.cond;
-  this.data.reaction_time = this.state.duration;
-
-  if (this.state.response === this.parameters.cor_response) {
-    this.data.correct_response = true;
-  } else {
-    this.data.correct_response = false;
-  }
-
-  if (this.parameters.task === 'main') {
-    this.data.response_given = this.state.correct === 'empty' ? 'no' : 'yes';
-  } else {
-    this.data.phase = 'practice';
-  }
+  this.data.reaction_time = this.data.duration;
+  this.data.correct_response =
+    this.data.response === this.parameters.cor_response;
+  this.data.response_given = this.data.response === undefined ? 'no' : 'yes';
+  if (this.parameters.task === 'training') this.data.phase = 'practice';
 }
