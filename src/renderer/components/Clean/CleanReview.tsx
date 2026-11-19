@@ -285,6 +285,7 @@ export default function CleanReview(props: CleanReviewProps) {
                 onToggleChannel={props.onToggleChannel}
                 codeToLabel={props.codeToLabel}
                 focus={focus}
+                laneMicrovolts={props.autoFlagThreshold}
               />
             </FitPane>
             {props.primerOpen && <PrimerPointer step={props.primerStep} />}
