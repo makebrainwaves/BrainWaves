@@ -1,9 +1,8 @@
 """What Analyze draws from cleaned epochs: ERPs baselined on the
 pre-stimulus interval, and a reproducible 95% confidence band.
 
-Clean epochs whole-window demeaned (`get_raw_epochs` defaults to
-`baseline=(tmin, tmax)`), so an ERP's pre-stimulus level wandered by several
-µV. The band was a 97.5% interval from an unseeded bootstrap, so replotting
+Clean used to epoch with a whole-window baseline, so an ERP's
+pre-stimulus level wandered by several µV. The band was a 97.5% interval from an unseeded bootstrap, so replotting
 the same data moved it.
 """
 from collections import OrderedDict
@@ -51,3 +50,15 @@ def test_confidence_band_is_reproducible(tmp_path):
 def test_confidence_band_defaults_to_95_percent():
     import inspect
     assert inspect.signature(utils.plot_conditions).parameters["ci"].default == 95
+
+
+def test_clean_epochs_are_baselined_before_the_stimulus():
+    """Clean's own epochs (reviewer, Live ERP, saved file) use the
+    pre-stimulus baseline too, not only Analyze's reload of them."""
+    csv, _ = generate_recording(seed=3)
+    raw = utils.load_data(csv_strings=[csv])
+    raw.filter(1, 30, method="iir", verbose=False)
+    epochs = utils.get_raw_epochs(raw, EVENT_ID, -0.1, 0.8)
+    data = epochs.get_data(picks="eeg")
+    pre = epochs.times <= 0
+    assert np.abs(data[:, :, pre].mean(axis=2)).max() < 1e-12
