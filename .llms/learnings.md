@@ -584,3 +584,48 @@ practice: `triggerEEGCallback` in `utils/labjs/functions.ts` on
 'training'`. Stroop and Search only attach their emitters to the main loop.
 A new experiment's marker hook must do the same; `markerContract.test.ts`
 pins it. Recordings made before this fix still contain their practice markers.
+
+## Muse sample times come from packet arrival, not muse-js
+
+muse-js 3.1 stamps the first packet's arrival and then counts samples, so
+its timestamps carry that packet's Bluetooth delay and drift with the
+headset crystal (+70 ppm measured: markers 67-180 ms early after 40 min).
+`createMuseClock` in `utils/eeg/muse.ts` keeps the floor of
+`arrival - index x 46.875 ms` over ~15 s and stamps from it. Traps: muse-js
+bundles rxjs 6, so its observables need `as unknown as` casts at the
+boundary; `zipSamples` groups readings by **timestamp**, so restamping
+before it must be constant within a packet; and it emits packet n only
+when n+1 arrives. A `createMarkerStamper` late-marker warning means the
+clocks disagree. The remaining fixed Bluetooth/display delay is not
+calibrated (needs a photodiode or flash-evoked run).
+
+## Analyze pools sessions with NaN, not with info['bads']
+
+`load_clean_epochs` blanks each file's own flagged sensors to NaN and clears
+`info['bads']`, because MNE refuses to concatenate files whose bads differ
+(even with `on_mismatch='ignore'`). Every Analyze consumer must therefore be
+NaN-aware (`average_conditions`, `average_psd`, `plot_conditions`); plain
+`epochs.average()` or `compute_psd()` means would turn a pooled sensor
+into NaN. It then re-baselines on the pre-stimulus interval, since Clean
+saves whole-window-demeaned epochs. The load message carries
+`dataKey: 'cleanedEpochs'` and resets `clean_epochs` first, so a failed
+load can never leave the previous selection's plots on screen.
+
+## Clean: suggestion provenance and the shared reviewer scale
+
+Accepted suggestions are tracked in `fromSuggestion`, separate from the
+student's own clicks; a new suggestion list un-rejects accepted trials it no
+longer contains and never touches manual ones. This and the stale-index
+safety after a save both rely on the reducer replacing
+`suggestedRejections` on `SetSuggestedRejections`/`SetEpochArrays`.
+`EpochReviewer` draws every lane on one scale (lane = auto-flag threshold),
+never per trace; `Clean/fixtures.ts` builds its own artifact epochs, since
+Analyze's fixture holds cleaned data that never shows an artifact.
+
+## Multitasking scores on the Stimulus screen's `end` hook
+
+Same bug class as Stroop: `initTaskScreen` read `this.options.id`
+(undefined on loop clones) from the Feedback screen. `scoreTaskResponse`
+is an `end` hook on the Stimulus screen; training blocks are tagged
+`phase: 'practice'`. Any new lab.js experiment that writes analysis fields
+should follow this pattern (`this.id`, stimulus `end` hook).
