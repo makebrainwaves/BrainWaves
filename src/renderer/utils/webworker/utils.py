@@ -122,7 +122,10 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
     tmin, tmax : float
         Epoch window relative to each event onset, in seconds.
     baseline : tuple | None
-        Baseline correction window (defaults to (tmin, tmax)).
+        Baseline correction window (defaults to the pre-stimulus interval,
+        (None, 0)). A whole-epoch window pulled each epoch's post-stimulus
+        response into its baseline and left conditions offset before the
+        stimulus appeared.
     reject : dict | None
         Peak-to-peak rejection thresholds passed to mne.Epochs.
 
@@ -132,7 +135,7 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
         The epoched data (preload=True).
     """
     if baseline is None:
-        baseline = (tmin, tmax)
+        baseline = (None, 0)
     events = find_events(raw)
     # MNE raises when event_id contains codes that never occurred in the
     # recording. A real run may not present every configured condition, so keep
