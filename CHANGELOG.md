@@ -1,6 +1,6 @@
 # 1.2.1 (November 19, 2026) - Analysis and timing fixes
 
-Fixes from the November 18 QA review of real classroom recordings (#319–#326). Analyze could show results from the wrong recordings, EEG markers could land early in the data, and several Clean tools misled students about which trials were noisy.
+Fixes from the November 18 QA review of real classroom recordings (#319–#330). Analyze could show results from the wrong recordings, EEG markers could land early in the data, and several Clean tools misled students about which trials were noisy.
 
 ## Analyzing data
 
@@ -13,7 +13,8 @@ Fixes from the November 18 QA review of real classroom recordings (#319–#326).
 
 ## Recording
 
-- **Markers line up with the EEG on Muse.** Muse sample times were based on when the first Bluetooth packet arrived and then drifted with the headset's clock: about 4 ms per minute on one headset. As a result, stimulus markers landed 67 ms or more before the stimulus appeared, and every ERP looked that much later than it should. Samples are now timed from each packet's actual arrival. A small fixed delay from Bluetooth and the screen remains and still needs a one-time hardware calibration.
+- **Markers line up with the EEG on Muse.** Muse sample times were based on when the first Bluetooth packet arrived and then drifted with the headset's clock: about 4 ms per minute on one headset. As a result, stimulus markers landed 67 ms or more before the stimulus appeared, and every ERP looked that much later than it should. Samples are now timed from each packet's actual arrival.
+- **Muse samples are corrected for Bluetooth and screen delay.** A fixed 36.5 ms is subtracted from sample times: an assumed 20 ms Bluetooth delay plus the 16.5 ms measured between a trial starting and its image appearing. On a test run the face response moved from 215 ms to about 178 ms, the expected N170 range. The value is an estimate until it is measured with a photodiode or a flash-evoked run.
 - **Practice trials no longer send EEG markers**, so they are no longer averaged in as real trials. Recordings made before 1.2.1 still include them.
 
 ## Cleaning data
@@ -22,6 +23,9 @@ Fixes from the November 18 QA review of real classroom recordings (#319–#326).
 - **Raising the auto-flag threshold updates your accepted suggestions.** Trials you accepted that the new list no longer suggests return to the kept trials. Trials you left out yourself are never changed, and are labelled "Left out by you".
 - **Auto-flag ignores sensors you have flagged**, even before you save.
 - **The suggestion list says when it is out of date**, after you move the slider or change a flagged sensor.
+- **Accept all** leaves out every suggested trial in one click. Trials accepted this way still come back if a re-run no longer suggests them.
+- **More room for suggestions.** The suggestion list sits right under "How cleaning works", which now shrinks to its text, and scrolls inside its own panel.
+- **The Live ERP and saved cleaned files use the pre-stimulus baseline** too, not only Analyze. Before, conditions could look several µV apart before the image appeared.
 
 # 1.2.0 (November 18, 2026) - Feasibility check, per-session cleaning, Stroop fixes
 
