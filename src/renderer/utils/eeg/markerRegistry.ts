@@ -135,17 +135,39 @@ export interface MarkerStamper {
  * contains the timestamp, then forget it — one marked sample per event, error
  * bounded to one sample interval. Every adapter stamps through this so the
  * Marker column has one shape regardless of device.
+ *
+ * If the first sample seen after `inject` already starts a full interval past
+ * the marker, the device clock is ahead of the marker clock: the sample that
+ * contained the marker went by before the marker arrived. The marker still
+ * goes on that sample, but every such case is warned about with a running
+ * count, since it means the stamping error is no longer bounded.
  */
 export const createMarkerStamper = (
   sampleIntervalMs: number
 ): MarkerStamper => {
   let pending: { code: number; timestamp: number } | null = null;
+  let unchecked = false;
+  let lateMarkers = 0;
   return {
     inject(code: number, timestamp: number) {
       pending = { code, timestamp };
+      unchecked = true;
     },
     stamp<T extends EEGData>(sample: T): T {
       if (pending === null) return sample;
+      if (
+        unchecked &&
+        sample.timestamp >= pending.timestamp + sampleIntervalMs
+      ) {
+        lateMarkers += 1;
+        console.warn(
+          `Marker ${pending.code} placed ${(
+            sample.timestamp - pending.timestamp
+          ).toFixed(1)} ms late: the EEG sample clock is ahead of the ` +
+            `computer clock (${lateMarkers} late marker(s) this stream).`
+        );
+      }
+      unchecked = false;
       if (sample.timestamp + sampleIntervalMs > pending.timestamp) {
         const marked = { ...sample, marker: pending.code };
         pending = null;

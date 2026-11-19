@@ -1,13 +1,18 @@
 /**
  * Muse driver tests.
  *
- * Mocking muse-js lets us exercise marker injection without Web Bluetooth.
+ * Only the Bluetooth client is mocked: readings go through the real muse-js
+ * `zipSamples` and carry the timestamps muse-js itself would compute
+ * (`MuseClient.prototype.getTimestamp`), so these tests see the same input the
+ * driver sees from a headset.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Observable, Subject } from 'rxjs';
+import type * as MuseJs from 'muse-js';
+import type { EEGReading } from 'muse-js';
 import type { EEGData } from '../../../constants/interfaces';
 
-let mockEegReadings: Subject<EEGData>;
+let mockEegReadings: Subject<EEGReading>;
 let mockConnectionStatus: Subject<boolean>;
 
 class MockMuseClient {
@@ -18,7 +23,7 @@ class MockMuseClient {
   disconnect = vi.fn();
   injectMarker = vi.fn();
 
-  get eegReadings(): Observable<EEGData> {
+  get eegReadings(): Observable<EEGReading> {
     return mockEegReadings.asObservable();
   }
 
@@ -27,110 +32,204 @@ class MockMuseClient {
   }
 }
 
-vi.doMock('muse-js', () => {
-  return {
-    MUSE_SERVICE: 'mock-muse-service',
-    MuseClient: MockMuseClient,
-    // The real zipSamples expands BLE readings into per-sample objects. In the
-    // mock pipeline, eegReadings already emits sample-shaped objects.
-    zipSamples: (readings: Observable<EEGData>) => readings,
-  };
-});
+vi.doMock('muse-js', async (importOriginal) => ({
+  ...(await importOriginal<typeof MuseJs>()),
+  MuseClient: MockMuseClient,
+}));
 
-beforeEach(() => {
-  mockEegReadings = new Subject<EEGData>();
+const SAMPLE_MS = 1000 / 256;
+const PACKET_SAMPLES = 12;
+const PACKET_MS = PACKET_SAMPLES * SAMPLE_MS;
+/** Wall-clock time at which the headset acquires sample 0. */
+const T0 = 1_763_000_000_000;
+
+/** muse-js's own per-connection timestamp state (`lastIndex`/`lastTimestamp`). */
+let museJsClock: { lastIndex: number | null; lastTimestamp: number | null };
+let museJsTimestamp: (index: number) => number;
+
+beforeEach(async () => {
+  mockEegReadings = new Subject<EEGReading>();
   mockConnectionStatus = new Subject<boolean>();
+  museJsClock = { lastIndex: null, lastTimestamp: null };
+  const { MuseClient } = await vi.importActual<typeof MuseJs>('muse-js');
+  const { getTimestamp } = MuseClient.prototype as unknown as {
+    getTimestamp: (index: number) => number;
+  };
+  museJsTimestamp = (index) => getTimestamp.call(museJsClock, index);
+  vi.useFakeTimers({ toFake: ['Date'] });
 });
 
-const makeSample = (
-  timestamp: number,
-  data: number[] = [1, 2, 3, 4]
-): EEGData => ({
-  data,
-  timestamp,
+afterEach(() => {
+  vi.useRealTimers();
 });
+
+/**
+ * Delivers packet `p` (raw 16-bit index `index`) at wall time `arrival`, one
+ * notification per electrode, as muse-js does. Every sample's value is its
+ * global sample number, so a test can tell which acquired sample came out.
+ */
+const sendPacket = (
+  p: number,
+  index: number,
+  arrival: number,
+  electrodes = [0, 1, 2, 3]
+) => {
+  vi.setSystemTime(arrival);
+  const samples = Array.from(
+    { length: PACKET_SAMPLES },
+    (_, j) => PACKET_SAMPLES * p + j
+  );
+  electrodes.forEach((electrode) =>
+    mockEegReadings.next({
+      electrode,
+      index,
+      samples,
+      timestamp: museJsTimestamp(index),
+    })
+  );
+};
+
+/** Park–Miller PRNG, so the simulated jitter is identical on every run. */
+const seededRandom = (seed: number) => () => {
+  seed = (seed * 16807) % 2147483647;
+  return seed / 2147483647;
+};
 
 describe('Muse driver', () => {
   const loadMuse = () => import('../muse');
 
-  it('assigns marker to the sample whose interval contains the marker timestamp', async () => {
+  /**
+   * A simulated headset: its crystal runs `ppm` fast, each packet is sent the
+   * moment its last sample is acquired and arrives after 0–30 ms of Bluetooth
+   * jitter (40 ms for the first packet after a connect or a gap), and the
+   * packet index starts 300 packets before its 16-bit wrap. The minimum
+   * Bluetooth latency is 0 here: that remainder needs hardware calibration.
+   * Errors are measured from 5 s after each start of delivery.
+   */
+  const simulateMuse = async ({
+    minutes,
+    ppm = 70e-6,
+    stimulusEveryMs = 0,
+    delivered = () => true,
+  }: {
+    minutes: number;
+    ppm?: number;
+    stimulusEveryMs?: number;
+    delivered?: (p: number) => boolean;
+  }) => {
     const { createRawMuseObservable, injectMuseMarker } = await loadMuse();
-    const obs = await createRawMuseObservable();
-    const seen: EEGData[] = [];
-    obs.subscribe((s) => seen.push(s));
+    const stream = await createRawMuseObservable();
+    const random = seededRandom(20261118);
+    const samplePeriod = SAMPLE_MS / (1 + ppm);
+    const acquiredAt = (s: number) => T0 + s * samplePeriod;
 
-    mockEegReadings.next(makeSample(1000));
-    injectMuseMarker(42, 1005); // falls inside interval of second sample
-    mockEegReadings.next(makeSample(1003.9));
-    mockEegReadings.next(makeSample(1007.8));
+    let countErrorsFrom = Infinity;
+    let worstSampleErrorMs = 0;
+    const markedSamples: number[] = [];
+    const sub = stream.subscribe((sample) => {
+      const [s] = sample.data;
+      if (acquiredAt(s) >= countErrorsFrom) {
+        worstSampleErrorMs = Math.max(
+          worstSampleErrorMs,
+          Math.abs(sample.timestamp - acquiredAt(s))
+        );
+      }
+      if (sample.marker !== undefined) markedSamples.push(s);
+    });
 
-    expect(seen).toHaveLength(3);
-    expect(seen[0].marker).toBeUndefined();
-    expect(seen[1].marker).toBe(42);
-    expect(seen[2].marker).toBeUndefined();
-  });
+    const stimulusSamples: number[] = [];
+    let nextStimulus = stimulusEveryMs ? T0 + 10_000 : Infinity;
+    let museJsFirstErrorMs: number | null = null;
+    let museJsLastErrorMs = 0;
+    const packets = Math.round((minutes * 60_000) / PACKET_MS);
+    for (let p = 0; p < packets; p += 1) {
+      if (!delivered(p)) continue;
+      const resumed = p === 0 || !delivered(p - 1);
+      if (resumed) countErrorsFrom = acquiredAt(PACKET_SAMPLES * p) + 5000;
+      const arrival = Math.floor(
+        acquiredAt(PACKET_SAMPLES * p + PACKET_SAMPLES - 1) +
+          (resumed ? 40 : random() * 30)
+      );
+      while (nextStimulus <= arrival) {
+        vi.setSystemTime(nextStimulus);
+        injectMuseMarker(1, nextStimulus);
+        stimulusSamples.push(Math.floor((nextStimulus - T0) / samplePeriod));
+        nextStimulus += stimulusEveryMs + Math.floor(random() * 1000);
+      }
+      const index = (0xffff - 300 + p) & 0xffff;
+      sendPacket(p, index, arrival);
+      const museJsErrorMs =
+        museJsTimestamp(index) - acquiredAt(PACKET_SAMPLES * p);
+      museJsFirstErrorMs ??= museJsErrorMs;
+      museJsLastErrorMs = museJsErrorMs;
+    }
+    sub.unsubscribe();
 
-  it('does not attach a marker to a sample before its timestamp interval', async () => {
-    const { createRawMuseObservable, injectMuseMarker } = await loadMuse();
-    const obs = await createRawMuseObservable();
-    const seen: EEGData[] = [];
-    obs.subscribe((s) => seen.push(s));
+    return {
+      worstSampleErrorMs,
+      markerSampleErrors: markedSamples.map((s, k) => s - stimulusSamples[k]),
+      stimulusCount: stimulusSamples.length,
+      museJsDriftMs: museJsLastErrorMs - (museJsFirstErrorMs ?? 0),
+    };
+  };
 
-    // Marker timestamp falls in the interval of the fourth sample, so the
-    // first three samples must remain unmarked. This guards against regressions
-    // to simple next-sample latching.
-    injectMuseMarker(77, 1015);
-    mockEegReadings.next(makeSample(1000));
-    mockEegReadings.next(makeSample(1003.9));
-    mockEegReadings.next(makeSample(1007.8));
-    mockEegReadings.next(makeSample(1011.7));
+  it('times samples by packet arrival, not by muse-js counting from its first packet', async () => {
+    const result = await simulateMuse({ minutes: 40, stimulusEveryMs: 2000 });
 
-    expect(seen).toHaveLength(4);
-    expect(seen[0].marker).toBeUndefined();
-    expect(seen[1].marker).toBeUndefined();
-    expect(seen[2].marker).toBeUndefined();
-    expect(seen[3].marker).toBe(77);
-  });
+    // muse-js's own clock drifts by ~170 ms over this run: the field failure.
+    expect(result.museJsDriftMs).toBeGreaterThan(150);
+    expect(result.worstSampleErrorMs).toBeLessThanOrEqual(SAMPLE_MS);
+    expect(result.stimulusCount).toBeGreaterThan(900);
+    expect(result.markerSampleErrors).toHaveLength(result.stimulusCount);
+    expect(
+      result.markerSampleErrors.every((error) => Math.abs(error) <= 1)
+    ).toBe(true);
+  }, 30_000);
+
+  it('follows a headset whose crystal runs slow', async () => {
+    const result = await simulateMuse({ minutes: 20, ppm: -70e-6 });
+    expect(result.worstSampleErrorMs).toBeLessThanOrEqual(SAMPLE_MS);
+  }, 30_000);
+
+  it('stays on the wall clock after a gap longer than half the packet index range', async () => {
+    // Nothing subscribed (or no Bluetooth) for 30 minutes, then streaming again.
+    const gap = (p: number) =>
+      p * PACKET_MS >= 30_000 && p * PACKET_MS < 1_830_000;
+    const result = await simulateMuse({
+      minutes: 31,
+      delivered: (p) => !gap(p),
+    });
+    expect(result.worstSampleErrorMs).toBeLessThanOrEqual(SAMPLE_MS);
+  }, 30_000);
 
   it('drops pending markers when the stream is torn down', async () => {
-    const { createRawMuseObservable, disconnectFromMuse } = await loadMuse();
-    const obs = await createRawMuseObservable();
-    const seen: EEGData[] = [];
-    const sub = obs.subscribe((s) => seen.push(s));
-
-    // cannot access pending marker directly; injecting then tearing down
-    // should clear it before the new stream attaches.
-    const { injectMuseMarker } = await loadMuse();
-    injectMuseMarker(99, 2001); // timestamp would match a sample near 2000 if emitted
+    const { createRawMuseObservable, disconnectFromMuse, injectMuseMarker } =
+      await loadMuse();
+    const sub = (await createRawMuseObservable()).subscribe();
+    injectMuseMarker(99, T0 + 30);
     disconnectFromMuse();
     sub.unsubscribe();
 
-    // Recreate stream; the old marker should not attach to new samples.
-    const obs2 = await createRawMuseObservable();
-    const seen2: EEGData[] = [];
-    obs2.subscribe((s) => seen2.push(s));
+    const seen: EEGData[] = [];
+    (await createRawMuseObservable()).subscribe((s) => seen.push(s));
+    for (let p = 0; p < 4; p += 1) sendPacket(p, p, T0 + (p + 1) * PACKET_MS);
 
-    mockEegReadings.next(makeSample(2000));
-
-    expect(seen).toHaveLength(0);
-    expect(seen2).toHaveLength(1);
-    expect(seen2[0].marker).toBeUndefined();
+    expect(seen).toHaveLength(3 * PACKET_SAMPLES);
+    expect(seen.every((s) => s.marker === undefined)).toBe(true);
   });
 
-  it('filters out NaN values and keeps only four-channel samples', async () => {
+  it('keeps only samples with at least four channels, without NaN gaps', async () => {
     const { createRawMuseObservable } = await loadMuse();
-    const obs = await createRawMuseObservable();
     const seen: EEGData[] = [];
-    obs.subscribe((s) => seen.push(s));
+    (await createRawMuseObservable()).subscribe((s) => seen.push(s));
 
-    mockEegReadings.next(makeSample(1000, [1, 2, NaN, 4]));
-    mockEegReadings.next(makeSample(1003.9, [1, 2, 3]));
-    mockEegReadings.next(makeSample(1007.8, [1, 2, 3, 4, 5]));
-    mockEegReadings.next(makeSample(1011.7, [1, 2, 3, 4]));
+    sendPacket(0, 0, T0, [0, 1, 2]);
+    sendPacket(1, 1, T0 + PACKET_MS, [0, 1, 2, 3, 4]);
+    sendPacket(2, 2, T0 + 2 * PACKET_MS, [0, 1, 2, 3]);
+    sendPacket(3, 3, T0 + 3 * PACKET_MS);
 
-    expect(seen).toHaveLength(2);
-    expect(seen[0].data).toEqual([1, 2, 3, 4, 5]);
-    expect(seen[0].data).not.toContain(NaN);
-    expect(seen[1].data).toEqual([1, 2, 3, 4]);
+    expect(seen).toHaveLength(2 * PACKET_SAMPLES);
+    expect(seen[0].data).toEqual([12, 12, 12, 12, 12]);
+    expect(seen[PACKET_SAMPLES].data).toEqual([24, 24, 24, 24]);
   });
 });
