@@ -29,6 +29,13 @@ const codeToLabelFor = memoize(
     resolveMarkerRegistry(params).codeToLabel
 );
 
+/** A state updater returning a copy of the set without `indices`. */
+const without = (indices: number[]) => (prev: Set<number>) => {
+  const next = new Set(prev);
+  indices.forEach((index) => next.delete(index));
+  return next;
+};
+
 export interface Props {
   title: string;
 
@@ -59,8 +66,17 @@ export default function Clean(props: Props) {
     useState<RawRecording | null>(null);
   /** ABSOLUTE indices into `rejectedFor`, including accepted suggestions. */
   const [rejected, setRejected] = useState<Set<number>>(new Set());
+  /** The subset of `rejected` left out by accepting a suggestion of the current list; the rest are the student's own clicks, which a re-run never changes. */
+  const [fromSuggestion, setFromSuggestion] = useState<Set<number>>(new Set());
   /** The arrays `rejected` indexes; arrays are re-fetched after every load and save, which invalidates the indices. */
   const [rejectedFor, setRejectedFor] = useState(epochArrays);
+  /** The suggestion list `fromSuggestion` was last reconciled with. */
+  const [suggestionsFor, setSuggestionsFor] = useState(
+    props.suggestedRejections
+  );
+  /** Threshold of the last Suggest press, and of the list once it arrives. */
+  const [requestedAt, setRequestedAt] = useState<number | null>(null);
+  const [suggestedAt, setSuggestedAt] = useState<number | null>(null);
   /** Channel names stay valid across saves, so the flags persist and each save sends the full set. */
   const [badChannels, setBadChannels] = useState<Set<string>>(new Set());
   const [autoFlagThreshold, setAutoFlagThreshold] = useState(
@@ -77,6 +93,18 @@ export default function Clean(props: Props) {
   if (rejectedFor !== epochArrays) {
     setRejectedFor(epochArrays);
     setRejected(new Set());
+    setFromSuggestion(new Set());
+  }
+
+  if (suggestionsFor !== props.suggestedRejections) {
+    setSuggestionsFor(props.suggestedRejections);
+    setSuggestedAt(requestedAt);
+    const listed = new Set(props.suggestedRejections.map((s) => s.index));
+    const lapsed = [...fromSuggestion].filter((index) => !listed.has(index));
+    if (lapsed.length > 0) {
+      setRejected(without(lapsed));
+      setFromSuggestion(without(lapsed));
+    }
   }
 
   useEffect(() => {
@@ -254,29 +282,30 @@ export default function Clean(props: Props) {
           if (!next.delete(index)) next.add(index);
           return next;
         });
+        setFromSuggestion(without([index]));
       }}
       onToggleChannel={handleToggleChannel}
       autoFlagThreshold={autoFlagThreshold}
       onThresholdChange={setAutoFlagThreshold}
       suggestions={props.suggestedRejections.map((s) => ({
         ...s,
-        accepted: rejected.has(s.index),
+        accepted: fromSuggestion.has(s.index),
       }))}
+      suggestedAt={suggestedAt}
       onAcceptSuggestion={(index) => {
         edited();
         setRejected((prev) => new Set(prev).add(index));
+        setFromSuggestion((prev) => new Set(prev).add(index));
       }}
       onRestoreSuggestion={(index) => {
         edited();
-        setRejected((prev) => {
-          const next = new Set(prev);
-          next.delete(index);
-          return next;
-        });
+        setRejected(without([index]));
+        setFromSuggestion(without([index]));
       }}
-      onSuggest={() =>
-        props.PyodideActions.GetSuggestedRejections(autoFlagThreshold)
-      }
+      onSuggest={() => {
+        setRequestedAt(autoFlagThreshold);
+        props.PyodideActions.GetSuggestedRejections(autoFlagThreshold);
+      }}
       saveState={saveState}
       onApply={handleApply}
       onSave={handleSave}

@@ -34,10 +34,8 @@ interface ChromeParameters {
  * facts. Clean has no tab bar; the screen fills the rest without page scroll.
  */
 const withCleanChrome: Decorator = (Story, { parameters }) => {
-  const {
-    badges = { collect: ['4 recordings'] },
-    nextArea = 'clean',
-  } = parameters as ChromeParameters;
+  const { badges = { collect: ['4 recordings'] }, nextArea = 'clean' } =
+    parameters as ChromeParameters;
   return (
     <MemoryRouter>
       <AppShell
@@ -123,9 +121,14 @@ function ReviewHarness({
         ...suggestions.filter((s) => s.accepted).map((s) => s.index),
       ])
   );
-  const [badChannelSet, setBadChannelSet] = useState(() => new Set(badChannels));
+  const [badChannelSet, setBadChannelSet] = useState(
+    () => new Set(badChannels)
+  );
   const [suggestionState, setSuggestionState] = useState(suggestions);
   const [threshold, setThreshold] = useState(100);
+  const [suggestedAt, setSuggestedAt] = useState(
+    suggestions.length > 0 ? 100 : null
+  );
   const [save, setSave] = useState(saveState);
   const [dialog, setDialog] = useState<CleanConfirm | null>(confirm);
   const [primer, setPrimer] = useState(primerOpen);
@@ -169,6 +172,7 @@ function ReviewHarness({
       autoFlagThreshold={threshold}
       onThresholdChange={setThreshold}
       suggestions={suggestionState}
+      suggestedAt={suggestedAt}
       onAcceptSuggestion={(index) => {
         setPrimer(false);
         setRejectedSet((prev) => new Set(prev).add(index));
@@ -187,11 +191,12 @@ function ReviewHarness({
           prev.map((s) => (s.index === index ? { ...s, accepted: false } : s))
         );
       }}
-      onSuggest={() =>
+      onSuggest={() => {
+        setSuggestedAt(threshold);
         setSuggestionState(
           SUGGESTED_REJECTIONS.map((s) => ({ ...s, accepted: false }))
-        )
-      }
+        );
+      }}
       saveState={save}
       onApply={() => {
         if (rejectedSet.size >= EXAMPLE_EPOCH_ARRAYS.meta.n_epochs) {

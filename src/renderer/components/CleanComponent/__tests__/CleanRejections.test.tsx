@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SuggestedRejection } from '../../../actions';
@@ -107,7 +107,9 @@ describe('Clean', () => {
 
   it('keys the cleaned save to the chosen session even when the group is empty', async () => {
     render(ui());
-    fireEvent.click(await screen.findByRole('radio', { name: /P1--3-raw.csv/ }));
+    fireEvent.click(
+      await screen.findByRole('radio', { name: /P1--3-raw.csv/ })
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Start cleaning' }));
 
     expect(props.ExperimentActions.SetGroup).toHaveBeenCalledWith('');
@@ -127,6 +129,87 @@ describe('Clean', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
     expect(reviewer.rejected.size).toBe(0);
+  });
+
+  describe('re-running auto-flag', () => {
+    const list = (...indices: number[]) =>
+      indices.map((index) => ({ index, reason: `trial ${index} noisy` }));
+    const row = (index: number) =>
+      within(
+        screen
+          .getByRole('button', { name: `Show trial ${index}` })
+          .closest('li') as HTMLElement
+      );
+    const summary = () => screen.getByText(/trials left out/).textContent;
+
+    beforeEach(() => {
+      props.epochArrays = {
+        ...fakeEpochArrays,
+        meta: {
+          ...fakeEpochArrays.meta,
+          n_epochs: 20,
+          event_codes: Array(20).fill(1),
+        },
+      };
+    });
+
+    it('un-rejects accepted suggestions the new list no longer contains', async () => {
+      const { rerender } = await startCleaning();
+      rerender(ui({ suggestedRejections: list(1, 6, 7, 9) }));
+      for (const index of [1, 6, 7]) {
+        fireEvent.click(row(index).getByRole('button', { name: 'Accept' }));
+      }
+      expect(summary()).toBe('3 of 20 trials left out (all suggested)');
+
+      rerender(ui({ suggestedRejections: list(1) }));
+
+      expect([...reviewer.rejected]).toEqual([1]);
+      expect(summary()).toBe('1 of 20 trials left out (all suggested)');
+    });
+
+    it("keeps the student's own rejection through any re-run and counts it as theirs", async () => {
+      const { rerender } = await startCleaning();
+      act(() => reviewer.onToggleEpoch(13));
+      rerender(ui({ suggestedRejections: list(1, 13) }));
+      fireEvent.click(row(1).getByRole('button', { name: 'Accept' }));
+
+      expect(summary()).toBe('2 of 20 trials left out (1 by you, 1 suggested)');
+      expect(row(13).getByText('✓ Left out by you')).toBeInTheDocument();
+      expect(row(13).queryByRole('button', { name: 'Restore' })).toBeNull();
+
+      rerender(ui({ suggestedRejections: list(2) }));
+
+      expect([...reviewer.rejected]).toEqual([13]);
+      expect(summary()).toBe('1 of 20 trials left out (all by you)');
+    });
+
+    it('keeps accepted suggestions when a lower threshold lists them again', async () => {
+      const { rerender } = await startCleaning();
+      rerender(ui({ suggestedRejections: list(1) }));
+      fireEvent.click(row(1).getByRole('button', { name: 'Accept' }));
+
+      rerender(ui({ suggestedRejections: list(1, 6, 7) }));
+
+      expect([...reviewer.rejected]).toEqual([1]);
+      expect(row(1).getByRole('button', { name: 'Restore' })).toBeEnabled();
+    });
+
+    it('says the list is out of date while the slider is off its threshold', async () => {
+      const { rerender } = await startCleaning();
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Suggest noisy trials' })
+      );
+      rerender(ui({ suggestedRejections: list(1) }));
+      expect(screen.queryByText(/list below is for/)).toBeNull();
+
+      fireEvent.change(screen.getByRole('slider'), {
+        target: { value: '150' },
+      });
+
+      expect(
+        screen.getByText(/list below is for 100 µV/).textContent
+      ).toContain('press Suggest');
+    });
   });
 
   it('new epoch arrays clear left-out trials but keep flagged sensors', async () => {
@@ -159,6 +242,9 @@ describe('Clean', () => {
       badChannels: [],
     });
     expect(props.navigate).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('button', { name: 'Suggest noisy trials' })
+    ).toBeDisabled();
 
     rerender(ui({ cleanedEpochsSave: { revision: 1, ok: true } }));
     expect(props.navigate).toHaveBeenCalledWith('/analyze');
