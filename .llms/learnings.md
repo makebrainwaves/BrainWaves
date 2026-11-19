@@ -573,3 +573,14 @@ or `npm run build`. Proof: `out/renderer/` contains no `pyodide/` despite the
 deliberately. For an extra main-process entry (e.g. a utility-process worker),
 use electron-vite's `import workerPath from './worker?modulePath'` instead of
 config — see `src/main/llm/index.ts` and `docs/feasibility-coach.md`.
+
+## Practice trials send no EEG markers
+
+Practice and main trials share condition labels (and so marker codes), and
+`get_raw_epochs` epochs every code, so practice markers were averaged as real
+trials (6 of 126 per Faces/Houses run). The marker hooks now return early on
+practice: `triggerEEGCallback` in `utils/labjs/functions.ts` on
+`parameters.phase === 'practice'`, multitasking's on `parameters.task ===
+'training'`. Stroop and Search only attach their emitters to the main loop.
+A new experiment's marker hook must do the same; `markerContract.test.ts`
+pins it. Recordings made before this fix still contain their practice markers.
