@@ -156,6 +156,7 @@ function Erp(props: Partial<AnalyzeErpProps>) {
       workspaceTitle={WORKSPACE_TITLE}
       channelInfo={MUSE_CHANNEL_INFO}
       epochsInfo={EPOCHS_INFO}
+      excludedChannels={[]}
       epochArrays={EXAMPLE_EPOCH_ARRAYS}
       codeToLabel={FACES_HOUSES_CODE_TO_LABEL}
       onRetry={fn()}
@@ -300,6 +301,12 @@ export const ErpLoading: Story = {
 export const ErpError: Story = {
   parameters: { tab: 'ERP' },
   render: () => <Erp status="error" />,
+};
+
+/** E09 — The picked sensor was flagged bad in every selected session. */
+export const ErpSensorExcluded: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp selectedChannel="AF7" excludedChannels={['AF7']} />,
 };
 
 /** B01 — Rail: recordings, measure, plot type, outliers. Plot beside it, with what it shows. */

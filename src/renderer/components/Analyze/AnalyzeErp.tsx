@@ -13,7 +13,11 @@ import {
   ResultStatus,
   railLabel,
 } from './AnalyzeParts';
-import ErpTraceChart, { CONDITION_DASH, ErpChartStep } from './ErpTraceChart';
+import ErpTraceChart, {
+  CONDITION_DASH,
+  ErpChartStep,
+  trialsWithData,
+} from './ErpTraceChart';
 import type { EpochInfoRow } from '../../actions';
 
 /** 0 shows the MNE ERP plot; 1–4 are walkthrough steps drawn from the epoch arrays. */
@@ -28,6 +32,8 @@ export interface AnalyzeErpProps {
   /** `pyodide.channelInfo`. */
   channelInfo: string[];
   selectedChannel: string | null;
+  /** Sensors flagged bad in every selected session: they have no ERP. */
+  excludedChannels: string[];
   /** `pyodide.erpPlot` for `selectedChannel`. */
   erpPlot: { [key: string]: string } | null;
   /** `pyodide.epochsInfo`; condition rows feed the legend. */
@@ -207,6 +213,7 @@ export default function AnalyzeErp({
   workspaceTitle,
   channelInfo,
   selectedChannel,
+  excludedChannels,
   erpPlot,
   epochsInfo,
   epochArrays,
@@ -222,7 +229,13 @@ export default function AnalyzeErp({
   }
 
   const conditions = epochsInfo.filter((row) => !EPOCH_TOTAL_ROWS[row.name]);
-  const trialCount = epochArrays?.meta.n_epochs ?? 0;
+  const trialCount =
+    epochArrays && selectedChannel
+      ? trialsWithData(
+          epochArrays,
+          epochArrays.meta.ch_names.indexOf(selectedChannel)
+        ).length
+      : 0;
 
   const rail = (
     <>
@@ -236,22 +249,31 @@ export default function AnalyzeErp({
           </div>
         </div>
         <div className="grid grid-cols-2 gap-[6px]">
-          {channelInfo.map((channel) => (
-            <button
-              key={channel}
-              type="button"
-              aria-pressed={selectedChannel === channel}
-              onClick={() => onChannelSelect(channel)}
-              className={cn(
-                'rounded-md border px-[8px] py-[6px] text-[14px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-                selectedChannel === channel
-                  ? 'border-brand bg-brand-light text-brand'
-                  : 'border-gray-200 bg-white text-ink hover:border-brand'
-              )}
-            >
-              {channel}
-            </button>
-          ))}
+          {channelInfo.map((channel) => {
+            const excluded = excludedChannels.includes(channel);
+            return (
+              <button
+                key={channel}
+                type="button"
+                aria-pressed={selectedChannel === channel}
+                title={
+                  excluded
+                    ? 'Excluded: flagged bad in every selected session'
+                    : undefined
+                }
+                onClick={() => onChannelSelect(channel)}
+                className={cn(
+                  'rounded-md border px-[8px] py-[6px] text-[14px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                  selectedChannel === channel
+                    ? 'border-brand bg-brand-light text-brand'
+                    : 'border-gray-200 bg-white text-ink hover:border-brand',
+                  excluded && 'text-ink-muted line-through'
+                )}
+              >
+                {channel}
+              </button>
+            );
+          })}
         </div>
       </RailSection>
       {conditions.length > 0 && (
@@ -276,7 +298,15 @@ export default function AnalyzeErp({
   );
 
   let results: React.ReactNode;
-  if (status === 'loading') {
+  if (selectedChannel && excludedChannels.includes(selectedChannel)) {
+    results = (
+      <ResultStatus
+        status="empty"
+        title={`${selectedChannel} is excluded`}
+        body={`${selectedChannel} was flagged bad in every selected session, so there is nothing to average. Pick another sensor, or add a recording where ${selectedChannel} was kept.`}
+      />
+    );
+  } else if (status === 'loading') {
     results = (
       <ResultStatus
         status="loading"

@@ -43,6 +43,11 @@ export const loadCSV = async (worker: Worker, csvArray: Array<unknown>) => {
 // ---------------------------
 // MNE-Related Data Processing
 
+/**
+ * Loads the staged files into `clean_epochs`. The globals are reset first, so
+ * when the load raises (reply on dataKey 'cleanedEpochs') the requests queued
+ * behind it fail too instead of answering from the previous selection.
+ */
 export const loadCleanedEpochs = (
   worker: Worker,
   memfsPaths: string[],
@@ -51,9 +56,12 @@ export const loadCleanedEpochs = (
   worker.postMessage({
     fsFiles,
     data: [
+      'clean_epochs = None',
+      'conditions = None',
       `clean_epochs = load_clean_epochs(${JSON.stringify(memfsPaths)})`,
       `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
     ].join('\n'),
+    dataKey: 'cleanedEpochs',
   });
 };
 
@@ -182,9 +190,7 @@ export const plotPSD = async (worker: Worker) => {
     plotKey: 'psd',
     data: [
       'import io',
-      '_data = clean_epochs if "clean_epochs" in globals() else raw',
-      '_fig, _ax = plt.subplots(figsize=(5.5, 5.5))',
-      '_data.compute_psd(fmin=1, fmax=30).plot(axes=_ax, show=False)',
+      '_fig = plot_psd(clean_epochs)',
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',

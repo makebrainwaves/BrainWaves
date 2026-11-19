@@ -37,7 +37,8 @@ export interface PyodideStateType {
     buffer: ArrayBuffer;
     meta: EpochArraysMeta;
   } | null;
-  // Plot keys ('psd' | 'topo' | 'erp') whose last request raised in Python.
+  // Worker request keys ('load' for `clean_epochs` itself, or a plot key
+  // 'psd' | 'topo' | 'erp') whose last request raised in Python.
   readonly failedPlots: string[];
   readonly suggestedRejections: SuggestedRejection[];
   readonly worker: Worker | null;
@@ -110,6 +111,7 @@ export default createReducer(initialState, (builder) =>
       ...state,
       epochArrays: null,
       suggestedRejections: [],
+      failedPlots: [],
     }))
     .addCase(PyodideActions.SetEpochArrays, (state, action) => {
       // New epoch arrays → any prior auto-flag suggestions are stale.
@@ -135,6 +137,26 @@ export default createReducer(initialState, (builder) =>
       cleanedEpochArrays: null,
       failedPlots: [],
     }))
+    .addCase(PyodideActions.CleanedEpochsLoadSettled, (state, action) =>
+      action.payload.ok
+        ? {
+            ...state,
+            failedPlots: state.failedPlots.filter((key) => key !== 'load'),
+          }
+        : {
+            ...state,
+            psdPlot: null,
+            topoPlot: null,
+            erpPlot: null,
+            epochsInfo: [],
+            channelInfo: [],
+            cleanedEpochArrays: null,
+            failedPlots: [
+              ...state.failedPlots.filter((key) => key !== 'load'),
+              'load',
+            ],
+          }
+    )
     .addCase(PyodideActions.LoadERP, (state) => ({
       ...state,
       erpPlot: null,

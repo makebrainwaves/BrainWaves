@@ -26,6 +26,8 @@ Inbound (worker → JS, on the `message` event): `{ results, plotKey, error }`. 
 - `'ready'` → `SetWorkerReady`
 - `'topo' | 'psd' | 'erp'` → `Set*Plot` with `results` (an SVG string) wrapped as a MIME bundle
 - `error` set → toast; when `plotKey` is `'psd' | 'topo' | 'erp'` it also dispatches `PlotFailed(plotKey)` (Analyze shows its error state); otherwise dropped
+- `dataKey: 'cleanedEpochs'` (Analyze's `clean_epochs` load) → `CleanedEpochsLoadSettled({ ok })`. The load resets `clean_epochs`/`conditions` to `None` first, so a failed load makes every request queued behind it fail too (their errors are not toasted again) instead of replotting the previous selection.
+- Analyze's `clean_epochs` can hold NaN: a sensor a session flagged bad is blanked in that session's epochs (`load_clean_epochs`). Average it with the NaN-aware helpers in `utils.py`, never `epochs.average()` or a plain mean.
 - else → response dropped (unknown keys are ignored)
 
 ## Adding an analysis step

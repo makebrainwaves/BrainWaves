@@ -42,6 +42,11 @@ export const PyodideActions = {
   LoadCleanedEpochs: createAction<string[], 'LOAD_CLEANED_EPOCHS'>(
     'LOAD_CLEANED_EPOCHS'
   ),
+  /** Analyze's `clean_epochs` load finished; `ok: false` means it raised. */
+  CleanedEpochsLoadSettled: createAction<
+    { ok: boolean },
+    'CLEANED_EPOCHS_LOAD_SETTLED'
+  >('CLEANED_EPOCHS_LOAD_SETTLED'),
   LoadPSD: createAction('LOAD_PSD'),
   LoadERP: createAction<string, 'LOAD_ERP'>('LOAD_ERP'),
   LoadTopo: createAction('LOAD_TOPO'),

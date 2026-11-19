@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import warnings
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -7,7 +8,9 @@ from matplotlib.patches import Circle, Ellipse, Polygon
 import pandas as pd  # maybe we can remove this dependency
 
 from mne import (concatenate_raws, concatenate_epochs, create_info, viz,
-                 find_events, Epochs, EpochsArray, pick_types, read_epochs)
+                 find_events, Epochs, EpochsArray, EvokedArray, pick_types,
+                 read_epochs)
+from mne.time_frequency import SpectrumArray
 from mne.io import RawArray
 from io import StringIO
 
@@ -154,12 +157,70 @@ def load_clean_epochs(file_paths):
     """Load cleaned .fif epoch files from MEMFS paths into one Epochs object.
 
     Analyze stages host .fif bytes at /tmp/... in the worker MEMFS before calling
-    this.
+    this. A sensor flagged bad in a file is blanked to NaN in that file's epochs
+    only, and `info['bads']` is cleared so files flagged differently still
+    combine: the other files keep contributing that sensor. Consumers therefore
+    average with NaN-aware functions (`average_conditions`, `average_psd`,
+    `plot_conditions`); a sensor that is NaN in every epoch was flagged in every
+    file.
     """
-    return concatenate_epochs(
-        [read_epochs(path, preload=True, verbose=False) for path in file_paths],
-        verbose=False,
-    )
+    sessions = [read_epochs(path, preload=True, verbose=False)
+                for path in file_paths]
+    for epochs in sessions:
+        if epochs.info['bads']:
+            epochs.apply_function(lambda x: np.full_like(x, np.nan),
+                                  picks=epochs.info['bads'])
+            epochs.info['bads'] = []
+    return concatenate_epochs(sessions, verbose=False)
+
+
+def _nanmean_trials(data):
+    """Mean over trials (axis 0) ignoring NaN; a channel no trial has stays NaN."""
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', RuntimeWarning)
+        return np.nanmean(data, axis=0)
+
+
+def _empty_channels(ch_names, data):
+    """Names of the channels (rows of `data`) that are NaN throughout."""
+    return [ch for ch, empty in zip(ch_names, np.isnan(data).all(axis=-1))
+            if empty]
+
+
+def average_conditions(epochs, conditions):
+    """One Evoked per condition, averaging each EEG sensor over the trials that
+    have it (see `load_clean_epochs`). A sensor no trial has is marked bad, so
+    plots leave it out.
+    """
+    eeg = epochs.copy().pick('eeg')
+    evokeds = []
+    for name in conditions:
+        trials = eeg[name]
+        mean = _nanmean_trials(trials.get_data())
+        evoked = EvokedArray(mean, trials.info, tmin=trials.tmin, comment=name,
+                             nave=len(trials), verbose=False)
+        evoked.info['bads'] = _empty_channels(evoked.ch_names, mean)
+        evokeds.append(evoked)
+    return evokeds
+
+
+def average_psd(epochs, fmin=1, fmax=30):
+    """Power spectrum of each EEG sensor, averaged over the trials that have it.
+    A sensor no trial has is marked bad, so plots leave it out.
+    """
+    psd = epochs.copy().pick('eeg').compute_psd(fmin=fmin, fmax=fmax,
+                                                verbose=False)
+    mean = _nanmean_trials(psd.get_data())
+    spectrum = SpectrumArray(mean, psd.info, psd.freqs, verbose=False)
+    spectrum.info['bads'] = _empty_channels(spectrum.ch_names, mean)
+    return spectrum
+
+
+def plot_psd(epochs):
+    """Analyze's 1-30 Hz PSD figure; sensors with no data are left out."""
+    fig, ax = plt.subplots(figsize=(5.5, 5.5))
+    average_psd(epochs).plot(axes=ax, exclude='bads', show=False)
+    return fig
 
 
 def plot_topo(epochs, conditions, palette):
@@ -168,9 +229,9 @@ def plot_topo(epochs, conditions, palette):
     MNE's plot_evoked_topo places the traces by sensor position but draws no
     head, so the outline (circle, nose, ears) is added in figure coordinates on
     the square figure. The legend gets explicit handles so each swatch matches
-    its condition.
+    its condition. Sensors flagged in every selected session are left out.
     """
-    evokeds = [epochs[name].average() for name in (conditions)]
+    evokeds = average_conditions(epochs, conditions)
     colors = palette[0:len(conditions)]
 
     evoked_topo = viz.plot_evoked_topo(
@@ -204,6 +265,10 @@ def plot_topo(epochs, conditions, palette):
 def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
                     ci=97.5, n_boot=1000, title='', diff_waveform=(4, 3)):
     """Plot Averaged Epochs with ERP conditions.
+
+    Trials blanked at `ch_ind` (its session flagged the sensor, see
+    `load_clean_epochs`) are left out of the mean and the bootstrap. Raises
+    ValueError when every trial is blanked there.
 
     Parameters
     ----------
@@ -251,12 +316,16 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     # get_data() is volts (load_data scales eeg uV -> V); the y-axis is labeled
     # uV, so convert back to microvolts for display.
     X = epochs.get_data() * 1e6
+    if len(X) and np.isnan(X[:, ch_ind]).all():
+        raise ValueError('{} has no data: it was flagged bad in every selected '
+                         'session'.format(epochs.ch_names[ch_ind]))
     times = epochs.times
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots(figsize=(12, 3.9))
 
     for (cond_name, cond), color in zip(conditions.items(), palette):
         cond_data = X[y.isin(cond), ch_ind]
+        cond_data = cond_data[~np.isnan(cond_data).all(axis=1)]
         mean = np.nanmean(cond_data, axis=0)
         n_samples = cond_data.shape[0]
         boot_means = np.array([
@@ -302,6 +371,8 @@ def get_epochs_arrays(epochs, out_path):
     Channels in `info['bads']` stay in the buffer so the viewer can show them
     flagged (and the student can un-flag them). `out_path` is a Pyodide MEMFS
     path in-app and a real filesystem path in the native tests.
+    For Analyze's pooled `clean_epochs`, a sensor a session flagged is NaN in
+    that session's epochs (see `load_clean_epochs`).
 
     # buffer (float32, C-order):  epoch0[ch0[t0..tN] ch1[..] ..] epoch1[..] ..
     # byte length == n_epochs * n_channels * n_times * 4
