@@ -188,8 +188,13 @@ export function initResponseHandlers(this: lab.core.Component) {
   };
 }
 
-/** Emits this trial's condition label to the marker pipeline. */
+/**
+ * Emits this trial's condition label to the marker pipeline. Practice trials
+ * emit nothing: they share the task's labels, so their markers would be
+ * epoched and averaged as real trials.
+ */
 export function triggerEEGCallback(this: lab.core.Component) {
+  if (this.parameters.phase === 'practice') return;
   this.parameters.callbackForEEG(
     (this.parameters as unknown as Stimulus).condition
   );
