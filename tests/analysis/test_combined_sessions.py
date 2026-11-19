@@ -46,6 +46,11 @@ def _channel(epochs, name, code=None):
     return data if code is None else data[epochs.events[:, -1] == code]
 
 
+def _baselined(epochs):
+    """As Analyze loads it: baselined on the pre-stimulus interval."""
+    return epochs.copy().apply_baseline((None, 0), verbose=False)
+
+
 def test_sessions_with_different_bads_combine(flagged, unflagged):
     pooled = utils.load_clean_epochs([flagged[0], unflagged[0]])
 
@@ -77,7 +82,8 @@ def test_erp_averages_only_sessions_that_kept_the_sensor(flagged, unflagged):
         pooled, palette=["r", "b"], ch_ind=pooled.ch_names.index(FLAGGED),
         conditions=CONDITIONS, diff_waveform=None, n_boot=50)
 
-    expected = _channel(unflagged[1], FLAGGED, STANDARD_CODE).mean(axis=0)
+    expected = _channel(_baselined(unflagged[1]), FLAGGED, STANDARD_CODE).mean(
+        axis=0)
     assert np.allclose(ax.lines[0].get_ydata(), expected, atol=1e-6)
     band = ax.collections[0].get_paths()[0].vertices
     assert np.isfinite(band).all()
@@ -98,7 +104,7 @@ def test_topo_averages_only_sessions_that_kept_the_sensor(flagged, unflagged):
     evokeds = utils.average_conditions(pooled, CONDITIONS)
 
     for evoked, code in zip(evokeds, EVENT_ID.values()):
-        expected = _channel(unflagged[1], FLAGGED, code).mean(axis=0)
+        expected = _channel(_baselined(unflagged[1]), FLAGGED, code).mean(axis=0)
         assert np.allclose(
             evoked.get_data(picks=[FLAGGED])[0] * 1e6, expected, atol=1e-6)
         assert evoked.info["bads"] == []

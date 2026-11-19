@@ -219,7 +219,7 @@ export const plotERP = async (worker: Worker, channelIndex: number) => {
     plotKey: 'erp',
     data: [
       'import io',
-      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, ci=97.5, n_boot=1000, title='', diff_waveform=None, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
+      `_fig, _ = plot_conditions(clean_epochs, ch_ind=${channelIndex}, conditions=conditions, n_boot=1000, title='', diff_waveform=None, palette=${JSON.stringify(CONDITION_PALETTE_RGB)})`,
       '_buf = io.BytesIO()',
       '_fig.savefig(_buf, format="svg", bbox_inches="tight")',
       'plt.close(_fig)',
