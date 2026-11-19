@@ -38,12 +38,14 @@ function IncludedSummary({
   selectedDatasets: string[];
   epochsInfo: EpochInfoRow[];
 }) {
-  const participants = getSubjectNamesFromFiles(selectedDatasets);
+  const participants = [...new Set(getSubjectNamesFromFiles(selectedDatasets))];
+  const sessions = selectedDatasets.length;
   const conditions = epochsInfo.filter((row) => !EPOCH_TOTAL_ROWS[row.name]);
   const dropped = epochsInfo.find((row) => row.name === 'Drop Percentage');
   return (
     <div className="flex flex-col gap-[6px] text-[14px] text-ink">
       <span>
+        {sessions > participants.length && `${sessions} sessions from `}
         {participants.length} participant
         {participants.length === 1 ? '' : 's'}: {participants.join(', ')}
       </span>

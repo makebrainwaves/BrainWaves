@@ -162,7 +162,9 @@ def load_clean_epochs(file_paths):
     combine: the other files keep contributing that sensor. Consumers therefore
     average with NaN-aware functions (`average_conditions`, `average_psd`,
     `plot_conditions`); a sensor that is NaN in every epoch was flagged in every
-    file.
+    file. Epochs are re-baselined on the pre-stimulus interval: Clean saves
+    them demeaned over the whole epoch, which leaves an ERP's pre-stimulus
+    level several µV off zero.
     """
     sessions = [read_epochs(path, preload=True, verbose=False)
                 for path in file_paths]
@@ -171,7 +173,8 @@ def load_clean_epochs(file_paths):
             epochs.apply_function(lambda x: np.full_like(x, np.nan),
                                   picks=epochs.info['bads'])
             epochs.info['bads'] = []
-    return concatenate_epochs(sessions, verbose=False)
+    return concatenate_epochs(sessions, verbose=False).apply_baseline(
+        (None, 0), verbose=False)
 
 
 def _nanmean_trials(data):
@@ -263,12 +266,13 @@ def plot_topo(epochs, conditions, palette):
 
 
 def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
-                    ci=97.5, n_boot=1000, title='', diff_waveform=(4, 3)):
+                    ci=95, n_boot=1000, title='', diff_waveform=(4, 3)):
     """Plot Averaged Epochs with ERP conditions.
 
     Trials blanked at `ch_ind` (its session flagged the sensor, see
     `load_clean_epochs`) are left out of the mean and the bootstrap. Raises
-    ValueError when every trial is blanked there.
+    ValueError when every trial is blanked there. The bootstrap is seeded, so
+    replotting the same data draws the same band.
 
     Parameters
     ----------
@@ -323,6 +327,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
     y = pd.Series(epochs.events[:, -1])
     fig, ax = plt.subplots(figsize=(12, 3.9))
 
+    rng = np.random.default_rng(0)
     for (cond_name, cond), color in zip(conditions.items(), palette):
         cond_data = X[y.isin(cond), ch_ind]
         cond_data = cond_data[~np.isnan(cond_data).all(axis=1)]
@@ -330,7 +335,7 @@ def plot_conditions(epochs, palette, ch_ind=0, conditions=OrderedDict(),
         n_samples = cond_data.shape[0]
         boot_means = np.array([
             np.nanmean(
-                cond_data[np.random.randint(0, n_samples, n_samples)], axis=0
+                cond_data[rng.integers(0, n_samples, n_samples)], axis=0
             )
             for _ in range(n_boot)
         ])
