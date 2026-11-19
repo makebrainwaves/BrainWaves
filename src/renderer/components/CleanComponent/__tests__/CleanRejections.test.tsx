@@ -194,6 +194,22 @@ describe('Clean', () => {
       expect(row(1).getByRole('button', { name: 'Restore' })).toBeEnabled();
     });
 
+    it("accepts every listed trial at once, keeping the student's own clicks theirs", async () => {
+      const { rerender } = await startCleaning();
+      act(() => reviewer.onToggleEpoch(6));
+      rerender(ui({ suggestedRejections: list(1, 6, 7) }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Accept all' }));
+
+      expect([...reviewer.rejected].sort((a, b) => a - b)).toEqual([1, 6, 7]);
+      expect(summary()).toBe('3 of 20 trials left out (1 by you, 2 suggested)');
+      expect(screen.getByRole('button', { name: 'Accept all' })).toBeDisabled();
+
+      // Accepted in bulk, they still lapse when a re-run drops them.
+      rerender(ui({ suggestedRejections: list(7) }));
+      expect([...reviewer.rejected].sort((a, b) => a - b)).toEqual([6, 7]);
+    });
+
     it('says the list is out of date while the slider is off its threshold', async () => {
       const { rerender } = await startCleaning();
       fireEvent.click(

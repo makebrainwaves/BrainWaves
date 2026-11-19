@@ -298,6 +298,15 @@ export default function Clean(props: Props) {
         setRejected((prev) => new Set(prev).add(index));
         setFromSuggestion((prev) => new Set(prev).add(index));
       }}
+      onAcceptAllSuggestions={() => {
+        const pending = props.suggestedRejections
+          .map((s) => s.index)
+          .filter((index) => !rejected.has(index));
+        if (pending.length === 0) return;
+        edited();
+        setRejected((prev) => new Set([...prev, ...pending]));
+        setFromSuggestion((prev) => new Set([...prev, ...pending]));
+      }}
       onRestoreSuggestion={(index) => {
         edited();
         setRejected(without([index]));

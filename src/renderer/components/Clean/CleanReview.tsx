@@ -45,6 +45,8 @@ export interface CleanReviewProps {
   /** Threshold and flagged sensors the current suggestion list was computed for; null before the first list. */
   suggestedFor: SuggestRequest | null;
   onAcceptSuggestion(index: number): void;
+  /** Accepts every listed suggestion not already left out. */
+  onAcceptAllSuggestions(): void;
   onRestoreSuggestion(index: number): void;
   onSuggest(): void;
   saveState: SaveState;
@@ -289,10 +291,13 @@ export default function CleanReview(props: CleanReviewProps) {
       </div>
     );
   } else {
+    const acceptable = props.suggestions.filter(
+      (s) => !s.accepted && !props.rejected.has(s.index)
+    ).length;
     body = (
-      <>
-        <div className="flex min-h-0 flex-1 gap-[12px]">
-          <div className="relative flex min-w-0 flex-1">
+      <div className="flex min-h-0 flex-1 gap-[12px]">
+        <div className="flex min-w-0 flex-1 flex-col gap-[12px]">
+          <div className="relative flex min-h-0 flex-1">
             <FitPane logicalWidth={640} logicalHeight={426} className="flex-1">
               <EpochReviewer
                 epochArrays={props.epochArrays}
@@ -307,22 +312,9 @@ export default function CleanReview(props: CleanReviewProps) {
             </FitPane>
             {props.primerOpen && <PrimerPointer step={props.primerStep} />}
           </div>
-          <CleanPrimerPanel
-            open={props.primerOpen}
-            step={props.primerStep}
-            onStepChange={props.onPrimerStepChange}
-            onOpenChange={props.onPrimerOpenChange}
-            className="w-[300px] flex-none"
-          />
-        </div>
-        <div className="flex h-[224px] flex-none gap-[12px]">
           <section
             aria-label="Live ERP"
-            className={
-              props.suggestions.length > 0
-                ? 'flex w-[440px] flex-none flex-col rounded-lg border border-gray-200 bg-white px-[12px] pb-[8px] pt-[6px]'
-                : 'flex flex-1 flex-col rounded-lg border border-gray-200 bg-white px-[12px] pb-[8px] pt-[6px]'
-            }
+            className="flex h-[224px] flex-none flex-col rounded-lg border border-gray-200 bg-white px-[12px] pb-[8px] pt-[6px]"
           >
             <FitPane
               logicalWidth={640}
@@ -336,57 +328,75 @@ export default function CleanReview(props: CleanReviewProps) {
               />
             </FitPane>
           </section>
+        </div>
+        <div className="flex w-[320px] flex-none flex-col gap-[12px]">
+          <CleanPrimerPanel
+            open={props.primerOpen}
+            step={props.primerStep}
+            onStepChange={props.onPrimerStepChange}
+            onOpenChange={props.onPrimerOpenChange}
+            className="flex-none"
+          />
           {props.suggestions.length > 0 && (
             <section
               aria-label="Auto-flag suggestions"
-              className="flex min-h-0 min-w-0 flex-1 flex-col gap-[6px] rounded-lg border border-gray-200 bg-white p-[14px]"
+              className="flex min-h-[160px] flex-1 flex-col gap-[8px] rounded-lg border border-gray-200 bg-white p-[14px]"
             >
-              <div className="flex items-baseline gap-[10px]">
+              <div className="flex items-center gap-[10px]">
                 <span className={railLabel}>Suggested by auto-flag</span>
-                <div className="text-[12px] text-ink-muted">
-                  Suggestions, not decisions — you decide.
-                </div>
+                <Button
+                  size="sm"
+                  variant="outline-brand"
+                  className="ml-auto flex-none"
+                  disabled={busy || acceptable === 0}
+                  onClick={props.onAcceptAllSuggestions}
+                >
+                  Accept all
+                </Button>
               </div>
               <ul className="m-0 flex min-h-0 flex-1 flex-col gap-[4px] overflow-y-auto p-0">
                 {props.suggestions.map((suggestion) => (
                   <li
                     key={suggestion.index}
-                    className="flex items-center gap-[10px] rounded-md border border-gray-200 px-[10px] py-[4px]"
+                    className="flex items-center gap-[10px] rounded-md border border-gray-200 px-[10px] py-[5px]"
                   >
-                    <button
-                      type="button"
-                      className="flex-none cursor-pointer border-0 bg-transparent p-0 text-[13px] font-bold text-ink underline decoration-dotted underline-offset-2 hover:text-brand"
-                      aria-label={`Show trial ${suggestion.index}`}
-                      onClick={() => setFocus({ index: suggestion.index })}
-                    >
-                      Trial {suggestion.index}
-                    </button>
-                    <span className="min-w-0 flex-1 text-[13px] text-ink-muted">
-                      {suggestion.reason}
-                    </span>
-                    {suggestion.accepted ? (
-                      <>
-                        <span className="flex-none text-[12px] font-bold text-ink">
-                          ✓ Left out
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-none"
-                          disabled={busy}
-                          onClick={() => {
-                            setFocus({ index: suggestion.index });
-                            props.onRestoreSuggestion(suggestion.index);
-                          }}
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <div className="flex items-baseline gap-[8px]">
+                        <button
+                          type="button"
+                          className="flex-none cursor-pointer border-0 bg-transparent p-0 text-[13px] font-bold text-ink underline decoration-dotted underline-offset-2 hover:text-brand"
+                          aria-label={`Show trial ${suggestion.index}`}
+                          onClick={() => setFocus({ index: suggestion.index })}
                         >
-                          Restore
-                        </Button>
-                      </>
-                    ) : props.rejected.has(suggestion.index) ? (
-                      <span className="flex-none text-[12px] font-bold text-ink">
-                        ✓ Left out by you
+                          Trial {suggestion.index}
+                        </button>
+                        {(suggestion.accepted ||
+                          props.rejected.has(suggestion.index)) && (
+                          <span className="text-[12px] font-bold text-ink">
+                            {suggestion.accepted
+                              ? '✓ Left out'
+                              : '✓ Left out by you'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="truncate text-[12px] text-ink-muted">
+                        {suggestion.reason}
                       </span>
-                    ) : (
+                    </div>
+                    {suggestion.accepted ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-none"
+                        disabled={busy}
+                        onClick={() => {
+                          setFocus({ index: suggestion.index });
+                          props.onRestoreSuggestion(suggestion.index);
+                        }}
+                      >
+                        Restore
+                      </Button>
+                    ) : props.rejected.has(suggestion.index) ? null : (
                       <Button
                         size="sm"
                         variant="outline-brand"
@@ -406,7 +416,7 @@ export default function CleanReview(props: CleanReviewProps) {
             </section>
           )}
         </div>
-      </>
+      </div>
     );
   }
 
