@@ -27,6 +27,23 @@ const ceilTo = (value: number, step: number) =>
   Math.max(step, Math.ceil(value / step) * step);
 
 /**
+ * Epoch indices that have data at `channel`. Analyze blanks a sensor to NaN
+ * in the sessions that flagged it (`load_clean_epochs`), so a pooled sensor
+ * can have fewer trials than the pool, and none when every session flagged it.
+ */
+export function trialsWithData(
+  epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta },
+  channel: number
+): number[] {
+  const { buffer, meta } = epochArrays;
+  return meta.event_codes
+    .map((_, e) => e)
+    .filter(
+      (e) => !Number.isNaN(epochChannelSeries(buffer, meta, e, channel)[0])
+    );
+}
+
+/**
  * Teaching chart for the ERP walkthrough, drawn from the same epoch arrays
  * the worker ships for Clean (`get_epochs_arrays`). Every line is computed
  * here from the buffer: single trials, the grand mean, and one mean per
@@ -58,7 +75,7 @@ export default function ErpTraceChart({
   const ch = meta.ch_names.indexOf(channel);
 
   const lines = useMemo(() => {
-    const all = meta.event_codes.map((_, i) => i);
+    const all = trialsWithData(epochArrays, ch);
     const codes = [...new Set(meta.event_codes)].sort((a, b) => a - b);
     return {
       trials: all.map((e) => epochChannelSeries(buffer, meta, e, ch)),
@@ -74,11 +91,13 @@ export default function ErpTraceChart({
         };
       }),
     };
-  }, [buffer, meta, ch, codeToLabel]);
+  }, [epochArrays, buffer, meta, ch, codeToLabel]);
 
   const showTrials = step <= 2;
   const extent = useMemo(() => {
-    const series = showTrials ? lines.trials : lines.conditions.map((c) => c.mean);
+    const series = showTrials
+      ? lines.trials
+      : lines.conditions.map((c) => c.mean);
     let max = 0;
     for (const s of series) for (const v of s) max = Math.max(max, Math.abs(v));
     return showTrials ? ceilTo(max, 10) : ceilTo(max * 1.15, 2);
@@ -94,7 +113,8 @@ export default function ErpTraceChart({
   const path = (series: ArrayLike<number>) =>
     Array.from(
       series,
-      (v, i) => `${i ? 'L' : 'M'}${x(meta.times[i]).toFixed(1)} ${y(v).toFixed(1)}`
+      (v, i) =>
+        `${i ? 'L' : 'M'}${x(meta.times[i]).toFixed(1)} ${y(v).toFixed(1)}`
     ).join('');
 
   const face = lines.conditions[0];
@@ -177,7 +197,13 @@ export default function ErpTraceChart({
               </text>
             </g>
           ))}
-          <text x={M.left - 8} y={M.top - 12} textAnchor="end" fontSize={12} fill={MUTED}>
+          <text
+            x={M.left - 8}
+            y={M.top - 12}
+            textAnchor="end"
+            fontSize={12}
+            fill={MUTED}
+          >
             µV
           </text>
           {[-0.1, 0, 0.2, 0.4, 0.6, 0.8].map((t) => (
@@ -201,7 +227,14 @@ export default function ErpTraceChart({
           >
             Time after the image appears (ms)
           </text>
-          <line x1={x(0)} x2={x(0)} y1={M.top} y2={M.top + plotH} stroke={INK} strokeWidth={1} />
+          <line
+            x1={x(0)}
+            x2={x(0)}
+            y1={M.top}
+            y2={M.top + plotH}
+            stroke={INK}
+            strokeWidth={1}
+          />
           <text x={x(0) + 6} y={M.top - 12} fontSize={12} fill={INK}>
             Image appears
           </text>
@@ -216,10 +249,20 @@ export default function ErpTraceChart({
             />
           )}
           {step === 1 && (
-            <path d={path(lines.trials[0])} fill="none" stroke={INK} strokeWidth={1.75} />
+            <path
+              d={path(lines.trials[0])}
+              fill="none"
+              stroke={INK}
+              strokeWidth={1.75}
+            />
           )}
           {step === 2 && (
-            <path d={path(lines.grandMean)} fill="none" stroke={INK} strokeWidth={3} />
+            <path
+              d={path(lines.grandMean)}
+              fill="none"
+              stroke={INK}
+              strokeWidth={3}
+            />
           )}
           {!showTrials &&
             lines.conditions.map((c, i) => {
@@ -266,7 +309,14 @@ export default function ErpTraceChart({
                 stroke={INK}
                 strokeWidth={1.25}
               />
-              <circle cx={pointer.x} cy={pointer.y} r={4} fill="white" stroke={INK} strokeWidth={1.5} />
+              <circle
+                cx={pointer.x}
+                cy={pointer.y}
+                r={4}
+                fill="white"
+                stroke={INK}
+                strokeWidth={1.5}
+              />
               <rect
                 x={labelX}
                 y={labelY}

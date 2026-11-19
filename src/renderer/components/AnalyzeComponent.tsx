@@ -23,6 +23,7 @@ import AnalyzeBehavior, {
   DisplayMode,
 } from './Analyze/AnalyzeBehavior';
 import type { BehaviorPlot, DatasetOption } from './Analyze/fixtures';
+import { trialsWithData } from './Analyze/ErpTraceChart';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -85,6 +86,14 @@ export default function Analyze(props: Props) {
     () => resolveMarkerRegistry(props.params).codeToLabel,
     [props.params]
   );
+
+  const excludedChannels = useMemo(() => {
+    const arrays = props.cleanedEpochArrays;
+    if (!arrays) return [];
+    return arrays.meta.ch_names.filter(
+      (_, ch) => trialsWithData(arrays, ch).length === 0
+    );
+  }, [props.cleanedEpochArrays]);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,7 +158,9 @@ export default function Analyze(props: Props) {
   function handleChannelSelect(channel: string) {
     setSelectedChannel(channel);
     setWalkthroughStep(0);
-    props.PyodideActions.LoadERP(channel);
+    if (!excludedChannels.includes(channel)) {
+      props.PyodideActions.LoadERP(channel);
+    }
   }
 
   function handleEEGEnabled(enabled: boolean) {
@@ -188,11 +199,14 @@ export default function Analyze(props: Props) {
   const failed = (key: string) => props.failedPlots.includes(key);
 
   let overviewStatus: 'results' | 'loading' | 'error' = 'loading';
-  if (failed('psd') || failed('topo')) overviewStatus = 'error';
+  if (failed('load') || failed('psd') || failed('topo'))
+    overviewStatus = 'error';
   else if (props.psdPlot && props.topoPlot) overviewStatus = 'results';
 
   let erpStatus: 'results' | 'loading' | 'error' | 'empty' = 'loading';
-  if (!hasSelection || !selectedChannel) erpStatus = 'empty';
+  if (!hasSelection) erpStatus = 'empty';
+  else if (failed('load')) erpStatus = 'error';
+  else if (!selectedChannel) erpStatus = 'empty';
   else if (failed('erp')) erpStatus = 'error';
   else if (props.erpPlot) erpStatus = 'results';
 
@@ -229,6 +243,7 @@ export default function Analyze(props: Props) {
             workspaceTitle={props.title}
             channelInfo={hasSelection ? props.channelInfo : []}
             selectedChannel={selectedChannel}
+            excludedChannels={excludedChannels}
             erpPlot={props.erpPlot ?? null}
             epochsInfo={hasSelection ? props.epochsInfo : []}
             epochArrays={props.cleanedEpochArrays}
@@ -237,7 +252,10 @@ export default function Analyze(props: Props) {
             onChannelSelect={handleChannelSelect}
             onWalkthroughStepChange={setWalkthroughStep}
             onRetry={() =>
-              selectedChannel && props.PyodideActions.LoadERP(selectedChannel)
+              failed('load')
+                ? handleDatasetChange(selectedFilePaths)
+                : selectedChannel &&
+                  props.PyodideActions.LoadERP(selectedChannel)
             }
             onGoToClean={() => props.navigate(AREA_ROUTES.clean)}
           />

@@ -86,7 +86,9 @@ const pyodideErrorEpic: Epic<
 
 // Once pyodide webworker is created,
 // Create an observable of events that corresond to what it returns
-// and then emits those events as redux actions
+// and then emits those events as redux actions. A failed `clean_epochs` load
+// is toasted once: the Analyze requests queued behind it then fail on the
+// reset globals and only update the error state.
 const pyodideMessageEpic: Epic<
   PyodideActionType,
   PyodideActionType,
@@ -101,10 +103,19 @@ const pyodideMessageEpic: Epic<
     mergeMap<any, Observable<any>>((e) => {
       const { results, error, plotKey, dataKey } = e.data;
       if (error) {
-        toast.error(`Pyodide: ${error}`);
+        if (dataKey === 'cleanedEpochs') {
+          toast.error(`Pyodide: ${error}`);
+          return of(PyodideActions.CleanedEpochsLoadSettled({ ok: false }));
+        }
+        if (!state$.value.pyodide.failedPlots.includes('load')) {
+          toast.error(`Pyodide: ${error}`);
+        }
         return plotKey === 'psd' || plotKey === 'topo' || plotKey === 'erp'
           ? of(PyodideActions.PlotFailed(plotKey))
           : EMPTY;
+      }
+      if (dataKey === 'cleanedEpochs') {
+        return of(PyodideActions.CleanedEpochsLoadSettled({ ok: true }));
       }
 
       // Route data results (tagged with dataKey, not plotKey). These come back
