@@ -180,6 +180,18 @@ function ReviewHarness({
           prev.map((s) => (s.index === index ? { ...s, accepted: true } : s))
         );
       }}
+      onAcceptAllSuggestions={() => {
+        const pending = suggestionState
+          .filter((s) => !s.accepted && !rejectedSet.has(s.index))
+          .map((s) => s.index);
+        setPrimer(false);
+        setRejectedSet((prev) => new Set([...prev, ...pending]));
+        setSuggestionState((prev) =>
+          prev.map((s) =>
+            pending.includes(s.index) ? { ...s, accepted: true } : s
+          )
+        );
+      }}
       onRestoreSuggestion={(index) => {
         setPrimer(false);
         setRejectedSet((prev) => {
