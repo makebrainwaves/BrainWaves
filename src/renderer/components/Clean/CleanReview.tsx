@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { SuggestedRejection } from '../../actions';
+import type { SuggestedRejection, SuggestRequest } from '../../actions';
 import { PTP_THRESHOLD } from '../../constants/constants';
 import EpochReviewer from '../CleanComponent/EpochReviewer';
 import LiveErpPane from '../CleanComponent/LiveErpPane';
@@ -42,8 +42,8 @@ export interface CleanReviewProps {
   autoFlagThreshold: number;
   onThresholdChange(value: number): void;
   suggestions: CleanSuggestion[];
-  /** Threshold the current suggestion list was computed at; null before the first list. */
-  suggestedAt: number | null;
+  /** Threshold and flagged sensors the current suggestion list was computed for; null before the first list. */
+  suggestedFor: SuggestRequest | null;
   onAcceptSuggestion(index: number): void;
   onRestoreSuggestion(index: number): void;
   onSuggest(): void;
@@ -61,6 +61,26 @@ export interface CleanReviewProps {
   primerStep: PrimerStep;
   onPrimerOpenChange(open: boolean): void;
   onPrimerStepChange(step: PrimerStep): void;
+}
+
+/** Says when the suggestion list no longer matches the slider or the flagged sensors; empty otherwise. */
+function staleNote({
+  suggestions,
+  suggestedFor,
+  autoFlagThreshold,
+  badChannels,
+}: CleanReviewProps) {
+  if (suggestions.length === 0 || suggestedFor === null) return '';
+  const sensorsChanged =
+    suggestedFor.badChannels.length !== badChannels.size ||
+    suggestedFor.badChannels.some((name) => !badChannels.has(name));
+  if (sensorsChanged) {
+    return ' The list below is from before you changed the flagged sensors — press Suggest to update it.';
+  }
+  if (suggestedFor.threshold !== autoFlagThreshold) {
+    return ` The list below is for ${suggestedFor.threshold} µV — press Suggest to update it.`;
+  }
+  return '';
 }
 
 /**
@@ -115,10 +135,7 @@ export default function CleanReview(props: CleanReviewProps) {
         <div className="text-[11px] leading-[1.4] text-ink-muted">
           Suggests trials whose peak-to-peak amplitude goes over{' '}
           {props.autoFlagThreshold} µV.
-          {props.suggestions.length > 0 &&
-            props.suggestedAt !== null &&
-            props.suggestedAt !== props.autoFlagThreshold &&
-            ` The list below is for ${props.suggestedAt} µV — press Suggest to update it.`}
+          {staleNote(props)}
         </div>
         <Button
           variant="outline-brand"

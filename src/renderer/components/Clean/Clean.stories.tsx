@@ -126,8 +126,8 @@ function ReviewHarness({
   );
   const [suggestionState, setSuggestionState] = useState(suggestions);
   const [threshold, setThreshold] = useState(100);
-  const [suggestedAt, setSuggestedAt] = useState(
-    suggestions.length > 0 ? 100 : null
+  const [suggestedFor, setSuggestedFor] = useState(
+    suggestions.length > 0 ? { threshold: 100, badChannels } : null
   );
   const [save, setSave] = useState(saveState);
   const [dialog, setDialog] = useState<CleanConfirm | null>(confirm);
@@ -172,7 +172,7 @@ function ReviewHarness({
       autoFlagThreshold={threshold}
       onThresholdChange={setThreshold}
       suggestions={suggestionState}
-      suggestedAt={suggestedAt}
+      suggestedFor={suggestedFor}
       onAcceptSuggestion={(index) => {
         setPrimer(false);
         setRejectedSet((prev) => new Set(prev).add(index));
@@ -192,7 +192,7 @@ function ReviewHarness({
         );
       }}
       onSuggest={() => {
-        setSuggestedAt(threshold);
+        setSuggestedFor({ threshold, badChannels: [...badChannelSet] });
         setSuggestionState(
           SUGGESTED_REJECTIONS.map((s) => ({ ...s, accepted: false }))
         );

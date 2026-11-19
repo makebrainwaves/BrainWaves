@@ -61,6 +61,28 @@ def test_detects_injected_artifact():
     assert k in indices
 
 
+def test_flagged_sensors_are_ignored():
+    """The Clean UI's flagged sensors are the exclusion list, not info['bads'].
+
+    A flagged sensor's artifact must not produce a suggestion, and a sensor in
+    info['bads'] (saved earlier) that the student has since unflagged counts again.
+    """
+    ep = _build_epochs().copy()
+    k = 2
+    data = ep._data
+    data[k, 0, data.shape[2] // 2] += 5e-3
+    flagged = ep.ch_names[0]
+
+    assert k not in [s["index"] for s in utils.suggest_rejections(ep, 1000, [flagged])]
+
+    ep.info["bads"] = [flagged]
+    assert k in [s["index"] for s in utils.suggest_rejections(ep, 1000, [])]
+
+    # Every sensor flagged: nothing left to measure, so nothing to suggest.
+    eeg = [ep.ch_names[i] for i in pick_types(ep.info, eeg=True, exclude=[])]
+    assert utils.suggest_rejections(ep, 0, eeg) == []
+
+
 def test_ptp_in_physiological_range():
     """Regression guard for the µV→V units bug (QA plan 6e).
 

@@ -439,7 +439,7 @@ def apply_rejection(epochs, drop_indices, bad_channels):
     return epochs
 
 
-def suggest_rejections(epochs, threshold_uv):
+def suggest_rejections(epochs, threshold_uv, bad_channels=()):
     """Suggest artifact epochs by peak-to-peak amplitude (does NOT drop anything).
 
     For each epoch, compute the per-channel peak-to-peak (max-min over time) on the
@@ -448,11 +448,17 @@ def suggest_rejections(epochs, threshold_uv):
     requires the user to accept each one; the real drop goes through
     apply_rejection so the saved data stays MNE-exact.
 
+    bad_channels are the sensors the student has flagged in the Clean UI; exactly
+    those are skipped. info['bads'] is ignored: it only holds the flags of the
+    last save, which the student may have changed since.
+
     Returns list[dict] with keys: index (int, 0-based into the CURRENT epochs,
     same order get_epochs_arrays produced) and reason (str). MNE data is in
     volts; threshold_uv is microvolts.
     """
-    picks = pick_types(epochs.info, eeg=True)
+    picks = pick_types(epochs.info, eeg=True, exclude=list(bad_channels))
+    if len(picks) == 0:
+        return []
     data = epochs.get_data(picks=picks)  # (n_epochs, n_channels, n_times), volts
     ch_names = [epochs.ch_names[i] for i in picks]
     ptp = data.max(axis=2) - data.min(axis=2)  # (n_epochs, n_channels), volts

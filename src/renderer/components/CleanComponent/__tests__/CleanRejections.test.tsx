@@ -210,6 +210,36 @@ describe('Clean', () => {
         screen.getByText(/list below is for 100 µV/).textContent
       ).toContain('press Suggest');
     });
+
+    it('asks for suggestions without the sensors flagged right now', async () => {
+      await startCleaning();
+      act(() => reviewer.onToggleChannel('Fp1'));
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Suggest noisy trials' })
+      );
+
+      expect(props.PyodideActions.GetSuggestedRejections).toHaveBeenCalledWith({
+        threshold: 100,
+        badChannels: ['Fp1'],
+      });
+    });
+
+    it('says the list is out of date after a sensor is flagged or unflagged', async () => {
+      const { rerender } = await startCleaning();
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Suggest noisy trials' })
+      );
+      rerender(ui({ suggestedRejections: list(1) }));
+
+      act(() => reviewer.onToggleChannel('Fp1'));
+      expect(
+        screen.getByText(/list below .* flagged sensors/).textContent
+      ).toContain('press Suggest');
+
+      act(() => reviewer.onToggleChannel('Fp1'));
+      expect(screen.queryByText(/list below/)).toBeNull();
+    });
   });
 
   it('new epoch arrays clear left-out trials but keep flagged sensors', async () => {
