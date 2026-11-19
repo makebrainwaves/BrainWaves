@@ -21,6 +21,7 @@ import {
   EpochArraysMeta,
   EpochInfoRow,
   SuggestedRejection,
+  SuggestRequest,
 } from '../../actions';
 
 // Memoized by params reference so we don't rebuild the registry every render.
@@ -74,9 +75,9 @@ export default function Clean(props: Props) {
   const [suggestionsFor, setSuggestionsFor] = useState(
     props.suggestedRejections
   );
-  /** Threshold of the last Suggest press, and of the list once it arrives. */
-  const [requestedAt, setRequestedAt] = useState<number | null>(null);
-  const [suggestedAt, setSuggestedAt] = useState<number | null>(null);
+  /** Settings of the last Suggest press, and of the list once it arrives. */
+  const [requestedFor, setRequestedFor] = useState<SuggestRequest | null>(null);
+  const [suggestedFor, setSuggestedFor] = useState<SuggestRequest | null>(null);
   /** Channel names stay valid across saves, so the flags persist and each save sends the full set. */
   const [badChannels, setBadChannels] = useState<Set<string>>(new Set());
   const [autoFlagThreshold, setAutoFlagThreshold] = useState(
@@ -98,7 +99,7 @@ export default function Clean(props: Props) {
 
   if (suggestionsFor !== props.suggestedRejections) {
     setSuggestionsFor(props.suggestedRejections);
-    setSuggestedAt(requestedAt);
+    setSuggestedFor(requestedFor);
     const listed = new Set(props.suggestedRejections.map((s) => s.index));
     const lapsed = [...fromSuggestion].filter((index) => !listed.has(index));
     if (lapsed.length > 0) {
@@ -291,7 +292,7 @@ export default function Clean(props: Props) {
         ...s,
         accepted: fromSuggestion.has(s.index),
       }))}
-      suggestedAt={suggestedAt}
+      suggestedFor={suggestedFor}
       onAcceptSuggestion={(index) => {
         edited();
         setRejected((prev) => new Set(prev).add(index));
@@ -303,8 +304,12 @@ export default function Clean(props: Props) {
         setFromSuggestion(without([index]));
       }}
       onSuggest={() => {
-        setRequestedAt(autoFlagThreshold);
-        props.PyodideActions.GetSuggestedRejections(autoFlagThreshold);
+        const request = {
+          threshold: autoFlagThreshold,
+          badChannels: [...badChannels],
+        };
+        setRequestedFor(request);
+        props.PyodideActions.GetSuggestedRejections(request);
       }}
       saveState={saveState}
       onApply={handleApply}

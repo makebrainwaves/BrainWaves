@@ -155,10 +155,11 @@ export const requestEpochArrays = (
 export const requestSuggestRejections = (
   worker: Worker,
   variableName: string,
-  thresholdUv: number
+  thresholdUv: number,
+  badChannels: string[]
 ) => {
   worker.postMessage({
-    data: `suggest_rejections(${variableName}, ${thresholdUv})`,
+    data: `suggest_rejections(${variableName}, ${thresholdUv}, ${JSON.stringify(badChannels)})`,
     dataKey: 'suggestedRejections',
   });
 };

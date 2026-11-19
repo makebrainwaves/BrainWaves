@@ -19,10 +19,16 @@ export interface EpochInfoRow {
 }
 
 // Auto-flag: a single artifact suggestion returned by Python's
-// suggest_rejections(epochs, threshold_uv) — one epoch/channel over threshold.
+// suggest_rejections(epochs, threshold_uv, bad_channels) — one epoch/channel over threshold.
 export interface SuggestedRejection {
   index: number;
   reason: string;
+}
+
+/** What one suggestion list is computed for: a µV threshold, skipping the sensors flagged at the time. */
+export interface SuggestRequest {
+  threshold: number;
+  badChannels: string[];
 }
 
 // Outcome of writing the cleaned .fif to the workspace. The write is the last
@@ -83,9 +89,10 @@ export const PyodideActions = {
   SetERPPlot: createAction<any, 'SET_ERP_PLOT'>('SET_ERP_PLOT'), // Pyodide WASM runtime result — shape is dynamic
 
   SetWorkerReady: createAction('SET_WORKER_READY'),
-  GetSuggestedRejections: createAction<number, 'GET_SUGGESTED_REJECTIONS'>(
+  GetSuggestedRejections: createAction<
+    SuggestRequest,
     'GET_SUGGESTED_REJECTIONS'
-  ),
+  >('GET_SUGGESTED_REJECTIONS'),
   SetSuggestedRejections: createAction<
     SuggestedRejection[],
     'SET_SUGGESTED_REJECTIONS'

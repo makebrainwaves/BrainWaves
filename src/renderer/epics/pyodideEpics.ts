@@ -328,11 +328,12 @@ const getSuggestedRejectionsEpic: Epic<
   action$.pipe(
     filter(isActionOf(PyodideActions.GetSuggestedRejections)),
     pluck('payload'),
-    tap((threshold) =>
+    tap(({ threshold, badChannels }) =>
       requestSuggestRejections(
         state$.value.pyodide.worker!,
         PYODIDE_VARIABLE_NAMES.RAW_EPOCHS,
-        threshold
+        threshold,
+        badChannels
       )
     ),
     mergeMap(() => EMPTY)
