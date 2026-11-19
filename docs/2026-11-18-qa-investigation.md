@@ -10,6 +10,22 @@ Method:
 - The Clean component and reducer were run under jsdom, and Analyze was driven in the dev app over CDP.
 - Statements that were inferred rather than observed are marked **[inference]**.
 
+## Status (2026-11-19, shipped in 1.2.1)
+
+Every item below is fixed except the hardware calibration in item 1:
+
+| Item | PR |
+|---|---|
+| 1. Muse samples timed by packet arrival; late markers are logged | #323 |
+| 1. Remaining fixed Bluetooth and screen delay (`MUSE_LATENCY_MS`) | **open**: needs a photodiode or flash-evoked calibration |
+| 2. Clean reviewer uses one shared scale tied to the auto-flag slider | #322 |
+| 3. Accepted suggestions are un-rejected when a re-run drops them | #320 |
+| 3. Auto-suggest ignores sensors flagged in the UI | #325 |
+| 4. Sessions combine with per-session bad sensors; failed loads show an error | #324 |
+| 4. Pre-stimulus baseline, seeded 95% band, sessions vs participants | #326 |
+| Practice trials send no markers | #319 |
+| Multitasking behavior fields (same bug as Stroop) | #321 |
+
 ## Summary
 
 | # | Concern | Verdict | Cause in one line |
@@ -288,13 +304,9 @@ Pooling also concatenates trials, so it is a trial-weighted average. austin's tw
     - In the dev app with the fixture headset, a Faces/Houses run with all 6 practice trials sent no markers during practice; the first marker landed on the first main trial.
   - Recordings made before the fix still contain their 6 practice markers. Analyze has no way to tell them apart from main-task markers, so those sessions keep them unless they are re-recorded.
 
-## Suggested order of work
+## Order of work (done)
 
-1. **Analyze stale-data bug plus bad-channel agreement (#4).** Students are currently shown wrong results with no error state.
-2. **Clean scaling (#2).** A small, contained change in `EpochReviewer.tsx`, and it decides which trials students keep.
-3. **Muse timestamping (#1).** Restamp by arrival time and log desync now; calibrate with a photodiode or flash run later. Re-check vinay-style latencies afterwards.
-4. **Auto-suggest provenance (#3)**, after deciding between un-rejecting and showing lapsed rows.
-5. **Small items:** pre-stimulus baseline, 95% band and seed, the participant count.
+Shipped in the order proposed: Analyze stale data (#324), Clean scaling (#322), Muse timestamping (#323), auto-suggest (#320, #325), the small Analyze items (#326), plus practice markers (#319) and Multi-tasking scoring (#321).
 
 ## Reproduction
 

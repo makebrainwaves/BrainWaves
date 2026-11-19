@@ -1,3 +1,28 @@
+# 1.2.1 (November 19, 2026) - Analysis and timing fixes
+
+Fixes from the November 18 QA review of real classroom recordings (#319–#326). Analyze could show results from the wrong recordings, EEG markers could land early in the data, and several Clean tools misled students about which trials were noisy.
+
+## Analyzing data
+
+- **Combining recordings works when sensors were flagged differently.** Selecting several cleaned recordings failed when one of them had a sensor flagged bad and another didn't. Analyze then kept showing the previous selection's results under the new participant list, with no error. Now a flagged sensor is left out only in the recording that flagged it; the others still contribute it. A sensor flagged in every selected recording is shown as excluded.
+- **A failed load shows an error** instead of leaving old plots on screen.
+- **ERPs are measured from the moment before the stimulus.** Each trace now starts at 0 µV before the image appears; before, it could start several µV off zero.
+- **The ERP's shaded band is a 95% confidence interval** and no longer changes when the same data is plotted again.
+- **"4 sessions from 3 participants"**: Overview counts each person once.
+- **Multi-tasking response times and accuracy are recorded.** They were never written, so Analyze → Behavior had nothing to plot for Multi-tasking. Recordings made before 1.2.1 are not fixed.
+
+## Recording
+
+- **Markers line up with the EEG on Muse.** Muse sample times were based on when the first Bluetooth packet arrived and then drifted with the headset's clock: about 4 ms per minute on one headset. As a result, stimulus markers landed 67 ms or more before the stimulus appeared, and every ERP looked that much later than it should. Samples are now timed from each packet's actual arrival. A small fixed delay from Bluetooth and the screen remains and still needs a one-time hardware calibration.
+- **Practice trials no longer send EEG markers**, so they are no longer averaged in as real trials. Recordings made before 1.2.1 still include them.
+
+## Cleaning data
+
+- **Trials are drawn on one shared scale.** Each trace used to be stretched to fill its row, so a quiet trial looked as busy as a noisy one, and blinks were drawn smaller than clean EEG. The scale now follows the auto-flag slider, and a "lane = 100 µV" label shows it: a trace that touches both edges of its row is over the threshold.
+- **Raising the auto-flag threshold updates your accepted suggestions.** Trials you accepted that the new list no longer suggests return to the kept trials. Trials you left out yourself are never changed, and are labelled "Left out by you".
+- **Auto-flag ignores sensors you have flagged**, even before you save.
+- **The suggestion list says when it is out of date**, after you move the slider or change a flagged sensor.
+
 # 1.2.0 (November 18, 2026) - Feasibility check, per-session cleaning, Stroop fixes
 
 Custom experiments now get a feasibility check between designing and building. Cleaning keeps one file per session, Stroop data can be analyzed, and several screens follow the November QA review. This release covers everything since 1.1.0 (#283, #290–#317).
