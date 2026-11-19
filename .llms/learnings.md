@@ -596,8 +596,8 @@ bundles rxjs 6, so its observables need `as unknown as` casts at the
 boundary; `zipSamples` groups readings by **timestamp**, so restamping
 before it must be constant within a packet; and it emits packet n only
 when n+1 arrives. A `createMarkerStamper` late-marker warning means the
-clocks disagree. The remaining fixed Bluetooth/display delay is not
-calibrated (needs a photodiode or flash-evoked run).
+clocks disagree. The remaining fixed Bluetooth and display lag is a
+hand-picked `MUSE_LATENCY_MS` (36.5 ms), not a measurement; see TODOS.md.
 
 ## Analyze pools sessions with NaN, not with info['bads']
 

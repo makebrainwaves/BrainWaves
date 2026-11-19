@@ -34,6 +34,17 @@ const CLOCK_BUCKET_PACKETS = 64;
 const CLOCK_WINDOW_BUCKETS = 5;
 
 /**
+ * Assumed lag between a marker and the stimulus reaching the eye, subtracted
+ * from sample times so markers land on the sample acquired as the image
+ * appeared. Uncalibrated (see TODOS.md, "Calibrate marker latency"):
+ * - 20 ms minimum Bluetooth and firmware delivery latency, the middle of the
+ *   usual 10–30 ms range, which packet arrival times cannot reveal;
+ * - 16.5 ms from lab.js `run` (when markers fire) to `show` (the image drawn),
+ *   measured on a 120 Hz display; panel response is not included.
+ * Chosen so a real run's Face dip at 215 ms lines up with the N170.
+ */
+export const MUSE_LATENCY_MS = 20 + 16.5;
+/**
  * Puts Muse samples on this computer's clock using packet arrival times.
  *
  * muse-js stamps the first packet's arrival and then counts samples, so its
@@ -47,10 +58,9 @@ const CLOCK_WINDOW_BUCKETS = 5;
  * sample of a packet is placed on that floor. In simulation (0–30 ms jitter)
  * it is within one sample a second after the stream (re)starts.
  *
- * Sample times are therefore acquisition time plus the *minimum* Bluetooth
- * and firmware latency, which is not measured: markers still land that much
- * early. Correcting it needs a photodiode or flash-evoked calibration
- * (a future MUSE_LATENCY_MS), not a guess.
+ * The floor is acquisition time plus the *minimum* Bluetooth and firmware
+ * latency, which this data cannot see; `MUSE_LATENCY_MS` subtracts an assumed
+ * value for it.
  */
 const createMuseClock = () => {
   let lastIndex: number | null = null;
@@ -89,7 +99,8 @@ const createMuseClock = () => {
       return headsetTime;
     },
     /** Headset time in ms → this computer's clock. */
-    toWallClock: (headsetTime: number) => headsetTime + offset,
+    toWallClock: (headsetTime: number) =>
+      headsetTime + offset - MUSE_LATENCY_MS,
   };
 };
 
