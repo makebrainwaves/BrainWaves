@@ -1,13 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EpochArraysMeta } from '../../actions';
+import { PTP_THRESHOLD } from '../../constants/constants';
 import { Button } from '../ui/button';
 import { cssColorForIndex } from '../../utils/eeg/conditionPalette';
 import { downsampleMinMax, epochChannelSeries } from './epochArrays';
 
 // Interactive epoch reviewer: epochs run across (x), channels stacked (y).
 // Click an epoch column to reject it; click a channel label to flag it bad
-// (its lane washes red across all epochs). Prev/Next paginate; each channel
-// lane autoscales. Canvas 2D for traces, a DOM overlay for labels/click targets.
+// (its lane washes red across all epochs). Prev/Next paginate. Every lane and
+// epoch shares one µV scale centred on 0, clamped to the lane, so a bigger
+// trace always draws taller. Canvas 2D for traces, a DOM overlay for
+// labels/click targets.
 
 interface Props {
   epochArrays: { buffer: ArrayBuffer; meta: EpochArraysMeta } | null;
@@ -24,6 +27,10 @@ interface Props {
   // A trial to page to and outline, e.g. a clicked auto-flag suggestion. A new
   // object re-focuses the same trial after the student paged away.
   focus?: { index: number } | null;
+  // Peak-to-peak µV one lane spans, shared by every lane and epoch: a trace
+  // touching both lane edges is at least this big. Defaults to the auto-flag
+  // threshold's default.
+  laneMicrovolts?: number;
 }
 
 // Logical canvas size (scaled up for devicePixelRatio at draw time).
@@ -50,6 +57,7 @@ export default function EpochReviewer({
   onToggleChannel,
   codeToLabel,
   focus,
+  laneMicrovolts = PTP_THRESHOLD.default,
 }: Props): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // First epoch of the current page (absolute index).
@@ -148,6 +156,8 @@ export default function EpochReviewer({
 
     // One bucket per device pixel, so the envelope is as sharp as the screen.
     const cols = Math.max(1, Math.floor(colWidth * dpr));
+    const pad = laneHeight * 0.1;
+    const scale = (laneHeight - 2 * pad) / laneMicrovolts;
 
     for (let c = 0; c < visibleCount; c += 1) {
       const absolute = clampedStart + c;
@@ -164,33 +174,10 @@ export default function EpochReviewer({
         const laneTop = ch * laneHeight;
         const laneCenter = laneTop + laneHeight / 2;
         const series = epochChannelSeries(buffer, meta, absolute, ch);
-
-        // Per-lane autoscaling centered on the trace's mean: the full
-        // [min, max] range fills the lane, i.e. deviation from
-        // the mean. y is clamped to the lane so magnified traces don't bleed
-        // into neighboring channels.
-        let min = Infinity;
-        let max = -Infinity;
-        let sum = 0;
-        for (let i = 0; i < series.length; i += 1) {
-          const v = series[i];
-          if (v < min) {
-            min = v;
-          }
-          if (v > max) {
-            max = v;
-          }
-          sum += v;
-        }
-        const mean = series.length > 0 ? sum / series.length : 0;
-        const pad = laneHeight * 0.1;
-        const usableHeight = laneHeight - 2 * pad;
-        const range = max - min || 1;
-        const scale = usableHeight / range;
         const laneLo = laneTop + pad;
         const laneHi = laneTop + laneHeight - pad;
         const toY = (v: number): number => {
-          const y = laneCenter - (v - mean) * scale;
+          const y = laneCenter - v * scale;
           return y < laneLo ? laneLo : y > laneHi ? laneHi : y;
         };
 
@@ -234,6 +221,7 @@ export default function EpochReviewer({
     badChannels,
     visibleCount,
     uniqueSortedCodes,
+    laneMicrovolts,
   ]);
 
   // Empty state — friendly, brand-styled, student-facing.
@@ -254,7 +242,12 @@ export default function EpochReviewer({
   return (
     <div className="text-left">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-brand">Trials</h4>
+        <div className="flex items-baseline gap-2">
+          <h4 className="text-brand">Trials</h4>
+          <span className="text-xs text-gray-500">
+            lane = {laneMicrovolts} µV
+          </span>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
