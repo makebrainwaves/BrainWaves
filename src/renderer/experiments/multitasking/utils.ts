@@ -116,8 +116,10 @@ export function initTasks(this: lab.flow.Loop<Record<string, unknown>>) {
   );
 }
 
+/** Emits the block's condition label. Training blocks emit no marker, so practice is never epoched as data. */
 export function triggerEEGCallback(this: lab.core.Component) {
-  this.parameters.callbackForEEG(this.parameters.cond);
+  if (this.parameters.task !== 'training')
+    this.parameters.callbackForEEG(this.parameters.cond);
   this.data.correct = 'empty';
 }
 

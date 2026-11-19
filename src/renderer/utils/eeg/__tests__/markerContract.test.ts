@@ -31,6 +31,17 @@ const emit = (
   return emitted!;
 };
 
+describe('practice trials', () => {
+  // Practice shares the main task's condition labels, so its markers were
+  // epoched as real Face/House trials (6 of 126 per Faces/Houses run).
+  it.each([
+    [emitFaceHouseCondition, { condition: 'Face', phase: 'practice' }],
+    [emitMultiCondition, { cond: 'Switching', task: 'training' }],
+  ])('emit no marker', (fn, parameters) => {
+    expect(emit(fn as (this: never) => void, parameters)).toBeUndefined();
+  });
+});
+
 describe('marker code contract per pack', () => {
   it.each([
     [
