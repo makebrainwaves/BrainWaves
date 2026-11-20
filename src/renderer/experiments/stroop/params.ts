@@ -15,14 +15,14 @@ export const params = {
   showProgressBar: false,
   stimuli: [
     {
-      title: 'Incongruent',
-      condition: 'Incongruent',
+      title: 'Mismatch',
+      condition: 'Mismatch',
       type: EVENTS.STIMULUS_1,
       response: '1',
     },
     {
-      title: 'Congruent',
-      condition: 'Congruent',
+      title: 'Match',
+      condition: 'Match',
       type: EVENTS.STIMULUS_2,
       response: '9',
     },

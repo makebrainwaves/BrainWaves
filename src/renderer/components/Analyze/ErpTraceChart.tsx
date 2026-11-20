@@ -11,6 +11,8 @@ interface Props {
   channel: string;
   codeToLabel: Record<number, string>;
   step: ErpChartStep;
+  /** What appeared at time 0, lower case: 'image' for Faces/Houses, 'trial' elsewhere. */
+  onset: string;
 }
 
 /** Dash pattern per condition index, so conditions differ by more than color. */
@@ -54,6 +56,7 @@ export default function ErpTraceChart({
   channel,
   codeToLabel,
   step,
+  onset,
 }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -165,7 +168,7 @@ export default function ErpTraceChart({
             showTrials
               ? `${lines.trials.length} single trials${step === 2 ? ' and their average' : ''}`
               : lines.conditions.map((c) => `${c.label} average`).join(' and ')
-          }, -100 to ${Math.round(t1 * 1000)} ms after the image`}
+          }, -100 to ${Math.round(t1 * 1000)} ms after the ${onset}`}
           className="absolute inset-0 font-sans"
         >
           {step === 4 && (
@@ -225,7 +228,7 @@ export default function ErpTraceChart({
             fontSize={13}
             fill={MUTED}
           >
-            Time after the image appears (ms)
+            Time after the {onset} appears (ms)
           </text>
           <line
             x1={x(0)}
@@ -236,7 +239,7 @@ export default function ErpTraceChart({
             strokeWidth={1}
           />
           <text x={x(0) + 6} y={M.top - 12} fontSize={12} fill={INK}>
-            Image appears
+            {onset[0].toUpperCase() + onset.slice(1)} appears
           </text>
 
           {showTrials && (

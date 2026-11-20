@@ -9,6 +9,7 @@ import { RootState } from '../store';
 function mapStateToProps(state: RootState) {
   return {
     title: state.experiment.title,
+    type: state.experiment.type,
     isEEGEnabled: state.experiment.isEEGEnabled,
     params: state.experiment.params,
     ...state.pyodide,

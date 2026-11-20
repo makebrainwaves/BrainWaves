@@ -255,7 +255,12 @@ const loadCleanedEpochsEpic: Epic<
     ),
     tap(({ memfsPaths, fsFiles }) => {
       const worker = state$.value.pyodide.worker!;
-      loadCleanedEpochs(worker, memfsPaths, fsFiles);
+      loadCleanedEpochs(
+        worker,
+        memfsPaths,
+        fsFiles,
+        resolveMarkerRegistry(state$.value.experiment.params).eventId
+      );
       requestEpochArrays(
         worker,
         PYODIDE_VARIABLE_NAMES.CLEAN_EPOCHS,

@@ -123,7 +123,7 @@ export default function AnalyzeOverview({
         {topoPlot && (
           <PlotFigure
             heading="ERPs across the scalp"
-            caption="The average response to each image type, drawn at every sensor’s place on the head."
+            caption="The average response to each condition, drawn at every sensor’s place on the head."
             workspaceTitle={workspaceTitle}
             imageTitle="topo"
             plot={topoPlot}

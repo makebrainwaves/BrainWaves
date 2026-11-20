@@ -2,12 +2,16 @@
  * Regression: every hook-emitted condition label must resolve to the marker
  * code that pack's params declare. Three hooks once hand-rolled `? 1 : 2`
  * ternaries that contradicted their own params — multitasking inverted
- * (Switching emitted 1, params declared 2) and search pointed at the wrong
+ * (Mixed rules emitted 1, params declared 2) and search pointed at the wrong
  * stimulus. Labels + this contract make that bug class unrepresentable.
  */
 import { describe, it, expect } from 'vitest';
-import { EVENTS } from '../../../constants/constants';
-import { resolveMarkerRegistry } from '../markerRegistry';
+import { EVENTS, EXPERIMENTS } from '../../../constants/constants';
+import {
+  RENAMED_CONDITIONS,
+  resolveMarkerRegistry,
+  withRenamedConditions,
+} from '../markerRegistry';
 import {
   triggerEEGCallback as emitFaceHouseCondition,
   emitStroopCondition,
@@ -36,7 +40,7 @@ describe('practice trials', () => {
   // epoched as real Face/House trials (6 of 126 per Faces/Houses run).
   it.each([
     [emitFaceHouseCondition, { condition: 'Face', phase: 'practice' }],
-    [emitMultiCondition, { cond: 'Switching', task: 'training' }],
+    [emitMultiCondition, { cond: 'Mixed rules', task: 'training' }],
   ])('emit no marker', (fn, parameters) => {
     expect(emit(fn as (this: never) => void, parameters)).toBeUndefined();
   });
@@ -53,10 +57,15 @@ describe('marker code contract per pack', () => {
     [emitStroopCondition, { congruent: 'no' }, stroopParams, EVENTS.STIMULUS_1],
     [emitSearchCondition, { size: '5' }, searchParams, EVENTS.STIMULUS_1],
     [emitSearchCondition, { size: '15' }, searchParams, EVENTS.STIMULUS_2],
-    [emitMultiCondition, { cond: 'Switching' }, multiParams, EVENTS.STIMULUS_2],
     [
       emitMultiCondition,
-      { cond: 'No switching' },
+      { cond: 'Mixed rules' },
+      multiParams,
+      EVENTS.STIMULUS_2,
+    ],
+    [
+      emitMultiCondition,
+      { cond: 'Single rule' },
       multiParams,
       EVENTS.STIMULUS_1,
     ],
@@ -82,5 +91,39 @@ describe('marker code contract per pack', () => {
         Object.keys(resolveMarkerRegistry(params).eventId).length
       ).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('workspaces saved before a condition rename', () => {
+  it.each([
+    [EXPERIMENTS.STROOP, stroopParams],
+    [EXPERIMENTS.MULTI, multiParams],
+  ])('%s reopens with the current labels on the same codes', (type, params) => {
+    const oldName = Object.fromEntries(
+      Object.entries(RENAMED_CONDITIONS[type]!).map(([old, now]) => [now, old])
+    );
+    const saved = {
+      ...params,
+      stimuli: params.stimuli.map((s) => ({
+        ...s,
+        title: oldName[s.title],
+        condition: oldName[s.condition],
+      })),
+    };
+    expect(resolveMarkerRegistry(saved).eventId).not.toEqual(
+      resolveMarkerRegistry(params).eventId
+    );
+
+    expect(
+      resolveMarkerRegistry(withRenamedConditions(type, saved)).eventId
+    ).toEqual(resolveMarkerRegistry(params).eventId);
+  });
+
+  it('leaves a Custom study named like an old built-in alone', () => {
+    const custom = {
+      ...stroopParams,
+      stimuli: [{ title: 'Congruent', type: EVENTS.STIMULUS_1 }],
+    };
+    expect(withRenamedConditions(EXPERIMENTS.CUSTOM, custom)).toBe(custom);
   });
 });

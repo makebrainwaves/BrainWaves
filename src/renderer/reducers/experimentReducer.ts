@@ -6,6 +6,7 @@ import {
   ExperimentObject,
   ExperimentParameters,
 } from '../constants/interfaces';
+import { withRenamedConditions } from '../utils/eeg/markerRegistry';
 
 export interface ExperimentStateType {
   // Type of experiment with readable string
@@ -147,6 +148,7 @@ export default createReducer(initialState, (builder) =>
     .addCase(ExperimentActions.SetState, (state, action) => ({
       ...state,
       ...action.payload,
+      params: withRenamedConditions(action.payload.type, action.payload.params),
       ...idleRun,
     }))
 

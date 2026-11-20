@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EpochArraysMeta, EpochInfoRow } from '../actions';
 import { ExperimentActions, PyodideActions } from '../actions';
 import { ExperimentParameters } from '../constants/interfaces';
+import { EXPERIMENTS } from '../constants/constants';
 import {
   readWorkspaceCleanedEEGData,
   readWorkspaceBehaviorData,
@@ -12,7 +13,10 @@ import {
   aggregateDataForPlot,
   aggregateBehaviorDataToSave,
 } from '../utils/behavior/compute';
-import { resolveMarkerRegistry } from '../utils/eeg/markerRegistry';
+import {
+  RENAMED_CONDITIONS,
+  resolveMarkerRegistry,
+} from '../utils/eeg/markerRegistry';
 import SecondaryNavComponent from './SecondaryNavComponent';
 import { AREA_ROUTES } from './AppShell/areas';
 import AnalyzeOverview from './Analyze/AnalyzeOverview';
@@ -39,6 +43,7 @@ type PlotMime = { [key: string]: string } | null | undefined;
 
 interface Props {
   title: string;
+  type: EXPERIMENTS;
   isEEGEnabled: boolean;
   params: ExperimentParameters | null;
   epochsInfo: EpochInfoRow[];
@@ -87,6 +92,8 @@ export default function Analyze(props: Props) {
     [props.params]
   );
 
+  const renamedConditions = RENAMED_CONDITIONS[props.type];
+
   const excludedChannels = useMemo(() => {
     const arrays = props.cleanedEpochArrays;
     if (!arrays) return [];
@@ -134,7 +141,8 @@ export default function Analyze(props: Props) {
         await readBehaviorData(selectedBehaviorFilePaths),
         dependentVariable,
         removeOutliers,
-        displayMode
+        displayMode,
+        renamedConditions
       );
       if (!cancelled) setBehaviorPlot(plot ?? null);
     })();
@@ -146,6 +154,7 @@ export default function Analyze(props: Props) {
     dependentVariable,
     removeOutliers,
     displayMode,
+    renamedConditions,
   ]);
 
   function handleDatasetChange(values: string[]) {
@@ -178,7 +187,8 @@ export default function Analyze(props: Props) {
     try {
       const aggregatedData = aggregateBehaviorDataToSave(
         await readBehaviorData(selectedBehaviorFilePaths),
-        removeOutliers
+        removeOutliers,
+        renamedConditions
       );
       if (!aggregatedData) {
         settle('error');
@@ -248,6 +258,7 @@ export default function Analyze(props: Props) {
             epochsInfo={hasSelection ? props.epochsInfo : []}
             epochArrays={props.cleanedEpochArrays}
             codeToLabel={codeToLabel}
+            experimentType={props.type}
             walkthroughStep={walkthroughStep}
             onChannelSelect={handleChannelSelect}
             onWalkthroughStepChange={setWalkthroughStep}

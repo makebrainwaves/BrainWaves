@@ -629,3 +629,18 @@ Same bug class as Stroop: `initTaskScreen` read `this.options.id`
 is an `end` hook on the Stimulus screen; training blocks are tagged
 `phase: 'practice'`. Any new lab.js experiment that writes analysis fields
 should follow this pattern (`this.id`, stimulus `end` hook).
+
+## Renaming a built-in condition: codes stay, old files are read through the registry
+
+Stroop's Congruent/Incongruent became Match/Mismatch and Multitasking's
+No switching/Switching became Single rule/Mixed rules, on unchanged codes.
+Three places still meet the old names, and each is handled once:
+saved workspaces (`params.stimuli`) are relabelled in the `SetState` reducer by
+`withRenamedConditions`, otherwise the new hooks emit labels the old registry
+cannot resolve and markers are dropped; behavior CSVs and aggregated exports go
+through `RENAMED_CONDITIONS[type]` in `behavior/compute.js`; cleaned `.fif`
+files need no table, because `load_clean_epochs` renames each file's codes from
+the current registry `eventId` (MNE refuses to concatenate one code under two
+names). The table is keyed by experiment type so a Custom study's own
+"Congruent" is never renamed. Any future rename is one table entry
+(`utils/eeg/markerRegistry.ts`).

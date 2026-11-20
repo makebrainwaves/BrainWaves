@@ -61,15 +61,15 @@ function Plot({
 const CAPTIONS: Record<DisplayMode, Record<DependentVariable, string>> = {
   errorbars: {
     'Response Time':
-      'Each bar is one participant’s average time for that image type. The thin line on top shows how precise that average is.',
+      'Each bar is one participant’s average time for that condition. The thin line on top shows how precise that average is.',
     Accuracy:
-      'Each bar is one participant’s percent correct for that image type. Taller means more correct answers.',
+      'Each bar is one participant’s percent correct for that condition. Taller means more correct answers.',
   },
   datapoints: {
     'Response Time':
       'Each dot is one correct trial. You can see how spread out the times are, and spot unusually fast or slow responses.',
     Accuracy:
-      'Each dot is one participant’s percent correct for that image type.',
+      'Each dot is one participant’s percent correct for that condition.',
   },
   whiskers: {
     'Response Time':

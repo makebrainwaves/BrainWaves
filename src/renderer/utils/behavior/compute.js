@@ -8,15 +8,23 @@ const isCorrectTrial = (value) =>
 
 const isResponseGiven = (value) => value === 'yes' || value === true;
 
-export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
+/**
+ * `renamed` maps condition names a file may still carry to their current names
+ * (`RENAMED_CONDITIONS[type]`), so older sessions pool with newer ones.
+ */
+export const aggregateBehaviorDataToSave = (
+  data,
+  removeOutliers,
+  renamed = {}
+) => {
   if (!Array.isArray(data) || data.length < 1) {
     return;
   }
   const processedData = data.map((result) => {
     if (path.basename(result.meta.datafile).includes('aggregated')) {
-      return transformAggregated(result);
+      return transformAggregated(result, renamed);
     }
-    return filterData(result, removeOutliers);
+    return filterData(result, removeOutliers, renamed);
   });
   const aggregatedData = processedData.map((e) => {
     const conditionsArray = e.map((row) => row.condition);
@@ -64,20 +72,22 @@ export const aggregateBehaviorDataToSave = (data, removeOutliers) => {
   return aggregatedData;
 };
 
+/** `renamed`: as in `aggregateBehaviorDataToSave`. */
 export const aggregateDataForPlot = (
   data,
   dependentVariable,
   removeOutliers,
-  displayMode
+  displayMode,
+  renamed = {}
 ) => {
   if (!Array.isArray(data) || data.length < 1) {
     return;
   }
   const processedData = data.map((result) => {
     if (path.basename(result.meta.datafile).includes('aggregated')) {
-      return transformAggregated(result);
+      return transformAggregated(result, renamed);
     }
-    return filterData(result, removeOutliers);
+    return filterData(result, removeOutliers, renamed);
   });
   const conditions = [
     ...new Set(processedData[0].map((row) => row.condition)),
@@ -102,7 +112,7 @@ export const aggregateDataForPlot = (
   }
 };
 
-const transformAggregated = (result) => {
+const transformAggregated = (result, renamed) => {
   const unsortedConditions = result.meta.fields
     .filter((field) => field.startsWith('RT_'))
     .map((c) => c.split('RT_')[1])
@@ -114,7 +124,7 @@ const transformAggregated = (result) => {
     result.data.map((e) => ({
       reaction_time: parseFloat(e[`RT_${condition}`]),
       subject: path.parse(result.meta.datafile).name,
-      condition,
+      condition: renamed[condition] ?? condition,
       group: e.group,
       session: e.session,
       accuracy: parseFloat(e[`Accuracy_${condition}`]),
@@ -152,12 +162,12 @@ const normalizeLegacyStroopRow = (row) => {
   };
 };
 
-const filterData = (data, removeOutliers) => {
+const filterData = (data, removeOutliers, renamed) => {
   let filteredData = data.data
     .map(normalizeLegacyStroopRow)
     .filter((row) => row.trial_number && row.phase !== 'practice')
     .map((row) => ({
-      condition: row.condition,
+      condition: renamed[row.condition] ?? row.condition,
       subject: path.parse(data.meta.datafile).name.split('-')[0],
       group: path.parse(data.meta.datafile).name.split('-')[1],
       session: path.parse(data.meta.datafile).name.split('-')[2],
