@@ -13,6 +13,13 @@ export const prepare: PrepareFixture = {
   background,
   protocol,
   icon,
+  compare: {
+    conditions: ['15 and 20 letters', '5 and 10 letters'],
+    measure: 'Response time: how long the search takes',
+    whereInAnalyze: 'Behavior tab: Response time',
+  },
+  teacherNote:
+    'Check the participant can tell orange from light blue. If you record EEG, ask them to keep their head and body still but let their eyes search the picture.',
   responses: [
     {
       key: 'b',

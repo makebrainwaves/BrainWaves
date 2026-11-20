@@ -1,11 +1,7 @@
 export const overview = {
   title: `Visual Search Experiment`,
-  overview: `Imagine yourself looking for your keys in a messy room.
-  Visual search corresponds to looking for a specific object (e.g. keys)
-  surrounded by other objects (e.g. clothing and books). In the Visual
-  Search Task, you will explore how irrelevant objects affect how well you
-  can find the object you are looking for, and what this may tell us about
-  how your brain can find and focus on relevant information from all the
-  task-irrelevant information around us.`,
+  overview: `Imagine looking for your keys on a messy desk. The more stuff on the desk, the longer it takes, and if the keys aren't there at all, you can't stop until you've checked everything.
+
+In this experiment participants look for one orange T among other letters. You'll measure how search time changes as the number of letters grows from 5 to 20, and what happens when the orange T isn't there.`,
   links: [],
 };

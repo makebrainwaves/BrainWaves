@@ -1,7 +1,7 @@
 export const protocol = {
   title: `What participants are shown`,
-  protocol: `Participants see a stream of faces and houses, and answer with one of two keys.`,
-  recording: `We record EEG, which detects electrical activity in the brain. We will use this EEG to try to identify neural activity that is specifically located in the fusiform face area (FFA) when participants see faces. Houses provide a useful scientific "control", since they do not resemble faces — any brain activity that is stronger for faces than for houses is more likely to be about face recognition.`,
-  pacing: `This isn't a speed test. Take about 1–1.5 seconds per picture and answer carefully.`,
+  protocol: `Participants see faces and houses, one at a time, and press 1 for a face or 9 for a house.`,
+  recording: `EEG picks up tiny voltage changes on the scalp. Four sensors can't show where in the brain a signal starts, but they show when it happens, to the millisecond. Houses are the control: if faces give a different response, that points to face-sensitive processing. It doesn't prove a dedicated face area, because faces and houses also differ in shape, color and detail.`,
+  pacing: `This isn't a speed test. Answer as soon as you're sure.`,
   links: [],
 };

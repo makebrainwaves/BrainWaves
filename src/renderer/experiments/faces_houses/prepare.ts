@@ -13,7 +13,14 @@ export const prepare: PrepareFixture = {
   background,
   protocol,
   icon,
-  // Background embeds the Oliver Sacks YouTube clip via `video` in content_background.js.
+  compare: {
+    conditions: ['Face', 'House'],
+    measure:
+      'The brain response about 170 ms after each picture, at TP9 and TP10 (the sensors near the ears)',
+    whereInAnalyze: 'ERP tab, with TP9 or TP10 selected',
+  },
+  teacherNote:
+    'If you record EEG, ask the participant to keep their eyes on the picture and save blinks for the cross between pictures. Blinks show up as big spikes.',
   responses: [
     { key: '1', label: 'Face', stimulus: { src: face, alt: 'A face photo' } },
     {

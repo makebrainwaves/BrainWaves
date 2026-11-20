@@ -19,6 +19,13 @@ export const prepare: PrepareFixture = {
   background,
   protocol,
   icon,
+  compare: {
+    conditions: ['Mixed rules', 'Single rule'],
+    measure: 'Response time, and how often the answer is right',
+    whereInAnalyze: 'Behavior tab: Response time, then Accuracy',
+  },
+  teacherNote:
+    'Ask the participant to rest one finger on B and one on N: the keys are side by side, so slips are easy. Each trial times out after 5 seconds, and a wrong key brings a 3-second pause.',
   responses: [
     {
       key: 'b',

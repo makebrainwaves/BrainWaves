@@ -136,13 +136,13 @@ export const Overview: Story = {
   render: () => <InteractiveStep initialStep="overview" />,
 };
 
-/** P02 — Background. Centered lesson column with Back and Next: Protocol; Stroop's video link (Faces/Houses uses the Sacks stand-in, P10). */
+/** P02 — Background. Idea, finding, discussion question, labelled Aside, then named sources (Stroop). */
 export const Background: Story = {
   parameters: { workspace: stroopWorkspace },
   render: () => <InteractiveStep initialStep="background" fixture={STROOP} />,
 };
 
-/** P03 — Protocol. Static stimulus → key diagram beside a vertical task timeline generated from `flow`. */
+/** P03 — Protocol. Stimulus → key diagram beside a task timeline, then the compare-and-measure card, EEG card and teacher note. */
 export const Protocol: Story = {
   render: () => <InteractiveStep initialStep="protocol" />,
 };
@@ -296,7 +296,7 @@ export const EEGOff: Story = {
   ),
 };
 
-/** P10 — Faces/Houses Background: FFA definition with brain image, plus the embedded Oliver Sacks YouTube clip. */
+/** P10 — Faces/Houses Background: N170 finding with the FFA image, the discussion question, Aside, the Oliver Sacks clip and sources. */
 export const FacesHousesBackground: Story = {
   render: () => (
     <PrepareSteps

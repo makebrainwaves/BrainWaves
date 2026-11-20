@@ -11,6 +11,13 @@ export const prepare: PrepareFixture = {
   background,
   protocol,
   icon,
+  compare: {
+    conditions: ['Mismatch', 'Match'],
+    measure: 'Response time, and how often the answer is right',
+    whereInAnalyze: 'Behavior tab: Response time, then Accuracy',
+  },
+  teacherNote:
+    'Check the participant can tell red, green, blue and yellow apart before you start. If you record EEG, ask them to save blinks for the gap between words.',
   responses: [
     { key: 'r', label: 'Red ink', stimulus: { word: 'green', color: 'red' } },
     {
