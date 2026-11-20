@@ -39,18 +39,24 @@ export interface InstructionsScreenParams {
   rules: ResponseRule[];
   /** Speed/accuracy guidance from the experiment's own protocol. Omit if it has none. */
   pacing?: string;
+  /** What to expect: trial counts, rough length, feedback, time limits, pauses. */
+  expect?: string;
+  /** The one-line rule, see X → press Y, e.g. Face → 1, House → 9; the transition screen shows it in place of the key list. */
+  decisionRule?: { see: string; key: string }[];
+  /** Task-specific EEG guidance that replaces `STILLNESS_LINE`. A lab.js template string literal: no `'` or `}`. */
+  eyes?: string;
   /** What Space does, completing "Press Space to …". Defaults to "start practice". */
   start?: string;
   /** Show the quiet `Q` skip-practice hint. */
   canSkipPractice?: boolean;
 }
 
-export interface TransitionScreenParams {
-  rules: ResponseRule[];
-  pacing?: string;
-}
+export type TransitionScreenParams = Pick<
+  InstructionsScreenParams,
+  'rules' | 'pacing' | 'decisionRule' | 'eyes'
+>;
 
-/** The only shared EEG guidance (plan §7.4); shown when `parameters.isEEGEnabled` is truthy. */
+/** The default EEG guidance; shown when `parameters.isEEGEnabled` is truthy and the task gives no `eyes`. */
 export const STILLNESS_LINE =
   'Remain still and avoid talking while trials are running.';
 
@@ -88,11 +94,12 @@ const responseRules = (rules: ResponseRule[]) =>
     )
     .join('')}</div>`;
 
-/** Pacing line (static) plus the stillness line, evaluated by lab.js at runtime. */
-const notes = (pacing?: string) =>
-  `<ul class="bw-participant-notes">${
-    pacing ? `<li>${pacing}</li>` : ''
-  }\${this.parameters.isEEGEnabled ? '<li>${STILLNESS_LINE}</li>' : ''}</ul>`;
+/** Static lines, then the EEG line (`eyes` or the stillness line), evaluated by lab.js at runtime. */
+const notes = (lines: (string | undefined)[], eyes = STILLNESS_LINE) =>
+  `<ul class="bw-participant-notes">${lines
+    .filter(Boolean)
+    .map((line) => `<li>${line}</li>`)
+    .join('')}\${this.parameters.isEEGEnabled ? '<li>${eyes}</li>' : ''}</ul>`;
 
 /** `phase` is a supplemental tag centered at the top of the screen, outside the centered content. */
 const screen = (main: string, footer: string, phase = '') =>
@@ -106,14 +113,17 @@ const pressSpace = (action: string) =>
 
 /**
  * Shown before practice: a top chalkboard "Practice first" tag, title, summary,
- * optional example, key mapping, pacing, Space to start, Q to skip.
+ * optional example, key mapping, what to expect, pacing, EEG guidance, Space to
+ * start, Q to skip.
  */
 export function instructionsScreen({
   title,
   summary,
   example,
   rules,
+  expect,
   pacing,
+  eyes,
   start = 'start practice',
   canSkipPractice = false,
 }: InstructionsScreenParams): string {
@@ -122,7 +132,7 @@ export function instructionsScreen({
 <div class="bw-participant-summary">${summary}</div>
 ${example ?? ''}
 ${responseRules(rules)}
-${notes(pacing)}`,
+${notes([expect, pacing], eyes)}`,
     `${pressSpace(start)}${
       canSkipPractice
         ? `<div class="bw-participant-skip">Press ${keycap(
@@ -136,18 +146,28 @@ ${notes(pacing)}`,
 
 /**
  * Between practice and the real trials: a top "Data collection" tag with
- * the RunBar's red dot, the same mapping again, then Space to begin. It never
- * says "recording": EEG records practice too, and the RunBar owns that word.
+ * the RunBar's red dot, the decision rule (or the key mapping) again, then
+ * Space to begin. It never says "recording": EEG records practice too, and
+ * the RunBar owns that word.
  */
 export function transitionScreen({
   rules,
   pacing,
+  decisionRule,
+  eyes,
 }: TransitionScreenParams): string {
   return screen(
     `<h1>The real trials start now</h1>
-<div class="bw-participant-summary">Same keys as in practice:</div>
-${responseRules(rules)}
-${notes(pacing)}`,
+${
+  decisionRule
+    ? `<div class="bw-participant-summary">Same rule as in practice:</div>
+<div class="bw-participant-decision">${decisionRule
+        .map(({ see, key }) => `<span>${see} → ${keycap(key)}</span>`)
+        .join('')}</div>`
+    : `<div class="bw-participant-summary">Same keys as in practice:</div>
+${responseRules(rules)}`
+}
+${notes([pacing], eyes)}`,
     pressSpace('begin'),
     '<div class="bw-participant-phase bw-participant-data"><span aria-hidden="true"></span>Data collection</div>'
   );

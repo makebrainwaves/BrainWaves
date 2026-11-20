@@ -13,12 +13,17 @@ export const instructions: InstructionsScreenParams = {
     {
       stimulus: '<span style="color: red">green</span>',
       label: 'Red ink',
-      detail: `The ink is red. Press ${keycap('r')}`,
+      detail: `Mismatch. Press ${keycap('r')}`,
     },
     {
       stimulus: '<span style="color: blue">yellow</span>',
       label: 'Blue ink',
-      detail: `The ink is blue. Press ${keycap('b')}`,
+      detail: `Mismatch. Press ${keycap('b')}`,
+    },
+    {
+      stimulus: '<span style="color: green">green</span>',
+      label: 'Green ink',
+      detail: `Match. Still just press ${keycap('g')}`,
     },
   ]),
   rules: [
@@ -31,6 +36,22 @@ export const instructions: InstructionsScreenParams = {
       ],
     },
   ],
+  decisionRule: [
+    { see: 'Red ink', key: 'r' },
+    { see: 'Green ink', key: 'g' },
+    { see: 'Blue ink', key: 'b' },
+    { see: 'Yellow ink', key: 'y' },
+  ],
+  expect:
+    '8 practice words that tell you if you were right, then 96 more without feedback. About 3 minutes in all.',
   pacing: 'Answer quickly, and as accurately as you can.',
+  eyes: 'Keep your eyes on the middle of the screen. Blink just after you answer, not while a word is showing.',
   canSkipPractice: true,
 };
+
+/**
+ * Practice feedback (a lab.js template on the Inter-trial interval canvas):
+ * praise, or the ink color and its key. Yellow ink is drawn as `#ffe32a`.
+ */
+export const practiceFeedback =
+  "${ state.correct ? 'Well done!' : 'The ink was ' + (parameters.color === '#ffe32a' ? 'yellow' : parameters.color) + ' — press ' + (parameters.color === '#ffe32a' ? 'Y' : parameters.color.charAt(0).toUpperCase()) }";

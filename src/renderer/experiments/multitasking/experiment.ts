@@ -8,7 +8,7 @@ import {
   triggerEEGCallback,
 } from './utils';
 import { endScreen, instructionsScreen } from '../shared/participantScreens';
-import { instructions } from './screens';
+import { instructions, ruleFooter, ruleLines } from './screens';
 
 const assetsDirectory = path.join(
   RESOURCE_PATH,
@@ -87,13 +87,149 @@ export const multitaskingExperimentObject = {
             'before:prepare': initMultitaskingResponseHandlers,
           },
           title: 'Instructions',
-          content:
-            '\u003Cmain\u003E\n\n\u003Cdiv class="instruction" id=\'screen_1\' style="display:block"\u003E\n  \u003Cp\u003E\n    In the following, you will respond to various figures. These are the figures that you will see: diamonds and rectangles with a filling of 2 or 3 dots:\n  \u003C\u002Fp\u003E\n  \u003Ctable\u003E\n      \u003Cthead\u003E\n      \u003Ctr\u003E\n          \u003Cth\u003EDiamond with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003EDiamond with filling of 2 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 3 dots\u003C\u002Fth\u003E\n          \u003Cth\u003ERectangle with filling of 2 dots\u003C\u002Fth\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Fthead\u003E\n      \u003Ctbody\u003E\n      \u003Ctr\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'diamond_3.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'diamond_2.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'rectangle_3.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n          \u003Ctd\u003E\u003Cimg src=${this.files[\'rectangle_2.png\']} style="width:100px"\u003E\u003C\u002Ftd\u003E\n      \u003C\u002Ftr\u003E\n      \u003C\u002Ftbody\u003E\n  \u003C\u002Ftable\u003E\n  \u003Cp\u003E\n    Use the right arrow key to move to the next instruction.\n  \u003C\u002Fp\u003E\n\n  \u003Cp\u003E\n    If you want to skip the instruction with practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_2\' style="display:none"\u003E\n\n  \u003Cp\u003E\n    You will be shown these figures in sequences of trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Each time you will need to respond with a button press.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    How exactly will be explained in the next screens.\n  \u003C\u002Fp\u003E\n\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_3\' style="display:none"\u003E\n  \u003Cp\u003E\n    In the shape task, a diamond requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, a rectangle requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In this task, ignore the filling (dots) of the shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'shape.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_4\' style="display:none"\u003E\n  \u003Cp\u003E\n    In the filling task, a filling of two dots requires a b button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, a filling with three dots requires a n button press. \n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, ignore the outer shape!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'filling.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_5\' style="display:none"\u003E\n  \u003Cp\u003E\n    Example 1. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a diamond, which requires a button press of the keyboard key \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling dots!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_1.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_6\' style="display:none" style="width:400px"\u003E\n  \u003Cp\u003E\n    Example 2. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 3 dots, and thus press the keyboard key \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_2.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_7\' style="display:none"\u003E\n  \u003Cimg src=${this.files[\'example_3.png\']} style="width:400px"\u003E\n  \u003Cp\u003E\n    Example 3. If you see a figure in the upper part of the frame, you know you need to do the shape task, that is easy, because the word shape is at the top. Here you see a rectangle, which requires the \u003Cstrong\u003E\u003Cem\u003En\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the shape task, entirely ignore the filling (here 2 dots)!!!\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_8\' style="display:none"\u003E\n  \u003Cp\u003E\n    Example 4. If you see a figure in the lower part of the frame, you know you need to do the filling task, that is easy, because the word filling is at the bottom. This diamond is filled with 2 dots, and thus press \u003Cstrong\u003E\u003Cem\u003Eb\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E key.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    In the filling task, entirely ignore the outer shape (here a diamond)!!!\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'example_4.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\n\u003Cdiv class="instruction" id=\'screen_9\' style="display:none"\u003E\n  \u003Cp\u003E\n    Here, you can see how to respond in all conditions...\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Just look at shape in the shape task, and at the dots in the filling task...\n  \u003C\u002Fp\u003E\n  \u003Cimg src=${this.files[\'all_conditions.png\']} style="width:400px"\u003E\n\u003C\u002Fdiv\u003E\n\n\u003Cdiv class="instruction" id=\'screen_10\' style="display:none"\u003E\n  \u003Cp\u003E\n    Are you ready? Press the space bar on your keyboard to quit the instructions and start doing the practice trials.\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    Or you can browse back to the previous screens until you understand what you need to do in the two tasks (use the arrow keys).\n  \u003C\u002Fp\u003E\n  \u003Cp\u003E\n    If you want to skip practice trials and go directly to the task, press the "q" button on your keyboard.\n  \u003C\u002Fp\u003E\n\u003C\u002Fdiv\u003E\n\n\u003C\u002Fmain\u003E\n\n\n\u003Cfooter\u003E\n  \u003Cp\u003E\n    Use left\u002Fright arrow keys to go further or back.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E',
+          content: `<main>
+
+<div class="instruction" id='screen_1' style="display:block">
+  <p>
+    In this task you will see diamonds and rectangles with 2 or 3 dots inside:
+  </p>
+  <table>
+      <thead>
+      <tr>
+          <th>Diamond with 3 dots</th>
+          <th>Diamond with 2 dots</th>
+          <th>Rectangle with 3 dots</th>
+          <th>Rectangle with 2 dots</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+          <td><img src=\${this.files['diamond_3.png']} style="width:100px"></td>
+          <td><img src=\${this.files['diamond_2.png']} style="width:100px"></td>
+          <td><img src=\${this.files['rectangle_3.png']} style="width:100px"></td>
+          <td><img src=\${this.files['rectangle_2.png']} style="width:100px"></td>
+      </tr>
+      </tbody>
+  </table>
+  <p>
+    Use the right arrow key to move to the next instruction.
+  </p>
+
+  <p>
+    If you want to skip the instruction with practice trials and go directly to the task, press the "q" button on your keyboard.
+  </p>
+
+</div>
+
+<div class="instruction" id='screen_2' style="display:none">
+
+  <p>
+    You will see these figures one at a time, inside a frame.
+  </p>
+  <p>
+    Each time, answer with one key press: <strong>b</strong> or <strong>n</strong>.
+  </p>
+  <p>
+    The next screens show which key to press.
+  </p>
+
+</div>
+
+<div class="instruction" id='screen_3' style="display:none">
+  <p>
+    Shape rule, for figures at the top: a diamond means press <strong>b</strong>, a rectangle means press <strong>n</strong>.
+  </p>
+  <p>
+    Ignore the dots.
+  </p>
+  <img src=\${this.files['shape.png']} style="width:400px">
+</div>
+
+<div class="instruction" id='screen_4' style="display:none">
+  <p>
+    Dots rule, for figures at the bottom: 2 dots means press <strong>b</strong>, 3 dots means press <strong>n</strong>.
+  </p>
+  <p>
+    Ignore the outer shape.
+  </p>
+  <img src=\${this.files['filling.png']} style="width:400px">
+</div>
+
+<div class="instruction" id='screen_5' style="display:none">
+  <p>
+    Example 1. The figure is in the top half of the frame, so use the shape rule. It is a diamond, so press <strong>b</strong>.
+  </p>
+  <p>
+    With the shape rule, ignore the dots.
+  </p>
+  <img src=\${this.files['example_1.png']} style="width:400px">
+</div>
+
+<div class="instruction" id='screen_6' style="display:none">
+  <p>
+    Example 2. The figure is in the bottom half of the frame, so use the dots rule. It has 3 dots, so press <strong>n</strong>.
+  </p>
+  <p>
+    With the dots rule, ignore the shape (here a diamond).
+  </p>
+  <img src=\${this.files['example_2.png']} style="width:400px">
+</div>
+
+<div class="instruction" id='screen_7' style="display:none">
+  <img src=\${this.files['example_3.png']} style="width:400px">
+  <p>
+    Example 3. The figure is in the top half of the frame, so use the shape rule. It is a rectangle, so press <strong>n</strong>.
+  </p>
+  <p>
+    With the shape rule, ignore the dots (here 2 dots).
+  </p>
+</div>
+
+<div class="instruction" id='screen_8' style="display:none">
+  <p>
+    Example 4. The figure is in the bottom half of the frame, so use the dots rule. It has 2 dots, so press <strong>b</strong>.
+  </p>
+  <p>
+    With the dots rule, ignore the shape (here a diamond).
+  </p>
+  <img src=\${this.files['example_4.png']} style="width:400px">
+</div>
+
+
+<div class="instruction" id='screen_9' style="display:none">
+  <p>
+    Here are all the answers at once.
+  </p>
+  <p>
+    Top: look only at the shape. Bottom: look only at the dots.
+  </p>
+  <img src=\${this.files['all_conditions.png']} style="width:400px">
+</div>
+
+<div class="instruction" id='screen_10' style="display:none">
+  <p>
+    Ready? Press the space bar to start the practice trials.
+  </p>
+  <p>
+    Or use the arrow keys to go back through the screens until you know what to do for each rule.
+  </p>
+  <p>
+    If you want to skip practice trials and go directly to the task, press the "q" button on your keyboard.
+  </p>
+</div>
+
+</main>
+
+
+<footer>
+  <p>
+    Use left/right arrow keys to go further or back.
+  </p>
+</footer>`,
         },
         {
           type: 'lab.canvas.Frame',
-          context:
-            '\u003Cmain class="content-vertical-center content-horizontal-center"\u003E\n  \u003Ccanvas \u002F\u003E\n\u003C\u002Fmain\u003E\n\n\u003Cfooter class="content-vertical-center content-horizontal-center"\u003E\n  \u003Cp\u003E\n    Please press \u003Ckbd\u003Eb\u003C\u002Fkbd\u003E or \n    \u003Ckbd\u003En\u003C\u002Fkbd\u003E according to the current condition.\n  \u003C\u002Fp\u003E\n\u003C\u002Ffooter\u003E\n',
+          context: `<main class="content-vertical-center content-horizontal-center">\n  <canvas />\n</main>\n\n${ruleFooter}`,
           contextSelector: 'canvas',
           files: {},
           parameters: {},
@@ -244,7 +380,7 @@ export const multitaskingExperimentObject = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text: "${parameters.task === 'training' ? 'for some training?' : 'for the real data collection?'}",
+                      text: "${parameters.task === 'training' ? 'for some practice?' : 'for the real trials?'}",
                       fontSize: 32,
                       fontWeight: 'normal',
                       fontFamily: 'sans-serif',
@@ -322,486 +458,49 @@ export const multitaskingExperimentObject = {
                   content: [
                     {
                       type: 'i-text',
-                      version: '2.7.0',
-                      originX: 'left',
-                      originY: 'center',
-                      left: "${this.parameters.block === 'mixed' ? 1000 : -120}",
-                      top: -64,
-                      width: 372.81,
-                      height: 78.11,
+                      left: 0,
+                      top: -160,
                       fill: 'black',
-                      stroke: null,
-                      strokeWidth: 1,
-                      strokeDashArray: null,
-                      strokeLineCap: 'butt',
-                      strokeDashOffset: 0,
-                      strokeLineJoin: 'round',
-                      strokeMiterLimit: 4,
-                      scaleX: 1,
-                      scaleY: 1,
-                      angle: 0,
-                      flipX: false,
-                      flipY: false,
-                      opacity: 1,
-                      shadow: null,
-                      visible: true,
-                      clipTo: null,
-                      backgroundColor: '',
-                      fillRule: 'nonzero',
-                      paintFirst: 'fill',
-                      globalCompositeOperation: 'source-over',
-                      transformMatrix: null,
-                      skewX: 0,
-                      skewY: 0,
-                      text: 'A block of just \nthe ${parameters.block} task',
-                      fontSize: 32,
-                      fontWeight: 'normal',
+                      text: "${parameters.block === 'mixed' ? 'Mixed block: both rules' : parameters.block === 'shape' ? 'Shape block: the shape rule only' : 'Dots block: the dots rule only'}",
+                      fontSize: 34,
+                      fontWeight: 'bold',
                       fontFamily: 'sans-serif',
-                      fontStyle: 'normal',
-                      lineHeight: 1.16,
-                      underline: false,
-                      overline: false,
-                      linethrough: false,
-                      textAlign: 'left',
-                      textBackgroundColor: '',
-                      charSpacing: 0,
-                      id: '298',
-                      styles: {
-                        '1': {
-                          '4': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '5': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '6': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '7': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '8': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '9': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '10': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '11': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '12': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '13': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '14': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '15': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '16': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '17': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '18': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '19': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '20': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '21': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '22': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '23': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '24': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '25': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '26': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                          '27': {
-                            stroke: null,
-                            strokeWidth: 1,
-                            fill: 'black',
-                            fontFamily: 'Times New Roman',
-                            fontSize: 32,
-                            fontWeight: 'normal',
-                            fontStyle: 'normal',
-                            underline: false,
-                            overline: false,
-                            linethrough: false,
-                            deltaY: 0,
-                            textBackgroundColor: '',
-                          },
-                        },
-                      },
                     },
                     {
                       type: 'i-text',
-                      version: '2.7.0',
-                      originX: 'left',
-                      originY: 'center',
-                      left: -125,
-                      top: 75,
-                      width: 293.18,
-                      height: 126.56,
+                      left: 0,
+                      top: -110,
                       fill: 'black',
-                      stroke: null,
-                      strokeWidth: 1,
-                      strokeDashArray: null,
-                      strokeLineCap: 'butt',
-                      strokeDashOffset: 0,
-                      strokeLineJoin: 'round',
-                      strokeMiterLimit: 4,
-                      scaleX: 1,
-                      scaleY: 1,
-                      angle: 0,
-                      flipX: false,
-                      flipY: false,
-                      opacity: 1,
-                      shadow: null,
-                      visible: true,
-                      clipTo: null,
-                      backgroundColor: '',
-                      fillRule: 'nonzero',
-                      paintFirst: 'fill',
-                      globalCompositeOperation: 'source-over',
-                      transformMatrix: null,
-                      skewX: 0,
-                      skewY: 0,
-                      text: 'Try to be as fast as you\ncan without making errors!\nPress space bar when\nyou are ready!',
-                      fontSize: '25',
-                      fontWeight: 'normal',
+                      text: "${parameters.task === 'training' ? 'Practice' : 'Real trials'}: ${parameters.num_trials} trials",
+                      fontSize: 24,
                       fontFamily: 'sans-serif',
-                      fontStyle: 'normal',
-                      lineHeight: 1.16,
-                      underline: false,
-                      overline: false,
-                      linethrough: false,
-                      textAlign: 'left',
-                      textBackgroundColor: '',
-                      charSpacing: 0,
-                      id: '300',
-                      styles: {},
                     },
                     {
                       type: 'i-text',
-                      version: '2.7.0',
-                      originX: 'left',
-                      originY: 'center',
-                      left: "${this.parameters.block === 'mixed' ? -120 : 1000}",
-                      top: -75,
-                      width: 247.08,
-                      height: 120.05,
+                      left: 0,
+                      top: -20,
                       fill: 'black',
-                      stroke: null,
-                      strokeWidth: 1,
-                      strokeDashArray: null,
-                      strokeLineCap: 'butt',
-                      strokeDashOffset: 0,
-                      strokeLineJoin: 'round',
-                      strokeMiterLimit: 4,
-                      scaleX: 1,
-                      scaleY: 1,
-                      angle: 0,
-                      flipX: false,
-                      flipY: false,
-                      opacity: 1,
-                      shadow: null,
-                      visible: true,
-                      clipTo: null,
-                      backgroundColor: '',
-                      fillRule: 'nonzero',
-                      paintFirst: 'fill',
-                      globalCompositeOperation: 'source-over',
-                      transformMatrix: null,
-                      skewX: 0,
-                      skewY: 0,
-                      text: 'A block with a mix\nof the shape & \nthe filling task',
-                      fontSize: 32,
-                      fontWeight: 'normal',
+                      text: ruleLines.join('\n'),
+                      fontSize: 26,
                       fontFamily: 'sans-serif',
-                      fontStyle: 'normal',
-                      lineHeight: 1.16,
-                      underline: false,
-                      overline: false,
-                      linethrough: false,
-                      textAlign: 'left',
-                      textBackgroundColor: '',
-                      charSpacing: 0,
-                      id: '397',
-                      styles: {},
+                    },
+                    {
+                      type: 'i-text',
+                      left: 0,
+                      top: 80,
+                      fill: 'black',
+                      text: "${parameters.block === 'mixed' ? 'The position can change from trial to trial.' : parameters.block === 'shape' ? 'Every shape appears at the top.' : 'Every shape appears at the bottom.'}",
+                      fontSize: 24,
+                      fontFamily: 'sans-serif',
+                    },
+                    {
+                      type: 'i-text',
+                      left: 0,
+                      top: 160,
+                      fill: 'black',
+                      text: 'As fast as you can without mistakes.\nPress the space bar when you are ready.',
+                      fontSize: 22,
+                      fontFamily: 'sans-serif',
                     },
                   ],
                   files: {},
@@ -1538,7 +1237,7 @@ export const multitaskingExperimentObject = {
                             transformMatrix: null,
                             skewX: 0,
                             skewY: 0,
-                            text: 'Filling',
+                            text: 'Dots',
                             fontSize: 32,
                             fontWeight: 'normal',
                             fontFamily: 'sans-serif',
@@ -1825,7 +1524,7 @@ export const multitaskingExperimentObject = {
                             transformMatrix: null,
                             skewX: 0,
                             skewY: 0,
-                            text: 'Filling',
+                            text: 'Dots',
                             fontSize: 32,
                             fontWeight: 'normal',
                             fontFamily: 'sans-serif',
@@ -2010,7 +1709,7 @@ export const multitaskingExperimentObject = {
                             transformMatrix: null,
                             skewX: 0,
                             skewY: 0,
-                            text: 'Filling',
+                            text: 'Dots',
                             fontSize: 32,
                             fontWeight: 'normal',
                             fontFamily: 'sans-serif',

@@ -9,32 +9,13 @@ import { params as facesParams } from '../faces_houses/params';
 import { stroopExperiment } from '../stroop/experiment';
 import { searchExperimentObject } from '../search/experiment';
 import { multitaskingExperimentObject } from '../multitasking/experiment';
-import { acceptedKeys, findNode } from './studyTree';
+import { acceptedKeys, loopCount, loopRows } from './studyTree';
 
 vi.mock('lab.js', () => ({}));
 
 /** Keys shown in the protocol diagram. */
 const shownKeys = (p: { responses: { key: string }[] }) =>
   new Set(p.responses.map(({ key }) => key.toLowerCase()));
-
-/** Parameter rows a loop really runs: built by its `before:prepare` hook, or literal. */
-const loopRows = (study: unknown, title: string, parameters: object = {}) => {
-  const loop = findNode(study, title, (node) => 'template' in node);
-  const self = {
-    parameters,
-    options: { templateParameters: loop?.templateParameters ?? [] },
-  };
-  (
-    loop?.hooks?.['before:prepare'] as ((this: typeof self) => void) | undefined
-  )?.call(self);
-  return { rows: self.options.templateParameters, n: Number(loop?.sample?.n) };
-};
-
-/** Trials a loop runs: `sample.n` when set, otherwise one per parameter row. */
-const loopCount = (study: unknown, title: string, parameters?: object) => {
-  const { rows, n } = loopRows(study, title, parameters);
-  return n || rows.length;
-};
 
 describe('flowFromStructure', () => {
   it('describes a linear task with practice and recorded trials', () => {

@@ -9,7 +9,7 @@ import {
   instructionsScreen,
   transitionScreen,
 } from '../shared/participantScreens';
-import { instructions } from './screens';
+import { instructions, practiceFeedback } from './screens';
 
 export const stroopExperiment = {
   hooks: {},
@@ -280,8 +280,8 @@ export const stroopExperiment = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text: "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
-                      fontSize: '52',
+                      text: practiceFeedback,
+                      fontSize: '40',
                       fontWeight: 'bold',
                       fontFamily: 'sans-serif',
                       fontStyle: 'normal',
@@ -664,8 +664,8 @@ export const stroopExperiment = {
                       transformMatrix: null,
                       skewX: 0,
                       skewY: 0,
-                      text: "${ state.correct ? 'Well done!' : 'Please respond accurately' }",
-                      fontSize: '52',
+                      text: practiceFeedback,
+                      fontSize: '40',
                       fontWeight: 'bold',
                       fontFamily: 'sans-serif',
                       fontStyle: 'normal',

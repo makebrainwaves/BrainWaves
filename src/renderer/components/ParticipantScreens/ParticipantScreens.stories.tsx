@@ -88,24 +88,24 @@ const meta: Meta<typeof LabjsScreen> = {
 export default meta;
 type Story = StoryObj<typeof LabjsScreen>;
 
-/** R01 — Chalk "Practice first" tag at the top, two keys, the protocol's "not a speed test" pacing, stillness line. */
+/** R01 — Chalk "Practice first" tag at the top, two keys, what to expect (practice/recorded counts), "not a speed test" pacing, the task's eye guidance. */
 export const InstructionsFacesHouses: Story = {
   args: { content: instructionsScreen(FACES_HOUSES) },
 };
 
-/** R02 — Ink-vs-word examples, each color named in words, then four keys for the ink color. */
+/** R02 — Two Mismatch examples and one Match, each ink named in words with its key, then four keys for the ink color. */
 export const InstructionsStroop: Story = {
   parameters: { experimentType: 'Stroop' },
   args: { content: instructionsScreen(STROOP) },
 };
 
-/** R03 — The target and both distractors drawn as the task draws them, labelled Find / Ignore. */
+/** R03 — Target present and target absent drawn as small search pictures; "only press N after checking the whole picture"; eyes free to search. */
 export const InstructionsVisualSearch: Story = {
   parameters: { experimentType: 'Visual Search' },
   args: { content: instructionsScreen(VISUAL_SEARCH) },
 };
 
-/** R04 — Two rules share the same keys. Space opens the instruction screens; no Q here. */
+/** R04 — The two-rule table (top → shape, bottom → dots) on the same keys; blocks, trials, the 5 s limit and the pause after a wrong key. Space opens the instruction screens; no Q here. */
 export const MultitaskingIntro: Story = {
   parameters: { experimentType: 'Multitasking' },
   args: { content: instructionsScreen(MULTITASKING) },
@@ -137,10 +137,26 @@ export const InstructionsEegOff: Story = {
   },
 };
 
-/** R07 — "Data collection" tag at the top with the RunBar's red dot; the same mapping again. */
+/** R07 — "Data collection" tag at the top with the RunBar's red dot; the one-line decision rule again. */
 export const Transition: Story = {
   args: {
     content: transitionScreen(FACES_HOUSES),
+  },
+};
+
+/** R07b — The longest decision rule (Visual Search), with its eye guidance. */
+export const TransitionVisualSearch: Story = {
+  parameters: { experimentType: 'Visual Search' },
+  args: {
+    content: transitionScreen(VISUAL_SEARCH),
+  },
+};
+
+/** R07c — Stroop's four-key decision rule. */
+export const TransitionStroop: Story = {
+  parameters: { experimentType: 'Stroop' },
+  args: {
+    content: transitionScreen(STROOP),
   },
 };
 

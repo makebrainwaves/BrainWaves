@@ -135,7 +135,10 @@ p {
 
 /* Beats lab.css's viewport-sized fullscreen mount (and Tailwind's
    `.container` width) so the screen fits the space it is given, including
-   Preview's non-fullscreen mount. */
+   Preview's non-fullscreen mount. In the Run area this covers the tasks' own
+   screens too: at lab.css's `100vh` min-height their footers (key reminders,
+   Multitasking's rule table) sat below the fold under the RunBar. */
+.container.fullscreen,
 .container:has(> .bw-participant) {
   box-sizing: border-box;
   display: flex;
@@ -146,6 +149,18 @@ p {
   height: 100%;
   min-height: 0;
   margin: 0;
+}
+
+.container.fullscreen > main {
+  min-height: 0;
+}
+
+/* Multitasking's trial footer: its two-line rule table, small. */
+.container footer.bw-multitasking-rules {
+  flex-direction: column;
+  padding: 8px 24px 12px;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .bw-participant {
@@ -277,6 +292,31 @@ p {
   color: var(--color-ink-muted);
 }
 
+/* Visual Search's example pictures: small grids in the task's letter style. */
+.bw-participant-example-stimulus:has(> .bw-participant-search-grid) {
+  height: auto;
+}
+
+.bw-participant-search-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 26px);
+  grid-auto-rows: 26px;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--color-ink-faint);
+  border-radius: 6px;
+}
+
+.bw-participant-search-grid span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bw-participant-search-grid .letter {
+  font-size: 24px;
+}
+
 .bw-participant-rules {
   display: flex;
   flex-wrap: wrap;
@@ -310,6 +350,21 @@ p {
   align-items: center;
   gap: 16px;
   font-size: 26px;
+}
+
+/* Transition screens: the see X → press Y line, keycaps inline. */
+.bw-participant-decision {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px 48px;
+  font-size: 28px;
+}
+
+.bw-participant-decision span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .bw-participant-key {
