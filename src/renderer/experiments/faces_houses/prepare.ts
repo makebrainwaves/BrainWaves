@@ -20,7 +20,7 @@ export const prepare: PrepareFixture = {
     whereInAnalyze: 'ERP tab, with TP9 or TP10 selected',
   },
   teacherNote:
-    'If you record EEG, ask the participant to keep their eyes on the picture and save blinks for the cross between pictures. Blinks show up as big spikes.',
+    'If you record EEG, ask the participant to keep their eyes on the picture and blink just after answering, not during the cross or the picture: the cross is the baseline before each picture. Blinks show up as big spikes.',
   responses: [
     { key: '1', label: 'Face', stimulus: { src: face, alt: 'A face photo' } },
     {

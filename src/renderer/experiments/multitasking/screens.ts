@@ -45,6 +45,7 @@ export const instructions: InstructionsScreenParams = {
   })),
   expect:
     "You'll practice each rule on its own, then both mixed: 3 practice blocks, 40 trials. Then the same 3 blocks for real: 80 trials. In the mixed block the position can change from trial to trial. That's the hard part, and it's what we're measuring.",
+  eyes: 'Keep your eyes on the frame. Blink just after you answer, not while a shape is showing.',
   pacing:
     'Answer as fast as you can without making mistakes. You have 5 seconds per trial. After a wrong key or no answer, the task pauses for 3 seconds and shows the keys. You can rest on the screen before each block.',
   start: 'see the instructions',

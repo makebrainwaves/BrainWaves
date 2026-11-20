@@ -17,7 +17,7 @@ export const prepare: PrepareFixture = {
     whereInAnalyze: 'Behavior tab: Response time, then Accuracy',
   },
   teacherNote:
-    'Check the participant can tell red, green, blue and yellow apart before you start. If you record EEG, ask them to save blinks for the gap between words.',
+    'Check the participant can tell red, green, blue and yellow apart before you start. If you record EEG, ask them to blink just after answering, not while a word is showing.',
   responses: [
     { key: 'r', label: 'Red ink', stimulus: { word: 'green', color: 'red' } },
     {
