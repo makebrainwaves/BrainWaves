@@ -245,7 +245,7 @@ export function assessFeasibility(
         'The plan does not yet say what brain signal or behavior should differ between conditions.',
       pitfalls,
       suggestion:
-        'Name one specific difference you expect, for example "faces will produce a bigger brain response than houses" or "incongruent words will be slower".',
+        'Name one specific difference you expect, for example "faces will produce a bigger brain response than houses" or "Mismatch words will be slower".',
     };
   }
   return {

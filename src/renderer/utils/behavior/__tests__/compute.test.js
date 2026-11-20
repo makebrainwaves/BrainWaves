@@ -117,7 +117,7 @@ describe('aggregateDataForPlot', () => {
         datafile: '/tmp/class-aggregated.csv',
         fields: ['RT_No switching', 'RT_Switching'],
       },
-      data: [{ 'RT_No switching': '520', 'RT_Switching': '720' }],
+      data: [{ 'RT_No switching': '520', RT_Switching: '720' }],
     };
     const { dataToPlot } = aggregateDataForPlot(
       [

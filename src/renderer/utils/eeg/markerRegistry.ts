@@ -155,7 +155,8 @@ export const withRenamedConditions = (
       ...stimulus,
       title: renamed[stimulus.title] ?? stimulus.title,
       condition:
-        stimulus.condition && (renamed[stimulus.condition] ?? stimulus.condition),
+        stimulus.condition &&
+        (renamed[stimulus.condition] ?? stimulus.condition),
     })),
   };
 };

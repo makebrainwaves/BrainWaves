@@ -7,6 +7,7 @@ import BlockedAreaEmptyState from '../AppShell/BlockedAreaEmptyState';
 import type { Area } from '../AppShell/types';
 import SecondaryNavComponent from '../SecondaryNavComponent';
 import { aggregateDataForPlot } from '../../utils/behavior/compute';
+import { EXPERIMENTS } from '../../constants/constants';
 import AnalyzeOverview, { AnalyzeOverviewProps } from './AnalyzeOverview';
 import AnalyzeErp, { AnalyzeErpProps, ErpWalkthroughStep } from './AnalyzeErp';
 import AnalyzeBehavior, {
@@ -39,6 +40,8 @@ interface ChromeParameters {
   nextArea?: Area;
   /** WorkspaceAreaGate replaces the whole screen, tab bar included. */
   gated?: boolean;
+  /** Shell workspace template name; Faces/Houses unless set. */
+  experimentType?: string;
 }
 
 /** Shell facts for an EEG workspace with 4 recordings, 3 of them cleaned. */
@@ -68,6 +71,7 @@ const withAnalyzeChrome: Decorator = (Story, { parameters }) => {
     badges = CLEANED.badges,
     nextArea = CLEANED.nextArea,
     gated,
+    experimentType = 'Faces/Houses',
   } = parameters as ChromeParameters;
   const eeg = modality === 'eeg';
   return (
@@ -76,7 +80,7 @@ const withAnalyzeChrome: Decorator = (Story, { parameters }) => {
         location="analyze"
         workspace={{
           name: eeg ? WORKSPACE_TITLE : 'Faces_Houses_4',
-          experimentType: 'Faces/Houses',
+          experimentType,
           modality,
         }}
         device={eeg ? 'connected' : 'none'}
@@ -159,6 +163,7 @@ function Erp(props: Partial<AnalyzeErpProps>) {
       excludedChannels={[]}
       epochArrays={EXAMPLE_EPOCH_ARRAYS}
       codeToLabel={FACES_HOUSES_CODE_TO_LABEL}
+      experimentType={EXPERIMENTS.N170}
       onRetry={fn()}
       onGoToClean={fn()}
       {...props}
@@ -283,6 +288,22 @@ export const ErpWalkthroughStep3: Story = {
 export const ErpWalkthroughStep4: Story = {
   parameters: { tab: 'ERP' },
   render: () => <Erp walkthroughStep={4} />,
+};
+
+/** Stroop's codes and names on the example epochs, for the shorter walkthrough. */
+const STROOP_ERP: Partial<AnalyzeErpProps> = {
+  experimentType: EXPERIMENTS.STROOP,
+  codeToLabel: { 1: 'Mismatch', 2: 'Match' },
+  epochsInfo: EPOCHS_INFO.map((row) => ({
+    ...row,
+    name: { Face: 'Mismatch', House: 'Match' }[row.name] ?? row.name,
+  })),
+};
+
+/** E05b — Any study but Faces/Houses: three steps naming its own conditions (Stroop shown). */
+export const ErpWalkthroughOtherStudy: Story = {
+  parameters: { tab: 'ERP', experimentType: 'Stroop' },
+  render: () => <Erp {...STROOP_ERP} walkthroughStep={3} />,
 };
 
 /** E06 — No sensor picked yet. */

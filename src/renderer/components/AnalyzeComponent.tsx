@@ -258,6 +258,7 @@ export default function Analyze(props: Props) {
             epochsInfo={hasSelection ? props.epochsInfo : []}
             epochArrays={props.cleanedEpochArrays}
             codeToLabel={codeToLabel}
+            experimentType={props.type}
             walkthroughStep={walkthroughStep}
             onChannelSelect={handleChannelSelect}
             onWalkthroughStepChange={setWalkthroughStep}

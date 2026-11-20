@@ -14,7 +14,7 @@ export interface LSLEpoch {
 }
 
 export interface LSLMarker {
-  /** The trial's condition label, e.g. 'Face' or 'Switching'. */
+  /** The trial's condition label, e.g. 'Face' or 'Mixed rules'. */
   label: string;
   /** ms at event time — the same clock reading the driver's marker carries. */
   rendererTimestamp: number;
