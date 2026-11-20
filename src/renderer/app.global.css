@@ -277,6 +277,31 @@ p {
   color: var(--color-ink-muted);
 }
 
+/* Visual Search's example pictures: small grids in the task's letter style. */
+.bw-participant-example-stimulus:has(> .bw-participant-search-grid) {
+  height: auto;
+}
+
+.bw-participant-search-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 26px);
+  grid-auto-rows: 26px;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--color-ink-faint);
+  border-radius: 6px;
+}
+
+.bw-participant-search-grid span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bw-participant-search-grid .letter {
+  font-size: 24px;
+}
+
 .bw-participant-rules {
   display: flex;
   flex-wrap: wrap;
@@ -310,6 +335,16 @@ p {
   align-items: center;
   gap: 16px;
   font-size: 26px;
+}
+
+/* Transition screens: the see X → press Y line, keycaps inline. */
+.bw-participant-decision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 16px;
+  font-size: 28px;
 }
 
 .bw-participant-key {

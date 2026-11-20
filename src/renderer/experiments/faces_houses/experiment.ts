@@ -11,7 +11,7 @@ import {
   instructionsScreen,
   transitionScreen,
 } from '../shared/participantScreens';
-import { instructions } from './screens';
+import { instructions, practiceFeedback } from './screens';
 
 // Define study
 export const facesHousesExperiment = {
@@ -128,10 +128,10 @@ export const facesHousesExperiment = {
                     stroke: null,
                     strokeWidth: 1,
                     fill: "${ state.correct_response ? 'green' : 'red' }",
-                    text: "${ state.correct_response ? 'Well done!' : 'Please respond accurately' }",
+                    text: practiceFeedback,
                     fontStyle: 'normal',
                     fontWeight: 'bold',
-                    fontSize: '52',
+                    fontSize: '40',
                     fontFamily: 'sans-serif',
                     lineHeight: 1.16,
                     textAlign: 'center',
