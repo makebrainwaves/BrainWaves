@@ -200,10 +200,10 @@ export function triggerEEGCallback(this: lab.core.Component) {
   );
 }
 
-/** Emits 'Congruent'/'Incongruent' for the stroop trial's derived congruency. */
+/** Emits 'Match'/'Mismatch' for whether the stroop trial's ink matches its word. */
 export function emitStroopCondition(this: lab.core.Component) {
   this.parameters.callbackForEEG(
-    this.parameters.congruent === 'yes' ? 'Congruent' : 'Incongruent'
+    this.parameters.congruent === 'yes' ? 'Match' : 'Mismatch'
   );
 }
 

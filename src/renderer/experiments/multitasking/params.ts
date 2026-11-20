@@ -8,25 +8,25 @@ export const params = {
   sampleType: 'with-replacement',
   showProgressBar: false,
   stimulus1: {
-    title: 'No switching',
+    title: 'Single rule',
     type: EVENTS.STIMULUS_1,
     response: '1',
   },
   stimulus2: {
-    title: 'Switching',
+    title: 'Mixed rules',
     type: EVENTS.STIMULUS_2,
     response: '9',
   },
   stimuli: [
     {
-      title: 'No switching',
-      condition: 'No switching',
+      title: 'Single rule',
+      condition: 'Single rule',
       type: EVENTS.STIMULUS_1,
       response: '1',
     },
     {
-      title: 'Switching',
-      condition: 'Switching',
+      title: 'Mixed rules',
+      condition: 'Mixed rules',
       type: EVENTS.STIMULUS_2,
       response: '9',
     },

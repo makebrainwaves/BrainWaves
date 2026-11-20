@@ -18,7 +18,7 @@
  *                                                    ├─> must agree
  *     buildMarkerRegistry().eventId (label->code) ───┘   (find_events / Epochs)
  */
-import { EVENTS } from '../../constants/constants';
+import { EVENTS, EXPERIMENTS } from '../../constants/constants';
 import {
   EEGData,
   ExperimentParameters,
@@ -123,6 +123,42 @@ export const resolveMarkerRegistry = (
   params?.imported
     ? buildMarkerRegistryFromLabels(params.imported.conditionLabels)
     : buildMarkerRegistry(params?.stimuli);
+
+/**
+ * Condition labels a built-in experiment has renamed, old → new. Marker codes
+ * never change, so this only relabels: workspaces (`withRenamedConditions`)
+ * and behavior files (`behavior/compute.js`) saved under an old name are read
+ * through it. Cleaned EEG needs no table: Analyze relabels each file's events
+ * by code from the current registry (`load_clean_epochs`). Keyed by type so a
+ * Custom study's own "Congruent" stays as the teacher named it.
+ */
+export const RENAMED_CONDITIONS: Partial<
+  Record<EXPERIMENTS, Record<string, string>>
+> = {
+  [EXPERIMENTS.STROOP]: { Congruent: 'Match', Incongruent: 'Mismatch' },
+  [EXPERIMENTS.MULTI]: {
+    'No switching': 'Single rule',
+    Switching: 'Mixed rules',
+  },
+};
+
+/** A saved workspace's `params` with any renamed stimulus labels updated. */
+export const withRenamedConditions = (
+  type: EXPERIMENTS,
+  params: ExperimentParameters | null
+): ExperimentParameters | null => {
+  const renamed = RENAMED_CONDITIONS[type];
+  if (!renamed || !params?.stimuli) return params;
+  return {
+    ...params,
+    stimuli: params.stimuli.map((stimulus) => ({
+      ...stimulus,
+      title: renamed[stimulus.title] ?? stimulus.title,
+      condition:
+        stimulus.condition && (renamed[stimulus.condition] ?? stimulus.condition),
+    })),
+  };
+};
 
 export interface MarkerStamper {
   inject(code: number, timestamp: number): void;

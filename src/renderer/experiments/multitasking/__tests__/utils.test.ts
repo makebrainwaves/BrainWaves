@@ -10,7 +10,7 @@ const stimulus = (
 ) => ({
   id: '0_2_0_3_0_4_1',
   options: {},
-  parameters: { cond: 'Switching', cor_response: 'b', ...parameters },
+  parameters: { cond: 'Mixed rules', cor_response: 'b', ...parameters },
   data,
 });
 
@@ -23,7 +23,7 @@ describe('scoreTaskResponse', () => {
     scoreTaskResponse.call(screen as never);
     expect(screen.data).toMatchObject({
       trial_number: 5,
-      condition: 'Switching',
+      condition: 'Mixed rules',
       reaction_time: 812.5,
       correct_response: false,
       response_given: 'yes',
