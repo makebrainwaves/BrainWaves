@@ -19,11 +19,11 @@ CONDITIONS = OrderedDict((name, [code]) for name, code in EVENT_ID.items())
 FLAGGED = "AF7"
 
 
-def _save_session(tmp_path, name, seed, bads):
+def _save_session(tmp_path, name, seed, bads, event_id=EVENT_ID):
     csv, _ = generate_recording(seed=seed)
     raw = utils.load_data(csv_strings=[csv])
     raw.filter(1, 30, method="iir", verbose=False)
-    epochs = utils.get_raw_epochs(raw, EVENT_ID, -0.1, 0.8)
+    epochs = utils.get_raw_epochs(raw, event_id, -0.1, 0.8)
     utils.apply_rejection(epochs, [], bads)
     path = str(tmp_path / f"{name}-cleaned-epo.fif")
     epochs.save(path, verbose=False)
@@ -136,3 +136,17 @@ def test_psd_leaves_out_a_sensor_flagged_everywhere(flagged):
 
     assert utils.average_psd(alone).info["bads"] == [FLAGGED]
     utils.plot_psd(alone)
+
+
+def test_a_session_cleaned_before_a_rename_pools_under_the_new_names(tmp_path):
+    """Stroop's Incongruent/Congruent became Mismatch/Match on the same codes."""
+    current = {"Mismatch": STANDARD_CODE, "Match": TARGET_CODE}
+    old, _ = _save_session(tmp_path, "old", 1, [], {
+        "Incongruent": STANDARD_CODE, "Congruent": TARGET_CODE})
+    new, _ = _save_session(tmp_path, "new", 2, [], current)
+
+    pooled = utils.load_clean_epochs([old, new], current)
+
+    assert pooled.event_id == current
+    for label, code in current.items():
+        assert len(pooled[label]) == (pooled.events[:, -1] == code).sum() == 50

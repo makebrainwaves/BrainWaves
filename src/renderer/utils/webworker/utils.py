@@ -156,11 +156,16 @@ def get_raw_epochs(raw, event_id, tmin, tmax, baseline=None, reject=None,
                   verbose=False, picks=picks)
 
 
-def load_clean_epochs(file_paths):
+def load_clean_epochs(file_paths, event_id=None):
     """Load cleaned .fif epoch files from MEMFS paths into one Epochs object.
 
     Analyze stages host .fif bytes at /tmp/... in the worker MEMFS before calling
-    this. A sensor flagged bad in a file is blanked to NaN in that file's epochs
+    this. `event_id` is the workspace's current marker registry (label -> code):
+    each file's condition names are replaced by the current name for the same
+    code, so a file cleaned before a condition was renamed (Stroop's
+    Congruent/Incongruent, now Match/Mismatch) pools with newer ones. Codes are
+    never changed; a code the registry lacks keeps the file's own name.
+    A sensor flagged bad in a file is blanked to NaN in that file's epochs
     only, and `info['bads']` is cleared so files flagged differently still
     combine: the other files keep contributing that sensor. Consumers therefore
     average with NaN-aware functions (`average_conditions`, `average_psd`,
@@ -171,7 +176,10 @@ def load_clean_epochs(file_paths):
     """
     sessions = [read_epochs(path, preload=True, verbose=False)
                 for path in file_paths]
+    current = {code: label for label, code in (event_id or {}).items()}
     for epochs in sessions:
+        epochs.event_id = {current.get(code, label): code
+                           for label, code in epochs.event_id.items()}
         if epochs.info['bads']:
             epochs.apply_function(lambda x: np.full_like(x, np.nan),
                                   picks=epochs.info['bads'])

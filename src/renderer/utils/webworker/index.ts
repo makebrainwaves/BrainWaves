@@ -44,21 +44,23 @@ export const loadCSV = async (worker: Worker, csvArray: Array<unknown>) => {
 // MNE-Related Data Processing
 
 /**
- * Loads the staged files into `clean_epochs`. The globals are reset first, so
+ * Loads the staged files into `clean_epochs`, named by `eventId` (the current
+ * marker registry) whatever names each file was cleaned with. The globals are reset first, so
  * when the load raises (reply on dataKey 'cleanedEpochs') the requests queued
  * behind it fail too instead of answering from the previous selection.
  */
 export const loadCleanedEpochs = (
   worker: Worker,
   memfsPaths: string[],
-  fsFiles: Array<{ path: string; bytes: Uint8Array }>
+  fsFiles: Array<{ path: string; bytes: Uint8Array }>,
+  eventId: Record<string, number>
 ) => {
   worker.postMessage({
     fsFiles,
     data: [
       'clean_epochs = None',
       'conditions = None',
-      `clean_epochs = load_clean_epochs(${JSON.stringify(memfsPaths)})`,
+      `clean_epochs = load_clean_epochs(${JSON.stringify(memfsPaths)}, ${JSON.stringify(eventId)})`,
       `conditions = OrderedDict({key: [value] for (key, value) in clean_epochs.event_id.items()})`,
     ].join('\n'),
     dataKey: 'cleanedEpochs',
