@@ -65,6 +65,8 @@ interface WalkthroughContext {
 interface ErpCopy {
   /** Rail heading over the condition legend. */
   legendLabel: string;
+  /** What appeared at time 0, as the chart labels it. */
+  onset: string;
   /** Caption under the MNE ERP plot. */
   plotCaption: string;
   /** Body of the "pick a sensor" empty state. */
@@ -81,6 +83,7 @@ interface ErpCopy {
  */
 const FACES_HOUSES: ErpCopy = {
   legendLabel: 'Image types',
+  onset: 'image',
   plotCaption:
     'The average voltage after each image type. Shaded bands show how sure we can be about each line.',
   pickSensor:
@@ -117,6 +120,7 @@ const FACES_HOUSES: ErpCopy = {
  */
 const ANY_STUDY: ErpCopy = {
   legendLabel: 'Conditions',
+  onset: 'trial',
   plotCaption:
     'The average voltage after each kind of trial. Shaded bands show how sure we can be about each line.',
   pickSensor: 'Click a sensor on the head, or its name under it.',
@@ -136,7 +140,7 @@ const ANY_STUDY: ErpCopy = {
     {
       title: 'Compare the conditions',
       body: ({ conditions }) =>
-        `Now there is one average for each condition: ${new Intl.ListFormat('en').format(conditions.map((name) => `“${name}”`))}. We zoomed in, so the scale is smaller. Where the lines pull apart, the brain responded differently. Your recording may show a clear difference, a weak one or none. Each of those is a real result.`,
+        `Now each condition has its own average: ${new Intl.ListFormat('en').format(conditions.map((name) => `“${name}”`))}. We zoomed in, so the scale is smaller. Where the lines pull apart, the brain responded differently. A clear difference, a weak one or none: each is a real result.`,
     },
   ],
 };
@@ -417,6 +421,7 @@ export default function AnalyzeErp({
               channel={selectedChannel}
               codeToLabel={codeToLabel}
               step={walkthroughStep as ErpChartStep}
+              onset={copy.onset}
             />
           </figure>
         ) : (
