@@ -6,6 +6,10 @@ import { prepare as search } from '../search/prepare';
 import { prepare as multi } from '../multitasking/prepare';
 import { facesHousesExperiment } from '../faces_houses/experiment';
 import { params as facesParams } from '../faces_houses/params';
+import { params as stroopParams } from '../stroop/params';
+import { params as searchParams } from '../search/params';
+import { params as multiParams } from '../multitasking/params';
+import { resolveMarkerRegistry } from '../../utils/eeg/markerRegistry';
 import { stroopExperiment } from '../stroop/experiment';
 import { searchExperimentObject } from '../search/experiment';
 import { multitaskingExperimentObject } from '../multitasking/experiment';
@@ -133,4 +137,27 @@ describe('per-experiment prepare content', () => {
       ])
     );
   });
+});
+
+describe('built-in comparisons and predictions', () => {
+  it.each([
+    ['Faces/Houses', faces, facesParams],
+    ['Stroop', stroop, stroopParams],
+    ['Visual Search', search, searchParams],
+    ['Multitasking', multi, multiParams],
+  ])(
+    '%s compares and predicts its own condition labels',
+    (_, prepare, params) => {
+      const labels = Object.keys(resolveMarkerRegistry(params).eventId);
+      expect(labels).toEqual(
+        expect.arrayContaining([
+          ...prepare.compare!.conditions,
+          ...prepare.prediction!.conditions,
+        ])
+      );
+      const directions = prepare.prediction!.options.map((o) => o.direction);
+      expect(directions.length).toBeGreaterThanOrEqual(2);
+      expect(new Set(directions).size).toBe(directions.length);
+    }
+  );
 });

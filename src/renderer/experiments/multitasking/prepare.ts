@@ -31,7 +31,10 @@ export const prepare: PrepareFixture = {
     measure: 'rt',
     options: [
       { direction: 'a>b', label: 'Mixed rules slower than Single rule' },
-      { direction: 'a=b', label: 'Mixed rules and Single rule about the same speed' },
+      {
+        direction: 'a=b',
+        label: 'Mixed rules and Single rule about the same speed',
+      },
       { direction: 'a<b', label: 'Mixed rules faster than Single rule' },
     ],
     lookFor:

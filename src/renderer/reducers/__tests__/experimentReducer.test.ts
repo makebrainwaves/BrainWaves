@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ExperimentActions } from '../../actions';
 import experimentReducer, { ExperimentStateType } from '../experimentReducer';
+import { EXPERIMENTS } from '../../constants/constants';
+import type { Prediction } from '../../constants/interfaces';
+import { params as stroopParams } from '../../experiments/stroop/params';
+import { params as customParams } from '../../experiments/custom/params';
 
 const initial = experimentReducer(undefined, { type: '@@INIT' });
 const apply = (...actions: Parameters<typeof experimentReducer>[1][]) =>
@@ -52,5 +56,34 @@ describe('experimentReducer run lifecycle', () => {
     expect(state.runOutcome).toBeNull();
     expect(state.isEnding).toBe(false);
     expect(state.escapeHeld).toBe(false);
+  });
+});
+
+describe('experimentReducer prediction', () => {
+  const prediction: Prediction = {
+    conditions: ['Mismatch', 'Match'],
+    measure: 'rt',
+    direction: 'a>b',
+  };
+
+  it('survives saving and reopening the workspace', () => {
+    const saved = apply(
+      ExperimentActions.SetType(EXPERIMENTS.STROOP),
+      ExperimentActions.SetParams({ ...stroopParams, prediction })
+    );
+    const fromDisk = JSON.parse(JSON.stringify(saved)) as ExperimentStateType;
+
+    const reopened = apply(ExperimentActions.SetState(fromDisk));
+
+    expect(reopened.params?.prediction).toEqual(prediction);
+  });
+
+  it('a new workspace never inherits the last one', () => {
+    const state = apply(
+      ExperimentActions.SetParams({ ...stroopParams, prediction }),
+      ExperimentActions.SetParams(customParams)
+    );
+
+    expect(state.params?.prediction).toBeUndefined();
   });
 });

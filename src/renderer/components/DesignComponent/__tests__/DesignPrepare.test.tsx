@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import Design, { DesignProps } from '../index';
 import { EXPERIMENTS } from '../../../constants/constants';
@@ -26,6 +26,7 @@ const baseProps = {
   experimentObject: {},
   ExperimentActions: {
     SetEEGEnabled: vi.fn(),
+    SetParams: vi.fn(),
     SaveWorkspace: vi.fn(),
     CreateNewWorkspace: vi.fn(),
   },
@@ -90,5 +91,32 @@ describe('Design — built-in Prepare', () => {
     expect(
       screen.queryByRole('navigation', { name: 'Prepare steps' })
     ).not.toBeInTheDocument();
+  });
+
+  it('saves a picked prediction, and shows a saved one as picked', () => {
+    const { unmount } = render(<Design {...baseProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /Protocol/ }));
+    const group = screen.getByRole('group', { name: /170 ms/ });
+    expect(within(group).getAllByRole('radio')).toHaveLength(3);
+    expect(screen.queryByRole('radio', { checked: true })).toBeNull();
+
+    fireEvent.click(screen.getByRole('radio', { name: /^Face dips lower/ }));
+
+    const prediction = {
+      conditions: ['Face', 'House'],
+      measure: 'erp',
+      direction: 'a<b',
+    };
+    expect(baseProps.ExperimentActions.SetParams).toHaveBeenCalledWith({
+      prediction,
+    });
+    expect(baseProps.ExperimentActions.SaveWorkspace).toHaveBeenCalled();
+    unmount();
+
+    render(<Design {...baseProps} params={{ prediction } as never} />);
+    fireEvent.click(screen.getByRole('button', { name: /Protocol/ }));
+    expect(
+      screen.getByRole('radio', { name: /^Face dips lower/ })
+    ).toBeChecked();
   });
 });

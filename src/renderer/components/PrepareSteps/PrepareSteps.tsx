@@ -509,7 +509,9 @@ function PredictionCard({
   chosen?: Prediction;
   onChange?: (prediction: Prediction) => void;
 }) {
-  const selected = isAnswerTo(chosen, prediction) ? chosen.direction : undefined;
+  const selected = isAnswerTo(chosen, prediction)
+    ? chosen.direction
+    : undefined;
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-[#ececf1] bg-white p-5">
       <div className="flex items-baseline justify-between gap-4">

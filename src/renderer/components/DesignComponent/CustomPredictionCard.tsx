@@ -41,7 +41,8 @@ export default function CustomPredictionCard({
 
   const isOffered = (pair: [string, string]) =>
     pair[0] !== pair[1] && names.includes(pair[0]) && names.includes(pair[1]);
-  const conditions: [string, string] = saved?.conditions ??
+  const conditions: [string, string] =
+    saved?.conditions ??
     (draft && isOffered(draft.conditions)
       ? draft.conditions
       : [names[0], names[1]]);
@@ -73,8 +74,8 @@ export default function CustomPredictionCard({
       <h2>Make a prediction</h2>
       {names.length < 2 ? (
         <p className="m-0 text-sm text-ink-muted">
-          Name at least two conditions in the Conditions step, then come back
-          to predict how they will differ.
+          Name at least two conditions in the Conditions step, then come back to
+          predict how they will differ.
         </p>
       ) : (
         <>
@@ -82,8 +83,8 @@ export default function CustomPredictionCard({
             <p role="status" className="m-0 text-sm text-amber-800">
               Your prediction needs an update: it compared{' '}
               {params.prediction.conditions.join(' and ')} on{' '}
-              {MEASURE_NAMES[params.prediction.measure].toLowerCase()}, which
-              no longer matches your design. Pick again below.
+              {MEASURE_NAMES[params.prediction.measure].toLowerCase()}, which no
+              longer matches your design. Pick again below.
             </p>
           )}
           <div className="flex flex-wrap items-center gap-2 text-sm">

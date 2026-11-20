@@ -25,7 +25,10 @@ export const prepare: PrepareFixture = {
     measure: 'rt',
     options: [
       { direction: 'a>b', label: 'More letters, slower search' },
-      { direction: 'a=b', label: 'About the same time with more or fewer letters' },
+      {
+        direction: 'a=b',
+        label: 'About the same time with more or fewer letters',
+      },
       { direction: 'a<b', label: 'More letters, faster search' },
     ],
     lookFor:

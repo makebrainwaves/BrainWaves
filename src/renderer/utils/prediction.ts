@@ -1,7 +1,4 @@
-import type {
-  ExperimentParameters,
-  Prediction,
-} from '../constants/interfaces';
+import type { ExperimentParameters, Prediction } from '../constants/interfaces';
 import { CONDITION_SLOTS, conditionTitle } from './labjs/customStimuli';
 
 export type PredictionMeasure = Prediction['measure'];
