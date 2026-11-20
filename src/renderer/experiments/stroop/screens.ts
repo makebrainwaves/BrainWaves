@@ -12,18 +12,18 @@ export const instructions: InstructionsScreenParams = {
   example: stimulusExamples([
     {
       stimulus: '<span style="color: red">green</span>',
-      label: 'Mismatch',
-      detail: `The ink is red. Press ${keycap('r')}`,
+      label: 'Red ink',
+      detail: `Mismatch. Press ${keycap('r')}`,
     },
     {
       stimulus: '<span style="color: blue">yellow</span>',
-      label: 'Mismatch',
-      detail: `The ink is blue. Press ${keycap('b')}`,
+      label: 'Blue ink',
+      detail: `Mismatch. Press ${keycap('b')}`,
     },
     {
       stimulus: '<span style="color: green">green</span>',
-      label: 'Match',
-      detail: `The ink is green and the word says green. Still just press ${keycap('g')}`,
+      label: 'Green ink',
+      detail: `Match. Still just press ${keycap('g')}`,
     },
   ]),
   rules: [
@@ -36,7 +36,12 @@ export const instructions: InstructionsScreenParams = {
       ],
     },
   ],
-  decisionRule: `Ink color → ${keycap('r')} red · ${keycap('g')} green · ${keycap('b')} blue · ${keycap('y')} yellow`,
+  decisionRule: [
+    { see: 'Red ink', key: 'r' },
+    { see: 'Green ink', key: 'g' },
+    { see: 'Blue ink', key: 'b' },
+    { see: 'Yellow ink', key: 'y' },
+  ],
   expect:
     '8 practice words that tell you if you were right, then 96 more without feedback. About 3 minutes in all.',
   pacing: 'Answer quickly, and as accurately as you can.',

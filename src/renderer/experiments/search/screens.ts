@@ -49,7 +49,10 @@ export const instructions: InstructionsScreenParams = {
       ],
     },
   ],
-  decisionRule: `Orange T → ${keycap('b')} · No orange T anywhere → ${keycap('n')}`,
+  decisionRule: [
+    { see: 'Orange T', key: 'b' },
+    { see: 'No orange T anywhere', key: 'n' },
+  ],
   expect:
     '8 practice pictures that tell you if you were right, then 80 more without feedback. About 4 minutes in all.',
   pacing:

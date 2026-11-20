@@ -1,7 +1,4 @@
-import {
-  keycap,
-  type InstructionsScreenParams,
-} from '../shared/participantScreens';
+import type { InstructionsScreenParams } from '../shared/participantScreens';
 import { params } from './params';
 
 /** What participants are told before practice and reminded of before the recorded trials. */
@@ -17,7 +14,10 @@ export const instructions: InstructionsScreenParams = {
       ],
     },
   ],
-  decisionRule: `Face → ${keycap('1')} · House → ${keycap('9')}`,
+  decisionRule: [
+    { see: 'Face', key: '1' },
+    { see: 'House', key: '9' },
+  ],
   expect: `${params.nbPracticeTrials} practice pictures that tell you if you were right, then ${params.nbTrials} more without feedback. About 3 minutes in all.`,
   pacing: "Answer as soon as you're sure. This isn't a speed test.",
   eyes: 'Keep your eyes on the middle of the screen. Blink just after you answer, not while a picture is showing.',

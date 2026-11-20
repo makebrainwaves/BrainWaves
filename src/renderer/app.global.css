@@ -341,10 +341,15 @@ p {
 .bw-participant-decision {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   justify-content: center;
-  gap: 12px 16px;
+  gap: 16px 48px;
   font-size: 28px;
+}
+
+.bw-participant-decision span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .bw-participant-key {

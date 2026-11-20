@@ -94,14 +94,14 @@ it('Stroop examples name the ink and its key, never a mismatching word', () => {
   const html = String(findScreen(stroopExperiment, 'Instruction')?.content);
   const examples = [
     ...html.matchAll(
-      /<span style="color: (\w+)">(\w+)<\/span>.*?<figcaption>.*?<span>(.*?)<\/span><\/figcaption>/g
+      /<span style="color: (\w+)">(\w+)<\/span>.*?<figcaption>(.*?)<\/figcaption>/g
     ),
   ];
   expect(examples.length).toBeGreaterThan(0);
-  for (const [, ink, word, detail] of examples) {
-    expect(detail).toContain(`ink is ${ink}`);
-    if (word !== ink) expect(detail).not.toContain(word);
-    expect(shownKeys(detail)).toEqual(new Set([ink[0]]));
+  for (const [, ink, word, caption] of examples) {
+    expect(caption.toLowerCase()).toContain(`${ink} ink`);
+    if (word !== ink) expect(caption.toLowerCase()).not.toContain(word);
+    expect(shownKeys(caption)).toEqual(new Set([ink[0]]));
   }
 });
 

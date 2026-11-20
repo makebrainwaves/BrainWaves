@@ -41,8 +41,8 @@ export interface InstructionsScreenParams {
   pacing?: string;
   /** What to expect: trial counts, rough length, feedback, time limits, pauses. */
   expect?: string;
-  /** One line, see X → press Y (with `keycap()`s); the transition screen shows it in place of the key list. */
-  decisionRule?: string;
+  /** The one-line rule, see X → press Y, e.g. Face → 1, House → 9; the transition screen shows it in place of the key list. */
+  decisionRule?: { see: string; key: string }[];
   /** Task-specific EEG guidance that replaces `STILLNESS_LINE`. A lab.js template string literal: no `'` or `}`. */
   eyes?: string;
   /** What Space does, completing "Press Space to …". Defaults to "start practice". */
@@ -161,7 +161,9 @@ export function transitionScreen({
 ${
   decisionRule
     ? `<div class="bw-participant-summary">Same rule as in practice:</div>
-<div class="bw-participant-decision">${decisionRule}</div>`
+<div class="bw-participant-decision">${decisionRule
+        .map(({ see, key }) => `<span>${see} → ${keycap(key)}</span>`)
+        .join('')}</div>`
     : `<div class="bw-participant-summary">Same keys as in practice:</div>
 ${responseRules(rules)}`
 }
