@@ -46,6 +46,8 @@ export interface AnalyzeErpProps {
   /** Picks the walkthrough: Faces/Houses has its own, every other study a shorter one. */
   experimentType: EXPERIMENTS;
   walkthroughStep: ErpWalkthroughStep;
+  /** `PredictionSummary` when this tab matches the student's prediction; shown first in the rail. */
+  prediction?: React.ReactNode;
   onChannelSelect(channel: string): void;
   onWalkthroughStepChange(step: ErpWalkthroughStep): void;
   onRetry(): void;
@@ -286,6 +288,7 @@ export default function AnalyzeErp({
   codeToLabel,
   experimentType,
   walkthroughStep,
+  prediction,
   onChannelSelect,
   onWalkthroughStepChange,
   onRetry,
@@ -312,6 +315,7 @@ export default function AnalyzeErp({
 
   const rail = (
     <>
+      {prediction}
       <RailSection label="Sensor">
         <div className="flex justify-center">
           <div className="w-[250px]">

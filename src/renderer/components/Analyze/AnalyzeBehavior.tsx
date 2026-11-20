@@ -27,6 +27,8 @@ export interface AnalyzeBehaviorProps {
   plot: BehaviorPlot | null;
   /** Result of the last `storeAggregatedBehaviorData`. */
   exportStatus: 'idle' | 'saving' | 'success' | 'error';
+  /** `PredictionSummary` when this tab matches the student's prediction; shown first in the rail. */
+  prediction?: React.ReactNode;
   onDatasetChange(values: string[]): void;
   onDependentVariableChange(value: DependentVariable): void;
   onToggleOutliers(): void;
@@ -99,6 +101,7 @@ export default function AnalyzeBehavior({
   displayMode,
   plot,
   exportStatus,
+  prediction,
   onDatasetChange,
   onDependentVariableChange,
   onToggleOutliers,
@@ -107,6 +110,7 @@ export default function AnalyzeBehavior({
 }: AnalyzeBehaviorProps) {
   const rail = (
     <>
+      {prediction}
       <RailSection label="Recordings">
         <DatasetChecklist
           options={behaviorDatasets}

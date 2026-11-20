@@ -24,6 +24,19 @@ export const prepare: PrepareFixture = {
     measure: 'Response time, and how often the answer is right',
     whereInAnalyze: 'Behavior tab: Response time, then Accuracy',
   },
+  prediction: {
+    question:
+      'How will response times in the mixed-rules block compare with the single-rule blocks?',
+    conditions: ['Mixed rules', 'Single rule'],
+    measure: 'rt',
+    options: [
+      { direction: 'a>b', label: 'Mixed rules slower than Single rule' },
+      { direction: 'a=b', label: 'Mixed rules and Single rule about the same speed' },
+      { direction: 'a<b', label: 'Mixed rules faster than Single rule' },
+    ],
+    lookFor:
+      'With Measure on Response time, compare the Mixed rules bars with the Single rule bars: a taller Mixed rules bar is the cost of switching rules.',
+  },
   teacherNote:
     'Ask the participant to rest one finger on B and one on N: the keys are side by side, so slips are easy. Each trial times out after 5 seconds, and a wrong key brings a 3-second pause.',
   responses: [

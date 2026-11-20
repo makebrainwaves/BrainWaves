@@ -89,12 +89,10 @@ export default createReducer(initialState, (builder) =>
       };
     })
 
-    .addCase(ExperimentActions.SetParams, (state, action) => {
-      return {
-        ...state,
-        params: { ...state.params, ...action.payload },
-      };
-    })
+    .addCase(ExperimentActions.SetParams, (state, action) => ({
+      ...state,
+      params: action.payload,
+    }))
 
     .addCase(ExperimentActions.SetDateModified, (state, action) => {
       return {
