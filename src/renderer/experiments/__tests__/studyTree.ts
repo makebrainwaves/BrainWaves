@@ -2,6 +2,8 @@
 export type StudyNode = {
   title?: string;
   content?: unknown;
+  /** A canvas.Frame's surrounding HTML. */
+  context?: unknown;
   responses?: Record<string, string>;
   hooks?: Record<string, unknown>;
   template?: unknown;
@@ -46,4 +48,31 @@ export const findNode = (
     }
   }
   return undefined;
+};
+
+/** Parameter rows a loop really runs: built by its `before:prepare` hook, or literal. */
+export const loopRows = (
+  study: unknown,
+  title: string,
+  parameters: object = {}
+) => {
+  const loop = findNode(study, title, (node) => 'template' in node);
+  const self = {
+    parameters,
+    options: { templateParameters: loop?.templateParameters ?? [] },
+  };
+  (
+    loop?.hooks?.['before:prepare'] as ((this: typeof self) => void) | undefined
+  )?.call(self);
+  return { rows: self.options.templateParameters, n: Number(loop?.sample?.n) };
+};
+
+/** Trials a loop runs: `sample.n` when set, otherwise one per parameter row. */
+export const loopCount = (
+  study: unknown,
+  title: string,
+  parameters?: object
+) => {
+  const { rows, n } = loopRows(study, title, parameters);
+  return n || rows.length;
 };
