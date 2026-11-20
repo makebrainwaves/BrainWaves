@@ -73,19 +73,19 @@ export default function CustomPredictionCard({
     <section className="flex flex-col gap-3 rounded border border-gray-300 bg-white p-3">
       <h2>Make a prediction</h2>
       {names.length < 2 ? (
-        <p className="m-0 text-sm text-ink-muted">
+        <div className="text-sm text-ink-muted">
           Name at least two conditions in the Conditions step, then come back to
           predict how they will differ.
-        </p>
+        </div>
       ) : (
         <>
           {state.status === 'stale' && params.prediction && (
-            <p role="status" className="m-0 text-sm text-amber-800">
+            <div role="status" className="text-sm text-amber-800">
               Your prediction needs an update: it compared{' '}
               {params.prediction.conditions.join(' and ')} on{' '}
               {MEASURE_NAMES[params.prediction.measure].toLowerCase()}, which no
               longer matches your design. Pick again below.
-            </p>
+            </div>
           )}
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <label htmlFor="prediction-a">Compare</label>
@@ -139,11 +139,11 @@ export default function CustomPredictionCard({
           />
         </>
       )}
-      <p className="m-0 text-sm text-ink-muted">
+      <div className="text-sm text-ink-muted">
         {hypothesis
           ? `Why: ${hypothesis}`
           : 'Write your hypothesis above: it is the reason for your prediction.'}
-      </p>
+      </div>
     </section>
   );
 }
