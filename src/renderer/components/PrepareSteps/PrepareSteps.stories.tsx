@@ -11,6 +11,8 @@ import { instructions as searchScreen } from '../../experiments/search/screens';
 import { instructions as multitaskingScreen } from '../../experiments/multitasking/screens';
 import AppShell from '../AppShell/AppShell';
 import PrepareSteps, { PrepareFixture, PrepareStepId } from './PrepareSteps';
+import type { Prediction } from '../../constants/interfaces';
+import type { PredictionDirection } from '../../utils/prediction';
 import {
   FACES_HOUSES,
   MULTITASKING,
@@ -98,21 +100,34 @@ const meta: Meta<typeof PrepareSteps> = {
 export default meta;
 type Story = StoryObj<typeof PrepareSteps>;
 
-/** Clickable stepper and preview state, so a reviewer can walk the whole lesson from any story. */
+/** Clickable stepper, preview and prediction state, so a reviewer can walk the whole lesson from any story. */
 function InteractiveStep({
   initialStep,
   fixture = FACES_HOUSES,
+  picked,
 }: {
   initialStep: PrepareStepId;
   fixture?: PrepareFixture;
+  /** A prediction answer already saved with the workspace. */
+  picked?: PredictionDirection;
 }) {
   const [step, setStep] = useState<PrepareStepId>(initialStep);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [hasPreviewed, setHasPreviewed] = useState(false);
   const [isEEGEnabled, setIsEEGEnabled] = useState(true);
+  const [prediction, setPrediction] = useState<Prediction | undefined>(
+    picked &&
+      fixture.prediction && {
+        conditions: fixture.prediction.conditions,
+        measure: fixture.prediction.measure,
+        direction: picked,
+      }
+  );
   return (
     <PrepareSteps
       {...fixture}
+      chosenPrediction={prediction}
+      onPredictionChange={setPrediction}
       isEEGEnabled={isEEGEnabled}
       onEEGEnabledChange={setIsEEGEnabled}
       onCustomize={() => {}}
@@ -142,28 +157,36 @@ export const Background: Story = {
   render: () => <InteractiveStep initialStep="background" fixture={STROOP} />,
 };
 
-/** P03 — Protocol. Stimulus → key diagram beside a task timeline, then the compare-and-measure card, EEG card and teacher note. */
+/** P03 — Protocol. Stimulus → key diagram beside a task timeline, then the compare-and-measure card, a picked prediction, the EEG card and teacher note. */
 export const Protocol: Story = {
-  render: () => <InteractiveStep initialStep="protocol" />,
+  render: () => <InteractiveStep initialStep="protocol" picked="a<b" />,
 };
 
-/** P04 — Stroop protocol: four ink colors, four keys; 8 practice + 96 recorded trials. */
+/** P04 — Stroop protocol: four ink colors, four keys; 8 practice + 96 recorded trials; "Mismatch slower" picked. */
 export const ProtocolStroop: Story = {
   parameters: { workspace: stroopWorkspace },
-  render: () => <InteractiveStep initialStep="protocol" fixture={STROOP} />,
+  render: () => (
+    <InteractiveStep initialStep="protocol" fixture={STROOP} picked="a>b" />
+  ),
 };
 
-/** P05 — Visual Search protocol: target present / absent on b / n. */
+/** P05 — Visual Search protocol: target present / absent on b / n; "About the same" picked. */
 export const ProtocolSearch: Story = {
   parameters: { workspace: searchWorkspace },
-  render: () => <InteractiveStep initialStep="protocol" fixture={SEARCH} />,
+  render: () => (
+    <InteractiveStep initialStep="protocol" fixture={SEARCH} picked="a=b" />
+  ),
 };
 
-/** P05b — Multitasking protocol: two rules on the same b / n keys; a block timeline with no study-wide total. */
+/** P05b — Multitasking protocol: two rules on the same b / n keys; a block timeline with no study-wide total; "Mixed rules slower" picked. */
 export const ProtocolMultitasking: Story = {
   parameters: { workspace: multitaskingWorkspace },
   render: () => (
-    <InteractiveStep initialStep="protocol" fixture={MULTITASKING} />
+    <InteractiveStep
+      initialStep="protocol"
+      fixture={MULTITASKING}
+      picked="a>b"
+    />
   ),
 };
 

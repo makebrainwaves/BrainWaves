@@ -18,6 +18,22 @@ export const prepare: PrepareFixture = {
     measure: 'Response time: how long the search takes',
     whereInAnalyze: 'Behavior tab: Response time',
   },
+  prediction: {
+    question:
+      'How will search times with more letters on screen (15 and 20) compare with fewer (5 and 10)?',
+    conditions: ['15 and 20 letters', '5 and 10 letters'],
+    measure: 'rt',
+    options: [
+      { direction: 'a>b', label: 'More letters, slower search' },
+      {
+        direction: 'a=b',
+        label: 'About the same time with more or fewer letters',
+      },
+      { direction: 'a<b', label: 'More letters, faster search' },
+    ],
+    lookFor:
+      'With Measure on Response time, compare the 15 and 20 letters bars with the 5 and 10 letters bars: taller means a slower search.',
+  },
   teacherNote:
     'Check the participant can tell orange from light blue. If you record EEG, ask them to keep their head and body still but let their eyes search the picture.',
   responses: [

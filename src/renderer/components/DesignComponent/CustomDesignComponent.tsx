@@ -20,6 +20,7 @@ import PreviewButton from '../PreviewButtonComponent';
 import StimuliDesignColumn from './StimuliDesignColumn';
 import FeasibilityDialog, { FeasibilityChip } from './FeasibilityDialog';
 import { StimuliRow } from './StimuliRow';
+import CustomPredictionCard from './CustomPredictionCard';
 import { readImages, readAudioFiles } from '../../utils/filesystem/storage';
 import {
   CONDITION_SLOTS,
@@ -349,6 +350,13 @@ export default function CustomDesign(props: DesignProps) {
                     }
                   />
                 </div>
+                <CustomPredictionCard
+                  params={params}
+                  isEEGEnabled={props.isEEGEnabled}
+                  onChange={(prediction) =>
+                    handleSaveParams({ ...paramsRef.current, prediction })
+                  }
+                />
                 <div>
                   <h2>Describe your methods</h2>
                   <textarea

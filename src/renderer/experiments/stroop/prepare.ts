@@ -16,6 +16,19 @@ export const prepare: PrepareFixture = {
     measure: 'Response time, and how often the answer is right',
     whereInAnalyze: 'Behavior tab: Response time, then Accuracy',
   },
+  prediction: {
+    question:
+      'How will response times on Mismatch trials compare with Match trials?',
+    conditions: ['Mismatch', 'Match'],
+    measure: 'rt',
+    options: [
+      { direction: 'a>b', label: 'Mismatch slower than Match' },
+      { direction: 'a=b', label: 'Mismatch and Match about the same speed' },
+      { direction: 'a<b', label: 'Mismatch faster than Match' },
+    ],
+    lookFor:
+      'With Measure on Response time, compare the Mismatch bars with the Match bars: taller means slower, so a taller Mismatch bar means the word got in the way.',
+  },
   teacherNote:
     'Check the participant can tell red, green, blue and yellow apart before you start. If you record EEG, ask them to blink just after answering, not while a word is showing.',
   responses: [

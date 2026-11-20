@@ -28,6 +28,13 @@ import AnalyzeBehavior, {
 } from './Analyze/AnalyzeBehavior';
 import type { BehaviorPlot, DatasetOption } from './Analyze/fixtures';
 import { trialsWithData } from './Analyze/ErpTraceChart';
+import { PredictionSummary } from './Analyze/AnalyzeParts';
+import { getExperimentFromType } from '../utils/labjs/functions';
+import {
+  PredictionOffer,
+  customPredictionOffer,
+  readPrediction,
+} from '../utils/prediction';
 
 const ANALYZE_STEPS = {
   OVERVIEW: 'OVERVIEW',
@@ -101,6 +108,32 @@ export default function Analyze(props: Props) {
       (_, ch) => trialsWithData(arrays, ch).length === 0
     );
   }, [props.cleanedEpochArrays]);
+
+  const prediction = useMemo(() => {
+    if (!props.params) return undefined;
+    const content = getExperimentFromType(props.type).prepare?.prediction;
+    const offer: PredictionOffer | undefined =
+      props.type === EXPERIMENTS.CUSTOM
+        ? customPredictionOffer(props.params, props.isEEGEnabled)
+        : content && { kind: 'built-in', content };
+    return offer && readPrediction(props.params.prediction, offer);
+  }, [props.params, props.type, props.isEEGEnabled]);
+
+  /** The prediction section for a tab: only the tab matching its measure, or both while there is none to show. */
+  function predictionRail(tab: 'erp' | 'behavior') {
+    if (!prediction) return undefined;
+    if (
+      prediction.status === 'set' &&
+      (prediction.measure === 'erp') !== (tab === 'erp')
+    )
+      return undefined;
+    return (
+      <PredictionSummary
+        prediction={prediction}
+        onOpenPrepare={() => props.navigate(AREA_ROUTES.prepare)}
+      />
+    );
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -260,6 +293,7 @@ export default function Analyze(props: Props) {
             codeToLabel={codeToLabel}
             experimentType={props.type}
             walkthroughStep={walkthroughStep}
+            prediction={predictionRail('erp')}
             onChannelSelect={handleChannelSelect}
             onWalkthroughStepChange={setWalkthroughStep}
             onRetry={() =>
@@ -280,6 +314,7 @@ export default function Analyze(props: Props) {
             displayMode={displayMode}
             plot={behaviorPlot}
             exportStatus={exportStatus}
+            prediction={predictionRail('behavior')}
             onDatasetChange={setSelectedBehaviorFilePaths}
             onDependentVariableChange={setDependentVariable}
             onToggleOutliers={() => setRemoveOutliers((value) => !value)}

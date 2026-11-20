@@ -3,6 +3,13 @@ import PreviewLabel from '../PreviewLabel';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import type { FlowPhase } from './flow';
+import type { Prediction } from '../../constants/interfaces';
+import {
+  isAnswerTo,
+  type PredictionContent,
+  type PredictionDirection,
+  type PredictionOption,
+} from '../../utils/prediction';
 
 export type PrepareStepId = 'overview' | 'background' | 'protocol' | 'preview';
 
@@ -61,6 +68,12 @@ export interface PrepareStepsProps {
   background: BackgroundContent;
   protocol: { title: string; protocol: string; recording?: string };
   compare?: CompareContent;
+  /** Protocol "Make a prediction" card: the question and its answers. */
+  prediction?: PredictionContent;
+  /** The workspace's saved prediction (`params.prediction`); shown as the picked answer when it answers `prediction`. */
+  chosenPrediction?: Prediction;
+  /** Saves a picked answer. Optional: nothing waits on it. */
+  onPredictionChange?: (prediction: Prediction) => void;
   /** One or two lines for the teacher: screening, finger placement, eye guidance for EEG. */
   teacherNote?: string;
   responses: ResponseMapping[];
@@ -89,6 +102,7 @@ export type PrepareFixture = Pick<
   | 'background'
   | 'protocol'
   | 'compare'
+  | 'prediction'
   | 'teacherNote'
   | 'responses'
   | 'flow'
@@ -443,15 +457,100 @@ function CompareCard({ compare }: { compare: CompareContent }) {
   );
 }
 
+/**
+ * A prediction question as a radio group: one bordered row per answer, the
+ * picked one outlined in teal. Shared by the built-in Protocol card and
+ * Custom's Overview card.
+ */
+export function PredictionChoices({
+  question,
+  options,
+  selected,
+  onSelect,
+}: {
+  question: string;
+  options: PredictionOption[];
+  selected?: PredictionDirection;
+  onSelect: (direction: PredictionDirection) => void;
+}) {
+  const name = React.useId();
+  return (
+    <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+      <legend className="mb-2 p-0 text-[16px] leading-[1.45] text-ink">
+        {question}
+      </legend>
+      {options.map((option) => (
+        <label
+          key={option.direction}
+          className="flex cursor-pointer items-center gap-3 rounded-md border border-[#ececf1] bg-white px-3 py-2 text-[15px] text-ink has-[:checked]:border-brand has-[:checked]:bg-brand-light has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={option.direction}
+            checked={selected === option.direction}
+            onChange={() => onSelect(option.direction)}
+            className="h-4 w-4 flex-none accent-brand"
+          />
+          {option.label}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+/** Protocol card: the student picks what they expect. Optional, and re-picking replaces the saved answer. */
+function PredictionCard({
+  prediction,
+  chosen,
+  onChange,
+}: {
+  prediction: PredictionContent;
+  chosen?: Prediction;
+  onChange?: (prediction: Prediction) => void;
+}) {
+  const selected = isAnswerTo(chosen, prediction)
+    ? chosen.direction
+    : undefined;
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-[#ececf1] bg-white p-5">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className={CARD_TITLE}>Make a prediction</h2>
+        <span className="text-[13px] text-ink-muted">
+          Optional · you will check it in Analyze
+        </span>
+      </div>
+      <PredictionChoices
+        question={prediction.question}
+        options={prediction.options}
+        selected={selected}
+        onSelect={(direction) =>
+          onChange?.({
+            conditions: prediction.conditions,
+            measure: prediction.measure,
+            direction,
+          })
+        }
+      />
+    </section>
+  );
+}
+
 function ProtocolView({
   protocol,
   compare,
+  prediction,
+  chosenPrediction,
+  onPredictionChange,
   teacherNote,
   responses,
   flow,
 }: {
   protocol: PrepareStepsProps['protocol'];
   compare?: CompareContent;
+  prediction?: PredictionContent;
+  chosenPrediction?: Prediction;
+  onPredictionChange?: (prediction: Prediction) => void;
   teacherNote?: string;
   responses: ResponseMapping[];
   flow: FlowPhase[];
@@ -467,6 +566,13 @@ function ProtocolView({
         <FlowTimeline phases={flow} />
       </div>
       {compare && <CompareCard compare={compare} />}
+      {prediction && (
+        <PredictionCard
+          prediction={prediction}
+          chosen={chosenPrediction}
+          onChange={onPredictionChange}
+        />
+      )}
       {protocol.recording && (
         <div className="flex flex-col gap-1 rounded-lg border border-[#ececf1] bg-white p-5">
           <h2 className={CARD_TITLE}>What we&apos;re recording: EEG</h2>
@@ -632,6 +738,9 @@ export default function PrepareSteps(props: PrepareStepsProps) {
               <ProtocolView
                 protocol={props.protocol}
                 compare={props.compare}
+                prediction={props.prediction}
+                chosenPrediction={props.chosenPrediction}
+                onPredictionChange={props.onPredictionChange}
                 teacherNote={props.teacherNote}
                 responses={props.responses}
                 flow={props.flow}

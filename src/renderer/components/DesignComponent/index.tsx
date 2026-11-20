@@ -88,6 +88,11 @@ export default function Design(props: DesignProps) {
         onStep={setActiveStep}
         isEEGEnabled={props.isEEGEnabled}
         onEEGEnabledChange={handleEEGEnabled}
+        chosenPrediction={props.params.prediction}
+        onPredictionChange={(prediction) => {
+          props.ExperimentActions.SetParams({ ...props.params, prediction });
+          props.ExperimentActions.SaveWorkspace();
+        }}
         onCustomize={() => setIsNewExperimentModalOpen(true)}
         onCollect={() => props.navigate(SCREENS.COLLECT.route)}
         onPreviewStart={() => {

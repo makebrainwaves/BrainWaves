@@ -5,6 +5,7 @@ import { cn } from '../ui/utils';
 import PyodidePlotWidget from '../PyodidePlotWidget';
 import { getSubjectNamesFromFiles } from '../../utils/filesystem/storage';
 import type { DatasetOption } from './fixtures';
+import type { PredictionState } from '../../utils/prediction';
 
 /** `get_epochs_info` rows that are totals, not conditions. */
 export const EPOCH_TOTAL_ROWS: Record<string, true> = {
@@ -61,6 +62,55 @@ export function RailSection({
       <h2 className={cn('m-0', railLabel)}>{label}</h2>
       {children}
     </section>
+  );
+}
+
+/**
+ * "Your prediction" at the top of a tab's rail: the student's prediction in
+ * one line with a collapsed "What to look for", or one muted line back to
+ * Prepare when there is none or it no longer matches the design. No verdict.
+ */
+export function PredictionSummary({
+  prediction,
+  onOpenPrepare,
+}: {
+  prediction: PredictionState;
+  onOpenPrepare(): void;
+}) {
+  return (
+    <RailSection
+      label="Your prediction"
+      className="border-b border-gray-200 pb-[12px]"
+    >
+      {prediction.status === 'set' ? (
+        <>
+          <div className="text-[14px] font-bold leading-[1.35] text-ink">
+            {prediction.line}
+          </div>
+          <details className="text-[13px] leading-[1.4] text-ink-muted">
+            <summary className="cursor-pointer font-bold text-brand">
+              What to look for
+            </summary>
+            <div className="mt-[4px]">{prediction.lookFor}</div>
+          </details>
+        </>
+      ) : (
+        <div className="text-[13px] leading-[1.4] text-ink-muted">
+          {prediction.status === 'none'
+            ? 'No prediction — '
+            : 'Your prediction needs an update — '}
+          <button
+            type="button"
+            onClick={onOpenPrepare}
+            className="font-bold text-brand underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            {prediction.status === 'none'
+              ? 'add one in Prepare'
+              : 'open Prepare'}
+          </button>
+        </div>
+      )}
+    </RailSection>
   );
 }
 

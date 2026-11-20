@@ -29,6 +29,13 @@ import {
   WORKSPACE_TITLE,
   erpPlotMime,
 } from './fixtures';
+import { PredictionSummary } from './AnalyzeParts';
+import { FACES_HOUSES, MULTITASKING } from '../PrepareSteps/fixtures';
+import {
+  PredictionContent,
+  PredictionDirection,
+  readPrediction,
+} from '../../utils/prediction';
 
 type Tab = 'OVERVIEW' | 'ERP' | 'BEHAVIOR';
 
@@ -357,4 +364,50 @@ export const BehaviorOnlyWorkspace: Story = {
     nextArea: 'analyze',
   },
   render: () => <Behavior />,
+};
+
+/** A built-in's saved answer, read as Analyze reads it. */
+const builtInPrediction = (
+  content: PredictionContent,
+  direction: PredictionDirection
+) => (
+  <PredictionSummary
+    prediction={readPrediction(
+      { conditions: content.conditions, measure: content.measure, direction },
+      { kind: 'built-in', content }
+    )}
+    onOpenPrepare={fn()}
+  />
+);
+
+const NO_PREDICTION = (
+  <PredictionSummary prediction={{ status: 'none' }} onOpenPrepare={fn()} />
+);
+
+/** P01 — ERP rail with the Faces/Houses prediction on top; "What to look for" starts collapsed. */
+export const ErpWithPrediction: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => (
+    <Erp prediction={builtInPrediction(FACES_HOUSES.prediction!, 'a<b')} />
+  ),
+};
+
+/** P02 — ERP rail without a prediction: one muted line back to Prepare. */
+export const ErpNoPrediction: Story = {
+  parameters: { tab: 'ERP' },
+  render: () => <Erp prediction={NO_PREDICTION} />,
+};
+
+/** P03 — Behavior rail with the longest built-in answer (Multitasking, "about the same"). */
+export const BehaviorWithPrediction: Story = {
+  parameters: { tab: 'BEHAVIOR', experimentType: 'Multitasking' },
+  render: () => (
+    <Behavior prediction={builtInPrediction(MULTITASKING.prediction!, 'a=b')} />
+  ),
+};
+
+/** P04 — Behavior rail without a prediction. */
+export const BehaviorNoPrediction: Story = {
+  parameters: { tab: 'BEHAVIOR', experimentType: 'Stroop' },
+  render: () => <Behavior prediction={NO_PREDICTION} />,
 };

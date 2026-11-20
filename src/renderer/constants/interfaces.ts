@@ -99,7 +99,20 @@ export type ExperimentParameters = {
    * current design's prompt.
    */
   feasibilityCheckedPrompt?: string;
+  /** The student's prediction, made in Prepare and shown in Analyze. Absent until they pick one. */
+  prediction?: Prediction;
 };
+
+/**
+ * A student's prediction: how condition A compares with condition B on one
+ * measure. Conditions are the experiment's condition labels. For `erp` the
+ * direction compares amplitude, so "Face dips lower than House" is `a<b`.
+ */
+export interface Prediction {
+  conditions: [string, string];
+  measure: 'rt' | 'accuracy' | 'erp';
+  direction: 'a>b' | 'a=b' | 'a<b';
+}
 
 export interface Stimulus {
   condition?: string;
