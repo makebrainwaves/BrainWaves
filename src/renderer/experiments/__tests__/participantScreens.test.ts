@@ -118,12 +118,15 @@ const renderTemplate = (text: unknown, parameters: object, state: object) => {
 const namedKeys = (line: string) =>
   [...line.matchAll(/\bpress (\w)\b/gi)].map(([, key]) => key.toLowerCase());
 
-/** The text template of the first canvas screen with this title. */
-const canvasText = (study: unknown, title: string) =>
-  (
-    findNode(study, title, (node) => Array.isArray(node.content))
-      ?.content as { text?: string }[]
-  )[0].text;
+/** The text templates of the first canvas screen with this title, one per line. */
+const canvasText = (study: unknown, title: string) => {
+  const content = findNode(study, title, (node) =>
+    Array.isArray(node.content)
+  )?.content;
+  return (Array.isArray(content) ? content : [])
+    .map((object: { text?: string }) => object.text ?? '')
+    .join('\n');
+};
 
 describe('practice feedback names the right key', () => {
   it('Faces/Houses: each practice picture, answered wrong, names its own key', () => {
@@ -166,9 +169,9 @@ describe('practice feedback names the right key', () => {
       expect(namedKeys(renderTemplate(text, row, { correct: false }))).toEqual([
         key,
       ]);
-      expect(
-        namedKeys(renderTemplate(text, row, { correct: true }))
-      ).toEqual([]);
+      expect(namedKeys(renderTemplate(text, row, { correct: true }))).toEqual(
+        []
+      );
     }
   });
 });
@@ -206,8 +209,7 @@ describe('Multitasking', () => {
 
   it('states its block and trial counts as the Block loop runs them', () => {
     const { rows } = loopRows(study, 'Block loop');
-    const blocks = (task: string) =>
-      rows.filter((row) => row.task === task);
+    const blocks = (task: string) => rows.filter((row) => row.task === task);
     const trials = (task: string) =>
       blocks(task).reduce((sum, row) => sum + Number(row.num_trials), 0);
     expect(multitaskingInstructions.expect).toMatch(
@@ -242,29 +244,26 @@ describe('Multitasking', () => {
     `3 dots:${correctKey('filling', (t) => t.dots === 3)}`,
   ]);
 
-  it.each([
-    ['intro', () => String(findScreen(study, 'Intro')?.content)],
-    [
-      'block description',
-      () =>
-        (
-          findNode(study, 'Block description', (node) =>
-            Array.isArray(node.content)
-          )?.content as { text: string }[]
+  it('intro rule table maps each figure to the key its trials score', () => {
+    expect(
+      new Set(
+        multitaskingInstructions.rules.flatMap(({ keys }) =>
+          keys.map(({ key, meaning }) => `${meaning}:${key}`.toLowerCase())
         )
-          .map(({ text }) => text)
-          .join('\n'),
-    ],
+      )
+    ).toEqual(scored);
+  });
+
+  it.each([
+    ['block description', canvasText(study, 'Block description')],
     [
       'trial footer',
-      () =>
-        String(
-          (findNode(study, 'Frame', (node) => 'context' in node) as {
-            context: string;
-          })?.context
-        ),
+      String(findNode(study, 'Frame', (node) => 'context' in node)?.context),
     ],
-  ])('%s rule table maps each figure to the key its trials score', (_, text) => {
-    expect(rulePairs(text())).toEqual(scored);
-  });
+  ])(
+    '%s rule table maps each figure to the key its trials score',
+    (_, text) => {
+      expect(rulePairs(text)).toEqual(scored);
+    }
+  );
 });

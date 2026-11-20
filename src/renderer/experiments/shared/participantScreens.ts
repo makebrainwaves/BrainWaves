@@ -99,9 +99,7 @@ const notes = (lines: (string | undefined)[], eyes = STILLNESS_LINE) =>
   `<ul class="bw-participant-notes">${lines
     .filter(Boolean)
     .map((line) => `<li>${line}</li>`)
-    .join(
-      ''
-    )}\${this.parameters.isEEGEnabled ? '<li>${eyes}</li>' : ''}</ul>`;
+    .join('')}\${this.parameters.isEEGEnabled ? '<li>${eyes}</li>' : ''}</ul>`;
 
 /** `phase` is a supplemental tag centered at the top of the screen, outside the centered content. */
 const screen = (main: string, footer: string, phase = '') =>

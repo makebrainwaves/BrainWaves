@@ -87,8 +87,7 @@ export const multitaskingExperimentObject = {
             'before:prepare': initMultitaskingResponseHandlers,
           },
           title: 'Instructions',
-          content:
-            `<main>
+          content: `<main>
 
 <div class="instruction" id='screen_1' style="display:block">
   <p>
@@ -230,8 +229,7 @@ export const multitaskingExperimentObject = {
         },
         {
           type: 'lab.canvas.Frame',
-          context:
-            `<main class="content-vertical-center content-horizontal-center">\n  <canvas />\n</main>\n\n${ruleFooter}`,
+          context: `<main class="content-vertical-center content-horizontal-center">\n  <canvas />\n</main>\n\n${ruleFooter}`,
           contextSelector: 'canvas',
           files: {},
           parameters: {},
