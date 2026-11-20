@@ -135,7 +135,10 @@ p {
 
 /* Beats lab.css's viewport-sized fullscreen mount (and Tailwind's
    `.container` width) so the screen fits the space it is given, including
-   Preview's non-fullscreen mount. */
+   Preview's non-fullscreen mount. In the Run area this covers the tasks' own
+   screens too: at lab.css's `100vh` min-height their footers (key reminders,
+   Multitasking's rule table) sat below the fold under the RunBar. */
+.container.fullscreen,
 .container:has(> .bw-participant) {
   box-sizing: border-box;
   display: flex;
@@ -146,6 +149,18 @@ p {
   height: 100%;
   min-height: 0;
   margin: 0;
+}
+
+.container.fullscreen > main {
+  min-height: 0;
+}
+
+/* Multitasking's trial footer: its two-line rule table, small. */
+.container footer.bw-multitasking-rules {
+  flex-direction: column;
+  padding: 8px 24px 12px;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .bw-participant {
