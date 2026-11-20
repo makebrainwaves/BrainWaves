@@ -18,15 +18,16 @@ export const overview = {
 // no condition images: an arbitrary timeline has no faces and no houses, and
 // `renderConditionIcon` already falls through to its default for ''.
 export const background = {
+  title: `Background`,
   links: [],
-  first_column_statement: `A jsPsych timeline has no condition concept — only a
-  free-form "data" bag the author filled in however they liked.`,
-  first_column_question: `Which key in that bag names the condition?`,
-  second_column_statement: `Marker codes are numbers because MNE recovers events
+  idea: `A jsPsych timeline has no condition concept — only a
+  free-form "data" bag the author filled in however they liked.
+
+  Marker codes are numbers because MNE recovers events
   from a numeric channel. BrainWaves assigns them from the order you confirm, so
   the same condition gets the same code for every subject.`,
-  second_column_question: `Have you frozen the condition order before running
-  your first subject?`,
+  discuss: `Which key in that bag names the condition, and have you frozen the
+  condition order before running your first subject?`,
 };
 
 export const protocol = {

@@ -15,6 +15,42 @@ export interface ResponseMapping {
   stimulus: { src: string; alt: string } | { word: string; color: string };
 }
 
+/** A named source; `name` gives the source and year, e.g. "Stroop (1935), Journal of Experimental Psychology". */
+export interface SourceLink {
+  name: string;
+  address: string;
+}
+
+/** Background step content, rendered in field order; empty slots are skipped. */
+export interface BackgroundContent {
+  title: string;
+  /** The mechanism. Paragraphs split on blank lines. */
+  idea: string;
+  /** One hedged finding with a named source. Paragraphs split on blank lines. */
+  findings?: {
+    /** Defaults to "What researchers have found". */
+    title?: string;
+    text: string;
+    image?: string;
+    imageAlt?: string;
+  };
+  /** One real discussion question. */
+  discuss?: string;
+  /** A fun fact, labelled "Aside" and shown below the core content. Carries its own caveat. */
+  aside?: { text: string; image?: string };
+  video?: { caption: string; embedUrl: string };
+  links: SourceLink[];
+}
+
+/** Protocol "What we compare and measure" card. Conditions are the experiment's condition labels. */
+export interface CompareContent {
+  conditions: [string, string];
+  /** Response time, accuracy, or the ERP, in student words. */
+  measure: string;
+  /** The Analyze tab (and setting) where the comparison appears. */
+  whereInAnalyze: string;
+}
+
 export interface PrepareStepsProps {
   step: PrepareStepId;
   overview: {
@@ -22,25 +58,14 @@ export interface PrepareStepsProps {
     overview: string;
     links: { address: string; name: string }[];
   };
-  background: {
-    links: { address: string; name: string }[];
-    title?: string;
-    definition_title?: string;
-    definition_image?: string;
-    definition_image_alt?: string;
-    video?: { caption: string; embedUrl: string };
-    link_meta?: string;
-    fun_fact_image?: string;
-    first_column_statement: string;
-    first_column_question: string;
-    second_column_statement: string;
-    second_column_question: string;
-  };
+  background: BackgroundContent;
   protocol: { title: string; protocol: string; recording?: string };
+  compare?: CompareContent;
+  /** One or two lines for the teacher: screening, finger placement, eye guidance for EEG. */
+  teacherNote?: string;
   responses: ResponseMapping[];
   flow: FlowPhase[];
   icon?: string;
-  /** Embedded video shown on Background instead of the link buttons (Faces/Houses: Oliver Sacks). */
   onStep: (step: PrepareStepId) => void;
   onCollect: () => void;
   onPreviewStart: () => void;
@@ -60,7 +85,14 @@ export interface PrepareStepsProps {
 /** One built-in experiment's Prepare content, defined in its `experiments/<name>/prepare.ts`. */
 export type PrepareFixture = Pick<
   PrepareStepsProps,
-  'overview' | 'background' | 'protocol' | 'responses' | 'flow' | 'icon'
+  | 'overview'
+  | 'background'
+  | 'protocol'
+  | 'compare'
+  | 'teacherNote'
+  | 'responses'
+  | 'flow'
+  | 'icon'
 >;
 
 /** The single centered reading column shared by the stepper, step content and action row. */
@@ -246,6 +278,9 @@ function FlowTimeline({ phases }: { phases: FlowPhase[] }) {
   );
 }
 
+/** Splits authored copy into paragraphs on blank lines. */
+const paragraphs = (text: string) => text.split(/\n\s*\n/);
+
 function OverviewView({
   overview,
   icon,
@@ -257,7 +292,7 @@ function OverviewView({
     <section className="flex items-start gap-8">
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <h1 className="m-0">{overview.title}</h1>
-        {overview.overview.split(/\n\s*\n/).map((paragraph, i) => (
+        {paragraphs(overview.overview).map((paragraph, i) => (
           <p
             key={paragraph}
             className={
@@ -284,76 +319,81 @@ function BackgroundView({
 }) {
   return (
     <section className="flex flex-col gap-5">
-      <h1 className="m-0">{background.title ?? 'Background'}</h1>
-      <p className="experiment-design-lead">
-        {background.first_column_statement}
-      </p>
-      {background.first_column_question && (
+      <h1 className="m-0">{background.title}</h1>
+      {paragraphs(background.idea).map((paragraph, i) => (
+        <p
+          key={paragraph}
+          className={
+            i === 0 ? 'experiment-design-lead' : 'experiment-design-copy'
+          }
+        >
+          {paragraph}
+        </p>
+      ))}
+      {background.findings && (
         <div className="flex items-start gap-4 rounded-lg border border-[#ececf1] bg-white p-5">
           {icon && (
             <div className="flex h-[56px] w-[56px] flex-none items-center justify-center rounded-lg border border-[#f6ead3] bg-[#fffaf0]">
               <img src={icon} alt="" className="max-w-9" />
             </div>
           )}
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
             <h2 className={CARD_TITLE}>
-              {background.definition_title ?? 'What researchers found'}
+              {background.findings.title ?? 'What researchers have found'}
             </h2>
-            <p className="experiment-design-card-copy">
-              {background.first_column_question}
-            </p>
+            {paragraphs(background.findings.text).map((paragraph) => (
+              <p key={paragraph} className="experiment-design-card-copy">
+                {paragraph}
+              </p>
+            ))}
           </div>
-          {background.definition_image && (
+          {background.findings.image && (
             <img
-              src={background.definition_image}
-              alt={background.definition_image_alt ?? ''}
+              src={background.findings.image}
+              alt={background.findings.imageAlt ?? ''}
               className="w-[160px] flex-none rounded-md"
             />
           )}
         </div>
       )}
-      {(background.second_column_statement ||
-        background.second_column_question) && (
-        <div className="flex items-center gap-4 rounded-lg border border-accent-light bg-[#fff8e1] p-5">
+      {background.discuss && (
+        <div className="flex flex-col gap-1 rounded-lg border border-[#e3def7] bg-[#f4f2ff] p-5">
+          <h2 className={cn(EYEBROW, 'm-0')}>TALK ABOUT IT</h2>
+          <p className="experiment-design-card-copy">{background.discuss}</p>
+        </div>
+      )}
+      {background.aside && (
+        <aside className="flex items-center gap-4 rounded-lg border border-accent-light bg-[#fff8e1] p-5">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <span className={cn(EYEBROW, 'text-[#7a5b00]')}>FUN FACT</span>
+            <h2 className={cn(EYEBROW, 'm-0 text-[#7a5b00]')}>ASIDE</h2>
             <p className="experiment-design-card-copy">
-              {[
-                background.second_column_statement,
-                background.second_column_question,
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              {background.aside.text}
             </p>
           </div>
-          {background.fun_fact_image && (
+          {background.aside.image && (
             <img
-              src={background.fun_fact_image}
+              src={background.aside.image}
               alt=""
               className="w-[60px] flex-none"
             />
           )}
-        </div>
+        </aside>
       )}
-      {background.video ? (
-        <VideoEmbed video={background.video} />
-      ) : (
-        background.links.map((link) => (
-          <div key={link.address} className="flex flex-wrap items-center gap-4">
+      {background.video && <VideoEmbed video={background.video} />}
+      {background.links.length > 0 && (
+        <section className="flex flex-col items-start gap-1">
+          <h2 className={cn(EYEBROW, 'm-0')}>SOURCES</h2>
+          {background.links.map((link) => (
             <Button
+              key={link.address}
               variant="link"
-              className="h-auto px-0 text-[16px] font-bold underline"
+              className="h-auto whitespace-normal px-0 text-left text-[16px] font-bold underline"
               onClick={() => window.open(link.address, '_blank')}
             >
               {link.name} ↗
             </Button>
-            {background.link_meta && (
-              <span className="text-[15px] text-ink-muted">
-                {background.link_meta}
-              </span>
-            )}
-          </div>
-        ))
+          ))}
+        </section>
       )}
     </section>
   );
@@ -381,12 +421,38 @@ function VideoEmbed({
   );
 }
 
+/** Protocol card naming the condition pair, the measure, and where it appears in Analyze. */
+function CompareCard({ compare }: { compare: CompareContent }) {
+  const rows = [
+    ['COMPARE', compare.conditions.join(' vs ')],
+    ['MEASURE', compare.measure],
+    ['IN ANALYZE', compare.whereInAnalyze],
+  ];
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-[#ececf1] bg-white p-5">
+      <h2 className={CARD_TITLE}>What we compare and measure</h2>
+      <dl className="m-0 grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-4">
+        {rows.map(([term, value]) => (
+          <div key={term} className="flex flex-col gap-1">
+            <dt className={EYEBROW}>{term}</dt>
+            <dd className="m-0 text-[16px] leading-[1.45] text-ink">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 function ProtocolView({
   protocol,
+  compare,
+  teacherNote,
   responses,
   flow,
 }: {
   protocol: PrepareStepsProps['protocol'];
+  compare?: CompareContent;
+  teacherNote?: string;
   responses: ResponseMapping[];
   flow: FlowPhase[];
 }) {
@@ -400,10 +466,17 @@ function ProtocolView({
         <ResponseDiagram responses={responses} />
         <FlowTimeline phases={flow} />
       </div>
+      {compare && <CompareCard compare={compare} />}
       {protocol.recording && (
         <div className="flex flex-col gap-1 rounded-lg border border-[#ececf1] bg-white p-5">
           <h2 className={CARD_TITLE}>What we&apos;re recording: EEG</h2>
           <p className="experiment-design-card-copy">{protocol.recording}</p>
+        </div>
+      )}
+      {teacherNote && (
+        <div className="flex flex-col gap-1 rounded-lg border border-dashed border-[#c9c2ee] p-4">
+          <h2 className={cn(EYEBROW, 'm-0')}>TEACHER NOTE</h2>
+          <p className="experiment-design-card-copy">{teacherNote}</p>
         </div>
       )}
     </section>
@@ -558,6 +631,8 @@ export default function PrepareSteps(props: PrepareStepsProps) {
             {step === 'protocol' && (
               <ProtocolView
                 protocol={props.protocol}
+                compare={props.compare}
+                teacherNote={props.teacherNote}
                 responses={props.responses}
                 flow={props.flow}
               />

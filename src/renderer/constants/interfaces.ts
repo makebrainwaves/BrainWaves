@@ -4,7 +4,10 @@
 
 import { ChildProcess } from 'child_process';
 import { EVENTS, EXPERIMENTS, SIGNAL_QUALITY } from './constants';
-import type { PrepareFixture } from '../components/PrepareSteps/PrepareSteps';
+import type {
+  BackgroundContent,
+  PrepareFixture,
+} from '../components/PrepareSteps/PrepareSteps';
 
 // --------------------------------------------------------------------
 // Experiment
@@ -123,20 +126,6 @@ interface OverviewText {
   overview: string;
   links: { address: string; name: string }[];
 }
-interface BackgroundText {
-  links: {
-    address: string;
-    name: string;
-  }[];
-  title?: string;
-  definition_title?: string;
-  link_meta?: string;
-  fun_fact_image?: string; // image URL from Vite import
-  first_column_statement: string;
-  first_column_question: string;
-  second_column_statement: string;
-  second_column_question: string;
-}
 interface ProtocolText {
   title: string;
   protocol: string;
@@ -153,7 +142,7 @@ export interface Experiment {
   icon: string; // image URL from Vite import
   params: ExperimentParameters;
   text: {
-    background: BackgroundText;
+    background: BackgroundContent;
     overview: OverviewText;
     protocol: ProtocolText;
   };

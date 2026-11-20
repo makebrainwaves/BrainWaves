@@ -3,17 +3,33 @@ import ffa from './ffa.png';
 
 export const background = {
   title: `Why faces are special`,
-  first_column_statement: `We look at faces more than anything else. A face tells you how someone feels in an instant — so researchers suspect the brain handles faces on its own track. Researchers believe the brain dedicates a specific region to recognizing faces because recognizing faces quickly and accurately is critical for human survival and social interaction. Furthermore, most human faces all look mostly the same: eyes, ears, and nose in basically the same position. Dedicated neural hardware lets us more accurately tell individuals apart.`,
-  definition_title: `The Fusiform Face Area`,
-  definition_image: ffa,
-  definition_image_alt: `The fusiform face area, highlighted in red on the underside of the brain`,
-  first_column_question: `The fusiform face area (FFA) is a specialized region in the human visual system located in the inferior temporal cortex. It plays a critical role in face perception and recognition.`,
-  second_column_statement: `Brad Pitt says he has face blindness — though he’s never been tested.`,
-  fun_fact_image: brad,
-  second_column_question: ``,
+  idea: `A face tells you who someone is and how they feel, in a fraction of a second. Yet faces are hard to tell apart: almost every face has two eyes above a nose above a mouth.
+
+So researchers have asked whether the brain handles faces in its own way, compared with other objects.`,
+  findings: {
+    text: `Brain scans (fMRI) found a patch on the underside of the brain, the fusiform face area, that responds more to faces than to other objects, houses included (Kanwisher and colleagues, 1997).
+
+EEG can't see that deep or show where a signal starts, but it is precise about when. Faces typically produce a bigger negative dip about 170 ms after the picture appears, called the N170. It is strongest on the sides of the head, near the ears (Bentin and colleagues, 1996). The Muse's TP9 and TP10 sensors sit there.`,
+    image: ffa,
+    imageAlt: `The fusiform face area, highlighted in red on the underside of the brain, where brain scans found it`,
+  },
+  discuss: `Houses differ from faces in more than being a face: shape, color, how much detail they have. If faces give a bigger dip, what else could explain it, and which pictures would you add to find out?`,
+  aside: {
+    text: `Brad Pitt has said he finds faces hard to recognize. He has never been tested, so nobody knows whether he has face blindness (prosopagnosia): a self-report is not a diagnosis.`,
+    image: brad,
+  },
   video: {
     caption: 'Oliver Sacks and face blindness',
     embedUrl: 'https://www.youtube-nocookie.com/embed/k5bvnXYIQG8',
   },
-  links: [],
+  links: [
+    {
+      name: 'Kanwisher, McDermott & Chun (1997), Journal of Neuroscience: the fusiform face area',
+      address: 'https://doi.org/10.1523/JNEUROSCI.17-11-04302.1997',
+    },
+    {
+      name: 'Bentin and colleagues (1996), Journal of Cognitive Neuroscience: the N170',
+      address: 'https://doi.org/10.1162/jocn.1996.8.6.551',
+    },
+  ],
 };
